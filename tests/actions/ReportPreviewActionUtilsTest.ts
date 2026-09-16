@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isGroupPolicy} from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
 import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
@@ -93,6 +93,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE);
     });
@@ -137,6 +138,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -182,6 +184,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -228,6 +231,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -275,6 +279,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -320,6 +325,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -365,6 +371,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -397,7 +404,6 @@ describe('getReportPreviewAction', () => {
             owner: OWNER_EMAIL,
             ownerAccountID: OWNER_ACCOUNT_ID,
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             approver: OWNER_EMAIL,
             preventSelfApproval: false,
@@ -430,6 +436,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: SUBMITTER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -490,6 +497,7 @@ describe('getReportPreviewAction', () => {
                 violationsData: violations,
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -536,6 +544,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -579,6 +588,7 @@ describe('getReportPreviewAction', () => {
                     bankAccountList: {},
                     reportMetadata: undefined,
                     ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
@@ -619,6 +629,7 @@ describe('getReportPreviewAction', () => {
                     bankAccountList: {},
                     reportMetadata: undefined,
                     ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -660,6 +671,7 @@ describe('getReportPreviewAction', () => {
                     bankAccountList: {},
                     reportMetadata: undefined,
                     ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -698,6 +710,7 @@ describe('getReportPreviewAction', () => {
                     bankAccountList: {},
                     reportMetadata: undefined,
                     ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -737,6 +750,7 @@ describe('getReportPreviewAction', () => {
                     bankAccountList: {},
                     reportMetadata: undefined,
                     ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
@@ -780,6 +794,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
     });
@@ -817,6 +832,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -865,8 +881,63 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('canPay should not return PAY for the expense owner in a 1:1 IOU on a personal policy with manual reimbursement', async () => {
+        const managerAccountID = CURRENT_USER_ACCOUNT_ID + 1;
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            managerID: managerAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -100,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        policy.employeeList = {
+            [CURRENT_USER_EMAIL]: {
+                email: CURRENT_USER_EMAIL,
+                role: CONST.POLICY.ROLE.ADMIN,
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+
+        const {isGroupPolicy: actualIsGroupPolicy} = jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils');
+        jest.mocked(isGroupPolicy).mockImplementation(actualIsGroupPolicy);
+
+        try {
+            expect(
+                getReportPreviewAction({
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    report,
+                    policy,
+                    transactions: [transaction],
+                    bankAccountList: {},
+                    reportMetadata: undefined,
+                    ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
+                }),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        } finally {
+            jest.mocked(isGroupPolicy).mockReturnValue(true);
+        }
     });
 
     it('canPay should return false for Expense report with zero total amount', async () => {
@@ -903,6 +974,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -944,6 +1016,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -986,6 +1059,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -1028,6 +1102,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -1086,6 +1161,7 @@ describe('getReportPreviewAction', () => {
                 invoiceReceiverPolicy,
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -1132,6 +1208,7 @@ describe('getReportPreviewAction', () => {
                 invoiceReceiverPolicy,
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -1173,6 +1250,7 @@ describe('getReportPreviewAction', () => {
                 invoiceReceiverPolicy: undefined,
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -1208,6 +1286,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
@@ -1250,6 +1329,7 @@ describe('getReportPreviewAction', () => {
                 isDEWSubmitPending: true,
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             });
 
             // Then it should return VIEW because DEW submission is pending offline
@@ -1297,6 +1377,7 @@ describe('getReportPreviewAction', () => {
                 isDEWSubmitPending: false,
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             });
 
             // Then it should allow SUBMIT because failed submissions can be retried (not VIEW)
@@ -1344,6 +1425,7 @@ describe('getReportPreviewAction', () => {
                 isDEWSubmitPending: false,
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             });
 
             // Then it should not return VIEW because DEW submit did not fail and regular logic applies
@@ -1393,6 +1475,7 @@ describe('getReportPreviewAction', () => {
                     pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
                 },
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             });
 
             // Then it should return VIEW because DEW approval is pending offline
@@ -1438,6 +1521,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             });
 
             // Then it should return APPROVE because DEW approval is not pending

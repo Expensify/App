@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
@@ -24,6 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -31,7 +31,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
-    /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
 
     /** Pre-filtered violations for this transaction. Computed once at the parent so each row doesn't subscribe to Onyx individually. */
@@ -61,22 +60,11 @@ type MoneyRequestReportTransactionItemProps = {
     /** Callback function triggered upon long pressing a transaction. */
     handleLongPress: (transactionID: string) => void;
 
-    /** Whether the transaction is selected */
     isSelected: boolean;
-
-    /** The size of the date column */
     dateColumnSize: TableColumnSize;
-
-    /** The size of the posted column */
     postedColumnSize: TableColumnSize;
-
-    /** The size of the amount column */
     amountColumnSize: TableColumnSize;
-
-    /** The size of the tax amount column */
     taxAmountColumnSize: TableColumnSize;
-
-    /** Columns to show */
     columns: SearchColumnType[];
 
     /** Callback function that navigates to the transaction thread */
@@ -85,13 +73,8 @@ type MoneyRequestReportTransactionItemProps = {
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
 
-    /** List of cards for the user */
     nonPersonalAndWorkspaceCards: CardList;
-
-    /** Whether this is the last item in the list */
     isLastItem?: boolean;
-
-    /** Whether the list is horizontally scrollable */
     shouldScrollHorizontally?: boolean;
 
     /** Precomputed transaction-thread report ID for this transaction. Lets the RBR row early-return for clean rows
@@ -108,7 +91,6 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
     /** Highlight animation style, computed by the parent so its state survives the narrow↔wide swap on resize. */
     animatedHighlightStyle: ReturnType<typeof useAnimatedHighlightStyle>;
 
-    /** Whether to skip deferring the RBR content. */
     shouldSkipDeferRBR?: boolean;
 };
 
@@ -147,6 +129,14 @@ function MoneyRequestReportTransactionItemBody({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const shouldUseMediumNarrowLayout = isMediumScreenWidth && !shouldScrollHorizontally;
+    const shouldUseNarrowTransactionRow = shouldUseNarrowLayout || shouldUseMediumNarrowLayout;
+    let transactionRowStyle: StyleProp<ViewStyle> = [styles.ph3, styles.noBorderRadius];
+    if (shouldUseNarrowLayout) {
+        transactionRowStyle = [styles.p4, styles.noBorderRadius];
+    } else if (shouldUseMediumNarrowLayout) {
+        transactionRowStyle = [styles.p3, styles.pv2, styles.noBorderRadius];
+    }
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
 
@@ -195,7 +185,7 @@ function MoneyRequestReportTransactionItemBody({
                 }}
                 accessibilityLabel={translate('iou.viewDetails')}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM}
-                role={getButtonRole(true)}
+                role={CONST.ROLE.BUTTON}
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
@@ -230,12 +220,13 @@ function MoneyRequestReportTransactionItemBody({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowTooltip
-                        shouldUseNarrowLayout={shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally)}
+                        shouldUseNarrowLayout={shouldUseNarrowTransactionRow}
+                        shouldUseFullHeightEditableCellHoverTarget={!shouldUseNarrowTransactionRow}
                         shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={!shouldUseNarrowLayout ? [styles.p3, styles.pv2, styles.noBorderRadius] : [styles.p4, styles.noBorderRadius]}
+                        style={transactionRowStyle}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}

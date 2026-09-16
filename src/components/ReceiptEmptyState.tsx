@@ -1,6 +1,7 @@
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -28,10 +29,7 @@ type ReceiptEmptyStateProps = {
     /** Whether the receipt action is disabled */
     disabled?: boolean;
 
-    /** Whether the receipt is a thumbnail */
     isThumbnail?: boolean;
-
-    /** Whether the receipt is in the money request view */
     isInMoneyRequestView?: boolean;
 
     /** Whether the receipt empty state should extend to the full height of the container. */
@@ -45,7 +43,6 @@ type ReceiptEmptyStateProps = {
     /** Callback to be called when the image loads */
     onLoad?: () => void;
 
-    /** Whether it's displayed in Wide RHP */
     isDisplayedInWideRHP?: boolean;
 
     /** Callback to be called when a receipt is selected */
@@ -85,13 +82,14 @@ function ReceiptEmptyState({
     setReceiptFile = () => {},
 }: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
     const [isHovered, setIsHovered] = useState(false);
     const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'ReceiptPlus']);
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFile);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptFile);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = isCompact
@@ -137,7 +135,6 @@ function ReceiptEmptyState({
                     style={containerStyle}
                 >
                     {PDFValidationComponent}
-                    {ErrorModal}
                     {isCompact ? (
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
                             <Icon
@@ -164,11 +161,11 @@ function ReceiptEmptyState({
                                         height={variables.eReceiptEmptyIconWidth}
                                     />
                                     {!isThumbnail && (
-                                        <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, {width: variables.avatarSizeSmall, height: variables.avatarSizeSmall}]}>
+                                        <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL))]}>
                                             <ReceiptPlaceholderPlusIcon
                                                 circleFill={theme.success}
                                                 plusFill={theme.receiptPlaceholderPlus}
-                                                size={variables.avatarSizeSmall}
+                                                size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL) - styles.moneyRequestAttachReceiptThumbnailIcon.borderWidth * 2}
                                             />
                                         </View>
                                     )}

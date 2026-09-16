@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
 import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -43,7 +42,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         if (isLoggingInAsNewUser) {
             // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin);
+            signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return;
         }
 
@@ -95,10 +94,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'LogOutPreviousUserPage',
-    };
-    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    return <FullScreenLoadingIndicator />;
 }
 
 export default LogOutPreviousUserPage;

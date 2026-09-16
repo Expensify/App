@@ -22,6 +22,8 @@ function BaseParticipantPicker({
     onParticipantsAdded,
     onFinish,
     onClose,
+    onCloseForReferralNavigation,
+    shouldBlockParticipantSelection,
 }: ParticipantPickerProps) {
     const {translate} = useLocalize();
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -40,9 +42,10 @@ function BaseParticipantPicker({
             isWorkspacesOnly={isWorkspacesOnly}
             shouldExcludeP2P={shouldExcludeP2P}
             onRestrictedParticipantSelected={onClose}
-            onCloseParticipantPicker={onClose}
+            onCloseParticipantPicker={onCloseForReferralNavigation ?? onClose}
             initiallySelectedReportID={selectedParticipant?.reportID}
             shouldMoveSelectedToTop
+            shouldBlockParticipantSelection={shouldBlockParticipantSelection}
         />
     );
 

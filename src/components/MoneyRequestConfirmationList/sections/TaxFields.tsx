@@ -49,8 +49,8 @@ type TaxFieldsProps = {
 function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, clearFormErrors}: TaxFieldsProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
-    const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
+    const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -88,13 +88,14 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
         const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
-        // Clear a previously surfaced tax error as the user edits; validation re-runs on submit.
-        clearFormErrors(['iou.error.invalidTaxAmount']);
+        onTaxAmountEmptyChange?.(newAmount.trim() === '');
+
+        clearFormErrors(['iou.error.invalidTaxAmount', 'iou.error.invalidAmount']);
 
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -102,9 +103,6 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     };
 
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled) {
-            return;
-        }
         // Compare the numeric value rather than the formatted string. An in-progress edit such as "5.0" (or an
         // empty field) represents the same stored amount as the re-padded "5.00", so it must not be overwritten
         // while the user is typing. Only refresh the field when the stored tax amount genuinely differs (e.g. the
@@ -117,14 +115,22 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             }
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput]);
+        onTaxAmountEmptyChange?.(false);
+    }, [taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
 
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
+        if (canModifyTaxFields) {
+            return () => onTaxAmountEmptyChange?.(false);
+        }
+        onTaxAmountEmptyChange?.(false);
+    }, [canModifyTaxFields, onTaxAmountEmptyChange]);
+
+    useEffect(() => {
+        if (formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
             return;
         }
         clearFormErrors(['iou.error.invalidTaxAmount']);
-    }, [isNewManualExpenseFlowEnabled, formError, taxAmount, maxTaxAmount, clearFormErrors]);
+    }, [formError, taxAmount, maxTaxAmount, clearFormErrors]);
 
     return (
         <>
@@ -149,7 +155,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
             />
-            {isNewManualExpenseFlowEnabled && canModifyTaxFields ? (
+            {canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
                         numberFormRef={numberFormRef}

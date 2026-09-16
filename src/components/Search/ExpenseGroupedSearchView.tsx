@@ -2,6 +2,7 @@ import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/typ
 
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getPlatform from '@libs/getPlatform';
 import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
@@ -36,6 +37,8 @@ type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtr
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+const isGroupRowExiting = (item: SearchListItem) => isRowDeleted(item) || (isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted));
 
 const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
 
@@ -96,6 +99,7 @@ function ExpenseGroupedSearchView({
     columns,
     canSelectMultiple,
     isActionColumnWide,
+    columnSizeOptions,
     isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
     isMobileSelectionModeEnabled,
@@ -115,6 +119,10 @@ function ExpenseGroupedSearchView({
     const {type, groupBy} = queryJSON;
     const {isLargeScreenWidth} = useResponsiveLayout();
 
+    // Read once for the whole list and handed to each GroupHeader, rather than each of them subscribing on its own:
+    // a group header is a recycled row, and it already pays for a useWindowDimensions inside useResponsiveLayout.
+    const {windowWidth} = useWindowDimensions();
+
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.
     const shouldSplit = !!groupBy && isLargeScreenWidth && getPlatform() === CONST.PLATFORM.WEB;
@@ -133,9 +141,6 @@ function ExpenseGroupedSearchView({
         });
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {
         isOffline,
@@ -216,7 +221,7 @@ function ExpenseGroupedSearchView({
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('header_', '');
+            const originalKey = item.groupKeyForList;
             return (
                 <GroupHeader
                     item={item}
@@ -233,19 +238,19 @@ function ExpenseGroupedSearchView({
                     isFocused={isItemFocused}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={false}
-                    originalKey={originalKey}
                     lastPaymentMethod={lastPaymentMethod}
                     personalPolicyID={personalPolicyID}
                     userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     visibleColumns={visibleColumns}
+                    windowWidth={windowWidth}
                 />
             );
         }
 
         if (isGroupChildrenContainerItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('children_', '');
-            const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
+            const originalKey = item.groupKeyForList;
+            const containerNewTransactionID = newTransactionIDByItemKey.get(originalKey);
             return (
                 <GroupChildrenContainer
                     item={item}
@@ -259,11 +264,9 @@ function ExpenseGroupedSearchView({
                     onLongPressRow={onLongPressRow}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onUndelete={handleUndelete}
+                    isFirstItem={index - 1 === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     newTransactionID={containerNewTransactionID}
-                    bankAccountList={bankAccountList}
-                    cardFeeds={cardFeeds}
-                    conciergeReportID={conciergeReportID}
                 />
             );
         }
@@ -274,6 +277,7 @@ function ExpenseGroupedSearchView({
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
+                isRowExiting={isGroupRowExiting(item)}
             >
                 <TransactionGroupListItem
                     showTooltip
@@ -295,7 +299,6 @@ function ExpenseGroupedSearchView({
                     onFocus={onFocus}
                     newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
-                    keyForList={item.keyForList}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                 />
@@ -311,6 +314,7 @@ function ExpenseGroupedSearchView({
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
             isKeyboardShown={isKeyboardShown}

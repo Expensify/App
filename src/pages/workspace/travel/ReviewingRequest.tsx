@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -33,7 +33,7 @@ function ReviewingRequest() {
             illustrationBackgroundColor={colors.tangerine700}
             illustration={illustrations.PendingTravel}
             illustrationStyle={styles.travelCardIllustration}
-            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
             titleStyles={styles.textHeadlineH1}
         />
     );

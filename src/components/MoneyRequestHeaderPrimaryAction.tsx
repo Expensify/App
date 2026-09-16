@@ -1,4 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -46,6 +47,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -80,6 +82,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
     const {duplicateTransactions} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const primaryAction =
         report && parentReport && transaction
@@ -90,54 +93,66 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD) {
             return (
                 <Button
-                    success
-                    text={translate('iou.unhold')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
                             return;
                         }
-                        changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser);
+                        changeMoneyRequestHoldStatus(
+                            parentReportAction,
+                            transaction,
+                            isOffline,
+                            currentUserLogin ?? '',
+                            accountID,
+                            rawTransactionViolations,
+                            isTrackIntentUser,
+                            delegateAccountID,
+                            rules,
+                        );
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.unhold')}</Button.Text>
+                </Button>
             );
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
             return (
                 <Button
-                    success
-                    text={translate('iou.reject.markAsResolved')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!transaction?.transactionID) {
                             return;
                         }
                         markRejectViolationAsResolved(transaction.transactionID, isOffline, rawTransactionViolations, reportID);
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>
+                </Button>
             );
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES) {
             return (
                 <Button
-                    success
-                    text={translate('iou.reviewDuplicates')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
                             return;
                         }
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(reportID)));
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.reviewDuplicates')}</Button.Text>
+                </Button>
             );
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE) {
             return (
                 <Button
-                    success
-                    text={translate('violations.keepThisOne')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
                             return;
@@ -162,19 +177,22 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                             ),
                         );
                     }}
-                />
+                >
+                    <Button.Text>{translate('violations.keepThisOne')}</Button.Text>
+                </Button>
             );
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH) {
             return (
                 <Button
-                    success
-                    text={translate('iou.markAsCash')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.markAsCash')}</Button.Text>
+                </Button>
             );
         }
 

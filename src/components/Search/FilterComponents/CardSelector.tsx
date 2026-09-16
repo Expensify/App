@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import {buildCardsData} from '@libs/CardFeedUtils';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -137,7 +136,6 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata);
     const shouldShowLoadingState = isLoadingOnyxData || (!areCardsLoaded && !isOffline);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: isLoadingOnyxData};
 
     return (
         <ListFilterView
@@ -152,7 +150,6 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                         color={theme.spinner}
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.pl3]}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (

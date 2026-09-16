@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -10,11 +10,13 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
+import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,7 +29,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
@@ -41,6 +43,8 @@ import {View} from 'react-native';
 
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
+const FULL_WIDTH_TAB_ROOT_SCREENS = new Set<string>([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
+
 function getActiveTabRoute(rootState: NavigationState | undefined) {
     if (!rootState) {
         return undefined;
@@ -51,6 +55,18 @@ function getActiveTabRoute(rootState: NavigationState | undefined) {
     // and just be visually covered by it.
     const tabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
     return tabRoute?.state?.routes?.[tabRoute.state.index ?? 0];
+}
+
+function useDebugTabViewHeight(): number {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const {status} = useIndicatorStatus();
+
+    if (shouldUseNarrowLayout || !isDebugModeEnabled || !getSettingsMessage(status)) {
+        return 0;
+    }
+
+    return variables.debugTabViewHeight;
 }
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
@@ -99,9 +115,9 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return ROUTES.WORKSPACE_MEMBERS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
-            return ROUTES.SETTINGS_CONTACT_METHODS.route;
+            return createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
-            return ROUTES.SETTINGS_CONTACT_METHODS.route;
+            return createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path);
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
@@ -137,8 +153,10 @@ function DebugTabView({selectedTab}: Props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
+    const {shouldHideSidePanel} = useSidePanelDisplayStatus();
     const {windowWidth} = useWindowDimensions();
+    const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, indicatorPolicyID} = useIndicatorStatus();
@@ -156,9 +174,8 @@ function DebugTabView({selectedTab}: Props) {
             return false;
         }
         const focusedLeaf = getFocusedLeafScreenName(activeRoute.state) ?? activeRoute.name;
-        // Scoped to WORKSPACES_LIST — the only full-width tab root among the three tabs
-        // (Inbox/Settings/Workspaces) gated by the tab filter further below.
-        return focusedLeaf === SCREENS.WORKSPACES_LIST;
+        // Both roots of the Workspaces tab render WorkspaceListLayout and have no sidebar.
+        return FULL_WIDTH_TAB_ROOT_SCREENS.has(focusedLeaf);
     });
 
     const message = useMemo((): TranslationPaths | undefined => {
@@ -222,7 +239,7 @@ function DebugTabView({selectedTab}: Props) {
     if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize};
+        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize - sidePanelOffset};
     } else {
         positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
     }
@@ -238,7 +255,14 @@ function DebugTabView({selectedTab}: Props) {
         >
             <View
                 testID="DebugTabView"
-                style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
+                style={[
+                    StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                    styles.p3,
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    styles.alignItemsCenter,
+                    StyleUtils.getMinimumHeight(variables.debugTabViewHeight),
+                ]}
             >
                 <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
                     <Icon
@@ -255,4 +279,5 @@ function DebugTabView({selectedTab}: Props) {
     );
 }
 
+export {getSettingsMessage, useDebugTabViewHeight};
 export default DebugTabView;

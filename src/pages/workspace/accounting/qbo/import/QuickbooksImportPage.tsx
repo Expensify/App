@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +12,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 
 import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -28,6 +30,7 @@ type QBOSectionType = {
 
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -88,6 +91,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             displayName="QuickbooksImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbo.importDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.importDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -100,13 +104,13 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
                     key={section.description}
                     pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={section.description}
                         onPress={section.action}
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                        value={section.title}
+                    >
+                        {PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>

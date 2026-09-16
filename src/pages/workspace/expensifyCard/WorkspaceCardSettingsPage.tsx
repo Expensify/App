@@ -1,4 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings, toMonthlySettlementDate} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -29,6 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -36,7 +38,7 @@ type WorkspaceCardSettingsPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -55,6 +57,12 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
+    const settlementDate = toMonthlySettlementDate(settings?.monthlySettlementDate);
+    // Nothing is shown when the settlement date can't be resolved to a real day — an empty hint beats a wrong settlement date.
+    const monthlySettlementDateText =
+        settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settlementDate
+            ? translate('workspace.expensifyCard.monthlySettlementDate', format(settlementDate, CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale}))
+            : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -76,11 +84,10 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                 >
                     <View>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.expensifyCard.settlementAccount')}
-                                title={bankAccountNumber ? `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}` : ''}
-                                shouldShowRightIcon
+                            <MenuItemField
+                                name={translate('workspace.expensifyCard.settlementAccount')}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path))}
+                                value={bankAccountNumber ? `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}` : undefined}
                             />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
@@ -102,7 +109,9 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                             </TextLink>
                                             .
                                         </>
-                                    ) : undefined
+                                    ) : (
+                                        monthlySettlementDateText
+                                    )
                                 }
                             />
                         </OfflineWithFeedback>

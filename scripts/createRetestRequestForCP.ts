@@ -24,6 +24,13 @@ const TAGS_PER_PAGE = 100;
 // Slack workflow webhook trigger. Empty values are rejected by Slack, so blanks are sent as this instead.
 const EMPTY = 'N/A';
 
+// The employee whitelist in Salt is what maps a GitHub login to a Slack member ID.
+const WHITELIST_REPO = 'Salt';
+const WHITELIST_PATH = 'www/files/www-whitelist.php';
+
+// Each whitelist entry lists 'github' a few lines above 'slack', so keep the match bounded to one entry.
+const WHITELIST_ENTRY_REGEX = /'github'\s*=>\s*'([^']+)'[\s\S]{0,400}?'slack'\s*=>\s*'([^']+)'/g;
+
 // Marker left on a PR after we file its retest request, so a re-run of the deploy doesn't file a duplicate.
 const getRetestMarker = (tag: string) => `<!-- retest-requested:${tag} -->`;
 
@@ -34,6 +41,13 @@ type RetestHit = {
     // A single PR can fix more than one deploy blocker, so all of them go in one retest request.
     blockerIssueURLs: string[];
     prTitle: string;
+    // Who asked for the cherry-pick, so QA knows who to chase for clarifications.
+    author: string;
+};
+
+type CherryPick = {
+    sourceSHA: string;
+    actor: string;
 };
 
 /**
@@ -78,34 +92,77 @@ async function getDeployedCommitMessages(deploySHA: string, deployTag: string): 
 }
 
 /**
- * `git cherry-pick -x` records `(cherry picked from commit <sha>)` in each new commit.
- * For the picked PR, that source SHA is the PR's original merge commit on main,
- * so we can resolve it back to the original pull request.
+ * A cherry-pick commit carries two trailers we care about:
+ *   1. `(cherry picked from commit <sha>)` from `git cherry-pick -x`, which points at the PR's original merge commit.
+ *   2. `(cherry-picked to <target> by <login>)` amended by the cherry-pick workflow, which names who asked for it.
+ * They live in the same message, so each cherry-pick keeps its own requester.
  */
-function getCherryPickSourceSHAs(commitMessages: string[]): string[] {
-    const shas = new Set<string>();
+function getCherryPicks(commitMessages: string[]): CherryPick[] {
+    const actorBySHA = new Map<string, string>();
     for (const message of commitMessages) {
+        const actor = message.match(/\(cherry-picked to .* by (.+?)\)/)?.[1] ?? '';
         for (const match of message.matchAll(/cherry picked from commit ([0-9a-f]{7,40})/g)) {
-            shas.add(match[1]);
+            if (actorBySHA.has(match[1])) {
+                continue;
+            }
+            actorBySHA.set(match[1], actor);
         }
     }
-    return [...shas];
+    return [...actorBySHA].map(([sourceSHA, actor]) => ({sourceSHA, actor}));
 }
 
-/** Resolve the original App PRs that produced the given merge commits. */
-async function getPullRequestsForSHAs(shas: string[]): Promise<number[]> {
-    const prNumbers = new Set<number>();
-    for (const sha of shas) {
+/** Resolve the original App PRs that produced the cherry-picked commits, keeping who requested each one. */
+async function getCherryPickActorByPullRequest(cherryPicks: CherryPick[]): Promise<Map<number, string>> {
+    const actorByPR = new Map<number, string>();
+    for (const {sourceSHA, actor} of cherryPicks) {
         const {data: pulls} = await GithubUtils.octokit.repos.listPullRequestsAssociatedWithCommit({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            commit_sha: sha,
+            commit_sha: sourceSHA,
         });
         for (const pull of pulls) {
-            prNumbers.add(pull.number);
+            if (actorByPR.has(pull.number)) {
+                continue;
+            }
+            actorByPR.set(pull.number, actor);
         }
     }
-    return [...prNumbers];
+    return actorByPR;
+}
+
+/** Map every GitHub login in the employee whitelist to its Slack member ID. */
+async function getSlackIDsByGithubLogin(): Promise<Map<string, string>> {
+    const slackIDs = new Map<string, string>();
+    try {
+        const {data} = await GithubUtils.octokit.repos.getContent({
+            owner: CONST.GITHUB_OWNER,
+            repo: WHITELIST_REPO,
+            path: WHITELIST_PATH,
+        });
+        if (!('content' in data)) {
+            return slackIDs;
+        }
+        const whitelist = Buffer.from(data.content, 'base64').toString('utf8');
+        for (const match of whitelist.matchAll(WHITELIST_ENTRY_REGEX)) {
+            slackIDs.set(match[1], match[2]);
+        }
+    } catch (error) {
+        // Losing the mention is not worth failing the deploy over, so fall back to the plain GitHub login.
+        console.log('Could not read the employee whitelist, falling back to GitHub logins.', error);
+    }
+    return slackIDs;
+}
+
+/**
+ * Give Slack the raw member ID for a GitHub login.
+ * The retest workflow wraps this into a mention itself, so sending anything pre-formatted would break it.
+ * People outside the whitelist (open source contributors) keep their plain login so QA can still identify them.
+ */
+function getSlackAuthor(githubLogin: string, slackIDsByGithubLogin: Map<string, string>): string {
+    if (!githubLogin) {
+        return EMPTY;
+    }
+    return slackIDsByGithubLogin.get(githubLogin) ?? githubLogin;
 }
 
 /** Pull every App issue number linked anywhere in a PR body. */
@@ -137,6 +194,7 @@ function buildRetestPayload(hit: RetestHit): Record<string, string> {
         ghIssueLink: hit.blockerIssueURLs.join(' '),
         adhocLink: EMPTY,
         requesterName: hit.prAuthor || EMPTY,
+        author: hit.author || EMPTY,
         cpLink: hit.prURL,
         platforms: 'Android, iOS, Web',
     };
@@ -174,13 +232,14 @@ async function run(): Promise<void> {
     }
 
     const commitMessages = await getDeployedCommitMessages(deploySHA, deployTag);
-    const sourceSHAs = getCherryPickSourceSHAs(commitMessages);
-    if (sourceSHAs.length === 0) {
+    const cherryPicks = getCherryPicks(commitMessages);
+    if (cherryPicks.length === 0) {
         console.log('No cherry-pick source commits found in this deploy, nothing to do.');
         return;
     }
 
-    const candidatePRNumbers = await getPullRequestsForSHAs(sourceSHAs);
+    const cherryPickActorByPR = await getCherryPickActorByPullRequest(cherryPicks);
+    const candidatePRNumbers = [...cherryPickActorByPR.keys()];
     if (candidatePRNumbers.length === 0) {
         console.log('No original PRs resolved from cherry-pick source commits, nothing to do.');
         return;
@@ -197,6 +256,7 @@ async function run(): Promise<void> {
         throw error;
     }
 
+    const slackIDsByGithubLogin = await getSlackIDsByGithubLogin();
     const checklistPRNumbers = new Set(checklist.PRList.map((item) => item.number));
     const blockerIssueByNumber = new Map(checklist.deployBlockers.map((item) => [item.number, item.url]));
 
@@ -233,6 +293,7 @@ async function run(): Promise<void> {
             prAuthor: pull.user?.login ?? '',
             blockerIssueURLs,
             prTitle: pull.title,
+            author: getSlackAuthor(cherryPickActorByPR.get(prNumber) ?? '', slackIDsByGithubLogin),
         });
     }
 
@@ -261,5 +322,5 @@ if (require.main === module) {
 }
 
 export default run;
-export {getCherryPickSourceSHAs, getLinkedIssueNumbers, buildRetestPayload, getRetestMarker};
+export {getCherryPicks, getLinkedIssueNumbers, buildRetestPayload, getRetestMarker, getSlackAuthor};
 export type {RetestHit};

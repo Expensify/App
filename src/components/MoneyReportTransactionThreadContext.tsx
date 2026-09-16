@@ -17,9 +17,7 @@ type MoneyReportTransactionThreadContextValue = {
     iouTransactionID: string | undefined;
     /** The parent IOU report action for the transaction thread */
     requestParentReportAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> | null;
-    /** The transaction thread report ID */
     transactionThreadReportID: string | undefined;
-    /** The transaction thread report */
     transactionThreadReport: OnyxTypes.Report | undefined;
     /** Filtered report actions for the transaction thread */
     reportActions: OnyxTypes.ReportAction[];
@@ -38,7 +36,6 @@ const MoneyReportTransactionThreadContext = createContext<MoneyReportTransaction
 type MoneyReportTransactionThreadProviderProps = {
     /** The money request report ID */
     reportID: string | undefined;
-    /** The children */
     children: ReactNode;
 };
 

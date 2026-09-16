@@ -20,13 +20,13 @@ import {View} from 'react-native';
 import ImageSVG from './ImageSVG';
 
 type ExpensifyWordmarkProps = {
-    /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 };
 
 const logoComponents = {
     [CONST.ENVIRONMENT.DEV]: DevLogo,
     [CONST.ENVIRONMENT.STAGING]: StagingLogo,
+    [CONST.ENVIRONMENT.QA]: StagingLogo,
     [CONST.ENVIRONMENT.PRODUCTION]: ProductionLogo,
     [CONST.ENVIRONMENT.ADHOC]: AdHocLogo,
 };

@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -64,14 +64,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS));
     };
 
     const handleConnectPlaid = () => {
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT));
     };
 
     return (
@@ -110,21 +110,17 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             {translate('workspace.bankAccount.connectBankAccountNote')}
                         </Text>
                     </View>
-                    <View style={styles.mt4}>
-                        <MenuItem
+                    <View style={[styles.mt4, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                        <MenuItemNavigation
                             title={translate('bankAccount.connectOnlineWithPlaid')}
                             icon={expensifyIcons.Bank}
-                            disabled={!!isPlaidDisabled}
+                            isDisabled={!!isPlaidDisabled}
                             onPress={handleConnectPlaid}
-                            shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                         />
-                        <MenuItem
+                        <MenuItemNavigation
                             title={translate('bankAccount.connectManually')}
                             icon={expensifyIcons.Connect}
                             onPress={handleConnectManually}
-                            shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                         />
                     </View>
                 </Section>

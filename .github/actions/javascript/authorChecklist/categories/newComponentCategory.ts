@@ -2,13 +2,15 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import promiseSome from '@github/libs/promiseSome';
 
-import type {WebhookPayload} from '@actions/github/lib/interfaces';
-
 import * as github from '@actions/github';
 import {parse} from '@babel/parser';
 import traverse from '@babel/traverse';
 
 import type Category from './Category';
+
+// @actions/github v9 no longer exports the WebhookPayload type on its own (its "./lib/interfaces" deep import
+// path was dropped from the package's exports map), so derive it from the `context.payload` property instead.
+type WebhookPayload = typeof github.context.payload;
 
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
 

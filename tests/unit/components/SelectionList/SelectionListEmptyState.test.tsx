@@ -22,7 +22,6 @@ describe('SelectionListEmptyState', () => {
                 shouldShowLoadingPlaceholder
                 shouldShowListEmptyContent
                 listEmptyContent={<View testID="empty" />}
-                context="Test"
             />,
         );
         expect(screen.getByTestId('options-list-skeleton')).toBeTruthy();
@@ -36,7 +35,6 @@ describe('SelectionListEmptyState', () => {
                 customLoadingPlaceholder={<View testID="custom-loading" />}
                 shouldShowListEmptyContent
                 listEmptyContent={<View testID="empty" />}
-                context="Test"
             />,
         );
         expect(screen.getByTestId('custom-loading')).toBeTruthy();
@@ -49,7 +47,6 @@ describe('SelectionListEmptyState', () => {
                 shouldShowLoadingPlaceholder={false}
                 shouldShowListEmptyContent
                 listEmptyContent={<View testID="empty" />}
-                context="Test"
             />,
         );
         expect(screen.getByTestId('empty')).toBeTruthy();
@@ -62,7 +59,6 @@ describe('SelectionListEmptyState', () => {
                 shouldShowLoadingPlaceholder={false}
                 shouldShowListEmptyContent={false}
                 listEmptyContent={<View testID="empty" />}
-                context="Test"
             />,
         );
         expect(screen.queryByTestId('empty')).toBeNull();

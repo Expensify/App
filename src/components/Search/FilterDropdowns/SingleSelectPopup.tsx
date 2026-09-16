@@ -12,24 +12,15 @@ import React, {useCallback, useState} from 'react';
 import BasePopup from './BasePopup';
 
 type SingleSelectPopupProps<T> = {
-    /** Whether to show the label in the popup or not */
     showLabel?: boolean;
 
     /** The label to show when in an overlay on mobile */
     label?: string;
 
-    /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
-
-    /** The currently selected item */
     value: SingleSelectItem<T> | undefined;
-
     onBackButtonPress?: () => void;
-
-    /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
-
-    /** Function to call when changes are applied */
     onChange: (item: SingleSelectItem<T> | undefined) => void;
 
     /** Whether the search input should be displayed */
@@ -42,8 +33,6 @@ type SingleSelectPopupProps<T> = {
     defaultValue?: string;
 
     style?: StyleProp<ViewStyle>;
-
-    /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
 
     /** Custom height for each item in the list. Overrides the default row height and adjusts the popover size accordingly. */
@@ -51,6 +40,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
+
+    /** Whether the popover should keep a fixed height while filtering results. */
+    shouldUseFixedPopoverHeight?: boolean;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -68,6 +60,7 @@ function SingleSelectPopup<T extends string>({
     itemHeight,
     showLabel,
     shouldShowList = true,
+    shouldUseFixedPopoverHeight,
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
 
@@ -104,6 +97,7 @@ function SingleSelectPopup<T extends string>({
                     selectionListStyle={selectionListStyle}
                     shouldShowList={shouldShowList}
                     itemHeight={itemHeight}
+                    shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
                 />
             </ListFilterHeightContextProvider>
         </BasePopup>

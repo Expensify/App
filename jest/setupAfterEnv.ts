@@ -6,11 +6,22 @@ import type {KeyboardEventName} from 'react-native';
 import {Keyboard} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import mockUseSingleExecution from '../tests/utils/mockUseSingleExecution';
+
 jest.useRealTimers();
 
 jest.mock('@hooks/useAIFeaturesPromoModal', () => ({
     __esModule: true,
     default: jest.fn(),
+}));
+
+// The real hook relies on real navigation transitions to settle `isExecuting` (see
+// `runAfterPredictedTransition`/`TransitionTracker`), which don't happen in unit tests and would
+// otherwise leave buttons stuck disabled. Mocked globally so no test needs to import the navigation
+// listener machinery just because it renders a Pressable-based component (Button, MenuItem, etc.).
+jest.mock('@hooks/useSingleExecution', () => ({
+    __esModule: true,
+    default: mockUseSingleExecution,
 }));
 
 // Patch Keyboard.addListener to return a subscription object with .remove() so that

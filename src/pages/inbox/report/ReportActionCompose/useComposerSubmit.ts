@@ -3,20 +3,19 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 
 import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
-import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
-import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {createTaskFromMarkdown} from '@libs/actions/Task';
 import {rand64} from '@libs/NumberUtils';
-import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {getAllPersonalDetailLogins, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, isConciergeChatReport} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, generateReportID, isConciergeChatReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
-import {generateAccountID} from '@libs/UserUtils';
+import {getSendMessageVisibleSpanID} from '@libs/telemetry/sendMessageSpans';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 
@@ -24,12 +23,8 @@ import {setIsComposerFullSize} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {Str} from 'expensify-common';
 
 import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
 import useComposerReportData from './useComposerReportData';
@@ -39,9 +34,11 @@ function useComposerSubmit(reportID: string) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
+    const {openSidePanel} = useSidePanelActions();
     const route = useRoute();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {isBetaEnabled} = usePermissions();
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
@@ -58,8 +55,6 @@ function useComposerSubmit(reportID: string) {
 
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
-
-    const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
     /**
      * Add or edit a comment in the composer
@@ -85,12 +80,17 @@ function useComposerSubmit(reportID: string) {
             clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
         }
 
+        const shouldRespondInThread = reportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+
         if (attachmentFileRef.current) {
+            const attachments = attachmentFileRef.current;
+            const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
+            const conciergeThreadReportID = willOpenThread ? generateReportID() : undefined;
             addAttachmentWithComment({
                 report: targetReport,
                 notifyReportID: reportID,
                 ancestors: targetReportAncestors,
-                attachments: attachmentFileRef.current,
+                attachments,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 text: draftMessageTrimmed,
                 timezone: currentUserPersonalDetails.timezone,
@@ -99,81 +99,38 @@ function useComposerSubmit(reportID: string) {
                 delegateAccountID,
                 sidePanelContext,
                 conciergeReportID,
+                conciergeThreadReportID,
+                shouldNavigateToConciergeThread: !isInSidePanel,
             });
+            if (conciergeThreadReportID && isInSidePanel) {
+                openSidePanel({reportID: conciergeThreadReportID});
+            }
             attachmentFileRef.current = null;
             return;
         }
 
-        const taskMatch = draftMessageTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-        if (taskMatch) {
-            let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
-            if (taskTitle) {
-                const mention = taskMatch[1] ? taskMatch[1].trim() : '';
-                const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
-                const mentionWithDomain = addDomainToShortMention(mention, getAllPersonalDetailLogins(), currentUserPrivateDomain) ?? mention;
-                const isValidMention = Str.isValidEmail(mentionWithDomain);
-
-                let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
-                let assigneeChatReport;
-                if (mentionWithDomain) {
-                    if (isValidMention) {
-                        assignee = getPersonalDetailByEmail(mentionWithDomain);
-                        if (!assignee) {
-                            const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
-                                accountID: generateAccountID(mentionWithDomain),
-                                login: mentionWithDomain,
-                            });
-                            assignee = optimisticDataForNewAssignee.assignee;
-                            assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
-                        }
-                    } else {
-                        taskTitle = `@${mentionWithDomain} ${taskTitle}`;
-                    }
-                }
-
-                const taskCreatorAndAssigneeDetails = {[currentUserPersonalDetails.accountID]: currentUserPersonalDetails};
-                if (assignee) {
-                    taskCreatorAndAssigneeDetails[assignee.accountID] = assignee;
-                }
-
-                createTaskAndNavigate({
-                    parentReport: report,
-                    title: taskTitle,
-                    description: '',
-                    assigneeEmail: assignee?.login ?? '',
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    currentUserEmail,
-                    currentUserDisplayName: currentUserPersonalDetails.displayName,
-                    currentUserAvatar: currentUserPersonalDetails.avatar,
-                    assigneeAccountID: assignee?.accountID,
-                    assigneeChatReport,
-                    policyID: report?.policyID,
-                    isCreatedUsingMarkdown: true,
-                    quickAction,
-                    ancestors: reportAncestors,
-                    taskCreatorAndAssigneeDetails,
-                });
-                return;
-            }
+        if (createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors: reportAncestors})) {
+            return;
         }
 
         const optimisticReportActionID = rand64();
         const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         if (isScrolledToBottom) {
-            const spanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`;
             const {reportActionCount, moneyRequestPreviewCount} = getSendMessageListWeight(getAllReportActions(reportID), reportID, canUserPerformWriteAction(report, isReportArchived));
-            startSpan(spanID, {
-                name: 'send-message',
-                op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
-                attributes: {
-                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                    [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
-                    [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
-                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
-                    [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
-                },
+            const attributes = {
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
+                [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
+                [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
+            };
+            startSpan(getSendMessageVisibleSpanID(optimisticReportActionID), {
+                name: 'send-message-visible',
+                op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
+                attributes,
             });
         }
+        const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
         addComment({
             report: targetReport,
             notifyReportID: reportID,
@@ -187,7 +144,12 @@ function useComposerSubmit(reportID: string) {
             reportActionID: optimisticReportActionID,
             delegateAccountID,
             conciergeReportID,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: !isInSidePanel,
         });
+        if (conciergeThreadReportID && isInSidePanel) {
+            openSidePanel({reportID: conciergeThreadReportID});
+        }
     };
 
     const submitDraftAndClearComposer = () => {

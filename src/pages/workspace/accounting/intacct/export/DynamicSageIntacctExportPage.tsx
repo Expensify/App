@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -13,7 +14,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import replaceCompanyCardsRoute from '@libs/Navigation/helpers/replaceCompanyCardsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -33,9 +34,9 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
     const travelPayableAccount = policy?.connections?.intacct?.data?.creditCards?.find((account) => account.name === exportConfig?.travelInvoicingPayableAccountID);
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
     const sections = [
         {
@@ -56,15 +57,15 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
             title: exportConfig?.reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`) : undefined,
             subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR],
         },
-        ...(isTravelInvoicingEnabled
+        ...(isTravelBillingEnabled
             ? [
                   {
                       title: travelPayableAccount?.name,
                       description: translate('workspace.common.travelInvoicing'),
                       action: !exportPath
                           ? undefined
-                          : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION.path, exportPath)),
-                      subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                          : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION.path, exportPath)),
+                      subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
               ]
             : []),
@@ -101,13 +102,13 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
                     key={section.description}
                     pendingAction={settingsPendingAction(section.subscribedSettings, pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={section.description}
                         onPress={section.action}
-                        brickRoadIndicator={areSettingsInErrorFields(section.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                        value={section.title}
+                    >
+                        {areSettingsInErrorFields(section.subscribedSettings, errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>

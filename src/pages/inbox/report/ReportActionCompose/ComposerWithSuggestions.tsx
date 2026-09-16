@@ -1,6 +1,5 @@
 import type {Emoji} from '@assets/emojis/types';
 
-import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
@@ -48,39 +47,26 @@ import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} fr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-// eslint-disable-next-line no-restricted-imports
-import findNodeHandle from '@src/utils/findNodeHandle';
 
 import type {Ref, RefObject} from 'react';
-import type {
-    BlurEvent,
-    LayoutChangeEvent,
-    MeasureInWindowOnSuccessCallback,
-    NativeMethods,
-    TextInputContentSizeChangeEvent,
-    TextInputKeyPressEvent,
-    TextInputScrollEvent,
-} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeMethods, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
-import {useFocusedInputHandler} from 'react-native-keyboard-controller';
-import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+import {useAnimatedRef} from 'react-native-reanimated';
 
 import type {SuggestionsRef} from './ReportActionCompose';
 
 import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
-import getCursorPosition from './getCursorPosition';
-import getScrollPosition from './getScrollPosition';
 import getUpdatedSyncSelection from './getUpdatedSyncSelection';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
+import useComposerSuggestions from './useComposerSuggestions';
 import useEditComposerToggle from './useEditComposerToggle';
 import useLastEditableAction from './useLastEditableAction';
 
@@ -92,13 +78,8 @@ type SyncSelection = {
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsRef = ComposerRef & {
-    /** Focus the composer */
     focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
-
-    /** Replace the selection with text */
     replaceSelectionWithText: OnEmojiSelected;
-
-    /** Get the current text of the composer */
     getCurrentText: () => string;
 
     /**
@@ -107,19 +88,13 @@ type ComposerWithSuggestionsRef = ComposerRef & {
      */
     clearWorklet: () => void;
 
-    /** Reset the height of the composer */
     resetHeight: () => void;
 };
 
 type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
     ForwardedFSClassProps & {
-        /** Report ID */
         reportID: string;
-
-        /** Callback to focus composer */
         onFocus: () => void;
-
-        /** Callback to blur composer */
         onBlur: (event: BlurEvent) => void;
 
         /** Callback when layout of composer changes */
@@ -131,19 +106,10 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Callback when the composer got cleared on the UI thread */
         onClear?: (text: string) => void;
 
-        /** Whether the composer is full size */
         isComposerFullSize: boolean;
-
-        /** Function to set whether the full composer is available */
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
-
-        /** Whether the menu is visible */
         isMenuVisible: boolean;
-
-        /** The placeholder for the input */
         inputPlaceholder: string;
-
-        /** Callback when a file is pasted */
         onPasteFile: (file: FileObject | FileObject[]) => void;
 
         /** Whether the input is disabled, defaults to false */
@@ -152,31 +118,14 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Function to handle sending a message */
         onEnterKeyPress: () => void;
 
-        /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
-
-        /** Whether the scroll is likely to trigger a layout */
-        isScrollLikelyLayoutTriggered: RefObject<boolean>;
-
-        /** Function to raise the scroll is likely layout triggered */
-        raiseIsScrollLikelyLayoutTriggered: () => void;
 
         /** The ref to the suggestions */
         suggestionsRef: React.RefObject<SuggestionsRef | null>;
-
-        /** The ref to the next modal will open */
         isNextModalWillOpenRef: RefObject<boolean | null>;
-
-        /** Whether to include chronos */
         includeChronos?: boolean;
-
-        /** Whether report is from group policy */
         isGroupPolicyReport: boolean;
-
-        /** policy ID of the report */
         policyID?: string;
-
-        /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 
@@ -234,8 +183,6 @@ function ComposerWithSuggestions({
     disabled,
     onEnterKeyPress,
     measureParentContainer = () => {},
-    isScrollLikelyLayoutTriggered,
-    raiseIsScrollLikelyLayoutTriggered,
     onClear: onClearProp = () => {},
     onLayout,
 
@@ -261,16 +208,14 @@ function ComposerWithSuggestions({
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
-    const mobileInputScrollPosition = useRef(0);
-    const cursorPositionValue = useSharedValue({x: 0, y: 0});
-    const tag = useSharedValue(-1);
     const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingState, editingReportActionID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
+    const {editingState, editingReportID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
     const text = useComposerText();
@@ -286,14 +231,7 @@ function ComposerWithSuggestions({
     });
 
     // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
-    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(
-        useCallback(
-            (comment: string) => {
-                saveReportActionDraft(reportID, editingReportAction, comment);
-            },
-            [reportID, editingReportAction],
-        ),
-    );
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveDraft(saveReportActionDraft);
 
     // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -316,7 +254,30 @@ function ComposerWithSuggestions({
         isEditInProgressRef: isDraftSavePending,
     });
 
+    // A pending report-action draft save belongs to the edit session that scheduled it. Without cancelling it at the
+    // session boundary, the trailing debounced write can land after Save/Cancel has already cleared the draft and
+    // re-open the editor with stale text (see the composer flipping back into edit mode after saving on narrow layout).
+    useEffect(() => {
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
+            return;
+        }
+        cancelSaveReportActionDraft();
+    }, [editingState, cancelSaveReportActionDraft]);
+
+    // Switching from one edit target straight to another never passes through OFF, so it needs its own cancellation.
+    // Otherwise the first message's pending save can overwrite the draft of the message just switched to.
+    useEffect(() => {
+        cancelSaveReportActionDraft();
+    }, [editingReportID, editingReportAction?.reportActionID, cancelSaveReportActionDraft]);
+
     const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: initialText.length, end: initialText.length});
+
+    const {measureParentContainerAndReportCursor, onSaveScrollAndHideSuggestionMenu, resetScrollPosition, raiseIsScrollLayoutTriggered} = useComposerSuggestions({
+        composerRef,
+        selection,
+        measureParentContainer,
+        suggestionsRef,
+    });
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -344,7 +305,7 @@ function ComposerWithSuggestions({
     const ignoreEditSelectionResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const handleEditFocus = useCallback(() => {
-        focus(true, undefined, true);
+        focus(true, undefined, editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
         onFocus();
 
         if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
@@ -493,7 +454,7 @@ function ComposerWithSuggestions({
      */
     const updateComment = useCallback(
         (commentValue: string, shouldDebounceSaveComment?: boolean) => {
-            raiseIsScrollLikelyLayoutTriggered();
+            raiseIsScrollLayoutTriggered();
 
             // previous text before change
             const prevText = lastTextRef.current;
@@ -560,11 +521,11 @@ function ComposerWithSuggestions({
             if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
-                    debouncedSaveReportActionDraft(newCommentConverted);
+                    debouncedSaveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
                     return;
                 }
 
-                saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
                 return;
             }
 
@@ -579,7 +540,7 @@ function ComposerWithSuggestions({
             }
         },
         [
-            raiseIsScrollLikelyLayoutTriggered,
+            raiseIsScrollLayoutTriggered,
             selection.start,
             selection.end,
             findNewlyAddedChars,
@@ -593,7 +554,9 @@ function ComposerWithSuggestions({
             setCurrentEditMessageSelection,
             setEditingMessage,
             reportID,
-            editingReportActionID,
+            editingReportID,
+            editingReportAction,
+            reportActions,
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,
@@ -635,7 +598,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -684,6 +647,7 @@ function ComposerWithSuggestions({
             onEnterKeyPress,
             lastReportAction,
             reportID,
+            reportActions,
             updateComment,
             setCurrentEditMessageSelection,
         ],
@@ -746,17 +710,6 @@ function ComposerWithSuggestions({
             suggestionsRef.current?.onSelectionChange?.(e);
         },
         [setCurrentEditMessageSelection, suggestionsRef, currentEditMessageSelection, selection],
-    );
-
-    const hideSuggestionMenu = useCallback(
-        (e: TextInputScrollEvent) => {
-            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
-            if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
-                return;
-            }
-            suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-        },
-        [suggestionsRef, isScrollLikelyLayoutTriggered],
     );
 
     const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
@@ -974,50 +927,12 @@ function ComposerWithSuggestions({
 
     const onClear = useCallback(
         (textOnClear: string) => {
-            mobileInputScrollPosition.current = 0;
+            resetScrollPosition();
             // Note: use the value when the clear happened, not the current value which might have changed already
             onClearProp(textOnClear);
             updateComment('', true);
         },
-        [onClearProp, updateComment],
-    );
-
-    useEffect(() => {
-        // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(composerRef.current) ?? -1);
-    }, [tag]);
-
-    useFocusedInputHandler(
-        {
-            onSelectionChange: (event) => {
-                'worklet';
-
-                if (event.target === tag.get()) {
-                    cursorPositionValue.set({
-                        x: event.selection.end.x,
-                        y: event.selection.end.y,
-                    });
-                }
-            },
-        },
-        [],
-    );
-    const measureParentContainerAndReportCursor = useCallback(
-        (callback: MeasureParentContainerAndCursorCallback) => {
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef: composerRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
-            measureParentContainer((x, y, width, height) => {
-                callback({
-                    x,
-                    y,
-                    width,
-                    height,
-                    scrollValue,
-                    cursorCoordinates: {x: xPosition, y: yPosition},
-                });
-            });
-        },
-        [measureParentContainer, cursorPositionValue, selection],
+        [onClearProp, updateComment, resetScrollPosition],
     );
 
     const isTouchEndedRef = useRef(false);
@@ -1076,7 +991,7 @@ function ComposerWithSuggestions({
     return (
         <>
             <View
-                style={[containerComposeStyles, styles.textInputComposeBorder]}
+                style={containerComposeStyles}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}
@@ -1116,7 +1031,7 @@ function ComposerWithSuggestions({
                     testID={CONST.COMPOSER.NATIVE_ID}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
-                    onScroll={hideSuggestionMenu}
+                    onScroll={onSaveScrollAndHideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
                     forwardedFSClass={forwardedFSClass}

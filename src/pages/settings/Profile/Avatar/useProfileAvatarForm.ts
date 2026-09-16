@@ -36,7 +36,7 @@ function useProfileAvatarForm() {
         getHasUnsavedChanges: () => isDirty,
     });
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown> = {}) => {
         setErrorData({validationError: error, phraseParam});
     };
 
