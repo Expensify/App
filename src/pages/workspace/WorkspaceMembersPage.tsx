@@ -22,6 +22,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -72,7 +73,7 @@ import {
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {generateAccountID} from '@libs/UserUtils';
 import {getFirstApproverByMemberEmail, hasMultiLevelApprovalWorkflow, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -92,6 +93,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
+import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -155,6 +157,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const outstandingReportsForPolicySelector = useMemo(() => createOutstandingReportsForPolicySelector(policyID), [policyID]);
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: outstandingReportsForPolicySelector});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
 
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
@@ -167,7 +172,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
-        const approverEmail = selectedEmployees.find((selectedEmployee) => isPolicyApprover(policy, selectedEmployee));
+        const approverEmail = selectedEmployees.find(
+            (selectedEmployee) =>
+                isPolicyApprover(policy, selectedEmployee) ||
+                isApproverOfOutstandingPolicyReports(policyMemberEmailsToAccountIDs[selectedEmployee], outstandingReportsForPolicy, privateIsArchivedMap),
+        );
 
         if (approverEmail) {
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
@@ -194,7 +203,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             count: selectedEmployees.length,
             memberName: formatPhoneNumber(getPersonalDetailsByID(firstSelectedEmployeeAccountID, personalDetails)?.displayName ?? ''),
         });
-    }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
+    }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
 
     /**
      * Get members for the current workspace

@@ -339,6 +339,7 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            delegateAccountID,
             hasOwnedPaidPolicy,
         });
         setIsUpgraded(true);
@@ -363,6 +364,7 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            delegateAccountID,
             hasOwnedPaidPolicy,
         });
         policyDataRef.current = policyData;
