@@ -981,7 +981,6 @@
 "../../src/pages/domain/Members/DomainMemberVacationDelegatePage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Members/DomainReportSuspiciousActivityPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Members/MoveUserBetweenGroupsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/pages/domain/Members/MoveUsersBetweenGroupsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Members/TwoFactorAuth/DomainMemberForceTwoFactorAuthPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Members/TwoFactorAuth/DomainMemberResetTwoFactorAuthPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1361,10 +1360,8 @@
 "../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/companyCards/assignCard/AssigneeStep.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/companyCards/BankConnection/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/DynamicWorkspaceCompanyCardDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/companyCards/DynamicWorkspaceCompanyCardDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardEditTransactionStartDatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1378,17 +1375,14 @@
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/workspace/DynamicWorkspaceInvitePage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/expensifyCard/DynamicExpensifyCardLimitTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceExpensifyCardDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceSettlementAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/workspace/expensifyCard/issueNew/AssigneeStep.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/expensifyCard/issueNew/LimitTypeStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/issueNew/spendRules/SetSpendRulesStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardListPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/hr/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/invoices/WorkspaceInvoiceVBASection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
@@ -1399,7 +1393,6 @@
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
@@ -1417,9 +1410,7 @@
 "../../src/pages/workspace/withPolicy.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/withPolicyAndFullscreenLoading.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/withPolicyConnections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/workflows/approvals/DynamicWorkspaceWorkflowsApprovalsExpensesFromPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/pages/workspace/workflows/tabs/WorkflowsApprovalsTab.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
