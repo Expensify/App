@@ -53,6 +53,8 @@ Enable this if you want all new domain members to be automatically added to this
 
 Use this to ensure workspace-level rules are followed before a report is submitted. Enabling Strictly enforce expense workspace rules ensures workspace rule compliance and prevents incomplete submissions.
 
+When this setting is enabled, members in the group can’t submit a report that has an expense violation, such as a missing category or a missing receipt. The **Submit** button is grayed out in the report and on the report preview in a chat until every flagged expense is fixed.
+
 ## What Restrict primary contact method selection does
 
 Enable this to require members to use their company email address to access Expensify. Restricting primary contact method selection prevents members from using a personal email to access their Expensify account.

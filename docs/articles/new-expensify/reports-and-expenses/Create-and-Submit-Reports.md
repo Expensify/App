@@ -1,7 +1,7 @@
 ---
 title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
-keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report]
+keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report, submit button grayed out, submit button disabled, strictly enforce expense workspace rules, prevent self-approvals]
 internalScope: Audience is members and Workspace Admins. Covers creating, submitting, editing, and retracting expense reports, including admin-created reports. Does not cover approvals, reimbursements, or exports.
 ---
 
@@ -184,6 +184,15 @@ The **Submit** button only appears once your report includes at least one valid 
 ## Why can’t I submit a report with pending Expensify Card transactions?
 
 If all transactions on your report are pending Expensify Card transactions, the report can't be submitted yet. The **Submit** button won't appear, and the report isn't counted in your **Submit** to-do. Pending transactions may take a few days to post. After at least one transaction has posted, the **Submit** button appears again and you can submit the report.
+
+## Why is the **Submit** button grayed out?
+
+The **Submit** button appears but can’t be selected in these cases:
+
+- Your domain group has **Strictly enforce expense workspace rules** enabled and an expense on the report has a violation, such as a missing category or a missing receipt. Fix the flagged expenses and the **Submit** button becomes available again.
+- Your workspace has **Prevent self-approvals** enabled and you are the only approver on your own report. A Workspace Admin needs to add another approver or turn off the setting.
+
+The button behaves the same way everywhere it appears, including in the report itself and on the report preview in a chat. To review these settings, [learn more about Domain Group settings](/articles/new-expensify/domains/Create-and-Manage-Domain-Groups) and [learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
 
 ## What happens to held expenses when I submit a report?
 
