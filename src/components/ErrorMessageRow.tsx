@@ -10,19 +10,13 @@ import React from 'react';
 import MessagesRow from './MessagesRow';
 
 type ErrorMessageRowProps = {
-    /** The errors to display  */
     errors?: OnyxCommon.Errors | ReceiptErrors | OnyxCommon.TranslationKeyErrors | null;
-
-    /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
-
-    /** Additional style object for the error row text */
     errorRowTextStyles?: StyleProp<TextStyle>;
 
     /** If passed, an X button next to the error will be shown and which triggers this callback */
     onDismiss?: () => void;
 
-    /** A function to dismiss error */
     dismissError?: () => void;
 };
 

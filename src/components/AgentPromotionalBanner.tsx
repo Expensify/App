@@ -13,7 +13,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 import Badge from './Badge';
-import Button from './ButtonComposed';
+import Button from './Button';
 import Text from './Text';
 
 type AgentPromotionalBannerProps = {

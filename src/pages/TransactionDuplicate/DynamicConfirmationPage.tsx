@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -29,7 +29,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
@@ -67,6 +67,7 @@ function DynamicConfirmationPage() {
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
@@ -111,7 +112,15 @@ function DynamicConfirmationPage() {
         // Suppress the NotFound guard for the discarded thread the server tears down on merge.
         const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
         setDeleteTransactionNavigateBackUrl(keptReportRoute);
-        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? '', allTransactionViolations, allReportActionsList: allReportActions});
+        mergeDuplicates({
+            ...mergeParams,
+            ...taxData,
+            currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            allTransactionViolations,
+            allReportActionsList: allReportActions,
+            allReportsList: allReports,
+        });
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
@@ -125,7 +134,7 @@ function DynamicConfirmationPage() {
         Navigation.dismissModal({
             afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
         });
-    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions]);
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions, allReports]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions, delegateAccountID});
@@ -180,7 +189,7 @@ function DynamicConfirmationPage() {
                         <View style={[styles.ph5, styles.pb8]}>
                             <Text
                                 family="EXP_NEW_KANSAS_MEDIUM"
-                                fontSize={variables.fontSizeLarge}
+                                fontSize={fontScale.pageHeader}
                                 style={styles.pb5}
                             >
                                 {translate('violations.confirmDetails')}

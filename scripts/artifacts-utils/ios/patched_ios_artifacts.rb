@@ -29,12 +29,11 @@ module PatchedIOSArtifacts
 
     def self.setup
         is_hybrid = ENV['IS_HYBRID_APP'] == 'true'
-        package_name = is_hybrid ? 'react-hybrid' : 'react-standalone'
 
         # Manual escape hatch: force a full from-source build (e.g. to unblock a prebuild issue).
         build_from_source = ENV['BUILD_RN_FROM_SOURCE'] == '1'
         # The escape hatch short-circuits before anything touches the network: no resolver, no prefetch.
-        resolution = build_from_source ? {'buildFromSource' => true, 'version' => nil} : prefetch(resolve(package_name, is_hybrid))
+        resolution = build_from_source ? {'buildFromSource' => true, 'version' => nil} : prefetch(resolve(is_hybrid))
 
         # A single decision drives both prebuilt flags, so we never land in a mixed
         # prebuilt-deps / source-core state (which desyncs the CocoaPods sandbox).
@@ -48,6 +47,43 @@ module PatchedIOSArtifacts
         ReactNativeCoreUtils.class_variable_set(:@@patched_artifact_url_prefix, resolution['artifactUrlPrefix'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_github_token, resolution['githubToken'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_build_from_source, resolution['buildFromSource'])
+
+        # Content identity of this install's artifacts; '+dsym' so flipping the flag counts as a change.
+        @artifacts_stamp = @using_prebuilt ?
+            "#{resolution['version']}#{ENV['RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'] == '1' ? '+dsym' : ''}" : nil
+
+        force_rncore_podspec_reevaluation if @using_prebuilt
+    end
+
+    def self.artifacts_stamp_path
+        File.join(Pod::Config.instance.project_pods_root, 'ReactNativeCore-artifacts', '.artifacts-version')
+    end
+
+    # CocoaPods memoizes external :podspec sources and may skip re-reading ours, whose source is
+    # resolved dynamically. When the tarballs in Pods don't match this install's resolution, drop
+    # the memoized copy so CocoaPods re-evaluates the podspec, re-running our download (and dSYM
+    # merge). The re-read podspec is byte-identical, so Podfile.lock stays put.
+    def self.force_rncore_podspec_reevaluation
+        return if File.exist?(artifacts_stamp_path) && File.read(artifacts_stamp_path) == @artifacts_stamp
+
+        Pod::Config.instance.sandbox.remove_local_podspec('React-Core-prebuilt')
+        log("Artifacts changed to #{@artifacts_stamp}; the React-Core-prebuilt podspec will be re-evaluated.")
+    end
+
+    # Prepends sync-prebuilt-rncore.sh to react-native's '[RNCore] Replace ...' build phase, so a
+    # build re-extracts the prebuilt React Core when the artifact version changed — CocoaPods won't,
+    # as its caches key on our never-changing source URL. Prepended into that phase (not added as
+    # its own) because CocoaPods sorts phases by name on save, which would push ours after [RNCore].
+    def self.add_sync_prebuilt_script_phase(installer)
+        return unless @using_prebuilt
+
+        target = installer.pods_project.targets.find { |t| t.name == 'React-Core-prebuilt' }
+        phase = target&.shell_script_build_phases&.find { |p| p.name.to_s.include?('[RNCore] Replace') }
+        raise "#{LOG_PREFIX} The [RNCore] Replace build phase was not found on the React-Core-prebuilt target, " \
+              'so the extracted prebuilt React Core would keep following a stale artifact version.' unless phase
+
+        prelude = %(bash "#{File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/ios/sync-prebuilt-rncore.sh')}" || exit 1\n)
+        phase.shell_script = prelude + phase.shell_script unless phase.shell_script.start_with?(prelude)
     end
 
     # True only when a matching prebuilt artifact resolved and prebuilds are enabled.
@@ -181,10 +217,10 @@ module PatchedIOSArtifacts
         destination
     end
 
-    def self.resolve(package_name, is_hybrid)
+    def self.resolve(is_hybrid)
         cmd = [
             'bun', File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/resolve-artifacts.ts'),
-            '--platform=ios', "--package=#{package_name}", "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
+            '--platform=ios', "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
         ]
         # stdout is pure JSON; the resolver logs to stderr.
         output = IO.popen(cmd, chdir: NEW_DOT_ROOT, &:read)
@@ -224,6 +260,10 @@ class ReactNativeCoreUtils
             process_dsyms(debug, download_stable_rncore(@@react_native_path, @@react_native_version, :debug, true))
             process_dsyms(release, download_stable_rncore(@@react_native_path, @@react_native_version, :release, true))
         end
+
+        # Content version of the flat tarballs — their names can't carry it, replace-rncore-version.js hardcodes them.
+        File.write(File.join(File.dirname(debug), '.artifacts-version'),
+                   "#{@@patched_version}#{@@download_dsyms ? '+dsym' : ''}")
 
         # URI::File.build validates path components as ASCII, so escape the filesystem path first —
         # matches RN 0.86's own ReactNativePodsUtils.local_file_uri, which this replaces.

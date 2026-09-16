@@ -43,13 +43,11 @@ type AddressSearchProps = ForwardedFSClassProps & {
     /** Callback that is called when the text input is blurred */
     onBlur?: () => void;
 
-    /** Error text to display */
     errorText?: string;
 
     /** Hint text to display */
     hint?: string;
 
-    /** The label to display for the field */
     label: string;
 
     /** The value to set the field to initially */
@@ -94,13 +92,11 @@ type AddressSearchProps = ForwardedFSClassProps & {
     /** Location bias for querying search results. */
     locationBias?: string;
 
-    /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
 
     /** If true, caret is hidden. The default value is false. */
     caretHidden?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<HTMLElement>;
 };
 

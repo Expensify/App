@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -434,8 +435,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 </View>
             )}
             <View>
-                <Button
-                    isDisabled={isOffline}
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mv3]}
@@ -444,7 +444,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SIGN_IN_BUTTON}
                 >
                     <Button.Text>{translate('common.signIn')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
