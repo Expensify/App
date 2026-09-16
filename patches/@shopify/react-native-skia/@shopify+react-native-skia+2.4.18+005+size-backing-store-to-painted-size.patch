@@ -1,0 +1,76 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+@@ -39,15 +39,20 @@
+     canvas.clear(CanvasKit.TRANSPARENT);
+     this.draw(picture);
+     this.surface.ref.flush();
+-    return this.surface.makeImageSnapshot(dp2Pixel(this.pd, rect));
++    return this.surface.makeImageSnapshot(dp2Pixel(this.ratio, rect));
+   }
+   onResize() {
+     const {
+-      canvas,
+-      pd
++      canvas
+     } = this;
+-    canvas.width = canvas.clientWidth * pd;
+-    canvas.height = canvas.clientHeight * pd;
++    // A canvas can be painted through a CSS transform on an ancestor, which clientWidth does not
++    // report. Sizing the backing store from the layout size alone leaves the browser resampling the
++    // rendered surface, so fold the painted/layout ratio into the pixel density instead.
++    const paintedWidth = canvas.getBoundingClientRect().width;
++    const ratio = canvas.clientWidth > 0 && paintedWidth > 0 ? this.pd * (paintedWidth / canvas.clientWidth) : this.pd;
++    this.ratio = ratio;
++    canvas.width = Math.round(canvas.clientWidth * ratio);
++    canvas.height = Math.round(canvas.clientHeight * ratio);
+     // MakeWebGLCanvasSurface throws when no WebGL2 context can be created (GPU unavailable, blocklisted,
+     // or the per-page context limit is exhausted). onResize runs from a ResizeObserver callback, so that
+     // throw escapes as an unhandled error. Fall back to CanvasKit's software surface, matching how
+@@ -91,7 +96,7 @@
+       const canvas = this.surface.getCanvas();
+       canvas.clear(Float32Array.of(0, 0, 0, 0));
+       canvas.save();
+-      canvas.scale(pd, pd);
++      canvas.scale(this.ratio, this.ratio);
+       canvas.drawPicture(picture);
+       canvas.restore();
+       this.surface.ref.flush();
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+--- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+@@ -33,15 +33,20 @@
+     canvas.clear(CanvasKit.TRANSPARENT);
+     this.draw(picture);
+     this.surface.ref.flush();
+-    return this.surface.makeImageSnapshot(dp2Pixel(this.pd, rect));
++    return this.surface.makeImageSnapshot(dp2Pixel(this.ratio, rect));
+   }
+   onResize() {
+     const {
+-      canvas,
+-      pd
++      canvas
+     } = this;
+-    canvas.width = canvas.clientWidth * pd;
+-    canvas.height = canvas.clientHeight * pd;
++    // A canvas can be painted through a CSS transform on an ancestor, which clientWidth does not
++    // report. Sizing the backing store from the layout size alone leaves the browser resampling the
++    // rendered surface, so fold the painted/layout ratio into the pixel density instead.
++    const paintedWidth = canvas.getBoundingClientRect().width;
++    const ratio = canvas.clientWidth > 0 && paintedWidth > 0 ? this.pd * (paintedWidth / canvas.clientWidth) : this.pd;
++    this.ratio = ratio;
++    canvas.width = Math.round(canvas.clientWidth * ratio);
++    canvas.height = Math.round(canvas.clientHeight * ratio);
+     // MakeWebGLCanvasSurface throws when no WebGL2 context can be created (GPU unavailable, blocklisted,
+     // or the per-page context limit is exhausted). onResize runs from a ResizeObserver callback, so that
+     // throw escapes as an unhandled error. Fall back to CanvasKit's software surface, matching how
+@@ -85,7 +90,7 @@
+       const canvas = this.surface.getCanvas();
+       canvas.clear(Float32Array.of(0, 0, 0, 0));
+       canvas.save();
+-      canvas.scale(pd, pd);
++      canvas.scale(this.ratio, this.ratio);
+       canvas.drawPicture(picture);
+       canvas.restore();
+       this.surface.ref.flush();
