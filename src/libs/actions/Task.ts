@@ -13,6 +13,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
@@ -465,7 +466,7 @@ function createTaskFromMarkdown({text, parentReport, currentUserPersonalDetails,
     let assigneeChatReport;
     if (mentionWithDomain) {
         if (isValidMention) {
-            assignee = PersonalDetailsUtils.getPersonalDetailByEmail(mentionWithDomain);
+            assignee = getPersonalDetailByLogin(mentionWithDomain);
             if (!assignee) {
                 const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
                     accountID: generateAccountID(mentionWithDomain),
