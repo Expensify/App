@@ -23,6 +23,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect, useRef, useState} from 'react';
 
+const emptySelector = () => null;
+
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
 };
@@ -38,8 +40,8 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const {isLoadingSecurityGroup} = useUserSecurityGroup();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: () => null});
-    const [, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: () => null});
+    const [, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: emptySelector});
+    const [, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: emptySelector});
     const [amountOwed, amountOwedMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds, userBillingGracePeriodEndsMetadata] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -69,10 +71,11 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     // Synchronous one-shot guard for the auto-navigation effect. A ref (rather than the render state below) is used so
     // the guard flips immediately: clearing the draft transaction mutates draftTransactionIDs, which re-runs the effect
     // before a state update could commit, so a state-based guard would navigate twice.
-    const hasResolvedDestinationRef = useRef(false);
+    const hasNavigatedRef = useRef(false);
 
-    // Drives rendering: once the one-shot auto-navigation has run, we stop returning null and render the picker
-    // underneath instead, so backing out of the details page lands on a usable screen rather than a blank Submit tab.
+    // Drives rendering: track whether we committed to the participant picker so that late-arriving Onyx data
+    // (policies/reports arriving after initial cache resolution) does not trigger a blank null render or unexpected navigation.
+    const [hasCommittedToPicker, setHasCommittedToPicker] = useState(false);
     const [hasAutoNavigatedToReport, setHasAutoNavigatedToReport] = useState(false);
 
     // This span belongs to the submit flow, so the share flow instance must not cancel a span it never started. For the submit flow this cancels an attempt that closes before SubmitDetailsPage mounts to end the span, so it is
@@ -89,21 +92,18 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     // Commit to the participant picker once the destination inputs resolve without a valid destination. This keeps
     // later Onyx updates from redirecting the user after they begin selecting a participant.
     useEffect(() => {
-        if (!isSubmitFlow || shouldWaitForDestination || autoNavigateReportID || hasResolvedDestinationRef.current) {
+        if (!isSubmitFlow || shouldWaitForDestination || autoNavigateReportID || hasCommittedToPicker || hasNavigatedRef.current) {
             return;
         }
-        hasResolvedDestinationRef.current = true;
-    }, [autoNavigateReportID, isSubmitFlow, shouldWaitForDestination]);
+        setHasCommittedToPicker(true);
+    }, [autoNavigateReportID, hasCommittedToPicker, isSubmitFlow, shouldWaitForDestination]);
 
-    // One-shot: auto-navigate the user straight to the resolved workspace's confirmation. The ref guard keeps this from re-running if
-    // locked report resolves. The hasAutoNavigatedRef guard keeps this from re-running (and re-navigating) if
-    // draftTransactionIDs later changes, while still keeping every captured value in the dependency array so we clear
-    // the up-to-date drafts at navigation time and no dependency lint has to be suppressed.
+    // One-shot: auto-navigate the user straight to the resolved workspace's confirmation.
     useEffect(() => {
-        if (!autoNavigateReportID || hasResolvedDestinationRef.current || shouldWaitForDestination) {
+        if (!autoNavigateReportID || hasCommittedToPicker || hasNavigatedRef.current || shouldWaitForDestination) {
             return;
         }
-        hasResolvedDestinationRef.current = true;
+        hasNavigatedRef.current = true;
 
         // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
         clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
@@ -127,13 +127,11 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                 setHasAutoNavigatedToReport(true);
             },
         });
-    }, [autoNavigateReportID, draftTransactionIDs, detailsPageRouteObject, shouldWaitForDestination]);
+    }, [autoNavigateReportID, detailsPageRouteObject, draftTransactionIDs, hasCommittedToPicker, shouldWaitForDestination]);
 
-    // Render null only until the auto-navigation has run, to avoid flashing the full picker while we route the
-    // restricted user to the locked workspace. Afterwards we fall through to the picker so that backing out of the
-    // details page shows a usable screen (still limited to the locked workspace by the option-list filter) instead of
-    // a blank tab.
-    if ((isSubmitFlow && shouldWaitForDestination) || (autoNavigateReportID && !hasAutoNavigatedToReport)) {
+    // Render null while waiting for initial destination resolution, or while actively auto-navigating to the details page.
+    // Afterwards we fall through to the picker so backing out of the details page lands on a usable screen rather than a blank tab.
+    if ((isSubmitFlow && shouldWaitForDestination) || (!hasCommittedToPicker && autoNavigateReportID && !hasAutoNavigatedToReport)) {
         return null;
     }
 
