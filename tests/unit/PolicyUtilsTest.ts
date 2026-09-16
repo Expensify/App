@@ -5409,6 +5409,18 @@ describe('hasActiveExpensifyCard', () => {
         };
         expect(hasActiveExpensifyCard(policy, 'someone-else@test.com')).toBe(false);
     });
+
+    it('returns true when the secondary login is checked and the backend flags its paired primary login', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            primaryLoginsInvited: {'secondary@test.com': 'primary@test.com'},
+            employeeList: {
+                'secondary@test.com': {email: 'secondary@test.com'},
+                'primary@test.com': {email: 'primary@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'secondary@test.com')).toBe(true);
+    });
 });
 
 describe('shouldHideDynamicExternalWorkflowPeople', () => {
