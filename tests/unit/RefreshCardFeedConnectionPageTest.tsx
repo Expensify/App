@@ -253,6 +253,7 @@ describe('RefreshCardFeedConnectionPage', () => {
     });
 
     it('does not close RHP flow when the feed expiration is first read from storage while refreshing', async () => {
+        // Given a refreshing bank connection whose card feeds have not loaded from storage yet
         await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
             currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
             isRefreshing: true,
@@ -269,6 +270,7 @@ describe('RefreshCardFeedConnectionPage', () => {
             await waitForBatchedUpdates();
         });
 
+        // When the card feeds finish loading and the feed expiration is read for the first time
         mockUseCardFeeds.mockReturnValue([
             {[MOCK_FEED]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, accountList: [], credentials: '', expiration: 20240101}},
             {status: 'loaded'},
@@ -284,6 +286,7 @@ describe('RefreshCardFeedConnectionPage', () => {
         );
         await waitForBatchedUpdates();
 
+        // Then the initial expiration read is not treated as a refresh and the page stays open
         expect(mockCloseRHPFlow).not.toHaveBeenCalled();
         expect(screen.queryByTestId('NotFoundPage')).toBeNull();
     });

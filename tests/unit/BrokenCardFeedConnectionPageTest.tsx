@@ -126,13 +126,16 @@ describe('BrokenCardFeedConnectionPage', () => {
             [CONST.COMPANY_CARD.STEP.BANK_CONNECTION, 'BankConnection'],
             [CONST.COMPANY_CARD.STEP.PLAID_CONNECTION, 'PlaidConnectionStep'],
         ])('renders %s as %s', async (currentStep, testID) => {
+            // Given a direct feed and a currentStep this page knows how to render
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {currentStep});
 
+            // When the page is rendered
             renderPage();
             await act(async () => {
                 await waitForBatchedUpdates();
             });
 
+            // Then the matching step component is shown instead of the not found page
             expect(screen.getByTestId(testID)).toBeTruthy();
             expect(screen.queryByTestId('NotFoundPage')).toBeNull();
         });
@@ -145,34 +148,41 @@ describe('BrokenCardFeedConnectionPage', () => {
             ['currentStep is a step this page cannot render', CONST.COMPANY_CARD.STEP.ASSIGNEE, DIRECT_FEED],
             ['the feed is not a direct feed', CONST.COMPANY_CARD.STEP.BANK_CONNECTION, COMMERCIAL_FEED],
         ])('renders NotFoundPage when %s', async (_case, currentStep, feed) => {
+            // Given a currentStep and feed combination the page has no step component for
             if (currentStep) {
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {currentStep});
             }
             mockFeeds(feed);
 
+            // When the page is rendered
             renderPage(feed);
             await act(async () => {
                 await waitForBatchedUpdates();
             });
 
+            // Then the not found page is shown rather than a bank connection spinner
             expect(screen.getByTestId('NotFoundPage')).toBeTruthy();
             expect(screen.queryByTestId('BankConnection')).toBeNull();
         });
 
         it('renders NotFoundPage when the feed is missing from the card feeds', async () => {
+            // Given a renderable step but loaded card feeds that do not contain the requested feed
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             mockUseCardFeeds.mockReturnValue([{}, {status: 'loaded'}, undefined, {}, 0]);
 
+            // When the page is rendered
             renderPage();
             await act(async () => {
                 await waitForBatchedUpdates();
             });
 
+            // Then the not found page is shown
             expect(screen.getByTestId('NotFoundPage')).toBeTruthy();
         });
     });
 
     it('calls clearAssignCardStepAndData on unmount', async () => {
+        // Given a mounted page on the bank connection step
         await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
 
         const {unmount} = renderPage();
@@ -180,8 +190,10 @@ describe('BrokenCardFeedConnectionPage', () => {
             await waitForBatchedUpdates();
         });
 
+        // When the page unmounts
         unmount();
 
+        // Then the assign card step data is cleared once
         expect(clearAssignCardStepAndData).toHaveBeenCalledTimes(1);
     });
 });
