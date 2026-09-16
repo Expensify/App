@@ -287,7 +287,8 @@ function MoneyRequestView({
     const personalDetailsList = usePersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isP2PDistanceRequest = isCustomUnitRateIDForP2P(transaction);
     const moneyRequestReport = parentReport;
@@ -697,6 +698,7 @@ function MoneyRequestView({
             return;
         }
         updateMoneyRequestBillable({
+            isVendorMatchingBetaEnabled,
             transactionID: transaction.transactionID,
             transaction,
             transactionThreadReport,
@@ -725,6 +727,7 @@ function MoneyRequestView({
             return;
         }
         updateMoneyRequestReimbursable({
+            isVendorMatchingBetaEnabled,
             transactionID: transaction.transactionID,
             transaction,
             transactionThreadReport,
@@ -867,6 +870,7 @@ function MoneyRequestView({
             }
 
             updateMoneyRequestTaxRate({
+                isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
                 transaction,
                 transactionThreadReport,
@@ -908,6 +912,7 @@ function MoneyRequestView({
             }
 
             updateMoneyRequestCategory({
+                isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction,
                 transactionThreadReport,
@@ -950,6 +955,7 @@ function MoneyRequestView({
             // Clear only the pressed level so the other levels of a multi-level tag are kept.
             const updatedTag = insertTagIntoTransactionTagsString(transactionTag ?? '', '', tagListIndex, policy?.hasMultipleTagLists ?? false);
             updateMoneyRequestTag({
+                isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction,
                 transactionThreadReport,

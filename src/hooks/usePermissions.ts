@@ -7,7 +7,10 @@ import type Beta from '@src/types/onyx/Beta';
 import {useContext, useMemo} from 'react';
 
 type PermissionKey = keyof typeof Permissions;
-type UsePermissions = Partial<Record<Exclude<PermissionKey, 'isBetaEnabled'>, boolean>> & {isBetaEnabled: (beta: Beta) => boolean};
+type UsePermissions = Partial<Record<Exclude<PermissionKey, 'isBetaEnabled'>, boolean>> & {
+    isBetaEnabled: (beta: Beta) => boolean;
+    isBetaEnabledOrUnknown: (beta: Beta) => boolean | undefined;
+};
 let permissionKey: PermissionKey;
 
 export default function usePermissions(): UsePermissions {
@@ -17,6 +20,9 @@ export default function usePermissions(): UsePermissions {
     return useMemo(() => {
         const permissions: UsePermissions = {
             isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration, betaOverrides),
+
+            // Prefer isBetaEnabled. This is only for the few callers that have to tell "off" apart from "not loaded yet"
+            isBetaEnabledOrUnknown: (beta: Beta) => (betas === undefined ? undefined : Permissions.isBetaEnabled(beta, betas, betaConfiguration, betaOverrides)),
         };
 
         for (permissionKey in Permissions) {

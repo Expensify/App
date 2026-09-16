@@ -158,6 +158,7 @@ type CreateDistanceRequestInformation = {
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type CreateSplitsTransactionParams = BaseTransactionParams & {
@@ -186,6 +187,7 @@ type CreateSplitsAndOnyxDataParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type StartSplitBilActionParams = {
@@ -231,6 +233,7 @@ type CompleteSplitBillActionParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type SplitBillActionsParams = {
@@ -267,6 +270,7 @@ type SplitBillActionsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /**
@@ -306,6 +310,7 @@ function splitBill({
     participantsPolicyTags,
     getCurrencyDecimals,
     rules,
+    isVendorMatchingBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -343,6 +348,7 @@ function splitBill({
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     });
 
     const parameters: SplitBillParams = {
@@ -418,6 +424,7 @@ function splitBillAndOpenReport({
     participantsPolicyTags,
     getCurrencyDecimals,
     rules,
+    isVendorMatchingBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -455,6 +462,7 @@ function splitBillAndOpenReport({
         participantsPolicyTags,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     });
 
     const parameters: SplitBillParams = {
@@ -906,6 +914,7 @@ function startSplitBill({
  * @param sessionEmail - email of the current user
  */
 function completeSplitBill({
+    isVendorMatchingBetaEnabled,
     chatReportID,
     reportAction,
     updatedTransaction,
@@ -1188,6 +1197,7 @@ function completeSplitBill({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            isVendorMatchingBetaEnabled,
         });
 
         splits.push({
@@ -1477,6 +1487,7 @@ function getOrCreateOptimisticSplitChatReport(
  * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a expense chat
  */
 function createSplitsAndOnyxData({
+    isVendorMatchingBetaEnabled,
     participants,
     currentUserLogin,
     currentUserAccountID,
@@ -1990,6 +2001,7 @@ function createSplitsAndOnyxData({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            isVendorMatchingBetaEnabled,
         });
 
         const individualSplit = {
@@ -2078,6 +2090,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         optimisticChatReportID,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2175,6 +2188,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            isVendorMatchingBetaEnabled,
         });
         onyxData = splitOnyxData;
 
@@ -2222,6 +2236,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             payerEmail,
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
+            isVendorMatchingBetaEnabled,
             parentChatReport: currentChatReport,
             existingIOUReport,
             existingTransaction,

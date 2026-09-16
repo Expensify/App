@@ -208,6 +208,7 @@ type RequestMoneyInformation = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type MoneyRequestInformationParams = {
@@ -247,6 +248,7 @@ type MoneyRequestInformationParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -304,6 +306,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -471,6 +474,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1153,6 +1157,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         hasDependentTags: hasDependentTags(policy, policyTagList ?? {}),
         isInvoiceTransaction: false,
         ownerLogin: undefined,
+        isVendorMatchingBetaEnabled,
     });
 
     if (violationsOnyxData) {
@@ -1309,6 +1314,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1778,6 +1784,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         shouldSkipReportHighlightRail,
         isTrackIntentUser,
         getCurrencyDecimals,
+        isVendorMatchingBetaEnabled,
     });
 
     return {

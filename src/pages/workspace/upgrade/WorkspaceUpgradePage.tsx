@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -124,6 +125,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -276,7 +279,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
                 if (!policy?.areRulesEnabled) {
-                    enablePolicyRules(policy, true, false, policyDataRef.current);
+                    enablePolicyRules(policy, true, isVendorMatchingBetaEnabled, false, policyDataRef.current);
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
@@ -345,6 +348,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
         }
     }, [
+        isVendorMatchingBetaEnabled,
         policyID,
         feature,
         featureNameAlias,

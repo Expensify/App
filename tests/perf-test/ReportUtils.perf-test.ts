@@ -286,7 +286,7 @@ describe('ReportUtils', () => {
             successData: [],
         };
 
-        await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdateData));
+        await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData, false, policyUpdateData));
     });
 
     test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {

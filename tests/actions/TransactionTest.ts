@@ -320,6 +320,7 @@ describe('actions/Transaction', () => {
             });
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction?.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CARLOS_ACCOUNT_ID,
@@ -428,6 +429,7 @@ describe('actions/Transaction', () => {
 
             // When the expense is moved to a workspace report
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [movedTransaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CARLOS_ACCOUNT_ID,
@@ -518,6 +520,7 @@ describe('actions/Transaction', () => {
 
             // When the expense is moved to the workspace report
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: RORY_ACCOUNT_ID,
@@ -613,6 +616,7 @@ describe('actions/Transaction', () => {
                 });
 
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
                     transactionIDs: [TRANSACTION_ID],
                     isASAPSubmitBetaEnabled: false,
                     accountID: RORY_ACCOUNT_ID,
@@ -714,6 +718,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -820,6 +825,7 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
@@ -899,6 +905,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1005,6 +1012,7 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
@@ -1089,6 +1097,7 @@ describe('actions/Transaction', () => {
                 });
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1204,6 +1213,7 @@ describe('actions/Transaction', () => {
 
                 // it should use splitExpensesTotal in its calculation
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
@@ -1289,6 +1299,7 @@ describe('actions/Transaction', () => {
 
                 // Create the initial expense
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1432,6 +1443,7 @@ describe('actions/Transaction', () => {
 
                 // When splitting the held expense
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,

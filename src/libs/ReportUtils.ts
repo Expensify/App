@@ -2330,6 +2330,7 @@ function pushTransactionAutoSelectionsOnyxData(
 function pushTransactionViolationsOnyxData(
     onyxData: PolicyOptimisticOnyxData,
     policyData: PolicyData,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     policyUpdate: Partial<Policy> = {},
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
@@ -2403,6 +2404,7 @@ function pushTransactionViolationsOnyxData(
                 hasDependentTags: hasDependentTagsValue,
                 isInvoiceTransaction: false,
                 ownerLogin: undefined,
+                isVendorMatchingBetaEnabled,
             });
 
             // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.

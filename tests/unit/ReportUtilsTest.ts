@@ -12699,7 +12699,7 @@ describe('ReportUtils', () => {
 
             const onyxData = {optimisticData: [], failureData: []};
 
-            pushTransactionViolationsOnyxData(onyxData, policyData, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+            pushTransactionViolationsOnyxData(onyxData, policyData, false, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
 
             const expectedOnyxData = {
                 // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
@@ -12787,7 +12787,7 @@ describe('ReportUtils', () => {
 
             const onyxData = {optimisticData: [], failureData: []};
 
-            pushTransactionViolationsOnyxData(onyxData, policyData, fakePolicyUpdate, fakePolicyCategoriesUpdate);
+            pushTransactionViolationsOnyxData(onyxData, policyData, false, fakePolicyUpdate, fakePolicyCategoriesUpdate);
 
             expect(onyxData.optimisticData).toContainEqual({
                 onyxMethod: Onyx.METHOD.SET,
@@ -12842,7 +12842,7 @@ describe('ReportUtils', () => {
             };
 
             const onyxData = {optimisticData: [], failureData: []};
-            pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, fakePolicyTagListsUpdate);
+            pushTransactionViolationsOnyxData(onyxData, policyData, false, {}, {}, fakePolicyTagListsUpdate);
 
             // The transaction holding the disabled tag is flagged tagOutOfPolicy...
             expect(onyxData.optimisticData).toContainEqual(
@@ -12893,7 +12893,7 @@ describe('ReportUtils', () => {
             };
 
             const onyxData = {optimisticData: [], failureData: []};
-            pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, fakePolicyTagListsUpdate);
+            pushTransactionViolationsOnyxData(onyxData, policyData, false, {}, {}, fakePolicyTagListsUpdate);
 
             // Disabling the last enabled tag means tags can no longer be required, so the tagless transaction's
             // missingTag violation must be cleared — which only happens if the fast path fell back to the full recompute.

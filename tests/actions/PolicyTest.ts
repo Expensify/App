@@ -3348,7 +3348,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.enablePolicyRules(fakePolicy, true);
+            Policy.enablePolicyRules(fakePolicy, true, false);
             await waitForBatchedUpdates();
 
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
@@ -3371,7 +3371,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Disable the rule feature
-            Policy.enablePolicyRules(fakePolicy, false);
+            Policy.enablePolicyRules(fakePolicy, false, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -5372,7 +5372,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyTaxes is called to enable taxes
             mockFetch.pause();
-            Policy.enablePolicyTaxes(policyID, true, undefined);
+            Policy.enablePolicyTaxes(policyID, true, false, undefined);
             await waitForBatchedUpdates();
 
             // Then the policy tax tracking should be updated optimistically
@@ -5408,7 +5408,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyTaxes is called and fails
             mockFetch.fail();
-            Policy.enablePolicyTaxes(policyID, true, undefined);
+            Policy.enablePolicyTaxes(policyID, true, false, undefined);
             await waitForBatchedUpdates();
 
             // Then the policy tax tracking should be reverted

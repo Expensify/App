@@ -140,6 +140,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let payIOUAction: OnyxEntry<ReportAction>;
             let transaction: OnyxEntry<Transaction>;
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
@@ -415,6 +416,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -589,6 +591,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -1660,6 +1663,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     if (chatReport) {
                         // When an IOU expense is submitted to that policy expense chat
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -1795,6 +1799,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport) {
                 // When an IOU expense is submitted to that policy expense chat
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -2087,6 +2092,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport) {
                 // When an IOU expense is submitted to that policy expense chat
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {

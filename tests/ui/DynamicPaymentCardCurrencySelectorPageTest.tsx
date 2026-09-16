@@ -136,7 +136,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         capturedOnSelectRow = undefined;
         capturedCustomListHeader = undefined;
         capturedConfirmButtonOptions = undefined;
-        mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
+        mockUsePermissions.mockReturnValue({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false});
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/change-billing-currency');
         mockOnyx();
     });
@@ -150,7 +150,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     });
 
     it('shows EUR when the EUR billing beta is enabled', () => {
-        mockUsePermissions.mockReturnValue({isBetaEnabled: () => true});
+        mockUsePermissions.mockReturnValue({isBetaEnabled: () => true, isBetaEnabledOrUnknown: () => true});
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 

@@ -169,6 +169,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -259,6 +260,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -373,6 +375,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -470,6 +473,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Step 1: Create the splits
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -534,6 +538,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Step 3: Edit the splits (change amounts)
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -627,6 +632,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,

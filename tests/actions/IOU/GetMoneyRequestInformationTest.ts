@@ -45,6 +45,7 @@ const policyTagListA: PolicyTagLists = {
 };
 
 const baseParams = {
+    isVendorMatchingBetaEnabled: false,
     parentChatReport,
     participantParams: {
         payeeAccountID: PAYEE_ACCOUNT_ID,

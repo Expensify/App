@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -59,6 +60,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const backTo = 'backTo' in params && typeof params.backTo === 'string' ? params.backTo : undefined;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
     const {showConfirmModal} = useConfirmModal();
@@ -145,6 +148,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                 return;
             }
             setWorkspaceCategoryEnabled({
+                isVendorMatchingBetaEnabled,
                 policyData,
                 categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
@@ -162,6 +166,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             });
         },
         [
+            isVendorMatchingBetaEnabled,
             showCannotDeleteOrDisableLastCategoryModal,
             shouldPreventDisableOrDelete,
             policyData,
@@ -195,6 +200,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
+            isVendorMatchingBetaEnabled,
         );
         navigateBack();
     };

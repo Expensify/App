@@ -1709,6 +1709,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1793,6 +1794,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation({
+        isVendorMatchingBetaEnabled,
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
         participantParams,
@@ -2023,7 +2025,9 @@ function convertBulkTrackedExpensesToIOU({
     formatPhoneNumber,
     getCurrencyDecimals,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
     chatReport: OnyxEntry<OnyxTypes.Report>;
@@ -2142,6 +2146,7 @@ function convertBulkTrackedExpensesToIOU({
             transactionThreadReportID: moneyRequestTransactionThreadReportID,
             onyxData,
         } = getMoneyRequestInformation({
+            isVendorMatchingBetaEnabled,
             parentChatReport: chatReport,
             participantParams,
             transactionParams,

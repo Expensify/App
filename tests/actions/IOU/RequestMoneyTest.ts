@@ -205,6 +205,7 @@ describe('actions/IOU', () => {
             let transactionThreadCreatedAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -468,6 +469,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: chatReport,
@@ -702,6 +704,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -871,6 +874,7 @@ describe('actions/IOU', () => {
             let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -1397,6 +1401,7 @@ describe('actions/IOU', () => {
 
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
@@ -1434,6 +1439,7 @@ describe('actions/IOU', () => {
 
         it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123'},
@@ -1471,6 +1477,7 @@ describe('actions/IOU', () => {
 
         it('should pass isSelfTourViewed true to the request when user has viewed the tour', () => {
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -1526,6 +1533,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
 
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
@@ -1575,6 +1583,7 @@ describe('actions/IOU', () => {
             expect(nonReimbursableTotal).toBe(0);
 
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
@@ -1649,6 +1658,7 @@ describe('actions/IOU', () => {
 
             // When requesting money
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
@@ -1725,6 +1735,7 @@ describe('actions/IOU', () => {
             const merchant = 'Test Store';
 
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -1803,6 +1814,7 @@ describe('actions/IOU', () => {
 
             const amount = 10000;
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -1852,6 +1864,7 @@ describe('actions/IOU', () => {
             const amount = 2500;
 
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -2015,6 +2028,7 @@ describe('actions/IOU', () => {
 
             // When: submitting the tracked expense to another user
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action: CONST.IOU.ACTION.SUBMIT,
@@ -2096,6 +2110,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS, but pass the existing chat report with JULES
                     // This simulates the scenario where submit frequency is disabled and user selects a different participant
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: existingChatReport,
@@ -2187,6 +2202,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money from CARLOS with matching chat report
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: existingChatReport,
@@ -2269,6 +2285,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money with isPolicyExpenseChat: true - should skip participant validation
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: policyExpenseChatReport,
@@ -2346,6 +2363,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS but passing a policy expense chat report with different participants (JULES)
                     // Since the chatReport is a policy expense chat, participant validation should be skipped
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: policyExpenseChatReport,
@@ -2423,6 +2441,7 @@ describe('actions/IOU', () => {
                     // Track expense in self-DM with accountID: 0 (as getMoneyRequestParticipantsFromReport does)
                     // This simulates the scenario where user starts an expense from "Your Space"
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: selfDMReport,
@@ -2499,6 +2518,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: ''},
@@ -2563,6 +2583,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat,
                     report: {reportID: ''},
@@ -2629,6 +2650,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When an expense is created
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action,
@@ -2699,6 +2721,7 @@ describe('actions/IOU', () => {
 
             // When the expense is submitted
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -2925,6 +2948,7 @@ describe('actions/IOU', () => {
 
                 // When it is submitted to a workspace with a stale local receipt file
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     action: CONST.IOU.ACTION.SUBMIT,
@@ -3005,6 +3029,7 @@ describe('actions/IOU', () => {
             const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(currentSearchQueryJSON);
 
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action: CONST.IOU.ACTION.CREATE,
@@ -3157,6 +3182,7 @@ describe('actions/IOU', () => {
                 transactionID: 'create-transaction-tx',
             };
             return {
+                isVendorMatchingBetaEnabled: false,
                 isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactions: [transaction],

@@ -237,7 +237,8 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus']);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
     const isInitialSplit = childTransactions.length === 0;
 
@@ -385,6 +386,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         }
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,
             allTransactionsList: allTransactions,

@@ -117,7 +117,8 @@ function DynamicIOURequestStepUpgrade({
         .map((transactionItem) => transactionItem.transaction)
         .filter((item): item is Transaction => !!item);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -155,6 +156,7 @@ function DynamicIOURequestStepUpgrade({
 
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -256,6 +258,7 @@ function DynamicIOURequestStepUpgrade({
                 Navigation.goBack();
         }
     }, [
+        isVendorMatchingBetaEnabled,
         action,
         upgradeBackTo,
         navigateWithMicrotask,

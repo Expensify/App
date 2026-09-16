@@ -341,6 +341,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -447,6 +448,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -553,6 +555,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
@@ -672,6 +675,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -778,6 +782,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -860,6 +865,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -949,6 +955,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -1053,6 +1060,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -1124,6 +1132,7 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,

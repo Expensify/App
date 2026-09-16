@@ -267,6 +267,7 @@ type PerDiemExpenseInformation = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -299,6 +300,7 @@ type PerDiemExpenseInformationParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -417,6 +419,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -698,6 +701,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     });
 
     return {
@@ -1078,6 +1082,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         dateFnsLocale,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -1104,6 +1109,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         billable,
         reimbursable,
     } = getPerDiemExpenseInformation({
+        isVendorMatchingBetaEnabled,
         dateFnsLocale,
         parentChatReport: currentChatReport,
         participantParams,

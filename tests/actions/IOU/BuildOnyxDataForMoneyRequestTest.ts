@@ -178,6 +178,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             function buildSelfDMParams(): BuildOnyxDataParams {
                 return {
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -323,6 +324,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         describe('when isSelfDMSplit=false (standard flow)', () => {
             function buildStandardParams(): BuildOnyxDataParams {
                 return {
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -365,6 +367,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         describe('when isSelfDMSplit=true but selfDMReportID is undefined', () => {
             function buildNoSelfDMReportIDParams(): BuildOnyxDataParams {
                 return {
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -406,6 +409,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
 
             return {
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isNewChatReport: false,
                 shouldCreateNewMoneyRequestReport,
@@ -488,6 +492,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
     it('uses the injected formatter for optimistic new-chat personal detail display name', () => {
         const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
         const result = getMoneyRequestInformation({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             parentChatReport: undefined,
             participantParams: {

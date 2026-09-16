@@ -116,6 +116,7 @@ type SubmitAmountArgs = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /**
@@ -181,6 +182,7 @@ type SubmitAmountContext = {
     existingTransactionID: string | undefined;
     isASAPSubmitBetaEnabled: boolean;
     newAmount: number;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function navigateToConfirmationAfterAssigningParticipants(
@@ -230,6 +232,7 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     return {
+        isVendorMatchingBetaEnabled: args.isVendorMatchingBetaEnabled,
         isEditing,
         isCreateAction,
         isSubmitAction,
@@ -415,6 +418,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
             requestMoney({
+                isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
                 report,
                 participantParams: {
                     participant: participant ?? {},
@@ -675,6 +679,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
+        isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport: report,
         parentReport,

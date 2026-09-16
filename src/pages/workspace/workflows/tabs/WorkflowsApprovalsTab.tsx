@@ -118,7 +118,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Plus']);
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
 
     const isSmartLimitEnabled = policy?.areApprovalsLockedByExpensifyCard ?? false;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -157,10 +157,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const confirmDisableApprovals = useCallback(() => {
         setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, rulesCollection, {
             transactionViolations,
-            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
             personalDetailsList: personalDetails,
         });
-    }, [isBetaEnabled, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
+    }, [isBetaEnabledOrUnknown, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
@@ -359,7 +359,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     rulesCollection,
                     {
                         transactionViolations,
-                        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                        isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
                         personalDetailsList: personalDetails,
                     },
                 );

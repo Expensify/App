@@ -91,7 +91,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
@@ -463,7 +464,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                enablePolicyCategories(policyData, isEnabled, true);
+                                enablePolicyCategories(policyData, isEnabled, isVendorMatchingBetaEnabled, true);
                             }}
                             onPress={() => {
                                 if (!policyID) {
@@ -481,7 +482,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
                             disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
                             onToggle={(isEnabled) => {
-                                enablePolicyTags(policyData, isEnabled);
+                                enablePolicyTags(policyData, isEnabled, isVendorMatchingBetaEnabled);
                             }}
                             onPress={() => {
                                 if (!policyID) {
@@ -503,10 +504,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, policy?.taxRates, policyData);
+                                    enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, policy?.taxRates, policyData);
                                     return;
                                 }
-                                enablePolicyTaxes(policyID, false, undefined, policyData);
+                                enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, undefined, policyData);
                             }}
                             onPress={() => {
                                 if (!policyID) {
@@ -582,7 +583,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     );
                                     return;
                                 }
-                                enablePolicyRules(policy, isEnabled, undefined, policyData);
+                                enablePolicyRules(policy, isEnabled, isVendorMatchingBetaEnabled, undefined, policyData);
                             }}
                             onPress={() => {
                                 if (!policyID) {

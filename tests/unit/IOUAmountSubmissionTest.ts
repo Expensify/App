@@ -168,6 +168,7 @@ describe('AmountSubmission', () => {
                 localCurrencyCode: CONST.CURRENCY.USD,
             };
             return {
+                isVendorMatchingBetaEnabled: false,
                 report: baseReport,
                 translate: translateLocal,
                 dateFnsLocale: undefined,

@@ -222,7 +222,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const delegateAccountID = useDelegateAccountID();
 
     // Permissions
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const shouldGenerateTransactionThreadReport = false;
 
@@ -521,6 +522,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             }
 
             const {iouReport} = requestMoneyIOUActions({
+                isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 report,
                 existingIOUReport,
@@ -712,6 +714,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 participant,
             };
             const result = submitPerDiemExpenseIOUActions({
+                isVendorMatchingBetaEnabled,
                 dateFnsLocale,
                 getCurrencyDecimals,
                 report,
@@ -926,6 +929,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             report,
             participants: selectedParticipantsForRequest,
@@ -1083,6 +1087,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 splitBill({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,
@@ -1131,6 +1136,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, splitParticipants, currentUserPersonalDetails.accountID);
                 splitBillAndOpenReport({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,

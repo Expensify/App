@@ -71,7 +71,8 @@ function SearchTransactionsChangeReport() {
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
@@ -141,6 +142,7 @@ function SearchTransactionsChangeReport() {
         };
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -234,6 +236,7 @@ function SearchTransactionsChangeReport() {
               }
             : reports;
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -262,6 +265,7 @@ function SearchTransactionsChangeReport() {
         }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,

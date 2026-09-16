@@ -45,7 +45,8 @@ type AddExistingExpenseFooterProps = {
 function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
@@ -76,6 +77,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
             afterTransition: () => {
                 if (report && isIOUReport(report)) {
                     convertBulkTrackedExpensesToIOU({
+                        isVendorMatchingBetaEnabled,
                         getCurrencyDecimals,
                         transactions,
                         iouReport: report,
@@ -96,6 +98,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                     });
                 } else {
                     changeTransactionsReport({
+                        isVendorMatchingBetaEnabled,
                         transactionIDs: [...selectedIds],
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,

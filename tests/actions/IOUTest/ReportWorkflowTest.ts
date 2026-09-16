@@ -214,6 +214,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -839,6 +840,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -924,6 +926,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
@@ -975,6 +978,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
@@ -1224,6 +1228,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
@@ -1275,6 +1280,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
@@ -1477,6 +1483,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -1694,6 +1701,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             if (chatReport) {
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: chatReport,

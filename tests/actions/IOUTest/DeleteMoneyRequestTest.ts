@@ -167,6 +167,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // When a submit IOU expense is made
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
@@ -426,6 +427,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('does not delete the IOU report when there are expenses left in the IOU report', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
@@ -691,6 +693,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 updateMoneyRequestAmountAndCurrency({
+                    isVendorMatchingBetaEnabled: false,
                     transactionID: transaction.transactionID,
                     transactions: {},
                     transactionThreadReport: thread,
@@ -1138,6 +1141,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1226,6 +1230,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('navigate the user correctly to the iou Report when appropriate', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
@@ -1406,6 +1411,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {

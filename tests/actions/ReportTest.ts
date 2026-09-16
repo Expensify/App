@@ -10720,6 +10720,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
@@ -10788,6 +10789,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
@@ -10854,6 +10856,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],

@@ -470,6 +470,7 @@ type MergeReportsProps = {
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -8692,6 +8693,7 @@ function mergeReports({
     delegateAccountID,
     getCurrencyDecimals,
     getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -8705,6 +8707,7 @@ function mergeReports({
     }
 
     const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData({
+        isVendorMatchingBetaEnabled,
         transactionIDs: transactionIDsToMove,
         isASAPSubmitBetaEnabled,
         accountID,

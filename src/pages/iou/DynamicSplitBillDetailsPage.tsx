@@ -55,7 +55,8 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const theme = useTheme();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.path);
     const reportID = report?.reportID;
@@ -114,6 +115,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
         completeSplitBill({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             chatReportID: reportID,
             reportAction,
@@ -132,6 +134,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
     }, [
+        isVendorMatchingBetaEnabled,
         chatReportTransactions.length,
         reportID,
         reportAction,

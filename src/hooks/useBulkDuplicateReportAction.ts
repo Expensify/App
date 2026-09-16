@@ -32,7 +32,8 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -55,6 +56,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
         bulkDuplicateReports({
+            isVendorMatchingBetaEnabled,
             dateFnsLocale,
             selectedReports,
             allReports: allReports ?? {},

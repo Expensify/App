@@ -2898,6 +2898,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Call should not throw when personalDetails is provided
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [transaction],
                     iouReport,
@@ -2974,6 +2975,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Even if no transactions are provided, it should not throw
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -3020,6 +3022,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with empty personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -3066,6 +3069,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with undefined personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,

@@ -100,7 +100,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -292,6 +293,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
                 updateSplitTransactions({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     allTransactionsList: allTransactions,
@@ -422,6 +424,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             };
         },
         [
+            isVendorMatchingBetaEnabled,
             allPolicyRecentlyUsedCategories,
             allReportNameValuePairs,
             allReports,

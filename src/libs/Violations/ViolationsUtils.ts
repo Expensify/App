@@ -10,7 +10,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
-import Permissions from '@libs/Permissions';
 import {
     arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
@@ -31,22 +30,7 @@ import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from 
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Beta,
-    BetaConfiguration,
-    BetaOverrides,
-    Card,
-    CardList,
-    Policy,
-    PolicyCategories,
-    PolicyTagLists,
-    PolicyTags,
-    Report,
-    ReportAction,
-    Transaction,
-    TransactionViolation,
-    ViolationName,
-} from '@src/types/onyx';
+import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -61,32 +45,6 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 
 import type ViolationFixParams from './types';
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => {
-        allBetas = value;
-    },
-});
-
-// Same reason as the betas above: getViolationsOnyxData runs only from optimistic data builders, never during render
-let betaOverrides: OnyxEntry<BetaOverrides>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETA_OVERRIDES,
-    callback: (value) => {
-        betaOverrides = value;
-    },
-});
-
-// Without this the 'all' beta enables betas that usePermissions treats as disabled, since only it applied the config
-let betaConfiguration: OnyxEntry<BetaConfiguration>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETA_CONFIGURATION,
-    callback: (value) => {
-        betaConfiguration = value;
-    },
-});
 
 type ViolationTranslationParams = {
     violation: TransactionViolation;
@@ -505,6 +463,7 @@ const ViolationsUtils = {
         shouldRemoveRejectedExpenseViolation,
         distanceOriginalPolicy,
         ownerLogin: ownerLoginParam,
+        isVendorMatchingBetaEnabled,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -519,6 +478,8 @@ const ViolationsUtils = {
         shouldRemoveRejectedExpenseViolation?: boolean;
         distanceOriginalPolicy?: OnyxEntry<Policy>;
         ownerLogin: string | undefined;
+        /** Undefined while the account betas are still loading, which leaves the inactive vendor violation untouched */
+        isVendorMatchingBetaEnabled: boolean | undefined;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -608,8 +569,7 @@ const ViolationsUtils = {
 
         // Inactive vendor violation, gated behind the `vendorMatching` beta. The transaction's
         // vendor is never cleared here — admins need to see what was set so they can re-pick.
-        if (allBetas !== undefined) {
-            const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas, betaConfiguration, betaOverrides);
+        if (isVendorMatchingBetaEnabled !== undefined) {
             const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
             const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
             const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;
