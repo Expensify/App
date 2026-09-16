@@ -98,6 +98,7 @@ function DynamicIOURequestStepParticipants({
         isMovingTransactionFromTrackExpense,
         isFocused,
         isWorkspacesOnly,
+        shouldExcludeWorkspaces,
     });
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
