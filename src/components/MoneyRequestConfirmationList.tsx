@@ -98,6 +98,9 @@ type MoneyRequestConfirmationListProps = {
     /** Registers the inline field that should regain focus when the discard confirmation is cancelled. */
     onInputFocus?: (restoreFocus: RestoreFocus) => void;
 
+    /** Clears the registered inline field when it blurs. */
+    onInputBlur?: () => void;
+
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
 
@@ -220,6 +223,7 @@ function MoneyRequestConfirmationList({
     shouldHideToSection = false,
     onSignDirtyChange,
     onInputFocus,
+    onInputBlur,
 }: MoneyRequestConfirmationListProps) {
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
@@ -590,6 +594,7 @@ function MoneyRequestConfirmationList({
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
             onSignDirtyChange={onSignDirtyChange}
             onInputFocus={onInputFocus}
+            onInputBlur={onInputBlur}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <MoneyRequestConfirmationListFooter

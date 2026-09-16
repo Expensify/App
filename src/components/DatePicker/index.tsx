@@ -39,6 +39,7 @@ function DatePicker({
     onInputChange,
     onTouched = () => {},
     onInputFocus,
+    onInputBlur,
     placeholder,
     value,
     shouldSaveDraft = false,
@@ -249,6 +250,9 @@ function DatePicker({
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
                     onFocus={() => {
                         onInputFocus?.(() => textInputRef.current?.focus());
+                    }}
+                    onBlur={() => {
+                        onInputBlur?.();
                     }}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}

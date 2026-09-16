@@ -220,11 +220,34 @@ function IOURequestStartPage({
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const hasSubmittedRef = useRef(false);
     const lastFocusedInputRef = useRef<RestoreFocus | null>(null);
+    const isDiscardModalOpenRef = useRef(false);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const hasAmountChanged = transaction?.isAmountSet === true;
     const getEmbeddedHasUnsavedChanges = () => shouldEmbedConfirmation && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
     const isEmbeddedDirty = shouldEmbedConfirmation && !hasSubmitted && (isSignDirty || hasAmountChanged);
+
+    const handleInputBlur = () => {
+        if (isDiscardModalOpenRef.current) {
+            return;
+        }
+        if (blurTimeoutRef.current) {
+            clearTimeout(blurTimeoutRef.current);
+        }
+        blurTimeoutRef.current = setTimeout(() => {
+            if (!isDiscardModalOpenRef.current) {
+                lastFocusedInputRef.current = null;
+            }
+        }, 100);
+    };
+
+    const handleInputFocus = (restoreFocus: RestoreFocus) => {
+        if (blurTimeoutRef.current) {
+            clearTimeout(blurTimeoutRef.current);
+        }
+        lastFocusedInputRef.current = restoreFocus;
+    };
 
     const restoreLastFocusedInput = () => {
         const restoreFocus = lastFocusedInputRef.current;
@@ -244,11 +267,12 @@ function IOURequestStartPage({
 
     useEffect(
         () => () => {
-            if (!focusTimeoutRef.current) {
-                return;
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
             }
-
-            clearTimeout(focusTimeoutRef.current);
+            if (blurTimeoutRef.current) {
+                clearTimeout(blurTimeoutRef.current);
+            }
         },
         [],
     );
@@ -257,6 +281,12 @@ function IOURequestStartPage({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
         shouldEnableNewFocusManagement: shouldEmbedConfirmation,
         onCancel: restoreLastFocusedInput,
+        onVisibilityChange: (isVisible) => {
+            isDiscardModalOpenRef.current = isVisible;
+            if (isVisible && blurTimeoutRef.current) {
+                clearTimeout(blurTimeoutRef.current);
+            }
+        },
         onConfirm: cleanupPreInsertedDestination,
     });
 
@@ -330,9 +360,8 @@ function IOURequestStartPage({
                 navigation={navigation}
                 shouldHideHeader
                 onSignDirtyChange={setIsSignDirty}
-                onInputFocus={(restoreFocus) => {
-                    lastFocusedInputRef.current = restoreFocus;
-                }}
+                onInputFocus={handleInputFocus}
+                onInputBlur={handleInputBlur}
                 suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );
@@ -372,6 +401,7 @@ function IOURequestStartPage({
                                 defaultSelectedTab={defaultSelectedTab}
                                 onTabSelected={(newIOUType) => {
                                     setIsSignDirty(false);
+                                    lastFocusedInputRef.current = null;
                                     resetIOUTypeIfChanged(newIOUType);
                                 }}
                                 onTabSelect={onTabSelectFocusHandler}

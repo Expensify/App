@@ -84,6 +84,9 @@ type ProviderProps = {
     /** Registers the inline field that should regain focus when the discard confirmation is cancelled */
     onInputFocus?: (restoreFocus: RestoreFocus) => void;
 
+    /** Clears the registered inline field when it blurs */
+    onInputBlur?: () => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -113,6 +116,7 @@ function Provider({
     onTaxAmountEmptyChange,
     onSignDirtyChange,
     onInputFocus,
+    onInputBlur,
     children,
 }: ProviderProps) {
     const value = {
@@ -140,6 +144,7 @@ function Provider({
         onTaxAmountEmptyChange,
         onSignDirtyChange,
         onInputFocus,
+        onInputBlur,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

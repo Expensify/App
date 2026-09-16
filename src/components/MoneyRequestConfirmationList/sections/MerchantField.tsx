@@ -35,7 +35,8 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, onInputFocus} = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, onInputFocus, onInputBlur} =
+        useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -140,6 +141,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                     }}
                     onBlur={() => {
                         setIsMerchantInputFocused(false);
+                        onInputBlur?.();
                     }}
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}

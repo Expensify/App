@@ -39,7 +39,7 @@ type DescriptionFieldProps = {
 };
 
 function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onInputFocus} =
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onInputFocus, onInputBlur} =
         useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -115,6 +115,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                         onInputFocus?.(() => descriptionInputRef.current?.focus());
                                         scrollFocusedInputIntoView?.(fieldContainerRef.current);
                                     }}
+                                    onBlur={onInputBlur}
                                     submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
                                     onSubmitEditing={canUseHardwareKeyboard ? onSubmitForm : undefined}
                                     label={translate('common.description')}

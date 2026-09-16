@@ -53,6 +53,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Registers the inline field that should regain focus when the discard confirmation is cancelled. */
     onInputFocus?: (restoreFocus: RestoreFocus) => void;
+
+    /** Clears the registered inline field when it blurs. */
+    onInputBlur?: () => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

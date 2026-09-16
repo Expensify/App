@@ -27,10 +27,16 @@ let mockGetHasUnsavedChanges: (() => boolean) | undefined;
 let mockOnSignDirtyChange: ((isSignDirty: boolean) => void) | undefined;
 let mockSuppressEmbeddedDiscardPrompt: (() => void) | undefined;
 let mockOnTabSelected: ((tab: string) => void) | undefined;
+let mockOnInputFocus: ((restoreFocus: () => void) => void) | undefined;
+let mockOnInputBlur: (() => void) | undefined;
+let mockOnCancel: (() => void) | undefined;
+let mockOnVisibilityChange: ((isVisible: boolean) => void) | undefined;
 
 jest.mock('@userActions/Tab');
-jest.mock('@hooks/useDiscardChangesConfirmation', () => (options: {getHasUnsavedChanges: () => boolean}) => {
+jest.mock('@hooks/useDiscardChangesConfirmation', () => (options: {getHasUnsavedChanges: () => boolean; onCancel?: () => void; onVisibilityChange?: (isVisible: boolean) => void}) => {
     mockGetHasUnsavedChanges = options.getHasUnsavedChanges;
+    mockOnCancel = options.onCancel;
+    mockOnVisibilityChange = options.onVisibilityChange;
     return {suppressDiscardPrompt: jest.fn()};
 });
 jest.mock('@rnmapbox/maps', () => ({
@@ -71,9 +77,21 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
-    const ConfirmationStub = ({onSignDirtyChange, suppressDiscardPrompt}: {onSignDirtyChange?: (isSignDirty: boolean) => void; suppressDiscardPrompt?: () => void}) => {
+    const ConfirmationStub = ({
+        onSignDirtyChange,
+        suppressDiscardPrompt,
+        onInputFocus,
+        onInputBlur,
+    }: {
+        onSignDirtyChange?: (isSignDirty: boolean) => void;
+        suppressDiscardPrompt?: () => void;
+        onInputFocus?: (restoreFocus: () => void) => void;
+        onInputBlur?: () => void;
+    }) => {
         mockOnSignDirtyChange = onSignDirtyChange;
         mockSuppressEmbeddedDiscardPrompt = suppressDiscardPrompt;
+        mockOnInputFocus = onInputFocus;
+        mockOnInputBlur = onInputBlur;
         return ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'});
     };
     return {
@@ -107,6 +125,10 @@ describe('IOURequestStartPage manual tab content', () => {
         mockOnSignDirtyChange = undefined;
         mockSuppressEmbeddedDiscardPrompt = undefined;
         mockOnTabSelected = undefined;
+        mockOnInputFocus = undefined;
+        mockOnInputBlur = undefined;
+        mockOnCancel = undefined;
+        mockOnVisibilityChange = undefined;
         await act(async () => {
             await Onyx.clear();
         });
@@ -277,5 +299,77 @@ describe('IOURequestStartPage manual tab content', () => {
         // Then it still lands on the amount page first
         expect(screen.getByTestId(AMOUNT_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(CONFIRMATION_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('restores focus on discard cancellation only if an input was focused before modal opened', async () => {
+        jest.useFakeTimers();
+        await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+
+        const restoreFocusAmount = jest.fn();
+        const restoreFocusDescription = jest.fn();
+
+        // 1. Focus Amount
+        act(() => {
+            mockOnInputFocus?.(restoreFocusAmount);
+        });
+
+        // 2. Move to Description (Amount blurs, Description focuses)
+        act(() => {
+            mockOnInputBlur?.();
+            mockOnInputFocus?.(restoreFocusDescription);
+        });
+
+        // 3. Move to a non-focusable item (Description blurs without new input focus)
+        act(() => {
+            mockOnInputBlur?.();
+        });
+
+        // Advance timers past blur debounce (100ms)
+        act(() => {
+            jest.advanceTimersByTime(150);
+        });
+
+        // Discard modal opens and user cancels
+        act(() => {
+            mockOnVisibilityChange?.(true);
+            mockOnVisibilityChange?.(false);
+            mockOnCancel?.();
+            jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION);
+        });
+
+        // Neither input should regain focus
+        expect(restoreFocusAmount).not.toHaveBeenCalled();
+        expect(restoreFocusDescription).not.toHaveBeenCalled();
+
+        // 4. Focus Description again, then trigger discard modal immediately (e.g. back button tap)
+        act(() => {
+            mockOnInputFocus?.(restoreFocusDescription);
+            mockOnInputBlur?.();
+            mockOnVisibilityChange?.(true);
+        });
+
+        act(() => {
+            jest.advanceTimersByTime(150);
+            mockOnVisibilityChange?.(false);
+            mockOnCancel?.();
+            jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION);
+        });
+
+        // Focus should be restored to Description
+        expect(restoreFocusDescription).toHaveBeenCalledTimes(1);
+
+        // 5. Switching tabs resets last focused input
+        act(() => {
+            mockOnInputFocus?.(restoreFocusDescription);
+            mockOnTabSelected?.(CONST.TAB_REQUEST.SCAN);
+            mockOnVisibilityChange?.(true);
+            mockOnVisibilityChange?.(false);
+            mockOnCancel?.();
+            jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION);
+        });
+
+        expect(restoreFocusDescription).toHaveBeenCalledTimes(1);
+
+        jest.useRealTimers();
     });
 });

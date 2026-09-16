@@ -73,7 +73,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange, onInputFocus} =
+    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange, onInputFocus, onInputBlur} =
         useConfirmationFields();
     // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
     // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
@@ -351,6 +351,7 @@ function AmountField({
                         onCurrencyButtonPress={showCurrencyPicker}
                         onBlur={() => {
                             setIsAmountInputFocused(false);
+                            onInputBlur?.();
                         }}
                         leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                         disabled={isAmountFieldDisabled}

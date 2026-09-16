@@ -135,6 +135,9 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         /** Registers the inline field that should regain focus when the discard confirmation is cancelled */
         onInputFocus?: (restoreFocus: RestoreFocus) => void;
 
+        /** Clears the registered inline field when it blurs */
+        onInputBlur?: () => void;
+
         /** Suppresses the parent discard prompt when the embedded confirmation starts a successful submit */
         suppressDiscardPrompt?: () => void;
     };
@@ -149,6 +152,7 @@ function IOURequestStepConfirmationContent({
     navigation,
     onSignDirtyChange,
     onInputFocus,
+    onInputBlur,
     suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -1188,6 +1192,7 @@ function IOURequestStepConfirmationContent({
                                     shouldHideToSection={shouldHideToSection}
                                     onSignDirtyChange={onSignDirtyChange}
                                     onInputFocus={onInputFocus}
+                                    onInputBlur={onInputBlur}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>
