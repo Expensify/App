@@ -22,6 +22,7 @@ import {DeviceEventEmitter} from 'react-native';
 import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
+import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -53,6 +54,9 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     const isFocused = useIsFocused();
     const isReportArchived = useReportIsArchived(reportID);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
+    // A preloaded tab mounts this screen before the user opens it. Marking read assumes the user is looking,
+    // so hold every readNewestAction until the tab is focused, which drops the preloaded flag.
+    const isInPreloadedTab = useIsInPreloadedTab();
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -93,6 +97,11 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     }, [reportID, isAnonymousUser]);
 
     useEffect(() => {
+        // Skip while preloaded without latching, so the effect re-runs and marks read once the tab is focused.
+        if (isInPreloadedTab) {
+            return;
+        }
+
         if (!isReportUnreadValue || didMarkReportAsReadInitially.current) {
             didMarkReportAsReadInitially.current = true;
             return;
@@ -100,11 +109,17 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         didMarkReportAsReadInitially.current = true;
         readNewestAction(reportID, isReportActionsLoaded);
-    }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
+    }, [isInPreloadedTab, isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
 
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
+        // Same hold as the initial pass: a preloaded tab can satisfy the visible+focus guard while hidden,
+        // and cached actions make isReportActionsLoaded true, so without this it marks the report read before opening.
+        if (isInPreloadedTab) {
+            return;
+        }
+
         didMarkOnReportChangeRef.current = false;
         if (reportID !== prevReportID) {
             return;
