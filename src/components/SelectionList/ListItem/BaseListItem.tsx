@@ -1,8 +1,9 @@
-import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
+import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -38,26 +39,21 @@ function BaseListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError = () => {},
     rightHandSideComponent,
-    keyForList,
-    errors,
     errorRowStyles,
-    pendingAction,
     FooterComponent,
     children,
     isFocused,
     isFocusVisible = isFocused,
     shouldSyncFocus = true,
     shouldDisplayRBR = true,
-    shouldShowBlueBorderOnFocus = false,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
     shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
-    shouldShowRightCaret = false,
     accessible,
     accessibilityLabel,
-    accessibilityRole = getButtonRole(true),
+    accessibilityRole = CONST.ROLE.BUTTON,
     shouldUseOptionRole,
     isSelected,
     forwardedFSClass,
@@ -69,7 +65,7 @@ function BaseListItem<TItem extends ListItem>({
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
@@ -114,9 +110,8 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    // Selection can be provided explicitly (e.g. rows whose selection isn't stored on the item) and otherwise falls back to the item.
-    const isRowSelected = isSelected ?? item.isSelected;
-    const shouldShowRBRIndicator = (!isRowSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+    const isRowSelected = isListItemSelected(item, isSelected);
+    const shouldShowRBR = shouldDisplayRBR && shouldShowRBRIndicator(item, isSelected);
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getListItemAccessibilityProps({
         role: accessibilityRole,
@@ -133,8 +128,8 @@ function BaseListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={pendingAction}
-            errors={errors}
+            pendingAction={item.pendingAction}
+            errors={item.errors}
             errorRowStyles={[styles.mh5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
@@ -163,14 +158,14 @@ function BaseListItem<TItem extends ListItem>({
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
                 hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => {
                     if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
                         return;
                     }
                     e.preventDefault();
                 }}
-                id={keyForList ?? ''}
+                id={item.keyForList ?? ''}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,
@@ -202,7 +197,7 @@ function BaseListItem<TItem extends ListItem>({
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {shouldShowRBRIndicator && (
+                    {shouldShowRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>
                             <Icon
                                 testID={CONST.DOT_INDICATOR_TEST_ID}
@@ -213,17 +208,6 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {rightHandSideComponentRender()}
-                    {shouldShowRightCaret && (
-                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </View>
-                    )}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>

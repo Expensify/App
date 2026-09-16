@@ -57,8 +57,18 @@ function setupSentry(): void {
         integrations,
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
-        // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
-        ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
+        ignoreErrors: [
+            // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
+            CONST.ERROR.UPDATE_REQUIRED,
+            // Bare-string rejections from the Convert Experiments script in web/index.html, which reads OnyxDB directly.
+            // They carry no stack frames for thirdPartyErrorFilterIntegration to tag; the prefix limits this to the
+            // browser SDK's rejection wording, so a real Error carrying the same text still reports.
+            /^Non-Error promise rejection captured with value: No data found for key/,
+            // Uncaught IndexedDB rejection from the same Convert script, which inserts into its own database with
+            // `add()` instead of `put()` and fails whenever the key is already there. Onyx never calls `add()`, so a
+            // real Onyx write cannot produce this, and the DOMException carries no frames to tag as third-party.
+            /^ConstraintError: Key already exists in the object store/,
+        ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,

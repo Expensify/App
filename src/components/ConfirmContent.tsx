@@ -18,8 +18,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
-import Header from './Header';
+import Button from './Button';
+import HeaderTitle from './HeaderTitle';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
@@ -49,13 +49,8 @@ type ConfirmContentProps = {
     /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
     subtitle?: string | ReactNode;
 
-    /** Button variant */
     buttonVariant?: ButtonVariant;
-
-    /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
-
-    /** Whether we should show the cancel button */
     shouldShowCancelButton?: boolean;
 
     /** Icon to display above the title */
@@ -64,52 +59,26 @@ type ConfirmContentProps = {
     /** Fill color for the Icon */
     iconFill?: string | false;
 
-    /** Icon width */
     iconWidth?: number;
-
-    /** Icon height */
     iconHeight?: number;
-
-    /** Should the icon be centered? */
     shouldCenterIcon?: boolean;
 
     /** Whether to center the icon / text content */
     shouldCenterContent?: boolean;
 
-    /** Whether to show the dismiss icon */
     shouldShowDismissIcon?: boolean;
-
-    /** Whether to stack the buttons */
     shouldStackButtons?: boolean;
-
-    /** Whether to reverse the order of the stacked buttons */
     shouldReverseStackedButtons?: boolean;
-
-    /** Styles for title */
     titleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for title container */
     titleContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
-
-    /** Styles for subtitle */
     subtitleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for view */
     contentStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
-
-    /** Image to display with content */
     image?: IconAsset;
-
-    /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
-
-    /** Whether to fit the image to the container */
+    imageWidth?: number;
+    imageHeight?: number;
     shouldFitImageToContainer?: boolean;
 
     /** Whether the modal is visible */
@@ -154,6 +123,8 @@ function ConfirmContent({
     shouldShowDismissIcon = false,
     image,
     imageStyles,
+    imageWidth,
+    imageHeight,
     shouldFitImageToContainer = false,
     titleContainerStyles,
     shouldReverseStackedButtons = false,
@@ -193,8 +164,8 @@ function ConfirmContent({
                     <ImageSVG
                         contentFit={shouldFitImageToContainer ? 'cover' : 'contain'}
                         src={image}
-                        height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
-                        width={shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        height={imageHeight ?? CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
+                        width={imageWidth ?? (shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH)}
                         preserveAspectRatio={shouldFitImageToContainer ? 'xMidYMid slice' : undefined}
                         style={styles.alignSelfCenter}
                     />
@@ -232,10 +203,9 @@ function ConfirmContent({
                         </View>
                     )}
                     <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
-                        <Header
-                            title={title}
-                            textStyles={titleStyles}
-                        />
+                        <HeaderTitle>
+                            <HeaderTitle.Text style={titleStyles}>{title}</HeaderTitle.Text>
+                        </HeaderTitle>
                         {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
                     </View>
                     {subtitleContent}

@@ -20,7 +20,6 @@ import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type NavigationTabBarAvatarProps = {
-    /** Whether the avatar is selected */
     isSelected?: boolean;
 
     /** Function to call when the avatar is pressed */

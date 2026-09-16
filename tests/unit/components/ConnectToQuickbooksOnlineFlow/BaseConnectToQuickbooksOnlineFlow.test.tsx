@@ -55,7 +55,7 @@ jest.mock('@libs/actions/connections', () => ({
     isAuthenticationError: jest.fn(() => false),
 }));
 
-jest.mock('@pages/workspace/accounting/AccountingContext', () => ({
+jest.mock('@pages/workspace/accounting/AccountingContext/contexts', () => ({
     useAccountingState: jest.fn(() => ({popoverAnchorRefs: undefined})),
 }));
 
