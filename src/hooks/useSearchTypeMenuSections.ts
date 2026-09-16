@@ -1,5 +1,6 @@
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Policy, Session} from '@src/types/onyx';
@@ -16,6 +17,7 @@ import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -61,6 +63,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     const {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
 
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -120,6 +123,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
                 isTrackIntentUser: isTrackIntentUser ?? false,
                 hasReportAwaitingApproval,
                 policyCategories: allPolicyCategories,
+                isInsightsPageBetaEnabled: isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE),
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -135,6 +139,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
             isTrackIntentUser,
             hasReportAwaitingApproval,
             allPolicyCategories,
+            isBetaEnabled,
         ],
     );
 

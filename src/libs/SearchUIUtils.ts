@@ -4582,6 +4582,7 @@ type TypeMenuSectionsParams = {
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    isInsightsPageBetaEnabled?: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -4599,6 +4600,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
         policyCategories,
+        isInsightsPageBetaEnabled = false,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -4756,13 +4758,11 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        const insightsSearchKeys = [
-            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-            CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
-        ];
+        const spendInsightsSearchKeys = isInsightsPageBetaEnabled
+            ? []
+            : [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME, CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES, CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+        const insightsSearchKeys = [...spendInsightsSearchKeys, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
 
         for (const key of insightsSearchKeys) {
             if (!suggestedSearchesVisibility[key]) {
