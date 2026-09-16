@@ -326,7 +326,6 @@ function AmountField({
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
                         onFocus={() => {
-                            HapticFeedback.selection();
                             setIsAmountInputFocused(true);
                         }}
                         onBlur={() => {

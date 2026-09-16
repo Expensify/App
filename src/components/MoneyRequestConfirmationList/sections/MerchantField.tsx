@@ -133,7 +133,6 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
                     onFocus={() => {
-                        HapticFeedback.selection();
                         setIsMerchantInputFocused(true);
                     }}
                     onBlur={() => {

@@ -109,7 +109,6 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
                                     onFocus={() => {
-                                        HapticFeedback.selection();
                                         scrollFocusedInputIntoView?.(fieldContainerRef.current);
                                     }}
                                     submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
