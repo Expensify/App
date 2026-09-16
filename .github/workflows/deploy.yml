@@ -208,7 +208,7 @@ jobs:
       variant: Release
     secrets: inherit
 
-  # The same commit as androidBuild, but versionCode prefix 06, used to mark beta deployments.
+  # The same commit as androidBuild, but versionCode prefix '6', used to mark beta deployments.
   # Only Play Store testing tracks receive it.
   androidBuildBetaTrack:
     name: Build Android HybridApp (beta track)

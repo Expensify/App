@@ -28,7 +28,7 @@ on:
         type: string
         default: 'false'
       beta-track:
-        description: Builds the Play beta-track flavour (versionCode prefix 06, defaults to staging)
+        description: Builds the Play beta-track flavour (versionCode prefix '6', defaults to staging)
         type: boolean
         default: false
 

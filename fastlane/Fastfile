@@ -228,8 +228,8 @@ platform :android do
 
   desc "Deploy HybridApp to Google Play production at 1% rollout"
   lane :upload_google_play_production_hybrid_rollout do
-    # Only the 05-prefixed production artifact should ever reach production.
-    UI.user_error!("Refusing to promote versionCode #{ENV["VERSION"]} to production: prefix is not 05") unless ENV["VERSION"].to_i / 100_000_000 == 5
+    # Only the '5'-prefixed production artifact should ever reach production.
+    UI.user_error!("Refusing to promote versionCode #{ENV["VERSION"]} to production: prefix is not '5'") unless ENV["VERSION"].to_i / 100_000_000 == 5
 
     # Google is very unreliable, so we retry a few times
     ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"

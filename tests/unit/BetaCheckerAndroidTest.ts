@@ -24,7 +24,7 @@ describe('betaChecker (android)', () => {
         mockVersionCode('509047702');
     });
 
-    it('reports a beta build for the Play beta-track flavour (versionCode prefix 06) even though the Play Store installed it', async () => {
+    it("reports a beta build for the Play beta-track flavour (versionCode prefix '6') even though the Play Store installed it", async () => {
         mockVersionCode('609047702');
         mockInstaller(PLAY_STORE_INSTALLER);
 
