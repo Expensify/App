@@ -252,13 +252,17 @@ function isEscaped(str: string, index: number) {
     return backslashCount % 2 === 1;
 }
 
+function isQuoteChar(char: string | undefined) {
+    return char === '"' || char === '“' || char === '”';
+}
+
 function isCompleteQuotedValue(str: string) {
-    return /^[“”"]/.test(str) && str.length > 1 && /[“”"]$/.test(str) && !isEscaped(str, str.length - 1);
+    return isQuoteChar(str.at(0)) && str.length > 1 && isQuoteChar(str.at(-1)) && !isEscaped(str, str.length - 1);
 }
 
 function hasUnescapedQuote(str: string) {
     for (let index = 0; index < str.length; index++) {
-        if (str.at(index) === '"' && !isEscaped(str, index)) {
+        if (isQuoteChar(str.at(index)) && !isEscaped(str, index)) {
             return true;
         }
     }
@@ -268,7 +272,7 @@ function hasUnescapedQuote(str: string) {
 
 function hasClosingQuote(str: string, openingQuoteIndex: number) {
     for (let index = openingQuoteIndex + 1; index < str.length; index++) {
-        if (str.at(index) === '"' && !isEscaped(str, index)) {
+        if (isQuoteChar(str.at(index)) && !isEscaped(str, index)) {
             return true;
         }
     }
@@ -290,7 +294,7 @@ function tokenizeKeywordSegments(keywords: string) {
         }
 
         const start = index;
-        const startsWithQuote = keywords.at(index) === '"' && hasClosingQuote(keywords, index);
+        const startsWithQuote = isQuoteChar(keywords.at(index)) && hasClosingQuote(keywords, index);
         let insideQuote = startsWithQuote;
         if (startsWithQuote) {
             index++;
@@ -309,7 +313,7 @@ function tokenizeKeywordSegments(keywords: string) {
                 continue;
             }
 
-            if (char === '"') {
+            if (isQuoteChar(char)) {
                 if (insideQuote) {
                     index++;
                     if (startsWithQuote) {
@@ -374,7 +378,7 @@ function escapeKeyword(keywords: string) {
             skipNextSegment = shouldCombineKeywordSegments(segment, nextSegment);
             const q = skipNextSegment ? `${segment} ${nextSegment}` : segment;
 
-            if (q.startsWith('"')) {
+            if (isQuoteChar(q.at(0))) {
                 return isCompleteQuotedValue(q) ? q : sanitizeIncompleteQuotedValue(q);
             }
 

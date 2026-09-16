@@ -4016,6 +4016,20 @@ describe('SearchQueryUtils', () => {
             expect(getFilterFromQuery(resubmittedQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
         });
 
+        it('should preserve a multi-word keyword phrase with mixed straight and smart quote delimiters', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('"coffee shop”', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['coffee shop']);
+            expect(getKeywordQueryForSearchInput(keywordFilter?.filters.map((filter) => filter.value.toString()) ?? [])).toBe('"coffee shop"');
+        });
+
         it.each([
             ['foo"bar baz"', ['foo"bar baz"']],
             ['foo"bar baz"tail', ['foo"bar baz"tail']],
