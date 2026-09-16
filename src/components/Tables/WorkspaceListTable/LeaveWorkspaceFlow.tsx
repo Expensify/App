@@ -4,13 +4,16 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 
 import {close} from '@libs/actions/Modal';
 import {leaveWorkspace} from '@libs/actions/Policy/Policy';
+import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {createOutstandingReportsForPolicySelector} from '@src/selectors/Report';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -40,6 +43,8 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
     const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const ownerAccountID = policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [policyOwnerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerDisplayNameSelector(ownerAccountID)});
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const isLoadingData = isLoadingOnyxValue(policyResult);
 
@@ -53,7 +58,8 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
 
         close(() => {
             const userLogin = currentUserPersonalDetails.login ?? '';
-            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate);
+            const isApproverOfOutstandingReports = isApproverOfOutstandingPolicyReports(currentUserPersonalDetails.accountID, outstandingReportsForPolicy, privateIsArchivedMap);
+            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate, isApproverOfOutstandingReports);
             if (policy?.achAccount?.reimburser === userLogin) {
                 showConfirmModal({
                     title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),

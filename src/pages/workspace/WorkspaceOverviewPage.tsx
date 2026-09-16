@@ -26,6 +26,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
@@ -53,6 +54,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, getRulesDocumentSourceURL, getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyOwner} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
+import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
@@ -65,6 +67,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {canDowngradeSelector} from '@src/selectors/Account';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
+import {createOutstandingReportsForPolicySelector} from '@src/selectors/Report';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -183,6 +186,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {showLockedAccountModal} = useLockedAccountActions();
     const [pendingRulesDocumentFile, setPendingRulesDocumentFile] = useState<FileObject | undefined>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const outstandingReportsForPolicySelector = useMemo(() => createOutstandingReportsForPolicySelector(policyID), [policyID]);
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: outstandingReportsForPolicySelector});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const rulesDocumentSourceURL = useMemo(
         () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
@@ -313,7 +319,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const handleLeave = () => {
         const userEmail = session?.email ?? '';
         const ownerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate);
+        const isApproverOfOutstandingReports = isApproverOfOutstandingPolicyReports(currentUserPersonalDetails.accountID, outstandingReportsForPolicy, privateIsArchivedMap);
+        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, isApproverOfOutstandingReports);
         const isReimburser = policy?.achAccount?.reimburser === userEmail;
 
         if (isReimburser) {
