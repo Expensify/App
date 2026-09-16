@@ -124,7 +124,8 @@ type UseConfirmationListDataParams = {
 
 /**
  * The errors the amount / merchant / date fields render inline rather than in the footer. Raising one of these is
- * only visible if those fields are on screen, so the confirmation has to reveal them when it does.
+ * only visible if those fields are on screen, so every reveal site reads this same set: the shared confirmation
+ * switches to the transaction whose fields need fixing, and the scan variant expands "Show more".
  */
 const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
 
@@ -524,30 +525,23 @@ function useConfirmationListData({
         policyTags,
         policyTagLists,
         policyCategories,
-        policyForMovingExpenses,
         transactionID,
         iouAmount,
         iouCurrencyCode,
         iouCategory,
         customUnitRateID,
-        previousTransactionCurrency,
         currentUserAccountID: currentUserPersonalDetails.accountID,
         isMovingTransactionFromTrackExpense,
         isReadOnly,
         isPolicyExpenseChat,
         isDistanceRequest,
-        isScanRequest,
         isTypeSplit,
-        isTypeInvoice,
         isCategoryRequired,
         isFocused,
         shouldShowCategories,
         shouldShowTax,
         selectedParticipants,
         selectedParticipantsProp,
-        didConfirm,
-        confirm,
-        scrollFocusedInputIntoView,
         setFormError,
         clearFormErrors,
         setIsTaxAmountEmpty,
@@ -555,3 +549,4 @@ function useConfirmationListData({
 }
 
 export default useConfirmationListData;
+export {INLINE_FIELD_ERROR_KEYS};

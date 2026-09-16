@@ -2,7 +2,7 @@ import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFiel
 import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/ConfirmationDataContext';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
-import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
+import useConfirmationListData, {INLINE_FIELD_ERROR_KEYS} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {ScanConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
@@ -11,16 +11,8 @@ import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {TranslationPaths} from '@src/languages/types';
-
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-
-/**
- * The errors the amount / merchant / date fields render inline rather than in the footer. Compact mode keeps those
- * fields behind "Show more", so raising one has to reveal them or pressing Create looks like it did nothing.
- */
-const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
 
 /**
  * Confirms a scanned expense. The only variant that reaches the compact layout, where the receipt fills the
