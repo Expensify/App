@@ -28,6 +28,11 @@ const OWNER_ACCOUNT_ID = 42;
 const OWNER_LOGIN = 'john@example.com';
 const OWNER_AVATAR_URL = 'https://example.com/owner-avatar.png';
 
+const DELEGATE_ACCOUNT_ID = 77;
+const DELEGATE_LOGIN = 'copilot@example.com';
+const DELEGATE_AVATAR_URL = 'https://example.com/delegate-avatar.png';
+const PARENT_REPORT_ACTION_ID = 'action789';
+
 // Stands in for the bundled fallback SVG so a resolved account icon can be asserted by identity.
 function MockFallbackAvatar() {
     return null;
@@ -95,6 +100,37 @@ describe('ExpenseReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should render the copilot as the primary avatar when the parent action carries a delegate', async () => {
+        mockPersonalDetails[DELEGATE_ACCOUNT_ID] = {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_LOGIN, avatar: DELEGATE_AVATAR_URL};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport({parentReportActionID: PARENT_REPORT_ACTION_ID}));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
+            [PARENT_REPORT_ACTION_ID]: {
+                reportActionID: PARENT_REPORT_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actorAccountID: OWNER_ACCOUNT_ID,
+                delegateAccountID: DELEGATE_ACCOUNT_ID,
+                created: '2024-01-01 00:00:00',
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ExpenseReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(
+            expect.objectContaining({
+                id: DELEGATE_ACCOUNT_ID,
+                source: DELEGATE_AVATAR_URL,
+                copilot: {accountID: DELEGATE_ACCOUNT_ID, actedForAccountID: OWNER_ACCOUNT_ID},
+            }),
+        );
+    });
+
     it('should render the owner as the primary avatar with the workspace icon as the subscript', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport());
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: POLICY_NAME, avatarURL: POLICY_AVATAR_URL});
@@ -115,6 +151,7 @@ describe('ExpenseReportAvatar (connected)', () => {
         expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(
             expect.objectContaining({id: OWNER_ACCOUNT_ID, type: CONST.ICON_TYPE_AVATAR, source: OWNER_AVATAR_URL, name: OWNER_LOGIN}),
         );
+        expect(mockCapturedSubscriptAvatarProps.primaryAvatar).not.toHaveProperty('copilot');
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(
             expect.objectContaining({id: POLICY_ID, type: CONST.ICON_TYPE_WORKSPACE, source: POLICY_AVATAR_URL, name: POLICY_NAME}),
         );
@@ -217,6 +254,26 @@ describe('ExpenseReportAvatar (connected)', () => {
 
     it('should reach the policy row through the workspace chat when the report has no policyID', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport({policyID: undefined}));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, {reportID: PARENT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, policyID: POLICY_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: POLICY_NAME, avatarURL: POLICY_AVATAR_URL});
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ExpenseReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({id: POLICY_ID, name: POLICY_NAME, source: POLICY_AVATAR_URL}));
+    });
+
+    it.each([
+        ['a stale real policyID', 'stalePolicy999'],
+        ['a fake policyID', CONST.POLICY.ID_FAKE],
+    ])("should prefer the workspace chat's policy when the report carries %s", async (_case, reportPolicyID) => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport({policyID: reportPolicyID, policyName: 'Stale Policy Name'}));
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, {reportID: PARENT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, policyID: POLICY_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: POLICY_NAME, avatarURL: POLICY_AVATAR_URL});
         await waitForBatchedUpdatesWithAct();

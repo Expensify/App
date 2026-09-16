@@ -21,9 +21,10 @@ function useReportWorkspaceIcon(report: WorkspaceIconReportFields | undefined): 
     // An expense report links its workspace chat via `chatReportID`. `parentReportID` covers shapes that only carry the parent link, which normally points at the same chat.
     const chatReportID = getNonEmptyStringOnyxID(report?.chatReportID) ?? getNonEmptyStringOnyxID(report?.parentReportID);
     const [parentChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: reportPolicyFieldsSelector});
-    // The report may omit `policyID` while its workspace chat carries it, so fall back to the chat's.
+    // The workspace chat's policy wins: a report can carry a stale policyID mid-move while its chat already points at the current one. `_FAKE_` counts as absent.
     const parentChatPolicyID = parentChat?.policyID === CONST.POLICY.ID_FAKE ? undefined : parentChat?.policyID;
-    const policyID = getNonEmptyStringOnyxID(report?.policyID) ?? getNonEmptyStringOnyxID(parentChatPolicyID);
+    const reportPolicyID = report?.policyID === CONST.POLICY.ID_FAKE ? undefined : report?.policyID;
+    const policyID = getNonEmptyStringOnyxID(parentChatPolicyID) ?? getNonEmptyStringOnyxID(reportPolicyID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyAvatarFieldsSelector});
 
     // '' (no name) falls through to the next fallback

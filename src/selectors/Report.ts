@@ -102,8 +102,8 @@ function groupChatAvatarReportSelector(report: OnyxEntry<Report>): GroupChatAvat
     return {reportID: report.reportID, avatarUrl: report.avatarUrl, reportName: report.reportName, participants: report.participants};
 }
 
-/** The report fields `ExpenseReportAvatar` renders from: the owner for the primary avatar plus the workspace-icon fallbacks. */
-type ExpenseReportAvatarReport = Pick<Report, 'ownerAccountID' | 'policyID' | 'policyAvatar' | 'policyName' | 'oldPolicyName' | 'chatReportID' | 'parentReportID'>;
+/** The report fields `ExpenseReportAvatar` renders from: the owner and the parent action (for a copilot) for the primary avatar plus the workspace-icon fallbacks. */
+type ExpenseReportAvatarReport = Pick<Report, 'ownerAccountID' | 'policyID' | 'policyAvatar' | 'policyName' | 'oldPolicyName' | 'chatReportID' | 'parentReportID' | 'parentReportActionID'>;
 
 function expenseReportAvatarSelector(report: OnyxEntry<Report>): ExpenseReportAvatarReport | undefined {
     if (!report) {
@@ -117,6 +117,7 @@ function expenseReportAvatarSelector(report: OnyxEntry<Report>): ExpenseReportAv
         oldPolicyName: report.oldPolicyName,
         chatReportID: report.chatReportID,
         parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
     };
 }
 
