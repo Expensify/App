@@ -361,6 +361,14 @@ describe('Link.openLink', () => {
         expect(mockedSwapBackgroundTabForRHPTarget).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith('/home/verify-account?isJoinWorkspaceTask=true');
     });
+
+    it('closes the RHP for ordinary onboarding links', () => {
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email`, environmentURL);
+
+        expect(Navigation.closeRHPFlow).toHaveBeenCalled();
+    });
 });
 
 describe('Link.getInternalNewExpensifyPath', () => {

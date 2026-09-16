@@ -273,7 +273,7 @@ describe('OnboardingGuard', () => {
                 type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
                 payload: {
                     name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
-                    params: {screen: SCREENS.ONBOARDING.WORK_EMAIL},
+                    params: {screen: SCREENS.ONBOARDING.WORK_EMAIL, params: {isJoinWorkspaceTask: 'true'}},
                 },
             };
 
@@ -349,7 +349,7 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('ALLOW');
         });
 
-        it('should NOT redirect completed user for RESET actions containing onboarding routes', async () => {
+        it('should redirect completed users for RESET actions containing unmarked onboarding routes', async () => {
             // Given a user who has completed the guided setup flow
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: true,
@@ -374,8 +374,8 @@ describe('OnboardingGuard', () => {
 
             const result = OnboardingGuard.evaluate(mockState, resetWithOnboardingAction, authenticatedContext);
 
-            // Then navigation should be allowed because isNavigatingToOnboardingFlow only checks NAVIGATE/PUSH actions, not RESET — RESET with onboarding routes does not reach the completed-user redirect
-            expect(result.type).toBe('ALLOW');
+            // Then navigation should be redirected because a RESET must not bypass the completed-onboarding guard.
+            expect(result.type).toBe('REDIRECT');
         });
 
         it('should NOT redirect completed user for REPLACE actions targeting onboarding', async () => {
