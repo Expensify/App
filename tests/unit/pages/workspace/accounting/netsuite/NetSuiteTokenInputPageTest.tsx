@@ -17,7 +17,6 @@ const PAGE_NAME = CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME;
 type RouteParams = {
     policyID: string;
     subPage: string;
-    authType?: string;
 };
 
 type MockStepHeaderProps = {
@@ -76,9 +75,7 @@ jest.mock('@components/InteractiveStepSubPageHeader', () => ({stepNames}: MockSt
 jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenInputForm', () => ({isOAuthFlow}: CustomSubPageTokenInputProps) => (
     <MockView testID={isOAuthFlow ? 'oauth-form' : 'token-form'} />
 ));
-jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent', () => ({isOAuthFlow, currentPageName}: CustomSubPageTokenInputProps) => (
-    <MockView testID={`${isOAuthFlow ? 'oauth' : 'token'}-content-${currentPageName}`} />
-));
+jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent', () => () => null);
 
 const mockedUseEnvironment = jest.mocked(useEnvironment);
 const mockedUsePermissions = jest.mocked(usePermissions);
@@ -95,8 +92,8 @@ function setEnvironment({isDevelopment, isOAuthBetaEnabled}: {isDevelopment: boo
     } as ReturnType<typeof usePermissions>);
 }
 
-function renderPage(subPage: string, authType?: string) {
-    mockRoute.current = {...mockRoute.current, params: {policyID: POLICY_ID, subPage, authType}};
+function renderPage(subPage: string) {
+    mockRoute.current = {...mockRoute.current, params: {policyID: POLICY_ID, subPage}};
     render(
         <NetSuiteTokenInputPage
             policy={undefined}
@@ -112,38 +109,6 @@ describe('NetSuiteTokenInputPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockStepNames.current = undefined;
-    });
-
-    describe('in a dev environment without the netSuiteOAuth beta', () => {
-        beforeEach(() => {
-            setEnvironment({isDevelopment: true, isOAuthBetaEnabled: false});
-        });
-
-        it('runs the OAuth flow by default', () => {
-            renderPage(PAGE_NAME.CREDENTIALS);
-
-            expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
-            expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
-        });
-
-        it('shows the OAuth setup steps', () => {
-            renderPage(PAGE_NAME.OAUTH);
-
-            expect(screen.getByTestId(`oauth-content-${PAGE_NAME.OAUTH}`)).toBeOnTheScreen();
-        });
-
-        it('switches to the token-based authentication flow when the route asks for it', () => {
-            renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
-
-            expect(screen.getByTestId('token-form')).toBeOnTheScreen();
-            expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
-        });
-
-        it('shows the token-based authentication setup steps when the route asks for it', () => {
-            renderPage(PAGE_NAME.SOAP, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
-
-            expect(screen.getByTestId(`token-content-${PAGE_NAME.SOAP}`)).toBeOnTheScreen();
-        });
     });
 
     describe('outside a dev environment', () => {

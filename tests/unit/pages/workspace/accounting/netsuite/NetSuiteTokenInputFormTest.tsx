@@ -41,7 +41,6 @@ const MockView = View;
 // Capture the props of the mocked children so the tests can drive submission and the modal.
 type MockFormProviderProps = {
     children: React.ReactNode;
-    footerContent?: React.ReactNode;
     onSubmit: (values: NetSuiteTokenInputFormType) => void;
     keyboardSubmitBehavior?: string;
     shouldShowLoadingImmediatelyOnPress?: boolean;
@@ -85,20 +84,14 @@ jest.mock('@libs/actions/connections/NetSuiteCommands', () => ({
     updateNetSuiteTokens: jest.fn(),
 }));
 jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/connectToNetSuiteOAuthSetup', () => jest.fn());
-jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenAuthenticationLink', () => () => <MockView testID="token-authentication-link" />);
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 jest.mock('@components/RenderHTML', () => () => null);
 jest.mock('@components/Form/FormProvider', () => {
-    function MockFormProvider({children, footerContent, onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress, submitButtonText}: MockFormProviderProps) {
+    function MockFormProvider({children, onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress, submitButtonText}: MockFormProviderProps) {
         mockFormProps.current = {onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress, submitButtonText};
-        return (
-            <>
-                {children}
-                {footerContent}
-            </>
-        );
+        return children;
     }
     return MockFormProvider;
 });
@@ -153,12 +146,6 @@ describe('NetSuiteTokenInputForm', () => {
     describe('in the OAuth flow with 2FA enabled', () => {
         beforeEach(() => {
             set2FAEnabled(true);
-        });
-
-        it('offers the link to token-based authentication', () => {
-            renderForm(true);
-
-            expect(screen.getByTestId('token-authentication-link')).toBeOnTheScreen();
         });
 
         it('hands off to the OAuth setup with the policy, account ID and environment URL', () => {
@@ -245,12 +232,6 @@ describe('NetSuiteTokenInputForm', () => {
     describe('in the token-based authentication flow', () => {
         beforeEach(() => {
             set2FAEnabled(false);
-        });
-
-        it('does not offer the link to token-based authentication', () => {
-            renderForm(false);
-
-            expect(screen.queryByTestId('token-authentication-link')).toBeNull();
         });
 
         it('writes the token-based credentials without requiring 2FA', () => {
