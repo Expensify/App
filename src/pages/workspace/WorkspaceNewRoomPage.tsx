@@ -1,10 +1,10 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -97,6 +98,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
@@ -284,7 +286,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                       shouldShowOfflineIndicator: true,
                       shouldEnablePickerAvoiding: false,
                       shouldEnableKeyboardAvoidingView: workspaceOptions.length !== 0,
-                      keyboardVerticalOffset: variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top,
+                      keyboardVerticalOffset: contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top,
                       // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
                       focusTrapSettings: {active: false},
                   })}
@@ -332,10 +334,9 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                     </View>
                     {isLocked ? (
                         <View style={[styles.mhn5]}>
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.common.workspace')}
-                                title={lockedPolicy?.name}
-                                interactive={false}
+                            <MenuItemField
+                                name={translate('workspace.common.workspace')}
+                                value={lockedPolicy?.name}
                             />
                         </View>
                     ) : (

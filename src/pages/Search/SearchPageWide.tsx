@@ -80,10 +80,9 @@ function SearchPageWide({
     // the indicator unreserved and it drops onto its own line. Reading `hasSelectedTransactions` re-renders only
     // this component on selection changes (its memoized JSX keeps the <Search> subtree from re-rendering;
     // verified via profiling), so the heavy list is unaffected.
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
     const shouldReserveFooterSpace = hasSelectedTransactions || (shouldAllowFooterTotals && !!searchResults?.search?.count);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
-    const receiptDropTargetRef = useRef<View>(null);
 
     const endSubmitNavigationSpans = useEndSubmitNavigationSpans({requireLayout: false});
 
@@ -106,69 +105,74 @@ function SearchPageWide({
         return [styles.mtAuto];
     }, [shouldReserveFooterSpace, styles]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
+    const receiptDropTargetRef = useRef<View>(null);
 
     return (
         <Animated.View
             ref={receiptDropTargetRef}
             style={[styles.searchSplitContainer, splitContainerAnimatedStyle]}
         >
-            <ScreenWrapper
-                testID="Search"
-                shouldEnableMaxHeight
-                shouldShowOfflineIndicatorInWideScreen={!!searchResults}
-                offlineIndicatorStyle={offlineIndicatorStyle}
+            <ReceiptScanDropZone
+                dropZoneRef={receiptDropTargetRef}
+                isDisabled={!queryJSON}
             >
-                <FullPageNotFoundView
-                    shouldForceFullScreen
-                    shouldShow={!queryJSON}
-                    onBackButtonPress={handleOnBackButtonPress}
-                    shouldShowLink={false}
+                <ScreenWrapper
+                    testID="Search"
+                    shouldEnableMaxHeight
+                    shouldShowOfflineIndicatorInWideScreen={!!searchResults}
+                    offlineIndicatorStyle={offlineIndicatorStyle}
                 >
-                    {!!queryJSON && !!contentQueryJSON && (
-                        <>
-                            <SearchPageHeaderWide queryJSON={queryJSON} />
-                            <SearchActionsBarWide
-                                queryJSON={queryJSON}
-                                searchResults={searchResults}
-                                onSort={onSortPressedCallback}
-                            />
-                            <View style={styles.flex1}>
-                                {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
-                                <LayoutAnimationConfig skipEntering>
-                                    {/* Keyed on the resolved query, so this only remounts once the new results arrive. Absolutely
-                                        filled so it never shares the parent's column layout with the layer it replaces. */}
-                                    <Animated.View
-                                        key={contentQueryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                        style={StyleSheet.absoluteFill}
-                                    >
-                                        {shouldShowLoadingSkeleton ? (
-                                            <SearchLoadingSkeleton />
-                                        ) : (
-                                            <SearchWithNavigationDeferredMount
-                                                isReplacingContent={isReplacingPreviousContent}
-                                                queryJSON={contentQueryJSON}
-                                                searchResults={contentSearchResults}
-                                                handleSearch={handleSearchAction}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                onSearchListScroll={scrollHandler}
-                                                onSortPressedCallback={onSortPressedCallback}
-                                                onDestinationVisible={endSubmitNavigationSpans}
-                                                onContentReady={onSearchContentReady}
-                                            />
-                                        )}
-                                    </Animated.View>
-                                </LayoutAnimationConfig>
-                                {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
-                            </View>
-                            <SearchSelectionFooter searchResults={contentSearchResults} />
-                        </>
-                    )}
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-            {!!queryJSON && <ReceiptScanDropZone targetRef={receiptDropTargetRef} />}
+                    <FullPageNotFoundView
+                        shouldForceFullScreen
+                        shouldShow={!queryJSON}
+                        onBackButtonPress={handleOnBackButtonPress}
+                        shouldShowLink={false}
+                    >
+                        {!!queryJSON && !!contentQueryJSON && (
+                            <>
+                                <SearchPageHeaderWide queryJSON={queryJSON} />
+                                <SearchActionsBarWide
+                                    queryJSON={queryJSON}
+                                    searchResults={searchResults}
+                                    onSort={onSortPressedCallback}
+                                />
+                                <View style={styles.flex1}>
+                                    {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
+                                    <LayoutAnimationConfig skipEntering>
+                                        {/* Keyed on the resolved query, so this only remounts once the new results arrive. Absolutely
+                                            filled so it never shares the parent's column layout with the layer it replaces. */}
+                                        <Animated.View
+                                            key={contentQueryJSON.hash}
+                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                            style={StyleSheet.absoluteFill}
+                                        >
+                                            {shouldShowLoadingSkeleton ? (
+                                                <SearchLoadingSkeleton />
+                                            ) : (
+                                                <SearchWithNavigationDeferredMount
+                                                    isReplacingContent={isReplacingPreviousContent}
+                                                    queryJSON={contentQueryJSON}
+                                                    searchResults={contentSearchResults}
+                                                    handleSearch={handleSearchAction}
+                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                    onSearchListScroll={scrollHandler}
+                                                    onSortPressedCallback={onSortPressedCallback}
+                                                    onDestinationVisible={endSubmitNavigationSpans}
+                                                    onContentReady={onSearchContentReady}
+                                                />
+                                            )}
+                                        </Animated.View>
+                                    </LayoutAnimationConfig>
+                                    {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
+                                </View>
+                                <SearchSelectionFooter searchResults={contentSearchResults} />
+                            </>
+                        )}
+                    </FullPageNotFoundView>
+                </ScreenWrapper>
+            </ReceiptScanDropZone>
         </Animated.View>
     );
 }

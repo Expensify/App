@@ -89,7 +89,7 @@ function useSelectionModePayment({
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
@@ -106,6 +106,7 @@ function useSelectionModePayment({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -207,6 +208,7 @@ function useSelectionModePayment({
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                rules,
             });
         } else {
             payMoneyRequest({
@@ -231,6 +233,7 @@ function useSelectionModePayment({
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                rules,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -315,6 +318,7 @@ function useSelectionModePayment({
             isASAPSubmitBetaEnabled,
             confirmApproval,
             iouReport: moneyRequestReport,
+            rules,
             betas,
             userBillingGracePeriodEnds,
             amountOwed,
