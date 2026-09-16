@@ -6382,24 +6382,20 @@ function getModifiedExpenseOriginalMessage(
     // to match how we handle the modified expense action in oldDot
     const didAmountOrCurrencyChange = 'amount' in transactionChanges || 'currency' in transactionChanges;
     if (didAmountOrCurrencyChange) {
-        // Confirming a failed-scan placeholder amount with its existing value (e.g. re-entering 0 to clear the scan
-        // error) has no real previous value to report — the backend doesn't persist oldAmount/oldCurrency for this
-        // edit either, so omit both here too and let buildMessageFragmentForValue() render it as a first-time "set"
-        // ("set the amount to X"), consistently, instead of a "changed to X (previously X)" that would only hold
-        // until the server's response replaces it.
-        const isConfirmingUnchangedFailedScanAmount =
-            isFailedScanAmountPlaceholder(oldTransaction ?? undefined) &&
-            (!('amount' in transactionChanges) || transactionChanges.amount === getTransactionAmount(oldTransaction, isFromExpenseReport, false, allowNegative)) &&
-            (!('currency' in transactionChanges) || transactionChanges.currency === getCurrency(oldTransaction));
+        // A failed scan's zero amount is only a placeholder, not a real previous value. When the user enters the
+        // first amount, omit oldAmount/oldCurrency to match the backend and render "set the amount to X" for both
+        // zero and nonzero values. Once an amount has been confirmed, isFailedScanAmountPlaceholder() returns false,
+        // so later edits continue to render "changed the amount to X (previously Y)".
+        const isSettingFailedScanAmount = isFailedScanAmountPlaceholder(oldTransaction ?? undefined) && 'amount' in transactionChanges;
 
         // When the receipt is still being scanned and has no amount yet, omit oldAmount so that
         // buildMessageFragmentForValue() treats this as a first-time "set" (generating "set the amount to X")
         // rather than an "update" (generating "changed the amount from $0 to X").
-        if (!(isReceiptBeingScanned(oldTransaction) && !getTransactionDetails(oldTransaction)?.amount) && !isConfirmingUnchangedFailedScanAmount) {
+        if (!(isReceiptBeingScanned(oldTransaction) && !getTransactionDetails(oldTransaction)?.amount) && !isSettingFailedScanAmount) {
             originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, allowNegative);
         }
         originalMessage.amount = transactionChanges?.amount ?? transactionChanges.oldAmount;
-        if (!isConfirmingUnchangedFailedScanAmount) {
+        if (!isSettingFailedScanAmount) {
             originalMessage.oldCurrency = getCurrency(oldTransaction);
         }
         originalMessage.currency = transactionChanges?.currency ?? transactionChanges.oldCurrency;

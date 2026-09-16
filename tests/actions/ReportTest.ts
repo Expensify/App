@@ -10674,12 +10674,27 @@ describe('actions/Report', () => {
             expect(originalMessage?.oldCurrency).toBeUndefined();
         });
 
-        it('still records oldAmount/oldCurrency when the user provides a real amount', () => {
+        it('omits oldAmount/oldCurrency when the user provides the first real amount', () => {
             const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, placeholderTransaction, {amount: 1550, currency: 'USD'}, false, undefined, undefined);
             const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
 
             expect(originalMessage?.amount).toBe(1550);
-            expect(originalMessage?.oldAmount).toBe(0);
+            expect(originalMessage?.oldAmount).toBeUndefined();
+            expect(originalMessage?.currency).toBe('USD');
+            expect(originalMessage?.oldCurrency).toBeUndefined();
+        });
+
+        it('records oldAmount/oldCurrency for subsequent edits after the failed-scan amount is confirmed', () => {
+            const confirmedTransaction = createMock<OnyxTypes.Transaction>({
+                ...placeholderTransaction,
+                modifiedAmount: -1550,
+                modifiedCurrency: 'USD',
+            });
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, confirmedTransaction, {amount: 2500, currency: 'USD'}, false, undefined, undefined);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.amount).toBe(2500);
+            expect(originalMessage?.oldAmount).toBe(1550);
             expect(originalMessage?.currency).toBe('USD');
             expect(originalMessage?.oldCurrency).toBe('USD');
         });
