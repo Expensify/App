@@ -65,12 +65,6 @@ Description Dan is useful for recurring purchases where you typically use the sa
 
 ---
 
-## How to create an agent from a template
-
-When you create a new agent, Expensify suggests the available agent templates alongside the option to create a custom agent. Choosing a template automatically creates an agent with prewritten instructions that you can review and customize before saving.
-
----
-
 ## Related articles
 
 - [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents)
