@@ -701,6 +701,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('calls markRejectViolationAsResolved only for transactions with a rejected-expense violation, resolving to the transaction thread reportID', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            // Spying on API.write to assert on the submitted payload, not making multiple real API calls.
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const rejectedTransaction = createRandomTransaction(1);
@@ -711,6 +712,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
             const threadReportID = 'thread-1';
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            // Building a minimal mock ReportAction shape for the test.
             const reportActions = [
                 {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -741,6 +743,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('does nothing when no transaction has a rejected-expense violation', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            // Spying on API.write to assert it is not called, not making multiple real API calls.
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transaction = createRandomTransaction(1);
             if (!transaction?.transactionID) {

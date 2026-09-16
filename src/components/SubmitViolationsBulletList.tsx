@@ -1,3 +1,7 @@
+/**
+ * Bulleted list for the pre-submit violations confirmation modal. Unlike the generic `BulletList`, the header and
+ * items use the same normal-sized theme text as a plain `ConfirmModal` string prompt, matching the approved design.
+ */
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ReactNode} from 'react';
@@ -13,14 +17,10 @@ type SubmitViolationsBulletListProps = {
     /** List of items for the list. Each item will be rendered as a separate point. */
     items: SubmitViolationsBulletListItem[];
 
-    /** Header section of the list */
+    /** Header content. A string is wrapped in the list's themed Text; a ReactNode is rendered as-is. */
     header: string | ReactNode;
 };
 
-/**
- * Bulleted list for the pre-submit violations confirmation modal. Unlike the generic `BulletList`, the header and
- * items use the same normal-sized theme text as a plain `ConfirmModal` string prompt, matching the approved design.
- */
 function SubmitViolationsBulletList({items, header}: SubmitViolationsBulletListProps) {
     const styles = useThemeStyles();
 

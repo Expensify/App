@@ -2116,8 +2116,8 @@ type SubmitViolationsSummary = {
     /** Whether any transaction has an unmatched RTER violation that has been pending for more than 7 days. */
     hasSevenDayHoldViolation: boolean;
     /**
-     * Whether any transaction has a recently-pending (non-broken-connection, non-seven-day-hold) RTER violation.
-     * This predates #101213 — the pre-existing "mark as cash" resolution for this case is preserved as-is.
+     * Whether any transaction has an RTER violation that is still recently pending, i.e. not a broken connection and not a seven-day hold.
+     * This predates #101213. The pre-existing "mark as cash" resolution for this case is preserved as-is.
      */
     hasGenericPendingRTERViolation: boolean;
     /** Whether any transaction has been rejected by an approver and not yet marked as resolved. */

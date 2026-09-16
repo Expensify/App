@@ -2078,7 +2078,7 @@ describe('TransactionUtils', () => {
 
         it('flags hasSevenDayHoldViolation for a seven-day-hold RTER violation and does not double-count it as generic pending', () => {
             // The backend sends RTER violations as type "warning" (confirmed against real Onyx data captured while
-            // testing #101213 live), not "violation" — using WARNING here guards against re-introducing a type
+            // testing #101213 live), not "violation". Using WARNING here guards against re-introducing a type
             // filter that would silently stop matching real seven-day-hold violations.
             const transaction = createMock<Transaction>({transactionID: 't1'});
             const violations = buildViolationsCollection({
@@ -2090,7 +2090,7 @@ describe('TransactionUtils', () => {
         });
 
         it('flags hasGenericPendingRTERViolation for a plain (non-seven-day) pending RTER violation, preserving the pre-#101213 mark-as-cash resolution', () => {
-            // Real RTER violations are type "warning", not "violation" — see note above. This case predates #101213
+            // Real RTER violations are type "warning", not "violation". See note above. This case predates #101213
             // (it's the same "receipt pending match with card" flow that useConfirmPendingRTERAndProceed handled
             // before this ticket) and must keep its existing mark-as-cash resolution, not fall into the "no action"
             // otherViolations bucket alongside genuinely unfixable violations like over-category-limit.
@@ -2115,8 +2115,8 @@ describe('TransactionUtils', () => {
 
         it('flags hasReportBeenRejected when the whole report was rejected back to the submitter, even though the transaction itself has no violations', () => {
             // A separate mechanism from AUTO_REPORTED_REJECTED_EXPENSE (rejecting a single expense): rejecting the
-            // whole report (RejectMoneyRequest.ts's rejectExpenseReport) writes no TransactionViolation at all —
-            // confirmed against real Onyx data captured while testing #101213 live — it only sets the report's own
+            // whole report (RejectMoneyRequest.ts's rejectExpenseReport) writes no TransactionViolation at all.
+            // Confirmed against real Onyx data captured while testing #101213 live. It only sets the report's own
             // stateNum/nextStep fields.
             const transaction = createMock<Transaction>({transactionID: 't1'});
             const report = createMock<Report>({

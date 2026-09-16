@@ -1038,7 +1038,7 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
 }
 
 /**
- * Marks every transaction with a not-yet-resolved rejected-expense violation as resolved, resolving each to its own
+ * Marks every transaction whose rejected-expense violation has not yet been resolved, resolving each to its own
  * transaction thread report (the same report markRejectViolationAsResolved posts the "marked as resolved" action to).
  */
 function markRejectedTransactionsAsResolved(

@@ -450,7 +450,7 @@ describe('SubmitActionButton', () => {
 
     it('forwards shouldResolveAcknowledgedViolations as true for a report with only a non-resolvable "other" violation', () => {
         // Given a report whose only violation is something with no known one-click resolution (e.g. over category
-        // limit) — the user still acknowledged a violation via the confirmation modal, so the backend should still be
+        // limit). The user still acknowledged a violation via the confirmation modal, so the backend should still be
         // told to resolve the acknowledgement, even though there's nothing for the app itself to mark as resolved.
         mockedGetSubmitViolationsSummary.mockReturnValue({
             hasSevenDayHoldViolation: false,

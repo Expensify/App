@@ -11,8 +11,8 @@ import type * as MockUseConfirmModalUtil from '../../utils/mockUseConfirmModal';
 import {getShowConfirmModalOption, mockShowConfirmModal, MockModalActions, resetMockConfirmModal, resolveShowConfirmModal} from '../../utils/mockUseConfirmModal';
 
 // Referencing imported helpers directly inside jest.mock() factories is disallowed by Jest's hoisting rules (only
-// "mock"-prefixed bindings are exempt), so each factory re-requires the util via jest.requireActual instead —
-// mirrors the pattern in tests/unit/hooks/useFilesValidation.test.ts.
+// "mock"-prefixed bindings are exempt), so each factory re-requires the util via jest.requireActual instead.
+// This mirrors the pattern in tests/unit/hooks/useFilesValidation.test.ts.
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../../utils/mockUseConfirmModal');
     return mockUseConfirmModal;
