@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Account, IntroSelected, Onboarding} from '@src/types/onyx';
+import type {Account, Onboarding} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -45,7 +45,6 @@ let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 let onboardingInitialPath: OnyxEntry<string>;
 let hasNonPersonalPolicy: OnyxEntry<boolean>;
 let wasInvitedToNewDot: boolean | undefined;
-let introSelected: OnyxEntry<IntroSelected>;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -106,7 +105,6 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
-        introSelected = value;
         wasInvitedToNewDot = value ? wasInvitedToNewDotSelector(value) : undefined;
     },
 });
@@ -190,7 +188,7 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
  */
 function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
     if (action.type === CONST.NAVIGATION_ACTIONS.RESET && isObjectPayload(action.payload)) {
-        return isOnboardingFlowName(findFocusedRoute(action.payload as NavigationState)?.name);
+        return isOnboardingFlowName(getActionPayloadScreenName(action));
     }
 
     if (
@@ -206,11 +204,6 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
 function isNavigatingToJoinWorkspaceTask(action: NavigationAction): boolean {
     if (!isNavigatingToOnboardingFlow(action)) {
         return false;
-    }
-
-    if (action.type === CONST.NAVIGATION_ACTIONS.RESET && isObjectPayload(action.payload)) {
-        const targetRoute = findFocusedRoute(action.payload as NavigationState);
-        return JOIN_WORKSPACE_TASK_SCREENS.has(targetRoute?.name ?? '') && targetRoute?.params?.isJoinWorkspaceTask === 'true';
     }
 
     return JOIN_WORKSPACE_TASK_SCREENS.has(getActionPayloadScreenName(action) ?? '') && getActionPayloadScreenParams(action)?.isJoinWorkspaceTask === 'true';
