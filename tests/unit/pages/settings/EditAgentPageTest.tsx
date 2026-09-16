@@ -162,7 +162,8 @@ type EditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, t
 type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['navigation'];
 
 const mockRoute = createMock<EditAgentPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
-const mockNavigation = createMock<EditAgentPageNavigation>({setParams: jest.fn()});
+const mockSetParams = jest.fn();
+const mockNavigation = createMock<EditAgentPageNavigation>({setParams: mockSetParams});
 
 describe('EditAgentPage', () => {
     beforeEach(() => {
@@ -331,7 +332,7 @@ describe('EditAgentPage', () => {
             });
 
             expect(route.params.accountID).toBe(optimisticAccountID);
-            expect(mockNavigation.setParams).toHaveBeenCalledWith({accountID: realAccountID});
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
             expect(JSON.stringify(toJSON())).toContain('Created agent');
             expect(JSON.stringify(toJSON())).toContain('Created instructions');
             expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
@@ -360,7 +361,7 @@ describe('EditAgentPage', () => {
                 />,
             );
             await act(async () => waitForBatchedUpdates());
-            expect(mockNavigation.setParams).toHaveBeenCalledWith({accountID: realAccountID});
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
             expect(JSON.stringify(toJSON())).toContain('Already created agent');
             expect(JSON.stringify(toJSON())).toContain('Already created instructions');
             expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
