@@ -9,11 +9,13 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import {updatePronouns as updatePronounsPersonalDetails} from '@userActions/PersonalDetails';
 
@@ -36,6 +38,8 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
     const [searchValue, setSearchValue] = useState('');
     const [selectedPronouns, setSelectedPronouns] = useState(currentPronouns);
+    // Freeze the pronoun selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialPronoun = useInitialSelection(selectedPronouns, {resetOnFocus: true});
     const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
@@ -63,13 +67,16 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             };
         }).sort((a, b) => localeCompare(a.text.toLowerCase(), b.text.toLowerCase()));
 
+        // Pin the frozen initial pronoun to the top of the full list before search filtering, so the pre-selected pronoun stays pinned while searching.
+        const orderedPronouns = moveInitialSelectionToTop(pronouns, initialPronoun ? [initialPronoun] : []);
+
         const trimmedSearch = searchValue.trim();
 
         if (trimmedSearch.length === 0) {
             return [];
         }
-        return pronouns.filter((pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
-    }, [searchValue, selectedPronouns, translate, localeCompare]);
+        return orderedPronouns.filter((pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
+    }, [searchValue, selectedPronouns, translate, localeCompare, initialPronoun]);
 
     const selectPronoun = (selectedPronoun: PronounEntry) => {
         setSelectedPronouns(selectedPronoun.value === selectedPronouns ? '' : (selectedPronoun?.value ?? ''));
@@ -125,6 +132,8 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                         initiallyFocusedItemKey={currentPronounsKey}
                         confirmButtonOptions={confirmButtonOptions}
                         shouldSingleExecuteRowSelect
+                        shouldScrollToFocusedIndexOnMount={false}
+                        shouldUpdateFocusedIndex
                     />
                 </>
             )}
