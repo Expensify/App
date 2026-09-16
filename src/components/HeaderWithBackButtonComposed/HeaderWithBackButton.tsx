@@ -101,7 +101,7 @@ function HeaderWithBackButton({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {containerStyle, innerRowStyle} = useHeaderStyles({shouldUseHeadlineHeader, shouldShowBorderBottom, style});
+    const {containerStyle, innerRowStyle} = useHeaderStyles({shouldShowBorderBottom, style});
 
     const threeDotsMenuFirstItem = threeDotsMenuItems.at(0);
     const threeDotMenuTooltipsSection = (

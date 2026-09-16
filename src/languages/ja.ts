@@ -415,8 +415,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'サブレート',
         perDiem: '日当',
         validate: '検証',
-        downloadAsPDF: 'PDFとしてダウンロード',
-        downloadReceipts: '領収書をダウンロード',
+        downloadReport: () => ({
+            one: 'レポートをダウンロード',
+            other: 'レポートをダウンロード',
+        }),
+        downloadReceipt: () => ({
+            one: 'レシートをダウンロード',
+            other: '領収書をダウンロード',
+        }),
         downloadAsCSV: 'CSVとしてダウンロード',
         submitViaPDF: 'PDFで提出',
         print: '印刷',
@@ -1157,6 +1163,9 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>スプレッドシートをここにドラッグ＆ドロップするか、下からファイルを選択してください。サポートされているファイル形式の詳しい説明は、<a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">こちら</a>をご覧ください。</muted-link>`,
         chooseSpreadsheet: '<muted-link>インポートするスプレッドシートファイルを選択してください。対応形式：.csv、.txt、.xls、.xlsx。</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>インポートするスプレッドシートファイルを選択してください。サポートされているファイル形式の詳細は、<a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">こちら</a>をご覧ください。</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>スプレッドシートまたは取引明細をここにドラッグ＆ドロップするか、下からファイルを選択してください。対応形式：.csv、.txt、.xls、.xlsx、.ofx、.qfx</muted-link>',
+        chooseSpreadsheetTransactions: '<muted-link>インポートするスプレッドシートまたは取引明細ファイルを選択してください。対応形式：.csv、.txt、.xls、.xlsx、.ofx、.qfx。</muted-link>',
         fileContainsHeader: 'ファイルに列見出しが含まれています',
         column: (name: string) => `列${name}`,
         fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認してもう一度お試しください。`,
@@ -1215,6 +1224,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `${count} 件の取引がインポートされました。`,
             other: `${count} 件の取引がインポートされました。`,
         }),
+        importStatementSuccessfulDescription: '銀行明細書がアップロードされました。',
         importFailedTitle: 'インポートに失敗しました',
         importFailedDescription: 'すべての項目が正しく入力されていることを確認して、もう一度お試しください。問題が解決しない場合は、Concierge までご連絡ください。',
         importDescription: '下のインポートされた各列の横にあるドロップダウンをクリックして、スプレッドシートのどのフィールドを対応付けるか選択してください。',
@@ -1610,6 +1620,10 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'すべての取引が保留中のため、このレポートを完了にできません。反映されるまでに数日かかる場合があります。',
             allExpensesOnHoldDescription: 'すべての経費が保留中のため、このレポートを送信できません。送信するには、保留を解除してください。',
             allExpensesOnHoldMarkAsDoneDescription: 'すべての経費が保留中のため、このレポートを完了にできません。続行するには、保留を解除してください。',
+            reportsNotSubmittedTitle: 'レポートを提出',
+            reportsNotMarkedAsDoneTitle: 'レポートを完了にする',
+            reportsNotSubmittedDescription: 'これらのレポートを送信できませんでした。経費が保留中または処理待ちになっていないことを確認してから、もう一度お試しください。',
+            reportsNotMarkedAsDoneDescription: 'これらのレポートを完了済みにできませんでした。経費が保留中や未処理になっていないか確認してから、もう一度お試しください。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },
@@ -5115,6 +5129,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 xeroInvoiceCollectionAccount: 'Xero請求書回収勘定',
                 xeroBillPaymentAccountDescription: '請求書の支払元を選択すると、Xero 内に支払処理を作成します。',
                 invoiceAccountSelectorDescription: '請求書の入金先を選択すると、Xero に支払いが作成されます。',
+                xeroFxExpenseAccount: 'Xero 通貨換算手数料勘定',
+                fxExpenseAccountDescription: '海外で行われた支払いに対する通貨換算コストを御社が負担する場合、そのコストは「支出入金取引」として Xero のこの勘定科目に計上します。',
             },
             exportDate: {
                 label: '仕入請求書の日付',
@@ -5472,6 +5488,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 error: {
                     customFormID: '有効な数値のカスタムフォームIDを入力してください',
                 },
+                fxExpenseAccount: '通貨換算手数料勘定',
+                fxExpenseAccountDescription: '海外で支払われる精算について、会社が為替換算コストを負担する場合、そのコストは仕訳として以下の NetSuite アカウントに計上します。',
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'NetSuite にアカウントを追加して、接続をもう一度同期してください',
@@ -6535,6 +6553,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。',
                 disabledTitle: 'ちょっと待ってください...',
                 disabledMessage: 'この機能を有効または無効にするには、会計インポート設定を変更する必要があります。',
+            },
+            recruitingWarningModal: {
+                disconnectText: ({integration}: {integration: string}) => `採用機能を無効にするには、まずこのワークスペースから ${integration} の連携を解除してください。`,
             },
         },
         reports: {
@@ -7803,6 +7824,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>自動更新される公的レートは、Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} から）。</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `1メンバーあたり月額` : `有効メンバー1人あたり月額`} から）</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8489,6 +8516,7 @@ ${reportName}`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
         },
         merge: {
             connections: '接続',
@@ -9000,7 +9028,9 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         commuterExclusions: {
-            changedToFixedDistance: '通勤分を除外する設定を、申請ごとの固定距離に変更しました',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `通勤分の除外方法を、申請ごとの固定距離に変更しました（以前は${previousMethod}）。`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `「通勤を除外」の計算方法を自宅とオフィスに基づいて行うよう変更しました（以前の方法：${previousMethod}）`,
+            previousMethod: {disabled: '通勤を除外しないでください', fixedDistance: '申請ごとの固定距離', homeAndOffice: '自宅とオフィス'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `請求ごとに固定距離の除外を ${formattedDistance} に設定します`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `1件あたりの固定距離控除を${formattedNewDistance}に変更しました（以前は${formattedOldDistance}）`,
@@ -9178,6 +9208,35 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} 件の提出`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `${member} の承認ワークフローを変更し、${limit} を超えるレポートを ${approver} に回付するようにしました`
+                : `${member} に対する承認ワークフローを設定し、${limit} を超えるレポートを ${approver} に回覧します`;
+            if (previousApprover && previousLimit) {
+                text += `（以前は ${previousLimit} を超えるレポートを ${previousApprover} に転送していました）`;
+            } else if (previousApprover) {
+                text += `（以前に ${previousApprover} に転送済み）`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました（以前は ${previousApprover} さんに転送していました）`
+                : `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `${member} さんの承認ワークフローを、${limit} を超えるレポートを転送するように変更しました（以前は ${previousLimit}）。`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10785,6 +10844,9 @@ ${reportName}`,
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
         hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
         mileageRateAutoUpdated: '<tooltip>出張日にもとづいてレートを更新しました。</tooltip>',
+        markAllAsRead: '<tooltip>右クリックで<strong>すべて既読にする</strong>ことができます。</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
+        accountMovedToTopBar: '<tooltip>アカウントと個人設定にアクセスします。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
@@ -10862,6 +10924,7 @@ ${reportName}`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'お知らせです！このエクスポートはサイズが大きすぎるため、検索条件に一致した最初の 50,000 件のレポートに制限されています。',
     },
     domain: {
         notVerified: '未確認',
