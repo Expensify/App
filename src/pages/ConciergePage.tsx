@@ -42,16 +42,16 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(
+                    navigateToConciergeChat({
                         conciergeReportID,
                         introSelected,
-                        session.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserAccountID: session.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         betas,
-                        true,
-                        () => !isUnmounted.current,
-                    );
+                        shouldDismissModal: true,
+                        checkIfCurrentPageActive: () => !isUnmounted.current,
+                    });
                 });
             } else {
                 Navigation.navigate(ROUTES.INBOX);

@@ -43,7 +43,8 @@ function Finish() {
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, true);
+    const handleNavigateToConciergeChat = () =>
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, shouldDismissModal: true});
 
     return (
         <ScreenWrapper
