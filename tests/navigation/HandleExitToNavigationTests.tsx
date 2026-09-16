@@ -137,6 +137,27 @@ describe('handleExitToNavigation', () => {
         expect(tabStates?.at(0)?.index).toBe(2);
     });
 
+    it('removes ValidateLogin even when a pop to sidebar is pending', async () => {
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 1,
+                    routes: getRoutesWithTabNavigatorUnderValidateLogin(1),
+                }}
+            />,
+        );
+        Navigation.setShouldPopToSidebar(true);
+
+        await runHandleExitToNavigation();
+
+        expect(hasValidateLoginRoute()).toBe(false);
+        const tabState = getTabNavigatorStates()?.at(-1);
+        const focusedTab = tabState?.routes.at(tabState.index ?? 0);
+        expect(focusedTab?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        expect(focusedTab?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+        Navigation.setShouldPopToSidebar(false);
+    });
+
     it('goes back to Home when ValidateLogin is the only route', async () => {
         const goBackSpy = jest.spyOn(Navigation, 'goBack');
         render(<TestNavigationContainer initialState={{index: 0, routes: [{name: SCREENS.VALIDATE_LOGIN}]}} />);
