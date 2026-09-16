@@ -23,7 +23,6 @@ import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployee
 import {getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
     canLeaveChat,
-    createDraftTransactionAndNavigateToParticipantSelector,
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
     isArchivedNonExpenseReport,
@@ -50,6 +49,7 @@ import {
 } from '@libs/ReportUtils';
 import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {hasErrorInPrivateNotes, leaveGroupChat, leaveRoom} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, reopenTask} from '@userActions/Task';

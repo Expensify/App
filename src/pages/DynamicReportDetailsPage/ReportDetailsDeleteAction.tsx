@@ -79,6 +79,9 @@ type ReportDetailsDeleteActionProps = {
 
     /** All actions of the report, needed to delete a task */
     reportActionsForOriginalReportID: OnyxEntry<ReportActions>;
+
+    /** Actions of the transaction thread of the request action, needed when deleting a tracked expense */
+    transactionThreadReportActions: OnyxEntry<ReportActions>;
 };
 
 /** Reads the reportID of a Search RHP route without asserting the route's param type */
@@ -107,6 +110,7 @@ function ReportDetailsDeleteAction({
     isActionOwner,
     isDeletedParentAction,
     reportActionsForOriginalReportID,
+    transactionThreadReportActions,
 }: ReportDetailsDeleteActionProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ArrowSplit']);
@@ -118,6 +122,7 @@ function ReportDetailsDeleteAction({
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
@@ -149,7 +154,7 @@ function ReportDetailsDeleteAction({
     const isTrackExpenseReport = isTrackExpenseReportNew(report, parentReport, parentReportAction);
     const isSingleTransactionView = isMoneyRequest(report) || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDM(parentReport);
-    const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
@@ -193,6 +198,7 @@ function ReportDetailsDeleteAction({
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
                 chatReportActions: moneyRequestReportActions,
+                transactionThreadReportActions,
                 transactionID: iouTransactionID,
                 reportAction: requestParentReportAction,
                 iouReport,

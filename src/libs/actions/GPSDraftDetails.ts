@@ -1,4 +1,4 @@
-import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from '@libs/GPSDraftDetailsUtils';
+import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from '@libs/GPSPointUtils';
 
 import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {updateGpsTripNotificationDistance} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';

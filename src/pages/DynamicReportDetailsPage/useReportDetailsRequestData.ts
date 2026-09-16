@@ -44,6 +44,9 @@ type ReportDetailsRequestData = {
     /** All actions of the report, used to resolve the original report of a tracked expense and to delete tasks */
     reportActionsForOriginalReportID: OnyxEntry<ReportActions>;
 
+    /** Actions of the transaction thread of the request action, used when deleting a tracked expense */
+    transactionThreadReportActions: OnyxEntry<ReportActions>;
+
     /** The report from which a tracked expense would be submitted/categorized/shared, and its actions */
     actionReportID: string | undefined;
     actionReportActions: OnyxEntry<ReportActions>;
@@ -78,6 +81,7 @@ function useReportDetailsRequestData({report, parentReport, parentReportAction, 
     const moneyRequestReport: OnyxEntry<Report> = caseID === CASES.MONEY_REQUEST ? parentReport : report;
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
@@ -100,6 +104,7 @@ function useReportDetailsRequestData({report, parentReport, parentReportAction, 
         isActionOwner,
         isDeletedParentAction,
         reportActionsForOriginalReportID,
+        transactionThreadReportActions,
         actionReportID,
         actionReportActions,
     };

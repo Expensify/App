@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Popover from '@components/Popover';
@@ -50,13 +50,8 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
-    /** Label type */
     type: ValueOf<typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE>;
-
-    /** Label value */
     value: number;
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 };
 
@@ -141,7 +136,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         if (isGuidedSetupPending && !conciergeReportID) {
             // No Concierge chat exists yet: navigateToConciergeChat creates it and enqueues the onboarding OpenReport on
             // its create path. Wait for that promise so the limit-increase write lands after it in the queue.
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false).then(() => {
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false}).then(() => {
                 requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
             });
             return;
@@ -165,7 +160,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             });
         }
         requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;

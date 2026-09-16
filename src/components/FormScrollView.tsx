@@ -12,7 +12,6 @@ type FormScrollViewProps = ScrollViewProps & {
     /** Form elements */
     children: React.ReactNode;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<RNScrollView>;
 };
 

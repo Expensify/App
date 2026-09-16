@@ -52,6 +52,7 @@ function ReportDetailsNameSection({report, policy, parentReport, parentReportAct
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {reportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
 
@@ -59,7 +60,7 @@ function ReportDetailsNameSection({report, policy, parentReport, parentReportAct
     const isThreadReport = isThread(report);
     const isWorkspaceChatReport = isWorkspaceChat(report?.chatType ?? '');
     const shouldDisableRename = shouldDisableRenameUtil(report, isReportArchived);
-    const chatRoomSubtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived) ?? '';
+    const chatRoomSubtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived) ?? '';
     const additionalRoomDetails = isExpenseReport(report) || isPolicyExpenseChat(report) || isInvoiceRoom(report) ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
     let roomDescription: string;

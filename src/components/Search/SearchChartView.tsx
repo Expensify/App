@@ -21,7 +21,6 @@ import SearchLineChart from './SearchLineChart';
 import SearchPieChart from './SearchPieChart';
 
 type SearchChartViewProps = {
-    /** The current search query JSON */
     queryJSON: Readonly<SearchQueryJSON>;
 
     /** The view type (bar, etc.) */
@@ -33,7 +32,6 @@ type SearchChartViewProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
-    /** Whether data is loading */
     isLoading?: boolean;
 };
 

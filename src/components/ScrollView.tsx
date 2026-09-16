@@ -8,13 +8,8 @@ import React from 'react';
 import {ScrollView as RNScrollView} from 'react-native';
 
 type ScrollViewProps = RNScrollViewProps & {
-    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<RNScrollView>;
 };
 

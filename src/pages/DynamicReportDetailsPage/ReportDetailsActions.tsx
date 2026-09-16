@@ -36,6 +36,7 @@ function ReportDetailsActions({report, policy, parentReport, parentReportAction,
         isActionOwner,
         isDeletedParentAction,
         reportActionsForOriginalReportID,
+        transactionThreadReportActions,
         actionReportID,
         actionReportActions,
     } = useReportDetailsRequestData({report, parentReport, parentReportAction, caseID});
@@ -74,6 +75,7 @@ function ReportDetailsActions({report, policy, parentReport, parentReportAction,
                 isActionOwner={isActionOwner}
                 isDeletedParentAction={isDeletedParentAction}
                 reportActionsForOriginalReportID={reportActionsForOriginalReportID}
+                transactionThreadReportActions={transactionThreadReportActions}
             />
         </>
     );

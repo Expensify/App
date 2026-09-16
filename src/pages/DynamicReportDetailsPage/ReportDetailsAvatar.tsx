@@ -42,6 +42,7 @@ function ReportDetailsAvatar({report, policy, moneyRequestReportID}: ReportDetai
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
 
@@ -52,7 +53,7 @@ function ReportDetailsAvatar({report, policy, moneyRequestReportID}: ReportDetai
     if (isChatRoomReport && !isThreadReport) {
         const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom(report) || isChatThread(report) || (isPolicyExpenseChat(report) && isPolicyAdmin(policy));
         const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
-        const icons = getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs);
+        const icons = getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs, conciergeReportID);
         return (
             <View style={styles.mb3}>
                 <RoomHeaderAvatars
@@ -74,7 +75,7 @@ function ReportDetailsAvatar({report, policy, moneyRequestReportID}: ReportDetai
         );
     }
 
-    const icons = getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs);
+    const icons = getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs, conciergeReportID);
     const groupChatIcon = icons.at(0);
     const groupChatAvatarSource = groupChatIcon?.source;
     const groupChatAvatar = groupChatAvatarSource ? (
