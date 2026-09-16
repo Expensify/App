@@ -70,8 +70,7 @@ Instead of adding workflows one member at a time, you can set up multiple member
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Workflows**.
-3. Under **Approvals**.
-4. Select **Import workflows**.
+4. Select **More**, then choose **Import workflows**.
 5. Drag and drop your file or click **Upload File** to browse.
 6. Map each column in your file to a member field, then complete the import.
 
