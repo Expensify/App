@@ -1245,6 +1245,7 @@ function search({
             queryJSON,
             offset,
             allowPostSearchRecount: false,
+            searchKey,
         });
     }
 
@@ -1296,6 +1297,7 @@ function search({
                                 hasMoreResults: !!response?.search?.hasMoreResults,
                                 previousLengthOfResults: prevReportsLength,
                                 allowPostSearchRecount: false,
+                                searchKey,
                             });
                         }
                     } else {
@@ -1306,6 +1308,7 @@ function search({
                             hasMoreResults: !!response?.search?.hasMoreResults,
                             previousLengthOfResults: reports.length,
                             allowPostSearchRecount: true,
+                            searchKey,
                         });
                     }
                 }
