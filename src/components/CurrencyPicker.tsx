@@ -1,7 +1,3 @@
-import FormHelpMessage from '@components/FormHelpMessage';
-import MenuItem from '@components/MenuItem';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,8 +16,10 @@ import type {CurrencyListItem} from './CurrencySelectionList/types';
 
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import CurrencySelectionList from './CurrencySelectionList';
+import FormHelpMessage from './FormHelpMessage';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import MenuItem from './MenuItem';
+import MenuItemField from './MenuItem/presets/MenuItemField';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
 
