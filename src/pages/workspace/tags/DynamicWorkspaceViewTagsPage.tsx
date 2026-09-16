@@ -17,7 +17,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,19 +25,11 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {
-    clearPolicyTagErrors,
-    clearPolicyTagListErrorField,
-    clearPolicyTagListErrors,
-    deletePolicyTags,
-    openPolicyTagsPage,
-    setPolicyTagsRequired,
-    setWorkspaceTagEnabled,
-} from '@libs/actions/Policy/Tag';
+import {clearPolicyTagErrors, clearPolicyTagListErrors, deletePolicyTags, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
+import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
@@ -51,7 +42,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -74,13 +64,11 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {pageGutter} = useLayoutSpacing();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Checkmark', 'Trashcan']);
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {showConfirmModal} = useConfirmModal();
     const dropdownButtonRef = useRef<View>(null);
     const isFocused = useIsFocused();
@@ -91,7 +79,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
     const currentPolicyTag = policyTags?.[currentTagListName];
-    const {canWrite: canWriteTags, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path);
     const fetchTags = useCallback(() => {
@@ -173,7 +161,6 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 pendingAction: tag.pendingAction,
                 isLocked: !canWriteTags || isDisablingLastEnabledTag,
                 showEnabledSwitch: !hasDependentTags,
-                showRequiredSwitch: false,
                 action: () => navigateToTagSettings(tag),
                 onToggleEnabled: (enabled: boolean) => {
                     if (isDisablingLastEnabledTag) {
@@ -338,55 +325,6 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const tableHeaderComponent = (
         <>
             {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={pageGutter}>{headerButtons}</View>}
-            {/* Required is configured from Rules once the revamp is on, so this toggle is pre-revamp only. */}
-            {!hasDependentTags && !isRulesRevampEnabled && (
-                <View style={[styles.pv4, styles.ph5]}>
-                    <ToggleSettingOptionRow
-                        title={translate('common.required')}
-                        switchAccessibilityLabel={translate('common.required')}
-                        isActive={!!currentPolicyTag?.required}
-                        onToggle={(on) => {
-                            if (!canWriteTags) {
-                                showReadOnlyModal();
-                                return;
-                            }
-
-                            if (!isMultiLevelTags) {
-                                showConfirmModal({
-                                    title: translate('workspace.tags.cannotMakeTagListRequired.title'),
-                                    prompt: translate('workspace.tags.cannotMakeTagListRequired.description'),
-                                    confirmText: translate('common.buttonConfirm'),
-                                    shouldShowCancelButton: false,
-                                });
-                                return;
-                            }
-                            if (isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])) {
-                                showConfirmModal({
-                                    title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
-                                    prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
-                                    confirmText: translate('common.buttonConfirm'),
-                                    shouldShowCancelButton: false,
-                                });
-                                return;
-                            }
-                            setPolicyTagsRequired(policyData, on, orderWeight);
-                        }}
-                        pendingAction={currentPolicyTag.pendingFields?.required}
-                        errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                        onCloseError={() =>
-                            clearPolicyTagListErrorField({
-                                policyID,
-                                tagListIndex: orderWeight,
-                                errorField: 'required',
-                                policyTags,
-                            })
-                        }
-                        disabled={!canWriteTags || (!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled))}
-                        disabledAction={withReadOnlyFallback()}
-                        showLockIcon={!canWriteTags || !isMultiLevelTags || isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
-                    />
-                </View>
-            )}
             <OfflineWithFeedback
                 errors={currentPolicyTag.errors}
                 onClose={() =>
@@ -405,7 +343,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                     onPress={navigateToEditTag}
                     shouldShowRightIcon={canWriteTags}
                     interactive={canWriteTags}
-                    wrapperStyle={isRulesRevampEnabled ? styles.mb5 : undefined}
+                    wrapperStyle={styles.mb5}
                 />
             </OfflineWithFeedback>
         </>

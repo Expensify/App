@@ -55,6 +55,10 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
+const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
+const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
+const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
 const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
@@ -225,6 +229,27 @@ const EMAIL = {
     TEAM: 'team@expensify.com',
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
+
+// Declared above CONST so subsets can be built from its members instead of repeating the strings. Spliced in below
+// as `EDIT_REQUEST_FIELD`.
+const editRequestFields = {
+    AMOUNT: 'amount',
+    CURRENCY: 'currency',
+    DATE: 'date',
+    DESCRIPTION: 'description',
+    MERCHANT: 'merchant',
+    CATEGORY: 'category',
+    RECEIPT: 'receipt',
+    DISTANCE: 'distance',
+    DISTANCE_RATE: 'distanceRate',
+    TAG: 'tag',
+    TAX_RATE: 'taxRate',
+    TAX_AMOUNT: 'taxAmount',
+    REIMBURSABLE: 'reimbursable',
+    ATTENDEES: 'attendees',
+    BILLABLE: 'billable',
+    REPORT: 'report',
+} as const;
 
 const CONST = {
     HEIC_SIGNATURES: [
@@ -526,6 +551,16 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
+    /** The subset of EDIT_REQUEST_FIELD a merchant rule can govern, whose edit shows the "Create a rule" callout */
+    MERCHANT_RULE_SUGGESTION_FIELDS: {
+        CATEGORY: editRequestFields.CATEGORY,
+        TAG: editRequestFields.TAG,
+        TAX: editRequestFields.TAX_RATE,
+        DESCRIPTION: editRequestFields.DESCRIPTION,
+        BILLABLE: editRequestFields.BILLABLE,
+        REIMBURSABLE: editRequestFields.REIMBURSABLE,
+    },
+
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
     REQUEST_PREVIEW: {
@@ -641,6 +676,10 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    CHATGPT_CONNECT_URL,
+    MCP_HELP_URL,
+    CLAUDE_CONNECT_URL,
+    CURSOR_MCP_HELP_URL,
     XERO_PARTNER_LINK,
     UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
@@ -1043,7 +1082,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
-        CUSTOM_AGENT: 'customAgent',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -1060,7 +1098,6 @@ const CONST = {
         DUALENTRY: 'dualEntry',
         CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
-        RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
@@ -1679,6 +1716,7 @@ const CONST = {
                 CARD_UNFROZEN: 'CARDUNFROZEN',
                 CARD_DEACTIVATED: 'CARDDEACTIVATED',
                 PERSONAL_CARD_CONNECTION_BROKEN: 'PERSONALCARDCONNECTIONBROKEN',
+                PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS: 'PERSONALCARDCONNECTIONBROKEN30DAYS',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
                 CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS: 'CREATEDREPORTFORUNAPPROVEDTRANSACTIONS',
@@ -1703,6 +1741,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                COMPANY_CARD_CONNECTION_BROKEN_30_DAYS: 'COMPANYCARDCONNECTIONBROKEN30DAYS',
                 COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
@@ -1844,6 +1883,8 @@ const CONST = {
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
+                    UPDATE_OVER_LIMIT_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_OVER_LIMIT_FORWARDS_TO',
+                    UPDATE_APPROVAL_LIMIT: 'POLICYCHANGELOG_UPDATE_APPROVAL_LIMIT',
                     UPDATE_CUSTOM_TAX_NAME: 'POLICYCHANGELOG_UPDATE_CUSTOM_TAX_NAME',
                     UPDATE_CURRENCY_DEFAULT_TAX: 'POLICYCHANGELOG_UPDATE_CURRENCY_DEFAULT_TAX',
                     UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX: 'POLICYCHANGELOG_UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX',
@@ -2193,6 +2234,7 @@ const CONST = {
     },
     TIMING: {
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
+        STALE_PENDING_CREATION_ROUTE_TIMEOUT: 15000,
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
@@ -2200,6 +2242,8 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
+        /** How long the cursor has to rest on an advanced filter row before its content may derive the contact list */
+        SEARCH_FILTER_HOVER_INTENT_DELAY: 30,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         USE_DEBOUNCED_STATE_DELAY: 300,
@@ -2632,6 +2676,7 @@ const CONST = {
         UPDATE_REQUIRED: 426,
         INCORRECT_VALIDATE_CODE: 451,
         ADMIN_REQUIRED: 460,
+        SERVICE_UNAVAILABLE: 503,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
@@ -2669,6 +2714,7 @@ const CONST = {
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
         DUPLICATE_RECORD: 'A record already exists with this ID',
         ALREADY_CREATED: 'AlreadyCreated',
+        SERVICE_UNAVAILABLE: 'serviceUnavailable',
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
@@ -2684,6 +2730,22 @@ const CONST = {
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
         ALREADY_CREATED_TRANSACTION: 'Transaction already created.',
         ALREADY_PAID: 'The request has already been paid',
+        SERVICE_UNAVAILABLE: 'Service unavailable',
+    },
+    SIGN_OUT_REASON: {
+        USER_SIGN_OUT: 'userSignOut',
+        REAUTH_FAILED: 'reauthFailed',
+        REAUTH_HTTP_ERROR: 'reauthHttpError',
+        SAML_REQUIRED: 'samlRequired',
+        NO_CREDENTIALS: 'noCredentials',
+        DEVICE_REVOKED: 'deviceRevoked',
+        UNLINK_LOGIN: 'unlinkLogin',
+        SUPPORTAL_LOGOUT: 'supportalLogout',
+        SUPPORTAL_RESTORE: 'supportalRestore',
+        STASHED_SESSION_RESTORE: 'stashedSessionRestore',
+        HYBRID_APP_TRANSITION: 'hybridAppTransition',
+        ACCOUNT_DELETED: 'accountDeleted',
+        LOGIN_AS_NEW_USER: 'loginAsNewUser',
     },
     NETWORK: {
         METHOD: {
@@ -2756,6 +2818,8 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+        ACTIVITY_TIMEOUT_MS: 30000,
+        PONG_TIMEOUT_MS: 20000,
         STATE: {
             CONNECTED: 'CONNECTED',
             DISCONNECTED: 'DISCONNECTED',
@@ -3004,6 +3068,9 @@ const CONST = {
         HERE_TEXT: '@here',
         SUGGESTION_BOX_MAX_SAFE_DISTANCE: 10,
         BIG_SCREEN_SUGGESTION_WIDTH: 300,
+
+        /** Below this many locally found room suggestions, we also search the server for more rooms */
+        MIN_ROOM_SUGGESTIONS_BEFORE_SERVER_SEARCH: 5,
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
@@ -3110,6 +3177,7 @@ const CONST = {
         ENABLED: 'enabled',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         INVOICE_COLLECTIONS_ACCOUNT_ID: 'invoiceCollectionsAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORTER: 'exporter',
@@ -3381,6 +3449,7 @@ const CONST = {
         COLLECTION_ACCOUNT: 'collectionAccount',
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
         APPROVAL_ACCOUNT: 'approvalAccount',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
         TOKEN_INPUT: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
@@ -4453,6 +4522,7 @@ const CONST = {
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
             IS_HR_ENABLED: 'isHREnabled',
             IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
+            IS_MCP_ENABLED: 'isMCPEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -5008,6 +5078,11 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        WALLET_PROVIDER: {
+            APPLE_PAY: 'APPLE_PAY',
+            ANDROID_PAY: 'ANDROID_PAY',
+        },
+        APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON: 'approve_digital_wallet',
         VERIFICATION_STATE: {
             LOADING: 'loading',
             VERIFIED: 'verified',
@@ -5758,24 +5833,7 @@ const CONST = {
             SHARE: 'share',
         },
     },
-    EDIT_REQUEST_FIELD: {
-        AMOUNT: 'amount',
-        CURRENCY: 'currency',
-        DATE: 'date',
-        DESCRIPTION: 'description',
-        MERCHANT: 'merchant',
-        CATEGORY: 'category',
-        RECEIPT: 'receipt',
-        DISTANCE: 'distance',
-        DISTANCE_RATE: 'distanceRate',
-        TAG: 'tag',
-        TAX_RATE: 'taxRate',
-        TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
-        ATTENDEES: 'attendees',
-        BILLABLE: 'billable',
-        REPORT: 'report',
-    },
+    EDIT_REQUEST_FIELD: editRequestFields,
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
@@ -6675,6 +6733,7 @@ const CONST = {
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
     SWITCH_LOCK_ICON_TEST_ID: 'SwitchLockIcon',
+    ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID: 'AccountSwitcherButtonPlaceholder',
 
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
@@ -7118,6 +7177,8 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
+        HOVER_INTENT_REST_RADIUS_PX: 8,
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',
@@ -7156,6 +7217,7 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             SUBMITTED_VIOLATION: 'submitted-violation',
+            APPROVED_VIOLATION: 'approved-violation',
         },
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
@@ -8543,6 +8605,7 @@ const CONST = {
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
+        HAS_PENDING_DOMAIN_ADMIN_REQUESTS: 'hasPendingDomainAdminRequests',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
@@ -8696,9 +8759,14 @@ const CONST = {
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
+        MARK_ALL_AS_READ: 'markAllAsRead',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
+    PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW: {
+        SEVEN_DAYS: 7 * 24 * 60 * 60 * 1000,
+    },
+    INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
@@ -8856,8 +8924,11 @@ const CONST = {
             /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
             MEASURED_CANDIDATES_PER_COLUMN: 5,
 
-            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
-            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+            /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 120,
+
+            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 
@@ -8883,6 +8954,7 @@ const CONST = {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
             REPORTS: 'NavigationTabBar-Reports',
+            INSIGHTS: 'NavigationTabBar-Insights',
             WORKSPACES: 'NavigationTabBar-Workspaces',
             ACCOUNT: 'NavigationTabBar-Account',
             HOME: 'NavigationTabBar-Home',
@@ -9017,7 +9089,7 @@ const CONST = {
             TYPE_MENU_ITEM: 'Search-TypeMenuItem',
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
-            CLEAR_FILTERS_BUTTON: 'Search-ClearFiltersButton',
+            RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
@@ -9393,6 +9465,7 @@ const CONST = {
                 INVOICES: 'WorkspaceInitial-Invoices',
                 MORE_FEATURES: 'WorkspaceInitial-MoreFeatures',
                 VENDORS: 'WorkspaceInitial-Vendors',
+                MCP: 'WorkspaceInitial-MCP',
             },
             OVERVIEW: {
                 AVATAR: 'WorkspaceOverview-Avatar',
@@ -9745,6 +9818,9 @@ const CONST = {
         DOMAIN: {
             ADMINS: {
                 ROW: 'DomainAdmins-Row',
+                REQUEST_ROW: 'DomainAdmins-RequestRow',
+                REQUEST_APPROVE: 'DomainAdmins-RequestApprove',
+                REQUEST_DENY: 'DomainAdmins-RequestDeny',
             },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
@@ -9790,6 +9866,18 @@ const CONST = {
                 MOVE_TO_GROUP: 'moveToGroup',
             },
         },
+
+        ADMINS: {
+            ROW_TYPE: {
+                GROUP_HEADER: 'groupHeader',
+                REQUEST: 'request',
+                ADMIN: 'admin',
+            },
+            GROUP_ORDER: {
+                REQUESTS: 0,
+                ADMINS: 1,
+            },
+        },
     },
 
     AUTO_COMPLETE_VARIANTS: {
@@ -9804,6 +9892,12 @@ const CONST = {
 
         // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
+    },
+
+    INSIGHTS: {
+        DASHBOARD: {
+            SPEND: 'spend',
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {
@@ -9862,17 +9956,7 @@ const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id,
 ]);
 
-type SearchFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
-
-const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
-] as SearchFilterKey[];
+type SignOutReason = ValueOf<typeof CONST.SIGN_OUT_REASON>;
 
 const FRAUD_PROTECTION_EVENT = {
     START_SUPPORT_SESSION: 'StartSupportSession',
@@ -9925,6 +10009,7 @@ type EnablePaymentsSubPageType =
     | ValueOf<typeof CONST.ENABLE_PAYMENTS.FEES_AND_TERMS_STEP.SUB_PAGE_NAMES>;
 
 export type {
+    SignOutReason,
     Country,
     GovernmentRateCountry,
     IOUAction,
@@ -9942,6 +10027,6 @@ export type {
     EnablePaymentsSubPageType,
 };
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
+export {FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
 
 export default CONST;

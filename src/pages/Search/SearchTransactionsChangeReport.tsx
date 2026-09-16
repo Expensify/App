@@ -71,6 +71,7 @@ function SearchTransactionsChangeReport() {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -130,6 +131,7 @@ function SearchTransactionsChangeReport() {
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},
@@ -152,6 +154,7 @@ function SearchTransactionsChangeReport() {
                 transactions,
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
+                rules,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
@@ -244,6 +247,7 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             reports: reportsForCall,
+            rules,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
@@ -269,6 +273,7 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             reports,
+            rules,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
