@@ -3,11 +3,12 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
+import {isReportActionVisible} from '@libs/ReportActionsUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
@@ -26,6 +27,44 @@ describe('OnyxDerived', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
+    });
+
+    describe('visibleReportActions', () => {
+        it('hides MARKED_REIMBURSED when its sibling PAY action arrives in a later update', async () => {
+            const reportID = 'reportWithLatePaySibling';
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+
+            await Onyx.set(reportActionsKey, {[markedReimbursedAction.reportActionID]: markedReimbursedAction});
+            await waitForBatchedUpdates();
+
+            const initialVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(initialVisibility?.[reportID]).toBeDefined();
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, initialVisibility)).toBe(true);
+
+            // Only PAY is included in this update, so derived visibility must not retain a stale result for its sibling.
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[payAction.reportActionID]: payAction}});
+            await waitForBatchedUpdates();
+
+            const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(updatedVisibility?.[reportID]?.[payAction.reportActionID]).toBe(true);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, updatedVisibility)).toBe(false);
+        });
     });
 
     describe('reportAttributes', () => {

@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {isActionableWhisperRequiringWritePermission, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isActionableWhisperRequiringWritePermission, isActionOfType, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
@@ -24,10 +25,11 @@ function getOrCreateReportVisibilityRecord(result: VisibleReportActionsDerivedVa
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions or policy settings.
+ * such as write permissions, policy settings, or sibling actions.
  */
 function shouldSkipCachingAction(action: ReportAction): boolean {
-    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action);
+    // A sibling PAY can arrive without updating MARKED_REIMBURSED, so its visibility must be checked at runtime.
+    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
 }
 
 export default createOnyxDerivedValueConfig({
