@@ -201,7 +201,7 @@ function SettlementButton({
                     return;
                 }
                 pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID);
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
             });
             return true;
         }
@@ -407,6 +407,7 @@ function SettlementButton({
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
                     hasOwnedPaidPolicy,
                     policyName: generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
+                    delegateAccountID,
                 }).policyID;
             };
 

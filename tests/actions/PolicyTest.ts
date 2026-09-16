@@ -101,6 +101,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -134,6 +135,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -174,6 +176,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -984,6 +987,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1018,6 +1022,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
                 betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
             });
             await waitForBatchedUpdates();
@@ -1056,6 +1061,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1098,6 +1104,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: true,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1128,6 +1135,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1163,6 +1171,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1195,6 +1204,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1228,6 +1238,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1259,6 +1270,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1290,6 +1302,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1321,6 +1334,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1352,6 +1366,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1381,6 +1396,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
                 type: CONST.POLICY.TYPE.SUBMIT,
                 currency: 'USD',
             });
@@ -1433,6 +1449,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1472,6 +1489,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1511,6 +1529,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1556,6 +1575,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1606,6 +1626,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1655,6 +1676,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1692,6 +1714,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
             });
             await waitForBatchedUpdates();
@@ -1735,6 +1758,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1792,6 +1816,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1829,6 +1854,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1866,6 +1892,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1906,6 +1933,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1938,6 +1966,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
@@ -1961,6 +1990,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: true,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(GoogleTagManager.publishEvent).not.toHaveBeenCalled();
@@ -1988,6 +2018,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2024,6 +2055,7 @@ describe('actions/Policy', () => {
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2068,6 +2100,7 @@ describe('actions/Policy', () => {
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2086,6 +2119,7 @@ describe('actions/Policy', () => {
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2128,6 +2162,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
