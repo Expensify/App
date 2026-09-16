@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -118,7 +117,7 @@ function MoneyRequestReportPreviewBody({
                             shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
                             isReportDeleted && styles.pointerEventsNone,
                         ]}
-                        role={getButtonRole(true)}
+                        role={CONST.ROLE.BUTTON}
                         isNested
                         accessibilityLabel={translate('iou.viewDetails')}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.CARD}

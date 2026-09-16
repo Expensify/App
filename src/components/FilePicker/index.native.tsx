@@ -1,6 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 
-import {cleanFileName} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileNameWithFallback} from '@libs/fileDownload/FileUtils';
 import fileURIToPath from '@libs/fileURIToPath';
 
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -13,20 +13,22 @@ import RNFetchBlob from 'react-native-blob-util';
 import type FilePickerProps from './types';
 
 type LocalCopy = {
-    name: string | null;
+    name: string;
     uri: string;
     size: number | null;
     type: string | null;
 };
+
+/** Used as the file name only when the picker gives us no name and the URI carries no extension either. */
+const DEFAULT_FILE_NAME = 'spreadsheet';
 
 /**
  * The data returned from `show` is different on web and mobile,
  * use this function to ensure the data will be handled properly.
  */
 const getDataForUpload = (fileData: LocalCopy): Promise<FileObject> => {
-    const fileName = fileData.name ?? 'spreadsheet';
     const fileResult: FileObject = {
-        name: cleanFileName(fileName),
+        name: fileData.name,
         type: fileData.type ?? undefined,
         uri: fileData.uri,
         size: fileData.size,
@@ -91,11 +93,13 @@ function FilePicker({children}: FilePickerProps) {
             type: [types.allFiles],
         });
 
+        const fileName = getFileNameWithFallback(file.name, file.uri, DEFAULT_FILE_NAME);
+
         const [localCopy] = await keepLocalCopy({
             files: [
                 {
                     uri: file.uri,
-                    fileName: file.name ?? 'spreadsheet',
+                    fileName,
                 },
             ],
             destination: 'cachesDirectory',
@@ -106,7 +110,7 @@ function FilePicker({children}: FilePickerProps) {
         }
 
         return {
-            name: cleanFileName(file.name ?? 'spreadsheet'),
+            name: cleanFileName(fileName),
             type: file.type,
             uri: localCopy.localUri,
             size: file.size,
