@@ -1169,6 +1169,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Saiba mais</a> sobre os formatos de arquivo compatíveis.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Selecione um arquivo de planilha para importar. Formatos compatíveis: .csv, .txt, .xls e .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Selecione um arquivo de planilha para importar. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Saiba mais</a> sobre os formatos de arquivo compatíveis.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Arraste e solte sua planilha ou extrato bancário aqui ou escolha um arquivo abaixo. Formatos compatíveis: .csv, .txt, .xls, .xlsx, .ofx e .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Selecione um arquivo de planilha ou extrato bancário para importar. Formatos compatíveis: .csv, .txt, .xls, .xlsx, .ofx e .qfx.</muted-link>',
         fileContainsHeader: 'O arquivo contém cabeçalhos de coluna',
         column: (name: string) => `Coluna ${name}`,
         fieldNotMapped: (fieldName: string) => `Ops! Um campo obrigatório ("${fieldName}") não foi mapeado. Revise e tente novamente.`,
@@ -1229,6 +1233,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `${count} transação foi importada.`,
             other: `${count} transações foram importadas.`,
         }),
+        importStatementSuccessfulDescription: 'Seu extrato bancário foi enviado.',
         importFailedTitle: 'Falha na importação',
         importFailedDescription: 'Certifique-se de que todos os campos foram preenchidos corretamente e tente novamente. Se o problema persistir, entre em contato com o Concierge.',
         importDescription: 'Escolha quais campos mapear da sua planilha clicando no menu suspenso ao lado de cada coluna importada abaixo.',
@@ -1619,6 +1624,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Você não pode marcar este relatório como concluído porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
             allExpensesOnHoldDescription: 'Você não pode enviar este relatório porque todas as despesas estão em espera. Remova a espera para enviar.',
             allExpensesOnHoldMarkAsDoneDescription: 'Você não pode marcar este relatório como concluído porque todas as despesas estão em espera. Remova a espera para continuar.',
+            reportsNotSubmittedTitle: 'Enviar relatórios',
+            reportsNotMarkedAsDoneTitle: 'Marcar relatórios como concluídos',
+            reportsNotSubmittedDescription: 'Esses relatórios não puderam ser enviados. Verifique se as despesas não estão retidas ou pendentes e tente novamente.',
+            reportsNotMarkedAsDoneDescription: 'Não foi possível marcar esses relatórios como concluídos. Verifique se as despesas não estão retidas ou pendentes e tente novamente.',
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
             failedToSaveOdometerDraft: 'Não foi possível salvar seu rascunho do hodômetro. Tente novamente.',
         },
@@ -5148,6 +5157,9 @@ ${amount} para ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Conta de recebimentos de faturas do Xero',
                 xeroBillPaymentAccountDescription: 'Escolha de onde pagar as contas e nós criaremos o pagamento no Xero.',
                 invoiceAccountSelectorDescription: 'Escolha onde receber os pagamentos de faturas e nós criaremos o pagamento no Xero.',
+                xeroFxExpenseAccount: 'Conta de taxa de conversão de moeda do Xero',
+                fxExpenseAccountDescription:
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, nós lançaremos esse custo nesta conta no Xero como uma transação de saída de dinheiro.',
             },
             exportDate: {
                 label: 'Data da fatura de compra',
@@ -5514,6 +5526,9 @@ ${amount} para ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Insira um ID de formulário personalizado numérico válido',
                 },
+                fxExpenseAccount: 'Conta de taxa de conversão de moeda',
+                fxExpenseAccountDescription:
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um reembolso pago no exterior, vamos lançar esse custo na conta do NetSuite abaixo como um lançamento contábil.',
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione a conta no NetSuite e sincronize a conexão novamente',
@@ -6603,6 +6618,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 disabledTitle: 'Calma lá...',
                 disabledMessage: 'Para ativar ou desativar este recurso, você precisará alterar suas configurações de importação contábil.',
             },
+            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar Recrutamento, primeiro desconecte ${integration} deste workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -7881,6 +7897,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>A atualização automática de taxas governamentais só está disponível no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Múltiplos níveis de aprovação',
+                description:
+                    'Vários níveis de aprovação são uma ferramenta de fluxo de trabalho para empresas que exigem que mais de uma pessoa aprove um relatório antes que ele possa ser reembolsado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Vários níveis de aprovação estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8574,6 +8597,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             importSettings: 'Importar configurações',
             defaultApprover: 'Aprovador padrão',
             approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
+            subtitle: 'Conecte ferramentas de recrutamento e mantenha as aprovações de candidatos em sincronia.',
         },
         merge: {
             connections: 'Conexões',
@@ -9085,7 +9109,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `adicionou "${prohibitedExpense}" às despesas proibidas`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removeu "${prohibitedExpense}" das despesas proibidas`,
         commuterExclusions: {
-            changedToFixedDistance: 'alterou a exclusão de deslocamentos para uma distância fixa por solicitação',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `alterou “excluir deslocamentos” para uma distância fixa por solicitação (antes ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `alterou a exclusão de deslocamentos para calcular por casa e escritório (antes ${previousMethod})`,
+            previousMethod: {disabled: 'não excluir deslocamentos diários', fixedDistance: 'distância fixa por solicitação', homeAndOffice: 'casa e escritório'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `definir exclusão de distância fixa para ${formattedDistance} por solicitação`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `alterou a exclusão de distância fixa para ${formattedNewDistance} por reembolso (antes ${formattedOldDistance})`,
@@ -9265,6 +9291,35 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ativado' : 'desativado'} envios`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} para ${approver}`
+                : `definir o fluxo de aprovação para ${member} para encaminhar relatórios acima de ${limit} para ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (anteriormente encaminhou relatórios acima de ${previousLimit} para ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (anteriormente encaminhado para ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `alterou o fluxo de aprovação para ${member} para parar de encaminhar relatórios acima de ${previousLimit} (antes encaminhados para ${previousApprover})`
+                : `alterou o fluxo de aprovação de ${member} para parar de encaminhar relatórios acima de ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} (antes ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -10891,6 +10946,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
         hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Nós atualizamos a taxa com base na sua data de viagem.</tooltip>',
+        markAllAsRead: '<tooltip>Clique com o botão direito para <strong>marcar tudo como lido</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Mantenha pressionado para <strong>marcar tudo como lido</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Acesse sua conta e configurações pessoais.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
@@ -10968,6 +11026,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Atenção! Esta exportação era muito grande e foi limitada aos primeiros 50.000 relatórios que corresponderam à sua pesquisa.',
     },
     domain: {
         notVerified: 'Não verificado',

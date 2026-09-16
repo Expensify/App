@@ -254,4 +254,33 @@ describe('useUnreadMarker', () => {
         expect(resultB.current.unreadMarkerReportActionID).toBeNull();
         expect(resultB.current.unreadMarkerReportActionIndex).toBe(-1);
     });
+
+    it('should scan an oldest-first list from the end when isReversed is set', () => {
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const unreadAction = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+        const oldestFirstActions = [readAction, unreadAction];
+
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: oldestFirstActions,
+            sortedReportActions: oldestFirstActions,
+            isReversed: true,
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBe('unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(1);
+    });
+
+    it('should find the same action in an oldest-first list as in the equivalent newest-first list', () => {
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const unreadAction = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+
+        const newestFirst = [unreadAction, readAction];
+        const {result: newestFirstResult} = renderUnreadMarker({sortedVisibleReportActions: newestFirst, sortedReportActions: newestFirst});
+
+        const oldestFirst = [readAction, unreadAction];
+        const {result: oldestFirstResult} = renderUnreadMarker({sortedVisibleReportActions: oldestFirst, sortedReportActions: oldestFirst, isReversed: true});
+
+        expect(newestFirstResult.current.unreadMarkerReportActionID).toBe('unread');
+        expect(oldestFirstResult.current.unreadMarkerReportActionID).toBe('unread');
+    });
 });
