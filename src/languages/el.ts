@@ -53,6 +53,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
         no: 'Όχι',
+        approve: 'Έγκριση',
+        deny: 'Άρνηση',
         dontChange: 'Να μην αλλάξει',
         ok: 'OK',
         notNow: 'Όχι τώρα',
@@ -1011,6 +1013,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Επικυρώστε την κάρτα σας και ξεκινήστε να ξοδεύετε.',
                 cta: 'Ενεργοποίηση',
             },
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
+                subtitle: 'Κάρτα Expensify',
+                cta: 'Έλεγχος',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Ψηφιακό πορτοφόλι',
+            },
             reviewCardFraud: {
                 title: 'Ελέγξτε πιθανή απάτη στην Κάρτα Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Ελέγξτε ${amount} για πιθανή απάτη στο ${merchant}`,
@@ -1209,6 +1219,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Σύρετε και αποθέστε το υπολογιστικό φύλλο σας εδώ ή επιλέξτε ένα αρχείο παρακάτω. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Μάθετε περισσότερα</a> σχετικά με τους υποστηριζόμενους τύπους αρχείων.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Επιλέξτε ένα αρχείο υπολογιστικού φύλλου για εισαγωγή. Υποστηριζόμενες μορφές: .csv, .txt, .xls και .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Επιλέξτε ένα αρχείο υπολογιστικού φύλλου για εισαγωγή. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Μάθετε περισσότερα</a> σχετικά με τους υποστηριζόμενους τύπους αρχείων.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Σύρετε και αποθέστε το υπολογιστικό φύλλο ή το τραπεζικό σας αντίγραφο εδώ ή επιλέξτε ένα αρχείο παρακάτω. Υποστηριζόμενες μορφές: .csv, .txt, .xls, .xlsx, .ofx και .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Επιλέξτε ένα αρχείο υπολογιστικού φύλλου ή τραπεζικού αντιγράφου για εισαγωγή. Υποστηριζόμενες μορφές: .csv, .txt, .xls, .xlsx, .ofx και .qfx.</muted-link>',
         fileContainsHeader: 'Το αρχείο περιέχει επικεφαλίδες στηλών',
         column: (name: string) => `Στήλη ${name}`,
         fieldNotMapped: (fieldName: string) => `Ουπς! Ένα υποχρεωτικό πεδίο («${fieldName}») δεν έχει αντιστοιχιστεί. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
@@ -1255,6 +1269,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Εισήχθη 1 συναλλαγή.',
             other: `Εισήχθησαν ${count} συναλλαγές.`,
         }),
+        importStatementSuccessfulDescription: 'Το τραπεζικό σου αντίγραφο κίνησης μεταφορτώθηκε.',
         importFailedTitle: 'Η εισαγωγή απέτυχε',
         importFailedDescription: 'Βεβαιωθείτε ότι όλα τα πεδία έχουν συμπληρωθεί σωστά και δοκιμάστε ξανά. Αν το πρόβλημα συνεχιστεί, επικοινωνήστε με το Concierge.',
         importDescription: 'Επιλέξτε ποια πεδία θα αντιστοιχίσετε από το υπολογιστικό σας φύλλο, κάνοντας κλικ στο αναπτυσσόμενο μενού δίπλα σε κάθε εισαγόμενη στήλη παρακάτω.',
@@ -1640,6 +1655,11 @@ const translations: TranslationDeepObject<typeof en> = {
             allExpensesOnHoldDescription: 'Δεν μπορείτε να υποβάλετε αυτήν την αναφορά, επειδή όλες οι δαπάνες είναι σε αναμονή. Αφαιρέστε την αναμονή για να την υποβάλετε.',
             allExpensesOnHoldMarkAsDoneDescription:
                 'Δεν μπορείτε να επισημάνετε αυτήν την αναφορά ως ολοκληρωμένη, επειδή όλες οι δαπάνες είναι σε αναμονή. Αφαιρέστε την αναμονή για να συνεχίσετε.',
+            reportsNotSubmittedTitle: 'Υποβολή αναφορών',
+            reportsNotMarkedAsDoneTitle: 'Σημειώστε τις αναφορές ως ολοκληρωμένες',
+            reportsNotSubmittedDescription: 'Αυτές οι αναφορές δεν ήταν δυνατό να υποβληθούν. Ελέγξτε ότι τα έξοδα δεν είναι σε αναμονή ή σε εκκρεμότητα και δοκιμάστε ξανά.',
+            reportsNotMarkedAsDoneDescription:
+                'Δεν ήταν δυνατή η επισήμανση αυτών των αναφορών ως ολοκληρωμένων. Ελέγξτε ότι οι δαπάνες δεν είναι σε αναμονή ή εκκρεμείς και δοκιμάστε ξανά.',
             failedToSaveOdometerDraft: 'Δεν ήταν δυνατή η αποθήκευση του πρόχειρου χιλιομετρητή σας. Παρακαλούμε δοκιμάστε ξανά.',
             invalidIntegerAmount: 'Παρακαλούμε εισαγάγετε ένα ακέραιο ποσό σε δολάρια πριν συνεχίσετε',
             invalidTaxAmount: (amount: string) => `Το μέγιστο ποσό φόρου είναι ${amount}`,
@@ -2780,6 +2800,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Προσθήκη κάρτας στο ${walletName}`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'ψηφιακό πορτοφόλι',
+        confirmHeading: 'Επιβεβαιώστε το αίτημά σας',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Θέλετε να προσθέσετε την Κάρτα Expensify (που λήγει σε ${lastFourDigits}) στο ${walletName} σας;`,
+        deny: 'Απόρριψη',
+        confirm: 'Επιβεβαίωση',
+        verifyTitle: 'Ας επιβεβαιώσουμε ότι είστε εσείς',
+        enterSecurityCode: (contactMethod: string) =>
+            `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να επιβεβαιώσετε αυτό το αίτημα. Θα πρέπει να φτάσει μέσα σε ένα ή δύο λεπτά.`,
+        successHeading: 'Επιτυχία!',
+        successDescription: ({walletName}: {walletName: string}) => `Η κάρτα σας είναι πλέον ενεργή για χρήση στο ${walletName} σας.`,
+        deniedHeading: 'Το αίτημα απορρίφθηκε',
+        deniedDescription: ({walletName}: {walletName: string}) => `Η κάρτα σας δεν έχει προστεθεί στο(ν/η) ${walletName} σας.`,
     },
     cardPage: {
         expensifyCard: 'Κάρτα Expensify',
@@ -5238,6 +5276,9 @@ ${amount} για ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Λογαριασμός εισπράξεων τιμολογίων Xero',
                 xeroBillPaymentAccountDescription: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Xero.',
                 invoiceAccountSelectorDescription: 'Επιλέξτε πού θέλετε να λαμβάνετε τις πληρωμές τιμολογίων και θα δημιουργήσουμε την πληρωμή στο Xero.',
+                xeroFxExpenseAccount: 'λογαριασμός προμήθειας μετατροπής συναλλάγματος Xero',
+                fxExpenseAccountDescription:
+                    'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή που έγινε στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Xero ως συναλλαγή «εξόδου χρημάτων».',
             },
             exportDate: {
                 label: 'Ημερομηνία τιμολογίου αγοράς',
@@ -5616,6 +5657,9 @@ ${amount} για ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Παρακαλούμε εισαγάγετε ένα έγκυρο αριθμητικό προσαρμοσμένο αναγνωριστικό φόρμας',
                 },
+                fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής νομίσματος',
+                fxExpenseAccountDescription:
+                    'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια αποζημίωση που καταβάλλεται στο εξωτερικό, θα καταχωρίσουμε αυτό το κόστος στον παρακάτω λογαριασμό NetSuite ως λογιστική εγγραφή.',
             },
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
             noAccountsFoundDescription: 'Παρακαλούμε προσθέστε τον λογαριασμό στο NetSuite και συγχρονίστε ξανά τη σύνδεση',
@@ -6748,6 +6792,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 disabledTitle: 'Όχι τόσο γρήγορα...',
                 disabledMessage: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτήν τη λειτουργία, θα πρέπει να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
             },
+            recruitingWarningModal: {
+                disconnectText: ({integration}: {integration: string}) =>
+                    `Για να απενεργοποιήσετε την προσέλκυση προσωπικού, αποσυνδέστε πρώτα το ${integration} από αυτόν τον χώρο εργασίας.`,
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Παραδείγματα:',
@@ -7601,6 +7649,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
         },
         merge: {
             connections: 'Συνδέσεις',
@@ -8167,6 +8216,13 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η αυτόματη ενημέρωση κυβερνητικών συντελεστών είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Πολλαπλά επίπεδα έγκρισης',
+                description:
+                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8317,7 +8373,6 @@ ${reportName}`,
                 alwaysReimbursableDescription: 'Τα έξοδα αποζημιώνονται πάντα στους υπαλλήλους',
                 alwaysNonReimbursable: 'Πάντα μη αποζημιώσιμες',
                 alwaysNonReimbursableDescription: 'Τα έξοδα δεν αποζημιώνονται ποτέ στους υπαλλήλους',
-                billableDefault: 'Προεπιλογή χρεώσιμων',
                 billableDefaultDescription: 'Επιλέξτε αν οι δαπάνες με μετρητά και με πιστωτική κάρτα θα είναι χρεώσιμες από προεπιλογή.',
                 billable: 'Χρεώσιμη',
                 billableDescription: 'Οι δαπάνες συνήθως τιμολογούνται ξανά στους πελάτες',
@@ -8344,10 +8399,12 @@ ${reportName}`,
                 publicReceiptVisibilityHintDisabled: 'Οι αποδείξεις είναι ορατές μόνο από μέλη του Expensify που έχουν πρόσβαση στην αναφορά που περιέχει την απόδειξη.',
                 enableTagsToUnlockTitle: 'Ενεργοποίηση ετικετών;',
                 enableTagsToUnlockPrompt: 'Ενεργοποιήστε τις ετικέτες (στην ενότητα «Περισσότερες δυνατότητες») για να τις ξεκλειδώσετε.',
-                enableTagsAndRequirePrompt: 'Είστε βέβαιοι ότι θέλετε να ενεργοποιήσετε τις ετικέτες και να τις απαιτείτε για όλες τις δαπάνες;',
                 enableCategoriesToUnlockTitle: 'Ενεργοποίηση κατηγοριών;',
                 enableCategoriesToUnlockPrompt: 'Ενεργοποιήστε τις κατηγορίες (στην ενότητα «Περισσότερες λειτουργίες») για να τις ξεκλειδώσετε.',
                 enableCategoriesAndRequirePrompt: 'Είστε βέβαιοι ότι θέλετε να ενεργοποιήσετε τις κατηγορίες και να τις απαιτείτε για όλες τις δαπάνες;',
+                enableTagsPrompt: 'Είστε βέβαιοι ότι θέλετε να ενεργοποιήσετε τις ετικέτες; Μπορείτε να τις κάνετε υποχρεωτικές για όλες τις δαπάνες μόλις έχετε τουλάχιστον μία ετικέτα.',
+                noTagsToRequirePrompt: 'Δεν έχετε ετικέτες. Δημιουργήστε μία ετικέτα.',
+                noCategoriesToRequirePrompt: 'Δεν έχετε κατηγορίες. Δημιουργήστε μια κατηγορία.',
             },
             expenseReportRules: {
                 title: 'Για προχωρημένους',
@@ -8550,7 +8607,8 @@ ${reportName}`,
                 flagAmountsOverSubtitle: 'Αυτό παρακάμπτει το μέγιστο ποσό για όλες τις δαπάνες.',
                 expenseLimitTypes: {
                     expense: 'Ατομική δαπάνη',
-                    expenseSubtitle: 'Σημαδέψτε τα ποσά εξόδων ανά κατηγορία. Αυτός ο κανόνας παρακάμπτει τον γενικό κανόνα χώρου εργασίας για το μέγιστο ποσό εξόδου.',
+                    expenseSubtitle:
+                        'Επισήμανση ποσών εξόδων ανά κατηγορία. Αυτός ο κανόνας παρακάμπτει τον γενικό κανόνα χώρου εργασίας για το μέγιστο ποσό εξόδου. Οι κρατήσεις πολλών ημερών αξιολογούνται με βάση τον μέσο όρο ανά διανυκτέρευση.',
                     daily: 'Σύνολο κατηγορίας',
                     dailySubtitle: 'Σήμανση συνολικής ημερήσιας δαπάνης ανά κατηγορία για κάθε αναφορά εξόδων.',
                 },
@@ -9256,7 +9314,11 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
         commuterExclusions: {
-            changedToFixedDistance: 'άλλαξε την εξαίρεση μετακινήσεων σε σταθερή απόσταση ανά αίτημα',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
+                `αλλάχθηκε ο αποκλεισμός μετακινήσεων από/προς εργασία σε σταθερή απόσταση ανά αίτημα (προηγουμένως ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
+                `άλλαξε τον αποκλεισμό μετακινήσεων ώστε να υπολογίζεται από το σπίτι και το γραφείο (προηγουμένως ${previousMethod})`,
+            previousMethod: {disabled: 'να μην αποκλείονται οι μετακινήσεις από και προς την εργασία', fixedDistance: 'σταθερή απόσταση ανά αίτημα', homeAndOffice: 'σπίτι και γραφείο'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ορίστε σταθερό αποκλεισμό απόστασης σε ${formattedDistance} ανά αίτημα`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `άλλαξε τον αποκλεισμό σταθερής απόστασης σε ${formattedNewDistance} ανά αίτημα (προηγουμένως ${formattedOldDistance})`,
@@ -9492,6 +9554,35 @@ ${reportName}`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
         },
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές πάνω από ${limit} στον/στην ${approver}`
+                : `ορίστε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές άνω των ${limit} στον/στην ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (μεταφέρθηκε παλαιότερα αναφορά άνω των ${previousLimit} στον/στη ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (είχε προηγουμένως προωθηθεί στον/στην ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να σταματά την προώθηση αναφορών πάνω από ${previousLimit} (προηγουμένως προωθούνταν στον/στην ${previousApprover})`
+                : `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να σταματήσει η προώθηση αναφορών πάνω από ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές πάνω από ${limit} (προηγουμένως ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -10596,6 +10687,7 @@ ${reportName}`,
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
         cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Νυχτερινή τιμή πάνω από το όριο κατηγορίας ${formattedLimit}/άτομο`,
         shortName: {
             allTagLevelsRequired: 'Απαιτούνται όλες οι ετικέτες',
             autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
@@ -11138,6 +11230,9 @@ ${reportName}`,
         gpsTooltip: '<tooltip>Η παρακολούθηση GPS βρίσκεται σε εξέλιξη! Όταν τελειώσετε, διακόψτε την παρακολούθηση παρακάτω.</tooltip>',
         hasFilterNegation: '<tooltip>Αναζητήστε δαπάνες χωρίς αποδείξεις χρησιμοποιώντας το <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Ενημερώσαμε την τιμή με βάση την ημερομηνία του ταξιδιού σας.</tooltip>',
+        markAllAsRead: '<tooltip>Δεξί κλικ για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Παρατεταμένο πάτημα για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Αποκτήστε πρόσβαση στον λογαριασμό και τις προσωπικές σας ρυθμίσεις.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Απόρριψη αλλαγών;',
@@ -11215,6 +11310,7 @@ ${reportName}`,
         noReceiptsBody: 'Κανένα από τα έξοδα σε αυτήν την αναφορά δεν έχει αποδείξεις για λήψη.',
         receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} από ${total} αποδείξεις εξήχθησαν με επιτυχία. Αν δεν έγινε η λήψη αυτόματα, χρησιμοποιήστε το παρακάτω κουμπί.`,
+        truncatedBody: 'Προσοχή! Αυτή η εξαγωγή ήταν υπερβολικά μεγάλη και περιορίστηκε στις πρώτες 50.000 αναφορές που ταίριαζαν στην αναζήτησή σας.',
     },
     domain: {
         notVerified: 'Μη επαληθευμένο',
@@ -11323,6 +11419,9 @@ ${reportName}`,
             consolidatedDomainBillingError: 'Η ενοποιημένη χρέωση τομέα δεν ήταν δυνατό να αλλάξει. Δοκιμάστε ξανά αργότερα.',
             addAdmin: 'Προσθήκη διαχειριστή',
             addAdminError: 'Δεν είναι δυνατή η προσθήκη αυτού του μέλους ως διαχειριστή. Παρακαλούμε δοκιμάστε ξανά.',
+            requests: 'Αιτήματα',
+            approveRequestError: 'Δεν είναι δυνατή η έγκριση αυτού του αιτήματος. Παρακαλούμε δοκιμάστε ξανά.',
+            declineRequestError: 'Δεν είναι δυνατή η άρνηση αυτού του αιτήματος. Παρακαλούμε δοκιμάστε ξανά.',
             revokeAdminAccess: 'Ανακαλέστε πρόσβαση διαχειριστή',
             cantRevokeAdminAccess: 'Δεν είναι δυνατή η ανάκληση της πρόσβασης διαχειριστή από το τεχνικό σημείο επαφής',
             error: {

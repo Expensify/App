@@ -69,7 +69,6 @@ function SearchPageWide({
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
     const shouldReserveFooterSpace = hasSelectedTransactions || (shouldAllowFooterTotals && !!searchResults?.search?.count);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
-    const receiptDropTargetRef = useRef<View>(null);
 
     const endSubmitNavigationSpans = useEndSubmitNavigationSpans({requireLayout: false});
 
@@ -94,56 +93,61 @@ function SearchPageWide({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
+    const receiptDropTargetRef = useRef<View>(null);
 
     return (
         <Animated.View
             ref={receiptDropTargetRef}
             style={[styles.searchSplitContainer, splitContainerAnimatedStyle]}
         >
-            <ScreenWrapper
-                testID="Search"
-                shouldEnableMaxHeight
-                shouldShowOfflineIndicatorInWideScreen={!!searchResults}
-                offlineIndicatorStyle={offlineIndicatorStyle}
+            <ReceiptScanDropZone
+                dropZoneRef={receiptDropTargetRef}
+                isDisabled={!queryJSON}
             >
-                <FullPageNotFoundView
-                    shouldForceFullScreen
-                    shouldShow={!queryJSON}
-                    onBackButtonPress={handleOnBackButtonPress}
-                    shouldShowLink={false}
+                <ScreenWrapper
+                    testID="Search"
+                    shouldEnableMaxHeight
+                    shouldShowOfflineIndicatorInWideScreen={!!searchResults}
+                    offlineIndicatorStyle={offlineIndicatorStyle}
                 >
-                    {!!queryJSON && (
-                        <>
-                            <SearchPageHeaderWide queryJSON={queryJSON} />
-                            <SearchActionsBarWide
-                                queryJSON={queryJSON}
-                                searchResults={searchResults}
-                                onSort={onSortPressedCallback}
-                            />
-                            <View style={styles.flex1}>
-                                {shouldShowLoadingSkeleton ? (
-                                    <SearchLoadingSkeleton />
-                                ) : (
-                                    <SearchWithNavigationDeferredMount
-                                        key={queryJSON.hash}
-                                        queryJSON={queryJSON}
-                                        searchResults={searchResults}
-                                        handleSearch={handleSearchAction}
-                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                        onSearchListScroll={scrollHandler}
-                                        onSortPressedCallback={onSortPressedCallback}
-                                        onDestinationVisible={endSubmitNavigationSpans}
-                                        onContentReady={onSearchContentReady}
-                                    />
-                                )}
-                                {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
-                            </View>
-                            <SearchSelectionFooter searchResults={searchResults} />
-                        </>
-                    )}
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-            {!!queryJSON && <ReceiptScanDropZone targetRef={receiptDropTargetRef} />}
+                    <FullPageNotFoundView
+                        shouldForceFullScreen
+                        shouldShow={!queryJSON}
+                        onBackButtonPress={handleOnBackButtonPress}
+                        shouldShowLink={false}
+                    >
+                        {!!queryJSON && (
+                            <>
+                                <SearchPageHeaderWide queryJSON={queryJSON} />
+                                <SearchActionsBarWide
+                                    queryJSON={queryJSON}
+                                    searchResults={searchResults}
+                                    onSort={onSortPressedCallback}
+                                />
+                                <View style={styles.flex1}>
+                                    {shouldShowLoadingSkeleton ? (
+                                        <SearchLoadingSkeleton />
+                                    ) : (
+                                        <SearchWithNavigationDeferredMount
+                                            key={queryJSON.hash}
+                                            queryJSON={queryJSON}
+                                            searchResults={searchResults}
+                                            handleSearch={handleSearchAction}
+                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                            onSearchListScroll={scrollHandler}
+                                            onSortPressedCallback={onSortPressedCallback}
+                                            onDestinationVisible={endSubmitNavigationSpans}
+                                            onContentReady={onSearchContentReady}
+                                        />
+                                    )}
+                                    {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
+                                </View>
+                                <SearchSelectionFooter searchResults={searchResults} />
+                            </>
+                        )}
+                    </FullPageNotFoundView>
+                </ScreenWrapper>
+            </ReceiptScanDropZone>
         </Animated.View>
     );
 }
