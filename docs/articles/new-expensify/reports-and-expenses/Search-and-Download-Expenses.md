@@ -31,7 +31,7 @@ Expensify offers flexible options to search and export expenses and reports in v
    - **Current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses those same columns.
    - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
 
-After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, click **Download file**. You can also click **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
+**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or use **Select all** to match every report, then the export is prepared in the background. You can wait for the file to download automatically, or select **Send me the file when it's ready** to have Concierge deliver it instead. Selecting this option allows the export window to be closed while the file is generated. Once the export is ready, Expensify sends it through Concierge and by email. If the export cannot be generated, Expensify displays an error in the export window or sends the error through Concierge if **Send me the file when it’s ready** was selected.
 
 **Note:** Report-level templates only appear if you select full reports.
 
@@ -44,7 +44,7 @@ After you choose a template, a status window appears while your file is prepared
 5. Tap **Selected**, then choose **Export**.
 6. Choose a default or custom export template as described above.
 
-After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, tap **Download file**. You can also tap **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
+**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or when using **Select all** to match every report, then a status window appears while the file is being prepared. When it's ready, the file downloads automatically. If it doesn't, tap **Download file**. You can also tap **Send me the file when it's ready** to have Concierge send the file through chat and by email instead.
 
 **Note:** Report-level templates only appear when full reports are selected.
 
@@ -125,7 +125,7 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 ## How do I receive my export?
 
-A status window appears while your file is prepared, and the file downloads automatically when it’s ready (if it doesn’t, use the **Download file** button). If you’d rather not wait, click/tap **Send me the file when it’s ready** and **Concierge** will send it to you in a chat message.
+**Basic Export** and **Current view** download directly to the device when exporting selected reports or using **Select all on this page**. Choosing **All Data**, a custom export template, or using **Select all** to match every report instead prepares the export in the background. Once ready, the file downloads automatically, or, if you selected **Send me the file when it's ready**, it's delivered through Concierge and by email instead.
 
 ## What happens if I refresh the page while my file is preparing?
 
