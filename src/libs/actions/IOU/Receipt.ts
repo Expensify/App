@@ -172,12 +172,14 @@ function detachReceipt(
 
     const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
 
+    const transactionThreadReportID = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction?.reportID)), transactionID)?.childReportID;
+
     API.write(
         WRITE_COMMANDS.DETACH_RECEIPT,
         parameters,
         {optimisticData, successData, failureData},
         {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDetachReceiptConflicts(persistedRequests, parameters),
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDetachReceiptConflicts(persistedRequests, parameters, transactionThreadReportID),
         },
     );
 }

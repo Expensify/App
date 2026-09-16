@@ -269,6 +269,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -285,6 +286,7 @@ describe('ModifiedExpenseMessage', () => {
                     },
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
