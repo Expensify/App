@@ -1329,6 +1329,9 @@ function updateMoneyRequestDistance({
                 },
                 modifiedWaypoints: onyxModifiedWaypoints,
                 ...(shouldClearRoutes && {routes: null}),
+
+                // The restored waypoints are the trip this was decided for, so bring it back alongside them
+                commuterExclusionPreview: transactionBackup?.commuterExclusionPreview ?? null,
             },
         });
     }

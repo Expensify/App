@@ -705,6 +705,7 @@ describe('actions/Transaction', () => {
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -892,6 +893,7 @@ describe('actions/Transaction', () => {
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -1083,6 +1085,7 @@ describe('actions/Transaction', () => {
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -1283,6 +1286,7 @@ describe('actions/Transaction', () => {
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
