@@ -1,4 +1,5 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
+import {useSearchQueryActions, useSearchSelectionActions} from '@components/Search/SearchContext';
 import WidgetContainer from '@components/WidgetContainer';
 
 import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
@@ -11,7 +12,9 @@ import useTodoCounts from '@hooks/useTodoCounts';
 
 import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import HomeTaskGroup from '@pages/home/HomeTaskGroup';
 import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
@@ -53,6 +56,8 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const isOnboardingStatusKnown = onboarding !== undefined;
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {setCurrentSearchKey} = useSearchQueryActions();
     const timeSensitiveItems = useTimeSensitiveItems();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
@@ -76,23 +81,25 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     );
 
     const createNavigationHandler = useCallback(
-        (action: string, queryParams: Record<string, unknown>, reportID?: string) => () => {
+        (searchKey: SearchKey, action: string, queryParams: Record<string, unknown>, reportID?: string) => () => {
             if (reportID) {
                 navigateToReport(reportID);
                 return;
             }
 
-            Navigation.navigate(
-                ROUTES.SEARCH_ROOT.getRoute({
-                    query: buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                        action,
-                        ...queryParams,
-                    }),
-                }),
-            );
+            const query = buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                action,
+                ...queryParams,
+            });
+
+            // Navigate the same way the Spend menu does so the search key travels with the query. Without it the
+            // Search page keeps whatever tab was selected before, because the key is context state, not part of the URL.
+            // The last query for the key is deliberately not restored: the to-do promises the full set of reports it
+            // counted, so it must not open a narrowed version of that tab.
+            navigateToCannedSpendSearch(searchKey, query, undefined, clearSelectedTransactions, setCurrentSearchKey);
         },
-        [navigateToReport],
+        [clearSelectedTransactions, navigateToReport, setCurrentSearchKey],
     );
 
     const todoItems = useMemo(
@@ -111,14 +118,24 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                     count: submitCount,
                     icon: icons.Send,
                     translationKey: 'homePage.forYouSection.submit' as const,
-                    handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT]),
+                    handler: createNavigationHandler(
+                        CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+                        CONST.SEARCH.ACTION_FILTERS.SUBMIT,
+                        {from: [`${accountID}`]},
+                        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
+                    ),
                 },
                 {
                     key: 'approve',
                     count: approveCount,
                     icon: icons.ThumbsUp,
                     translationKey: 'homePage.forYouSection.approve' as const,
-                    handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {to: [`${accountID}`]}, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE]),
+                    handler: createNavigationHandler(
+                        CONST.SEARCH.SEARCH_KEYS.APPROVE,
+                        CONST.SEARCH.ACTION_FILTERS.APPROVE,
+                        {to: [`${accountID}`]},
+                        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE],
+                    ),
                 },
                 {
                     key: 'pay',
@@ -126,6 +143,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                     icon: icons.MoneyBag,
                     translationKey: 'homePage.forYouSection.pay' as const,
                     handler: createNavigationHandler(
+                        CONST.SEARCH.SEARCH_KEYS.PAY,
                         CONST.SEARCH.ACTION_FILTERS.PAY,
                         {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()},
                         singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY],
@@ -137,6 +155,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                     icon: icons.Export,
                     translationKey: 'homePage.forYouSection.export' as const,
                     handler: createNavigationHandler(
+                        CONST.SEARCH.SEARCH_KEYS.EXPORT,
                         CONST.SEARCH.ACTION_FILTERS.EXPORT,
                         {exporter: [`${accountID}`], exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER},
                         singleReportIDs[CONST.SEARCH.SEARCH_KEYS.EXPORT],
