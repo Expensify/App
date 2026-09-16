@@ -1,6 +1,7 @@
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -157,6 +158,7 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
 
     const getInitialSelectedAmountModifier = () => {
         const hasLessThan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
@@ -206,6 +208,18 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
     ];
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
+    const button = (
+        <Button
+            style={[styles.ph5, styles.pb5]}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={buttonSize}
+            onPress={updateAmountFilter}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
+        </Button>
+    );
+
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <ScrollView
@@ -243,16 +257,9 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
                             ))}
                     </Fragment>
                 ))}
+                {shouldButtonBeInScrollView && button}
             </ScrollView>
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={buttonSize}
-                onPress={updateAmountFilter}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
-            </Button>
+            {!shouldButtonBeInScrollView && button}
         </View>
     );
 }

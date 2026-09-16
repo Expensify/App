@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
@@ -103,6 +104,7 @@ function SectionHeader({
 
 function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
     const {isOffline} = useNetwork();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -231,6 +233,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
                     shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             )}
         </ListFilterView>

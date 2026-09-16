@@ -1,3 +1,4 @@
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -64,6 +65,7 @@ function SingleSelectImpl({
     onChange,
 }: SingleSelectProps<string>) {
     const {translate} = useLocalize();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -151,6 +153,7 @@ function SingleSelectImpl({
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             </Activity>
         </ListFilterWrapper>

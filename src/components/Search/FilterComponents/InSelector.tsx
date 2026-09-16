@@ -1,4 +1,5 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -49,6 +50,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, dateFnsLocale} = useLocalize();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -264,6 +266,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 shouldShowTextInput
                 style={selectionListStyle}
                 footerContent={footer}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
             />
         </ListFilterView>
     );

@@ -1,5 +1,7 @@
 import Button from '@components/Button';
+import ScrollView from '@components/ScrollView';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
 import TextInput from '@components/TextInput';
@@ -43,45 +45,56 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
     const {inputCallbackRef} = useAutoFocusInput();
     const error = useTextFilterValidation(baseFilterKey, value);
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
+
+    const button = (
+        <Button
+            style={[styles.ph5, styles.pb5]}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={size}
+            onPress={() => {
+                if (error) {
+                    return;
+                }
+                onChange(value, isNegated);
+            }}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
+        </Button>
+    );
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
-            <NegatableFilter
-                baseFilterKey={baseFilterKey}
-                isNegated={isNegated}
-                onNegationChange={setIsNegated}
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1, styles.gap3]}
             >
-                <TextInput
-                    ref={(ref) => {
-                        if (!autoFocus || !isTextInput(ref)) {
-                            return;
-                        }
-                        inputCallbackRef(ref);
-                    }}
-                    placeholder={label}
-                    value={value}
-                    errorText={error}
-                    hasError={!!error}
-                    onChangeText={setValue}
-                    accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
-                    containerStyles={[styles.ph5]}
-                />
-            </NegatableFilter>
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={size}
-                onPress={() => {
-                    if (error) {
-                        return;
-                    }
-                    onChange(value, isNegated);
-                }}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
-            </Button>
+                <NegatableFilter
+                    baseFilterKey={baseFilterKey}
+                    isNegated={isNegated}
+                    onNegationChange={setIsNegated}
+                >
+                    <TextInput
+                        ref={(ref) => {
+                            if (!autoFocus || !isTextInput(ref)) {
+                                return;
+                            }
+                            inputCallbackRef(ref);
+                        }}
+                        placeholder={label}
+                        value={value}
+                        errorText={error}
+                        hasError={!!error}
+                        onChangeText={setValue}
+                        accessibilityLabel={label}
+                        role={CONST.ROLE.PRESENTATION}
+                        containerStyles={[styles.ph5]}
+                    />
+                </NegatableFilter>
+                {shouldButtonBeInScrollView && button}
+            </ScrollView>
+            {!shouldButtonBeInScrollView && button}
         </View>
     );
 }

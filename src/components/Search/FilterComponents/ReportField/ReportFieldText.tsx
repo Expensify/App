@@ -1,3 +1,5 @@
+import ScrollView from '@components/ScrollView';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey} from '@components/Search/types';
 import TextInput from '@components/TextInput';
@@ -13,15 +15,18 @@ type ReportFieldTextProps = {
     filterKey: ReportFieldTextKey;
     field: PolicyReportField;
     value: string | undefined;
+    footer?: React.ReactNode;
+    shouldUseScrollView?: boolean;
     onChange: (newValue: string) => void;
     onError: (error: string | undefined) => void;
 };
 
-function ReportFieldText({filterKey, field, value, onChange, onError}: ReportFieldTextProps) {
+function ReportFieldText({filterKey, field, value, footer, shouldUseScrollView, onChange, onError}: ReportFieldTextProps) {
     const styles = useThemeStyles();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const error = useTextFilterValidation(filterKey, value, onError);
 
-    return (
+    const input = (
         <TextInput
             placeholder={field.name}
             value={value}
@@ -32,6 +37,28 @@ function ReportFieldText({filterKey, field, value, onChange, onError}: ReportFie
             role={CONST.ROLE.PRESENTATION}
             containerStyles={[styles.ph5, styles.pv2]}
         />
+    );
+
+    if (!shouldUseScrollView) {
+        return (
+            <>
+                {input}
+                {footer}
+            </>
+        );
+    }
+
+    return (
+        <>
+            <ScrollView
+                style={styles.flexShrink1}
+                keyboardShouldPersistTaps="handled"
+            >
+                {input}
+                {shouldFooterBeInsideList && footer}
+            </ScrollView>
+            {!shouldFooterBeInsideList && footer}
+        </>
     );
 }
 

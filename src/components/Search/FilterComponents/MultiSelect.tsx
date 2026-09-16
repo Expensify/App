@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -67,6 +68,7 @@ function MultiSelect<T extends string>({
     onChange,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -148,6 +150,7 @@ function MultiSelect<T extends string>({
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             )}
         </ListFilterView>

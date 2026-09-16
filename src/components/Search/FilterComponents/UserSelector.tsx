@@ -1,4 +1,5 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
@@ -31,6 +32,7 @@ type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 
 function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -146,6 +148,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                 footerContent={footer}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
             />
         </ListFilterWrapper>
     );

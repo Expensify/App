@@ -6,7 +6,6 @@ import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/Ad
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,7 +47,6 @@ function SearchAdvancedFiltersContentBase() {
     const route = useRoute<PlatformStackRouteProp<SearchAdvancedFiltersParamList, typeof SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isInLandscapeMode = useIsInLandscapeMode();
 
     const filterKey = route.params.filterKey;
     const shouldApplyFilterChangeDirectly = !!route.params.applyDirectly;
@@ -85,8 +83,6 @@ function SearchAdvancedFiltersContentBase() {
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO ||
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG;
 
-    const shouldDisableKeyboardAvoidingView = isInLandscapeMode && isFilterWithSelectionList;
-
     const buttonText = shouldApplyFilterChangeDirectly ? translate('common.apply') : undefined;
 
     const getCollapsibleHeaderOffset = () => {
@@ -109,8 +105,6 @@ function SearchAdvancedFiltersContentBase() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            // In landscape mode we don't want to push confirm button above the keyboard for filters with selection list
-            shouldEnableKeyboardAvoidingView={!shouldDisableKeyboardAvoidingView}
         >
             {({didScreenTransitionEnd}) =>
                 validFilterKey ? (

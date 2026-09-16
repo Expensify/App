@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -47,6 +48,7 @@ type BankAccountFilterItem = {
 
 function BankAccountSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: BankAccountSelectorProps) {
     const theme = useTheme();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -188,6 +190,7 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                     shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             )}
         </ListFilterView>

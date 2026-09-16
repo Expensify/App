@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -34,6 +35,7 @@ type CardSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CardSelectorProps) {
     const theme = useTheme();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -167,6 +169,7 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                     shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             )}
         </ListFilterView>
