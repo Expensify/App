@@ -323,18 +323,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     });
 
     const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
-    const transactionThreadReportParentReportActionID = transactionThreadReport?.parentReportActionID;
-
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
-            if (!reportActions || !transactionThreadReportParentReportActionID) {
+            if (!reportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
             }
-            return reportActions.find((action) => action.reportActionID === transactionThreadReportParentReportActionID);
+            return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
         return parentReportAction;
-    }, [caseID, parentReportAction, reportActions, transactionThreadReportParentReportActionID]);
+    }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
@@ -826,8 +824,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         [report, formatPhoneNumber, translate, personalDetails, policy, isReportArchived, pendingDeleteMemberAccountIDs, conciergeReportID],
     );
 
-    const accountID = currentUserPersonalDetails?.accountID;
-
     const renderedAvatar = useMemo(() => {
         if (isChatRoom && !isThread) {
             return (
@@ -837,7 +833,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         report={report}
                         policy={policy}
                         participants={participants}
-                        currentUserAccountID={accountID}
+                        currentUserAccountID={currentUserPersonalDetails.accountID}
                     />
                 </View>
             );
@@ -895,7 +891,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         participants,
         moneyRequestReport?.reportID,
         expensifyIcons.Camera,
-        accountID,
+        currentUserPersonalDetails?.accountID,
     ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
