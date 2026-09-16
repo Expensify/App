@@ -462,8 +462,16 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
-        downloadAsPDF: 'Download as PDF',
-        downloadReceipts: 'Download receipts',
+        // @context Button label for downloading one or more expense reports as PDF. The count is the number of reports.
+        downloadReport: () => ({
+            one: 'Download report',
+            other: 'Download reports',
+        }),
+        // @context Button label for downloading the receipts of one or more expenses as a zip. The count is the number of receipts.
+        downloadReceipt: () => ({
+            one: 'Download receipt',
+            other: 'Download receipts',
+        }),
         downloadAsCSV: 'Download as CSV',
         submitViaPDF: 'Submit via PDF',
         print: 'Print',
@@ -7827,7 +7835,6 @@ const translations = {
             areYouSure: 'Are you sure?',
             workspaceCurrency: 'Workspace currency',
             updateCurrencyPrompt: 'It looks like your workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
-            updateCurrencyForExpensifyCard: 'The Expensify Card is available to issue in USD. Please update this workspace to USD or use a different workspace.',
             euUkUpdateCurrencyForExpensifyCard:
                 'The Expensify Card is available to issue in USD, GBP, and EUR. Please update this workspace to a supported currency or use a different workspace.',
             updateCurrencyForExpensifyCardTitle: 'Get the Expensify Card',
@@ -11209,6 +11216,7 @@ const translations = {
         mileageRateAutoUpdated: '<tooltip>We updated the rate based on your travel date.</tooltip>',
         markAllAsRead: '<tooltip>Right-click to <strong>mark all as read</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Long-press to <strong>mark all as read</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Access your account and personal settings.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
@@ -11490,9 +11498,9 @@ const translations = {
             permissions: 'Group permissions',
             createNewGroupButton: 'New group',
             createGroupSubmitButton: 'Create group',
-            expensifyCardPreferredWorkspace: 'Expensify Card preferred workspace',
+            expensifyCardPreferredWorkspace: 'Card preferred workspace',
             expensifyCardPreferredWorkspaceDescription:
-                'All Expensify Card transactions will be created on the Expensify Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for Expensify Card transactions only.',
+                'All Expensify Card and company card transactions will be created on the Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for card transactions only.',
             strictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
             strictlyEnforceWorkspaceRulesDescription: 'All workspace rules must be met before submitting a report. No manual exceptions allowed.',
             restrictExpenseWorkspaceCreation: 'Restrict expense workspace creation/removal',
@@ -11509,7 +11517,8 @@ const translations = {
             noWorkspacesMessage: 'There are no workspaces on this domain. A workspace is required to enable this restriction.',
             restrictDefaultLoginSelection: 'Restrict default login selection',
             restrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
-            expensifyCardPreferredWorkspaceDisabledMessage: 'To enable this setting, please first enable a preferred workspace and set up Expensify Cards on your domain.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'To enable this setting, please first enable a preferred workspace and set up an Expensify Card or a company card feed on your domain.',
             findGroup: 'Find group',
         },
     },

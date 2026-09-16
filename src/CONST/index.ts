@@ -1093,7 +1093,6 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
@@ -5004,6 +5003,7 @@ const CONST = {
         XX_SMALL: 'xx-small',
         X_SMALL: 'x-small',
         SMALL: 'small',
+        MID_SMALL: 'mid-small',
         // The default avatar size, mapping to the medium avatar dimensions (variables.avatarSizeMedium)
         DEFAULT: 'medium',
         LARGE: 'large',
@@ -8774,6 +8774,7 @@ const CONST = {
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
         MARK_ALL_AS_READ: 'markAllAsRead',
+        ACCOUNT_MOVED_TO_TOP_BAR: 'accountMovedToTopBar',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
@@ -9023,6 +9024,7 @@ const CONST = {
         },
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',
+            ACCOUNT_BUTTON: 'TopBar-AccountButton',
         },
         COLLAPSIBLE_SECTION: {
             TOGGLE: 'CollapsibleSection-Toggle',
@@ -9043,6 +9045,7 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
             VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
+            VICTORY_CHART_ZOOM: 'HTMLRenderer-VictoryChartZoom',
             TABLE_ROW: 'HTMLRenderer-TableRow',
         },
         RECEIPT: {

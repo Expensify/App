@@ -35,7 +35,7 @@ const CLEAR_DEFAULT_VENDOR = '';
 
 function DynamicSageIntacctDefaultVendorPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR>>();
     const policyID = route.params.policyID;
@@ -70,7 +70,7 @@ function DynamicSageIntacctDefaultVendorPage() {
     // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that setting.
     const canClear = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
 
-    const vendorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+    const vendorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor, localeCompare), [defaultVendor, localeCompare, policy]);
     const clearOption: SelectorType = useMemo(
         () => ({
             value: CLEAR_DEFAULT_VENDOR,

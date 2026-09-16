@@ -419,7 +419,10 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Δευτερεύουσα χρέωση',
         perDiem: 'Ημερήσια αποζημίωση',
         validate: 'Επικυρώστε',
-        downloadAsPDF: 'Λήψη ως PDF',
+        downloadReport: () => ({
+            one: 'Λήψη αναφοράς',
+            other: 'Λήψη αναφορών',
+        }),
         downloadAsCSV: 'Λήψη ως CSV',
         print: 'Εκτύπωση',
         help: 'Βοήθεια',
@@ -515,7 +518,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Εξάγει σε',
         expand: 'Ανάπτυξη',
         dialogOpened: 'διάλογος',
-        downloadReceipts: 'Λήψη αποδείξεων',
+        downloadReceipt: () => ({
+            one: 'Λήψη απόδειξης',
+            other: 'Λήψη αποδείξεων',
+        }),
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
     },
     socials: {
@@ -7858,7 +7864,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             notAllowedToAddBankAccount:
                 'Ο χώρος εργασίας σας είναι ρυθμισμένος σε μη υποστηριζόμενο νόμισμα. Επικοινωνήστε με έναν διαχειριστή χώρου εργασίας που έχει δικαίωμα να το αλλάξει.',
             changeBankAccount: 'Αλλαγή τραπεζικού λογαριασμού',
-            updateCurrencyForExpensifyCard: 'Η Κάρτα Expensify είναι διαθέσιμη για έκδοση σε USD. Ενημερώστε αυτόν τον χώρο εργασίας σε USD ή χρησιμοποιήστε έναν διαφορετικό χώρο εργασίας.',
             updateCurrencyForExpensifyCardTitle: 'Αποκτήστε την Κάρτα Expensify',
             euUkUpdateCurrencyForExpensifyCard:
                 'Η Κάρτα Expensify είναι διαθέσιμη για έκδοση σε USD, GBP και EUR. Ενημερώστε αυτόν τον χώρο εργασίας σε ένα υποστηριζόμενο νόμισμα ή χρησιμοποιήστε έναν διαφορετικό χώρο εργασίας.',
@@ -11232,6 +11237,7 @@ ${reportName}`,
         mileageRateAutoUpdated: '<tooltip>Ενημερώσαμε την τιμή με βάση την ημερομηνία του ταξιδιού σας.</tooltip>',
         markAllAsRead: '<tooltip>Δεξί κλικ για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Παρατεταμένο πάτημα για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Αποκτήστε πρόσβαση στον λογαριασμό και τις προσωπικές σας ρυθμίσεις.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Απόρριψη αλλαγών;',
@@ -11517,9 +11523,9 @@ ${reportName}`,
             permissions: 'Δικαιώματα ομάδας',
             createNewGroupButton: 'Νέα ομάδα',
             createGroupSubmitButton: 'Δημιουργία ομάδας',
-            expensifyCardPreferredWorkspace: 'Προτιμώμενος χώρος εργασίας για την Κάρτα Expensify',
+            expensifyCardPreferredWorkspace: 'Προτιμώμενος χώρος εργασίας κάρτας',
             expensifyCardPreferredWorkspaceDescription:
-                'Όλες οι συναλλαγές με Κάρτα Expensify θα δημιουργούνται στο προτιμώμενο χώρο εργασίας Κάρτας Expensify αντί για τον προτιμώμενο χώρο εργασίας. Η ενεργοποίηση αυτής της δυνατότητας θα παρακάμψει τη ρύθμιση προτιμώμενου χώρου εργασίας μόνο για τις συναλλαγές με Κάρτα Expensify.',
+                'Όλες οι συναλλαγές με Κάρτα Expensify και εταιρική κάρτα θα δημιουργούνται στον προτιμώμενο χώρο εργασίας για κάρτες αντί για τον προτιμώμενο χώρο εργασίας. Η ενεργοποίηση αυτής της δυνατότητας θα παρακάμψει τη ρύθμιση προτιμώμενου χώρου εργασίας μόνο για συναλλαγές με κάρτα.',
             strictlyEnforceWorkspaceRules: 'Επιβάλετε αυστηρά τους κανόνες του χώρου εργασίας',
             strictlyEnforceWorkspaceRulesDescription: 'Πρέπει να πληρούνται όλοι οι κανόνες του χώρου εργασίας πριν από την υποβολή μιας αναφοράς. Δεν επιτρέπονται χειροκίνητες εξαιρέσεις.',
             restrictExpenseWorkspaceCreation: 'Περιορισμός δημιουργίας/διαγραφής χώρου εργασίας εξόδων',
@@ -11538,7 +11544,7 @@ ${reportName}`,
             restrictDefaultLoginSelectionDescription:
                 'Αποτρέψτε τα μέλη από το να αλλάζουν το email σύνδεσής τους σε διεύθυνση εκτός του εταιρικού τους domain, ώστε να αποφύγετε περιορισμούς πολιτικών.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Για να ενεργοποιήσετε αυτήν τη ρύθμιση, ενεργοποιήστε πρώτα ένα προτιμώμενο χώρο εργασίας και ρυθμίστε τις Κάρτες Expensify στον τομέα σας.',
+                'Για να ενεργοποιήσετε αυτήν τη ρύθμιση, ενεργοποιήστε πρώτα ένα προτιμώμενο χώρο εργασίας και ρυθμίστε μια Κάρτα Expensify ή μια ροή εταιρικής κάρτας στον τομέα σας.',
             findGroup: 'Εύρεση ομάδας',
         },
     },

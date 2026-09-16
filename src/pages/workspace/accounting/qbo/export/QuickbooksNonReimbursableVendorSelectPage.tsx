@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -45,7 +45,7 @@ type QuickbooksNonReimbursableVendorSelectPageProps = {
 };
 
 function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVendor, displayName}: QuickbooksNonReimbursableVendorSelectPageProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -54,13 +54,13 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
     const currentVendor = qboConfig?.[configKey];
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const vendorOptions: CardListItem[] =
-        vendors?.map((vendor) => ({
-            value: vendor.id,
-            text: vendor.name,
-            keyForList: vendor.id,
-            isSelected: vendor.id === currentVendor,
-        })) ?? [];
+    const sortedVendors = sortVendors(vendors ?? [], localeCompare);
+    const vendorOptions: CardListItem[] = sortedVendors.map((vendor) => ({
+        value: vendor.id,
+        text: vendor.name,
+        keyForList: vendor.id,
+        isSelected: vendor.id === currentVendor,
+    }));
 
     // Only the CC/DC export path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that configKey.
     const canClear = configKey === CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR;
