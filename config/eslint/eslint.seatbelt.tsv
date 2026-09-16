@@ -525,7 +525,6 @@
 "../../src/hooks/useSubPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useTackInputFocus/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useTextWithMiddleEllipsis.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/hooks/useTodoCounts.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useTodoSearchResults.ts"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/hooks/useTransactionInlineEdit.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useTransactionsAndViolationsForReport.ts"	"rulesdir/no-direct-personal-details-list"	1
