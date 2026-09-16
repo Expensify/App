@@ -56,6 +56,31 @@ type DistanceRequestControllerProps = {
     clearFormErrors: (errors: string[]) => void;
 };
 
+/** Resolves the rate covering the expense date, falling back to the policy default. */
+function resolveRateForExpenseDate(mileageRates: Record<string, MileageRate>, expenseDate: string | undefined, defaultRateID: string | undefined): string | undefined {
+    const bestEligibleRateID = expenseDate ? DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate)?.customUnitRateID : undefined;
+    return bestEligibleRateID ?? defaultRateID;
+}
+
+/**
+ * Resolves the rate to auto-select: one matching the current value, then for a moved tracked expense the rate covering
+ * the expense date and finally the default. Other flows keep their workspace rate, so they stop at the value match.
+ */
+function resolveAutoSelectedRate(
+    mileageRates: Record<string, MileageRate>,
+    currentRate: MileageRate['rate'],
+    currentUnit: MileageRate['unit'],
+    expenseDate: string | undefined,
+    defaultRateID: string | undefined,
+    shouldFallBackToDateOrDefault: boolean,
+): string | undefined {
+    const matchingRateID = Object.values(mileageRates).find((policyRate) => policyRate.rate === currentRate && policyRate.unit === currentUnit)?.customUnitRateID;
+    if (matchingRateID || !shouldFallBackToDateOrDefault) {
+        return matchingRateID;
+    }
+    return resolveRateForExpenseDate(mileageRates, expenseDate, defaultRateID);
+}
+
 /**
  * Side-effect-only component that manages distance request effects:
  * validates distance rates on policy change, calculates distance amounts,
@@ -117,10 +142,17 @@ function DistanceRequestController({
             return;
         }
 
-        // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
-        const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
-        if (matchingRate?.customUnitRateID) {
-            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy, false, personalPolicy?.outputCurrency);
+        // Auto-select a rate matching the current value. A moved tracked expense also falls back to the expense date and the default.
+        const autoSelectedRateID = resolveAutoSelectedRate(
+            policyRates,
+            mileageRate.rate,
+            mileageRate.unit,
+            getCreated(transaction),
+            defaultMileageRateCustomUnitRateID,
+            isMovingTransactionFromTrackExpense,
+        );
+        if (autoSelectedRateID) {
+            setCustomUnitRateID(transactionID, autoSelectedRateID, transaction, policy, false, personalPolicy?.outputCurrency);
             clearFormErrors([errorKey]);
             return;
         }
@@ -141,6 +173,7 @@ function DistanceRequestController({
         transaction,
         prevPolicy?.id,
         personalPolicy?.outputCurrency,
+        defaultMileageRateCustomUnitRateID,
     ]);
 
     useEffect(() => {
@@ -204,8 +237,7 @@ function DistanceRequestController({
             const mileageRates = DistanceRequestUtils.getMileageRates(policy);
             const lastRate = lastSelectedRate ? mileageRates[lastSelectedRate] : undefined;
             if (!lastRate || !DistanceRequestUtils.isRateEligibleForDate(lastRate, expenseDate)) {
-                const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate);
-                rateToUse = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID ?? lastSelectedRate;
+                rateToUse = resolveRateForExpenseDate(mileageRates, expenseDate, defaultMileageRateCustomUnitRateID) ?? lastSelectedRate;
             }
         }
         setCustomUnitRateID(transactionID, rateToUse, transaction, policy, false, personalPolicy?.outputCurrency);

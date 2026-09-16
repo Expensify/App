@@ -2241,6 +2241,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         /** Whether to limit the destination list to workspaces only (e.g. "Submit to my employer" on the Submit plan) */
         isWorkspacesOnly?: string;
+        shouldExcludeWorkspaces?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: {
         action: IOUAction;

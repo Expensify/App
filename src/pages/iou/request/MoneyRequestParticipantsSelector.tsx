@@ -36,6 +36,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     isWorkspacesOnly?: boolean;
 
+    /** Whether owned workspace chats should be left out of the list */
+    shouldExcludeWorkspaces?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
@@ -81,6 +84,7 @@ function MoneyRequestParticipantsSelector({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isWorkspacesOnly = false,
+    shouldExcludeWorkspaces = false,
     isTransactionFromCreditCardImport = false,
     shouldExcludeP2P = false,
     initiallySelectedReportID,
@@ -114,6 +118,7 @@ function MoneyRequestParticipantsSelector({
                     action={action}
                     participants={participants}
                     isWorkspacesOnly={isWorkspacesOnly}
+                    shouldExcludeWorkspaces={shouldExcludeWorkspaces}
                     isPerDiemRequest={isPerDiemRequest}
                     isTimeRequest={isTimeRequest}
                     isNative={isNative}
