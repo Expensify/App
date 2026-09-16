@@ -19,7 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -183,7 +183,7 @@ function SearchAutocompleteList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb2,
+        style: [styles.pb2, styles.ph2],
     });
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -195,7 +195,8 @@ function SearchAutocompleteList({
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -792,7 +793,7 @@ function SearchAutocompleteList({
             ListItem={SearchRouterItem}
             style={{
                 containerStyle: [styles.mh100],
-                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
+                listStyle: styles.overscrollBehaviorContain,
                 contentContainerStyle,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
