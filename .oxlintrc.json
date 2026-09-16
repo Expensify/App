@@ -403,6 +403,7 @@
         "rulesdir/context-provider-split-values": "error",
         "rulesdir/no-acc-spread-in-reduce": "error",
         "rulesdir/no-api-in-views": "error",
+        "rulesdir/no-direct-personal-details-list": "error",
         "rulesdir/no-api-side-effects-method": "error",
         "rulesdir/no-beta-handler": "error",
         "rulesdir/no-call-actions-from-actions": "error",
@@ -2358,6 +2359,24 @@
             "files": ["src/types/onyx/**/*.ts"],
             "rules": {
                 "hosted/require-jsdoc": ["error", {"contexts": ["TSInterfaceDeclaration", "TSTypeAliasDeclaration"]}]
+            }
+        },
+        {
+            // Mirrors eslint.config.mjs: the personal-details wrappers, the key declaration and test setup are exempt.
+            "files": [
+                "src/ONYXKEYS.ts",
+                "src/hooks/usePersonalDetails.ts",
+                "src/libs/PersonalDetailsStore.ts",
+                "src/libs/PersonalDetailsUtils.ts",
+                "src/components/OnyxListItemProvider.tsx",
+                "src/libs/ExportOnyxState/common.ts",
+                "tests/**/*.{ts,tsx}",
+                "jest/**/*.{ts,tsx}",
+                "__mocks__/**/*.{ts,tsx}",
+                "src/**/__mocks__/**/*.{ts,tsx}"
+            ],
+            "rules": {
+                "rulesdir/no-direct-personal-details-list": "off"
             }
         }
     ]
