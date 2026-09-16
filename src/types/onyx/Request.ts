@@ -134,6 +134,11 @@ type ConflictRequestReplace = {
      */
     index: number;
 
+    /**
+     * The requestIndex of the queued request this replace means. A nextAction replace is applied after an awaited
+     * disk commit and uses it to find its target in the live queue; without one the follow-up is refused. A
+     * top-level replace is applied synchronously and addresses its target by index, so it does not read this.
+     */
     requestIndex?: number;
 
     /**
@@ -162,7 +167,7 @@ type ConflictRequestDelete = {
     pushNewRequest: boolean;
 
     /**
-     * The next action to execute after the current conflict is resolved.
+     * The next action to execute after the current conflict is resolved. This runs after an awaited disk commit, so the queue may have shifted by then: only a replace addressed by requestIndex is accepted.
      */
     nextAction?: ConflictRequestReplace;
 };
