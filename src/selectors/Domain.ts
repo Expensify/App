@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
 import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
@@ -255,36 +256,43 @@ type PendingDomainAdminRequests = {
 const EMPTY_PENDING_DOMAIN_ADMIN_REQUESTS: PendingDomainAdminRequests = {count: 0, domainAccountIDs: []};
 
 /**
- * Creates a collection selector that counts pending domain adminship requests visible to the current user.
+ * Counts pending domain adminship requests visible to the current user.
  * A domain only contributes to the count when the current user administers it — requesters get their own
  * entry in `domain_adminRequesters` too (see the "Request sent" state), so without this gate a requester
- * would see a review prompt for a domain they don't administer.
+ * would see a review prompt for a domain they don't administer. Requesters whose decline is still pending
+ * (their `adminshipRequester` action is `DELETE`, see `declineDomainAdminshipRequest`) are excluded, matching
+ * `hasPendingDomainAdminRequestsToReview` so the home task and the Domains badge stay in sync offline.
  */
-function createPendingDomainAdminRequestsSelector(currentUserAccountID: number | undefined) {
-    return (domains: OnyxCollection<Domain>): PendingDomainAdminRequests => {
-        if (!domains || !currentUserAccountID) {
-            return EMPTY_PENDING_DOMAIN_ADMIN_REQUESTS;
+function getPendingDomainAdminRequests(
+    domains: OnyxCollection<Domain>,
+    allDomainPendingActions: OnyxCollection<DomainPendingActions>,
+    currentUserAccountID: number | undefined,
+): PendingDomainAdminRequests {
+    if (!domains || !currentUserAccountID) {
+        return EMPTY_PENDING_DOMAIN_ADMIN_REQUESTS;
+    }
+
+    let count = 0;
+    const domainAccountIDs: number[] = [];
+
+    for (const domain of Object.values(domains)) {
+        if (!domain || !isAdminSelector(currentUserAccountID)(domain)) {
+            continue;
         }
 
-        let count = 0;
-        const domainAccountIDs: number[] = [];
-
-        for (const domain of Object.values(domains)) {
-            if (!domain || !isAdminSelector(currentUserAccountID)(domain)) {
-                continue;
-            }
-
-            const requesterAccountIDs = pendingAdminRequesterAccountIDsSelector(domain).filter((accountID) => accountID !== currentUserAccountID);
-            if (requesterAccountIDs.length === 0) {
-                continue;
-            }
-
-            count += requesterAccountIDs.length;
-            domainAccountIDs.push(domain.accountID);
+        const requesterPendingActions = adminshipRequesterPendingActionSelector(allDomainPendingActions?.[`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domain.accountID}`]);
+        const requesterAccountIDs = pendingAdminRequesterAccountIDsSelector(domain).filter(
+            (accountID) => accountID !== currentUserAccountID && requesterPendingActions[accountID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (requesterAccountIDs.length === 0) {
+            continue;
         }
 
-        return count > 0 ? {count, domainAccountIDs} : EMPTY_PENDING_DOMAIN_ADMIN_REQUESTS;
-    };
+        count += requesterAccountIDs.length;
+        domainAccountIDs.push(domain.accountID);
+    }
+
+    return count > 0 ? {count, domainAccountIDs} : EMPTY_PENDING_DOMAIN_ADMIN_REQUESTS;
 }
 
 /** Creates a selector that extracts the pending action for a security group's setting */
@@ -332,7 +340,7 @@ export {
     hasPendingAdminshipRequestSelector,
     pendingAdminRequesterAccountIDsSelector,
     adminshipRequesterPendingActionSelector,
-    createPendingDomainAdminRequestsSelector,
+    getPendingDomainAdminRequests,
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,
     domainSecurityGroupSettingErrorsSelector,

@@ -4,7 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {createPendingDomainAdminRequestsSelector} from '@src/selectors/Domain';
+import {getPendingDomainAdminRequests} from '@src/selectors/Domain';
 import {accountIDSelector} from '@src/selectors/Session';
 
 type ReviewDomainAdminRequests = {
@@ -18,12 +18,10 @@ type ReviewDomainAdminRequests = {
 /** Handles the "Review X domain admin request(s)" row on the "For you" section of the home page. */
 function useReviewDomainAdminRequests(): ReviewDomainAdminRequests {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [allDomainPendingActions] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS);
 
-    // useOnyx holds the selector in a ref, so an inline factory selector is safe here
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    const [pendingDomainAdminRequests] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {selector: createPendingDomainAdminRequestsSelector(accountID)});
-    const count = pendingDomainAdminRequests?.count ?? 0;
-    const domainAccountIDs = pendingDomainAdminRequests?.domainAccountIDs ?? [];
+    const {count, domainAccountIDs} = getPendingDomainAdminRequests(allDomains, allDomainPendingActions, accountID);
 
     const reviewDomainAdminRequests = () => {
         if (domainAccountIDs.length === 1) {

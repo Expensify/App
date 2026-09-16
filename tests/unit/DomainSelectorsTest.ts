@@ -10,7 +10,7 @@ import {
     adminAccountIDsSelector,
     adminPendingActionSelector,
     adminshipRequesterPendingActionSelector,
-    createPendingDomainAdminRequestsSelector,
+    getPendingDomainAdminRequests,
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSecurityGroupSettingErrorsSelector,
@@ -917,9 +917,9 @@ describe('domainSelectors', () => {
         });
     });
 
-    describe('createPendingDomainAdminRequestsSelector', () => {
+    describe('getPendingDomainAdminRequests', () => {
         it('Should return an empty result if the domains collection is undefined', () => {
-            expect(createPendingDomainAdminRequestsSelector(userID1)(undefined)).toEqual({count: 0, domainAccountIDs: []});
+            expect(getPendingDomainAdminRequests(undefined, undefined, userID1)).toEqual({count: 0, domainAccountIDs: []});
         });
 
         it('Should return an empty result if the current user accountID is undefined', () => {
@@ -929,7 +929,7 @@ describe('domainSelectors', () => {
                     boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
                 }),
             };
-            expect(createPendingDomainAdminRequestsSelector(undefined)(domains)).toEqual({count: 0, domainAccountIDs: []});
+            expect(getPendingDomainAdminRequests(domains, undefined, undefined)).toEqual({count: 0, domainAccountIDs: []});
         });
 
         it('Should count pending requesters only on domains the current user administers', () => {
@@ -944,7 +944,7 @@ describe('domainSelectors', () => {
                 }),
             };
 
-            expect(createPendingDomainAdminRequestsSelector(userID1)(domains)).toEqual({count: 1, domainAccountIDs: [1]});
+            expect(getPendingDomainAdminRequests(domains, undefined, userID1)).toEqual({count: 1, domainAccountIDs: [1]});
         });
 
         it('Should ignore null tombstones and exclude the current user from their own requester count', () => {
@@ -955,7 +955,7 @@ describe('domainSelectors', () => {
                 }),
             };
 
-            expect(createPendingDomainAdminRequestsSelector(userID1)(domains)).toEqual({count: 0, domainAccountIDs: []});
+            expect(getPendingDomainAdminRequests(domains, undefined, userID1)).toEqual({count: 0, domainAccountIDs: []});
         });
 
         it('Should sum counts and collect accountIDs across multiple admin domains', () => {
@@ -971,7 +971,44 @@ describe('domainSelectors', () => {
                 }),
             };
 
-            expect(createPendingDomainAdminRequestsSelector(userID1)(domains)).toEqual({count: 3, domainAccountIDs: [1, 2]});
+            expect(getPendingDomainAdminRequests(domains, undefined, userID1)).toEqual({count: 3, domainAccountIDs: [1, 2]});
+        });
+
+        it('Should exclude requesters whose decline is optimistically pending (DELETE)', () => {
+            const userID3 = 789;
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read', [userID3]: 'read'}},
+                }),
+            };
+            const allDomainPendingActions: OnyxCollection<DomainPendingActions> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}1`]: {
+                    adminshipRequester: {
+                        [userID2]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                },
+            };
+
+            expect(getPendingDomainAdminRequests(domains, allDomainPendingActions, userID1)).toEqual({count: 1, domainAccountIDs: [1]});
+        });
+
+        it('Should return an empty result when every pending requester has been optimistically declined', () => {
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
+                }),
+            };
+            const allDomainPendingActions: OnyxCollection<DomainPendingActions> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}1`]: {
+                    adminshipRequester: {
+                        [userID2]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                },
+            };
+
+            expect(getPendingDomainAdminRequests(domains, allDomainPendingActions, userID1)).toEqual({count: 0, domainAccountIDs: []});
         });
     });
 
