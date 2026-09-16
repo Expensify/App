@@ -3,6 +3,7 @@ import {useInitialURLActions, useInitialURLState} from '@components/InitialURLCo
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -102,6 +103,7 @@ function AuthScreensInitHandler() {
     const policyOwnerDisplayName = usePersonalDetailByLogin(policyOwnerLogin, displayNameSelector);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const reportAttributes = useReportAttributes();
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
@@ -219,6 +221,7 @@ function AuthScreensInitHandler() {
             lastWorkspaceNumber,
             translate,
             conciergeChat,
+            delegateAccountID,
             policyOwnerAccountID,
             policyOwnerDisplayName,
         });
