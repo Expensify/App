@@ -8,6 +8,11 @@ const hapticFeedback: HapticFeedback = {
     longPress: () => {},
     success: () => {},
     error: () => {},
+    inputFocus: () => {},
+    expenseSuccess: () => {},
+    expenseCreateError: () => {},
+    loading: () => {},
+    expenseSubmitSuccess: () => {},
 };
 
 export default hapticFeedback;

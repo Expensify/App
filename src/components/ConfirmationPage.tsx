@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {Pattern} from 'react-native-pulsar';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -24,6 +25,12 @@ import Text from './Text';
 
 type ConfirmationPageProps = {
     illustration?: DotLottieAnimation | IconAsset;
+
+    /** Haptic pattern to play in sync with a Lottie illustration, on every loop of it */
+    illustrationHaptics?: Pattern;
+
+    /** Length of one pass of the Lottie illustration in milliseconds, required alongside `illustrationHaptics` */
+    illustrationHapticsDurationMs?: number;
     heading: string;
     description?: React.ReactNode;
     descriptionComponent?: React.ReactNode;
@@ -78,6 +85,8 @@ type ConfirmationPageProps = {
 
 function ConfirmationPage({
     illustration = LottieAnimations.Fireworks,
+    illustrationHaptics,
+    illustrationHapticsDurationMs,
     heading,
     description,
     descriptionComponent,
@@ -128,6 +137,8 @@ function ConfirmationPage({
                                 return (
                                     <Lottie
                                         source={illustration}
+                                        haptics={illustrationHaptics}
+                                        hapticsDurationMs={illustrationHapticsDurationMs}
                                         autoPlay
                                         loop
                                         style={[styles.confirmationAnimation, illustrationStyle]}

@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import HapticFeedback from '@libs/HapticFeedback';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
 import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -325,6 +326,7 @@ function AmountField({
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
                         onFocus={() => {
+                            HapticFeedback.inputFocus();
                             setIsAmountInputFocused(true);
                         }}
                         onBlur={() => {

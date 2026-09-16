@@ -1,4 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import {FIREWORKS_DURATION_MS, FIREWORKS_HAPTIC_PATTERN} from '@components/LottieAnimations/hapticPatterns';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
@@ -73,6 +74,8 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
     return (
         <ConfirmationPage
             heading={heading}
+            illustrationHaptics={FIREWORKS_HAPTIC_PATTERN}
+            illustrationHapticsDurationMs={FIREWORKS_DURATION_MS}
             descriptionComponent={description}
             shouldShowButton
             onButtonPress={afterUpgradeAcknowledged}
