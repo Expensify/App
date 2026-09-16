@@ -100,9 +100,13 @@ describe('ExpenseReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should render the copilot as the primary avatar when the parent action carries a delegate', async () => {
+    it.each([
+        ['parentReportID', {parentReportActionID: PARENT_REPORT_ACTION_ID}],
+        // An optimistic expense report links its workspace chat only through chatReportID.
+        ['chatReportID only', {parentReportActionID: PARENT_REPORT_ACTION_ID, parentReportID: undefined, chatReportID: PARENT_REPORT_ID}],
+    ])('should render the copilot as the primary avatar when the parent action carries a delegate (chat linked via %s)', async (_case, reportOverrides) => {
         mockPersonalDetails[DELEGATE_ACCOUNT_ID] = {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_LOGIN, avatar: DELEGATE_AVATAR_URL};
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport({parentReportActionID: PARENT_REPORT_ACTION_ID}));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport(reportOverrides));
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
             [PARENT_REPORT_ACTION_ID]: {
                 reportActionID: PARENT_REPORT_ACTION_ID,

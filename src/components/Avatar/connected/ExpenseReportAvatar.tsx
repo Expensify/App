@@ -53,7 +53,8 @@ function ExpenseReportAvatar({reportID, size, backdropColor, containerStyle, fal
         (reportActions: OnyxEntry<ReportActions>) => getDelegateAccountIDFromReportAction(getReportActionByIDSelector(reportActions, parentReportActionID)),
         [parentReportActionID],
     );
-    const [delegateAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: delegateAccountIDSelector});
+    const parentChatReportID = getNonEmptyStringOnyxID(report?.chatReportID) ?? getNonEmptyStringOnyxID(report?.parentReportID);
+    const [delegateAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`, {selector: delegateAccountIDSelector});
     const ownerAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const primaryAccountID = delegateAccountID ?? ownerAccountID;
     const [primaryIcon] = useAccountIcons([primaryAccountID]);
