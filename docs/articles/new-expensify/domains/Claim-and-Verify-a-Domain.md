@@ -74,7 +74,7 @@ If a domain is already on your **Domains** tab but you are not a Domain Admin fo
 2. Select the domain you are not an admin of.
 3. On the **Access restricted** screen, under the **Verification required** heading, click **Request admin access**.
 
-The button shows a spinner while the request sends, then changes to a disabled **Request sent** button. If the request fails, an error message appears below the buttons and you can click **Request admin access** again to retry. **Request admin access** is disabled while you are offline.
+The **Request admin access** button shows a spinner while the request sends, then changes to a disabled **Request sent** button. If the request fails, an error message appears above **Request admin access** and **Verify yourself**, and you can click **Request admin access** again to retry. **Request admin access** is disabled while you are offline.
 
 To prove you are an authorized company administrator yourself instead of waiting on an existing admin, click **Verify yourself** on the same screen to start DNS verification.
 
