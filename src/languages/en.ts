@@ -462,8 +462,16 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
-        downloadAsPDF: 'Download as PDF',
-        downloadReceipts: 'Download receipts',
+        // @context Button label for downloading one or more expense reports as PDF. The count is the number of reports.
+        downloadReport: () => ({
+            one: 'Download report',
+            other: 'Download reports',
+        }),
+        // @context Button label for downloading the receipts of one or more expenses as a zip. The count is the number of receipts.
+        downloadReceipt: () => ({
+            one: 'Download receipt',
+            other: 'Download receipts',
+        }),
         downloadAsCSV: 'Download as CSV',
         submitViaPDF: 'Submit via PDF',
         print: 'Print',

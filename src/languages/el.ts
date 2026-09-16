@@ -419,7 +419,10 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Δευτερεύουσα χρέωση',
         perDiem: 'Ημερήσια αποζημίωση',
         validate: 'Επικυρώστε',
-        downloadAsPDF: 'Λήψη ως PDF',
+        downloadReport: () => ({
+            one: 'Λήψη αναφοράς',
+            other: 'Λήψη αναφορών',
+        }),
         downloadAsCSV: 'Λήψη ως CSV',
         print: 'Εκτύπωση',
         help: 'Βοήθεια',
@@ -515,7 +518,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Εξάγει σε',
         expand: 'Ανάπτυξη',
         dialogOpened: 'διάλογος',
-        downloadReceipts: 'Λήψη αποδείξεων',
+        downloadReceipt: () => ({
+            one: 'Λήψη απόδειξης',
+            other: 'Λήψη αποδείξεων',
+        }),
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
     },
     socials: {
