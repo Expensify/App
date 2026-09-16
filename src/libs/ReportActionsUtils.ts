@@ -102,7 +102,7 @@ function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): bo
     return !!originalID && origin === 'harvest';
 }
 
-const reportsWithPayAction = new Set<string>();
+const paySiblingCache = new WeakMap<ReportActions, Set<string>>();
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -1369,7 +1369,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         // The isNewDot/shouldShow flags are baked at write time and can be stale when a MARKED_REIMBURSED
         // action is created outside a NewDot request (e.g. a background job), which lets the redundant row
         // leak through alongside the IOU PAY action. Since NewDot shows the IOU PAY action instead, hide
-        // MARKED_REIMBURSED whenever the report already contains a sibling IOU PAY action. Scoped to
+        // MARKED_REIMBURSED when the same payment attempt has a sibling IOU PAY action. Scoped to
         // MARKED_REIMBURSED so REIMBURSED behavior is unchanged.
         if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction)) {
             return false;
@@ -1868,30 +1868,57 @@ function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOU
 }
 
 /**
- * Determines whether the report a MARKED_REIMBURSED action belongs to already contains a sibling IOU
- * PAY action. NewDot renders the IOU PAY action in place of MARKED_REIMBURSED, so when both exist on
- * the same report the MARKED_REIMBURSED row is a redundant duplicate and should be hidden. We derive
- * this locally instead of trusting the write-time `isNewDot`/`shouldShow` flags, which can be stale
- * when the action was created outside a NewDot request (e.g. a background job), leaving the duplicate
- * visible (see Expensify/Expensify#636674).
+ * A cancellation or failed reimbursement separates payment attempts on the same report.
+ */
+function isPaymentAttemptBoundary(action: OnyxEntry<ReportAction>): boolean {
+    return isReimbursementDeQueuedOrCanceledAction(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE);
+}
+
+/**
+ * Finds MARKED_REIMBURSED actions with a PAY sibling in the same payment attempt. A historical PAY
+ * must not hide a later manual reimbursement after that payment was canceled or failed.
+ * The write-time isNewDot/shouldShow flags can be stale for background jobs (Expensify/Expensify#636674).
  */
 function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const reportID = reportAction?.reportID;
-    if (!reportID) {
+    if (!reportID || !reportAction?.reportActionID) {
         return false;
     }
 
-    if (reportsWithPayAction.has(reportID)) {
-        return true;
+    const reportActions = getAllReportActions(reportID);
+    const cachedSiblings = paySiblingCache.get(reportActions);
+    if (cachedSiblings) {
+        return cachedSiblings.has(reportAction.reportActionID);
     }
 
-    // Once a PAY action is found, unrelated report updates cannot change the result. Don't cache misses since PAY may arrive later.
-    const hasPayAction = Object.values(getAllReportActions(reportID)).some((action) => isPayAction(action));
-    if (hasPayAction) {
-        reportsWithPayAction.add(reportID);
+    const paymentActions = getSortedReportActions(
+        Object.values(reportActions).filter((action) => isPayAction(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) || isPaymentAttemptBoundary(action)),
+    );
+    const siblings = new Set<string>();
+    let hasPay = false;
+    let pendingSiblings: string[] = [];
+    for (const action of paymentActions) {
+        if (isPaymentAttemptBoundary(action)) {
+            hasPay = false;
+            pendingSiblings = [];
+        } else if (isPayAction(action)) {
+            hasPay = true;
+            for (const actionID of pendingSiblings) {
+                siblings.add(actionID);
+            }
+            pendingSiblings = [];
+        } else if (hasPay) {
+            siblings.add(action.reportActionID);
+        } else {
+            // MARKED_REIMBURSED and PAY can be created in either order.
+            pendingSiblings.push(action.reportActionID);
+        }
     }
 
-    return hasPayAction;
+    // Cache all siblings together, but invalidate on any history update: even a positive match can
+    // change if an intervening cancellation arrives later. Weak keys release obsolete snapshots.
+    paySiblingCache.set(reportActions, siblings);
+    return siblings.has(reportAction.reportActionID);
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {

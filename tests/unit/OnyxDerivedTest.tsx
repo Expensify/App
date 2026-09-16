@@ -36,6 +36,56 @@ describe('OnyxDerived', () => {
     });
 
     describe('visibleReportActions', () => {
+        it.each([CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE])(
+            'keeps a later reimbursement visible after %s even when the earlier PAY was cached',
+            async (actionName) => {
+                const reportID = `reportWithHistoricalPay-${actionName}`;
+                const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+                const markedReimbursed = getFakeReportAction(1, {
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                    created: '2025-01-01 00:00:00.000',
+                    originalMessage: {},
+                });
+                const pay = getFakeReportAction(2, {
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2025-01-01 00:00:01.000',
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+                });
+                await Onyx.set(reportActionsKey, {[markedReimbursed.reportActionID]: markedReimbursed, [pay.reportActionID]: pay});
+                await waitForBatchedUpdates();
+
+                const initialVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+                expect(isReportActionVisible(markedReimbursed, reportID, true, initialVisibility)).toBe(false);
+
+                const cancellation = getFakeReportAction(3, {reportID, actionName, created: '2025-01-02 00:00:00.000'});
+                const laterReimbursement = {...markedReimbursed, reportActionID: '4', created: '2025-01-03 00:00:00.000'};
+                // History can arrive out of order: initially the earlier payment appears to cover this action too.
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[laterReimbursement.reportActionID]: laterReimbursement}});
+                await waitForBatchedUpdates();
+                const incompleteVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+                expect(isReportActionVisible(laterReimbursement, reportID, true, incompleteVisibility)).toBe(false);
+
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                    [reportActionsKey]: {[cancellation.reportActionID]: cancellation},
+                });
+                await waitForBatchedUpdates();
+
+                const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+                expect(isReportActionVisible(laterReimbursement, reportID, true, updatedVisibility)).toBe(true);
+                expect(isReportActionVisible(markedReimbursed, reportID, true, updatedVisibility)).toBe(false);
+
+                // A PAY belonging to the new payment attempt should still hide its duplicate when it arrives later.
+                const laterPay = {...pay, reportActionID: '5', created: '2025-01-03 00:00:01.000'};
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[laterPay.reportActionID]: laterPay}});
+                await waitForBatchedUpdates();
+
+                const finalVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+                expect(isReportActionVisible(laterReimbursement, reportID, true, finalVisibility)).toBe(false);
+            },
+        );
+
         it('hides MARKED_REIMBURSED when its sibling PAY action arrives in a later update', async () => {
             const reportID = 'reportWithLatePaySibling';
             const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
