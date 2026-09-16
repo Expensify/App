@@ -1,1 +1,9 @@
-export default function resetOnboardingStackToRoot() {}
+import Navigation from '@libs/Navigation/Navigation';
+
+function dismissOnboardingModalBeforeExit() {
+    Navigation.dismissModal();
+}
+
+function resetOnboardingStackToRoot() {}
+
+export {dismissOnboardingModalBeforeExit, resetOnboardingStackToRoot};
