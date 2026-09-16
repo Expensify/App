@@ -9357,6 +9357,12 @@ describe('ReportUtils', () => {
                 expect(result.adminsChatData.isPinned).toBe(false);
             });
 
+            it('should not pin the #admins room for track users', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail, undefined, false, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+
+                expect(result.adminsChatData.isPinned).toBe(false);
+            });
+
             it('should pin the #admins room when the flows that do not go through CreatePolicy omit the flag', () => {
                 const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail);
 
