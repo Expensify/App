@@ -1,6 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useSubPage from '@hooks/useSubPage';
@@ -48,12 +49,16 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isDevelopment} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {params} = useRoute<NetSuiteTokenInputRoute>();
     const {authType} = params;
 
     const canUseNetSuiteOAuth = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
-    const isOAuthFlow = canUseNetSuiteOAuth && authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
+    // Only a dev environment can move a beta member back to token-based authentication. Outside dev the route param is ignored.
+    const canSwitchToTokenAuthentication = canUseNetSuiteOAuth && isDevelopment;
+    const isTokenAuthenticationSelected = canSwitchToTokenAuthentication && authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
+    const isOAuthFlow = canUseNetSuiteOAuth && !isTokenAuthenticationSelected;
     const pages = isOAuthFlow ? oauthPages : tokenPages;
     const stepNames = isOAuthFlow ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
 
@@ -109,6 +114,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                 currentPageName={currentPageName}
                 policyID={policyID}
                 isOAuthFlow={isOAuthFlow}
+                shouldShowTokenAuthenticationLink={canSwitchToTokenAuthentication && isOAuthFlow}
             />
         </ConnectionLayout>
     );

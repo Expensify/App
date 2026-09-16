@@ -32,7 +32,7 @@ import {View} from 'react-native';
 
 import connectToNetSuiteOAuthSetup from './connectToNetSuiteOAuthSetup';
 
-function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow}: CustomSubPageTokenInputProps) {
+function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -98,7 +98,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow}: CustomSubPageTo
                 addBottomSafeAreaPadding={!isMobileSafari()}
                 keyboardSubmitBehavior={isOAuthFlow ? CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY : undefined}
                 shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
-                footerContent={isOAuthFlow ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
+                footerContent={shouldShowTokenAuthenticationLink ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
             >
                 {formInputs.map((formInput, index) => (
                     <View

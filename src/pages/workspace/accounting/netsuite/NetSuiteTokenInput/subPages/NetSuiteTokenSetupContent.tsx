@@ -17,7 +17,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import React from 'react';
 import {View} from 'react-native';
 
-function NetSuiteTokenSetupContent({onNext, currentPageName, policyID, isOAuthFlow}: CustomSubPageTokenInputProps) {
+function NetSuiteTokenSetupContent({onNext, currentPageName, policyID, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -42,7 +42,7 @@ function NetSuiteTokenSetupContent({onNext, currentPageName, policyID, isOAuthFl
                 >
                     <Button.Text>{translate('common.next')}</Button.Text>
                 </Button>
-                {isOAuthFlow && <NetSuiteTokenAuthenticationLink policyID={policyID} />}
+                {shouldShowTokenAuthenticationLink && <NetSuiteTokenAuthenticationLink policyID={policyID} />}
             </FixedFooter>
         </View>
     );

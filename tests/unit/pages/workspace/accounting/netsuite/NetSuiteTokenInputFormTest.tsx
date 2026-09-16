@@ -126,6 +126,7 @@ function renderForm(isOAuthFlow: boolean) {
             onMove={jest.fn()}
             currentPageName={CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS}
             isOAuthFlow={isOAuthFlow}
+            shouldShowTokenAuthenticationLink={false}
         />,
     );
 }

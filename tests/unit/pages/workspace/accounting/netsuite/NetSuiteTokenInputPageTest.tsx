@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
+import useEnvironment from '@hooks/useEnvironment';
 import usePermissions from '@hooks/usePermissions';
 
 import NetSuiteTokenInputPage from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenInputPage';
@@ -46,6 +47,7 @@ jest.mock('@hooks/useThemeStyles', () =>
             ),
     ),
 );
+jest.mock('@hooks/useEnvironment');
 jest.mock('@hooks/usePermissions');
 jest.mock('@libs/actions/connections', () => ({
     isAuthenticationError: jest.fn(() => false),
@@ -71,14 +73,28 @@ jest.mock('@components/InteractiveStepSubPageHeader', () => ({stepNames}: MockSt
     mockStepNames.current = stepNames;
     return null;
 });
-jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenInputForm', () => ({isOAuthFlow}: CustomSubPageTokenInputProps) => (
-    <MockView testID={isOAuthFlow ? 'oauth-form' : 'token-form'} />
-));
+jest.mock(
+    '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenInputForm',
+    () =>
+        ({isOAuthFlow, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) => (
+            <>
+                <MockView testID={isOAuthFlow ? 'oauth-form' : 'token-form'} />
+                {shouldShowTokenAuthenticationLink && <MockView testID="token-authentication-link" />}
+            </>
+        ),
+);
 jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent', () => () => null);
 
+const mockedUseEnvironment = jest.mocked(useEnvironment);
 const mockedUsePermissions = jest.mocked(usePermissions);
 
-function setBetaEnabled(isOAuthBetaEnabled: boolean) {
+function setEnvironment({isDevelopment, isOAuthBetaEnabled}: {isDevelopment: boolean; isOAuthBetaEnabled: boolean}) {
+    mockedUseEnvironment.mockReturnValue({
+        environment: isDevelopment ? CONST.ENVIRONMENT.DEV : CONST.ENVIRONMENT.PRODUCTION,
+        environmentURL: 'https://new.expensify.com',
+        isProduction: !isDevelopment,
+        isDevelopment,
+    });
     mockedUsePermissions.mockReturnValue({
         isBetaEnabled: (beta) => beta === CONST.BETAS.NETSUITE_OAUTH && isOAuthBetaEnabled,
     } as ReturnType<typeof usePermissions>);
@@ -104,26 +120,43 @@ describe('NetSuiteTokenInputPage', () => {
     });
 
     it('runs the token-based authentication flow without the netSuiteOAuth beta', () => {
-        setBetaEnabled(false);
+        setEnvironment({isDevelopment: false, isOAuthBetaEnabled: false});
         renderPage(PAGE_NAME.CREDENTIALS);
 
         expect(screen.getByTestId('token-form')).toBeOnTheScreen();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
     });
 
-    it('runs the OAuth flow with the netSuiteOAuth beta', () => {
-        setBetaEnabled(true);
+    it('runs the OAuth flow with the netSuiteOAuth beta and hides the token-based link outside dev', () => {
+        setEnvironment({isDevelopment: false, isOAuthBetaEnabled: true});
         renderPage(PAGE_NAME.CREDENTIALS);
 
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(screen.queryByTestId('token-authentication-link')).toBeNull();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 
-    it('runs the token-based authentication flow for beta members when the route asks for it', () => {
-        setBetaEnabled(true);
+    it('ignores the token-based route param outside dev', () => {
+        setEnvironment({isDevelopment: false, isOAuthBetaEnabled: true});
+        renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
+
+        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+    });
+
+    it('offers the token-based link to beta members on dev', () => {
+        setEnvironment({isDevelopment: true, isOAuthBetaEnabled: true});
+        renderPage(PAGE_NAME.CREDENTIALS);
+
+        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(screen.getByTestId('token-authentication-link')).toBeOnTheScreen();
+    });
+
+    it('runs the token-based authentication flow on dev when the route asks for it', () => {
+        setEnvironment({isDevelopment: true, isOAuthBetaEnabled: true});
         renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
 
         expect(screen.getByTestId('token-form')).toBeOnTheScreen();
+        expect(screen.queryByTestId('token-authentication-link')).toBeNull();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
     });
 });
