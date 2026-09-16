@@ -1170,6 +1170,48 @@ describe('useSearchBulkActions - export options', () => {
         expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
     });
 
+    it('does not warn under select all when every matching report is loaded but split across integrations', async () => {
+        /**
+         * Given: Reports-tab "select all matching" is on and every matching report (2) is already loaded, but the
+         *        selection spans two integrations (report1 → NetSuite, report2 → QBO).
+         *
+         * When: the user clicks NetSuite's "Mark as exported", whose group is only report1.
+         *
+         * Then: the page-limit safeguard must NOT fire (no reports are unloaded — reportCount equals the loaded
+         *       selection); the existing partial-export modal handles the single-integration subset instead, and
+         *       report1 is marked. Guards against comparing the server total to the per-integration subset.
+         */
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+        // Every matching report is on the loaded page, so nothing is unloaded even though the chosen integration is a subset.
+        mockCurrentSearchResults.search.reportCount = 2;
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
+        });
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalledWith(expect.objectContaining({title: 'search.bulkActions.markAsExportedAllMatchingTitle'}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
+    });
+
     it('marks already-exported reports without showing the export-again modal', async () => {
         /**
          * Given: a single-integration selection where every selected report has already been exported

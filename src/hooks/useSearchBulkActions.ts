@@ -1938,7 +1938,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // under Reports-tab "select all matching" they would silently cover only the loaded page (~50) while the
                     // header shows every match. Until a query-based backend command exists, warn instead of exporting a
                     // page-sized subset without any indication. See https://github.com/Expensify/App/issues/101106.
-                    if (areAllMatchingItemsSelected && isExpenseReportType && typeof allMatchingReportsCount === 'number' && allMatchingReportsCount > integrationReportIDs.length) {
+                    // Compare the server total against the whole loaded selection, not this integration's eligible subset:
+                    // a smaller `integrationReportIDs` (reports split across integrations, or some ineligible) means a
+                    // partial export the existing partial-export modal already handles, not unloaded reports.
+                    if (areAllMatchingItemsSelected && isExpenseReportType && typeof allMatchingReportsCount === 'number' && allMatchingReportsCount > totalSelectedReportsCount) {
                         showConfirmModal({
                             title: translate('search.bulkActions.markAsExportedAllMatchingTitle'),
                             prompt: translate('search.bulkActions.markAsExportedAllMatchingPrompt', {total: allMatchingReportsCount}),
