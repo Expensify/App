@@ -5,6 +5,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
+
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 
@@ -97,7 +99,7 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
                             }
                             setIsMenuVisible(false);
                         }}
-                        shouldUseScrollView={subMenuItems.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                        shouldUseScrollView={shouldPopoverUseScrollView(subMenuItems)}
                     />
                 </BulkActionBarMenuTheme>
             )}
