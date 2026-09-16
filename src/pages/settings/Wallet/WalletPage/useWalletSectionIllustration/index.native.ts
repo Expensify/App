@@ -7,7 +7,7 @@ import type UseWalletSectionIllustration from './types';
 
 const useWalletSectionIllustration: UseWalletSectionIllustration = () => {
     const styles = useThemeStyles();
-    return useSectionIllustrationWithMotion(LottieAnimations.BankVault, 'BigVault', styles.walletStaticIllustration, styles.walletLottieIllustration);
+    return useSectionIllustrationWithMotion(LottieAnimations.BankVault, 'BigVault', styles.walletStaticIllustration, {animationIllustrationStyle: styles.walletLottieIllustration});
 };
 
 export default useWalletSectionIllustration;
