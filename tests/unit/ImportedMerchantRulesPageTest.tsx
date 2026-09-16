@@ -66,6 +66,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
 }));
 
+jest.mock('@libs/actions/PolicyConnections', () => ({
+    openPolicyAccountingPage: jest.fn(),
+}));
+
 // A Control workspace with Rules enabled and the current user as admin, so the page's
 // AccessOrNotFoundWrapper renders the import content instead of the not-found fallback.
 function buildRulesEnabledControlPolicy(): Policy {
@@ -549,6 +553,12 @@ describe('ImportedMerchantRulesPage', () => {
         });
 
         it('disables the Import button online while the active integration vendor list is still being fetched', async () => {
+            // The real openPolicyAccountingPage fires an API request whose successData flips the
+            // connections-fetched flag once it resolves. Mocked (see jest.mock('@libs/actions/PolicyConnections')
+            // above) so that flag stays unset for the life of this test, keeping isFetchNeeded/the button's
+            // loading state deterministic instead of racing whatever the request queue does during
+            // waitForBatchedUpdatesWithAct.
+
             // A QBO-connected policy whose connections-fetched flag is deliberately left unset, simulating the
             // window before a deep-linked/cache-cleared load has hydrated policy.connections.
             const policy: Policy = {
