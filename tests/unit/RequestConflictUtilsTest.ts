@@ -108,7 +108,6 @@ describe('RequestConflictUtils', () => {
     });
 
     it('resolveEditCommentWithNewAddCommentRequest should return delete and replace when update comment are found and new comment is added', () => {
-        // Given a queued AddComment carrying requestIndex 7 followed by two UpdateComments for the same action
         const reportActionID = '2';
         const persistedRequests = [
             {command: 'AddComment', data: {reportActionID, reportComment: 'test'}, requestIndex: 7},
@@ -119,9 +118,7 @@ describe('RequestConflictUtils', () => {
         ];
         const parameters = {reportID: '1', reportActionID, reportComment: 'new edit comment'};
         const addCommentIndex = 0;
-        // When the edit conflict is resolved against the queue
         const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
-        // Then the UpdateComments are deleted and the identified AddComment is replaced by requestIndex
         expect(result).toEqual({
             conflictAction: {
                 type: 'delete',
@@ -138,30 +135,24 @@ describe('RequestConflictUtils', () => {
     });
 
     it('resolveEditCommentWithNewAddCommentRequest should not touch any queued request when the add comment is no longer queued', () => {
-        // Given a queued UpdateComment and AddComment for the edited action, with the add comment not identified by the caller
         const reportActionID = '2';
         const persistedRequests = [
             {command: 'UpdateComment', data: {reportActionID, reportComment: 'test edit'}},
             {command: 'AddComment', data: {reportActionID, reportComment: 'queued untouched'}},
         ];
         const parameters = {reportID: '1', reportActionID, reportComment: 'new edit comment'};
-        // When the edit conflict is resolved without an identified add comment
         const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, -1);
 
-        // Then only the UpdateComment is deleted and the queued AddComment keeps its text
         expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: false, nextAction: null}});
         expect(persistedRequests.at(1)?.data?.reportComment).toBe('queued untouched');
     });
 
     it('resolveEditCommentWithNewAddCommentRequest should only replace the add comment with the update comment text when no other update comments are found', () => {
-        // Given a queued AddComment carrying requestIndex 7 and no other UpdateComment for the same action
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddComment', data: {reportActionID, reportComment: 'test'}, requestIndex: 7}, {command: 'CloseAccount'}, {command: 'OpenReport'}];
         const parameters = {reportID: '1', reportActionID, reportComment: 'new edit comment'};
         const addCommentIndex = 0;
-        // When the edit conflict is resolved against its index
         const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
-        // Then the identified AddComment is replaced by requestIndex with the edited text
         expect(result).toEqual({
             conflictAction: {
                 type: 'replace',

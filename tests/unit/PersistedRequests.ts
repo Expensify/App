@@ -98,7 +98,6 @@ describe('PersistedRequests', () => {
     });
 
     it('update the request carrying the given requestIndex instead of the one at the stale index', () => {
-        // Given three queued requests, with the one at index 1 carrying requestIndex 11
         const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
         PersistedRequests.save({...request, requestIndex: 11});
         PersistedRequests.save({...request, command: 'AddComment', requestIndex: 12});
@@ -110,12 +109,9 @@ describe('PersistedRequests', () => {
         };
 
         try {
-            // When the update is addressed by requestIndex from a stale positional index
             PersistedRequests.update(0, newRequest, 11);
 
-            // Then the request carrying requestIndex 11 is replaced, not the one at index 0
             expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 13, 12]);
-            // And the replacement is logged with the resolved index
             expect(logInfoSpy).toHaveBeenCalledWith(
                 '[PersistedRequests] Updating a request',
                 false,
@@ -130,13 +126,10 @@ describe('PersistedRequests', () => {
         ['a positional index that is out of range', -1, undefined],
         ['a requestIndex that is no longer queued', 0, 99],
     ] as const)('do nothing when asked to replace %s', (_description, oldRequestIndex, requestIndexToReplace) => {
-        // Given two queued requests
         PersistedRequests.save({...request, requestIndex: 11});
 
-        // When an update cannot resolve the request it is asked to replace
         PersistedRequests.update(oldRequestIndex, {...request, requestIndex: 12}, requestIndexToReplace);
 
-        // Then the queue is left untouched
         expect(PersistedRequests.getLength()).toBe(2);
         expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 11]);
     });
