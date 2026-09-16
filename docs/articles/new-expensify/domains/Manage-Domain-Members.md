@@ -94,7 +94,7 @@ Domain Admins can assign or unassign a vacation delegate on behalf of a domain m
 3. Click **Domain Members**.
 4. Select the member.
 5. Click **Vacation delegate**.
-6. Select the user you want to assign as the delegate.
+6. Select the member you want to assign as the delegate.
 7. Click **Confirm**.
 
 ---
