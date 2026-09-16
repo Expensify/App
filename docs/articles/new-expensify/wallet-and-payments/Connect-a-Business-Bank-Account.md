@@ -1,7 +1,7 @@
 ---
 title: Connect a US Business Bank Account
 description: Learn how to connect and verify a US business bank account in Expensify for reimbursements, Expensify Card payments, and invoice payouts.
-keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents]
+keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents, Chase, account number, routing number, connect manually]
 internalScope: Audience is Workspace Admins and Payments Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
 ---
 
@@ -53,6 +53,21 @@ Purpose: Shows the new Wallet entry point for business bank accounts
 If your business bank account already exists in Expensify, an admin with access can share it with you instead. Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
 
 ![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_01.png){:width="100%"}
+
+---
+
+## How to connect a Chase business bank account
+
+Chase does not share a usable account number and routing number when you log into your bank, so a Chase account has to be entered by hand the first time you add it.
+
+Start from **Add bank account** in **Wallet** or in a Workspace, then:
+
+1. Select **Log into your bank** and sign in to Chase.
+2. Choose the Chase account you want to use.
+3. Expensify returns you to the bank information step and shows the **Manually add your bank account** form.
+4. Enter your **Account number** and **Routing number**, then continue with the identity verification, company details, and Beneficial Owner steps.
+
+You can also skip the login step and select **Connect manually** from the start. Your account number and routing number are printed on a check for the account.
 
 ---
 
@@ -161,6 +176,10 @@ Only check the Beneficial Owner box if an individual owns 25% or more of the bus
 ## Why can't I input my address or upload my ID?
 
 All individuals associated with the account must have a US address, US photo ID, and a US SSN. If you do not meet these requirements, an admin who qualifies should add the bank account instead.
+
+## Why am I asked for my account number and routing number after logging into Chase?
+
+Chase returns substitute numbers instead of your real account number and routing number, so Expensify cannot use them to set up payments. When you select a Chase account after **Log into your bank**, Expensify brings you back to the bank information step so you can enter the account number and routing number yourself. This happens the first time you add the account. Reconnecting a Chase account you already added does not ask you to re-enter them.
 
 ## Why am I asked for documents when adding my bank account?
 
