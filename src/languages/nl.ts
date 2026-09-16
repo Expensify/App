@@ -1169,6 +1169,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Sleep je spreadsheet hierheen of kies hieronder een bestand. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Meer informatie</a> over ondersteunde bestandsindelingen.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Selecteer een spreadsheetbestand om te importeren. Ondersteunde formaten: .csv, .txt, .xls en .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Selecteer een spreadsheetbestand om te importeren. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Meer informatie</a> over ondersteunde bestandsindelingen.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Sleep je spreadsheet of bankafschrift hierheen of kies hieronder een bestand. Ondersteunde indelingen: .csv, .txt, .xls, .xlsx, .ofx en .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Selecteer een spreadsheet- of bankafschriftbestand om te importeren. Ondersteunde formaten: .csv, .txt, .xls, .xlsx, .ofx en .qfx.</muted-link>',
         fileContainsHeader: 'Bestand bevat kolomkoppen',
         column: (name: string) => `Kolom ${name}`,
         fieldNotMapped: (fieldName: string) => `Oeps! Een vereist veld ("${fieldName}") is niet toegewezen. Controleer het en probeer het opnieuw.`,
@@ -1229,6 +1233,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 transactie is geïmporteerd.',
             other: `${count} transacties zijn geïmporteerd.`,
         }),
+        importStatementSuccessfulDescription: 'Je bankafschrift is geüpload.',
         importFailedTitle: 'Import mislukt',
         importFailedDescription: 'Zorg dat alle velden correct zijn ingevuld en probeer het opnieuw. Neem als het probleem aanhoudt contact op met Concierge.',
         importDescription: 'Kies welke velden je uit je spreadsheet wilt koppelen door op het dropdownmenu naast elke geïmporteerde kolom hieronder te klikken.',
@@ -1620,6 +1625,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Je kunt dit rapport niet markeren als voltooid omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
             allExpensesOnHoldDescription: 'Je kunt dit rapport niet indienen omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om het in te dienen.',
             allExpensesOnHoldMarkAsDoneDescription: 'Je kunt dit rapport niet markeren als voltooid omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om door te gaan.',
+            reportsNotSubmittedTitle: 'Rapporten indienen',
+            reportsNotMarkedAsDoneTitle: 'Rapporten markeren als voltooid',
+            reportsNotSubmittedDescription: 'Deze rapporten konden niet worden ingediend. Controleer of er geen onkosten vastgehouden of in behandeling zijn en probeer het dan opnieuw.',
+            reportsNotMarkedAsDoneDescription:
+                'Deze rapporten konden niet als voltooid worden gemarkeerd. Controleer of er geen onkostendeclaraties vastgehouden of in behandeling zijn en probeer het dan opnieuw.',
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
             failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },
@@ -6608,6 +6618,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 disabledTitle: 'Niet zo snel...',
                 disabledMessage: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
             },
+            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om Werving uit te schakelen, koppel ${integration} eerst los van deze workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -7882,6 +7893,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Automatisch bijwerken van overheidspercentages is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Meerdere goedkeuringsniveaus',
+                description:
+                    'Meerdere goedkeuringsniveaus is een workflowhulpmiddel voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8579,6 +8597,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+            subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
         },
         merge: {
             connections: 'Verbindingen',
@@ -9095,7 +9114,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
         commuterExclusions: {
-            changedToFixedDistance: 'wijzigde woon-werkverkeer uitsluiten naar een vaste afstand per declaratie',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `heeft woon-werkverkeer wijzigen in een vaste afstand per declaratie (voorheen ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
+                `uitsluiten van woon-werkverkeer gewijzigd naar berekenen op basis van huis en kantoor (voorheen ${previousMethod})`,
+            previousMethod: {disabled: 'woon-werkverkeer niet uitsluiten', fixedDistance: 'vast bedrag per declaratie', homeAndOffice: 'thuis en kantoor'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `stel vaste afstandsuitsluiting in op ${formattedDistance} per declaratie`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `vaste afstandsuitsluiting gewijzigd naar ${formattedNewDistance} per declaratie (voorheen ${formattedOldDistance})`,
@@ -10936,6 +10958,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mileageRateAutoUpdated: '<tooltip>We hebben het tarief bijgewerkt op basis van je reisdatum.</tooltip>',
         markAllAsRead: '<tooltip>Klik met de rechtermuisknop om <strong>alles als gelezen te markeren</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Ga naar je account en persoonlijke instellingen.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
