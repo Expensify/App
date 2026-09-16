@@ -26,7 +26,11 @@ function InsightsPage({route}: InsightsPageProps) {
     const {isBetaEnabled} = usePermissions();
     useDocumentTitle(translate('common.insights'));
 
-    const isKnownDashboard = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND;
+    // A blurred tab slot is a bare `{name}` entry (see `buildTabNavigatorNestedState`), so this still-mounted screen
+    // re-renders without params when the browser back button resets the root state onto another tab. Defaulting keeps
+    // it off `NotFoundPage`, which would report a bogus not-found span; only an unknown dashboard ID is a real 404.
+    const dashboardID = route.params?.dashboardID ?? CONST.INSIGHTS.DASHBOARD.SPEND;
+    const isKnownDashboard = dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND;
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !isKnownDashboard) {
         return <NotFoundPage />;

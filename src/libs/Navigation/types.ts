@@ -3292,9 +3292,12 @@ type TabNavigatorParamList = {
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
-    [SCREENS.INSIGHTS]: {
-        dashboardID: string;
-    };
+    // Optional: blurred tab slots are bare `{name}` entries (see `buildTabNavigatorNestedState`).
+    [SCREENS.INSIGHTS]:
+        | {
+              dashboardID: string;
+          }
+        | undefined;
 };
 
 type SharedScreensParamList = {
