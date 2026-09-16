@@ -98,7 +98,7 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
             listEmptyContent={listEmptyContent}
             onSelectRow={selectDefaultVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : defaultCompanyCardVendorID}
+            initiallyFocusedOptionKey={defaultCompanyCardVendorID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.pendingFields)}
