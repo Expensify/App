@@ -7,9 +7,3 @@
 - E/App issue: [#93842](https://github.com/Expensify/App/issues/93842)
 - PR introducing patch: [#98632](https://github.com/Expensify/App/pull/98632)
 
-### [react-native-screens+4.25.0+002+apply-tab-bar-item-colors-ignored-on-ios-26.patch](react-native-screens+4.25.0+002+apply-tab-bar-item-colors-ignored-on-ios-26.patch)
-
-- Reason: On iOS 26 the tab bar renders its own glass material and does not apply the per-item `UITabBarItemAppearance` the way earlier versions did. Two symptoms, both measured on screenshots of the bar. Unselected icons and titles ignore `tabBarItemIconColor` and the normal-state title color and fall back to the system label color: with template icons the bar renders 0 pixels of the configured `#A2A9A3` and 11769 dark ones. Badges ignore their own item's `badgeBackgroundColor` and are all drawn in the color belonging to whichever tab is selected: with Home selected every badge measured `#FF3B30`, which is the `notification` color of React Navigation's default theme that Home falls back to, and with the account tab selected every badge measured that tab's `#F25730`. The selected item still takes its color from `tabBar.tintColor`, and the icons still follow `tabBarItem.image`, so properties set directly on the bar and on the item are honored. The patch routes both ignored colors onto such properties: the unselected color is mirrored onto the bar-level `unselectedItemTintColor`, and each item's badge color is read back from its appearance and set on its own `badgeColor`.
-- Upstream PR/issue: not reported yet.
-- E/App issue: n/a — found while building the native tab bar in `TabNavigator.native.tsx`.
-- PR introducing patch: n/a
