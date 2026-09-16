@@ -215,8 +215,7 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     if (shouldShowAppLoadSkeleton) {
         return (
             <View style={styles.flex1}>
-                <ReportHeaderSkeletonView />
-                <ReportActionsAnimatedSkeletonCover />
+                <InitialLoadingSkeleton styles={styles} />
                 {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>
         );
