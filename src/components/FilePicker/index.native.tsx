@@ -2,7 +2,6 @@ import useLocalize from '@hooks/useLocalize';
 
 import {cleanFileName, getFileNameWithFallback} from '@libs/fileDownload/FileUtils';
 import fileURIToPath from '@libs/fileURIToPath';
-import Log from '@libs/Log';
 
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -95,10 +94,6 @@ function FilePicker({children}: FilePickerProps) {
         });
 
         const fileName = getFileNameWithFallback(file.name, file.uri, DEFAULT_FILE_NAME);
-
-        if (!file.name) {
-            Log.warn('[FilePicker] The picker returned a file without metadata, so the file name was read from the URI', {error: file.error, fileName});
-        }
 
         const [localCopy] = await keepLocalCopy({
             files: [
