@@ -1,5 +1,6 @@
 import {
     getAdjacentSegmentName,
+    getCaretOffsetLimit,
     getDateDisplay,
     getISODateFromSegments,
     getSegmentNameAtPosition,
@@ -130,10 +131,14 @@ describe('DateInputMaskUtils', () => {
             expect(getDateDisplay(segments('2026', '09', '18'), MASK).value).toBe('2026-09-18');
         });
 
-        it('keeps the mask letters of the digit places a half typed segment has not reached', () => {
+        it('keeps the mask letters of the digit places a half typed year has not reached', () => {
             expect(getDateDisplay(segments('2', '', ''), MASK).value).toBe('2YYY-MM-DD');
             expect(getDateDisplay(segments('20', '', ''), MASK).value).toBe('20YY-MM-DD');
-            expect(getDateDisplay(segments('2026', '1', ''), MASK).value).toBe('2026-1M-DD');
+        });
+
+        it('zero pads a half typed month or day, which fill from the right', () => {
+            expect(getDateDisplay(segments('2026', '1', ''), MASK).value).toBe('2026-01-DD');
+            expect(getDateDisplay(segments('2026', '09', '2'), MASK).value).toBe('2026-09-02');
         });
 
         it('reports where each segment sits in the text', () => {
@@ -153,6 +158,24 @@ describe('DateInputMaskUtils', () => {
 
         it('uses the letters and separators of the localized mask', () => {
             expect(getDateDisplay(segments('2026', '', ''), 'AAAA-MM-JJ').value).toBe('2026-MM-JJ');
+        });
+    });
+
+    describe('getCaretOffsetLimit', () => {
+        it('keeps the caret at the start of an empty segment', () => {
+            expect(getCaretOffsetLimit(EMPTY, 'year')).toBe(0);
+            expect(getCaretOffsetLimit(EMPTY, 'day')).toBe(0);
+        });
+
+        it('follows the typed digits through the year, which fills from the left', () => {
+            expect(getCaretOffsetLimit(segments('2', '', ''), 'year')).toBe(1);
+            expect(getCaretOffsetLimit(segments('202', '', ''), 'year')).toBe(3);
+            expect(getCaretOffsetLimit(segments('2026', '', ''), 'year')).toBe(4);
+        });
+
+        it('rests at the end of a zero padded segment, since 02 shows the 2 last', () => {
+            expect(getCaretOffsetLimit(segments('2026', '1', ''), 'month')).toBe(2);
+            expect(getCaretOffsetLimit(segments('2026', '12', ''), 'month')).toBe(2);
         });
     });
 

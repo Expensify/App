@@ -6,6 +6,7 @@ import {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
+    getCaretOffsetLimit,
     getDateDisplay,
     getISODateFromSegments,
     getSegmentNameAtPosition,
@@ -98,7 +99,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
      * A caret may rest on any digit place already typed, or just after the last of them, but never out on a mask
      * letter. An empty segment therefore only ever has its start, which is what stops a click landing on a bare Y.
      */
-    const getFurthestOffset = (name: DateSegmentName, currentSegments: DateSegments) => currentSegments[name].length;
+    const getFurthestOffset = (name: DateSegmentName, currentSegments: DateSegments) => getCaretOffsetLimit(currentSegments, name);
 
     const moveCaret = (name: DateSegmentName, offset: number, nextSegments: DateSegments = segments) => {
         hasPendingCaretEchoRef.current = true;
@@ -154,7 +155,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
                 return;
             }
 
-            moveCaret(activeSegmentName, result.segments[activeSegmentName].length, result.segments);
+            moveCaret(activeSegmentName, getFurthestOffset(activeSegmentName, result.segments), result.segments);
             return;
         }
 
@@ -176,7 +177,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
 
             applySegments(trimmedSegments);
             shouldOverwriteRef.current = false;
-            moveCaret(activeSegmentName, trimmedSegments[activeSegmentName].length, trimmedSegments);
+            moveCaret(activeSegmentName, getFurthestOffset(activeSegmentName, trimmedSegments), trimmedSegments);
             return;
         }
 
@@ -227,7 +228,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
         setSegments(seededSegments);
         setViewDate(getViewDateFromSegments(seededSegments, new Date().getMonth(), minDate, maxDate));
         shouldOverwriteRef.current = false;
-        moveCaret(FIRST_SEGMENT_NAME, getFurthestOffset(FIRST_SEGMENT_NAME, seededSegments), seededSegments);
+        moveCaret(FIRST_SEGMENT_NAME, getCaretOffsetLimit(seededSegments, FIRST_SEGMENT_NAME), seededSegments);
         setIsEditing(true);
     };
 

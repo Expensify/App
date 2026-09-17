@@ -100,15 +100,39 @@ function getSegmentLength(name: DateSegmentName): number {
     return name === 'year' ? YEAR_LENGTH : SEGMENT_LENGTH;
 }
 
+/**
+ * Whether a segment reads as a zero padded number, which the two digit ones do and the year does not. Their digits
+ * therefore sit at the end of the segment, so a single typed digit shows as 02 rather than 2 followed by a mask letter.
+ */
+function isZeroPaddedSegment(name: DateSegmentName): name is keyof typeof SEGMENT_LIMITS {
+    return name in SEGMENT_LIMITS;
+}
+
+/**
+ * How far into a segment the caret may sit. A zero padded segment displays its digits at the end, so one typed digit
+ * puts the caret at the end of the segment rather than one place into it.
+ */
+function getCaretOffsetLimit(segments: DateSegments, name: DateSegmentName): number {
+    const typedLength = segments[name].length;
+
+    if (!typedLength) {
+        return 0;
+    }
+
+    return isZeroPaddedSegment(name) ? getSegmentLength(name) : Math.min(typedLength, getSegmentLength(name));
+}
+
 function getDateDisplay(segments: DateSegments, mask: string): DateDisplay {
     let value = '';
     const ranges: Record<DateSegmentName, DateSegmentRange> = {year: {start: 0, end: 0}, month: {start: 0, end: 0}, day: {start: 0, end: 0}};
 
     for (const part of getDateMaskParts(mask)) {
-        // Typed digits replace the mask letters one at a time, so a half typed year reads as 2YYY rather than 2. This
-        // keeps every segment the width of its mask, which is what lets a caret position mean the same thing twice.
+        // Typed digits take the place of the mask letters, so a half typed year reads as 2YYY rather than 2. A zero
+        // padded segment fills from the right instead, so a day part way through reads as 02 and becomes 23 on the
+        // next digit. Either way the segment keeps the width of its mask, which is what lets a caret position mean
+        // the same thing twice.
         const digits = segments[part.name].slice(0, part.placeholder.length);
-        const text = `${digits}${part.placeholder.slice(digits.length)}`;
+        const text = digits && isZeroPaddedSegment(part.name) ? digits.padStart(part.placeholder.length, '0') : `${digits}${part.placeholder.slice(digits.length)}`;
 
         ranges[part.name] = {start: value.length, end: value.length + text.length};
         value += `${text}${part.separator}`;
@@ -306,6 +330,7 @@ export {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
+    getCaretOffsetLimit,
     getDateDisplay,
     getISODateFromSegments,
     getSegmentNameAtPosition,
