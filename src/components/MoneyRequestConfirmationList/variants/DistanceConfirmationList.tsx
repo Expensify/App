@@ -7,7 +7,7 @@ import useConfirmationListData from '@components/MoneyRequestConfirmationList/ho
 import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
-import type {DistanceConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import DistanceManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceManualFooter';
 import DistanceMapFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceMapFooter';
 import DistanceOdometerFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceOdometerFooter';
@@ -42,7 +42,7 @@ import {View} from 'react-native';
  *
  * A distance expense is never a scan and never enters the compact layout.
  */
-function DistanceConfirmationList(props: DistanceConfirmationListProps) {
+function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {
         transaction,
         selectedParticipants,

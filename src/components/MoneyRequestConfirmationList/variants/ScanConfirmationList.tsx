@@ -5,7 +5,7 @@ import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAut
 import useConfirmationListData, {INLINE_FIELD_ERROR_KEYS} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
-import type {ScanConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/ScanFooter';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -22,7 +22,7 @@ import {View} from 'react-native';
  * `useTaxAmount` reads `distance` only inside its distance branches, so the taxable amount comes from the
  * transaction amount here.
  */
-function ScanConfirmationList(props: ScanConfirmationListProps) {
+function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, isEditingSplitBill, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
 
     const styles = useThemeStyles();

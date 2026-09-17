@@ -5,7 +5,7 @@ import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAut
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
-import type {ManualConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import ManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/ManualFooter';
 
 import React from 'react';
@@ -20,7 +20,7 @@ import {View} from 'react-native';
  * A manual expense is never a distance or scan request and never enters the compact layout, so this mounts no
  * distance controller.
  */
-function ManualConfirmationList(props: ManualConfirmationListProps) {
+function ManualConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, isEditingSplitBill, isPerDiemRequest, isTimeRequest, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
 
     const data = useConfirmationListData(props);

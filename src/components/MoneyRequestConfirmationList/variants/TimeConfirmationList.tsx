@@ -3,7 +3,7 @@ import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/Co
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
-import type {TimeConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import TimeFooter from '@components/MoneyRequestConfirmationListFooter/variants/TimeFooter';
 
 import React from 'react';
@@ -19,7 +19,7 @@ import {View} from 'react-native';
  * Only the CREATE action reaches this. Outside CREATE a time expense shows Merchant and hides the hours/rate
  * fields, which is what the manual confirmation renders anyway.
  */
-function TimeConfirmationList(props: TimeConfirmationListProps) {
+function TimeConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
 
     const data = useConfirmationListData({...props, isTimeRequest: true});

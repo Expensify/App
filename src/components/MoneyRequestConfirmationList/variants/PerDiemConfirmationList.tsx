@@ -3,7 +3,7 @@ import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/Co
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
-import type {PerDiemConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import PerDiemFooter from '@components/MoneyRequestConfirmationListFooter/variants/PerDiemFooter';
 
 import React from 'react';
@@ -16,7 +16,7 @@ import {View} from 'react-native';
  * mounts no distance controller. It skips the tax controller too: `isTaxTrackingEnabled` returns false for per
  * diem, so the tax field can never be shown here. It is never a split either, so no split controller.
  */
-function PerDiemConfirmationList(props: PerDiemConfirmationListProps) {
+function PerDiemConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, onToggleBillable, onToggleReimbursable} = props;
 
     const data = useConfirmationListData({...props, isPerDiemRequest: true});

@@ -1,25 +1,10 @@
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 
-import type {IOUAction, IOUType} from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
+import type {UseConfirmationPolicyDataParams} from './types';
 
 import usePolicyCategoriesForConfirmation from './usePolicyCategoriesForConfirmation';
 import usePolicyTagsForConfirmation from './usePolicyTagsForConfirmation';
-
-type UseConfirmationPolicyDataParams = {
-    /** Transaction that represents the expense */
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Policy ID the confirmation was opened with, usually the report's */
-    policyID?: string;
-
-    action: IOUAction;
-    iouType: IOUType;
-    isPerDiemRequest: boolean;
-};
 
 /**
  * The policy side of the confirmation, resolved once for everything that reads the same workspace: the field

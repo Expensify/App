@@ -4,7 +4,7 @@ import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/Con
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
-import type {InvoiceConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import InvoiceFooter from '@components/MoneyRequestConfirmationListFooter/variants/InvoiceFooter';
 
 import CONST from '@src/CONST';
@@ -19,7 +19,7 @@ import {View} from 'react-native';
  * distance controller and never enters the compact layout. It is also never a split, so it skips the split
  * controller. `InvoiceFooter` adds the sender row above the shared fields.
  */
-function InvoiceConfirmationList(props: InvoiceConfirmationListProps) {
+function InvoiceConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
 
     const data = useConfirmationListData({...props, iouType: CONST.IOU.TYPE.INVOICE});

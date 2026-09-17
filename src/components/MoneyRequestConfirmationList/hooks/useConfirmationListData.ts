@@ -1,6 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
-import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAttendees from '@hooks/useAttendees';
@@ -14,19 +13,13 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount} from '@libs/TransactionUtils';
 
-import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
-import type useDistanceRequestState from './useDistanceRequestState';
+import type {ConfirmationDistanceState, UseConfirmationListDataParams} from './types';
 
 import useConfirmationAmount from './useConfirmationAmount';
 import useConfirmationPolicyData from './useConfirmationPolicyData';
@@ -34,82 +27,6 @@ import useConfirmationValidation from './useConfirmationValidation';
 import useFormErrorManagement from './useFormErrorManagement';
 import useParticipantSection from './useParticipantSection';
 import useTransactionReportForConfirmation from './useTransactionReportForConfirmation';
-
-/**
- * The parts of the distance state this hook reads. A distance variant computes the full state with
- * {@link useDistanceRequestState} and passes this slice down; every other variant passes nothing, and the
- * distance branches of the amount, CTA and validation hooks go inert.
- */
-type ConfirmationDistanceState = Pick<
-    ReturnType<typeof useDistanceRequestState>,
-    'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency' | 'prevCurrency'
->;
-
-type UseConfirmationListDataParams = {
-    /** Transaction that represents the expense */
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Defaults match what the pages send, so a variant can spread its own props straight through. */
-    action?: IOUAction;
-
-    iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    policyID?: string;
-    reportID?: string;
-
-    /** Only reaches `confirmationFieldsProviderProps`, where the field sections read it to build edit routes. */
-    reportActionID?: string;
-
-    /** Selected participants from MoneyRequestModal with login / accountID */
-    selectedParticipants: Participant[];
-
-    /** Payee of the expense with login */
-    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails> | null;
-
-    isReadOnly?: boolean;
-    isPolicyExpenseChat?: boolean;
-    isEditingSplitBill?: boolean;
-    expensesNumber?: number;
-
-    /**
-     * Everything the receipt section renders from. Passed through untouched; the confirm footer reads
-     * `receiptPath` (for the CTA label) and `isLoadingReceipt` (the button waits on a receipt still being stitched).
-     */
-    receiptOptions?: ReceiptOptions;
-
-    isConfirmed?: boolean;
-    isConfirming?: boolean;
-    shouldShowSmartScanFields?: boolean;
-    canEnterScanFieldsManually?: boolean;
-
-    /** Scan only: ID of a partially filled receipt among the transactions being confirmed. */
-    partiallyManuallyFilledScanID?: string;
-
-    /** Scan only. */
-    hasSmartScanFailed?: boolean;
-
-    shouldHideToSection?: boolean;
-
-    onConfirm?: () => void;
-
-    /** Only invoked for a PAY confirmation, so the types that can never be paid omit it. */
-    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
-
-    /** Omitted by the variants whose participant row can never be edited, where it could not be invoked. */
-    onOpenParticipantPicker?: () => void;
-
-    /** Scan only: brings another confirmed transaction on screen to show its inline errors. */
-    onSwitchToTransaction?: (transactionID: string) => void;
-
-    showRemoveExpenseConfirmModal?: () => void;
-
-    /** Expense-type flags. A variant passes only the ones that are true for its own type. */
-    isPerDiemRequest?: boolean;
-    isTimeRequest?: boolean;
-    isDistanceRequest?: boolean;
-
-    /** Only a distance variant passes this */
-    distanceState?: ConfirmationDistanceState;
-};
 
 /**
  * The errors the amount / merchant / date fields render inline rather than in the footer. Raising one of these is
