@@ -24,7 +24,7 @@ import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -41,7 +41,7 @@ import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useLoadSearchCategoryData from './useLoadSearchCategoryData';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import useSortedActions from './useSortedActions';
+import useSortedReportActionsData from './useSortedReportActionsData';
 
 type AutocompleteItemData = {
     filterKey: UserFriendlyKey;
@@ -58,7 +58,7 @@ type UseAutocompleteSuggestionsParams = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
@@ -109,7 +109,7 @@ function useAutocompleteSuggestions({
     allFeeds,
     options,
     draftComments,
-    betas,
+    isDefaultRoomsBetaEnabled,
     countryCode,
     loginList,
     policies,
@@ -131,7 +131,8 @@ function useAutocompleteSuggestions({
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -254,7 +255,7 @@ function useAutocompleteSuggestions({
                 convertToDisplayString,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -297,7 +298,7 @@ function useAutocompleteSuggestions({
                 convertToDisplayString,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,

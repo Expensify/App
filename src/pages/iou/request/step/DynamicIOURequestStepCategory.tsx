@@ -118,7 +118,8 @@ function DynamicIOURequestStepCategory({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
@@ -189,6 +190,7 @@ function DynamicIOURequestStepCategory({
 
             if (isEditing && report) {
                 updateMoneyRequestCategory({
+                    isVendorMatchingBetaEnabled,
                     transactionID: transaction.transactionID,
                     transaction,
                     transactionThreadReport: report,
@@ -275,7 +277,7 @@ function DynamicIOURequestStepCategory({
                                     }
 
                                     if (!policy?.areCategoriesEnabled) {
-                                        enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
+                                        enablePolicyCategories({...policyData, categories: policyCategories}, true, isVendorMatchingBetaEnabled, false);
                                     }
                                     requestAnimationFrame(() => {
                                         Navigation.navigate(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, Navigation.getActiveRoute()));
