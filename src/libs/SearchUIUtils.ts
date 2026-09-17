@@ -6551,10 +6551,6 @@ function getColumnsToShow({
             columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
         }
 
-        if (transaction.comment?.vendor?.externalID) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
-        }
-
         const hasCategory = (() => {
             const category = getCategory(transaction);
             return category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE;
@@ -6597,6 +6593,10 @@ function getColumnsToShow({
 
             if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+            }
+
+            if (transaction.comment?.vendor?.externalID) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
             }
 
             // Only show tax columns when the user explicitly chooses to display them.
