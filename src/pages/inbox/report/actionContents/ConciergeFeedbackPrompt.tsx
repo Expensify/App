@@ -21,7 +21,6 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {getConciergeFeedbackForReportActionID} from '@selectors/ReportNameValuePairs';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -79,7 +78,6 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [reactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
-    const [conciergeFeedbackForReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: getConciergeFeedbackForReportActionID});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
@@ -116,11 +114,6 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     }
 
     if (hasRated) {
-        return null;
-    }
-
-    // Replies inside the thread the backend opens after a thumbs down are not answers to rate
-    if (conciergeFeedbackForReportActionID) {
         return null;
     }
 

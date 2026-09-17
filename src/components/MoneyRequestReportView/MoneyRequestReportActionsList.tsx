@@ -203,10 +203,15 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         return reportActions?.map((action) => action.reportActionID) ?? [];
     }, [reportActions]);
 
-    // Skip while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
+    const conciergeFeedbackForReportActionID = reportNameValuePairs?.conciergeFeedbackForReportActionID;
+
+    // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
     const latestConciergeFeedbackActionID = useMemo(
-        () => (isDraftPendingCompletion || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs)),
-        [isDraftPendingCompletion, hasNewerActions, visibleReportActionsNewestFirst, reportActionIDs],
+        () =>
+            conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
+                ? undefined
+                : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs),
+        [conciergeFeedbackForReportActionID, isDraftPendingCompletion, hasNewerActions, visibleReportActionsNewestFirst, reportActionIDs],
     );
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({

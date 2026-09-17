@@ -246,6 +246,32 @@ const renderReportActionsList = (props: {reportID?: string} = {}) => {
     );
 };
 
+// useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
+// which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
+// directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
+// in the fixture for any component still reading it directly.
+const getMockOnyxValue: Parameters<typeof mockUseOnyx.mockImplementation>[0] = (key: string, options) => {
+    if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+        return [false, {status: 'loaded'}];
+    }
+    if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+        return [false, {status: 'loaded'}];
+    }
+    if (key.includes('reportLoadingState')) {
+        return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
+    }
+    if (key.includes('reportActions')) {
+        return [[], {status: 'loaded'}];
+    }
+    if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+        return [mockReport, {status: 'loaded'}];
+    }
+    if (key.includes('report')) {
+        return [undefined, {status: 'loaded'}];
+    }
+    return [undefined, {status: 'loaded'}];
+};
+
 describe('ReportActionsList (body)', () => {
     beforeAll(() => {
         Onyx.init({
@@ -305,31 +331,7 @@ describe('ReportActionsList (body)', () => {
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
         mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
-        mockUseOnyx.mockImplementation((key: string, options) => {
-            // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
-            // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
-            // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
-            // in the fixture for any component still reading it directly.
-            if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
-                return [false, {status: 'loaded'}];
-            }
-            if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
-                return [false, {status: 'loaded'}];
-            }
-            if (key.includes('reportLoadingState')) {
-                return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
-            }
-            if (key.includes('reportActions')) {
-                return [[], {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
-                return [mockReport, {status: 'loaded'}];
-            }
-            if (key.includes('report')) {
-                return [undefined, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
+        mockUseOnyx.mockImplementation(getMockOnyxValue);
     });
 
     afterEach(async () => {
@@ -405,6 +407,23 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()).toContain(completedDraft);
             expect(getRenderedReportActionsListItemProps(completedDraft).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks nothing inside the feedback thread the backend opens after a thumbs down', () => {
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
+                    return [{conciergeFeedbackForReportActionID: conciergeReply.reportActionID}, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
         });
 
         it('marks nothing while newer pages are still unloaded', () => {
