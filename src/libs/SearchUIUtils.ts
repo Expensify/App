@@ -6024,7 +6024,7 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
         return getWithdrawalTypeOptions(translate);
     }
 
-    if (filterKey === FILTER_KEYS.TRANSACTION_STATUS) {
+    if (filterKey === FILTER_KEYS.TRANSACTION_STATUS || filterKey === FILTER_KEYS.TRANSACTION_STATUS_NOT) {
         return Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((transactionStatus) => ({
             text: translate(`search.filters.transactionStatus.${transactionStatus}`),
             value: transactionStatus,
