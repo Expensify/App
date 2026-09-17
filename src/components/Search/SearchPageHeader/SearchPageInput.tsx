@@ -1,3 +1,4 @@
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 
@@ -33,6 +34,7 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {currentSearchKey} = useSearchQueryContext();
 
     const [textInputValue, setTextInputValue] = useState('');
 
@@ -55,7 +57,8 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+        // A keyword narrows the current search instead of starting a new one, so it keeps the search key.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, searchKey: currentSearchKey}));
     }
 
     return (
