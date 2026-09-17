@@ -27,7 +27,6 @@ type InsightsDashboard = {
     /** Query the stored graphs answer */
     inputQuery?: string;
 
-    isLoading?: boolean;
     errors?: Errors;
 };
 
