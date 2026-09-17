@@ -316,7 +316,8 @@ function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | unde
     if (collectTargets.length === 0) {
         return [];
     }
-    const hasInvoiceFields = isInvoiceFieldsEnabled(sourcePolicy) || Object.values(sourcePolicy?.fieldList ?? {}).some((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
+    const hasInvoiceFields =
+        isInvoiceFieldsEnabled(sourcePolicy ?? undefined) || Object.values(sourcePolicy?.fieldList ?? {}).some((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
     return selectedParts.filter((part) => {
         const featureName = part === 'invoices' && hasInvoiceFields ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED : PART_TO_POLICY_FEATURE[part];
         if (!featureName) {

@@ -124,25 +124,25 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
 });
 
 describe('WorkspaceReportFieldUtils.getExistingReportFieldByName', () => {
-    const invoiceField = createMock<PolicyReportField>({name: 'TestField', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE});
-    const expenseField = createMock<PolicyReportField>({name: 'ExpenseField', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE});
+    const invoiceField = createMock<PolicyReportField>({name: 'Field1', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE});
+    const expenseField = createMock<PolicyReportField>({name: 'Field2', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE});
     const fieldList: Record<string, PolicyReportField> = {
         invoiceField,
         expenseField,
     };
 
     it('should return undefined when field name does not exist', () => {
-        expect(getExistingReportFieldByName(fieldList, 'NonExistent')).toBeUndefined();
+        expect(getExistingReportFieldByName(fieldList, 'Field3')).toBeUndefined();
     });
 
     it('should return the matching report field case-insensitively', () => {
-        expect(getExistingReportFieldByName(fieldList, 'testfield')).toEqual(invoiceField);
-        expect(getExistingReportFieldByName(fieldList, 'EXPENSEFIELD')).toEqual(expenseField);
+        expect(getExistingReportFieldByName(fieldList, 'field1')).toEqual(invoiceField);
+        expect(getExistingReportFieldByName(fieldList, 'FIELD2')).toEqual(expenseField);
     });
 
     it('should filter by expectedTarget when provided', () => {
-        expect(getExistingReportFieldByName(fieldList, 'TestField', CONST.REPORT_FIELD_TARGETS.EXPENSE)).toBeUndefined();
-        expect(getExistingReportFieldByName(fieldList, 'TestField', CONST.REPORT_FIELD_TARGETS.INVOICE)).toEqual(invoiceField);
+        expect(getExistingReportFieldByName(fieldList, 'Field1', CONST.REPORT_FIELD_TARGETS.EXPENSE)).toBeUndefined();
+        expect(getExistingReportFieldByName(fieldList, 'Field1', CONST.REPORT_FIELD_TARGETS.INVOICE)).toEqual(invoiceField);
     });
 });
 

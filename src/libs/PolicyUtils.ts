@@ -1782,8 +1782,8 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
  * Whether Invoice Fields is enabled for the policy.
  * Respects the `areInvoiceFieldsEnabled` toggle and verifies the policy has access to the feature (Control only).
  */
-function isInvoiceFieldsEnabled(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.areInvoiceFieldsEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED);
+function isInvoiceFieldsEnabled(policy: OnyxEntry<Policy> | null): boolean {
+    return !!policy?.areInvoiceFieldsEnabled && canPolicyAccessFeature(policy ?? undefined, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED);
 }
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
