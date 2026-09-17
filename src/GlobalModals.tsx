@@ -9,9 +9,7 @@ import {growlRef} from './libs/Growl';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
 const LazyPopoverReportActionContextMenu = React.lazy(() => import('./pages/inbox/report/ContextMenu/PopoverReportActionContextMenu'));
-// Kept as its own dynamic import (not a static one) so its module graph - the deferred-prompt hooks, their
-// useOnyx subscriptions, and @userActions/User - stays out of this chunk and is only fetched once
-// shouldRenderDeferredModals flips true, instead of being parsed/evaluated during the ManualAppStartup span.
+// Dynamic rather than static so this module graph is only fetched once the idle callback has fired.
 const LazyDeferredGlobalModals = React.lazy(() => import('./components/DeferredGlobalModals'));
 
 // Maximum time (ms) the context menu mount can stay deferred before requestIdleCallback forces it to run,

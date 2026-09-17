@@ -171,7 +171,7 @@ describe('Onyx-driven global modal prompts', () => {
             await setScreenShareRequest(SCREEN_SHARE_REQUEST);
 
             // Nothing answers the prompt here -- the key disappears on its own, as it does when logout calls
-            // `Onyx.clear()`. The deprecated component was declarative on the key, so it went away with it.
+            // `Onyx.clear()`.
             await setScreenShareRequest(null);
 
             expect(mockCloseModal).toHaveBeenCalledTimes(1);

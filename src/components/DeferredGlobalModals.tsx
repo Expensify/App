@@ -16,7 +16,6 @@ const LazyTrialPaymentReminderModalManager = React.lazy(() => import('./TrialPay
 function DeferredGlobalModals() {
     // Only the top of the modal stack renders, so the hook whose effect runs last owns the prompt the user sees when
     // both are pending at once. Effects run in hook-call order, so the forced-update prompt has to stay last here.
-    // (Mounting these as separate lazy components used to leave that ordering up to whichever chunk resolved first.)
     useScreenShareRequestPrompt();
     useUpdateAppPrompt();
 
@@ -26,7 +25,6 @@ function DeferredGlobalModals() {
                 one of them, so DOM source order decides which is painted on top when they coincide. Each keeps its own
                 slot so a chunk-load failure in one cannot tear down the other. */}
             <LazyModalSlot>
-                {/* Proactive app review modal shown when user has completed a trigger action */}
                 <LazyProactiveAppReviewModalManager />
             </LazyModalSlot>
             <LazyModalSlot>

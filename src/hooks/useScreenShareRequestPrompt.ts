@@ -31,8 +31,8 @@ function useScreenShareRequestPrompt() {
     // entry has already been popped. Closing on that would pop whatever unrelated modal is on top by then.
     const isPromptOpenRef = useRef(false);
 
-    // The request is read when the user answers rather than when the prompt is shown, so that a request replaced while
-    // the prompt is open is still joined with the token that is current, as it was when the modal read it on render.
+    // The request is read when the user answers rather than when the prompt is shown, so a request replaced while the
+    // prompt is open is still joined with the token that is current.
     const screenShareRequestRef = useRef(screenShareRequest);
 
     useEffect(() => {
@@ -41,11 +41,10 @@ function useScreenShareRequestPrompt() {
         if (!screenShareRequest) {
             isPromptShownRef.current = false;
 
-            // The deprecated component was declarative on this key (`isVisible={!!screenShareRequest}`), so it went
-            // away the moment the key did. The modal stack is imperative, so the entry it pushed has to be popped by
-            // hand when something other than the two branches below clears the key - most concretely `Onyx.clear()`
-            // on logout. Without this the prompt stays up over the signed-out state, and a later request stacks a
-            // second prompt that uncovers this stale one again once it is answered.
+            // The modal stack is imperative, so the entry has to be popped by hand when something other than the two
+            // branches below clears the key - most concretely `Onyx.clear()` on logout. Without this the prompt stays
+            // up over the signed-out state, and a later request stacks a second prompt that uncovers this stale one
+            // again once it is answered.
             if (isPromptOpenRef.current) {
                 isPromptOpenRef.current = false;
                 closeModal();

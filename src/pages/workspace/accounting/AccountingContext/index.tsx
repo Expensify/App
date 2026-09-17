@@ -151,17 +151,14 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
 
                 const currentPolicy = policyRef.current;
 
-                // The deprecated handler returned before `closeConfirmationModal()` when the policy was missing, so it
-                // could never release the setup flow for an integration whose predecessor had not been disconnected.
-                // Keep that guard: if the policy went away while the prompt was open, leave the confirmation state
-                // intact so `renderActiveIntegration()` stays held back.
+                // If the policy went away while the prompt was open there is nothing to disconnect, so leave the
+                // confirmation state intact and keep `renderActiveIntegration()` held back.
                 if (!currentPolicy) {
                     return;
                 }
 
                 removePolicyConnection(currentPolicy, integrationToDisconnect);
 
-                // Clearing the flag lets `renderActiveIntegration()` mount the setup flow for the new integration.
                 closeConfirmationModal();
             });
         },

@@ -27,7 +27,6 @@ jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string, ...parameters: unknown[]) => (parameters.length > 0 ? `${key}:${String(parameters.at(0))}` : key),
 }));
 
-// The connect-confirmation prompt now lives on the global modal stack instead of being rendered by the provider.
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
     return mockUseConfirmModal;
@@ -206,9 +205,8 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
 
         await startFlowNeedingDisconnect(ref);
 
-        // Losing the policy mid-prompt is what the deprecated handler's `!policyID` guard covered: with no policy
-        // there is nothing to disconnect, so the setup flow must stay held back rather than start against a
-        // connection that was never removed.
+        // With no policy there is nothing to disconnect, so the setup flow must stay held back rather than start
+        // against a connection that was never removed.
         rerender(
             <AccountingContextProvider policy={undefined}>
                 <TestHarness ref={ref} />

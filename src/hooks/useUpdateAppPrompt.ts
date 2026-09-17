@@ -17,8 +17,8 @@ function useUpdateAppPrompt() {
     const {showConfirmModal} = useConfirmModal();
     const [updateAvailable] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE);
 
-    // The flag is only ever set to `true` (see `triggerUpdateAvailable`), so nothing hides the prompt again on its own.
-    // This ref is what keeps it to one showing, the way the local `isModalOpen` state used to.
+    // The flag is only ever set to `true` (see `triggerUpdateAvailable`), so nothing hides the prompt again on its own
+    // and this ref is what keeps it to one showing.
     const isPromptShownRef = useRef(false);
 
     useEffect(() => {
@@ -27,7 +27,6 @@ function useUpdateAppPrompt() {
         }
         isPromptShownRef.current = true;
 
-        // Confirming and cancelling both only closed the modal, so neither branch has anything left to do here.
         showConfirmModal({
             title: translate('baseUpdateAppModal.updateApp'),
             prompt: translate('baseUpdateAppModal.updatePrompt'),

@@ -43,7 +43,6 @@ function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number, onModalDismi
                 Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route);
             }
 
-            // Called on both branches, the way the modal's `onConfirm` and `onCancel` both used to call it.
             onModalDismissed?.();
         });
 

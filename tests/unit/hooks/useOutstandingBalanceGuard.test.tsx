@@ -24,8 +24,6 @@ jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
 
-// The guard pushes its modal onto the global modal stack instead of returning a ConfirmModal element, so the
-// assertions below are about what it pushed and what it does when that modal resolves.
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../../utils/mockUseConfirmModal');
     return mockUseConfirmModal;
