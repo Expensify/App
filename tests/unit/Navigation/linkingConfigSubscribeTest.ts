@@ -3,10 +3,7 @@ import subscribe from '@libs/Navigation/linkingConfig/subscribe';
 
 import {Linking} from 'react-native';
 
-// CurrentUserStore is also imported by Log and NetworkStore for getCurrentUserEmail, so that export
-// needs to exist on the mock too.
 jest.mock('@libs/CurrentUserStore', () => ({
-    getCurrentUserEmail: jest.fn(() => null),
     hasAuthToken: jest.fn(),
 }));
 
