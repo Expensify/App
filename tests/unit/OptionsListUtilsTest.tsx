@@ -104,7 +104,7 @@ const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 // Mirrors the `getReportByID` resolver production code passes in (see `useFilteredOptions`), backed by the
 // reports the individual tests write to Onyx.
 let onyxReports: OnyxCollection<Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (reports) => {
         onyxReports = reports;
