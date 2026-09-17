@@ -108,6 +108,10 @@ The **Send to someone** option appears only while the expense is still tracked. 
 
 Yes! Open the expense from **Spend > Expenses** or your expense chat, then click into it to edit any field.
 
+## Can someone else edit an expense I tracked?
+
+No. Only you can edit a tracked expense. If you invite another member to the chat where the expense lives, they can open the expense and see it, but every field is read-only for them. That applies even if they are an admin of their own Workspace. [Learn who can edit expenses](/articles/new-expensify/reports-and-expenses/Edit-Expenses).
+
 ## Why can’t I find my expense?
 
 Make sure you’re filtering by the correct date or amount. You can easily find unsubmitted expenses in the **Expense Chat** in your Inbox, under the navigation tabs.
