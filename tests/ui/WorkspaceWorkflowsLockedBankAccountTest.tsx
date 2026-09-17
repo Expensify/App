@@ -17,6 +17,8 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWorkflowsPageRevamp';
 
+import type * as ReportUserActionsModule from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -26,8 +28,6 @@ import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-
-import type * as ReportUserActionsModule from '@userActions/Report';
 
 import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
 
