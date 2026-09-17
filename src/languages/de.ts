@@ -368,6 +368,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Arbeitsbereich herabstufen',
         companyID: 'Unternehmens-ID',
         userID: 'Benutzer-ID',
+        tenantID: 'Mandanten-ID',
+        environmentName: 'Umgebungsname',
+        clientID: 'Client-ID',
+        clientSecret: 'Client-Secret',
         disable: 'Deaktivieren',
         export: 'Export',
         initialValue: 'Anfangswert',
@@ -3172,7 +3176,7 @@ ${amount} für ${merchant} – ${date}`,
             merchantHint: 'Gib . ein, um eine Regel zu erstellen, die für alle Händler gilt',
             addToReport: 'Zu einem Bericht mit dem Namen hinzufügen',
             createReport: 'Bericht bei Bedarf erstellen',
-            applyToExistingExpenses: 'Auf passende vorhandene Ausgaben anwenden',
+            applyToExistingExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
             confirmError: 'Gib ein Händlerunternehmen ein und nimm mindestens eine Aktualisierung vor',
             confirmErrorMerchant: 'Bitte Händler eingeben',
             confirmErrorUpdate: 'Bitte wende mindestens ein Update an',
@@ -7172,6 +7176,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7405,6 +7411,12 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Kartenausgleiche werden synchronisiert';
                         case 'campfireSyncTravelSettlements':
                             return 'Reiseabrechnungen werden synchronisiert';
+                        case 'businessCentralSyncTitle':
+                            return 'Dynamics 365 Business Central-Daten werden synchronisiert';
+                        case 'businessCentralSyncConnection':
+                            return 'Verbindung zu Dynamics 365 Business Central wird initialisiert';
+                        case 'businessCentralSyncImportData':
+                            return 'Daten werden geladen';
                         default: {
                             return `Übersetzung fehlt für Stufe: ${stage}`;
                         }
@@ -7448,6 +7460,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Zum Aktivieren legen Sie ein Konto für Ihre Exporte fest.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
@@ -7765,6 +7778,12 @@ ${reportName}`,
                 description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + Campfire-Integration. Richte Spesenkodierungsdimensionen und die Steuersynchronisierung auf deine Campfire-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Unsere Campfire-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + Dynamics 365 Business Central-Integration. Richte Spesenkodierungsdimensionen und die Steuersynchronisierung auf deine Dynamics 365 Business Central-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Unsere Dynamics 365 Business Central-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Erweiterte Genehmigungen',
@@ -8729,6 +8748,22 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Campfire aus, von der Sie Daten importieren möchten.',
             noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
             noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Entität in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
+            importDescription: 'Wählen Sie aus, welche Kodierungskonfigurationen aus Campfire importiert werden sollen.',
+            accountTypesDescription: 'Ihre Campfire-Konten werden als Kategorien importiert.',
+            enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
+            enableNewAccountsDescription: 'Neue Campfire-Konten werden als Kategorien verfügbar sein.',
+            dimensionsImport: 'Alle Campfire-Dimensionen werden als Tags importiert',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
+            prerequisitesTitle: 'Bevor Sie eine Verbindung herstellen …',
+            followSteps: 'Befolgen Sie die Schritte in unserer Anleitung „How-to: Connect to Dynamics 365 Business Central“',
+            enterCredentials: 'Geben Sie Ihre Dynamics 365 Business Central-Daten ein',
+            helpArticle: `<muted-text>Lesen Sie diesen <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">Hilfsartikel</a>, um diese Informationen zu finden.</muted-text>`,
+            subsidiary: 'Tochtergesellschaft',
+            subsidiarySelectDescription: 'Wählen Sie die Dynamics 365 Business Central-Tochtergesellschaft aus, die mit diesem Workspace synchronisiert werden soll.',
+            noCompaniesFound: 'Keine Unternehmen gefunden',
+            noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {
@@ -9541,6 +9576,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: 'Keine Ausgaben zum Genehmigen',
                 subtitle: 'Null Ausgaben. Maximale Entspannung. Gut gemacht!',
             },
+            staleResults: {title: 'Aktualisierung erforderlich', subtitle: 'Diese Seite ist veraltet, aktualisieren Sie sie, um die neuesten Inhalte zu sehen', buttonText: 'Aktualisieren'},
         },
         columns: 'Spalten',
         editColumns: 'Spalten bearbeiten',

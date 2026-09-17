@@ -367,6 +367,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Werkruimte downgraden',
         companyID: 'Bedrijfs-ID',
         userID: 'Gebruikers-ID',
+        tenantID: 'Tenant-ID',
+        environmentName: 'Naam van omgeving',
+        clientID: 'Client-ID',
+        clientSecret: 'Clientgeheim',
         disable: 'Uitschakelen',
         export: 'Exporteren',
         initialValue: 'Beginwaarde',
@@ -3163,7 +3167,7 @@ ${amount} voor ${merchant} - ${date}`,
             merchantHint: 'Typ . om een regel te maken die van toepassing is op alle aanbieders',
             addToReport: 'Toevoegen aan een rapport met de naam',
             createReport: 'Maak indien nodig een rapport',
-            applyToExistingExpenses: 'Toepassen op bestaande overeenkomende uitgaven',
+            applyToExistingExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
             confirmError: 'Voer handelaar in en pas minstens één wijziging toe',
             confirmErrorMerchant: 'Voer handelaar in',
             confirmErrorUpdate: 'Pas ten minste één wijziging toe',
@@ -7117,6 +7121,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7350,6 +7356,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Kaartafrekeningen synchroniseren';
                         case 'campfireSyncTravelSettlements':
                             return 'Reisverrekeningen synchroniseren';
+                        case 'businessCentralSyncTitle':
+                            return 'Dynamics 365 Business Central-gegevens synchroniseren';
+                        case 'businessCentralSyncConnection':
+                            return 'Verbinding met Dynamics 365 Business Central initialiseren';
+                        case 'businessCentralSyncImportData':
+                            return 'Gegevens laden';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
                         }
@@ -7393,6 +7405,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -7702,6 +7715,12 @@ ${reportName}`,
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Campfire-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Campfire-configuratie voor helderder financieel inzicht.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Onze Campfire-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Dynamics 365 Business Central-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Dynamics 365 Business Central-configuratie voor helderder financieel inzicht.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze Dynamics 365 Business Central-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Geavanceerde goedkeuringen',
@@ -8652,6 +8671,22 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subsidiarySelectDescription: 'Kies de dochteronderneming in Campfire waarvan je gegevens wilt importeren.',
             noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
             noSubsidiariesFoundDescription: 'Voeg alsjeblieft een entiteit toe in Campfire en synchroniseer de verbinding opnieuw',
+            importDescription: 'Kies welke boekhoudconfiguraties je wilt importeren uit Campfire.',
+            accountTypesDescription: 'Je Campfire-accounts worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Campfire-accounts zijn beschikbaar als categorieën.',
+            dimensionsImport: 'Alle Campfire-dimensies worden als labels geïmporteerd',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
+            prerequisitesTitle: 'Voordat je verbinding maakt...',
+            followSteps: 'Volg de stappen in onze instructies ‘How-to: Connect to Dynamics 365 Business Central’',
+            enterCredentials: 'Vul je Dynamics 365 Business Central-gegevens in',
+            helpArticle: `<muted-text>Raadpleeg dit <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">helpartikel</a> om deze informatie te vinden.</muted-text>`,
+            subsidiary: 'Dochteronderneming',
+            subsidiarySelectDescription: 'Selecteer de Dynamics 365 Business Central-dochteronderneming om met deze workspace te synchroniseren.',
+            noCompaniesFound: 'Geen bedrijven gevonden',
+            noCompaniesFoundDescription: 'Voeg een bedrijf toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
         },
     },
     getAssistancePage: {
@@ -9465,6 +9500,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 title: 'Geen declaraties om goed te keuren',
                 subtitle: 'Nul uitgaven. Maximale chill. Goed gedaan!',
             },
+            staleResults: {title: 'Vernieuwen nodig', subtitle: 'Deze pagina is verouderd, vernieuw om de laatste versie te zien', buttonText: 'Verversen'},
         },
         columns: 'Kolommen',
         editColumns: 'Kolommen bewerken',

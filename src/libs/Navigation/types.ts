@@ -3,7 +3,7 @@ import type {SearchQueryString} from '@components/Search/types';
 
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
@@ -1404,6 +1404,18 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {

@@ -367,6 +367,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: '降级工作区',
         companyID: '公司 ID',
         userID: '用户 ID',
+        tenantID: '租户 ID',
+        environmentName: '环境名称',
+        clientID: '客户端 ID',
+        clientSecret: '客户端密码',
         disable: '禁用',
         export: '导出',
         initialValue: '初始值',
@@ -3053,7 +3057,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             merchantHint: '输入 . 可创建适用于所有商家的规则',
             addToReport: '添加到报表，名称为',
             createReport: '如有必要则创建报表',
-            applyToExistingExpenses: '应用到现有匹配报销费用',
+            applyToExistingExpenses: '应用到现有未提交的报销费用',
             confirmError: '输入商户并应用至少一项更新',
             confirmErrorMerchant: '请输入商户',
             confirmErrorUpdate: '请至少应用一个更新',
@@ -6869,6 +6873,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7101,6 +7107,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在同步信用卡结算';
                         case 'campfireSyncTravelSettlements':
                             return '正在同步差旅结算';
+                        case 'businessCentralSyncTitle':
+                            return '同步 Dynamics 365 Business Central 数据';
+                        case 'businessCentralSyncConnection':
+                            return '正在初始化与 Dynamics 365 Business Central 的连接';
+                        case 'businessCentralSyncImportData':
+                            return '正在加载数据';
                         default: {
                             return `阶段缺少翻译：${stage}`;
                         }
@@ -7139,6 +7151,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -7440,6 +7453,12 @@ ${reportName}`,
                 description: `通过 Expensify 与 Campfire 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Campfire 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 Campfire 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `通过 Expensify 与 Dynamics 365 Business Central 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Dynamics 365 Business Central 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Dynamics 365 Business Central 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',
@@ -8342,6 +8361,22 @@ ${reportName}`,
             subsidiarySelectDescription: '选择要从中导入数据的 Campfire 子公司。',
             noSubsidiariesFound: '未找到子公司',
             noSubsidiariesFoundDescription: '请在 Campfire 中添加一个实体，然后再次同步连接',
+            importDescription: '选择要从 Campfire 导入的编码配置。',
+            accountTypesDescription: '您的 Campfire 账户将会作为类别导入。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 Campfire 账户将可用作类别。',
+            dimensionsImport: '所有 Campfire 维度都会作为标签导入',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Dynamics 365 Business Central 设置',
+            prerequisitesTitle: '在你连接之前…',
+            followSteps: '请按照我们的《操作指南：连接到 Dynamics 365 Business Central》中的步骤进行操作',
+            enterCredentials: '输入你的 Dynamics 365 Business Central 详细信息',
+            helpArticle: `<muted-text>请参阅此<a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">帮助文章</a>以查找该信息。</muted-text>`,
+            subsidiary: '子公司',
+            subsidiarySelectDescription: '选择要与此工作区同步的 Dynamics 365 Business Central 子公司。',
+            noCompaniesFound: '未找到公司',
+            noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加一家公司并重新同步连接',
         },
     },
     getAssistancePage: {
@@ -9118,6 +9153,7 @@ ${reportName}`,
                 title: '没有报销可审批',
                 subtitle: '零报销，最大轻松。干得好！',
             },
+            staleResults: {title: '需要刷新', subtitle: '此页面已过期，刷新以查看最新内容', buttonText: '刷新'},
         },
         columns: '列',
         editColumns: '编辑列',

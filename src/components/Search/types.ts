@@ -2,7 +2,8 @@ import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchSuggestionUtils';
 
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
