@@ -3412,7 +3412,7 @@ ${amount} pour ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) =>
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
             validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `Nous n’avons pas pu ajouter ${workEmail}. Pour fusionner ces comptes, déconnectez-vous, connectez-vous avec votre adresse e-mail ${workEmail}, puis accédez à Compte > Sécurité > Fusionner les comptes pour terminer le processus.`,
+                `Nous n’avons pas pu ajouter ${workEmail}. Pour fusionner ces comptes, veuillez vous connecter en tant que ${workEmail} et aller dans Compte > Sécurité > Fusionner les comptes pour terminer le processus.`,
             workAccountClosedSubtitle:
                 'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} est un identifiant contrôlé par domaine pour un compte Expensify existant.`,
@@ -3655,27 +3655,27 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Ajoutez votre adresse e-mail professionnelle',
                 description: ({workEmailLink = ''}) =>
                     Str.dedent(`
-                        1. Ouvrez [Ajouter un e-mail professionnel](${workEmailLink}).
+                        1. Ouvrez [Ajouter une adresse professionnelle](${workEmailLink}).
                         2. Saisissez votre adresse e-mail professionnelle.
                         3. Saisissez le code que nous vous envoyons par e-mail.
-                        4. Choisissez un espace de travail à rejoindre, ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l’espace de travail.
+                        4. Choisissez un espace de travail à rejoindre ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l’espace de travail.
                     `),
             },
             validateEmailTask: {
-                title: 'Valider votre e-mail',
+                title: 'Valider votre adresse e-mail',
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
                         1. Ouvrez [Validez votre compte](${validateEmailLink}).
                         2. Saisissez le code que nous avons envoyé à ${workEmail}.
-                        3. Choisissez un espace de travail à rejoindre, ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l’espace de travail.
+                        3. Choisissez un espace de travail à rejoindre ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l’espace de travail.
                     `),
             },
             joinWorkspaceTask: {
-                title: 'Rejoindre l’espace de travail de votre entreprise',
+                title: "Rejoindre l'espace de travail de votre entreprise",
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
                         1. Ouvrez [Rejoindre un espace de travail](${joinWorkspaceLink}).
-                        2. Trouvez votre équipe dans la liste. Chacune affiche son responsable et le nombre de personnes qui y sont, des plus grandes aux plus petites. Cliquez sur *Afficher plus* si vous ne voyez pas la vôtre.
+                        2. Trouvez votre équipe dans la liste. Chaque équipe affiche son responsable et le nombre de personnes qu’elle contient, des plus grandes aux plus petites. Cliquez sur *Afficher plus* si vous ne voyez pas la vôtre.
                         3. Cliquez sur *Rejoindre maintenant*, ou sur *Demander à rejoindre* si une approbation d’un administrateur est nécessaire.
                     `),
             },
@@ -3702,13 +3702,13 @@ ${amount} pour ${merchant} - ${date}`,
             onboardingAdminMessage: 'Découvrez comment gérer l’espace de travail de votre équipe en tant qu’administrateur et soumettre vos propres dépenses.',
             onboardingTestDriveReceiverMessage: '*Vous bénéficiez de 3 mois gratuits ! Commencez ci-dessous.*',
             onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Comme vous souhaitez rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Ajoutez votre adresse e-mail professionnelle et je vérifierai quels espaces de travail de votre entreprise vous pouvez rejoindre.',
+                'Comme vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Ajoutez votre adresse e-mail professionnelle et je vérifierai quels espaces de travail de votre entreprise vous pouvez rejoindre.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Puisque vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Vérifiez votre adresse e-mail et je vérifierai à quels espaces de travail sur ${companyDomain} vous pouvez vous joindre.`,
+                `Comme vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Vérifiez votre adresse e-mail et je vérifierai à quels espaces de travail chez ${companyDomain} vous pouvez vous joindre.`,
             onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `Comme vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Votre équipe chez ${companyDomain} utilise déjà Expensify. [Consultez les espaces de travail que vous pouvez rejoindre.](${joinWorkspaceLink})`,
+                `Comme vous souhaitez rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Votre équipe chez ${companyDomain} est déjà sur Expensify. [Découvrez les espaces de travail que vous pouvez rejoindre.](${joinWorkspaceLink})`,
             onboardingJoinWorkspaceEmptyMessage:
-                'Il semble que votre entreprise n’ait aucun espace de travail auquel vous pouvez vous joindre. Veuillez contacter votre administrateur et lui demander de vous inviter à son espace de travail.',
+                'Il ne semble pas que votre entreprise ait des espaces de travail auxquels vous pouvez adhérer. Veuillez contacter votre administrateur afin qu’il vous invite dans son espace de travail.',
         },
         workspace: {
             title: 'Restez organisé avec un espace de travail',
