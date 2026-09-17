@@ -52,7 +52,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
     }
 
     if (isJoinWorkspaceTask && !isValidateEmailTaskCompleted) {
-        forwardPath = ROUTES.ONBOARDING_WORKSPACES.getRoute(backPath, true);
+        forwardPath = ROUTES.ONBOARDING_WORKSPACES.getRoute(backPath, true, true);
     }
 
     return (

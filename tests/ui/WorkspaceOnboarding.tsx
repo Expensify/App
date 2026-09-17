@@ -246,7 +246,7 @@ describe('OnboardingWorkspaces Page', () => {
     });
 
     it('should close a completed join-workspace task when no workspaces are available', async () => {
-        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
 
         await TestHelper.signInWithTestUser();
 
@@ -264,8 +264,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(dismissModal).toHaveBeenCalled();
-            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('123'));
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '123'});
         });
         expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined, undefined);
 
@@ -356,6 +355,7 @@ describe('OnboardingWorkspaces Page', () => {
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
             backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
             isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
         });
 
         await waitFor(() => {
@@ -382,6 +382,7 @@ describe('OnboardingWorkspaces Page', () => {
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
             backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
             isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -416,6 +417,7 @@ describe('OnboardingWorkspaces Page', () => {
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
             backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
             isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -433,11 +435,34 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should return to Concierge when closing a direct workspace link', async () => {
+        const conciergeReportID = '123';
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.close')));
+
+        expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: conciergeReportID});
+        expect(mockCreateJoinWorkspaceOnboardingContent).not.toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should return to the completed task thread', async () => {
         const taskReportID = '456';
         const conciergeReportID = '123';
         const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
-        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
 
         await TestHelper.signInWithTestUser();
 
@@ -460,11 +485,11 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(dismissModal).toHaveBeenCalled();
-            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(taskReportID));
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: taskReportID});
         });
 
         getTopmostReportId.mockRestore();
+        dismissModalWithReport.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

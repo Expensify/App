@@ -100,6 +100,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isEmployerWithSubmit = onboardingIntent === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const isConciergeTaskFlow = route.params?.isJoinWorkspaceTask === 'true';
+    const shouldCreateJoinWorkspaceTaskOnExit = route.params?.shouldCreateJoinWorkspaceTaskOnExit === 'true';
     const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
     const createdJoinWorkspaceTask = useRef(false);
     const hasRequestedAccessiblePolicies = useRef(false);
@@ -120,7 +121,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     };
 
     const closeJoinWorkspaceTask = () => {
-        if (isConciergeTaskFlow) {
+        if (shouldCreateJoinWorkspaceTaskOnExit) {
             createAndOpenJoinWorkspaceTask();
             return;
         }
@@ -260,14 +261,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, joinablePoliciesErrors, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
 
     useEffect(() => {
-        if (!isConciergeTaskFlow || joinablePoliciesLength === 0 || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
+        if (!shouldCreateJoinWorkspaceTaskOnExit || joinablePoliciesLength === 0 || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
             return;
         }
 
         createdJoinWorkspaceTask.current = true;
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
         createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
-    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email]);
+    }, [conciergeChat, delegateAccountID, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email, shouldCreateJoinWorkspaceTaskOnExit]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
@@ -278,8 +279,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         if (isJoiningCompanyWorkspace) {
             // A marked Concierge task has no onboarding step to continue into, so just create or reopen the next
             // task instead of completing onboarding again.
-            if (isConciergeTaskFlow) {
+            if (shouldCreateJoinWorkspaceTaskOnExit) {
                 createAndOpenJoinWorkspaceTask();
+                return;
+            }
+
+            if (isConciergeTaskFlow) {
+                returnToOriginReport();
                 return;
             }
 

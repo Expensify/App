@@ -77,7 +77,7 @@ describe('DynamicVerifyAccountPage', () => {
 
         expect(mockVerifyAccountPageBase).toHaveBeenCalledWith(
             expect.objectContaining({
-                navigateForwardTo: ROUTES.ONBOARDING_WORKSPACES.getRoute('home', true),
+                navigateForwardTo: ROUTES.ONBOARDING_WORKSPACES.getRoute('home', true, true),
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 onValidationSuccess: expect.any(Function),
                 shouldShowCloseButton: true,

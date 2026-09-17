@@ -173,7 +173,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         }
 
         if (joinablePoliciesLength > 0) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), isConciergeTaskFlow), {forceReplace: true});
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), isConciergeTaskFlow, isConciergeTaskFlow), {forceReplace: true});
             return;
         }
 
