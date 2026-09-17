@@ -41,12 +41,15 @@ import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
     applyShiftRangeBatchToSelection,
     buildShiftRangeSource,
+    getSearchGroupCount,
+    getSearchGroupCountByKey,
     isGroupSelected,
     isRowChecked,
     mapEmptyReportToSelectedEntry,
     mapTransactionItemToSelectedEntry,
     prepareTransactionsList,
     spellOutGroupSelection,
+    stampGroupCoverageFlags,
 } from './selectionBuilders';
 
 type SearchWriteActionsProviderProps = {
@@ -249,6 +252,42 @@ function useReconcileSelectionWithData({
                         newTransactionList[listKey] = liveSelectionEntry;
                     }
                 }
+
+                // Copying `isEntireGroupSelected` would leave delete thinking the group is still fully covered
+                // after a new child lands in it (the create path bumps `count` without touching the selection).
+                if (reportKey) {
+                    for (const transactionItem of transactionGroup.transactions) {
+                        const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                        const selectedEntry = newTransactionList[listKey];
+                        if (!selectedEntry) {
+                            continue;
+                        }
+                        newTransactionList[listKey] = {...selectedEntry, groupKey: selectedEntry.groupKey ?? reportKey};
+                    }
+
+                    const stampedSelection = stampGroupCoverageFlags({
+                        selectedTransactions: newTransactionList,
+                        groupKey: reportKey,
+                        groupCount: getSearchGroupCount(transactionGroup) ?? getSearchGroupCountByKey(searchResultsData, reportKey),
+                        loadedChildrenCount: transactionGroup.transactions.length,
+                        loadedSelectableCount: transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                    });
+                    for (const [key, entry] of Object.entries(stampedSelection)) {
+                        newTransactionList[key] = entry;
+                    }
+
+                    const isEntireGroupSelected = Object.values(stampedSelection).some((entry) => entry.groupKey === reportKey && entry.isEntireGroupSelected);
+                    for (const transactionItem of transactionGroup.transactions) {
+                        const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                        const liveEntry = liveSelectionEntries.get(listKey) ?? liveSelectionEntries.get(transactionItem.transactionID);
+                        if (!liveEntry) {
+                            continue;
+                        }
+                        const nextEntry = stampedSelection[listKey] ?? {...liveEntry, groupKey: liveEntry.groupKey ?? reportKey, isEntireGroupSelected};
+                        liveSelectionEntries.set(listKey, nextEntry);
+                        liveSelectionEntries.set(transactionItem.transactionID, nextEntry);
+                    }
+                }
             }
         } else {
             for (const transactionItem of filteredData) {
@@ -322,6 +361,7 @@ function useReconcileSelectionWithData({
                         ...liveEntry,
                         groupKey: excludedTransaction.groupKey,
                         isSelectedViaGroup: excludedTransaction.isSelectedViaGroup,
+                        isEntireGroupSelected: liveEntry.isEntireGroupSelected,
                     };
                     continue;
                 }
@@ -507,11 +547,16 @@ function SearchWriteActionsProvider({
     }, [groupKeyByChildKey, childrenByGroupKey]);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
-    // Read at the gesture, like the refs they come from, and handed to the writers that cannot reach Onyx themselves.
+    const getGroupCount = (groupKey: string) =>
+        getSearchGroupCount(isGroupedItemArray(filteredData) ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ??
+        getSearchGroupCountByKey(searchResultsData, groupKey);
+
+    // Read at the gesture, like the refs they come from, and handed to the writers that cannot reach Onyx or the rows themselves.
     const readGroupLookups = () => ({
         groupKeyByChildKey: groupKeyByChildKeyRef.current,
         childrenByGroupKey: childrenByGroupKeyRef.current,
         buildSelectedEntry,
+        getGroupCount,
     });
 
     // Defaults for the gesture, where they are the committed values. An updater passes its own commit's slices instead.
@@ -638,21 +683,40 @@ function SearchWriteActionsProvider({
                 });
 
                 if (areItemsGrouped && isGroupedItemArray(filteredData)) {
+                    const findGroupCarryingItem = () => filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
                     const groupKey =
-                        baseSelection[item.keyForList]?.groupKey ??
-                        groupKeyByChildKeyRef.current.get(item.keyForList) ??
-                        filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList))?.keyForList;
-                    // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
+                        baseSelection[item.keyForList]?.groupKey ?? lookups.groupKeyByChildKey.get(item.keyForList) ?? item.selectionGroupKey ?? findGroupCarryingItem()?.keyForList;
+                    const parentGroup = (groupKey ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ?? findGroupCarryingItem();
+                    const loadedChildren = itemTransactions ?? parentGroup?.transactions ?? [];
+
                     if (groupKey) {
+                        // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
                         for (const [key, transaction] of Object.entries(updatedTransactions)) {
                             if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
                                 updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
                             }
                         }
+
+                        // Selecting every child individually is still a whole-group selection for delete, so stamp
+                        // the parent key on siblings that were picked one by one and had no group key yet.
+                        for (const child of loadedChildren) {
+                            if (!child.keyForList || !updatedTransactions[child.keyForList]) {
+                                continue;
+                            }
+                            updatedTransactions[child.keyForList] = {...updatedTransactions[child.keyForList], groupKey};
+                        }
+                        if (updatedTransactions[item.keyForList]) {
+                            updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
+                        }
                     }
-                    if (groupKey && updatedTransactions[item.keyForList]) {
-                        updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
-                    }
+
+                    return stampGroupCoverageFlags({
+                        selectedTransactions: updatedTransactions,
+                        groupKey,
+                        groupCount: getSearchGroupCount(parentGroup) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
+                        loadedChildrenCount: loadedChildren.length,
+                        loadedSelectableCount: loadedChildren.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                    });
                 }
 
                 return updatedTransactions;
@@ -704,15 +768,21 @@ function SearchWriteActionsProvider({
                 delete withoutStaleGroupKey[groupKey];
                 return withoutStaleGroupKey;
             }
-            return {
-                ...selectedTransactions,
-                ...Object.fromEntries(
-                    selectableTransactions.map((transactionItem) => {
-                        const [key, entry] = buildSelectedEntry(transactionItem);
-                        return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
-                    }),
-                ),
-            };
+            return stampGroupCoverageFlags({
+                selectedTransactions: {
+                    ...selectedTransactions,
+                    ...Object.fromEntries(
+                        selectableTransactions.map((transactionItem) => {
+                            const [key, entry] = buildSelectedEntry(transactionItem);
+                            return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
+                        }),
+                    ),
+                },
+                groupKey,
+                groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
+                loadedChildrenCount: groupTransactions.length,
+                loadedSelectableCount: selectableTransactions.length,
+            });
         }, commitOptions);
     };
 
@@ -739,14 +809,20 @@ function SearchWriteActionsProvider({
                             return [mapEmptyReportToSelectedEntry(item)];
                         }
                         const entries: Array<[string, SelectedTransactionInfo]> = [];
-                        for (const transactionItem of item.transactions) {
-                            if (isTransactionPendingDelete(transactionItem)) {
-                                continue;
-                            }
+                        const selectableTransactions = item.transactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
+                        for (const transactionItem of selectableTransactions) {
                             const [key, entry] = buildSelectedEntry(transactionItem);
                             entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
-                        return entries;
+                        return Object.entries(
+                            stampGroupCoverageFlags({
+                                selectedTransactions: Object.fromEntries(entries),
+                                groupKey: item.keyForList,
+                                groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList),
+                                loadedChildrenCount: item.transactions.length,
+                                loadedSelectableCount: selectableTransactions.length,
+                            }),
+                        );
                     });
                     return Object.fromEntries(allSelections);
                 }

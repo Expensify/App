@@ -31,6 +31,7 @@ const lookupsFor = (groupKeyByChildKey: Map<string, string> = new Map(), childre
     groupKeyByChildKey,
     childrenByGroupKey,
     buildSelectedEntry: buildEntry,
+    getGroupCount: () => undefined,
 });
 
 const batchOf = (toSelect: SearchListItem[] = [], toDeselect: SearchListItem[] = []): ShiftRangeBatch<SearchListItem> => ({toSelect, toDeselect});

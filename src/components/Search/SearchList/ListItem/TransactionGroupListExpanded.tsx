@@ -29,6 +29,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -145,6 +146,7 @@ function TransactionGroupListExpandedImpl({
                 visibleColumns,
                 type: transactionsSnapshot?.search.type,
                 fallbackPolicyID: policyForMovingExpensesID,
+                shouldShowViolationsColumn: queryHasViolationFilter(transactionsQueryJSON),
             });
         }
     }

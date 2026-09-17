@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext, useSearchShiftRangeGroups} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
-import type {TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionCategoryGroupListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
 import {isRowChecked, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
 
@@ -37,8 +37,8 @@ const GROUP_KEY = 'Advertising';
 /** The query the rows belong to. Everything scoped to one search is keyed on it. */
 const SEARCH_HASH = 1;
 
-/** A child as it looks once its group has been expanded and the snapshot has loaded. */
-const buildChild = (index: number, key: string) => buildTransactionRow(index, key, {currency: 'USD', amount: -642, report: {reportID: '11'}});
+/** A child as it looks once its group has been expanded and the snapshot has loaded, carrying the group the list stamps on it. */
+const buildChild = (index: number, key: string, selectionGroupKey: string) => buildTransactionRow(index, key, {currency: 'USD', amount: -642, report: {reportID: '11'}, selectionGroupKey});
 
 /**
  * A `group-by:category` group. Its children are fetched into a separate snapshot only once the row is expanded,
@@ -46,10 +46,10 @@ const buildChild = (index: number, key: string) => buildTransactionRow(index, ke
  */
 const categoryGroup = buildCategoryGroup(GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Advertising'));
 
-const loadedChildren = [buildChild(1, '1'), buildChild(2, '2')];
+const loadedChildren = [buildChild(1, '1', GROUP_KEY), buildChild(2, '2', GROUP_KEY)];
 
 /** The same group with a third child, for ranges that leave a row untouched on either side. */
-const threeLoadedChildren = [...loadedChildren, buildChild(5, '5')];
+const threeLoadedChildren = [...loadedChildren, buildChild(5, '5', GROUP_KEY)];
 
 /** The same group as the server sees it: five rows in total, of which only the first page has loaded. */
 const partiallyLoadedGroup = {...categoryGroup, count: 5};
@@ -92,10 +92,10 @@ const EARLIER_GROUP_KEY = 'Office';
 const earlierGroup = buildCategoryGroup(EARLIER_GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Office'));
 
 /** The earlier group's children, expanded and loaded. */
-const earlierChildren = [buildChild(3, '3'), buildChild(4, '4')];
+const earlierChildren = [buildChild(3, '3', EARLIER_GROUP_KEY), buildChild(4, '4', EARLIER_GROUP_KEY)];
 
 /** The same group as the list sees it: empty at first, carrying the loaded rows afterwards. */
-let pagingGroup: TransactionGroupListItemType = partiallyLoadedGroup;
+let pagingGroup: TransactionCategoryGroupListItemType = partiallyLoadedGroup;
 
 function PagingWrapper({children}: {children: React.ReactNode}) {
     return (
@@ -251,7 +251,11 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
 }
 
 /** Expense-report views make the report row the selectable unit, so a range spans reports. */
-const reportGroups = [buildReportGroup(6, 'report-1', [buildChild(6, '6')]), buildReportGroup(7, 'report-2', [buildChild(7, '7')]), buildReportGroup(8, 'report-3', [])];
+const reportGroups = [
+    buildReportGroup(6, 'report-1', [buildChild(6, '6', 'report-1')]),
+    buildReportGroup(7, 'report-2', [buildChild(7, '7', 'report-2')]),
+    buildReportGroup(8, 'report-3', []),
+];
 
 function ExpenseReportWrapper({children}: {children: React.ReactNode}) {
     return (
@@ -337,6 +341,7 @@ describe('Lazily loaded group selection', () => {
         groupedSearchHash = SEARCH_HASH;
         // The fixtures are mutated as their pages arrive, so each test starts from the state its name describes.
         categoryGroup.transactions = [];
+        categoryGroup.count = loadedChildren.length;
         earlierGroup.transactions = [];
         partiallyLoadedGroup.transactions = [];
         cachedPartialGroup.transactions = loadedChildren;
@@ -611,6 +616,69 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelectedViaGroup).toBeFalsy();
     });
 
+    it('marks a group wholly selected when a range covers every row it holds, as picking them one by one does', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given an open group of two with its first row picked
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isEntireGroupSelected).toBe(false);
+
+        // When a shift+click extends the range over the second
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both rows say the group is wholly selected, which is what delete reads
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('recounts whether a group is wholly selected when a range drops one of its rows, so delete cannot take the rest', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [firstChild, secondChild, thirdChild] = threeLoadedChildren;
+        categoryGroup.count = threeLoadedChildren.length;
+
+        // Given both groups selected from their headers, the upper one last, so the next shift+click starts from its first row
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(categoryGroup, threeLoadedChildren);
+            result.current.toggle(earlierGroup, earlierChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range reaches the lower group's second row, which leaves its third untouched and still wholly selected
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[thirdChild.keyForList]?.isEntireGroupSelected).toBe(true);
+
+        // And the range is pulled back to the first row, dropping the second
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then no row still claims the whole group, including the one the range never touched, or delete would take the dropped row too
+        expect(result.current.selectedTransactions[secondChild.keyForList]).toBeUndefined();
+        expect(result.current.selectedTransactions[thirdChild.keyForList]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[thirdChild.keyForList]?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isEntireGroupSelected).toBe(false);
+    });
+
     it('writes a group out into the rows that arrived when one of them is clicked, rather than refusing the click', async () => {
         const {result, rerender} = renderSelection(PagingWrapper);
         const [firstChild, secondChild] = loadedChildren;
@@ -823,6 +891,81 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('marks isEntireGroupSelected when every child is selected individually', async () => {
+        const {result} = renderSelection();
+        const firstChild = loadedChildren.at(0);
+        const secondChild = loadedChildren.at(1);
+        if (!firstChild || !secondChild) {
+            throw new Error('Expected two loaded children');
+        }
+
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+
+        await act(async () => {
+            result.current.toggle(secondChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('does not mark isEntireGroupSelected when the group checkbox selects fewer children than the group count', async () => {
+        const {result} = renderSelection();
+        const truncatedGroup = {...categoryGroup, count: 5};
+
+        await act(async () => {
+            result.current.toggle(truncatedGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
+    });
+
+    it('clears isEntireGroupSelected when a new child lands in a fully selected group', async () => {
+        pagingGroup = {...categoryGroup, transactions: loadedChildren};
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const firstChild = loadedChildren.at(0);
+        const secondChild = loadedChildren.at(1);
+        if (!firstChild || !secondChild) {
+            throw new Error('Expected two loaded children');
+        }
+
+        await act(async () => {
+            result.current.toggle(firstChild);
+            result.current.toggle(secondChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+
+        pagingGroup = {...categoryGroup, count: 3, transactions: [...loadedChildren, buildChild(3, '3', GROUP_KEY)]};
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['3']).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
     });
 
     it('clears the parent exclusion when an expanded group is reselected', async () => {

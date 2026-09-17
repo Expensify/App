@@ -1,11 +1,12 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isGroupedItemArray, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isGroupEntry, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
+import type {SearchGroupBase, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -14,6 +15,91 @@ import {deepEqual} from 'fast-equals';
 import type {OpenGroupKeys} from './hooks/useOpenGroupsRegistry';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
+
+/**
+ * Group-by snapshot rows carry the total number of transactions in the group. That total can be larger than the
+ * rows currently loaded when the query has a `limit:` smaller than the group.
+ */
+function getSearchGroupCount(group: SearchGroupBase | TransactionGroupListItemType | undefined): number | undefined {
+    if (!group || !('count' in group) || typeof group.count !== 'number') {
+        return undefined;
+    }
+    return group.count;
+}
+
+function getSearchGroupCountByKey(searchData: SearchResultDataType | undefined, groupKey: string | undefined): number | undefined {
+    if (!searchData || !groupKey || !isGroupEntry(groupKey)) {
+        return undefined;
+    }
+    return getSearchGroupCount(searchData[groupKey]);
+}
+
+/**
+ * Snapshot `count` is not decremented when a child is pending-delete, so drop those loaded children before
+ * comparing. A `limit:` that left children unloaded still leaves `count` larger than the remaining selectable
+ * rows, so that case stays a partial selection.
+ */
+function getRemainingSearchGroupCount(groupCount: number | undefined, loadedChildrenCount: number, loadedSelectableCount: number): number | undefined {
+    if (groupCount === undefined) {
+        return undefined;
+    }
+    const pendingDeleteLoadedCount = Math.max(loadedChildrenCount - loadedSelectableCount, 0);
+    return Math.max(groupCount - pendingDeleteLoadedCount, 0);
+}
+
+/**
+ * A group is fully selected only when every remaining transaction it contains is selected. If the group count
+ * is unknown (expense-report rows), the loaded selectable children are treated as the whole group.
+ */
+function isSelectionCoveringEntireGroup(groupCount: number | undefined, selectedCount: number, loadedSelectableCount: number): boolean {
+    if (selectedCount <= 0) {
+        return false;
+    }
+    if (groupCount === undefined) {
+        return loadedSelectableCount > 0 && selectedCount === loadedSelectableCount;
+    }
+    return selectedCount === groupCount;
+}
+
+type StampGroupCoverageFlagsParams = {
+    selectedTransactions: SelectedTransactions;
+    groupKey: string | undefined;
+    groupCount: number | undefined;
+    loadedChildrenCount: number;
+    loadedSelectableCount: number;
+};
+
+/**
+ * Sets `isEntireGroupSelected` from whether the selection covers the group's remaining transaction count.
+ * A `limit:` that leaves children unloaded must not look like a whole-group selection, because delete only
+ * removes the loaded rows. `isSelectedViaGroup` is left alone so export can still treat a group-row click as a
+ * group export.
+ */
+function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedChildrenCount, loadedSelectableCount}: StampGroupCoverageFlagsParams): SelectedTransactions {
+    if (!groupKey) {
+        return selectedTransactions;
+    }
+
+    const nextSelectedTransactions = {...selectedTransactions};
+    let selectedCount = 0;
+    for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
+        if (key === groupKey || transaction.groupKey !== groupKey) {
+            continue;
+        }
+        selectedCount += 1;
+    }
+
+    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedChildrenCount, loadedSelectableCount);
+    const isEntireGroupSelected = isSelectionCoveringEntireGroup(remainingGroupCount, selectedCount, loadedSelectableCount);
+    for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
+        if (key !== groupKey && transaction.groupKey !== groupKey) {
+            continue;
+        }
+        nextSelectedTransactions[key] = {...transaction, groupKey, isEntireGroupSelected};
+    }
+
+    return nextSelectedTransactions;
+}
 
 type MapTransactionItemToSelectedEntryParams = {
     /** The transaction row being added to the selection */
@@ -450,6 +536,9 @@ type GroupLookups = {
 
     /** Supplied by the provider, which is what reads Onyx for a row's action flags */
     buildSelectedEntry: (item: TransactionListItemType) => [string, SelectedTransactionInfo];
+
+    /** The group's total on the server, which can be more than the rows it has loaded */
+    getGroupCount: (groupKey: string) => number | undefined;
 };
 
 /** Undefined under select-all-matching, where the group is selected without its rows being known. */
@@ -493,6 +582,14 @@ function applyShiftRangeBatchToSelection(
     // Whole wins over partial, since that is the gesture a header click makes.
     const partialGroupKeys = new Set<string>();
     const wholeGroupKeys = new Set<string>();
+    // Every group written under, with the rows it has loaded, so its coverage can be recounted once the batch is in.
+    const touchedGroups = new Map<string, TransactionListItemType[]>();
+    const touchGroup = (groupKey: string, loadedRows: TransactionListItemType[]) => {
+        if (touchedGroups.has(groupKey)) {
+            return;
+        }
+        touchedGroups.set(groupKey, loadedRows);
+    };
 
     const dropKey = (key: string) => {
         if (!Object.hasOwn(updated, key)) {
@@ -512,10 +609,11 @@ function applyShiftRangeBatchToSelection(
         const parentGroupKey = blockGroupKey ?? lookups.groupKeyByChildKey.get(transaction.keyForList);
         if (parentGroupKey) {
             (blockGroupKey ? wholeGroupKeys : partialGroupKeys).add(parentGroupKey);
+            touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
         }
         const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
-        // Extending a range re-covers rows it already holds, so an equal entry must not count as a write.
-        if (deepEqual(updated[key], entry)) {
+        // Re-covering a row is not a write, and coverage is recounted after the batch, so it is left out of the comparison.
+        if (deepEqual({...updated[key], isEntireGroupSelected: undefined}, {...entry, isEntireGroupSelected: undefined})) {
             return;
         }
         updated[key] = entry;
@@ -528,6 +626,7 @@ function applyShiftRangeBatchToSelection(
                 const parentGroupKey = lookups.groupKeyByChildKey.get(row.keyForList);
                 if (parentGroupKey) {
                     partialGroupKeys.add(parentGroupKey);
+                    touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
                 }
                 updated = spellOutGroupSelection(updated, row.keyForList, areAllMatchingItemsSelected, lookups);
                 dropKey(row.keyForList);
@@ -570,6 +669,7 @@ function applyShiftRangeBatchToSelection(
             // The children carry the selection from here, so the group's own key would count it twice.
             if (row.keyForList) {
                 dropKey(row.keyForList);
+                touchedGroups.set(row.keyForList, row.transactions ?? []);
             }
             for (const child of selectable) {
                 addTransaction(child, row.keyForList);
@@ -592,6 +692,22 @@ function applyShiftRangeBatchToSelection(
         }
     }
 
+    // Delete takes a whole group on this flag, so each group the range wrote under is recounted rather than left as it was.
+    for (const [groupKey, loadedRows] of touchedGroups) {
+        const unstamped = updated;
+        const stamped = stampGroupCoverageFlags({
+            selectedTransactions: unstamped,
+            groupKey,
+            groupCount: lookups.getGroupCount(groupKey),
+            loadedChildrenCount: loadedRows.length,
+            loadedSelectableCount: loadedRows.filter((child) => !isTransactionPendingDelete(child)).length,
+        });
+        if (Object.entries(stamped).some(([key, transaction]) => transaction.isEntireGroupSelected !== unstamped[key]?.isEntireGroupSelected)) {
+            hasWritten = true;
+        }
+        updated = stamped;
+    }
+
     return hasWritten ? updated : selection;
 }
 
@@ -606,4 +722,7 @@ export {
     isGroupSelected,
     getGroupCheckboxState,
     isRowChecked,
+    getSearchGroupCount,
+    getSearchGroupCountByKey,
+    stampGroupCoverageFlags,
 };
