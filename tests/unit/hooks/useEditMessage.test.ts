@@ -58,9 +58,10 @@ jest.mock('@hooks/useReportIsArchived', () => ({
     default: () => false,
 }));
 
+const mockScrollToIndex = jest.fn();
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
-    default: () => ({scrollToIndex: jest.fn()}),
+    default: () => ({scrollToIndex: mockScrollToIndex}),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -141,5 +142,45 @@ describe('useEditMessage', () => {
 
         const args = mockShowDeleteModal.mock.calls.at(0);
         expect(args?.[1]?.reportActionID).toBe(props.reportAction?.reportActionID);
+    });
+
+    it('scrolls to index zero after deleting the newest message draft without a list-specific callback', () => {
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
+
+        act(() => {
+            hook.result.current.publishDraft('   ');
+        });
+        act(() => {
+            mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
+        });
+
+        expect(mockScrollToIndex).toHaveBeenCalledWith(0);
+    });
+
+    it('uses the list-specific scroll after deleting the newest message draft', () => {
+        const scrollToLastMessage = jest.fn();
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true, scrollToLastMessage});
+
+        act(() => {
+            hook.result.current.publishDraft('   ');
+        });
+        act(() => {
+            mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
+        });
+
+        expect(scrollToLastMessage).toHaveBeenCalledTimes(1);
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
+    it('does not scroll after deleting a non-newest message draft', () => {
+        const scrollToLastMessage = jest.fn();
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: false, scrollToLastMessage});
+
+        act(() => {
+            hook.result.current.deleteDraft();
+        });
+
+        expect(scrollToLastMessage).not.toHaveBeenCalled();
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
     });
 });

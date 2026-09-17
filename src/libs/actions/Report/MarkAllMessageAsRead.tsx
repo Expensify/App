@@ -96,6 +96,7 @@ function markAllMessagesAsRead(
 
     const parameters: MarkAllMessagesAsReadParams = {
         reportIDList,
+        lastReadTime: newLastReadTime,
     };
 
     API.write(WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ, parameters, {optimisticData, failureData});
