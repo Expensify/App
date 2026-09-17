@@ -1,4 +1,3 @@
-/** The identity of a search: the key naming a suggested search or a saved search, and the helpers that map to and from it. */
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
