@@ -50,9 +50,10 @@ type PolicyParamsForOpenOrReconnect = {
 
 // `currentSessionData` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
 // If React components need this value in the future, use `useOnyx` instead.
-let currentSessionData: {accountID?: number; email: string} = {
+let currentSessionData: {accountID?: number; email: string; authToken?: string} = {
     accountID: undefined,
     email: '',
+    authToken: undefined,
 };
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -60,6 +61,7 @@ Onyx.connectWithoutView({
         currentSessionData = {
             accountID: val?.accountID,
             email: val?.email ?? '',
+            authToken: val?.authToken,
         };
     },
 });
@@ -157,6 +159,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.HYBRID_APP,
     ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
     ONYXKEYS.STASHED_SESSION,
@@ -238,7 +241,8 @@ function setSidebarLoaded() {
  */
 function saveCurrentPathBeforeBackground() {
     try {
-        if (!navigationRef.isReady()) {
+        // Signed out there is only the sign-in page to save, and on Android the SAML browser backgrounds the app.
+        if (!navigationRef.isReady() || !currentSessionData.authToken) {
             return;
         }
 
@@ -612,6 +616,8 @@ type CreateWorkspaceWithPolicyDraftParams = {
     hasActiveAdminPolicies: boolean;
     hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
+    /** AccountID of the delegate acting on behalf of the current user */
+    delegateAccountID: number | undefined;
 };
 
 /**
@@ -641,6 +647,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         hasActiveAdminPolicies,
         hasOwnedPaidPolicy,
         isAnnualSubscription = false,
+        delegateAccountID,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -682,6 +689,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             isAnnualSubscription,
+            delegateAccountID,
         });
 
         if (transitionFromOldDot) {
@@ -721,6 +729,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        delegateAccountID,
         hasOwnedPaidPolicy,
     } = params;
 
@@ -751,6 +760,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        delegateAccountID,
         hasOwnedPaidPolicy,
     });
 }
@@ -776,6 +786,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     hasActiveAdminPolicies: boolean;
     hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
+    delegateAccountID: number | undefined;
 };
 
 /**
@@ -802,6 +813,7 @@ function savePolicyDraftByNewWorkspace({
     hasActiveAdminPolicies,
     hasOwnedPaidPolicy,
     isAnnualSubscription = false,
+    delegateAccountID,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwner,
@@ -825,6 +837,7 @@ function savePolicyDraftByNewWorkspace({
         hasActiveAdminPolicies,
         hasOwnedPaidPolicy,
         isAnnualSubscription,
+        delegateAccountID,
     });
 }
 
@@ -857,6 +870,7 @@ type SetUpPoliciesAndNavigateParams = {
     policyOwnerAccountID: number | undefined;
     policyOwnerDisplayName: string | undefined;
     hasOwnedPaidPolicy: boolean;
+    delegateAccountID: number | undefined;
 };
 
 function setUpPoliciesAndNavigate({
@@ -873,6 +887,7 @@ function setUpPoliciesAndNavigate({
     conciergeChat,
     policyOwnerAccountID,
     policyOwnerDisplayName,
+    delegateAccountID,
 }: SetUpPoliciesAndNavigateParams) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -908,6 +923,7 @@ function setUpPoliciesAndNavigate({
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            delegateAccountID,
             hasOwnedPaidPolicy,
         });
         return;
@@ -1017,9 +1033,17 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
     Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
 }
 
+/**
+ * Clears the Corpay pay modal signal for the current session.
+ */
+function clearCorpayPayModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL, null);
+}
+
 export {
     setLocale,
     setSidebarLoaded,
+    saveCurrentPathBeforeBackground,
     setUpPoliciesAndNavigate,
     openApp,
     reconnectApp,
@@ -1037,6 +1061,7 @@ export {
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
+    clearCorpayPayModal,
     setPreservedUserSession,
     getNonOptimisticPolicyIDs,
     setPreservedAccount,

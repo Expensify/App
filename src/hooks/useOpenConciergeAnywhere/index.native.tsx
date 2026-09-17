@@ -19,8 +19,8 @@ function useOpenConciergeAnywhere() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const openConciergeAnywhere = (_options?: {forceConcierge?: boolean}) => {
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+    const openConciergeAnywhere = (_options?: {forceConcierge?: boolean; reportID?: string}) => {
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
     };
 
     return {openConciergeAnywhere, isInSidePanel: false};

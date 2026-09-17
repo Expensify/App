@@ -1,3 +1,4 @@
+import cleanupPreMountedDraftReports from '@libs/cleanupPreMountedDraftReports';
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
@@ -64,6 +65,8 @@ export default function () {
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
+            // Without a default this server-owned NVP has no row until it arrives, and its loading status holds the Search router behind a skeleton
+            [ONYXKEYS.RECENT_SEARCHES]: {},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
@@ -74,23 +77,29 @@ export default function () {
             ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
             ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
+            ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
             ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS,
             ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
             ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
             ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA,
             ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
+            ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
             ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
             ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
+            ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL,
         ],
     });
+
+    cleanupPreMountedDraftReports();
 
     // Register the commands after Onyx is initialized so every JS runtime can process paginated
     // responses. Initial snapshots remain asynchronous and gate only pagination, not app startup.

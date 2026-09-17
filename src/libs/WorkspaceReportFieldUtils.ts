@@ -5,8 +5,10 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
+import type {Policy} from '@src/types/onyx';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import type {FormulaPart} from './Formula';
@@ -149,14 +151,21 @@ function getReportFieldsForTarget(fieldList: Record<string, PolicyReportField> |
 }
 
 /**
- * Determines whether a report field was imported from an accounting integration.
+ * Determines whether a report field was imported from the accounting integration the workspace is currently connected to.
+ *
+ * The `origin` an integration stamps on a report field sticks around after that integration is disconnected, so the
+ * origin on its own isn't enough. A field only counts as imported while the connection that created it is still active,
+ * which means leftover fields from a disconnected (or replaced) integration become regular fields that admins can
+ * disable and delete again.
  */
-function isReportFieldImportedFromIntegration(reportField: PolicyReportField | undefined | null): boolean {
+function isReportFieldImportedFromIntegration(reportField: PolicyReportField | undefined | null, policy: OnyxEntry<Policy>): boolean {
     if (!reportField?.origin) {
         return false;
     }
 
-    return (Object.values(CONST.POLICY.CONNECTIONS.REPORT_FIELD_ORIGIN) as string[]).includes(reportField.origin);
+    return CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.some(
+        (connectionName) => CONST.POLICY.CONNECTIONS.REPORT_FIELD_ORIGIN[connectionName] === reportField.origin && !!policy?.connections?.[connectionName],
+    );
 }
 
 /**
