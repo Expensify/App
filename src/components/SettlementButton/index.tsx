@@ -26,7 +26,7 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
-import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
@@ -185,11 +185,8 @@ function SettlementButton({
     // interrupted by account validation resumes, since the validation gate skipped them.
     const checkForPostValidationBlockers = () => {
         if (isBankAccountValidationFailed && policy?.achAccount?.bankAccountID) {
-            const bankConnectionStatus = getBankAccountConnectionStatus(bankAccountList?.[policy.achAccount.bankAccountID]?.accountData);
-            if (bankConnectionStatus?.requiresFixHandler) {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(policy.achAccount.bankAccountID.toString())));
-                return true;
-            }
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(policy.achAccount.bankAccountID.toString())));
+            return true;
         }
 
         if (isBankAccountLocked) {
