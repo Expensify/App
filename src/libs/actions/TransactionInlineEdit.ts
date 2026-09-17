@@ -478,6 +478,7 @@ function getTransactionEditPermissions({
             isUnreported ||
             canEditFieldOfMoneyRequest({
                 reportAction: parentReportAction,
+                reportActions: parentReportActions,
                 fieldToEdit: field,
                 isChatReportArchived,
                 reportNameValuePairs,
