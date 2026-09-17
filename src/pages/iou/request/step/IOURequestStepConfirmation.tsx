@@ -29,7 +29,7 @@ import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
-import usePrevious from '@hooks/usePrevious';
+import usePreviousDefined from '@hooks/usePreviousDefined';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -171,8 +171,8 @@ function IOURequestStepConfirmationContent({
     // `currentTransaction` undefined for a render. Hold the previous one across that gap: `MoneyRequestConfirmationList`
     // picks its variant from the request type, so an undefined transaction falls to the manual variant and remounts the
     // whole list, losing the state the scan variant holds.
-    const prevTransaction = usePrevious(currentTransaction);
-    const transaction = currentTransaction ?? prevTransaction;
+    const lastDefinedTransaction = usePreviousDefined(currentTransaction);
+    const transaction = isLoadingCurrentTransaction ? lastDefinedTransaction : currentTransaction;
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
