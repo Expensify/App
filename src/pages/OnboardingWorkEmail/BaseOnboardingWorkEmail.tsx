@@ -28,7 +28,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {AddWorkEmail} from '@userActions/Session';
-import {addWorkEmailFormError, clearOnboardingMergeAccountBlocked, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
+import {
+    addWorkEmailFormError,
+    clearOnboardingMergeAccountBlocked,
+    clearWorkEmailFormErrors,
+    setOnboardingErrorMessage,
+    setOnboardingMergeAccountStepValue,
+    setOnboardingMergingAccountBlocked,
+} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -100,13 +107,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(sessionEmail?.split('@').at(1)?.toLowerCase() ?? '');
 
     useEffect(() => {
-        if (!isConciergeTaskFlow) {
-            setOnboardingErrorMessage(null);
+        // The blocking view picks its explanation from this error, so reopening a blocked task must keep it.
+        if (onboardingValues?.isMergingAccountBlocked) {
             return;
         }
-        clearWorkEmailFormErrors();
+        if (isConciergeTaskFlow) {
+            clearWorkEmailFormErrors();
+        }
         setOnboardingErrorMessage(null);
-    }, [isConciergeTaskFlow]);
+    }, [isConciergeTaskFlow, onboardingValues?.isMergingAccountBlocked]);
 
     useEffect(() => {
         const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
@@ -197,6 +206,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     }, [
         account?.isFromPublicDomain,
         isCurrentPrimaryValidated,
+        isCurrentPrimaryPublicDomain,
         hasCompletedGuidedSetupFlow,
         onboardingValues?.shouldValidate,
         isVsb,
@@ -209,6 +219,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         returnToOriginReport,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.isMergeAccountStepSkipped,
+        onboardingValues?.isMergingAccountBlocked,
     ]);
 
     const submitWorkEmail = useCallback(
@@ -231,7 +242,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             setHasSubmittedWorkEmail(true);
             AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
         },
-        [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, isCurrentPrimaryPublicDomain, sessionEmail],
+        [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, sessionEmail],
     );
 
     useEffect(() => {
@@ -252,7 +263,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
 
     const handleRegularJoinWorkspaceErrorConfirm = useCallback(() => {
         setOnboardingErrorMessage(null);
-        Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: false});
+        setOnboardingMergingAccountBlocked(false);
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, []);
 

@@ -104,7 +104,7 @@ const renderOnboardingWorkEmailValidationPage = (
 
 const renderOnboardingPrivateDomainPage = (
     initialRouteName: typeof SCREENS.ONBOARDING.PRIVATE_DOMAIN,
-    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.PRIVATE_DOMAIN],
+    initialParams?: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.PRIVATE_DOMAIN],
 ) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -606,7 +606,7 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')));
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
         });
 
         unmount();
@@ -655,10 +655,11 @@ describe('OnboardingWorkEmail Page', () => {
                 hasCompletedGuidedSetupFlow: true,
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: false});
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {isJoinWorkspaceTask: 'true'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -666,7 +667,7 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')));
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
         });
 
         unmount();
@@ -724,10 +725,11 @@ describe('OnboardingWorkEmail Page', () => {
                 hasCompletedGuidedSetupFlow: true,
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: false});
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {isJoinWorkspaceTask: 'true'});
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
@@ -741,7 +743,8 @@ describe('OnboardingWorkEmail Page', () => {
         const taskReportID = '123';
         const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
         const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
-        await TestHelper.signInWithTestUser();
+        // The primary login must be on a public domain, otherwise the task sends a validated user straight to the workspace list.
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -1040,13 +1043,14 @@ describe('OnboardingWorkEmailValidation Page', () => {
                 hasCompletedGuidedSetupFlow: true,
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
                 onboardingWorkEmail: workEmail,
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {isJoinWorkspaceTask: 'true'});
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
