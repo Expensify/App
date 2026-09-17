@@ -1298,6 +1298,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
         flash: 'flash',
+        flipCamera: 'inverser la caméra',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
         gallery: 'galerie',
@@ -5614,6 +5615,7 @@ ${amount} pour ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans NetSuite et synchroniser à nouveau la connexion',
             tokenInput: {
                 title: 'Configuration NetSuite',
+                connectWithTokenAuthentication: 'Connectez-vous plutôt avec l’authentification par jeton (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Installer le bundle Expensify',
