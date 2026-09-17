@@ -33,6 +33,8 @@ import {Bar, CartesianChart} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
+import HorizontalBarChartContentBody from './HorizontalBarChartContent';
+
 /** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
  * We need bottom: 1 for proper display of the bottom label
  */
@@ -43,9 +45,15 @@ type BarChartProps = CartesianChartProps & {
 
     /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */
     useSingleColor?: boolean;
+
+    /** When true, renders horizontal bars (value on the x-axis) instead of the default vertical bars. */
+    isHorizontal?: boolean;
 };
 
-function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+/** Props for an orientation-specific body. Orientation is resolved by the wrapper, so the bodies never receive `isHorizontal`. */
+type BarChartBodyProps = Omit<BarChartProps, 'isHorizontal'>;
+
+function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartBodyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -171,7 +179,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     }));
 
     const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
-        const dataIndex = point.xValue as number;
+        const dataIndex = Number(point.xValue);
         const dataPoint = data.at(dataIndex);
         const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
 
@@ -291,13 +299,9 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     );
 }
 
-function BarChartContent(props: BarChartProps) {
-    return (
-        <ChartFontsProvider>
-            <BarChartContentBody {...props} />
-        </ChartFontsProvider>
-    );
+function BarChartContent({isHorizontal = false, ...props}: BarChartProps) {
+    return <ChartFontsProvider>{isHorizontal ? <HorizontalBarChartContentBody {...props} /> : <BarChartContentBody {...props} />}</ChartFontsProvider>;
 }
 
 export default BarChartContent;
-export type {BarChartProps};
+export type {BarChartProps, BarChartBodyProps};

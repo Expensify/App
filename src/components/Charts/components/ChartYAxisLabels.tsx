@@ -32,9 +32,12 @@ type ChartYAxisLabelsProps = {
 
     /** When true, labels are left-aligned starting at the left edge of the chart instead of right-aligned. */
     leftAlign?: boolean;
+
+    /** Horizontal gap between the labels and the chart's left edge. Defaults to the shared axis gap. */
+    labelGap?: number;
 };
 
-function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
+function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, leftAlign = false, labelGap = VictoryTheme.axis.labelGap}: ChartYAxisLabelsProps) {
     const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
     const paragraphs = useChartParagraphs(formattedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
@@ -49,7 +52,7 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, l
             return null;
         }
 
-        const x = chartBounds.left - VictoryTheme.axis.labelGap + GLYPH_PADDING - (leftAlign ? maxWidth : paraData.width);
+        const x = chartBounds.left - labelGap + GLYPH_PADDING - (leftAlign ? maxWidth : paraData.width);
         const tickY = yScale(tick);
 
         return (
