@@ -55,6 +55,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
             headerShown: false,
             animation: Animations.SLIDE_FROM_RIGHT,
             gestureDirection: 'horizontal',
+            keepCardOverflowVisible: true,
             web: {
                 // Stacked over a centered card: subtle slide-and-fade. Otherwise the .forHorizontalIOS interpolator from
                 // `@react-navigation` is misbehaving on Safari, so we override it with the Expensify custom interpolator.

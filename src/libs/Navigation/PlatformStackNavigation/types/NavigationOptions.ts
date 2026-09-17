@@ -30,6 +30,12 @@ type GeneralPlatformStackNavigationOptions = {
     // Set it on a navigator (screenOptions) or on a single screen. The underlying stack ignores it, and the
     // navigator reads it back from the screen's descriptor.
     nonTopScreenBehavior?: NonTopScreenBehavior;
+
+    // Web floating RHP only. A card that is not on top is normally wrapped with `overflow: hidden` by
+    // `@react-navigation/stack`, which clips its drop shadow. Set this on the navigator to let the RHP cards keep
+    // their overflow so the shadow of a card under the focused one stays visible. Read from the descriptor by patch
+    // @react-navigation+stack+<version>+005+keep-card-overflow-visible.
+    keepCardOverflowVisible?: boolean;
 };
 
 // Combines common and general platform-specific options for PlatformStackNavigation.

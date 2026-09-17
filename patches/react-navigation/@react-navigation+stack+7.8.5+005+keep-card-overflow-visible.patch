@@ -1,0 +1,61 @@
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
+index 0000000..0000000 100644
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
+@@ -431,6 +431,7 @@
+           const detachCurrentScreen = scenes[index + 1]?.descriptor.options.detachPreviousScreen !== false;
+           const activityState = isPreloaded ? STATE_INACTIVE : activeStates[index];
+           const shouldNotDetachScreen = route?.dontDetachScreen && activityState !== STATE_ON_TOP;
++          const keepCardOverflowVisible = !!scene.descriptor.options.keepCardOverflowVisible;
+           return /*#__PURE__*/_jsx(MaybeScreen, {
+             style: [StyleSheet.absoluteFill],
+             enabled: detachInactiveScreens,
+@@ -444,6 +445,7 @@
+               interpolationIndex: interpolationIndex,
+               modal: isModal,
+               active: index === routes.length - 1,
++              keepCardOverflowVisible: keepCardOverflowVisible,
+               focused: focused,
+               opening: openingRouteKeys.includes(route.key),
+               closing: closingRouteKeys.includes(route.key),
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
+index 0000000..0000000 100644
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
+@@ -14,6 +14,7 @@
+   interpolationIndex,
+   index,
+   active,
++  keepCardOverflowVisible,
+   opening,
+   closing,
+   gesture,
+@@ -193,6 +194,7 @@
+     ref: wrapperRef,
+     focused: focused,
+     active: active,
++    keepCardOverflowVisible: keepCardOverflowVisible,
+     animated: animated,
+     isNextScreenTransparent: isNextScreenTransparent,
+     detachCurrentScreen: detachCurrentScreen,
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
+index 0000000..0000000 100644
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
+@@ -9,6 +9,7 @@
+   animated,
+   isNextScreenTransparent,
+   detachCurrentScreen,
++  keepCardOverflowVisible,
+   children
+ }, ref) => {
+   // Manage this in separate component to avoid re-rendering card during gestures
+@@ -24,7 +25,7 @@
+     style: [StyleSheet.absoluteFill, {
+       // This is necessary to avoid unfocused larger pages increasing scroll area
+       // The issue can be seen on the web when a smaller screen is pushed over a larger one
+-      overflow: active ? undefined : 'hidden',
++      overflow: active || keepCardOverflowVisible ? undefined : 'hidden',
+       // We use visibility on web
+       display: Platform.OS !== 'web' && isHidden ? 'none' : 'flex',
+       zIndex: Platform.OS === 'web' ? 'auto' : undefined,
