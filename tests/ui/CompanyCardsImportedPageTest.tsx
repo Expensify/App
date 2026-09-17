@@ -114,6 +114,8 @@ describe('CompanyCardsImportedPage', () => {
             currentStep: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
             isEditing: false,
             data: {
+                // The page never reads the provider, so any of them satisfies the type here
+                feedType: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
                 cardTitle: '',
                 selectedBank: null,
                 selectedFeedType: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
