@@ -342,6 +342,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             <View style={[styles.flexRow, styles.mb1, styles.w100]}>
                 <TabSelectorContextProvider activeTabKey={activeTab}>
                     <TabSelectorBase
+                        contentContainerStyles={pageGutter}
                         tabs={tabs}
                         activeTabKey={activeTab}
                         onTabPress={handleTabPress}
