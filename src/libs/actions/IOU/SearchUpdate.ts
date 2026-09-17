@@ -228,7 +228,6 @@ function getSearchOnyxUpdate({
 
         const snapshotData: NullishDeep<SearchResultDataType> = {...baseSnapshotData};
 
-        // Create paths add the expense to the group; move paths must not re-increment when it is already listed.
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
         const alreadyInSnapshot = !!existingSnapshot?.data?.[transactionKey];
         if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM && !alreadyInSnapshot) {
