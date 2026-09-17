@@ -644,4 +644,3 @@ function getCompanyCardDetailsBackPath(
 }
 
 export {getCardExportAccountTitle, getCompanyCardDetailsBackPath, getExportAccountColumn, getExportMenuItem, getPolicyCardExportSettings};
-export type {ExportAccountRowData};
