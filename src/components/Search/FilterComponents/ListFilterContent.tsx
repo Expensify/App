@@ -80,7 +80,7 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
     const styles = useThemeStyles();
     const items = getSingleSelectFilterOptions(baseFilterKey, translate);
 
-    // Pending and posted are only ever set on card transactions, so the filter says so rather than encoding the caveat in its name.
+    // Pending and posted are only ever set on card transactions, so let's make it explicit with hint text since it is non-obvious from the filter name alone.
     const hasHint = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS;
     const header = hasHint ? <Text style={[styles.mh5, styles.mv3, styles.textLabelSupportingNormal]}>{translate('search.filters.transactionStatus.hint')}</Text> : undefined;
 
