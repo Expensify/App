@@ -120,13 +120,13 @@ function updateMergeApprovalMode({
     const updatedConfig: MergeApprovalConfigUpdate = {approvalMode};
     const rolledBackConfig: MergeApprovalConfigUpdate = {approvalMode: currentApprovalMode ?? null};
 
-    if (approverField !== undefined) {
-        updatedConfig.approverField = approverField;
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS) {
+        updatedConfig.approverField = approverField ?? null;
         rolledBackConfig.approverField = currentApproverField ?? null;
     }
 
-    if (finalApprover !== undefined) {
-        updatedConfig.finalApprover = finalApprover;
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS) {
+        updatedConfig.finalApprover = finalApprover ?? null;
         rolledBackConfig.finalApprover = currentFinalApprover ?? null;
     }
 
