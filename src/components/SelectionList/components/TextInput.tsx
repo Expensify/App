@@ -172,7 +172,7 @@ function TextInput({
                     onSubmitEditing={onSubmit}
                     submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoading}
-                    shouldHideClearButton={!value}
+                    shouldHideClearButton={false}
                     testID="selection-list-text-input"
                     errorText={errorText}
                     autoCorrect={!disableAutoCorrect}

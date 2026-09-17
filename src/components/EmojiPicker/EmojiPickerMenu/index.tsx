@@ -420,7 +420,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         filterEmojis(text);
                     }}
                     value={searchText}
-                    shouldHideClearButton={!searchText}
+                    shouldHideClearButton={false}
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
                     onFocus={() => {
