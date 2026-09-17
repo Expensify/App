@@ -687,19 +687,21 @@ type GetApprovalLimitDescriptionParams = {
     approver: Approver | undefined;
     currency: string;
     translate: LocaleContextProps['translate'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /**
  * Get the approval limit description for an approver (e.g., "Reports above $1,000 forward to John Doe")
  */
-function getApprovalLimitDescription({approver, currency, translate, convertToDisplayString}: GetApprovalLimitDescriptionParams): string | undefined {
+function getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString}: GetApprovalLimitDescriptionParams): string | undefined {
     if (approver?.approvalLimit == null || !approver?.overLimitForwardsTo) {
         return undefined;
     }
 
     const formattedAmount = convertToDisplayString(approver.approvalLimit, currency);
-    const approverDisplayName = Str.removeSMSDomain(approver.overLimitForwardsToDisplayName ?? approver.overLimitForwardsTo);
+    const approverName = approver.overLimitForwardsToDisplayName ?? approver.overLimitForwardsTo;
+    const approverDisplayName = Str.isSMSLogin(approverName) ? formatPhoneNumber(approverName) : approverName;
 
     return translate('workflowsApprovalLimitPage.forwardLimitDescription', {
         approvalLimit: formattedAmount,

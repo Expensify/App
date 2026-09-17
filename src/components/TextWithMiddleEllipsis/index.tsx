@@ -10,13 +10,8 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type TextWithMiddleEllipsisProps = {
-    /** The text to display */
     text: string;
-
-    /** Additional styles */
     style?: StyleProp<ViewStyle>;
-
-    /** Additional text styles */
     textStyle?: StyleProp<TextStyle>;
 };
 

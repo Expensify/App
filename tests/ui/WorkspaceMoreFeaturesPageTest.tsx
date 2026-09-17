@@ -484,7 +484,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
 
-        // A GA connection wins the visibility decision even when a beta-gated one is also connected.
+        // The active vendor source decides visibility, and Sage Intacct outranks a lingering Xero connection.
         it('shows the Vendors row for a Sage Intacct workspace with a lingering Xero connection when the beta is disabled', async () => {
             await renderWithVendorMatching(
                 {
@@ -495,6 +495,31 @@ describe('WorkspaceMoreFeaturesPage', () => {
             );
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
+
+        it.each([
+            {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: false},
+            {isBetaEnabled: true, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: true},
+            {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, shouldShowVendors: true},
+        ])(
+            'sets Vendors visibility to $shouldShowVendors for DualEntry with QBO exporting $qboDestination and beta=$isBetaEnabled',
+            async ({isBetaEnabled, qboDestination, shouldShowVendors}) => {
+                // Given a configured DualEntry connection and a retained QBO connection
+                const connections = {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {nonReimbursableExpensesExportDestination: qboDestination}},
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {config: {isConfigured: true}},
+                };
+
+                // When the More features page renders with the selected beta state
+                await renderWithVendorMatching(connections, isBetaEnabled);
+
+                // Then visibility follows the active vendor source's beta requirement
+                if (shouldShowVendors) {
+                    await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+                } else {
+                    expect(vendorsSwitchQuery()).toBeNull();
+                }
+            },
+        );
 
         // Xero (R3) is still beta-gated, so it stays hidden when the beta is off.
         it('hides the Vendors row for a beta-gated integration (Xero) when the beta is disabled', async () => {
