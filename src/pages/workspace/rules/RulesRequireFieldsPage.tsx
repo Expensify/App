@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,6 +48,7 @@ function RulesRequireFieldsPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     // The self-heal below writes to the server, so it needs the same Tags write check the Tags table uses.
     const {canWrite: canWriteTags} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -134,17 +136,21 @@ function RulesRequireFieldsPage({
         const hasTagLevelChanges = hasPerLevelTagRequired && changedTagLevels.length > 0;
         const hasSingleTagChange = !hasPerLevelTagRequired && tagRequired !== initialTagRequired;
         const categoryUpdateForTagRecompute = hasCategoryChange ? {requiresCategory: categoryRequired} : {};
+        // Only one of the two calls below should carry this, otherwise both requests would ask the backend to complete
+        // the same onboarding task with the same reportActionID.
+        let reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
 
         if (hasCategoryChange) {
             // With a tag change in the same save, the tag action owns the one violation recompute and carries requiresCategory into it.
-            setWorkspaceRequiresCategory(policyData, categoryRequired, !hasTagLevelChanges && !hasSingleTagChange);
+            setWorkspaceRequiresCategory(policyData, categoryRequired, !hasTagLevelChanges && !hasSingleTagChange, reviewWorkspaceSettingsTaskData);
+            reviewWorkspaceSettingsTaskData = {};
         }
 
         if (hasTagLevelChanges) {
             // One call for every changed level, so violations are recomputed once from the combined end state.
             setPolicyTagLevelsRequired(policyData, Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, !tagList.required])), categoryUpdateForTagRecompute);
         } else if (hasSingleTagChange) {
-            setPolicyRequiresTag(policyData, tagRequired, categoryUpdateForTagRecompute);
+            setPolicyRequiresTag(policyData, tagRequired, categoryUpdateForTagRecompute, reviewWorkspaceSettingsTaskData);
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);

@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -41,6 +42,7 @@ function RulesItemizedReceiptRequiredAmountPage({
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
@@ -88,7 +90,12 @@ function RulesItemizedReceiptRequiredAmountPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmountNoItemizedReceipt}) => {
-                        setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, maxExpenseAmountNoItemizedReceipt, policy?.maxExpenseAmountNoItemizedReceipt);
+                        setPolicyMaxExpenseAmountNoItemizedReceipt(
+                            policyID,
+                            maxExpenseAmountNoItemizedReceipt,
+                            policy?.maxExpenseAmountNoItemizedReceipt,
+                            getReviewWorkspaceSettingsTaskCompletion(),
+                        );
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     validate={validate}
