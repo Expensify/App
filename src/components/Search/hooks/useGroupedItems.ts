@@ -4,6 +4,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import {getSections, getSortedSections, isGroupedItemArray} from '@libs/SearchUIUtils';
 
@@ -22,6 +23,7 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [onyxPersonalDetailsList] = useAllPersonalDetails();
 
     const groupBy = queryJSON?.groupBy;
     const sortedSections =
@@ -42,6 +44,7 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
                       rules,
                       conciergeReportID,
                       convertToDisplayString,
+                      onyxPersonalDetailsList,
                       reportAttributesDerivedValue: undefined,
                   })[0],
                   localeCompare,

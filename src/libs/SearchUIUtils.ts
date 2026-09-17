@@ -3145,14 +3145,17 @@ function getMemberSections(
     queryJSON: SearchQueryJSON | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
 ): [TransactionMemberGroupListItemType[], number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
+    // GetInsights delivers the members it grouped by in the global list rather than in the snapshot.
+    const personalDetailsList = mergePersonalDetailsLists(onyxPersonalDetailsList, data.personalDetailsList);
 
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
 
-            const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
+            const personalDetails = personalDetailsList[memberGroup.accountID] ?? emptyPersonalDetails;
             const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID) : undefined;
 
             memberSections[key] = {
@@ -3635,7 +3638,7 @@ function getSections({
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data, queryJSON, formatPhoneNumber, translate);
+                return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList, nonPersonalAndWorkspaceCardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
