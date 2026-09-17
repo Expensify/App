@@ -9,13 +9,7 @@ import PerDiemFooter from '@components/MoneyRequestConfirmationListFooter/varian
 import React from 'react';
 import {View} from 'react-native';
 
-/**
- * Confirms a per-diem expense.
- *
- * Per diem shows no receipt, is never a distance or scan request, and never enters the compact layout, so this
- * mounts no distance controller. It skips the tax controller too: `isTaxTrackingEnabled` returns false for per
- * diem, so the tax field can never be shown here. It is never a split either, so no split controller.
- */
+/** Confirms a per-diem expense. */
 function PerDiemConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, onToggleBillable, onToggleReimbursable} = props;
 

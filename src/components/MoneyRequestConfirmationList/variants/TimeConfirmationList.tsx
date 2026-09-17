@@ -12,10 +12,6 @@ import {View} from 'react-native';
 /**
  * Confirms a time expense being created.
  *
- * A time expense is never a distance or scan request and never enters the compact layout, so this mounts no
- * distance controller. It skips the tax controller too: `isTaxTrackingEnabled` returns false for time, so the tax
- * field can never be shown here. It is never a split either, so no split controller.
- *
  * Only the CREATE action reaches this. Outside CREATE a time expense shows Merchant and hides the hours/rate
  * fields, which is what the manual confirmation renders anyway.
  */

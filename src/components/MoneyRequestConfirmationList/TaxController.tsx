@@ -13,8 +13,7 @@ import useTaxAmount from './hooks/useTaxAmount';
 type TaxControllerProps = {
     /**
      * Only the distance surface passes this. `useTaxAmount` computes the taxable amount from the route rather than
-     * from the stored transaction amount, but it does so only inside its distance branches, so the other variants
-     * omit it and the plain branch applies.
+     * from the stored transaction amount inside distance branches.
      */
     distanceState?: Pick<ReturnType<typeof useDistanceRequestState>, 'distance' | 'unit'>;
 };
@@ -22,9 +21,6 @@ type TaxControllerProps = {
 /**
  * Side-effect-only component that syncs tax rate defaults
  * and tax amount when the transaction or policy changes.
- *
- * Mounted only by the variants whose expense type can show a tax field. It resolves the tax values itself,
- * because this controller is their only consumer.
  */
 function TaxController({distanceState}: TaxControllerProps) {
     const {transactionID, policyID, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense, transaction, policy, customUnitRateID} = useConfirmationData();

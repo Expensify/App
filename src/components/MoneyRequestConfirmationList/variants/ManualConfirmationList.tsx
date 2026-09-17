@@ -12,13 +12,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 /**
- * Confirms a manually entered expense, and is the dispatcher's residual case: it also serves pay, per diem being
- * moved off a track expense, and a time expense outside CREATE, all of which confirm as a plain expense. Those
- * last two are why `isPerDiemRequest` and `isTimeRequest` are passed through rather than hardcoded — they still
- * decide whether the amount, merchant and tax fields are shown.
- *
- * A manual expense is never a distance or scan request and never enters the compact layout, so this mounts no
- * distance controller.
+ * Confirms a manually entered expense.It also serves pay, per diem being moved off a track expense,
+ * and a time expense outside CREATE, all of which confirm as a plain expense.
  */
 function ManualConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, isEditingSplitBill, isPerDiemRequest, isTimeRequest, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;

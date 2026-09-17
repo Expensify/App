@@ -17,10 +17,6 @@ import {View} from 'react-native';
 /**
  * Confirms a scanned expense. The only variant that reaches the compact layout, where the receipt fills the
  * screen and the optional fields collapse behind a show-more button, so it owns that state.
- *
- * A scan is never a distance request, so this mounts no distance controller. It keeps the tax controller:
- * `useTaxAmount` reads `distance` only inside its distance branches, so the taxable amount comes from the
- * transaction amount here.
  */
 function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, isEditingSplitBill, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;

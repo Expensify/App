@@ -40,10 +40,7 @@ type VisibilityFlags = {
     shouldShowCategories: boolean;
     shouldShowTax: boolean;
 
-    /**
-     * Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount
-     * autofocus on picker close, so only the variants that render an amount field pass it.
-     */
+    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible?: boolean;
 };
 
@@ -74,8 +71,6 @@ type CompactControls = {
 };
 
 /** Receipt-related inputs threaded into the receipt section */
-/** Everything the receipt section renders from. Each field falls back to its empty state, so a surface that shows
- * no receipt — or a page that has none to show yet — can omit the whole bundle. */
 type ReceiptOptions = {
     receiptFilename?: string;
     receiptPath?: string | number;

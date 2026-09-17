@@ -12,10 +12,8 @@ import useConfirmationSections from './useConfirmationSections';
 import useSplitParticipants from './useSplitParticipants';
 
 /**
- * The "To:" / split-participant part of the confirmation: the participant rows the list shows, the row-level
- * errors they carry, and the tap that opens the participant picker. The rest of the confirmation — policy,
- * amounts, the form-error machinery — comes to it as resolved inputs; the rows and their handlers are all the
- * list needs.
+ * The participant part of the confirmation: the participant rows, the row-level errors they carry,
+ * and the tap that opens the participant picker.
  */
 function useParticipantSection({
     transaction,
@@ -76,7 +74,6 @@ function useParticipantSection({
 
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
     const canEditParticipant = isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
-
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const shouldForceTopEmptySections = iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest;
 
@@ -93,9 +90,6 @@ function useParticipantSection({
         getSplitSectionHeader,
     });
 
-    /**
-     * Navigate to the participant step
-     */
     const navigateToParticipantPage = () => {
         if (!canEditParticipant) {
             return;

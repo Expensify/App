@@ -31,10 +31,6 @@ const CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE: Partial<Record<IOUType, string>> = 
     [CONST.IOU.TYPE.INVOICE]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_INVOICE_BUTTON,
 };
 
-/**
- * The confirm button, its CTA label and the error message above it. Everything it needs comes from the
- * confirmation context and from the two footer-only hooks it owns: the CTA copy and the Test Drive tooltip.
- */
 function ConfirmationFooterContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

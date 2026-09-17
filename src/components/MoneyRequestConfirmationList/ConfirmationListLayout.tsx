@@ -39,8 +39,7 @@ type ConfirmationListLayoutProps = {
 };
 
 /**
- * The chrome every confirmation shares: the participant list, the fields below it, and the confirm button. What
- * differs per expense type is passed in as `listFooterContent`.
+ * Layout every confirmation shares: the participant list, the fields below it, and the confirm button.
  */
 function ConfirmationListLayout({transactionID, sections, listRef, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
     const styles = useThemeStyles();

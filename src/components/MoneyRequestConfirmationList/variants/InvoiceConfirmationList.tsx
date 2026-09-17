@@ -12,13 +12,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-/**
- * Confirms an invoice.
- *
- * An invoice is always a manual expense — the request-type tabs are not offered for it — so this mounts no
- * distance controller and never enters the compact layout. It is also never a split, so it skips the split
- * controller. `InvoiceFooter` adds the sender row above the shared fields.
- */
+/** Confirms an invoice */
 function InvoiceConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {selectedParticipants, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
 
