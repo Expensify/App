@@ -17,13 +17,11 @@ import getSubscriptAvatarSizing from './getSubscriptAvatarSizing';
 import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 
 type SubscriptAvatarProps = BaseAvatarProps & {
-    /** The primary (main) avatar icon */
     primaryAvatar: IconType;
 
     /** The secondary (subscript) avatar icon */
     secondaryAvatar?: IconType;
 
-    /** Style for  avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 

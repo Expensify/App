@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {cleanup, render, screen} from '@testing-library/react-native';
 
 import ExpenseReportAvatar from '@components/Avatar/connected/ExpenseReportAvatar';
 
@@ -21,6 +21,11 @@ const CONTAINER_STYLE = {marginRight: 0};
 const OWNER_ACCOUNT_ID = 42;
 const OWNER_LOGIN = 'john@example.com';
 const OWNER_AVATAR_URL = 'https://example.com/owner-avatar.png';
+
+const DELEGATE_ACCOUNT_ID = 77;
+const DELEGATE_LOGIN = 'copilot@example.com';
+const DELEGATE_AVATAR_URL = 'https://example.com/delegate-avatar.png';
+const PARENT_REPORT_ACTION_ID = 'action789';
 
 // Stands in for the bundled fallback SVG so a resolved account icon can be asserted by identity.
 function MockFallbackAvatar() {
@@ -75,6 +80,8 @@ describe('ExpenseReportAvatar (connected)', () => {
     });
 
     afterEach(async () => {
+        // Unmount before clearing so the store updates from the clear don't reach a mounted component outside act().
+        cleanup();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -92,6 +99,8 @@ describe('ExpenseReportAvatar (connected)', () => {
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
+        // useOnyx delivers its initial value asynchronously, so flush it inside act() before asserting.
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedWorkspaceSubscriptAvatar')).toBeOnTheScreen();
         expect(mockCapturedWorkspaceSubscriptAvatarProps).toEqual({
@@ -114,6 +123,7 @@ describe('ExpenseReportAvatar (connected)', () => {
                 size={CONST.AVATAR_SIZE.DEFAULT}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedWorkspaceSubscriptAvatarProps.primaryAvatar).toEqual(
             expect.objectContaining({id: CONST.DEFAULT_NUMBER_ID, type: CONST.ICON_TYPE_AVATAR, source: MockFallbackAvatar}),
@@ -131,19 +141,21 @@ describe('ExpenseReportAvatar (connected)', () => {
                 size={CONST.AVATAR_SIZE.DEFAULT}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedWorkspaceSubscriptAvatarProps.primaryAvatar).toEqual(
             expect.objectContaining({id: OWNER_ACCOUNT_ID, type: CONST.ICON_TYPE_AVATAR, source: getDefaultAvatarURL({accountID: OWNER_ACCOUNT_ID})}),
         );
     });
 
-    it('should hand over an undefined report row while it has not loaded', () => {
+    it('should hand over an undefined report row while it has not loaded', async () => {
         render(
             <ExpenseReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedWorkspaceSubscriptAvatarProps.report).toBeUndefined();
         expect(mockCapturedWorkspaceSubscriptAvatarProps.primaryAvatar).toEqual(expect.objectContaining({id: CONST.DEFAULT_NUMBER_ID}));

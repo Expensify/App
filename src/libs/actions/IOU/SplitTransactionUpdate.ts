@@ -124,6 +124,7 @@ type UpdateSplitTransactionsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 /**
@@ -208,6 +209,7 @@ function updateSplitTransactions({
     formatPhoneNumber,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -686,6 +688,7 @@ function updateSplitTransactions({
             isTrackIntentUser,
             formatPhoneNumber,
             getCurrencyDecimals,
+            rules,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -794,7 +797,9 @@ function updateSplitTransactions({
             moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
             existingTransactionID,
-            newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)) ?? 0,
+            // No `?? 0` fallback: a missing entry must stay `undefined` so the builder keeps applying its own
+            // per-transaction arithmetic. It now honours a real `0`, which the old truthiness check dropped.
+            newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)),
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
             isReverseSplitOperation,
@@ -812,6 +817,7 @@ function updateSplitTransactions({
             isTrackIntentUser,
             formatPhoneNumber,
             getCurrencyDecimals,
+            rules,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
@@ -907,8 +913,10 @@ function updateSplitTransactions({
                     isOffline,
                     delegateAccountID,
                     isTrackIntentUser,
+                    violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${existingTransactionID}`],
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
@@ -1407,18 +1415,15 @@ function updateSplitTransactions({
             optimisticData: deleteExpenseOptimisticData,
             failureData: deleteExpenseFailureData,
             successData: deleteExpenseSuccessData,
-        } = getDeleteTrackExpenseInformation(
-            splitTransactionReport,
-            undeletedTransaction?.transactionID,
-            currentReportAction,
-            undefined,
-            currentUserPersonalDetails.accountID,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
-        );
+        } = getDeleteTrackExpenseInformation({
+            chatReport: splitTransactionReport,
+            transactionID: undeletedTransaction?.transactionID,
+            reportAction: currentReportAction,
+            isChatReportArchived: undefined,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            transactionThreadReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportAction?.childReportID}`],
+            shouldRemoveIOUTransaction: isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
+        });
 
         // getDeleteTrackExpenseInformation only handles deleting the transaction report thread, so we need to update the report preview action here
         if (originalReportPreviewAction) {
@@ -1428,6 +1433,8 @@ function updateSplitTransactions({
                 updatedReportPreviewAction: (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: false,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
+                // shouldDeleteTransactionThread is false, so the transaction-thread report actions are never read here.
+                transactionThreadReportActionsParam: undefined,
             });
             updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxData.updatedReportPreviewAction;
         }

@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {cleanup, render, screen} from '@testing-library/react-native';
 
 import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 
@@ -85,6 +85,8 @@ describe('ReportAvatar (connected)', () => {
     });
 
     afterEach(async () => {
+        // Unmount before clearing so the store updates from the clear don't reach a mounted component outside act().
+        cleanup();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -102,6 +104,8 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         render(<ReportAvatar reportID={REPORT_ID} />);
+        // useOnyx delivers its initial value asynchronously, so flush it inside act() before asserting.
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedReportActionAvatars')).toBeOnTheScreen();
         expect(mockCapturedFallbackProps.reportID).toBe(REPORT_ID);
@@ -120,6 +124,7 @@ describe('ReportAvatar (connected)', () => {
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedExpenseReportAvatar')).toBeOnTheScreen();
         expect(mockCapturedExpenseReportAvatarProps).toMatchObject({
@@ -143,6 +148,7 @@ describe('ReportAvatar (connected)', () => {
                 sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedExpenseReportAvatar')).toBeOnTheScreen();
         expect(mockCapturedExpenseReportAvatarProps).not.toHaveProperty('horizontalStacking');
@@ -154,6 +160,7 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         render(<ReportAvatar reportID={REPORT_ID} />);
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedExpenseReportAvatarProps.containerStyle).toBeUndefined();
     });
@@ -236,6 +243,7 @@ describe('ReportAvatar (connected)', () => {
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedGroupChatAvatar')).toBeOnTheScreen();
         expect(mockCapturedGroupChatAvatarProps).toMatchObject({
@@ -257,6 +265,7 @@ describe('ReportAvatar (connected)', () => {
                 horizontalStacking={{maxRows: 2}}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedGroupChatAvatarProps.containerStyle).toEqual([]);
     });
@@ -280,6 +289,7 @@ describe('ReportAvatar (connected)', () => {
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedFallbackProps).toMatchObject({
             reportID: REPORT_ID,
@@ -293,8 +303,9 @@ describe('ReportAvatar (connected)', () => {
         });
     });
 
-    it('should render the generic fallback avatar without a reportID', () => {
+    it('should render the generic fallback avatar without a reportID', async () => {
         render(<ReportAvatar fallbackDisplayName={FALLBACK_NAME} />);
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedAccountAvatar')).toBeOnTheScreen();
         expect(mockCapturedAccountAvatarProps).toMatchObject({

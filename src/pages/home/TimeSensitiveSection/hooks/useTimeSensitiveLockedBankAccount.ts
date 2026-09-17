@@ -13,7 +13,6 @@ type LockedBankAccount = {
     /** Stable key used to render this account widget */
     key: string;
 
-    /** The ID of the locked bank account */
     bankAccountID: number;
 
     /** The policy name — undefined means personal account */

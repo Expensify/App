@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePrevious from '@hooks/usePrevious';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 
@@ -16,7 +17,6 @@ import {close as closeVisibleModal} from '@libs/actions/Modal';
 import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -60,6 +60,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -257,7 +258,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         hasStartedRef.current = true;
 
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(privateSubscription?.type), policies, policyID, session?.accountID)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
             onDismiss();
             return;
         }

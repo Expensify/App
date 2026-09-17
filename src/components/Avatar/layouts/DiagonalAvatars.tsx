@@ -22,7 +22,6 @@ import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
 const EMPTY_USER_ICON: Icon = {source: '', type: CONST.ICON_TYPE_AVATAR};
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
-    /** Whether the avatars are hovered */
     isHovered?: boolean;
 };
 

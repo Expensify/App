@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
