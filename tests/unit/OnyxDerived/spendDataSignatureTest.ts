@@ -110,4 +110,36 @@ describe('spendDataSignature', () => {
         // Then nothing moves
         expect(result).toEqual({expenses: 3, cardExpenses: 1});
     });
+
+    it('does not move the counters when a write leaves the counted fields alone', () => {
+        // Given a stored expense that the derived value has already seen
+        const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
+        spendDataSignatureConfig.compute([stored, cardList], {currentValue: {expenses: 0, cardExpenses: 0}});
+
+        // When the same expense is written again with no change to amount, date, currency, card or report,
+        // which is what merely opening it in the RHP does
+        const result = spendDataSignatureConfig.compute([stored, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: stored},
+        });
+
+        // Then nothing moves, so viewing an expense costs no search
+        expect(result).toEqual({expenses: 0, cardExpenses: 0});
+    });
+
+    it('moves the counters when the amount of a seen expense changes', () => {
+        // Given a stored expense the derived value has already seen
+        const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
+        spendDataSignatureConfig.compute([stored, cardList], {currentValue: {expenses: 0, cardExpenses: 0}});
+
+        // When its amount is edited
+        const edited: OnyxCollection<Transaction> = {[transactionKey('1')]: {...makeTransaction('1', CARD_ID), amount: 9999}};
+        const result = spendDataSignatureConfig.compute([edited, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: edited},
+        });
+
+        // Then both counters move, because the card total and the chart both change
+        expect(result).toEqual({expenses: 1, cardExpenses: 1});
+    });
 });
