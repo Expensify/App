@@ -16,7 +16,7 @@ const colors: Record<string, Color> = {
     red: '#F25730',
     redHover: '#DE4822',
     redPressed: '#F57959',
-    purple: '#800080',
+    bloodRed: '#880808',
     transparent: 'transparent',
 
     // Dark Mode Theme Colors
