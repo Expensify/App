@@ -1,5 +1,4 @@
-import ReportActionsSkeletonCover from '@components/ReportActionsSkeletonCover';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportActionsSkeletonCover, {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 
 import useCancelSendMessageSpanOnSkeleton from '@hooks/useCancelSendMessageSpanOnSkeleton';
 import type {SkeletonName} from '@hooks/useCancelSendMessageSpanOnSkeleton';
@@ -29,11 +28,9 @@ type ReportActionsLoadingSkeletonProps = {
 function ReportActionsLoadingSkeleton({reportID, skeletonName, shouldAnimate = true, shouldMarkOpenReportEnd = true}: ReportActionsLoadingSkeletonProps) {
     useCancelSendMessageSpanOnSkeleton(reportID, skeletonName);
     useMarkOpenReportEndOnSkeleton(reportID, shouldMarkOpenReportEnd);
-    return (
-        <ReportActionsSkeletonCover>
-            <ReportActionsSkeletonView shouldAnimate={shouldAnimate} />
-        </ReportActionsSkeletonCover>
-    );
+    const SkeletonCover = shouldAnimate ? ReportActionsAnimatedSkeletonCover : ReportActionsSkeletonCover;
+
+    return <SkeletonCover />;
 }
 
 ReportActionsLoadingSkeleton.displayName = 'ReportActionsLoadingSkeleton';

@@ -3,10 +3,10 @@ import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
-import ReportActionsSkeletonCover from '@components/ReportActionsSkeletonCover';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportActionsSkeletonCover, {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
@@ -94,19 +94,21 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}), options);
 }
 
 function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void}) {
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
+
     return (
         <View
             style={[styles.flex1]}
             onLayout={onLayout}
         >
-            <View style={[styles.appContentHeader, styles.borderBottom]}>
+            <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom]}>
                 <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
-            <ReportActionsSkeletonCover />
+            <ReportActionsAnimatedSkeletonCover />
         </View>
     );
 }
@@ -203,11 +205,7 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     }
 
     if (shouldShowEmptyActionsSkeleton) {
-        return (
-            <ReportActionsSkeletonCover>
-                <ReportActionsSkeletonView shouldAnimate={false} />
-            </ReportActionsSkeletonCover>
-        );
+        return <ReportActionsSkeletonCover />;
     }
 
     if (!report) {
@@ -217,8 +215,7 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     if (shouldShowAppLoadSkeleton) {
         return (
             <View style={styles.flex1}>
-                <ReportHeaderSkeletonView />
-                <ReportActionsSkeletonCover />
+                <InitialLoadingSkeleton styles={styles} />
                 {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>
         );

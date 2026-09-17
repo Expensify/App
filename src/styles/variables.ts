@@ -34,6 +34,7 @@ export default {
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
+    contentHeaderNarrowHeight: getValueUsingPixelRatio(64, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),
@@ -145,6 +146,7 @@ export default {
     htmlTableChevronColumnWidth: 20,
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
+    bulkActionBarPaddingVertical: 20,
     tableCheckboxColumnWidth: 20,
     tableStatusColumnWidth: 56,
     tableTypeColumnWidth: 84,

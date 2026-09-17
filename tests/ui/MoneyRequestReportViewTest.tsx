@@ -4,6 +4,7 @@ import {render, screen} from '@testing-library/react-native';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
 import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
@@ -41,10 +42,10 @@ jest.mock('@hooks/useInFlightRequests', () => ({
     useIsReportLoadPending: jest.fn(),
 }));
 
-// useThemeStyles throws without a <ThemeStylesProvider>; return a proxy that yields an empty style object
-// for any key so the (mostly-mocked) tree renders without wiring up the full provider stack.
+// useThemeStyles throws without a <ThemeStylesProvider>; return empty styles for most keys and
+// a fixed header height for the app-loading layout assertion.
 jest.mock('@hooks/useThemeStyles', () => {
-    const styleProxy = new Proxy({}, {get: () => ({})});
+    const styleProxy = new Proxy({}, {get: (_target, key) => (key === 'headerBarHeight' ? {height: 80} : {})});
     return jest.fn(() => styleProxy);
 });
 
@@ -195,6 +196,7 @@ describe('MoneyRequestReportView', () => {
         renderMoneyRequestReportView(jest.fn());
 
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        expect(mockReportActionsSkeletonView.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldAnimate: true}));
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
     });
@@ -216,6 +218,8 @@ describe('MoneyRequestReportView', () => {
         renderMoneyRequestReportView(jest.fn());
 
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        expect(screen.UNSAFE_getByType(ReportHeaderSkeletonView).parent).toHaveStyle({height: 80});
+        expect(mockReportActionsSkeletonView.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldAnimate: true}));
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
     });
