@@ -122,12 +122,14 @@ Choose which date Expensify should use when creating records in Sage Intacct:
 
 Choose one of the following:
 
-- **Credit Card Charges**:
+- **Credit cards**:
   - Requires selecting a credit card account
-  - Optional: Set a default vendor for unmatched charges
+  - Optional: Set a **Default vendor** for unmatched charges
   - Not supported at top-level if multi-currency is enabled
-- **Vendor Bills**:
-  - Optional: Set a default vendor for unmatched charges
+- **Vendor bills**:
+  - Optional: Set a **Default vendor** for unmatched charges
+
+When **Credit cards** is selected, vendor records are imported from Sage Intacct and a **Vendors** row is added to your Workspace. Learn how vendors are imported, matched, and exported in [Sage Intacct Vendor Matching](/articles/new-expensify/connections/sage-intacct/Manage-Vendor-Matching-for-Sage-Intacct).
 
 If you manage company cards in Expensify, you can map each card to a specific account for export.
 
