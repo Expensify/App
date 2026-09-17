@@ -46,7 +46,7 @@ Claude cannot:
 
 Yes. You can manually connect Claude to the Expensify MCP server instead of adding Expensify from Claude’s Connections Directory.
 
-For instructions, see Claude’s documentation: How to add a custom connector.
+For instructions, see Claude’s documentation: [How to add a custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp#h_3d1a65aded).
 
 When prompted for the server URL, enter `https://www.expensify.com/mcp/`, then complete the OAuth sign-in and approval flow.
 
