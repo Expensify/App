@@ -11,12 +11,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resolveReportFieldValue} from '@libs/Formula';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,10 +32,10 @@ import {
     getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
-    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
-    isInvoiceReport as isInvoiceReportUtils,
     isReportFieldDisabledForUser,
+    isReportFieldTargetMatchingReport,
     isSettled as isSettledReportUtils,
+    shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -44,6 +46,7 @@ import {fontScale} from '@styles/typography';
 
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -56,7 +59,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type MoneyReportViewProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** Policy that the report belongs to */
@@ -65,12 +67,8 @@ type MoneyReportViewProps = {
     /** Indicates whether the iou report is a combine report */
     isCombinedReport?: boolean;
 
-    /** Indicates whether the total should be shown */
     shouldShowTotal?: boolean;
-
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
-
     pendingAction?: PendingAction;
 
     /** Whether we should display the animated banner above the component */
@@ -98,10 +96,12 @@ function MoneyReportView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isSettled = isSettledReportUtils(report?.reportID);
     const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
 
@@ -137,19 +137,17 @@ function MoneyReportView({
     ];
 
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
-        const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
+        const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
         const sorted = Object.values(byName)
-            .filter((field) => field.target === report?.type)
+            .filter((field) => isReportFieldTargetMatchingReport(report, field))
             .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
         return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
-    }, [policy?.fieldList, report]);
+    }, [policy?.fieldList, report, reportNameValuePairs]);
 
     const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
-    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && !isOnlyTitleFieldEnabled;
+    const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
+    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
@@ -176,8 +174,7 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {(isGroupPolicyExpenseReport || isInvoiceReport) &&
-                            !!policy?.areReportFieldsEnabled &&
+                        {shouldDisplayReportFields &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {
@@ -185,7 +182,7 @@ function MoneyReportView({
                                 }
 
                                 const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID);
+                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
                                 const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);

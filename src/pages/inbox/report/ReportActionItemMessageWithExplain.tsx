@@ -27,13 +27,8 @@ import React from 'react';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
 type ReportActionItemMessageWithExplainProps = {
-    /** The message to display */
     message: string;
-
-    /** All the data of the action item */
     action: OnyxEntry<ReportAction>;
-
-    /** The child report of the action item */
     childReport: OnyxEntry<Report>;
 
     /** Original report from which the given reportAction is first created */

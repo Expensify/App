@@ -11,6 +11,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 
+import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
+
 type TodoSearchResultsData = SearchResults['data'];
 
 type TodoMetadata = {
@@ -138,8 +140,9 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useAllPersonalDetailsWithoutSnapshots();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     if (!searchKey) {
         return undefined;
@@ -160,6 +163,7 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
         currentUserAccountID: userAccountID,
         login,
         areTransactionsLoaded: transactionsMetadata.status === 'loaded',
+        rules,
     });
 
     const metadata = computeMetadata(reports, transactionsByReportID);

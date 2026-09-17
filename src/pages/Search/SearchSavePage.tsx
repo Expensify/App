@@ -24,7 +24,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {rand64} from '@libs/NumberUtils';
+import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -42,7 +43,6 @@ type FilterValueProps = {
 };
 
 type ArrayFilterValueProps = {
-    /** The array-valued search filter displayed by this component. */
     value: Extract<SearchFilter['value'], string[]>;
 };
 
@@ -163,7 +163,7 @@ function SearchSavePage() {
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
 
     const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
         if (!currentSearchQueryJSON) {
@@ -171,14 +171,25 @@ function SearchSavePage() {
             return;
         }
 
-        saveSearch({queryJSON: currentSearchQueryJSON, newName: values[INPUT_IDS.NAME].trim()});
-        Navigation.goBack();
+        const id = rand64();
+        saveSearch({id, queryJSON: currentSearchQueryJSON, newName: values[INPUT_IDS.NAME].trim()});
+        // The query doesn't change, only the search key it now belongs to, so the param is set on the search
+        // screen once this RHP is gone and it's the focused route again.
+        Navigation.dismissModal({afterTransition: () => Navigation.setParams({searchKey: savedSearchIDToSearchKey(id)})});
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
         getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, dateFnsLocale, localeCompare, convertToDisplayStringWithoutCurrency);
+    const appliedFilters = mapFiltersFormToLabelValueList(
+        searchAdvancedFiltersForm,
+        currentDefaultSearchQueryFilterKeys,
+        undefined,
+        translate,
+        dateFnsLocale,
+        localeCompare,
+        convertToDisplayStringWithoutCurrency,
+    );
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();

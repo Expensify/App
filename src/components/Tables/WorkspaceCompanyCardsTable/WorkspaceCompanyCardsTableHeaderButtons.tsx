@@ -1,5 +1,5 @@
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
@@ -16,11 +16,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
-import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed, isDirectFeed} from '@libs/CardUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {startCardFeedRefresh} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,10 +36,7 @@ import getShouldShowBrokenConnectionError from './getShouldShowBrokenConnectionE
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
-    /** Current policy id */
     policyID: string;
-
-    /** Currently selected feed */
     feedName: CompanyCardFeedWithDomainID;
 
     /** Whether the feed is loading */
@@ -48,7 +45,6 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
-    /** Card feed icon */
     CardFeedIcon: React.ReactNode;
 };
 
@@ -77,30 +73,18 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
     const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
     const shouldShowBrokenConnectionError = getShouldShowBrokenConnectionError(feedName, feedErrors);
+    // Only direct feeds can be reconnected in-app, so other feeds get the message without the bank login link.
+    const brokenConnectionMessage = isDirectFeed(feedName) ? translate('workspace.companyCards.brokenConnectionError') : `<rbr>${translate('personalCard.brokenConnection')}</rbr>`;
 
     const openBankConnection = () => {
         if (!feedName) {
             return;
         }
 
-        const institutionId = getPlaidInstitutionId(feedName);
-        const initialStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
-
-        // For Plaid feeds, seed selectedCountry so PlaidConnectionStep can start the login flow
-        if (institutionId) {
-            const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-            setAddNewCompanyCardStepAndData({
-                data: {
-                    selectedCountry: country,
-                },
-            });
-        }
-
-        setAssignCardStepAndData({currentStep: initialStep});
-
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID), feedName));
-        });
+        // The refresh flow keeps the bank login open until the reconnect completes: expiration change for OAuth,
+        // import finishing for Plaid. The broken-connection page would treat a feed that only has feed-level errors
+        // as already reconnected and close at once.
+        startCardFeedRefresh(policyID, feedName, policy?.outputCurrency, currencyList, countryByIp);
     };
 
     const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
@@ -161,7 +145,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                     <View style={[styles.offlineFeedbackText, styles.pr5, styles.flexRow, styles.w100]}>
                         <RenderHTML
-                            html={translate('workspace.companyCards.brokenConnectionError')}
+                            html={brokenConnectionMessage}
                             onLinkPress={openBankConnection}
                         />
                     </View>

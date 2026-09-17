@@ -14,6 +14,7 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportNameValuePairs,
+    Rule,
     Transaction,
 } from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
@@ -28,6 +29,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
+import getCollator from './CollatorUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
@@ -35,20 +37,24 @@ import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
-import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
     getAddedCardFeedMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getCardConnectionBrokenMessage,
     getCardIssuedMessage,
     getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCrossBorderReimbursedMessage,
     getCurrencyConversionFeeMessage,
@@ -73,6 +79,7 @@ import {
     getMccGroupCategoryMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
@@ -210,6 +217,7 @@ type ComputeReportName = {
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     pendingDeleteMemberAccountIDs?: string[];
+    rules: OnyxCollection<Rule>;
 };
 
 function generateArchivedReportName(reportName: string): string {
@@ -266,7 +274,7 @@ const buildReportNameFromParticipantNames = ({
  * The reason for this is that the computation of default group name should not depend on the locale.
  * This is used to ensure that group name stays consistent across locales.
  */
-const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+const customCollator = getCollator(CONST.LOCALES.EN);
 
 /**
  * Returns the report name if the report is a group chat
@@ -503,6 +511,7 @@ function computeReportNameBasedOnReportAction({
     currentUserAccountID,
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    rules,
 }: {
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
@@ -517,6 +526,7 @@ function computeReportNameBasedOnReportAction({
     currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
+    rules: OnyxCollection<Rule>;
 }): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -535,6 +545,7 @@ function computeReportNameBasedOnReportAction({
                 isTrackIntentUser,
                 policy: reportPolicy,
                 report: parentReport,
+                rules,
             })
         ) {
             return translate('iou.markedAsDone', getOriginalMessage(parentReportAction)?.message);
@@ -721,6 +732,14 @@ function computeReportNameBasedOnReportAction({
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
         return getForwardsToUpdateMessage(translate, parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        return getOverLimitForwardsToUpdateMessage(translate, parentReportAction, convertToDisplayString);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        return getApprovalLimitUpdateMessage(translate, parentReportAction, convertToDisplayString);
+    }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
         return getInvoiceCompanyNameUpdateMessage(translate, parentReportAction);
     }
@@ -850,7 +869,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionableJoinRequest(parentReportAction)) {
-        return getJoinRequestMessage(translate, reportPolicy, parentReportAction);
+        return getJoinRequestMessage(translate, reportPolicy?.name ?? '', parentReportAction, getPersonalDetailsByID(getOriginalMessage(parentReportAction)?.accountID, personalDetailsList));
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -865,12 +884,28 @@ function computeReportNameBasedOnReportAction({
         return Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, parentReportAction));
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, parentReportAction));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
+        return Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(parentReportAction)?.cardName, translate, false));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(parentReportAction)?.cardName, translate, true));
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
         return Parser.htmlToText(getPlaidBalanceFailureMessage(translate, parentReportAction));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         return getTravelUpdateMessage(translate, parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        return getConciergeAutoSelectDistanceRateMessage(translate, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
@@ -975,8 +1010,11 @@ function computeChatThreadReportName({
     isArchived,
     report,
     reports,
+    parentReport,
+    currentUserAccountID,
     currentUserLogin,
     transactions,
+    conciergeReportID,
     parentReportAction,
     policyTags,
     policy,
@@ -987,8 +1025,11 @@ function computeChatThreadReportName({
     isArchived: boolean;
     report: Report;
     reports: OnyxCollection<Report>;
+    parentReport: OnyxEntry<Report>;
+    currentUserAccountID: number | undefined;
     currentUserLogin: string;
     transactions: OnyxCollection<Transaction>;
+    conciergeReportID: string | undefined;
     parentReportAction?: ReportAction;
     policyTags?: OnyxEntry<PolicyTagLists>;
     policy?: OnyxEntry<Policy>;
@@ -1026,8 +1067,22 @@ function computeChatThreadReportName({
         return translate('parentReportAction.deletedMessage');
     }
 
+    const parentReportActionText = getReportActionText(parentReportAction);
+
+    // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
+    // A thread opened by hand is named after the parent message, and that copy isn't localized (an attachment is stored
+    // as the literal "[Attachment]"), so keep computing the name until Concierge replaces it with a generated title.
+    if (
+        report.reportName &&
+        report.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME &&
+        report.reportName !== parentReportActionText &&
+        isConciergeChatReport(parentReport, conciergeReportID)
+    ) {
+        return report.reportName;
+    }
+
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
-    const reportActionMessage = getReportActionText(parentReportAction).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
+    const reportActionMessage = parentReportActionText.replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
     if (isAttachment && reportActionMessage) {
         return `[${translate('common.attachment')}]`;
     }
@@ -1056,6 +1111,7 @@ function computeChatThreadReportName({
             movedToReport,
             policyTags,
             policy,
+            currentUserAccountID,
             currentUserLogin,
         });
         // Strip HTML tags for plain text display in report previews
@@ -1093,6 +1149,7 @@ function computeReportName({
     convertToDisplayStringWithoutCurrency,
     getCurrencySymbol,
     pendingDeleteMemberAccountIDs,
+    rules,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -1116,6 +1173,7 @@ function computeReportName({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
+        rules,
     });
 
     if (parentReportActionBasedName) {
@@ -1150,6 +1208,7 @@ function computeReportName({
             getCurrencySymbol,
             // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
             pendingDeleteMemberAccountIDs: undefined,
+            rules,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate);
     }
@@ -1170,8 +1229,11 @@ function computeReportName({
         isArchived: privateIsArchivedValue,
         report,
         reports: reports ?? {},
+        parentReport,
+        currentUserAccountID,
         currentUserLogin: currentUserLogin ?? '',
         transactions,
+        conciergeReportID,
         parentReportAction,
         policyTags,
         policy: reportPolicy,
