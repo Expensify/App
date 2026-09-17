@@ -137,7 +137,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     __esModule: true,
     default: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
-    useSearchTypeMenuSectionsForDisplay: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
+    useSearchTypeMenuSectionsForNavigation: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
 }));
 
 jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({

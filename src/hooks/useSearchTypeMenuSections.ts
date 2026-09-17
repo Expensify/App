@@ -146,7 +146,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
 
 const spendInsightsSearchKeys = new Set<SearchKey>(SPEND_INSIGHTS_SEARCH_KEYS);
 
-const useSearchTypeMenuSectionsForDisplay = (isScreenFocused = true) => {
+const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
     const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
     const {isBetaEnabled} = usePermissions();
 
@@ -164,4 +164,4 @@ const useSearchTypeMenuSectionsForDisplay = (isScreenFocused = true) => {
 };
 
 export default useSearchTypeMenuSections;
-export {useSearchTypeMenuSectionsForDisplay};
+export {useSearchTypeMenuSectionsForNavigation};
