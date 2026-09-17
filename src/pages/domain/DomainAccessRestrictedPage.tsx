@@ -47,7 +47,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
 
     const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {
         whenAccessLost: ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID),
-        whenAdmin: ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID),
+        shouldDismissWhenAdmin: true,
     });
 
     useEffect(() => {

@@ -185,9 +185,9 @@ describe('DomainAlreadyExistsPage', () => {
         renderDomainAlreadyExistsPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the admin is taken to the domain page and never sees the request access button
-        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.DOMAIN_INITIAL.getRoute(DOMAIN_ACCOUNT_ID)));
-        expect(dismissModalSpy).toHaveBeenCalled();
+        // Then the RHP is dismissed for the admin, who never sees the request access button
+        await waitFor(() => expect(dismissModalSpy).toHaveBeenCalled());
+        expect(navigateSpy).not.toHaveBeenCalled();
         expect(screen.queryByRole('button', {name: TestHelper.translateLocal('domain.domainAlreadyExists.requestAccess')})).toBeNull();
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, expect.anything(), expect.anything());
     });

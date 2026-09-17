@@ -91,6 +91,7 @@ describe('BaseVerifyDomainPage', () => {
         // Cleared last so a redirect this test queued on the microtask queue has already run and cannot count against the next one
         apiReadSpy.mockClear();
         navigateSpy.mockClear();
+        dismissModalSpy.mockClear();
     });
 
     it('renders the DNS verification screen for a non-admin on an already-validated domain instead of NotFoundPage', async () => {
@@ -208,11 +209,39 @@ describe('BaseVerifyDomainPage', () => {
             });
         });
 
-        // Then the new admin is taken to the domain page instead of being left on a not found page
-        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.DOMAIN_INITIAL.getRoute(DOMAIN_ACCOUNT_ID)));
-        expect(dismissModalSpy).toHaveBeenCalled();
+        // Then the RHP is dismissed instead of leaving the new admin on a not found page
+        await waitFor(() => expect(dismissModalSpy).toHaveBeenCalled());
+        expect(navigateSpy).not.toHaveBeenCalled();
         expect(screen.queryByTestId('BaseVerifyDomainPage')).toBeNull();
         expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).toBeNull();
+    });
+
+    it('shows the success screen instead of dismissing when the user verifies the domain themselves', async () => {
+        // Given a validated domain the current user is not yet an admin of
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
+                accountID: DOMAIN_ACCOUNT_ID,
+                email: DOMAIN_EMAIL,
+                validated: true,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderVerifyDomainPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('BaseVerifyDomainPage')).toBeTruthy();
+
+        // When their DNS check passes, which makes them an admin and marks the verification as succeeded in the same update
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
+                isValidationPending: null,
+                hasValidationSucceeded: true,
+                ...DOMAIN_ADMIN_ACCESS,
+            });
+        });
+
+        // Then they move on to the verified screen and the RHP is not dismissed from under them
+        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(DOMAIN_ACCOUNT_ID), {forceReplace: true}));
+        expect(dismissModalSpy).not.toHaveBeenCalled();
     });
 
     it('renders NotFoundPage for a domain that was never there and does not redirect', async () => {

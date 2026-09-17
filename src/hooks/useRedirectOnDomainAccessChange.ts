@@ -20,11 +20,10 @@ type DomainAccessRedirects = {
     whenAccessLost?: Route;
 
     /**
-     * Full-screen route to open once the RHP is dismissed when the user is, or becomes, an admin of the domain, e.g. their adminship
-     * request was approved. Dismissing first keeps the RHP screen out of browser history, otherwise going back would restore it
-     * and trigger the redirect again.
+     * Dismisses the RHP, leaving the user on the domains list, when they are, or become, an admin of the domain, e.g. their adminship
+     * request was approved. The domain is listed there for them now, and dismissing keeps the RHP screen out of browser history.
      */
-    whenAdmin?: Route;
+    shouldDismissWhenAdmin?: boolean;
 };
 
 /**
@@ -34,7 +33,7 @@ type DomainAccessRedirects = {
  *
  * @returns whether the screen is about to be replaced, so the caller can hide its content in the meantime
  */
-function useRedirectOnDomainAccessChange(domainAccountID: number, {whenAccessLost, whenAdmin}: DomainAccessRedirects): boolean {
+function useRedirectOnDomainAccessChange(domainAccountID: number, {whenAccessLost, shouldDismissWhenAdmin}: DomainAccessRedirects): boolean {
     const isFocused = useIsFocused();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [domainAccess] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainAccessSelector(currentUserAccountID)});
@@ -47,7 +46,7 @@ function useRedirectOnDomainAccessChange(domainAccountID: number, {whenAccessLos
         setLoadedDomainAccountID(domainAccountID);
     }
     const hasLostDomainAccess = !!whenAccessLost && loadedDomainAccountID === domainAccountID && !domainName;
-    const shouldRedirectAdmin = !!whenAdmin && isAdmin;
+    const shouldRedirectAdmin = !!shouldDismissWhenAdmin && isAdmin;
 
     useEffect(() => {
         // Wait for focus so a change landing while the user is deeper in the flow doesn't pull them out of it.
@@ -55,13 +54,13 @@ function useRedirectOnDomainAccessChange(domainAccountID: number, {whenAccessLos
             return;
         }
         if (shouldRedirectAdmin) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal({afterTransition: () => Navigation.navigate(whenAdmin)}));
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
         }
         if (hasLostDomainAccess) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal({afterTransition: () => Navigation.navigate(whenAccessLost)}));
         }
-    }, [isFocused, shouldRedirectAdmin, whenAdmin, hasLostDomainAccess, whenAccessLost]);
+    }, [isFocused, shouldRedirectAdmin, hasLostDomainAccess, whenAccessLost]);
 
     return shouldRedirectAdmin || hasLostDomainAccess;
 }

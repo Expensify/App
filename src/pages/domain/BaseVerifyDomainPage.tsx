@@ -56,11 +56,11 @@ type BaseVerifyDomainPageProps = {
     /** Route to replace this page with when the domain is taken away mid-visit, instead of dead-ending on the not found page */
     fallbackTo?: Route;
 
-    /** Route to send a verified domain admin to instead of the not found page, e.g. a requester approved while verifying themselves */
-    adminForwardTo?: Route;
+    /** Dismisses the RHP for a verified domain admin instead of showing the not found page, e.g. a requester approved while verifying themselves */
+    shouldDismissForVerifiedAdmin?: boolean;
 };
 
-function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, adminForwardTo}: BaseVerifyDomainPageProps) {
+function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, shouldDismissForVerifiedAdmin}: BaseVerifyDomainPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -74,8 +74,14 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, adminForw
     // A domain admin has nothing to verify once the domain is validated, so keep them out of the flow if they deep-link; non-admins still land here to re-verify
     const isVerifiedDomainAdmin = !!domain?.validated && isAdminSelector(currentUserAccountID)(domain);
 
-    // Admins of a not-yet-validated domain belong here, so only a verified admin is forwarded
-    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {whenAccessLost: fallbackTo, whenAdmin: isVerifiedDomainAdmin ? adminForwardTo : undefined});
+    // Verifying the domain is what makes the user an admin, so while their own verification is in flight or has just
+    // succeeded the success screen below takes over instead of dismissing the flow from under them
+    const isOwnVerificationInFlight = !!domain?.isValidationPending || !!domain?.hasValidationSucceeded;
+    // Admins of a not-yet-validated domain belong here, so only a verified admin is sent away
+    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {
+        whenAccessLost: fallbackTo,
+        shouldDismissWhenAdmin: shouldDismissForVerifiedAdmin && isVerifiedDomainAdmin && !isOwnVerificationInFlight,
+    });
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 

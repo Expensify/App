@@ -241,9 +241,9 @@ describe('DomainAccessRestrictedPage', () => {
             });
         });
 
-        // Then the new admin is taken to the domain page and the access restricted screen is gone
-        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.DOMAIN_INITIAL.getRoute(DOMAIN_ACCOUNT_ID)));
-        expect(dismissModalSpy).toHaveBeenCalled();
+        // Then the RHP is dismissed, leaving the new admin on the domains list where the domain now appears
+        await waitFor(() => expect(dismissModalSpy).toHaveBeenCalled());
+        expect(navigateSpy).not.toHaveBeenCalled();
         expect(screen.queryByTestId('DomainAccessRestrictedPage')).toBeNull();
     });
 

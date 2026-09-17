@@ -42,7 +42,7 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
     const [isRequestPending] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: (pendingActions) => !!pendingActions?.requestAdminship});
     const [requestError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: (errors) => errors?.requestAdminshipError});
 
-    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {whenAdmin: ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID)});
+    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {shouldDismissWhenAdmin: true});
 
     // Tracks whether the user has submitted a request this visit, so navigating away on success doesn't also fire for a request that was already pending before the page mounted.
     const [hasSubmittedRequest, setHasSubmittedRequest] = useState(false);
