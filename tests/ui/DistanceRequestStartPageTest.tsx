@@ -56,6 +56,31 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
 }));
 
+// Plain objects, not jest mocks, so they aren't cleared by `jest.clearAllMocks()`. Both mocks below delegate to the
+// real component so existing behavior (and the other tests in this file) is unaffected — they only add prop capture.
+const mockScreenWrapperProps = {current: undefined as Record<string, unknown> | undefined};
+const mockOnyxTabNavigatorProps = {current: undefined as Record<string, unknown> | undefined};
+
+jest.mock('@components/ScreenWrapper', () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const actual = jest.requireActual<{default: React.ComponentType<Record<string, unknown>>}>('@components/ScreenWrapper');
+    function MockScreenWrapper(props: Record<string, unknown>) {
+        mockScreenWrapperProps.current = props;
+        return ReactActual.createElement(actual.default, props);
+    }
+    return {...actual, __esModule: true, default: MockScreenWrapper};
+});
+
+jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const actual = jest.requireActual<{default: React.ComponentType<Record<string, unknown>>}>('@libs/Navigation/OnyxTabNavigator');
+    function MockOnyxTabNavigator(props: Record<string, unknown>) {
+        mockOnyxTabNavigatorProps.current = props;
+        return ReactActual.createElement(actual.default, props);
+    }
+    return {...actual, __esModule: true, default: MockOnyxTabNavigator};
+});
+
 const REPORT_ID = '1';
 const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
@@ -154,6 +179,17 @@ describe('DistanceRequestStartPage', () => {
 
         // Then the draft is rebuilt as a map expense, so it keeps the waypoints the Map tab needs
         await expect(getDraftRequestType()).resolves.toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+    });
+
+    // Cropped-map regression (#95376): a shared KeyboardAvoidingView here used to leak keyboard-driven padding from
+    // the Odometer tab into the others. The fix is these two props; nothing else in this file exercises them.
+    it('keeps the shared KeyboardAvoidingView disabled and waits for the keyboard before switching tabs', async () => {
+        await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP});
+
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP);
+
+        expect(mockScreenWrapperProps.current?.shouldEnableKeyboardAvoidingView).toBe(false);
+        expect(mockOnyxTabNavigatorProps.current?.shouldDismissKeyboardBeforeTabSwitch).toBe(true);
     });
 
     it('should seed the waypoints that keep the waypoint editor reachable from the Map tab', async () => {

@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRilletErrorField, updateRilletDefaultVendor} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,7 +30,7 @@ type VendorListItem = ListItem & {
 };
 
 function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
@@ -39,13 +39,14 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
     const defaultCompanyCardVendorID = rilletConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
 
-    const data: VendorListItem[] =
-        rilletData?.vendors?.map((vendorItem) => ({
-            value: vendorItem.id,
-            text: vendorItem.name,
-            keyForList: vendorItem.id,
-            isSelected: defaultCompanyCardVendorID === vendorItem.id,
-        })) ?? [];
+    const rawVendors = rilletData?.vendors ?? [];
+    const sortedVendors = sortVendors(rawVendors, localeCompare);
+    const data: VendorListItem[] = sortedVendors.map((vendorItem) => ({
+        value: vendorItem.id,
+        text: vendorItem.name,
+        keyForList: vendorItem.id,
+        isSelected: defaultCompanyCardVendorID === vendorItem.id,
+    }));
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (

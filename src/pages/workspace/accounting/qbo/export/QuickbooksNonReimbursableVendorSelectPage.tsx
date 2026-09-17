@@ -1,13 +1,14 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -21,6 +22,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type VendorConfigKey = 'nonReimbursableBillDefaultVendor' | 'nonReimbursableCreditCardDefaultVendor';
 
@@ -43,7 +45,7 @@ type QuickbooksNonReimbursableVendorSelectPageProps = {
 };
 
 function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVendor, displayName}: QuickbooksNonReimbursableVendorSelectPageProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -52,13 +54,13 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
     const currentVendor = qboConfig?.[configKey];
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const data: CardListItem[] =
-        vendors?.map((vendor) => ({
-            value: vendor.id,
-            text: vendor.name,
-            keyForList: vendor.id,
-            isSelected: vendor.id === currentVendor,
-        })) ?? [];
+    const sortedVendors = sortVendors(vendors ?? [], localeCompare);
+    const data: CardListItem[] = sortedVendors.map((vendor) => ({
+        value: vendor.id,
+        text: vendor.name,
+        keyForList: vendor.id,
+        isSelected: vendor.id === currentVendor,
+    }));
 
     // Only the CC/DC export path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing on that configKey.
     const canClearByReSelecting = configKey === CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR;
@@ -73,6 +75,12 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
         }
         Navigation.goBack();
     };
+
+    const listHeaderContent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.defaultVendorSelectHeader')}</Text>
+        </View>
+    );
 
     const listEmptyContent = (
         <BlockingView
@@ -92,6 +100,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={displayName}
             title="workspace.accounting.defaultVendor"
+            headerContent={listHeaderContent}
             data={data}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect

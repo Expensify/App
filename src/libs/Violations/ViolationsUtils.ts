@@ -573,8 +573,9 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        // Inactive vendor violation, gated behind the `vendorMatching` beta. The transaction's
-        // vendor is never cleared here — admins need to see what was set so they can re-pick.
+        // Inactive vendor violation, gated on `hasVendorFeature`, which only consults the
+        // `vendorMatching` beta for integrations that haven't reached GA. The transaction's
+        // vendor is never cleared here because admins need to see what was set so they can re-pick.
         if (allBetas !== undefined) {
             const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
             const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
@@ -695,9 +696,11 @@ const ViolationsUtils = {
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasItemizedReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
-        const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        const existingOverLimitViolation = transactionViolations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        const existingCategoryOverLimitViolation = transactionViolations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const hasOverLimitViolation = !!existingOverLimitViolation;
         const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
-        const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const hasCategoryOverLimitViolation = !!existingCategoryOverLimitViolation;
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         const hasMissingAttendeesViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
@@ -724,6 +727,14 @@ const ViolationsUtils = {
         const maxAmountNoItemizedReceipt = policy.maxExpenseAmountNoItemizedReceipt;
         // Amount is stored with opposite sign (negative for expenses), so we negate it to get the actual expense amount
         const expenseAmount = -amount;
+
+        // A SmartScanned multi-day reservation is measured against its average nightly rate rather than its total
+        const reservationNights = TransactionUtils.getReservationNights(updatedTransaction);
+        const amountForLimitCheck = reservationNights > 0 ? expenseAmount / reservationNights : expenseAmount;
+        // The night count decides whether the violation reads as a nightly rate or a total, so an existing violation
+        // carrying a different count has to be rebuilt rather than left in place.
+        const expectedNights = reservationNights > 0 ? reservationNights : undefined;
+        const hasStaleCategoryOverLimitNights = hasCategoryOverLimitViolation && existingCategoryOverLimitViolation?.data?.nights !== expectedNights;
 
         // The category maxExpenseAmountNoReceipt and maxExpenseAmount settings override the respective policy settings.
         const shouldShowReceiptRequiredViolation =
@@ -760,6 +771,9 @@ const ViolationsUtils = {
 
         const overLimitAmount = policy.maxExpenseAmount;
         const categoryOverLimit = policyCategories[categoryName ?? '']?.maxExpenseAmount;
+        const categoryExpenseLimitType = policyCategories[categoryName ?? '']?.expenseLimitType;
+        const isIndividualExpenseLimitType = categoryExpenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE || categoryExpenseLimitType === undefined;
+        const amountForCategoryLimitCheck = isIndividualExpenseLimitType ? amountForLimitCheck : expenseAmount;
         const shouldShowOverLimitViolation =
             canCalculateAmountViolations &&
             !isInvoiceTransaction &&
@@ -773,7 +787,7 @@ const ViolationsUtils = {
         const shouldShowOverTripLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && TransactionUtils.hasReservationList(updatedTransaction) && isSameCurrency && expenseAmount > -updatedTransaction.amount;
         const shouldCategoryShowOverLimitViolation =
-            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
+            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && amountForCategoryLimitCheck > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
             !isInvoiceTransaction &&
             policyCategories?.[categoryName ?? '']?.areCommentsRequired &&
@@ -865,16 +879,20 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
         }
 
-        if (canCalculateAmountViolations && hasCategoryOverLimitViolation && !shouldCategoryShowOverLimitViolation) {
+        if (canCalculateAmountViolations && hasCategoryOverLimitViolation && (!shouldCategoryShowOverLimitViolation || hasStaleCategoryOverLimitNights)) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT});
         }
 
-        if (canCalculateAmountViolations && ((!hasOverLimitViolation && !!shouldShowOverLimitViolation) || (!hasCategoryOverLimitViolation && shouldCategoryShowOverLimitViolation))) {
+        if (
+            canCalculateAmountViolations &&
+            ((!hasOverLimitViolation && !!shouldShowOverLimitViolation) || ((!hasCategoryOverLimitViolation || hasStaleCategoryOverLimitNights) && shouldCategoryShowOverLimitViolation))
+        ) {
             newTransactionViolations.push({
                 name: shouldCategoryShowOverLimitViolation ? CONST.VIOLATIONS.OVER_CATEGORY_LIMIT : CONST.VIOLATIONS.OVER_LIMIT,
                 data: {
                     amount: shouldCategoryShowOverLimitViolation ? categoryOverLimit : policy.maxExpenseAmount,
                     currency: policy.outputCurrency,
+                    ...(shouldCategoryShowOverLimitViolation && isIndividualExpenseLimitType && reservationNights > 0 ? {nights: reservationNights} : {}),
                 },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -1049,7 +1067,9 @@ const ViolationsUtils = {
             case 'overAutoApprovalLimit':
                 return translate('violations.overAutoApprovalLimit', convertToDisplayString(amount, currency));
             case 'overCategoryLimit':
-                return translate('violations.overCategoryLimit', convertToDisplayString(amount, currency));
+                return violation.data?.nights
+                    ? translate('violations.overCategoryLimitPerNight', convertToDisplayString(amount, currency))
+                    : translate('violations.overCategoryLimit', convertToDisplayString(amount, currency));
             case 'overLimit':
                 return translate('violations.overLimit', convertToDisplayString(amount, currency));
             case 'overTripLimit':
@@ -1187,6 +1207,10 @@ const ViolationsUtils = {
      * Checks if any transactions in the report have violations that should be visible to the current user.
      * Filters violations based on user role (submitter, admin, policy member) and report state.
      * Also filters out dismissed violations.
+     *
+     * `excludedViolationNames` lets a caller that is answering a narrower question than "is anything visible" drop
+     * violations by name first. Callers that pair this with their own name-filtered check must pass the same list here,
+     * otherwise an excluded-but-visible violation vouches for a violation that the caller has already filtered out.
      */
     hasVisibleViolationsForUser(
         report: OnyxEntry<Report>,
@@ -1195,6 +1219,7 @@ const ViolationsUtils = {
         currentUserAccountID: number,
         policy: OnyxEntry<Policy>,
         transactions: Transaction[],
+        excludedViolationNames: ViolationName[] = [],
     ): boolean {
         if (!report || !violations || !transactions) {
             return false;
@@ -1210,6 +1235,7 @@ const ViolationsUtils = {
             // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
+                    !excludedViolationNames.includes(violation.name) &&
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy) &&
                     shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)
                 );
