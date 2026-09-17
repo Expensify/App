@@ -37,7 +37,7 @@ jest.mock('@hooks/useLocalize', () => ({
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayString: (amount: number | undefined, currency: string | undefined) => `${currency ?? ''}${amount ?? 0}`}),
 }));
-// The total amount lives inside this button; the tests assert on the count label and the menu's props, so the whole
+// The total amount lives inside this button. The tests assert on the count label and the menu's props, so the whole
 // button renders as nothing. Its compound parts still have to exist, since the footer references them.
 jest.mock('@components/Button', () => {
     function MockButton() {

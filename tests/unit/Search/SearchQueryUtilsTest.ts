@@ -329,7 +329,7 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toContain('footerCount:reports');
             expect(result).toContain('footerTotal:reimbursable');
-            // The currency is read back upper-cased; the query keeps whatever case was typed, which nothing depends on.
+            // The currency is read back upper-cased. The query keeps whatever case was typed, which nothing depends on.
             expect(result).toContain('footerCurrency:eur');
         });
 

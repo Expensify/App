@@ -67,8 +67,8 @@ function getTransactionCount(transactionKeys: string[], transactions: SelectedTr
 }
 
 // Whether a selected row belongs in the total the footer is showing. Reimbursable is the product default, so only an
-// explicit `false` makes an expense non-reimbursable; billable is the other way round. A row with no transaction of its
-// own — an empty report group — has no expense to classify, so it counts towards no breakdown.
+// explicit `false` makes an expense non-reimbursable. Billable works the other way round. A row with no transaction of
+// its own (an empty report group) has no expense to classify, so it counts towards no breakdown.
 function matchesFooterTotal(entry: SelectedTransactionInfo, totalType: SearchFooterTotal): boolean {
     const transaction = entry.transaction;
 
@@ -149,7 +149,7 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     const footerSelection = getFooterSelectionFromQuery(currentSearchQueryJSON);
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     // The query carries the currency across a reload and into a saved search, so it is what an untouched footer starts
-    // from; this session's own pick wins once made, since it also covers a Reset back to the default.
+    // from. This session's own pick wins once made, since it also covers a Reset back to the default.
     const selectedCurrency = (isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined) ?? footerSelection.footerCurrency;
     const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
 
@@ -302,8 +302,8 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
 
     // Both selectors stay available for whatever the footer is describing. A hand-picked selection is counted and summed
-    // from the selected rows themselves; everything else — nothing selected, or a select-all, with or without exclusions
-    // — is the server's figures, since a select-all covers rows that were never loaded and so cannot be counted here.
+    // from the selected rows themselves. Everything else (nothing selected, or a select-all with or without exclusions)
+    // is the server's figures, since a select-all covers rows that were never loaded and so cannot be counted here.
     const defaultFooterCountType = isReportsSearch ? CONST.SEARCH.FOOTER_COUNT.REPORTS : CONST.SEARCH.FOOTER_COUNT.EXPENSES;
 
     // A group row selected as a whole is out of scope for now, pending the backend returning breakdowns per group. It
@@ -311,8 +311,8 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     // expenses each flagged `isSelectedViaGroup` when they are. The flag is cleared as soon as one of them is toggled
     // off, so a part-deselected group counts as an individual selection again and keeps both selectors.
     //
-    // Only a grouped search is affected. A Reports search carries the same flag — a report row is a group row there —
-    // but a report is that search's natural unit, and its expenses are exactly what the selection holds.
+    // Only a grouped search is affected. A Reports search carries the same flag, because a report row is a group row
+    // there, but a report is that search's natural unit and its expenses are exactly what the selection holds.
     const hasGroupSelection =
         isGroupedSearch &&
         (selectedTransactionsKeys.some(isGroupEntry) ||
@@ -334,10 +334,10 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
 
     // A total the client sums itself is chosen in local state, not in the query: the query's `footerTotal` is part of the
     // search hash, so writing it would re-run the search and clear the very selection the footer is describing. The
-    // override lives only while the client is summing — once the selection goes, the footer is back on the query's total.
+    // override lives only while the client is summing. Once the selection goes, the footer is back on the query's total.
     const footerTotalOverride = hasPartialSelection && footerTotalState.searchHash === currentSearchHash ? footerTotalState.selectedTotal : undefined;
     const footerTotalType = shouldShowTotalSelector ? (footerTotalOverride ?? footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
-    // No selector means no breakdown, which is the plain total — so the sums below never have to special-case it.
+    // No selector means no breakdown, which is the plain total, so the sums below never have to special-case it.
     const footerTotalBreakdown = footerTotalType ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
     const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
@@ -518,8 +518,8 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     // self-subscribing leaf that re-renders on every checkbox press, and the form route would subscribe it to the whole
     // policy collection. useSearchFilterSync writes the form from the query, so the form still follows.
     //
-    // `shouldReloadResults` says whether the backend's answer actually changes. Only `footerTotal` does — it swaps which
-    // aggregate comes back as the search total — so only that one enters the query hash and re-runs the search. The page
+    // `shouldReloadResults` says whether the backend's answer actually changes. Only `footerTotal` does, by swapping
+    // which aggregate comes back as the search total, so only that one enters the query hash and re-runs the search. The page
     // is told first, so the rows stay on screen while it loads: the selection never changes which rows match.
     const applyFooterSelection = (selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string}, shouldReloadResults = false) => {
         if (!currentSearchQueryJSON) {
@@ -551,7 +551,6 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         // into the query would change the search hash, re-run the search and clear the very rows the footer is describing.
         // Every other case goes into the query, which is what makes the choice stick for the next visit.
         if (hasPartialSelection) {
-            console.log('xxxxxxxxx', {searchHash: currentSearchHash, selectedTotal: nextTotalType});
             setFooterTotalState({searchHash: currentSearchHash, selectedTotal: nextTotalType});
             return;
         }
@@ -580,7 +579,7 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
             //
             // A report's converted total is a single figure with no breakdown inside it, so a breakdown has to be summed
             // from the reports' own expenses instead. A Reports search converts by report, so those expenses have no
-            // converted figures of their own — the breakdown stays in the default currency, and is labelled as such.
+            // converted figures of their own, so the breakdown stays in the default currency and is labelled as such.
             const shouldConvertSelectedTotal = shouldUseConvertedSelectedTotal && !(isReportsSearch && footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL);
 
             let total;
@@ -672,7 +671,7 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     }
 
     // A footer selector re-runs the search under a new hash, and the page keeps the previous results on screen while it
-    // loads — so the figures on display belong to the previous query until the new snapshot lands.
+    // loads, so the figures on display belong to the previous query until the new snapshot lands.
     const isFooterReloading = metadata?.hash !== undefined && metadata.hash !== currentSearchHash;
 
     // A partial selection shows a client-side subtotal that is ready immediately, so only show the search-loading

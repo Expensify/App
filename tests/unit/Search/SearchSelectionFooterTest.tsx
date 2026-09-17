@@ -31,7 +31,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {setParams: (params: {q?: string; rawQuery?: string}) => mockSetParams(params)},
 }));
 
-// The real one waits for the popover to close first; the callback is all these tests care about.
+// The real one waits for the popover to close first. The callback is all these tests care about.
 jest.mock('@libs/actions/Modal', () => ({
     close: (onModalClose: () => void) => onModalClose(),
 }));
@@ -510,7 +510,7 @@ describe('SearchSelectionFooter', () => {
             });
 
             // A per-report converted total has no breakdown inside it, and the reports' expenses are not converted
-            // individually — so the figure stays in the currency it is actually denominated in.
+            // individually, so the figure stays in the currency it is actually denominated in.
             expect(mockCapturedFooterProps.current?.currency).not.toBe(CONST.CURRENCY.EUR);
         });
 
@@ -732,8 +732,8 @@ describe('SearchSelectionFooter', () => {
 
         it('keeps both selectors on the Reports tab, where a selected report row is the search unit', async () => {
             setSearchQuery('type:expense-report');
-            // Selecting a report stores its expenses, flagged as selected via the row — the same flag a grouped search
-            // uses for a group. On a Reports search those expenses are exactly what the footer should describe.
+            // Selecting a report stores its expenses, flagged as selected via the row, which is the same flag a grouped
+            // search uses for a group. On a Reports search those expenses are exactly what the footer should describe.
             mockSelectedTransactions.current = {
                 transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: 'report1', isSelectedViaGroup: true},
                 transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: 'report1', isSelectedViaGroup: true},

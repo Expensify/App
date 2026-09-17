@@ -494,7 +494,7 @@ function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
 
 /**
  * The query the Spend footer's selections produce, built from the query the footer is showing. Only `footerTotal`
- * changes what the backend returns; the other two ride along so the selection is restored with the search.
+ * changes what the backend returns. The other two ride along so the selection is restored with the search.
  */
 function getQueryWithFooterSelection(
     queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>,
@@ -1095,8 +1095,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         }
     }
 
-    // The Spend footer's display selections. They are filters as far as the query goes — that is where the backend
-    // reads them — but they match no rows: only `footerTotal` changes anything, by swapping the total that comes back.
+    // The Spend footer's display selections. They are filters as far as the query goes, because that is where the
+    // backend reads them, but they match no rows. Only `footerTotal` changes anything, by swapping the total returned.
     if (footerCount) {
         filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT}:${sanitizeSearchValue(footerCount)}`);
     }

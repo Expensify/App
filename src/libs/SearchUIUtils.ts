@@ -5187,7 +5187,7 @@ function getViewOptions(translate: LocalizedTranslate) {
 
 /**
  * The options the Spend footer's total selector offers, in display order. `Total spend` is the default and always
- * applies; the four aggregates are computed by the backend, so picking one re-runs the search.
+ * applies. The four aggregates are computed by the backend, so picking one re-runs the search.
  */
 function getFooterTotalItems(translate: LocalizedTranslate) {
     const labels: Record<SearchFooterTotal, string> = {
