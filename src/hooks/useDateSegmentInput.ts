@@ -224,9 +224,15 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
 
         const position = event.nativeEvent.selection.start;
 
+        // The caret is already here, so this is the browser reporting our own position back rather than the user
+        // aiming somewhere. Acting on it is what let a stray report drag the active segment around.
+        if (position === caretPosition) {
+            return;
+        }
+
         // Landing past the end of the text means the empty space in the field was clicked rather than a segment, so
-        // the first segment still to be filled in takes it, which is the year on an untouched field.
-        const clickedSegmentName = position >= editingValue.length ? (getFirstUnfilledSegmentName(segments) ?? LAST_SEGMENT_NAME) : getSegmentNameAtPosition(position, ranges);
+        // the first segment still to be filled in takes it, and a date with no gaps in it starts again from the year.
+        const clickedSegmentName = position >= editingValue.length ? (getFirstUnfilledSegmentName(segments) ?? FIRST_SEGMENT_NAME) : getSegmentNameAtPosition(position, ranges);
         const clickedOffset = position - ranges[clickedSegmentName].start;
 
         // Clicking is aiming at a digit place rather than arriving at a segment, so the next digit extends what is
