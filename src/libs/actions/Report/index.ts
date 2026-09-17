@@ -3433,7 +3433,7 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
 
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(
-    report: OnyxEntry<Report>,
+    report: ReadonlyOnyxEntry<Report>,
     reportAction: ReportAction,
     originalReportActions: OnyxEntry<ReportActions>,
     reportActions: OnyxEntry<ReportActions>,
