@@ -51,6 +51,7 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
+    getReportTransactions,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -103,6 +104,7 @@ import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -130,6 +132,7 @@ import {
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type TrackExpenseInformation = {
@@ -156,6 +159,9 @@ type GetTrackExpenseInformationTransactionParams = {
     created: string;
     merchant: string;
     receipt: OnyxEntry<Receipt>;
+
+    /** Overrides the state carried on `receipt`, see `TrackExpenseTransactionParams.receiptState`. */
+    receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;
     taxCode?: string;
@@ -205,6 +211,7 @@ type GetTrackExpenseInformationParams = {
     policyType?: CreatableWorkspaceType;
     isDraftChatReport: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type DeleteTrackExpenseParams = {
@@ -661,6 +668,7 @@ type GetDeleteTrackExpenseInformationParams = {
     actionableWhisperReportActionID?: string;
     resolution?: string;
     shouldRemoveIOUTransaction?: boolean;
+    transactionThread?: OnyxEntry<OnyxTypes.Report>;
 };
 
 function getDeleteTrackExpenseInformation({
@@ -675,6 +683,7 @@ function getDeleteTrackExpenseInformation({
     actionableWhisperReportActionID = '',
     resolution = '',
     shouldRemoveIOUTransaction = true,
+    transactionThread,
 }: GetDeleteTrackExpenseInformationParams) {
     // STEP 1: Get all collections we're updating
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -749,6 +758,7 @@ function getDeleteTrackExpenseInformation({
     const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
         transactionThreadID,
         shouldDeleteTransactionThread,
+        transactionThread,
         currentUserAccountID,
         transactionThreadReportActionsParam: transactionThreadReportActions,
     });
@@ -889,6 +899,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         currentUserLocalCurrency,
         policyType,
         getCurrencyDecimals,
+        rules,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -900,6 +911,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         distance,
         merchant,
         receipt,
+        receiptState,
         category,
         tag,
         taxCode,
@@ -1040,6 +1052,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             hasOwnedPaidPolicy: undefined,
             betas,
             isSelfTourViewed,
+            delegateAccountID,
         });
         createdWorkspaceParams = workspaceData.params;
         onyxData.optimisticData?.push(...(workspaceData.optimisticData ?? []));
@@ -1065,7 +1078,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
         const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
-        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas);
+        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
@@ -1080,6 +1093,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 optimisticIOUReportID: optimisticExpenseReportID,
                 reportTransactions,
                 getCurrencyDecimals,
+                rules,
             });
         } else {
             iouReport = {...iouReport};
@@ -1121,6 +1135,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             created,
             merchant,
             receipt,
+            receiptState,
             category,
             tag,
             taxCode,
@@ -1666,6 +1681,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         participantParams,
         policyParams = {},
         transactionParams,
+        newReportTotal,
+        newReimbursableTotal,
+        newNonReimbursableTotal,
+        newUnheldReimbursableTotal,
         gpsPoint,
         action,
         shouldPlaySound = true,
@@ -1691,6 +1710,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1702,6 +1722,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         merchant,
         comment = '',
         receipt,
+        receiptState,
         category,
         tag,
         taxCode = '',
@@ -1779,6 +1800,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         participantParams,
         policyParams,
         transactionParams,
+        newReportTotal,
+        newReimbursableTotal,
+        newNonReimbursableTotal,
+        newUnheldReimbursableTotal,
         moneyRequestReportID,
         existingTransactionID,
         optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
@@ -1803,6 +1828,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -1899,6 +1925,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       companySize: undefined,
                       isSelfTourViewed,
                       conciergeChat,
+                      delegateAccountID,
                   })?.guidedSetupData
                 : undefined;
 
@@ -1918,7 +1945,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
                 receipt: isFileUploadable(receipt) ? receipt : undefined,
-                receiptState: receipt?.state,
+                receiptState: receiptState ?? receipt?.state,
                 category,
                 tag,
                 taxCode,
@@ -1949,6 +1976,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
             };
         }
+    }
+
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
+        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 
     if (deferredAPIWrite) {
@@ -1996,6 +2027,7 @@ function convertBulkTrackedExpensesToIOU({
     isTrackIntentUser,
     formatPhoneNumber,
     getCurrencyDecimals,
+    rules,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -2014,6 +2046,7 @@ function convertBulkTrackedExpensesToIOU({
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2136,6 +2169,7 @@ function convertBulkTrackedExpensesToIOU({
             isTrackIntentUser,
             formatPhoneNumber,
             getCurrencyDecimals,
+            rules,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -2469,6 +2503,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isDraftChatReport,
         currentUserLocalCurrency,
         getCurrencyDecimals,
+        rules,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2484,6 +2519,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         distance,
         modifiedDistance,
         receipt,
+        receiptState,
         category,
         tag,
         taxCode = '',
@@ -2512,6 +2548,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
+    // The generic distance receipt above carries its own state, so only a real receipt takes the caller's override.
+    const trackedReceiptState = validWaypoints ? undefined : receiptState;
     const sanitizedWaypoints = validWaypoints ? stringifyWaypointsForAPI(validWaypoints) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
@@ -2602,6 +2640,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             created,
             merchant,
             receipt: trackedReceipt,
+            receiptState: trackedReceiptState,
             category,
             tag,
             taxCode,
@@ -2638,6 +2677,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
         policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
         getCurrencyDecimals,
+        rules,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
@@ -2875,7 +2915,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 // Tracked expenses in the CREATE flow are unreported and not tied to a policy
                 policyID: undefined,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
-                receiptState: trackedReceipt?.state,
+                receiptState: trackedReceiptState ?? trackedReceipt?.state,
                 reimbursable,
                 category,
                 tag,

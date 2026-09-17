@@ -113,6 +113,7 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -177,6 +178,7 @@ import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
+import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
@@ -207,6 +209,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
+import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type VerifyValidateCodeAction from './VerifyValidateCodeAction';
@@ -358,6 +361,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MerchantRuleSuggestion,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,
@@ -404,6 +408,7 @@ export type {
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
+    SearchFilters,
     RecentSearchItem,
     SearchContext,
     SearchFooterConversion,
@@ -440,6 +445,7 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
+    VacationDelegatePolicyDiff,
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
