@@ -1,3 +1,5 @@
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή -- German and Greek weekday and month
+// names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
