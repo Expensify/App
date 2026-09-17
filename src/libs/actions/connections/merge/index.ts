@@ -1,5 +1,5 @@
 import {write} from '@libs/API';
-import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
+import type {ConnectPolicyToMergeParams, UpdateMergeApprovalModeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import DateUtils from '@libs/DateUtils';
@@ -191,17 +191,18 @@ function updateMergeApprovalMode({
         },
     ];
 
-    write(
-        WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE,
-        {
-            policyID,
-            connectionName,
-            approvalMode,
-            ...(approverField !== undefined && {approverField}),
-            ...(finalApprover !== undefined && {finalApprover}),
-        },
-        {optimisticData, successData, failureData},
-    );
+    const parameters: UpdateMergeApprovalModeParams = {
+        policyID,
+        connectionName,
+        approvalMode,
+    };
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS) {
+        parameters.approverField = approverField;
+        parameters.finalApprover = finalApprover;
+    }
+
+    write(WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
