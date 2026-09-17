@@ -50,6 +50,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsContext: () => ({shouldUseLiveData: false, currentSearchResults: mockSearchResults}),
     useSearchQueryContext: () => ({currentSearchKey: mockSearchKey}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
+    useSearchSelectionContext: () => ({areAllMatchingItemsSelected: false}),
 }));
 
 const QUERY = 'type:expense sortBy:date sortOrder:desc';

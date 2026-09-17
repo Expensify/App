@@ -77,7 +77,7 @@ function DynamicExpenseLimitTypeSelectorPage({
                     shouldSingleExecuteRowSelect
                     style={{containerStyle: [styles.pt3]}}
                     initiallyFocusedItemKey={currentExpenseLimitType}
-                    alternateNumberOfSupportedLines={3}
+                    alternateNumberOfSupportedLines={4}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>

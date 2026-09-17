@@ -34,7 +34,6 @@ function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRul
     return (
         <BaseListItem
             item={item}
-            keyForList={item.keyForList}
             onSelectRow={onSelectRow}
             showTooltip={false}
             rightHandSideComponent={rightHandSideComponent}

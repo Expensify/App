@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
@@ -323,8 +322,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         );
     };
 
-    const isLoading = !isOffline && customUnit === undefined;
-
     useEffect(() => {
         if (isMobileSelectionModeEnabled) {
             return;
@@ -405,23 +402,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
                 {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                {(!hasVisibleSubRates || isLoading) && subtitleContent}
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                    />
-                )}
-                {!isLoading && (
-                    <WorkspacePerDiemTable
-                        perDiemData={perDiemRows}
-                        selectionEnabled={canWritePerDiem}
-                        selectedKeys={selectedSubRateKeys}
-                        onRowSelectionChange={setSelectedSubRateKeys}
-                        headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
-                        emptyState={emptyState}
-                    />
-                )}
+                {!hasVisibleSubRates && subtitleContent}
+                <WorkspacePerDiemTable
+                    perDiemData={perDiemRows}
+                    selectionEnabled={canWritePerDiem}
+                    selectedKeys={selectedSubRateKeys}
+                    onRowSelectionChange={setSelectedSubRateKeys}
+                    headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
+                    emptyState={emptyState}
+                />
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}
                     prompt={translate('common.downloadFailedDescription')}

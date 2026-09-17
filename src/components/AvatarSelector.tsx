@@ -18,7 +18,6 @@ import Text from './Text';
 import UserInitialsAvatar from './UserInitialsAvatar';
 
 type AvatarSelectorProps = {
-    /** Currently selected avatar ID */
     selectedID?: string;
 
     /** Called when an avatar is selected */
@@ -70,7 +69,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.X
                                     src={local}
                                     width={iconSize}
                                     height={iconSize}
-                                    additionalStyles={StyleUtils.getAvatarBorderStyle(size, CONST.ICON_TYPE_AVATAR)}
+                                    additionalStyles={StyleUtils.getAvatarBorderStyle(size, CONST.AVATAR_SHAPE.CIRCLE)}
                                 />
                             </View>
                         </PressableWithFeedback>

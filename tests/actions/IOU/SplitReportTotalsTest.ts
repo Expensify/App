@@ -69,7 +69,6 @@ jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     deletePendingNewTransactionIDs: jest.fn(),
     isOneToTwoTransactionTransition: jest.fn(() => false),
 }));
-jest.mock('@libs/API/writeWhenReady');
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
 // to flush the deferred write, so we bypass the deferral by executing the callback immediately.
@@ -511,6 +510,7 @@ describe('actions/IOU', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            rules: undefined,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -778,6 +778,7 @@ describe('actions/IOU', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
                 ...overrides,
             };
         }

@@ -47,7 +47,6 @@ function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
 }
 
 type BaseVerifyDomainPageProps = {
-    /** The accountID of the domain */
     domainAccountID: number;
 
     /** Route to navigate to after successful verification */

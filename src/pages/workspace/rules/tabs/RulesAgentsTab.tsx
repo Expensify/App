@@ -71,7 +71,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
                         headerContentStyles={styles.agentsRulesEmptyStateIllustration}
                         title={translate('workspace.rules.agentRulesEmptyState.title')}
                         subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
-                        subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                        subtitleStyles={[styles.textSupporting]}
                         minModalHeight={0}
                         cardContentStyles={styles.ph0}
                         containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}

@@ -1,4 +1,4 @@
-import TextWithTooltip from '@components/TextWithTooltip';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,8 +15,7 @@ import type {BaseSelectListItemProps, ListItem} from './types';
 import SelectableListItem from './SelectableListItem';
 
 /**
- * A text-only row with a title and optional subtitle, built on BaseListItem. Serves as the
- * base for SingleSelectListItem and MultiSelectListItem.
+ * A text-only row with a title and optional subtitle. Serves as the base for SingleSelectListItem and MultiSelectListItem.
  */
 function BaseSelectListItem<TItem extends ListItem>({
     item,
@@ -40,13 +39,30 @@ function BaseSelectListItem<TItem extends ListItem>({
     isFocusVisible,
     accessibilityRole,
     selectionButtonPosition,
+    leftElement,
 }: BaseSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const rowLeftElement = leftElement ?? item.leftElement;
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
+
+    // The primitives default to single-line styles.pre; multiline rows override it with preWrap and the indent padding.
+    const titleStyle = [
+        isMultilineSupported && styles.preWrap,
+        item.alternateText || item.alternateTextComponent ? styles.mb1 : null,
+        isDisabled && styles.colorMuted,
+        isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
+        titleStyles,
+        item.titleStyles,
+    ];
+    const subtitleStyle = [
+        isAlternateTextMultilineSupported && styles.preWrap,
+        isAlternateTextMultilineSupported ? StyleUtils.getMaximumWidth(alternateTextMaxWidth) : null,
+        isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
+    ];
 
     return (
         <SelectableListItem
@@ -61,47 +77,26 @@ function BaseSelectListItem<TItem extends ListItem>({
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
             canSelectMultiple={canSelectMultiple}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pendingAction={item.pendingAction}
-            errors={item.errors}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             accessibilityRole={accessibilityRole}
             selectionButtonPosition={selectionButtonPosition}
         >
             <>
-                {!!item.leftElement && item.leftElement}
+                {rowLeftElement}
                 <View style={[styles.flex1, styles.alignItemsStart, !!item.rightElement && styles.pr3]}>
-                    <TextWithTooltip
-                        shouldShowTooltip={showTooltip}
+                    <ListItemComposed.Title
                         text={fullTitle ?? ''}
-                        style={[
-                            styles.optionDisplayName,
-                            styles.sidebarLinkText,
-                            styles.sidebarLinkTextBold,
-                            isMultilineSupported ? styles.preWrap : styles.pre,
-                            item.alternateText || item.alternateTextComponent ? styles.mb1 : null,
-                            isDisabled && styles.colorMuted,
-                            isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
-                            titleStyles,
-                            item.titleStyles,
-                        ]}
+                        style={titleStyle}
                         numberOfLines={isMultilineSupported ? titleNumberOfLines : 1}
                     />
 
                     {!!item.alternateTextComponent && item.alternateTextComponent}
                     {!item.alternateTextComponent && !!item.alternateText && (
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
+                        <ListItemComposed.Subtitle
                             text={item.alternateText}
-                            style={[
-                                styles.textLabelSupporting,
-                                styles.lh16,
-                                isAlternateTextMultilineSupported ? styles.preWrap : styles.pre,
-                                isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
-                                isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
-                            ]}
+                            style={subtitleStyle}
                             numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         />
                     )}
