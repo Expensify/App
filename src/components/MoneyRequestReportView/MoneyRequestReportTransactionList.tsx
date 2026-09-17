@@ -16,7 +16,6 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -63,6 +62,7 @@ import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransact
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
 
+import {resolveLayoutSpacing} from '@styles/layoutSpacing';
 import variables from '@styles/variables';
 
 import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
@@ -281,7 +281,6 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Columns', 'Plus']);
@@ -289,6 +288,7 @@ function MoneyRequestReportTransactionList({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {pageGutter} = resolveLayoutSpacing(shouldUseNarrowLayout);
     const navigateToTransactionThread = useNavigateToTransactionThread();
     const longPressModalRef = useRef<MoneyRequestReportTransactionLongPressModalHandle>(null);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
