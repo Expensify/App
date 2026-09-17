@@ -49,7 +49,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
     const pressableStyle = [styles.transactionListItemStyle, isSelected && styles.activeComponentBG];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusCardAndTable,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,

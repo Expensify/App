@@ -2748,13 +2748,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCardAndTable,
+            borderTopRightRadius: variables.componentBorderRadiusCardAndTable,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCardAndTable,
+            borderBottomRightRadius: variables.componentBorderRadiusCardAndTable,
         },
 
         tableBorder: {
@@ -4175,7 +4175,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -4185,7 +4185,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             overflow: 'hidden',
         },
 
@@ -5347,7 +5347,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         transactionListItemStyle: {
-            borderRadius: 8,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             minHeight: variables.optionRowHeight,
             backgroundColor: theme.transparent,
             flex: 1,
