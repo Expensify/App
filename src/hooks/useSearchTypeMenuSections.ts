@@ -1,4 +1,5 @@
-import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, SPEND_INSIGHTS_SEARCH_KEYS} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,7 +64,6 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     const {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
 
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -123,7 +123,6 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
                 isTrackIntentUser: isTrackIntentUser ?? false,
                 hasReportAwaitingApproval,
                 policyCategories: allPolicyCategories,
-                isInsightsPageBetaEnabled: isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE),
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -139,11 +138,30 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
             isTrackIntentUser,
             hasReportAwaitingApproval,
             allPolicyCategories,
-            isBetaEnabled,
         ],
     );
 
     return typeMenuSections;
 };
 
+const spendInsightsSearchKeys = new Set<SearchKey>(SPEND_INSIGHTS_SEARCH_KEYS);
+
+const useSearchTypeMenuSectionsForDisplay = (isScreenFocused = true) => {
+    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
+    const {isBetaEnabled} = usePermissions();
+
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+        return typeMenuSections;
+    }
+
+    return typeMenuSections.flatMap((section) => {
+        const menuItems = section.menuItems.filter((item) => !spendInsightsSearchKeys.has(item.key));
+        if (menuItems.length === section.menuItems.length) {
+            return section;
+        }
+        return menuItems.length > 0 ? {...section, menuItems} : [];
+    });
+};
+
 export default useSearchTypeMenuSections;
+export {useSearchTypeMenuSectionsForDisplay};

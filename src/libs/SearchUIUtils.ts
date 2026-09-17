@@ -4568,6 +4568,13 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
 }
 
+const SPEND_INSIGHTS_SEARCH_KEYS = [
+    CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
+    CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+    CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+    CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+] as const satisfies SearchKey[];
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4582,7 +4589,6 @@ type TypeMenuSectionsParams = {
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
-    isInsightsPageBetaEnabled?: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -4600,7 +4606,6 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
         policyCategories,
-        isInsightsPageBetaEnabled = false,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -4758,11 +4763,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        const spendInsightsSearchKeys = isInsightsPageBetaEnabled
-            ? []
-            : [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME, CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES, CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
-
-        const insightsSearchKeys = [...spendInsightsSearchKeys, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+        const insightsSearchKeys = [...SPEND_INSIGHTS_SEARCH_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
 
         for (const key of insightsSearchKeys) {
             if (!suggestedSearchesVisibility[key]) {
@@ -7128,6 +7129,7 @@ export {
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
+    SPEND_INSIGHTS_SEARCH_KEYS,
     formatBadgeText,
     getSectionBadgeText,
     getItemBadgeText,
