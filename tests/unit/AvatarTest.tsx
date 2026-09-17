@@ -357,6 +357,8 @@ describe('Avatar', () => {
         it('WorkspaceAvatar still renders the default workspace icon when avatarID is missing', async () => {
             const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
 
+            // A `policy_` Onyx record is merged field-by-field, so `policy.id` can still be undefined on the
+            // fallback-icon branch. That used to throw out of render and white-screen the whole app.
             render(
                 <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
                     <WorkspaceAvatar

@@ -86,6 +86,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
             stateNum: action?.childStateNum,
             statusNum: action?.childStatusNum,
         } as Report);
+
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     // The reportAction might not contain details regarding the taskReport
