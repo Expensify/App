@@ -134,9 +134,10 @@ function Popover(props: PopoverProps) {
         );
     }
 
-    // A narrow pane normally forces the full modal. An opting-in caller keeps the overlay-free popover there, but a
-    // small screen never does, since there is no room for a popover beside the control that opened it.
-    const canSkipOverlay = !shouldUseNarrowLayout || (shouldAllowWithoutOverlayInNarrowPane && !isSmallScreenWidth);
+    // An overlay-free popover normally needs room beside its anchor, which a narrow pane is assumed not to have. An
+    // opting-in caller is judged on screen size alone, so it keeps the popover in the RHP on a wide screen and still
+    // gets the full modal on a small one.
+    const canSkipOverlay = shouldAllowWithoutOverlayInNarrowPane ? !isSmallScreenWidth : !shouldUseNarrowLayout;
 
     if (withoutOverlay && canSkipOverlay) {
         return createPortal(

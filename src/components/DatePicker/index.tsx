@@ -6,6 +6,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDateSegmentInput from '@hooks/useDateSegmentInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useRemeasureOnScroll from '@hooks/useRemeasureOnScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -21,7 +22,6 @@ import type {TextInputKeyPressEvent} from 'react-native';
 
 import {format, setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
-import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
@@ -81,6 +81,8 @@ function DatePicker({
         onInputChange?.(newDate);
     };
 
+    // The hook is the single gate on typing. When the platform does not allow it, the handlers it returns are no-ops
+    // and the value passes straight through, so the call sites below do not have to check again.
     const segmentInput = useDateSegmentInput({value: selectedDate, mask: dateMask, isEnabled: shouldAllowTyping, minDate, maxDate, onCommit: handleTypedDate});
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
@@ -127,6 +129,12 @@ function DatePicker({
     );
 
     const showDatePickerModal = useCallback(() => {
+        // Re-opening would remeasure and re-announce a calendar that is already showing. Both a press and a focus can
+        // ask for it, and while typing both arrive for a single click.
+        if (isModalVisible) {
+            return;
+        }
+
         cancelAutoFocus();
 
         // While typing is allowed the calendar sits under an input the user is still writing in, so the caret has to
@@ -159,7 +167,7 @@ function DatePicker({
         };
 
         openPicker();
-    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, shouldAllowTyping, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
+    }, [isModalVisible, shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, shouldAllowTyping, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
 
     const closeDatePicker = useCallback(() => {
         openIntentRef.current = false;
@@ -181,24 +189,14 @@ function DatePicker({
                 event.preventDefault();
             }
 
-            // Clicking from one segment to another must not remeasure and reopen a calendar that is already showing.
-            if (shouldAllowTyping && isModalVisible) {
-                return;
-            }
-
             showDatePickerModal();
         },
-        [shouldAllowTyping, isModalVisible, showDatePickerModal],
+        [shouldAllowTyping, showDatePickerModal],
     );
 
     // Reaching the field by keyboard never fires a press, so focus is what opens the calendar once typing is allowed.
     const handleFocus = () => {
         segmentInput.onFocus();
-
-        if (isModalVisible) {
-            return;
-        }
-
         showDatePickerModal();
     };
 
@@ -221,6 +219,10 @@ function DatePicker({
         requestAnimationFrame(() => onInputChange?.(newDate));
     };
 
+    // Only the typing calendar stays open while the page scrolls. Every other one is dismissed instead, so it never
+    // has to follow the field, and following it keeps an edit in progress from being interrupted.
+    useRemeasureOnScroll({isActive: shouldAllowTyping && isModalVisible, remeasure: calculatePopoverPosition});
+
     const handleClear = () => {
         onTouched?.();
         onInputChange?.('');
@@ -235,25 +237,6 @@ function DatePicker({
 
         return () => debouncedCalculatePopoverPosition.cancel();
     }, [calculatePopoverPosition, windowWidth]);
-
-    useEffect(() => {
-        // Only the typing calendar stays open while the page scrolls. Every other one is dismissed by PopoverProvider,
-        // so it never needs to follow the field.
-        if (!shouldAllowTyping || !isModalVisible) {
-            return;
-        }
-
-        // The calendar is positioned from coordinates measured when it opened, so scrolling the form would leave it
-        // behind. Following the field keeps it attached rather than interrupting an edit in progress.
-        // Wrapped so the scroll event is not passed through as the measurement callback
-        const handleScroll = throttle(() => calculatePopoverPosition(), CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE);
-        document.addEventListener('scroll', handleScroll, true);
-
-        return () => {
-            document.removeEventListener('scroll', handleScroll, true);
-            handleScroll.cancel();
-        };
-    }, [shouldAllowTyping, isModalVisible, calculatePopoverPosition]);
 
     // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects
     // autoFocusCallbackRef only when autoFocus=true so useAutoFocusInput's useFocusEffect cleanup
@@ -304,9 +287,9 @@ function DatePicker({
                     onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
                     onFocus={shouldAllowTyping ? handleFocus : undefined}
-                    onBlur={shouldAllowTyping ? segmentInput.onBlur : undefined}
-                    onChangeText={shouldAllowTyping ? segmentInput.onChangeText : undefined}
-                    onSelectionChange={shouldAllowTyping ? segmentInput.onSelectionChange : undefined}
+                    onBlur={segmentInput.onBlur}
+                    onChangeText={segmentInput.onChangeText}
+                    onSelectionChange={segmentInput.onSelectionChange}
                     onKeyPress={shouldAllowTyping ? segmentInput.onKeyPress : handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}

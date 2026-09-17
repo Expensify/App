@@ -20,9 +20,9 @@ type PopoverProps = BaseModalProps &
         withoutOverlay?: boolean;
 
         /**
-         * Honours `withoutOverlay` inside a narrow pane such as the RHP, where it is otherwise ignored in favour of a
-         * full modal. Only for a popover that must leave the control that opened it usable, such as the calendar the
-         * user keeps typing a date into. Small screens still get the full modal either way.
+         * Judges `withoutOverlay` on screen size rather than on whether this is a narrow pane, so the popover survives
+         * inside the RHP on a wide screen. Only for one that must leave the control that opened it usable, such as the
+         * calendar the user keeps typing a date into. A small screen still gets the full modal.
          */
         shouldAllowWithoutOverlayInNarrowPane?: boolean;
 
