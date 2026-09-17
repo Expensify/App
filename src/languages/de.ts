@@ -416,8 +416,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Nebensatzrate',
         perDiem: 'Tagegeld',
         validate: 'Validieren',
-        downloadAsPDF: 'Als PDF herunterladen',
-        downloadReceipts: 'Belege herunterladen',
+        downloadReport: () => ({
+            one: 'Bericht herunterladen',
+            other: 'Berichte herunterladen',
+        }),
+        downloadReceipt: () => ({
+            one: 'Beleg herunterladen',
+            other: 'Belege herunterladen',
+        }),
         downloadAsCSV: 'Als CSV herunterladen',
         submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
@@ -1004,6 +1010,11 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.', subtitle: 'Expensify Karte', cta: 'Hinzufügen'},
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
+            payOverdueInvoice: {
+                cta: 'Prüfen',
+                dueSoonTitle: ({date}: {date: string}) => `Bezahlen Sie Ihre Rechnung bis zum ${date}, um eine Unterbrechung des Dienstes zu vermeiden`,
+                overdueTitle: 'Ihre Zahlung ist überfällig, bitte begleichen Sie Ihre Rechnung',
+            },
         },
         discoverSection: {
             title: 'Entdecken',
@@ -1789,6 +1800,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Dieser Bericht wurde abgelehnt. Wir warten darauf, dass Sie die Probleme beheben und ihn manuell erneut einreichen.',
             selectMemberError: 'Wählen Sie ein Mitglied aus, an das dieser Bericht zurückgewiesen werden soll.',
             couldNotReject: 'Der Bericht konnte nicht abgelehnt werden. Bitte versuchen Sie es erneut.',
+            couldNotRejectExpense: 'Die Ausgabe konnte nicht abgelehnt werden, da sie möglicherweise bereits verschoben oder abgelehnt wurde.',
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesMaxTransactionsError: `Berichte sind auf ${CONST.REPORT.MAX_TRANSACTIONS} Ausgaben begrenzt. Bitte verschiebe einige in einen anderen Bericht.`,
@@ -1884,6 +1896,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
             confirmText: 'Tag löschen',
         },
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
     },
     transactionMerge: {
         listPage: {
@@ -3800,8 +3813,15 @@ ${amount} für ${merchant} – ${date}`,
         vacationDelegateError: 'Beim Aktualisieren Ihrer Vertretung im Urlaub ist ein Fehler aufgetreten.',
         asVacationDelegate: (nameOrEmail: string) => `als Urlaubsvertretung von ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `an ${submittedToName} als Urlaubsvertretung für ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Sie weisen ${nameOrEmail} als Ihre Urlaubsvertretung zu. Diese Person ist noch nicht in all Ihren Arbeitsbereichen. Wenn Sie fortfahren, wird eine E-Mail an alle Admins Ihrer Arbeitsbereiche gesendet, damit sie hinzugefügt wird.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Möchten Sie die Person jetzt einladen?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen. Möchten Sie die Person jetzt zu den Arbeitsbereichen einladen, in denen Sie Admin sind?`,
+            youAreAMemberOf: 'Sie sind Mitglied dieser Arbeitsbereiche:',
+            youAreAnAdminOf: 'Sie sind Admin dieser Arbeitsbereiche:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Schritt ${step}`;
@@ -4731,6 +4751,7 @@ ${amount} für ${merchant} – ${date}`,
             defaultDescription: 'Ein Ort für all Ihre Belege und Ausgaben.',
             descriptionHint: 'Teile Informationen über diesen Arbeitsbereich mit allen Mitgliedern.',
             welcomeNote: 'Bitte nutze Expensify, um deine Belege zur Erstattung einzureichen, danke!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} hat dich zu ${workspaceName} eingeladen`,
             subscription: 'Abonnement',
             markAsEntered: 'Als manuell erfasst markieren',
             markAsExported: 'Als exportiert markieren',
@@ -7600,7 +7621,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
             changeBankAccount: 'Bankkonto ändern',
-            updateCurrencyForExpensifyCard: 'Die Expensify Karte kann in USD ausgegeben werden. Bitte aktualisieren Sie diesen Workspace auf USD oder verwenden Sie einen anderen Workspace.',
             updateCurrencyForExpensifyCardTitle: 'Expensify Karte bestellen',
             euUkUpdateCurrencyForExpensifyCard:
                 'Die Expensify Karte kann in USD, GBP und EUR ausgestellt werden. Bitte aktualisieren Sie diesen Workspace auf eine unterstützte Währung oder verwenden Sie einen anderen Workspace.',
@@ -8599,8 +8619,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             providerApprovalMode: (providerName: string) => `${providerName}-Genehmigungsmodus`,
             providerFinalApprover: (providerName: string) => `${providerName} Endgenehmigende*r`,
             syncing: 'Mitarbeitende werden synchronisiert',
-            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
-            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             approvalModeDescription: (providerName: string) => `Mitglieder und Manager sind für die Synchronisation mit ${providerName} eingerichtet.`,
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -8694,6 +8712,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 custom: 'Benutzerdefinierte Genehmigung',
                 advanced: 'Erweiterte Genehmigung',
             },
+            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
+            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
         },
         emptyDomain: {
@@ -11312,9 +11332,9 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             permissions: 'Gruppenberechtigungen',
             createNewGroupButton: 'Neue Gruppe',
             createGroupSubmitButton: 'Gruppe erstellen',
-            expensifyCardPreferredWorkspace: 'Bevorzugter Workspace für Expensify Card',
+            expensifyCardPreferredWorkspace: 'Bevorzugter Arbeitsbereich für Karte',
             expensifyCardPreferredWorkspaceDescription:
-                'Alle Expensify Card-Transaktionen werden im bevorzugten Expensify Card-Arbeitsbereich anstelle des bevorzugten Arbeitsbereichs erstellt. Durch Aktivieren dieser Funktion wird die Einstellung des bevorzugten Arbeitsbereichs nur für Expensify Card-Transaktionen überschrieben.',
+                'Alle Transaktionen der Expensify Karte und der Firmenkarte werden im bevorzugten Karten-Arbeitsbereich statt im bevorzugten Arbeitsbereich erstellt. Wenn Sie diese Funktion aktivieren, wird die Einstellung des bevorzugten Arbeitsbereichs nur für Kartentransaktionen überschrieben.',
             strictlyEnforceWorkspaceRules: 'Workspace-Regeln strikt durchsetzen',
             strictlyEnforceWorkspaceRulesDescription: 'Alle Workspace-Regeln müssen erfüllt sein, bevor ein Bericht eingereicht wird. Manuelle Ausnahmen sind nicht zulässig.',
             restrictExpenseWorkspaceCreation: 'Erstellen/Entfernen von Ausgaben-Workspaces einschränken',
@@ -11333,7 +11353,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             restrictDefaultLoginSelectionDescription:
                 'Verhindert, dass Mitglieder ihre Login-E-Mail-Adresse außerhalb der Unternehmensdomäne ändern, um Richtlinienbeschränkungen zu umgehen.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Um diese Einstellung zu aktivieren, aktiviere zuerst einen bevorzugten Workspace und richte Expensify Cards in deiner Domain ein.',
+                'Um diese Einstellung zu aktivieren, aktivieren Sie bitte zuerst einen bevorzugten Arbeitsbereich und richten Sie eine Expensify Karte oder einen Firmenkarten-Feed in Ihrer Domain ein.',
             findGroup: 'Gruppe suchen',
         },
     },

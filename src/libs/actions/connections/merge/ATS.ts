@@ -78,8 +78,5 @@ function updateMergeATSFilters(policyID: string, filters: MergeATSFilters, curre
     write(WRITE_COMMANDS.UPDATE_MERGE_ATS_FILTERS, {policyID, filters: JSON.stringify(filters)}, {optimisticData, successData, failureData});
 }
 
-function setMergeATSInitialSyncModalShown(policyID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
-}
-
-export {updateMergeATSFilters, setMergeATSInitialSyncModalShown};
+// eslint-disable-next-line import/prefer-default-export
+export {updateMergeATSFilters};
