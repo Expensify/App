@@ -23,6 +23,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -69,6 +70,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const {environmentURL} = useEnvironment();
@@ -182,6 +185,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 return;
             }
             setWorkspaceCategoryEnabled({
+                isVendorMatchingBetaEnabled,
                 policyData,
                 categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
@@ -199,6 +203,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             });
         },
         [
+            isVendorMatchingBetaEnabled,
             policyData,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
@@ -335,6 +340,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
                 parentReportAction,
+                isVendorMatchingBetaEnabled,
             );
         }
 
@@ -488,6 +494,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         }
                         clearTableSelection();
                         setWorkspaceCategoryEnabled({
+                            isVendorMatchingBetaEnabled,
                             policyData,
                             categoriesToUpdate: categoriesToDisable,
                             isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
@@ -525,6 +532,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onSelected: () => {
                         clearTableSelection();
                         setWorkspaceCategoryEnabled({
+                            isVendorMatchingBetaEnabled,
                             policyData,
                             categoriesToUpdate: categoriesToEnable,
                             isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,

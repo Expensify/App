@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,6 +38,8 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
     const {categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT;
     const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
     const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path);
@@ -59,7 +62,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
             const newCategoryName = StringUtils.sanitizeName(values.categoryName);
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName});
+                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled);
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
@@ -67,7 +70,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
                 Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath, {compareParams: false});
             });
         },
-        [currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath],
+        [currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, isVendorMatchingBetaEnabled],
     );
 
     return (

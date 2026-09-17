@@ -153,6 +153,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
+    const memberLoginToCopy = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
     const isReimburser = isPolicyReimburser(policy, memberLogin);
     // Only let the Authorized Payer change roles when there is another payer role they can actually move to.
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
@@ -381,13 +382,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             )}
                         </View>
                         <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                interactive={false}
-                                copyable
-                            />
+                            <MenuItemField
+                                name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                value={memberLoginToCopy}
+                            >
+                                <MenuItem.Copy value={memberLoginToCopy} />
+                            </MenuItemField>
                             <MenuItemWithTopDescription
                                 disabled={!canEditSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}

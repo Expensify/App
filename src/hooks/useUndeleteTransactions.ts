@@ -17,7 +17,8 @@ function useUndeleteTransactions() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
@@ -33,6 +34,7 @@ function useUndeleteTransactions() {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
 
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs,
             isASAPSubmitBetaEnabled,
             accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
