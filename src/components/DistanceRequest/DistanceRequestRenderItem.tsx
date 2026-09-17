@@ -24,11 +24,25 @@ type DistanceRequestProps = WithSentryLabel & {
     onSecondaryInteraction?: () => void;
     getIndex?: () => number | undefined;
     isActive?: boolean;
+
+    /** Whether this row is currently being dragged. Separate from `isActive` so the drag doesn't apply the focused styling. */
+    isDragging?: boolean;
+
     onPress?: (index: number) => void;
     disabled?: boolean;
 };
 
-function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false, sentryLabel}: DistanceRequestProps) {
+function DistanceRequestRenderItem({
+    waypoints,
+    item = '',
+    onSecondaryInteraction,
+    getIndex,
+    isActive = false,
+    isDragging = false,
+    onPress = () => {},
+    disabled = false,
+    sentryLabel,
+}: DistanceRequestProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator', 'DragHandles']);
@@ -69,7 +83,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
             focused={isActive}
             // MenuItem merges wrapperStyle into the pressable's own style, after the cursor the pressable sets for itself,
             // so this wins while the row is being dragged.
-            wrapperStyle={isActive && styles.cursorGrabbing}
+            wrapperStyle={isDragging && styles.cursorGrabbing}
             key={item}
             disabled={disabled}
             errorText={errorText}

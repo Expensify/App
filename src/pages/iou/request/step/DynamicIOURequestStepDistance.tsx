@@ -1,4 +1,5 @@
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
+import type {DraggableListRenderItemParams} from '@components/DraggableList/types';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import TabSelector from '@components/TabSelector/TabSelector';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -61,7 +62,6 @@ import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
-import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -811,12 +811,13 @@ function DynamicIOURequestStepDistance({
     ]);
 
     const renderItem = useCallback(
-        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (
+        ({item, drag, isActive, isDragging, getIndex}: DraggableListRenderItemParams<string>) => (
             <DistanceRequestRenderItem
                 waypoints={waypoints}
                 item={getWaypointKey(item)}
                 onSecondaryInteraction={drag}
                 isActive={isActive}
+                isDragging={isDragging}
                 getIndex={getIndex}
                 onPress={navigateToWaypointEditPage}
                 disabled={isLoadingRoute}

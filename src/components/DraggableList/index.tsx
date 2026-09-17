@@ -125,9 +125,10 @@ function DraggableList<T>({
                     renderItem({
                         item,
                         getIndex: () => index,
-                        isActive: isDragging,
+                        isActive: false,
                         drag: () => {},
                         isFocused: isItemFocused,
+                        isDragging,
                     })
                 }
             </SortableItem>

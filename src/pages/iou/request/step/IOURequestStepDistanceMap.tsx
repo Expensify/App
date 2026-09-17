@@ -1,4 +1,5 @@
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
+import type {DraggableListRenderItemParams} from '@components/DraggableList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
@@ -41,7 +42,6 @@ import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
-import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {deepEqual} from 'fast-equals';
@@ -300,7 +300,7 @@ function IOURequestStepDistanceMap({
     }, [blockDistanceRequestIfNeeded, duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep]);
 
     const renderItem = useCallback(
-        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {
+        ({item, drag, isActive, isDragging, getIndex}: DraggableListRenderItemParams<string>) => {
             const index = getIndex?.();
             const sentryLabel = index === 0 ? CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM : CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
             return (
@@ -309,6 +309,7 @@ function IOURequestStepDistanceMap({
                     item={getWaypointKey(item)}
                     onSecondaryInteraction={drag}
                     isActive={isActive}
+                    isDragging={isDragging}
                     getIndex={getIndex}
                     onPress={navigateToWaypointEditPage}
                     disabled={isLoadingRoute}

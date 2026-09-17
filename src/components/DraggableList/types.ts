@@ -3,6 +3,12 @@ import type {RenderItemParams} from 'react-native-draggable-flatlist';
 
 type DraggableListRenderItemParams<T> = RenderItemParams<T> & {
     isFocused?: boolean;
+
+    /**
+     * Whether this row is currently being dragged. Kept separate from `isActive` so a row can react to
+     * the drag itself (e.g. the cursor) without picking up the active/focused styling `isActive` drives.
+     */
+    isDragging: boolean;
 };
 
 type DraggableListData<T> = {

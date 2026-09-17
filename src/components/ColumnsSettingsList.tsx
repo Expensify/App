@@ -216,7 +216,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         onSave(selectedColumnIds);
     };
 
-    const renderItem = ({item, isFocused, isActive}: DraggableListRenderItemParams<ListItem>) => {
+    const renderItem = ({item, isFocused, isDragging}: DraggableListRenderItemParams<ListItem>) => {
         return (
             <MultiSelectListItem
                 item={item}
@@ -225,7 +225,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                 onSelectRow={onSelectItem}
                 isDisabled={item.isDisabled}
                 // The row is what moves with the pointer while dragging, so it owns the grabbing cursor.
-                wrapperStyle={isActive && styles.cursorGrabbing}
+                wrapperStyle={isDragging && styles.cursorGrabbing}
             />
         );
     };
