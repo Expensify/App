@@ -17,6 +17,7 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
@@ -186,7 +187,8 @@ function SearchAutocompleteList({
         style: [styles.pb2, styles.ph2],
     });
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -261,7 +263,7 @@ function SearchAutocompleteList({
             convertToDisplayString,
             options: listOptions,
             draftComments,
-            betas: betas ?? [],
+            isDefaultRoomsBetaEnabled,
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
@@ -288,7 +290,7 @@ function SearchAutocompleteList({
     }, [
         listOptions,
         draftComments,
-        betas,
+        isDefaultRoomsBetaEnabled,
         autocompleteQueryValue,
         countryCode,
         loginList,
@@ -354,7 +356,7 @@ function SearchAutocompleteList({
         options: listOptions ?? emptyOptionList,
         getReportByID,
         draftComments,
-        betas,
+        isDefaultRoomsBetaEnabled,
         countryCode,
         loginList,
         policies,

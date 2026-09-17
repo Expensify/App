@@ -124,7 +124,7 @@ const defaultParams: Params = {
     options: {reports: [], personalDetails: []},
     getReportByID: () => undefined,
     draftComments: {},
-    betas: [],
+    isDefaultRoomsBetaEnabled: false,
     countryCode: 1,
     loginList: {},
     policies: {},
