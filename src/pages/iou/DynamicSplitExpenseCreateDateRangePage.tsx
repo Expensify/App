@@ -53,6 +53,7 @@ function DynamicSplitExpenseCreateDateRangePage({route}: DynamicSplitExpenseCrea
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
@@ -85,7 +86,9 @@ function DynamicSplitExpenseCreateDateRangePage({route}: DynamicSplitExpenseCrea
     };
 
     const isSplitAvailable =
-        report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentReportOwnerLogin, effectivePolicy, parentReport);
+        report &&
+        transaction &&
+        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES> = {};

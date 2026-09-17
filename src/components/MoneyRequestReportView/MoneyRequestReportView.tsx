@@ -6,6 +6,7 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
@@ -53,13 +54,11 @@ import {Animated, ScrollView, View} from 'react-native';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
 
 type MoneyRequestReportViewProps = {
-    /** The report */
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** Report ID from the route, known before the report itself loads */
     reportIDFromRoute: string | undefined;
 
-    /** Loading state for report */
     reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
     /** Whether Report footer (that includes Composer) should be displayed */
@@ -68,7 +67,6 @@ type MoneyRequestReportViewProps = {
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
 
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -96,16 +94,18 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}), options);
 }
 
 function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void}) {
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
+
     return (
         <View
             style={[styles.flex1]}
             onLayout={onLayout}
         >
-            <View style={[styles.appContentHeader, styles.borderBottom]}>
+            <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom]}>
                 <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
             <ReportActionsSkeletonView />

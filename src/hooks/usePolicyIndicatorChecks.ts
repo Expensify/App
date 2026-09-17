@@ -1,6 +1,6 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {hasDomainErrors} from '@libs/DomainUtils';
+import {hasDomainErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
@@ -16,18 +16,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
+import {accountIDSelector} from '@selectors/Session';
+
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type PolicyIndicatorChecksResult = {
-    /** The policy error indicator status. */
     policyErrorStatus: IndicatorStatus | undefined;
-
-    /** The policy info indicator status. */
     policyInfoStatus: IndicatorStatus | undefined;
 
     /** The domain error indicator status. */
-    domainStatus: IndicatorStatus | undefined;
+    domainErrorStatus: IndicatorStatus | undefined;
+
+    /** The domain info indicator status. */
+    domainInfoStatus: IndicatorStatus | undefined;
 
     /** The policy ID associated with the active policy error or info indicator. */
     indicatorPolicyID: string | undefined;
@@ -36,6 +38,13 @@ type PolicyIndicatorChecksResult = {
 function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [allDomainPendingActions] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    const hasPendingDomainAdminRequests = Object.entries(allDomains ?? {}).some(([key, domain]) =>
+        hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN, ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS)]),
+    );
 
     const {cleanPolicies, policiesWithCardFeedErrors, isPolicyAdmin: isAdminOfPolicyWithCardFeedErrors} = usePoliciesWithCardFeedErrors();
 
@@ -71,23 +80,32 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED, cleanPolicies.find((policy) => isPolicyAdmin(policy) && isMergeHRCompleteSetupNeeded(policy))],
     ];
     const domainChecks: Array<[IndicatorStatus, boolean]> = [
-        [CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS, Object.values(allDomainErrors ?? {}).some((domainErrors) => hasDomainErrors(domainErrors))],
+        [
+            CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS,
+            Object.entries(allDomainErrors ?? {}).some(([key, domainErrors]) =>
+                hasDomainErrors(domainErrors, allDomains?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, ONYXKEYS.COLLECTION.DOMAIN)]),
+            ),
+        ],
     ];
+    const domainInfoChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS, hasPendingDomainAdminRequests]];
 
     const activePolicyErrorCheck = policyErrorChecks.find(([, value]) => value);
     const activePolicyInfoCheck = policyInfoChecks.find(([, value]) => value);
     const activeDomainCheck = domainChecks.find(([, value]) => value);
+    const activeDomainInfoCheck = domainInfoChecks.find(([, value]) => value);
 
     const [policyErrorStatus] = activePolicyErrorCheck ?? [];
     const [policyInfoStatus] = activePolicyInfoCheck ?? [];
-    const [domainStatus] = activeDomainCheck ?? [];
+    const [domainErrorStatus] = activeDomainCheck ?? [];
+    const [domainInfoStatus] = activeDomainInfoCheck ?? [];
 
     const indicatorPolicyID = activePolicyErrorCheck?.[1]?.id ?? activePolicyInfoCheck?.[1]?.id;
 
     return {
         policyErrorStatus,
         policyInfoStatus,
-        domainStatus,
+        domainErrorStatus,
+        domainInfoStatus,
         indicatorPolicyID,
     };
 }

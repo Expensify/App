@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -64,17 +64,15 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
     const isLoading = reimbursementAccount?.isLoading;
 
     const handleNavigateToConciergeChat = () =>
-        navigateToConciergeChat(
+        navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
             betas,
-            true,
-            undefined,
-            undefined,
-            reimbursementAccount?.achData?.ACHRequestReportActionID,
-        );
+            shouldDismissModal: true,
+            reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
+        });
 
     const defaultValues = {
         [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: reimbursementAccountDraft?.[INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID] ?? [],

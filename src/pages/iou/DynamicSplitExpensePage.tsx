@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -130,6 +130,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
@@ -170,6 +171,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 originalTransaction,
                 currentUserPersonalDetails.login ?? '',
                 currentUserPersonalDetails.accountID,
+                rules,
                 getLoginByAccountID(currentItemReport?.ownerAccountID, personalDetails),
                 currentItemPolicy,
                 parentReport,
@@ -186,6 +188,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             originalTransaction,
             currentUserPersonalDetails.login ?? '',
             currentUserPersonalDetails.accountID,
+            rules,
             getLoginByAccountID(currentReport?.ownerAccountID, personalDetails),
             effectivePolicy,
             parentReport,
@@ -428,6 +431,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             delegateAccountID,
             isTrackIntentUser,
             formatPhoneNumber,
+            rules,
         });
     };
 
@@ -476,7 +480,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         const isApproved = isReportApproved({report: currentItemReport});
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
-        const isCancelled = currentItemReport?.isCancelledIOU;
         const percentage = adjustedPercentages.at(index) ?? 0;
 
         const date = DateUtils.formatWithUTCTimeZone(
@@ -486,9 +489,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
         previewHeaderText.unshift({text: date}, dotSeparator);
 
-        if (isCancelled) {
-            previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});
-        } else if (isApproved) {
+        if (isApproved) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.approved')});
         } else if (isSettled) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.settledExpensify')});
