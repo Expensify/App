@@ -101,7 +101,7 @@ function PayActionButton() {
                     conciergeChat,
                     betas,
                     isSelfTourViewed,
-                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
+                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, currentUserDetails.displayName, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
                     isTrackIntentUser,

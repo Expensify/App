@@ -16,6 +16,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -86,9 +87,8 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [lastForwardedActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: lastForwardedActorAccountIDSelector});
-    const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {selector: submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID)},
+    const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useAllPersonalDetails(
+        submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID),
     );
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();

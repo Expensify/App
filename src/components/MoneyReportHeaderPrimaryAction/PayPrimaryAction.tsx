@@ -48,7 +48,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {accountID, email, displayName, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -153,7 +153,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 conciergeChat,
                 betas,
                 isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,

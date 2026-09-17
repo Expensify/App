@@ -3269,7 +3269,7 @@ const translations = {
             merchantHint: 'Type . to create a rule that applies to all merchants',
             addToReport: 'Add to a report named',
             createReport: 'Create report if necessary',
-            applyToExistingExpenses: 'Apply to existing matching expenses',
+            applyToExistingExpenses: 'Apply to existing unsubmitted expenses',
             confirmError: 'Enter merchant and apply at least one update',
             confirmErrorMerchant: 'Please enter merchant',
             confirmErrorUpdate: 'Please apply at least one update',
@@ -3919,8 +3919,15 @@ const translations = {
         vacationDelegateError: 'There was an error updating your vacation delegate.',
         asVacationDelegate: (nameOrEmail: string) => `as ${nameOrEmail}'s vacation delegate`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `You're assigning ${nameOrEmail} as your vacation delegate. They're not on all your workspaces yet. If you choose to continue, an email will be sent to all your workspace admins to add them.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> is not a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> is not a member of the workspaces below. Do you want to invite them now?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> isn't a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them. Do you want to invite them to the ones you are an admin of now?`,
+            youAreAMemberOf: 'You are a member of these workspaces:',
+            youAreAnAdminOf: 'You are an admin of these workspaces:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Step ${step}`;
@@ -4865,6 +4872,7 @@ const translations = {
             defaultDescription: 'One place for all your receipts and expenses.',
             descriptionHint: 'Share information about this workspace with all members.',
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} invited you to ${workspaceName}`,
             subscription: 'Subscription',
             markAsEntered: 'Mark as manually entered',
             markAsExported: 'Mark as exported',
@@ -6176,6 +6184,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            importDescription: 'Choose which coding configurations to import from Campfire.',
+            accountTypesDescription: 'Your Campfire accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Campfire accounts will be available as categories.',
+            dimensionsImport: 'All Campfire dimensions import as tags',
         },
         type: {
             free: 'Free',
@@ -9674,6 +9687,11 @@ const translations = {
             emptyUnapprovedResults: {
                 title: 'No expenses to approve',
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
+            staleResults: {
+                title: 'Refresh needed',
+                subtitle: 'This page is out of date, refresh to see the latest',
+                buttonText: 'Refresh',
             },
         },
         columns: 'Columns',
