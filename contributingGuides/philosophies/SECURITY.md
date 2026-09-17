@@ -63,12 +63,14 @@ Updated rules for managing members across all types of chats in New Expensify.
 | :----------------: | :---: | :-----: |
 |     **Invite**     |   ❌   |    ❌    |
 |     **Remove**     |   ❌   |    ❌    |
-|     **Leave**      |   ❌   |   N/A   |
-| **Can be removed** |   ❌   |   N/A   |
+|     **Leave**      |   ❌   |    ❌    |
+| **Can be removed** |   ❌   |    ✅    |
 
 - Admins can't leave or be removed from #admins
-- Auditors are not members of #admins, so leaving and being removed don't apply to them. Changing a member's role to Auditor removes them from the room
-- Only workspace admins can post in #admins
+- Auditors are added to #admins when they are given the Auditor role, and membership follows the role rather than manual invites
+- Auditors can read and comment in #admins. Unlike #announce, the room has no admins-only write capability
+- No one can leave #admins, auditors included
+- Auditors can be removed from #admins, and they lose the room when their role changes to one without #admins access
 
 #### Workspace rooms
 |                    | Creator | Member | Auditor | Guest(outside of the workspace) |
@@ -80,7 +82,8 @@ Updated rules for managing members across all types of chats in New Expensify.
 
 - Everyone can be removed/can leave from the room including creator
 - Guests are not able to remove anyone from the room
-- Auditors are not added to user-created rooms automatically. They can discover and join non-private workspace rooms, and they can leave freely, like any other workspace member
+- Auditors are not added to user-created rooms automatically. They can discover and join non-private workspace rooms, and they can leave freely
+- Auditors can invite and remove other participants in any room they are a participant of
 
 #### Expense chats
 |                    | Admin | Member(default) | Member(invited) |
@@ -95,8 +98,9 @@ Updated rules for managing members across all types of chats in New Expensify.
 - Invited members(invited by members) are not able to invite or remove from the expense chat
 - Invited members(invited by members) are able to leave the expense chat
 - Default members and admins are able to remove invited members
-- Auditors are default members of their own expense chat, so they can't leave or be removed from it
-- Auditors added to another member's expense chat are able to leave it, because they are not workspace admins
+- Auditors are added to every workspace expense chat, so they can see the expenses on the workspace, and they are able to comment
+- Auditors are not able to be removed from an expense chat
+- Auditors are able to leave another member's expense chat, but not their own
 
 ### Domain chat
 |                    | Member |
