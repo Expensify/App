@@ -100,4 +100,4 @@ type UseParticipantSectionParams = {
     onOpenParticipantPicker?: () => void;
 };
 
-export type {ConfirmationDistanceState, ConfirmationPolicyData, UseConfirmationListDataParams, UseConfirmationPolicyDataParams, UseParticipantSectionParams};
+export type {ConfirmationDistanceState, UseConfirmationListDataParams, UseConfirmationPolicyDataParams, UseParticipantSectionParams};

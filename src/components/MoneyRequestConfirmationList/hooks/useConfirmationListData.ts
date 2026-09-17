@@ -40,8 +40,8 @@ const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fi
  * Everything the confirmation surface needs regardless of which expense type is being confirmed: the participant
  * rows, the form errors, the validation gate, and the confirm button, all derived from an already resolved policy.
  *
- * Not called by a variant directly. {@link useConfirmationListData} resolves the policy and calls this for every
- * non-distance variant; `useDistanceConfirmationListData` does the same after building the distance state.
+ * Not called by a variant directly. `useConfirmationListData` resolves the policy and calls this for every
+ * non-distance variant. `useDistanceConfirmationListData` does the same after building the distance state.
  */
 function useConfirmationListDataWithPolicy({
     transaction,
