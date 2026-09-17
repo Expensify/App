@@ -37,20 +37,19 @@ const ROWS_PER_TABLE_CARD = CONST.HOME.SECTION_VISIBLE_LIMIT;
 const CARD_TEST_ID = 'homePageSkeletonCard';
 const SPINNER_TEST_ID = 'homePageSkeletonSpinner';
 
-// Two widths alternating down the card, so stacked rows read as separate rows rather than one block.
 const TWO_BAR_ROW_BAR_WIDTHS = [140, 110] as const;
 
 type SkeletonRowArgs = {
-    /** Index of the row inside its card */
     itemIndex: number;
-
-    /** Measured width of the card's row area */
-    width: number;
-
     horizontalPadding: number;
     rowHeight: number;
     iconTextGap: number;
     textLineGap: number;
+};
+
+type TrailingSkeletonRowArgs = SkeletonRowArgs & {
+    /** Measured width of the card's row area, which the trailing bars are right-aligned against */
+    width: number;
 };
 
 function getStackedBarOffsets(rowHeight: number, textLineGap: number) {
@@ -86,7 +85,7 @@ function renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextG
     );
 }
 
-function renderIconTwoBarWithTrailingRow(args: SkeletonRowArgs) {
+function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
     const {width, horizontalPadding, rowHeight, textLineGap} = args;
     const {upperBarY, lowerBarY} = getStackedBarOffsets(rowHeight, textLineGap);
 
@@ -108,21 +107,12 @@ function renderIconTwoBarWithTrailingRow(args: SkeletonRowArgs) {
 }
 
 type HomePageSkeletonCardProps = {
-    numRows: number;
-
-    /** Draws the skeleton shapes for a single row from the geometry measured off the card */
-    renderRow: (args: SkeletonRowArgs) => React.ReactNode;
-
-    /** Whether each row gets a bottom border, matching cards whose real rows are separated */
-    shouldShowSeparators?: boolean;
+    children: React.ReactNode;
 };
 
-function HomePageSkeletonCard({numRows, renderRow, shouldShowSeparators = false}: HomePageSkeletonCardProps) {
+function HomePageSkeletonCard({children}: HomePageSkeletonCardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {onLayout, containerWidth} = useContainerWidth();
-    const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
-    const textLineGap = styles.gap1.gap;
 
     return (
         <View testID={CARD_TEST_ID}>
@@ -135,63 +125,75 @@ function HomePageSkeletonCard({numRows, renderRow, shouldShowSeparators = false}
                 }
                 containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
-                <ItemListSkeletonView
-                    shouldAnimate
-                    fixedNumItems={numRows}
-                    itemViewHeight={rowHeight}
-                    // The default `mr5` on each row would shrink the SVG below the card width and pull the
-                    // right-aligned bars inward.
-                    itemViewStyle={styles.mr0}
-                    itemContainerStyle={shouldShowSeparators ? styles.borderBottom : undefined}
-                    renderSkeletonItem={({itemIndex}) => renderRow({itemIndex, width: containerWidth, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
-                    onLayout={onLayout}
-                />
+                {children}
             </WidgetContainer>
         </View>
     );
 }
 
-// The card this stands in for has no bar-representable rows, so a shimmer stand-in would invent a row
-// structure the real card does not have.
+function HomePageSkeletonListCard() {
+    const styles = useThemeStyles();
+    const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
+    const textLineGap = styles.gap1.gap;
+
+    return (
+        <HomePageSkeletonCard>
+            <ItemListSkeletonView
+                shouldAnimate
+                fixedNumItems={ROWS_PER_LIST_CARD}
+                itemViewHeight={rowHeight}
+                itemViewStyle={styles.mr0}
+                renderSkeletonItem={({itemIndex}) => renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
+            />
+        </HomePageSkeletonCard>
+    );
+}
+
+function HomePageSkeletonTableCard() {
+    const styles = useThemeStyles();
+    const {onLayout, containerWidth} = useContainerWidth();
+    const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
+    const textLineGap = styles.gap1.gap;
+
+    return (
+        <HomePageSkeletonCard>
+            <ItemListSkeletonView
+                shouldAnimate
+                fixedNumItems={ROWS_PER_TABLE_CARD}
+                itemViewHeight={rowHeight}
+                // The default `mr5` on each row would shrink the SVG below the card width and pull the right-aligned bars inward.
+                itemViewStyle={styles.mr0}
+                // The rows this stands in for are separated.
+                itemContainerStyle={styles.borderBottom}
+                renderSkeletonItem={({itemIndex}) => renderIconTwoBarWithTrailingRow({itemIndex, width: containerWidth, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
+                onLayout={onLayout}
+            />
+        </HomePageSkeletonCard>
+    );
+}
+
+// The card this stands in for has no bar-representable rows, so a shimmer stand-in would invent a row structure the real card does not have.
 function HomePageSkeletonSpinnerCard() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <View testID={CARD_TEST_ID}>
-            <WidgetContainer
-                titleContent={
-                    <SkeletonTextLine
-                        lineHeight={TITLE_LINE_HEIGHT}
-                        barWidth={CARD_TITLE_WIDTH}
-                    />
-                }
-                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
-            >
-                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        testID={SPINNER_TEST_ID}
-                    />
-                </View>
-            </WidgetContainer>
-        </View>
+        <HomePageSkeletonCard>
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    testID={SPINNER_TEST_ID}
+                />
+            </View>
+        </HomePageSkeletonCard>
     );
 }
 
 function HomePageSkeletonRowCards() {
     return (
         <>
-            <HomePageSkeletonCard
-                numRows={ROWS_PER_LIST_CARD}
-                renderRow={renderIconTwoBarRow}
-            />
-            <HomePageSkeletonCard
-                numRows={ROWS_PER_TABLE_CARD}
-                renderRow={renderIconTwoBarWithTrailingRow}
-                shouldShowSeparators
-            />
+            <HomePageSkeletonListCard />
+            <HomePageSkeletonTableCard />
         </>
     );
 }
