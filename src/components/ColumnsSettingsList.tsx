@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {DraggableListRenderItemParams} from './DraggableList/types';
 import type {SearchCustomColumnIds} from './Search/types';
 import type {ListItem} from './SelectionList/types';
 
@@ -215,7 +216,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         onSave(selectedColumnIds);
     };
 
-    const renderItem = ({item, isFocused, isActive}: {item: ListItem; isFocused?: boolean; isActive?: boolean}) => {
+    const renderItem = ({item, isFocused, isActive}: DraggableListRenderItemParams<ListItem>) => {
         return (
             <MultiSelectListItem
                 item={item}
