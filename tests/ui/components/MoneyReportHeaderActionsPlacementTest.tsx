@@ -343,4 +343,20 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
         expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
         expect(getHeaderRowTestIDs(toJSON())).toContain(REPORT_CAROUSEL_TEST_ID);
     });
+
+    /**
+     * The seeded carousel is a single global value that outlives the screen that wrote it, and it is persisted, so
+     * it even outlives a reload. Every entry point that seeds one opens the expense in an RHP, so a report opened
+     * from the LHN must never pick one up - otherwise the Inbox central pane shows a counter and arrows for a list
+     * of expenses the user last saw somewhere else entirely.
+     */
+    it('does not render the expense carousel in the Inbox central pane', () => {
+        mockThread({activeIDs: ['other-tx', THREAD_TRANSACTION_ID], parentActions: {[PARENT_ACTION_ID]: parentIOUAction}});
+        mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.REPORT, params: {}});
+
+        const {toJSON} = renderHeader();
+
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(REPORT_CAROUSEL_TEST_ID);
+    });
 });

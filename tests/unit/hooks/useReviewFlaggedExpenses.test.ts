@@ -227,11 +227,12 @@ describe('useReviewFlaggedExpenses', () => {
     });
 
     /**
-     * On narrow layout the same branch opens the report full-screen, where the carousel has nowhere to live:
-     * stepping to a sibling lands on a transaction thread, and MoneyRequestHeader only renders the carousel inside
-     * the RHP, so the counter and both arrows would vanish and strand the user mid-review.
+     * On narrow layout the report opens full-screen, where the carousel has nowhere to live: that route declares
+     * neither `backTo` nor `anchorTransactionID`, and a header outside the RHP doesn't render the arrows. A review
+     * of several expenses therefore has to keep the thread route, which does render them - otherwise the user lands
+     * on the first expense with no way to reach the rest of the review.
      */
-    it('does not seed a carousel for a one-transaction report opened full-screen on narrow layout', async () => {
+    it('keeps the thread route for a multi-expense review on narrow layout', async () => {
         mockShouldUseNarrowLayout = true;
         await act(async () => {
             await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
@@ -248,9 +249,10 @@ describe('useReviewFlaggedExpenses', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate.mock.calls.at(0)?.at(0)).toContain('r1');
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockNavigateToTransactionThread).toHaveBeenCalledWith(
+            expect.objectContaining({transactionID: 't1', siblingTransactionIDs: ['t1', 't2'], carouselSource: 'home:reviewFlagged'}),
+        );
     });
 
     it('does not seed a carousel for a lone flagged expense in a one-transaction report', async () => {

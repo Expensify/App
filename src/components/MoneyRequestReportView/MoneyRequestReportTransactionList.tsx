@@ -536,16 +536,23 @@ function MoneyRequestReportTransactionList({
         // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
         // Overwriting it would drop that carousel when the user navigates back. Row presses still seed the
         // correct siblings lazily via useNavigateToTransactionThread.
-        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        const {ids: activeIDs, descriptors: activeDescriptors, source: activeSource} = getActiveTransactionIDs();
         if (activeDescriptors) {
             return;
         }
 
-        // This report can't drive a carousel on its own: the carousel needs at least two transactions to page
-        // between. Writing a 0/1-entry list would clobber a broader carousel the user drilled in from (e.g. the
-        // Spend page's full transaction list) and would also make the header render the empty transaction
-        // carousel instead of the report-level prev/next buttons.
-        if (visualOrderTransactionIDs.length < 2) {
+        // This report can't *take over* a carousel it doesn't own with fewer than two transactions: writing a
+        // 0/1-entry list would clobber a broader carousel the user drilled in from (e.g. the Spend page's full
+        // transaction list) and would also make the header render the empty transaction carousel instead of the
+        // report-level prev/next buttons.
+        //
+        // The check deliberately doesn't apply to a carousel this report already owns, mirroring
+        // `shouldRefreshActiveTransactionIDs`. Gating it on the length alone let this report grow its carousel but
+        // never shrink it, so moving an expense out of the report left the longer list active: the counter read
+        // "1 of 2" and the arrow stepped to an expense that is no longer here. An empty list is never written
+        // through: it carries no information, and the header already drops the arrows once the remaining IDs are
+        // filtered out.
+        if (visualOrderTransactionIDs.length === 0 || (visualOrderTransactionIDs.length < 2 && activeSource !== carouselSource)) {
             return;
         }
 

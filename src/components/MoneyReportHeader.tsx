@@ -109,7 +109,15 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const carouselAnchorTransactionID = singleTransactionID ?? threadTransactionID ?? routeAnchorTransactionID;
     // Two entries are the minimum for a carousel; with fewer, fall through to the report-level arrows rather than
     // rendering an expense carousel that decides on its own to show nothing.
-    const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && activeTransactionIDs.length > 1 && activeTransactionIDs.includes(carouselAnchorTransactionID);
+    //
+    // The carousel also only belongs in an RHP. Every entry point that seeds one opens the expense there, and
+    // stepping to a sibling can land on a transaction thread, whose own header renders the carousel in the RHP
+    // only. Without the screen check the Inbox central pane would pick up whatever list happens to be active - the
+    // seeded list is a single global value that outlives the screen that wrote it (it is persisted to storage, so
+    // it even outlives a reload), so a one-transaction report opened from the LHN could show a counter and arrows
+    // for a list of expenses the user last saw somewhere else entirely.
+    const shouldShowTransactionNavigation =
+        route.name !== SCREENS.REPORT && !!carouselAnchorTransactionID && activeTransactionIDs.length > 1 && activeTransactionIDs.includes(carouselAnchorTransactionID);
 
     const styles = useThemeStyles();
 

@@ -51,11 +51,11 @@ function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
-        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        const {ids: activeIDs, descriptors: activeDescriptors, source: activeSource} = getActiveTransactionIDs();
         if (activeDescriptors) {
             return;
         }
-        if (visualOrderTransactionIDs.length < 2) {
+        if (visualOrderTransactionIDs.length === 0 || (visualOrderTransactionIDs.length < 2 && activeSource !== carouselSource)) {
             return;
         }
         if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
@@ -283,6 +283,42 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         unmount();
 
         expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
+    });
+
+    it('should NOT take over a carousel it does not own with fewer than two rows', () => {
+        // Given the focused route is SEARCH_REPORT, a broader carousel is active, and this report has one row left
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['spend1', 'spend2', 'spend3'], descriptors: null, source: 'search:1234', snapshotHash: 1234});
+
+        // When the hook is rendered
+        renderHook(() => useActiveTransactionIDsEffect(['trans1']));
+
+        // Then the broader carousel is left alone
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
+    });
+
+    it('should shrink a carousel it owns when the report drops below two rows', () => {
+        // Given the focused route is SEARCH_REPORT and this report owns a two-entry carousel
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans1', 'trans2'], descriptors: null, source: CAROUSEL_SOURCE_FOR_REPORT, snapshotHash: null});
+
+        // When one of the expenses leaves the report (e.g. it was moved to another report)
+        renderHook(() => useActiveTransactionIDsEffect(['trans1']));
+
+        // Then the shorter list is written through, so the counter and arrows stop offering the expense that left
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(['trans1'], {source: CAROUSEL_SOURCE_FOR_REPORT});
+    });
+
+    it('should NOT write an empty list over a carousel it owns', () => {
+        // Given the focused route is SEARCH_REPORT and this report owns the carousel
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans1', 'trans2'], descriptors: null, source: CAROUSEL_SOURCE_FOR_REPORT, snapshotHash: null});
+
+        // When the report renders with no rows at all
+        renderHook(() => useActiveTransactionIDsEffect([]));
+
+        // Then nothing is written: an empty list carries no information the header can act on
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
     });
 
     it('should re-seed when the active seed covers different rows', () => {

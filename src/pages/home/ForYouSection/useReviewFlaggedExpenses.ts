@@ -177,14 +177,14 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
               // so the report is the expense view. The prev/next carousel applies the same rule when it pages onto
               // such a report, and this entry point has to agree with it. Otherwise stepping forward and back
               // lands the user on the report when they started on the thread.
-              if (isOneTransactionReport(firstFlaggedReport)) {
+              //
+              // On narrow layout the report opens full-screen, where the carousel has no home: that route declares
+              // neither `backTo` nor `anchorTransactionID`, and a header outside the RHP doesn't render the arrows.
+              // A review of several expenses therefore stays on the thread route there, which does render them -
+              // dropping into the report would leave the user on the first expense with no way to reach the rest.
+              if (isOneTransactionReport(firstFlaggedReport) && (flaggedExpenses.length === 1 || !shouldUseNarrowLayout)) {
                   // A lone flagged expense has nothing to page between, so it skips seeding the carousel entirely.
-                  // On narrow layout it opens full-screen, where the carousel has no home: stepping to a sibling
-                  // lands on a transaction thread, whose header only renders the carousel inside the RHP, so the
-                  // counter and both arrows would vanish and strand the user mid-review. That route doesn't declare
-                  // `backTo`/`anchorTransactionID` either. Keeping the carousel to the RHP is what makes the
-                  // forward-and-back trip land where the user started.
-                  const shouldSeedCarousel = flaggedExpenses.length > 1 && !shouldUseNarrowLayout;
+                  const shouldSeedCarousel = flaggedExpenses.length > 1;
                   const openReport = () =>
                       Navigation.navigate(
                           shouldUseNarrowLayout

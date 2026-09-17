@@ -870,6 +870,28 @@ function Search({
         };
     }, [carouselSource, isFocused]);
 
+    // An unmounting instance always hands its carousel back, even while Search is still the topmost full-screen
+    // route. This page is keyed by the query hash, so sorting, filtering or switching Spend tabs unmounts this
+    // instance and mounts a new one under `search:<newHash>`. The blur-time release above stands down in that
+    // moment (Search is still topmost), and ownership is hash-scoped, so `search:<oldHash>` was left owning the
+    // carousel with no mounted screen able to refresh or release it: the new list couldn't seed (the refresh check
+    // sees a different owner) and its eventual release ran against the new hash and no-op'd. The stale list then
+    // kept driving the counter and arrows - including on a one-transaction report opened later from the Inbox,
+    // since that list outlives the screen that wrote it and is persisted across reloads.
+    //
+    // The new instance re-seeds from its own results, so this only ever drops a list that is about to be replaced.
+    // `carouselSource` is constant for an instance's lifetime (the hash is its React key), so this cleanup runs on
+    // unmount only.
+    useEffect(() => {
+        return () => {
+            if (!hasSeededCarouselRef.current) {
+                return;
+            }
+            hasSeededCarouselRef.current = false;
+            clearActiveTransactionIDsForSource(carouselSource);
+        };
+    }, [carouselSource]);
+
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn
     // (e.g. opening a report bumps searchResults.data) that doesn't actually change the columns.
