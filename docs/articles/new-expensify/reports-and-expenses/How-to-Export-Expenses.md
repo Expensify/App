@@ -28,9 +28,10 @@ You'll receive the exported CSV file in a message from Concierge.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
-3. Select **Selected** at the top.
-4. Select **Export**.
-5. Choose an export template from the menu that appears. 
+3. Open **Export**:
+   - **Web:** In the bulk action bar at the bottom of the list, select **Export**. If you don't see it, select **More**, then **Export**.
+   - **Mobile:** Tap **Selected**, then tap **Export**.
+4. Choose an export template from the menu that appears. 
 
 You'll receive the exported CSV file in a message from Concierge.
 
@@ -40,9 +41,10 @@ You can download the receipts attached to your selected expenses in a single ZIP
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select the checkbox next to each expense whose receipt you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
-4. Select **Download receipts**.
-5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
+3. Open **Download receipts**:
+   - **Web:** In the bulk action bar at the bottom of the list, select **Download receipts**. If you don't see it, select **More**, then **Download receipts**.
+   - **Mobile:** Tap **Selected**, then tap **Download receipts**.
+4. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
 **Note:** **Download receipts** only appears when at least one selected expense has a receipt. Deleted expenses are not included in the download.
 
@@ -53,9 +55,10 @@ Use **Export current view** to download a CSV that matches the columns currently
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
 3. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
-4. Select **Selected** at the top.
-5. Select **Export**.
-6. Select **Export current view**.
+4. Open **Export**:
+   - **Web:** In the bulk action bar at the bottom of the list, select **Export**. If you don't see it, select **More**, then **Export**.
+   - **Mobile:** Tap **Selected**, then tap **Export**.
+5. Select **Export current view**.
 
 The CSV includes one row per expense using the same columns displayed on the page. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses the columns currently shown on the page.
 

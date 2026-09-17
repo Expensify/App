@@ -33,13 +33,15 @@ The selected attendees are added to the expense.
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Spend > Expenses**.
 2. Select 2 or more expenses.
-3. Choose **Selected**, then select **Edit multiple**.
+3. Select **Edit multiple**:
+   - **Web:** In the bulk action bar at the bottom of the list, select **Edit multiple**. If you don't see it, select **More**, then **Edit multiple**.
+   - **Mobile:** Tap **Selected**, then tap **Edit multiple**.
 4. Select **Attendees**, choose the attendees, and select **Save**.
 5. Select **Save** again to apply your changes to every selected expense.
 
 The attendees you select are added to every selected expense.
 
-Select 2 or more expenses, click **Selected**, and choose **Edit multiple** to set the same attendees on all of them in one step. Learn how to [edit multiple expenses at once](/articles/new-expensify/reports-and-expenses/Edit-Expenses).
+Select 2 or more expenses, then choose **Edit multiple** to set the same attendees on all of them in one step. On web the action sits in the bulk action bar at the bottom of the list, behind **More** if the bar has no room to show it as a button. On mobile, tap **Selected** to find it. Learn how to [edit multiple expenses at once](/articles/new-expensify/reports-and-expenses/Edit-Expenses).
 
 ---
 
