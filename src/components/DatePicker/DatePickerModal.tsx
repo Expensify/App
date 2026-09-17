@@ -42,6 +42,7 @@ function DatePickerModal({
     anchorPosition,
     anchorAlignment = DEFAULT_ANCHOR_ORIGIN,
     onSelected,
+    onMonthOrYearSelected,
     shouldCloseWhenBrowserNavigationChanged = false,
     shouldPositionFromTop = false,
     forwardedFSClass,
@@ -51,6 +52,7 @@ function DatePickerModal({
     shouldAllowWithoutOverlayInNarrowPane = false,
     shouldCloseOnWheel = true,
     viewDate,
+    viewDateVersion,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const fallbackAnchorRef = useRef<View>(null);
@@ -72,11 +74,20 @@ function DatePickerModal({
         }
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const handleDateSelection = (newValue: string) => {
-        onSelected?.(newValue);
+    const applySelection = (newValue: string) => {
         onTouched?.();
         onInputChange?.(newValue);
         setSelectedDate(newValue);
+    };
+
+    const handleDateSelection = (newValue: string) => {
+        onSelected?.(newValue);
+        applySelection(newValue);
+    };
+
+    const handleMonthOrYearSelection = (newValue: string) => {
+        onMonthOrYearSelected?.(newValue);
+        applySelection(newValue);
     };
 
     // Pass the CalendarPicker's existing bottom padding (pb4) as the base style so the safe-area padding is
@@ -112,9 +123,11 @@ function DatePickerModal({
                 maxDate={maxDate}
                 value={selectedDate}
                 onSelected={handleDateSelection}
+                onMonthOrYearSelected={onMonthOrYearSelected ? handleMonthOrYearSelection : undefined}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
                 viewDate={viewDate}
+                viewDateVersion={viewDateVersion}
             />
         </PopoverWithMeasuredContent>
     );

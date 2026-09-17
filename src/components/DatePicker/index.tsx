@@ -75,7 +75,8 @@ function DatePicker({
     const shouldAllowTyping = isTypedDateInputSupported();
     const dateMask = translate('common.dateFormat');
 
-    const handleTypedDate = (newDate: string) => {
+    // Updates the field without ending the selection, so the calendar stays open for whatever the user does next
+    const commitDate = (newDate: string) => {
         setSelectedDate(newDate);
         onTouched?.();
         onInputChange?.(newDate);
@@ -83,7 +84,7 @@ function DatePicker({
 
     // The hook is the single gate on typing. When the platform does not allow it, the handlers it returns are no-ops
     // and the value passes straight through, so the call sites below do not have to check again.
-    const segmentInput = useDateSegmentInput({value: selectedDate, mask: dateMask, isEnabled: shouldAllowTyping, minDate, maxDate, onCommit: handleTypedDate});
+    const segmentInput = useDateSegmentInput({value: selectedDate, mask: dateMask, isEnabled: shouldAllowTyping, minDate, maxDate, onCommit: commitDate});
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
@@ -318,6 +319,8 @@ function DatePicker({
                 shouldAllowWithoutOverlayInNarrowPane={shouldAllowTyping}
                 shouldCloseOnWheel={!shouldAllowTyping}
                 viewDate={segmentInput.viewDate}
+                viewDateVersion={segmentInput.viewDateVersion}
+                onMonthOrYearSelected={commitDate}
             />
         </>
     );

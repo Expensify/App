@@ -624,6 +624,98 @@ describe('CalendarPicker', () => {
         expect(within(screen.getByTestId('currentYearText')).getByText('2027')).toBeTruthy();
     });
 
+    test('selecting a year reports the date it lands on without ending the selection', () => {
+        const onSelectedMock = jest.fn();
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value="2025-06-15"
+                minDate={new Date('2020-01-01')}
+                maxDate={new Date('2030-12-31')}
+                onSelected={onSelectedMock}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2027'));
+
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2027-06-15');
+        expect(onSelectedMock).not.toHaveBeenCalled();
+    });
+
+    test('selecting a month reports the date it lands on without ending the selection', () => {
+        const onSelectedMock = jest.fn();
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value="2025-06-15"
+                minDate={new Date('2020-01-01')}
+                maxDate={new Date('2030-12-31')}
+                onSelected={onSelectedMock}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentMonthButton'));
+        fireEvent.press(within(screen.getByTestId('MonthPickerModal')).getByTestId('month-option-8'));
+
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2025-09-15');
+        expect(onSelectedMock).not.toHaveBeenCalled();
+    });
+
+    test('selecting a month keeps the day inside it', () => {
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value="2025-01-31"
+                minDate={new Date('2020-01-01')}
+                maxDate={new Date('2030-12-31')}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentMonthButton'));
+        fireEvent.press(within(screen.getByTestId('MonthPickerModal')).getByTestId('month-option-1'));
+
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2025-02-28');
+    });
+
+    test('selecting a non leap year from February 29 keeps the day inside February', () => {
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value="2024-02-29"
+                minDate={new Date('2020-01-01')}
+                maxDate={new Date('2030-12-31')}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2025'));
+
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2025-02-28');
+    });
+
+    test('a month or year selection only moves the view when the caller does not ask to be told', () => {
+        const onSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value="2025-06-15"
+                minDate={new Date('2020-01-01')}
+                maxDate={new Date('2030-12-31')}
+                onSelected={onSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2027'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2027')).toBeTruthy();
+        expect(onSelectedMock).not.toHaveBeenCalled();
+    });
+
     test('closing the year picker via onClose hides the modal', () => {
         render(<CalendarPicker />);
 

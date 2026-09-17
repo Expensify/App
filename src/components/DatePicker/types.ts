@@ -147,6 +147,15 @@ type DatePickerProps = {
 
     /** Moves the calendar to this month without selecting a day, so it follows the date being typed into the input */
     viewDate?: Date;
+
+    /** Changes every time `viewDate` is asserted, including when it repeats the month the calendar already shows */
+    viewDateVersion?: number;
+
+    /**
+     * Called when a month or year is picked from its own picker, with the date that pick lands on. The calendar stays
+     * open, so the user can still press a day. Leave it out to have those picks only move the view.
+     */
+    onMonthOrYearSelected?: (selectedDate: string) => void;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};

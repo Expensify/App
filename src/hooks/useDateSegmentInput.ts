@@ -65,6 +65,9 @@ type UseDateSegmentInputResult = {
     /** The month the calendar should show, so it follows the date being typed. Undefined leaves the calendar alone */
     viewDate: Date | undefined;
 
+    /** Counts how many times the input has asked the calendar to follow it, so asking twice for the same month counts twice */
+    viewDateVersion: number;
+
     /** Whether any digit has been typed, so the field is showing more than an untouched mask */
     hasTypedDigits: boolean;
 
@@ -87,11 +90,23 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
     const [isEditing, setIsEditing] = useState(false);
     // The month the calendar should show, which follows the typed date once the year is complete
     const [viewDate, setViewDate] = useState<Date | undefined>(undefined);
+    const [viewDateVersion, setViewDateVersion] = useState(0);
     // Re-rendering with a new value makes the browser report a caret of its own choosing. Honouring that would drag
     // the active segment around, so the first report after a keystroke is discarded as an echo of our own update.
     const hasPendingCaretEchoRef = useRef(false);
     // Whether the next digit replaces the active segment instead of extending it, set on arriving at a segment
     const shouldOverwriteRef = useRef(false);
+    const [appliedValue, setAppliedValue] = useState(value);
+
+    // A date set from outside, by the calendar or by a restored draft, has to reach the segments as well. Without this
+    // an edit in progress would keep showing the date it started from, since the segments are what the field renders.
+    if (value !== appliedValue) {
+        setAppliedValue(value);
+
+        if (isEditing) {
+            setSegments(getSegmentsFromISODate(value));
+        }
+    }
 
     const {value: editingValue, ranges} = getDateDisplay(segments, mask);
     const activeRange = ranges[activeSegmentName];
@@ -125,17 +140,25 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
     };
 
     /**
+     * Asks the calendar to follow the input. The count is what carries the request, since the user can have moved the
+     * calendar elsewhere with its arrows or its month picker and then typed the month it was already showing.
+     */
+    const assertViewDate = (nextViewDate: Date | undefined) => {
+        if (!nextViewDate) {
+            return;
+        }
+
+        setViewDate(nextViewDate);
+        setViewDateVersion((version) => version + 1);
+    };
+
+    /**
      * The one place segments are written, so the calendar cannot fall out of step with them. The month already on
      * screen is the fallback while the typed month is unfinished, which keeps the calendar where the user left it.
      */
     const applySegments = (newSegments: DateSegments) => {
         setSegments(newSegments);
-
-        const nextViewDate = getViewDateFromSegments(newSegments, (viewDate ?? new Date()).getMonth(), minDate, maxDate);
-        if (nextViewDate) {
-            setViewDate(nextViewDate);
-        }
-
+        assertViewDate(getViewDateFromSegments(newSegments, (viewDate ?? new Date()).getMonth(), minDate, maxDate));
         commitIfComplete(newSegments);
     };
 
@@ -228,7 +251,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
         const firstSegmentName = getFirstUnfilledSegmentName(seededSegments) ?? FIRST_SEGMENT_NAME;
 
         setSegments(seededSegments);
-        setViewDate(getViewDateFromSegments(seededSegments, new Date().getMonth(), minDate, maxDate));
+        assertViewDate(getViewDateFromSegments(seededSegments, new Date().getMonth(), minDate, maxDate));
         shouldOverwriteRef.current = false;
         setActiveSegmentName(firstSegmentName);
         setCaretOffset(getCaretOffsetLimit(seededSegments, firstSegmentName));
@@ -252,6 +275,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
             displayValue: value,
             selection: undefined,
             viewDate: undefined,
+            viewDateVersion: 0,
             hasTypedDigits: false,
             onKeyPress: () => {},
             onSelectionChange: () => {},
@@ -265,6 +289,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
         displayValue: isEditing ? editingValue : value,
         selection: isEditing ? {start: caretPosition, end: caretPosition} : undefined,
         viewDate: isEditing ? viewDate : undefined,
+        viewDateVersion,
         hasTypedDigits: isEditing && hasAnySegment(segments),
         onKeyPress: handleKeyPress,
         onSelectionChange: handleSelectionChange,
