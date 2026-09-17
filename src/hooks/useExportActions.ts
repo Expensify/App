@@ -12,6 +12,7 @@ import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/Polic
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {getReportAccountingExportActions} from '@libs/ReportSecondaryActionUtils';
 import {getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
+import {hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +63,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactionIDs = Object.values(reportTransactions).map((t) => t.transactionID);
+    // The download receipts label is singular or plural depending on how many receipts the report actually has.
+    const receiptCount = Object.values(reportTransactions).filter((transaction) => hasReceiptTransactionUtils(transaction)).length;
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
@@ -292,7 +295,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
-            text: translate('common.downloadAsPDF'),
+            text: translate('common.downloadReport', {count: 1}),
             icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_PDF,
             onSelected: () => {
@@ -309,7 +312,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS,
-            text: translate('common.downloadReceipts'),
+            text: translate('common.downloadReceipt', {count: receiptCount}),
             icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_RECEIPTS,
             onSelected: () => {
