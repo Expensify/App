@@ -2,6 +2,8 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 
+import type * as PolicyUtilsModule from '@libs/PolicyUtils';
+
 import WorkspaceWorkflowsPayerPage from '@pages/workspace/workflows/WorkspaceWorkflowsPayerPage';
 
 import type {PersonalDetailsList, Policy} from '@src/types/onyx';
@@ -59,7 +61,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@libs/PolicyUtils', () => {
-    const actual = jest.requireActual<typeof import('@libs/PolicyUtils')>('@libs/PolicyUtils');
+    const actual = jest.requireActual<typeof PolicyUtilsModule>('@libs/PolicyUtils');
     return {
         ...actual,
         canMemberWrite: jest.fn(() => true),
