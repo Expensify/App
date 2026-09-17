@@ -1,0 +1,248 @@
+diff --git a/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts b/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
+index 6802428..b30fdac 100644
+--- a/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
++++ b/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
+@@ -8,6 +8,7 @@ import type { ChartPressState, ChartPressStateInit } from "./hooks/useChartPress
+ import { type ChartTransformState } from "./hooks/useChartTransformState";
+ import { type PanTransformGestureConfig, type PinchTransformGestureConfig } from "./utils/transformGestures";
+ import { type ChartLayoutModeProps } from "../shared/ChartLayoutModeProps";
++import { type ChartCanvasProps } from "../shared/ChartWrapper";
+ export type CartesianActionsHandle<T = undefined> = T extends ChartPressState<infer S> ? S extends ChartPressStateInit ? {
+     handleTouch: (v: T, x: number, y: number) => void;
+ } : never : never;
+@@ -67,6 +68,7 @@ type CartesianChartProps<RawData extends Record<string, unknown>, XK extends key
+         x: InputFields<RawData>[XK];
+         y: Record<YK, number>;
+     }> | undefined>>;
++    canvasProps?: ChartCanvasProps;
+ } & ChartLayoutModeProps;
+ export declare function CartesianChart<RawData extends Record<string, unknown>, XK extends keyof InputFields<RawData>, YK extends keyof NumericalFields<RawData>>({ transformState, children, ref, ...rest }: CartesianChartProps<RawData, XK, YK>): React.JSX.Element;
+ export {};
+diff --git a/node_modules/victory-native/dist/cartesian/CartesianChart.js b/node_modules/victory-native/dist/cartesian/CartesianChart.js
+index 839afbd..3b0837a 100644
+--- a/node_modules/victory-native/dist/cartesian/CartesianChart.js
++++ b/node_modules/victory-native/dist/cartesian/CartesianChart.js
+@@ -73,7 +73,7 @@ function CartesianChart(_a) {
+     </CartesianTransformContext_1.CartesianTransformProvider>);
+ }
+ exports.CartesianChart = CartesianChart;
+-function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, children, renderOutside = () => null, axisOptions, domain, chartPressState, chartPressConfig, gestureHandlerConfig, onChartBoundsChange, onScaleChange, gestureLongPressDelay = 100, xAxis, yAxis, frame, transformState, transformConfig, customGestures, actionsRef, viewport, ref, explicitSize, headless, }) {
++function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, children, renderOutside = () => null, axisOptions, domain, chartPressState, chartPressConfig, gestureHandlerConfig, onChartBoundsChange, onScaleChange, gestureLongPressDelay = 100, xAxis, yAxis, frame, transformState, transformConfig, customGestures, actionsRef, viewport, ref, explicitSize, headless, canvasProps, }) {
+     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+     const { size, hasMeasuredLayoutSize, onLayout, isHeadless } = (0, useChartCanvasSize_1.useChartCanvasSize)({ explicitSize, headless });
+     const chartBoundsRef = React.useRef(undefined);
+@@ -498,5 +498,5 @@ function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, chil
+                 height: primaryYScale.range()[1] - Math.min(primaryYScale.range()[0], 0),
+             }}/>);
+     }
+-    return (<ChartWrapper_1.ChartWrapper isHeadless={isHeadless} explicitSize={explicitSize} onLayout={onLayout} hasMeasuredLayoutSize={hasMeasuredLayoutSize} canvasSize={size} canvasRef={canvasRef} chartContent={chartContent} gestureOverlay={gestureOverlay}/>);
++    return (<ChartWrapper_1.ChartWrapper isHeadless={isHeadless} explicitSize={explicitSize} onLayout={onLayout} hasMeasuredLayoutSize={hasMeasuredLayoutSize} canvasSize={size} canvasRef={canvasRef} chartContent={chartContent} gestureOverlay={gestureOverlay} canvasProps={canvasProps}/>);
+ }
+diff --git a/node_modules/victory-native/dist/polar/PolarChart.d.ts b/node_modules/victory-native/dist/polar/PolarChart.d.ts
+index 6cf2971..5b862da 100644
+--- a/node_modules/victory-native/dist/polar/PolarChart.d.ts
++++ b/node_modules/victory-native/dist/polar/PolarChart.d.ts
+@@ -4,6 +4,7 @@ import type { ColorFields, InputFields, NumericalFields, StringKeyOf } from "../
+ import { type ChartTransformState } from "../cartesian/hooks/useChartTransformState";
+ import { type ChartExplicitSize } from "../shared/ChartExplicitSize";
+ import { type ChartLayoutModeProps } from "../shared/ChartLayoutModeProps";
++import { type ChartCanvasProps } from "../shared/ChartWrapper";
+ type PolarChartBaseProps = {
+     onLayout: ({ nativeEvent: { layout } }: LayoutChangeEvent) => void;
+     hasMeasuredLayoutSize: boolean;
+@@ -16,6 +17,7 @@ type PolarChartBaseProps = {
+     transformState?: ChartTransformState;
+     isHeadless: boolean;
+     explicitSize?: ChartExplicitSize;
++    canvasProps?: ChartCanvasProps;
+ };
+ type PolarChartProps<RawData extends Record<string, unknown>, LabelKey extends StringKeyOf<InputFields<RawData>>, ValueKey extends StringKeyOf<NumericalFields<RawData>>, ColorKey extends StringKeyOf<ColorFields<RawData>>> = {
+     data: RawData[];
+diff --git a/node_modules/victory-native/dist/polar/PolarChart.js b/node_modules/victory-native/dist/polar/PolarChart.js
+index d6416d0..c990be2 100644
+--- a/node_modules/victory-native/dist/polar/PolarChart.js
++++ b/node_modules/victory-native/dist/polar/PolarChart.js
+@@ -34,7 +34,7 @@ const GestureHandler_1 = require("../shared/GestureHandler");
+ const ChartWrapper_1 = require("../shared/ChartWrapper");
+ const useChartCanvasSize_1 = require("../shared/useChartCanvasSize");
+ const PolarChartBase = (props) => {
+-    const { containerStyle, canvasStyle, children, onLayout, hasMeasuredLayoutSize, canvasSize, transformState, isHeadless, explicitSize, } = props;
++    const { containerStyle, canvasStyle, children, onLayout, hasMeasuredLayoutSize, canvasSize, transformState, isHeadless, explicitSize, canvasProps, } = props;
+     const { width, height } = canvasSize;
+     const Bridge = (0, its_fine_1.useContextBridge)();
+     let composed = react_native_gesture_handler_1.Gesture.Race();
+@@ -44,7 +44,7 @@ const PolarChartBase = (props) => {
+     const chartContent = (<react_native_skia_1.Group matrix={transformState === null || transformState === void 0 ? void 0 : transformState.matrix}>
+       {hasMeasuredLayoutSize && children}
+     </react_native_skia_1.Group>);
+-    return (<ChartWrapper_1.ChartWrapper isHeadless={isHeadless} explicitSize={explicitSize} onLayout={onLayout} hasMeasuredLayoutSize={hasMeasuredLayoutSize} canvasSize={canvasSize} containerStyle={containerStyle} canvasStyle={canvasStyle} chartContent={chartContent} wrapCanvasContent={isHeadless ? undefined : (content) => <Bridge>{content}</Bridge>} gestureOverlay={isHeadless ? undefined : (<GestureHandler_1.GestureHandler gesture={composed} dimensions={{ x: 0, y: 0, width, height }}/>)}/>);
++    return (<ChartWrapper_1.ChartWrapper isHeadless={isHeadless} explicitSize={explicitSize} onLayout={onLayout} hasMeasuredLayoutSize={hasMeasuredLayoutSize} canvasSize={canvasSize} containerStyle={containerStyle} canvasStyle={canvasStyle} canvasProps={canvasProps} chartContent={chartContent} wrapCanvasContent={isHeadless ? undefined : (content) => <Bridge>{content}</Bridge>} gestureOverlay={isHeadless ? undefined : (<GestureHandler_1.GestureHandler gesture={composed} dimensions={{ x: 0, y: 0, width, height }}/>)}/>);
+ };
+ const PolarChart = (props) => {
+     const { data, labelKey, colorKey, valueKey } = props;
+diff --git a/node_modules/victory-native/dist/shared/ChartWrapper.d.ts b/node_modules/victory-native/dist/shared/ChartWrapper.d.ts
+index 0688ab2..a878191 100644
+--- a/node_modules/victory-native/dist/shared/ChartWrapper.d.ts
++++ b/node_modules/victory-native/dist/shared/ChartWrapper.d.ts
+@@ -1,8 +1,9 @@
+ import * as React from "react";
+ import { type LayoutChangeEvent, type StyleProp, type ViewStyle } from "react-native";
+-import { type CanvasRef } from "@shopify/react-native-skia";
++import { type CanvasProps, type CanvasRef } from "@shopify/react-native-skia";
+ import { type ChartExplicitSize } from "./ChartExplicitSize";
+ import { type ChartCanvasSize } from "./chartCanvasSizeUtils";
++export type ChartCanvasProps = Omit<CanvasProps, "children" | "ref" | "style" | "onLayout">;
+ type ChartWrapperProps = {
+     isHeadless: boolean;
+     explicitSize?: ChartExplicitSize;
+@@ -15,6 +16,7 @@ type ChartWrapperProps = {
+     containerStyle?: StyleProp<ViewStyle>;
+     canvasStyle?: StyleProp<ViewStyle>;
+     wrapCanvasContent?: (content: React.ReactNode) => React.ReactNode;
++    canvasProps?: ChartCanvasProps;
+ };
+-export declare function ChartWrapper({ isHeadless, explicitSize, onLayout, hasMeasuredLayoutSize, canvasSize, canvasRef, chartContent, gestureOverlay, containerStyle, canvasStyle, wrapCanvasContent, }: ChartWrapperProps): React.JSX.Element;
++export declare function ChartWrapper({ isHeadless, explicitSize, onLayout, hasMeasuredLayoutSize, canvasSize, canvasRef, chartContent, gestureOverlay, containerStyle, canvasStyle, wrapCanvasContent, canvasProps, }: ChartWrapperProps): React.JSX.Element;
+ export {};
+diff --git a/node_modules/victory-native/dist/shared/ChartWrapper.js b/node_modules/victory-native/dist/shared/ChartWrapper.js
+index 5aca3cc..8d9f9ee 100644
+--- a/node_modules/victory-native/dist/shared/ChartWrapper.js
++++ b/node_modules/victory-native/dist/shared/ChartWrapper.js
+@@ -28,7 +28,7 @@ const React = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const react_native_skia_1 = require("@shopify/react-native-skia");
+ const react_native_gesture_handler_1 = require("react-native-gesture-handler");
+-function ChartWrapper({ isHeadless, explicitSize, onLayout, hasMeasuredLayoutSize, canvasSize, canvasRef, chartContent, gestureOverlay, containerStyle, canvasStyle, wrapCanvasContent, }) {
++function ChartWrapper({ isHeadless, explicitSize, onLayout, hasMeasuredLayoutSize, canvasSize, canvasRef, chartContent, gestureOverlay, containerStyle, canvasStyle, wrapCanvasContent, canvasProps, }) {
+     if (isHeadless) {
+         return <react_native_skia_1.Group>{chartContent}</react_native_skia_1.Group>;
+     }
+@@ -42,7 +42,7 @@ function ChartWrapper({ isHeadless, explicitSize, onLayout, hasMeasuredLayoutSiz
+                 : null,
+             containerStyle,
+         ]} onLayout={explicitSize ? undefined : onLayout}>
+-        <react_native_skia_1.Canvas ref={canvasRef} style={react_native_1.StyleSheet.flatten([
++        <react_native_skia_1.Canvas {...canvasProps} ref={canvasRef} style={react_native_1.StyleSheet.flatten([
+             styles.flex1,
+             hasMeasuredLayoutSize ? { width, height } : null,
+             canvasStyle,
+diff --git a/node_modules/victory-native/src/cartesian/CartesianChart.tsx b/node_modules/victory-native/src/cartesian/CartesianChart.tsx
+index b1f9a53..73e9aa7 100644
+--- a/node_modules/victory-native/src/cartesian/CartesianChart.tsx
++++ b/node_modules/victory-native/src/cartesian/CartesianChart.tsx
+@@ -53,7 +53,7 @@ import {
+ import { downsampleTicks } from "../utils/tickHelpers";
+ import { GestureHandler } from "../shared/GestureHandler";
+ import { type ChartLayoutModeProps } from "../shared/ChartLayoutModeProps";
+-import { ChartWrapper } from "../shared/ChartWrapper";
++import { ChartWrapper, type ChartCanvasProps } from "../shared/ChartWrapper";
+ import { useChartCanvasSize } from "../shared/useChartCanvasSize";
+ import { boundsToClip } from "../utils/boundsToClip";
+ import { normalizeYAxisTicks } from "../utils/normalizeYAxisTicks";
+@@ -136,6 +136,7 @@ type CartesianChartProps<
+       | undefined
+     >
+   >;
++  canvasProps?: ChartCanvasProps;
+ } & ChartLayoutModeProps;
+ 
+ export function CartesianChart<
+@@ -188,6 +189,7 @@ function CartesianChartContent<
+   ref,
+   explicitSize,
+   headless,
++  canvasProps,
+ }: CartesianChartProps<RawData, XK, YK>) {
+   const { size, hasMeasuredLayoutSize, onLayout, isHeadless } =
+     useChartCanvasSize({ explicitSize, headless });
+@@ -773,6 +775,7 @@ function CartesianChartContent<
+       canvasRef={canvasRef}
+       chartContent={chartContent}
+       gestureOverlay={gestureOverlay}
++      canvasProps={canvasProps}
+     />
+   );
+ }
+diff --git a/node_modules/victory-native/src/polar/PolarChart.tsx b/node_modules/victory-native/src/polar/PolarChart.tsx
+index 4229d7b..7665633 100644
+--- a/node_modules/victory-native/src/polar/PolarChart.tsx
++++ b/node_modules/victory-native/src/polar/PolarChart.tsx
+@@ -22,7 +22,7 @@ import {
+ import { GestureHandler } from "../shared/GestureHandler";
+ import { type ChartExplicitSize } from "../shared/ChartExplicitSize";
+ import { type ChartLayoutModeProps } from "../shared/ChartLayoutModeProps";
+-import { ChartWrapper } from "../shared/ChartWrapper";
++import { ChartWrapper, type ChartCanvasProps } from "../shared/ChartWrapper";
+ import { useChartCanvasSize } from "../shared/useChartCanvasSize";
+ 
+ type PolarChartBaseProps = {
+@@ -34,6 +34,7 @@ type PolarChartBaseProps = {
+   transformState?: ChartTransformState;
+   isHeadless: boolean;
+   explicitSize?: ChartExplicitSize;
++  canvasProps?: ChartCanvasProps;
+ };
+ 
+ const PolarChartBase = (
+@@ -49,6 +50,7 @@ const PolarChartBase = (
+     transformState,
+     isHeadless,
+     explicitSize,
++    canvasProps,
+   } = props;
+   const { width, height } = canvasSize;
+   const Bridge: ContextBridge = useContextBridge();
+@@ -77,6 +79,7 @@ const PolarChartBase = (
+       canvasSize={canvasSize}
+       containerStyle={containerStyle}
+       canvasStyle={canvasStyle}
++      canvasProps={canvasProps}
+       chartContent={chartContent}
+       wrapCanvasContent={
+         isHeadless ? undefined : (content) => <Bridge>{content}</Bridge>
+diff --git a/node_modules/victory-native/src/shared/ChartWrapper.tsx b/node_modules/victory-native/src/shared/ChartWrapper.tsx
+index ab149e9..b907381 100644
+--- a/node_modules/victory-native/src/shared/ChartWrapper.tsx
++++ b/node_modules/victory-native/src/shared/ChartWrapper.tsx
+@@ -6,11 +6,16 @@ import {
+   type StyleProp,
+   type ViewStyle,
+ } from "react-native";
+-import { Canvas, Group, type CanvasRef } from "@shopify/react-native-skia";
++import { Canvas, Group, type CanvasProps, type CanvasRef } from "@shopify/react-native-skia";
+ import { GestureHandlerRootView } from "react-native-gesture-handler";
+ import { type ChartExplicitSize } from "./ChartExplicitSize";
+ import { type ChartCanvasSize } from "./chartCanvasSizeUtils";
+ 
++export type ChartCanvasProps = Omit<
++  CanvasProps,
++  "children" | "ref" | "style" | "onLayout"
++>;
++
+ type ChartWrapperProps = {
+   isHeadless: boolean;
+   explicitSize?: ChartExplicitSize;
+@@ -23,6 +28,7 @@ type ChartWrapperProps = {
+   containerStyle?: StyleProp<ViewStyle>;
+   canvasStyle?: StyleProp<ViewStyle>;
+   wrapCanvasContent?: (content: React.ReactNode) => React.ReactNode;
++  canvasProps?: ChartCanvasProps;
+ };
+ 
+ export function ChartWrapper({
+@@ -37,6 +43,7 @@ export function ChartWrapper({
+   containerStyle,
+   canvasStyle,
+   wrapCanvasContent,
++  canvasProps,
+ }: ChartWrapperProps) {
+   if (isHeadless) {
+     return <Group>{chartContent}</Group>;
+@@ -58,6 +65,7 @@ export function ChartWrapper({
+         onLayout={explicitSize ? undefined : onLayout}
+       >
+         <Canvas
++          {...canvasProps}
+           ref={canvasRef}
+           style={StyleSheet.flatten([
+             styles.flex1,
