@@ -36,7 +36,7 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     }
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- reset show more on transaction change
         setShowMoreFields(false);
     }, [transactionID]);
 

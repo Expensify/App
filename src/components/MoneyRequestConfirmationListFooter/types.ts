@@ -5,8 +5,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import type {AmountDisplay, CompactControls, DistanceData, ErrorState, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 
-/** What every footer variant renders from, whatever the expense type. */
-type ConfirmationFooterBaseProps = {
+type MoneyRequestConfirmationListFooterProps = {
+    /** Error message from the odometer receipt stitcher, rendered below the receipt */
+    receiptStitchError?: string | null;
+
+    /** Whether the compact scan layout is active */
+    isCompactMode: boolean;
+
     /** Active policy read by sections. It may differ from the context `policyID` in track-expense flows where the user moves the expense to a different workspace. */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -15,6 +20,9 @@ type ConfirmationFooterBaseProps = {
 
     /** Selected participants (drives ReportField + InvoiceSender presentation) */
     selectedParticipants: Participant[];
+
+    /** Distance-rate metadata */
+    distanceData: DistanceData;
 
     /** Pre-formatted amount values */
     amountDisplay: AmountDisplay;
@@ -26,41 +34,24 @@ type ConfirmationFooterBaseProps = {
 
     errorState: ErrorState;
     toggleHandlers?: ToggleHandlers;
-};
-
-/** Adds the receipt section. Per diem is the one type that shows no receipt on the confirmation page. */
-type WithReceipt = {
     receiptOptions?: ReceiptOptions;
+
+    /** Show-more state for the compact layout */
+    compactControls: CompactControls;
 };
 
-/** Adds the distance-rate metadata the Distance and Rate fields read. */
-type WithDistance = {
-    distanceData: DistanceData;
-};
+type TimeFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
-type PerDiemFooterProps = ConfirmationFooterBaseProps;
+type PerDiemFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'receiptOptions' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
-type TimeFooterProps = ConfirmationFooterBaseProps & WithReceipt;
+type DistanceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls'>;
 
-type ManualFooterProps = ConfirmationFooterBaseProps & WithReceipt;
+type DistanceOdometerFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'isCompactMode' | 'compactControls'>;
 
-type InvoiceFooterProps = ConfirmationFooterBaseProps & WithReceipt;
+type ScanFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'distanceData'>;
 
-type DistanceFooterProps = ConfirmationFooterBaseProps & WithReceipt & WithDistance;
+type ManualFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
-type DistanceOdometerFooterProps = DistanceFooterProps & {
-    /** Error message from the odometer receipt stitcher, rendered below the receipt. The odometer flow is the only
-     * one that builds a single receipt from two photos, so it is the only one that can fail this way. */
-    receiptStitchError?: string | null;
-};
-
-type ScanFooterProps = ConfirmationFooterBaseProps &
-    WithReceipt & {
-        /** Whether the compact scan layout is active, with the optional fields collapsed behind "Show more" */
-        isCompactMode: boolean;
-
-        /** Show-more state for the compact layout */
-        compactControls: CompactControls;
-    };
+type InvoiceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
 export type {TimeFooterProps, PerDiemFooterProps, DistanceFooterProps, DistanceOdometerFooterProps, ScanFooterProps, ManualFooterProps, InvoiceFooterProps};

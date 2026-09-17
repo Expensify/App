@@ -10,10 +10,9 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-/** A row of the confirmation list. Rows are participants only — every expense field is rendered in the list footer. */
+/** A row of the confirmation list. */
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
-/** The props every confirmation list variant is handed by the page hosting it. */
 type MoneyRequestConfirmationListProps = {
     /** Runs validation and submits. */
     onConfirm?: () => void;
