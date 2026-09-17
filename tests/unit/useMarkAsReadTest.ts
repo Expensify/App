@@ -1,8 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
-
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
+import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
 import type Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
