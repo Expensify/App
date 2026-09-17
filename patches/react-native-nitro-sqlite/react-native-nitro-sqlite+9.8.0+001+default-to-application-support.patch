@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm b/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
+--- a/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
++++ b/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
+@@ -32,7 +32,7 @@ using namespace margelo::nitro::rnnitrosqlite;
+   } else {
+     NSString *databaseLocation = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"RNNitroSQLite_DatabaseLocation"];
+ 
+-    if ([databaseLocation isEqualToString:@"ApplicationSupport"]) {
++    if (databaseLocation == nil || [databaseLocation isEqualToString:@"ApplicationSupport"]) {
+       // Library/Application Support is persistent, backed up, and never exposed to the user
+       // via the Files app (unlike the Documents directory, which becomes user-visible when
+       // the app enables file sharing).

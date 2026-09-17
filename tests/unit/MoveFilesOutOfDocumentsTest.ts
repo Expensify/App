@@ -165,18 +165,12 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         await expect(MoveFilesOutOfDocuments()).resolves.toBeUndefined();
     });
 
-    it('keeps the native database migration patch in sync with the database name', () => {
-        const patchDir = path.resolve(__dirname, '../../patches/react-native-nitro-sqlite');
-        const patchFileName = fs.readdirSync(patchDir).find((fileName) => fileName.includes('store-database-outside-documents'));
-        expect(patchFileName).toBeDefined();
-        const patchContent = fs.readFileSync(path.join(patchDir, String(patchFileName)), 'utf8');
-
-        // The patch migrates database files by name at app startup, before any JS runs, so the
-        // name is hardcoded there. If the database the app opens is ever renamed, the patch (and
-        // this test) must be updated with it, or the migration would silently strand user data.
-        expect(patchContent).toContain(`@"${CONST.DEFAULT_DB_NAME}"`);
-
+    it('keeps the Onyx database name aligned with the upstream per-database migration', () => {
         const sqliteProviderContent = fs.readFileSync(path.resolve(__dirname, '../../node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js'), 'utf8');
         expect(sqliteProviderContent).toContain(`'${CONST.DEFAULT_DB_NAME}'`);
+
+        // NitroSQLite now migrates each database when it opens, using the caller's database name.
+        const nitroSQLiteContent = fs.readFileSync(path.resolve(__dirname, '../../node_modules/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp'), 'utf8');
+        expect(nitroSQLiteContent).toContain('return migrateDatabase(dbName,');
     });
 });
