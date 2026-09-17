@@ -28,8 +28,9 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Response as OnyxResponse} from '@src/types/onyx';
 
-import {PortalProvider} from '@gorhom/portal';
 import type * as ReactNavigation from '@react-navigation/native';
+
+import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
