@@ -1,31 +1,40 @@
-import React from 'react';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
 import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasDependentTags} from '@libs/PolicyUtils';
 import {getDecodedTagName} from '@libs/TagUtils';
 import {getTagForDisplay} from '@libs/TransactionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TagCellProps = TransactionDataCellProps &
     EditableProps<string> & {
         policyID?: string;
+        policy?: Policy;
     };
 
-function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, transactionItem, policyID}: TagCellProps) {
+function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, transactionItem, policyID, policy: policyProp}: TagCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Tag']);
     const styles = useThemeStyles();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [livePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const policy = livePolicy ? {...policyProp, ...livePolicy} : policyProp;
 
     const policyHasDependentTags = hasDependentTags(policy, policyTags);
+    const shouldShowGLCode = !!policy?.showTagGLCodes && !!policy?.glCodes;
 
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
@@ -64,6 +73,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
                     selectedTag={transactionItem?.tag ?? ''}
                     transactionTag={transactionItem?.tag}
                     hasDependentTags={policyHasDependentTags}
+                    shouldShowGLCode={shouldShowGLCode}
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}

@@ -1,8 +1,25 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import type {SvgProps} from 'react-native-svg/lib/typescript';
+
+import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
+import type {getExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
+import {loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
+import type {getIllustrationsChunk} from '@components/Icon/IllustrationLoader';
+import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
+
 import useLazyAsset, {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {SvgProps} from 'react-native-svg/lib/typescript';
+
+import React from 'react';
+
+import createMock from '../../utils/createMock';
+
+type ExpensifyIconsChunk = NonNullable<ReturnType<typeof getExpensifyIconsChunk>>;
+type ExpensifyIconName = Parameters<ExpensifyIconsChunk['getExpensifyIcon']>[0];
+type IllustrationsChunk = NonNullable<ReturnType<typeof getIllustrationsChunk>>;
+type IllustrationName = Parameters<IllustrationsChunk['getIllustration']>[0];
 
 jest.mock('@components/Icon/PlaceholderIcon', () => {
     // eslint-disable-next-line @typescript-eslint/no-shadow, @typescript-eslint/no-unsafe-assignment
@@ -17,13 +34,13 @@ jest.mock('@components/Icon/PlaceholderIcon', () => {
 });
 
 jest.mock('@components/Icon/ExpensifyIconLoader', () => ({
-    getExpensifyIconsChunk: jest.fn(),
+    getExpensifyIconsChunk: jest.fn<ExpensifyIconsChunk | null, []>(),
     loadExpensifyIconsChunk: jest.fn(),
     loadExpensifyIcon: jest.fn(),
 }));
 
 jest.mock('@components/Icon/IllustrationLoader', () => ({
-    getIllustrationsChunk: jest.fn(),
+    getIllustrationsChunk: jest.fn<IllustrationsChunk | null, []>(),
     loadIllustrationsChunk: jest.fn(),
     loadIllustration: jest.fn(),
 }));
@@ -42,6 +59,16 @@ jest.mock('@hooks/useLazyAsset', () => {
         useMemoizedLazyAsset: actual.useMemoizedLazyAsset,
     };
 });
+
+type ExpensifyIconLoaderMock = {
+    getExpensifyIconsChunk: jest.Mock<ExpensifyIconsChunk | null, []>;
+};
+type IllustrationLoaderMock = {
+    getIllustrationsChunk: jest.Mock<IllustrationsChunk | null, []>;
+};
+
+const mockGetExpensifyIconsChunk = jest.requireMock<ExpensifyIconLoaderMock>('@components/Icon/ExpensifyIconLoader').getExpensifyIconsChunk;
+const mockGetIllustrationsChunk = jest.requireMock<IllustrationLoaderMock>('@components/Icon/IllustrationLoader').getIllustrationsChunk;
 
 // Create proper IconAsset mocks that satisfy the type constraint
 const mockAsset: IconAsset = React.memo((props: SvgProps) => {
@@ -285,7 +312,7 @@ describe('useMemoizedLazyAsset', () => {
         });
     });
 
-    it('should handle function reference changes', async () => {
+    it('should keep the initial importFn stable across rerenders', async () => {
         const importFn1 = jest.fn(() => Promise.resolve({default: mockAsset}));
         const importFn2 = jest.fn(() => Promise.resolve({default: mockFallbackAsset}));
 
@@ -302,19 +329,20 @@ describe('useMemoizedLazyAsset', () => {
             expect(result.current.asset).toBe(mockAsset);
         });
 
-        // Change to different function
+        // Callers pass inline loaders; rebinding every render would loop setState, so
+        // useMemoizedLazyAsset captures the first importFn only.
         rerender({importFn: importFn2});
 
-        // Wait for new import function to be called
         await waitFor(() => {
-            expect(importFn2).toHaveBeenCalled();
+            expect(result.current.asset).toBe(mockAsset);
         });
+        expect(importFn2).not.toHaveBeenCalled();
+        expect(importFn1).toHaveBeenCalled();
     });
 
     it('returns PlaceholderIcon while loading', () => {
         // Our Jest mock for PlaceholderIcon exports the component directly (no default)
 
-        const PlaceholderIcon = require('@components/Icon/PlaceholderIcon') as IconAsset;
         const importFn: () => Promise<{default: IconAsset}> = () => new Promise(() => {});
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
         expect(result.current.asset).toBe(PlaceholderIcon);
@@ -331,16 +359,25 @@ describe('useMemoizedLazyAsset', () => {
         expect(result.current.asset).toBe(mockAsset);
         expect(importFn).toHaveBeenCalled();
     });
+
+    it('wraps OXC-memoized host SVG elements as components instead of PlaceholderIcon', async () => {
+        // Host elements have type === 'svg'; unwrapping .type cannot recover a component.
+        const hostSvgElement = React.createElement('svg', {viewBox: '0 0 10 10'});
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture: OXC can cache a host <svg> element as the loaded asset
+        const hostSvgAsAsset = hostSvgElement as unknown as IconAsset;
+        const importFn = jest.fn(() => Promise.resolve({default: hostSvgAsAsset}));
+
+        const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
+
+        await waitFor(() => {
+            expect(result.current.asset).not.toBe(hostSvgAsAsset);
+            expect(typeof result.current.asset).toBe('function');
+        });
+    });
 });
 
 describe('useMemoizedLazyExpensifyIcons', () => {
-    // Get the mocked functions
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const ExpensifyIconLoader = require('@components/Icon/ExpensifyIconLoader');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const mockGetExpensifyIconsChunk = ExpensifyIconLoader.getExpensifyIconsChunk as jest.Mock;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const mockLoadExpensifyIconsChunk = ExpensifyIconLoader.loadExpensifyIconsChunk as jest.Mock;
+    const mockLoadExpensifyIconsChunk = jest.mocked(loadExpensifyIconsChunk);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -348,15 +385,16 @@ describe('useMemoizedLazyExpensifyIcons', () => {
 
     it('should load multiple icons synchronously when chunk is cached', () => {
         // Given: A cached chunk that's already available synchronously
-        const mockChunk = {
-            getExpensifyIcon: jest.fn((name: string) => {
-                if (name === 'AddReaction' || name === 'Apple') {
-                    return mockAsset;
-                }
-                return undefined;
-            }),
-            AVAILABLE_EXPENSIFY_ICONS: ['AddReaction', 'Apple'],
-        };
+        const mockChunk = createMock<ExpensifyIconsChunk>({});
+        mockChunk.getExpensifyIcon = jest.fn((name: ExpensifyIconName) => {
+            if (name === 'AddReaction' || name === 'Apple') {
+                return mockAsset;
+            }
+            return undefined;
+        });
+        mockChunk.AVAILABLE_EXPENSIFY_ICONS = ['AddReaction', 'Apple'];
+        mockChunk.AddReaction = mockAsset;
+        mockChunk.Apple = mockAsset;
 
         mockGetExpensifyIconsChunk.mockReturnValue(mockChunk);
 
@@ -378,13 +416,7 @@ describe('useMemoizedLazyExpensifyIcons', () => {
 });
 
 describe('useMemoizedLazyIllustrations', () => {
-    // Get the mocked functions
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const IllustrationLoader = require('@components/Icon/IllustrationLoader');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const mockGetIllustrationsChunk = IllustrationLoader.getIllustrationsChunk as jest.Mock;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const mockLoadIllustrationsChunk = IllustrationLoader.loadIllustrationsChunk as jest.Mock;
+    const mockLoadIllustrationsChunk = jest.mocked(loadIllustrationsChunk);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -392,15 +424,16 @@ describe('useMemoizedLazyIllustrations', () => {
 
     it('should load multiple illustrations synchronously when chunk is cached', () => {
         // Given: A cached chunk that's already available synchronously
-        const mockChunk = {
-            getIllustration: jest.fn((name: string) => {
-                if (name === 'Building' || name === 'Tag') {
-                    return mockAsset;
-                }
-                return undefined;
-            }),
-            AVAILABLE_ILLUSTRATIONS: ['Building', 'Tag'],
-        };
+        const mockChunk = createMock<IllustrationsChunk>({});
+        mockChunk.getIllustration = jest.fn((name: IllustrationName) => {
+            if (name === 'Building' || name === 'Tag') {
+                return mockAsset;
+            }
+            return undefined;
+        });
+        mockChunk.AVAILABLE_ILLUSTRATIONS = ['Building', 'Tag'];
+        mockChunk.Building = mockAsset;
+        mockChunk.Tag = mockAsset;
 
         mockGetIllustrationsChunk.mockReturnValue(mockChunk);
 

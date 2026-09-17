@@ -1,6 +1,7 @@
+import type {PointsArray} from 'victory-native';
+
 import {Circle} from '@shopify/react-native-skia';
 import React, {Fragment} from 'react';
-import type {PointsArray} from 'victory-native';
 
 type ScatterPointsProps = {
     /** Data points to render as dots */

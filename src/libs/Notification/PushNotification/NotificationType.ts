@@ -1,6 +1,7 @@
+import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+
 import type {OnyxKey} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 const NotificationType = {
     REPORT_ACTION: 'reportAction',

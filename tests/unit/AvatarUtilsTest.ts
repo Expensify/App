@@ -1,4 +1,5 @@
 import {getApiRoot} from '@libs/ApiUtils';
+
 import CONST from '@src/CONST';
 import {getValidatedImageSource, isValidExtension, isValidResolution, isValidSize, validateAvatarImage} from '@src/libs/AvatarUtils';
 import * as FileUtils from '@src/libs/fileDownload/FileUtils';
@@ -9,8 +10,8 @@ jest.mock('@src/libs/fileDownload/FileUtils');
 jest.mock('@src/libs/fileDownload/getImageResolution');
 
 describe('AvatarUtils', () => {
-    const mockFileUtils = FileUtils as jest.Mocked<typeof FileUtils>;
-    const mockGetImageResolution = getImageResolution as jest.Mocked<typeof getImageResolution>;
+    const mockFileUtils = jest.mocked(FileUtils);
+    const mockGetImageResolution = jest.mocked(getImageResolution);
 
     beforeEach(() => {
         jest.clearAllMocks();

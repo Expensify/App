@@ -1,7 +1,9 @@
-import {useEffect} from 'react';
 import {useSearchResultsActions} from '@components/Search/SearchContext';
+
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import {useEffect} from 'react';
 
 /**
  * Persists sorted report IDs to Search context so that MoneyRequestReportNavigation

@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import type {TelemetryBeforeSend} from './index';
 
 const MAX_SPAN_DURATION_MS = 60_000;

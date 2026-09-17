@@ -1,6 +1,8 @@
-import type {ImageSourcePropType} from 'react-native';
 import Config from '@src/CONFIG';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+
+import type {ImageSourcePropType} from 'react-native';
+
 import proxyConfig from '../../config/proxyConfig';
 import {getApiRoot} from './ApiUtils';
 

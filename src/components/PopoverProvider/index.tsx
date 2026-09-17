@@ -1,7 +1,9 @@
 import type {RefObject} from 'react';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text, View} from 'react-native';
+
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+
 import type {AnchorRef, PopoverContextProps} from './types';
 
 type PopoverStateContextType = {

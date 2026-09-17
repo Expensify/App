@@ -1,7 +1,8 @@
+import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
 
 type WorkflowRun = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response']['data']['workflow_runs'][number];
 
@@ -139,7 +140,7 @@ ${errorMessage}
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run().catch((error: Error) => {
         console.error('Failed to process workflow failure:', error);
         core.setFailed(error.message);

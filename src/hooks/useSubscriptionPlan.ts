@@ -1,8 +1,11 @@
-import {useMemo} from 'react';
 import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useMemo} from 'react';
+
 import useOnyx from './useOnyx';
 
 function useSubscriptionPlan() {

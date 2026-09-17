@@ -1,8 +1,10 @@
-import {useEffect} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {useEffect} from 'react';
 
 type UseReportNavigationFallbackProps = {
     source?: AvatarSource;

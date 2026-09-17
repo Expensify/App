@@ -1,7 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('usePrimaryContactMethod', () => {
@@ -45,6 +49,30 @@ describe('usePrimaryContactMethod', () => {
         const {result} = renderHook(() => usePrimaryContactMethod());
 
         expect(result.current).toBe('session-only@expensify.com');
+    });
+
+    it('should fall back to session email when primaryLogin is an empty string', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: ''});
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'session-only@expensify.com'});
+            await waitForBatchedUpdates();
+        });
+
+        const {result} = renderHook(() => usePrimaryContactMethod());
+
+        expect(result.current).toBe('session-only@expensify.com');
+    });
+
+    it('should return empty string when primaryLogin is empty and there is no session email', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: ''});
+            await Onyx.merge(ONYXKEYS.SESSION, {});
+            await waitForBatchedUpdates();
+        });
+
+        const {result} = renderHook(() => usePrimaryContactMethod());
+
+        expect(result.current).toBe('');
     });
 
     it('should return empty string when neither primaryLogin nor session email exist', async () => {

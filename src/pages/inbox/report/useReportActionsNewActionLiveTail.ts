@@ -1,15 +1,25 @@
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
+
 import type {OpenReportActionParams} from '@libs/actions/Report';
 import {openReport, pruneReportActionPagesToNewestWindow, subscribeToNewActionEvent} from '@libs/actions/Report';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useNavigation} from '@react-navigation/native';
+import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -27,6 +37,9 @@ type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
     introSelected: OpenReportActionParams['introSelected'];
     betas: OpenReportActionParams['betas'];
+    conciergeChat: OpenReportActionParams['conciergeChat'];
+    isSelfTourViewed: OpenReportActionParams['isSelfTourViewed'];
+    hasCompletedGuidedSetupFlow: OpenReportActionParams['hasCompletedGuidedSetupFlow'];
     isOffline: boolean;
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
@@ -53,9 +66,12 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
  * it from list `onLayout` outside this hook.
  */
 function useReportActionsNewActionLiveTail({
+    conciergeChat,
     reportID,
     introSelected,
     betas,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     isOffline,
     reportScrollManager,
     setIsFloatingMessageCounterVisible,
@@ -72,60 +88,70 @@ function useReportActionsNewActionLiveTail({
     prevIsLoadingInitialReportActions,
     reportLoadingState,
 }: UseReportActionsNewActionLiveTailParams) {
+    const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const isInSidePanel = useIsInSidePanel();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
-        InteractionManager.runAfterInteractions(() => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
-                return;
-            }
-            if (!hasNewestReportAction && !isFromCurrentUser) {
-                if (Navigation.getReportRHPActiveRoute()) {
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+                // they are now in the list.
+                if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                });
-                return;
-            }
-
-            const shouldJumpToLiveTail =
-                !isOffline && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (hasNewerActions || !!linkedReportActionID || unreadMarkerReportActionID);
-
-            if (shouldJumpToLiveTail) {
-                if (liveTailJumpRef.current.stage === 'idle') {
-                    liveTailJumpRef.current = {stage: 'open_report'};
-                    openReport({
-                        reportID,
-                        introSelected,
-                        betas,
+                if (!hasNewestReportAction && !isFromCurrentUser) {
+                    if (Navigation.getReportRHPActiveRoute()) {
+                        return;
+                    }
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                     });
+                    return;
                 }
-                return;
-            }
 
-            const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
-            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                if (index > 0) {
-                    setTimeout(() => {
-                        reportScrollManager.scrollToIndex(index);
-                    }, 100);
+                const shouldJumpToLiveTail =
+                    !isOffline && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (hasNewerActions || !!linkedReportActionID || unreadMarkerReportActionID);
+
+                if (shouldJumpToLiveTail) {
+                    if (liveTailJumpRef.current.stage === 'idle') {
+                        liveTailJumpRef.current = {stage: 'open_report'};
+                        openReport({
+                            reportID,
+                            introSelected,
+                            conciergeChat,
+                            betas,
+                            hasReportActions: true,
+                            currentUserAccountID,
+                            isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow,
+                        });
+                    }
+                    return;
+                }
+
+                const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
+                if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                    if (index > 0) {
+                        setTimeout(() => {
+                            reportScrollManager.scrollToIndex(index);
+                        }, 100);
+                    } else {
+                        setIsFloatingMessageCounterVisible(false);
+                        reportScrollManager.scrollToBottom();
+                    }
+                    if (action?.reportActionID) {
+                        setActionIdToHighlight(action.reportActionID);
+                    }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
                     reportScrollManager.scrollToBottom();
                 }
-                if (action?.reportActionID) {
-                    setActionIdToHighlight(action.reportActionID);
-                }
-            } else {
-                setIsFloatingMessageCounterVisible(false);
-                reportScrollManager.scrollToBottom();
-            }
 
-            setIsScrollToBottomEnabled(true);
+                setIsScrollToBottomEnabled(true);
+            },
         });
     });
 
@@ -142,6 +168,17 @@ function useReportActionsNewActionLiveTail({
         liveTailJumpRef.current = {stage: 'idle'};
     }, [reportID]);
 
+    // Screen-scoped, so it clears this report route's param rather than the focused route's (e.g. an open RHP).
+    // In the side panel there is no navigator screen: the route is synthetic and carries no reportActionID, and
+    // `navigation` is the withNavigationFallback stub, so the call would only be a logged no-op.
+    // An effect event so `navigation` / `isInSidePanel` stay out of the caller's dependency list - neither triggers the jump.
+    const clearLinkedActionParam = useEffectEvent(() => {
+        if (isInSidePanel) {
+            return;
+        }
+        navigation.setParams({reportActionID: ''});
+    });
+
     useEffect(() => {
         if (liveTailJumpRef.current.stage !== 'open_report') {
             return;
@@ -154,7 +191,7 @@ function useReportActionsNewActionLiveTail({
         }
 
         setTreatAsNoPaginationAnchor(true);
-        Navigation.setParams({reportActionID: ''});
+        clearLinkedActionParam();
         liveTailJumpRef.current = {stage: 'await_scroll'};
     }, [prevIsLoadingInitialReportActions, reportLoadingState?.isLoadingInitialReportActions, setTreatAsNoPaginationAnchor]);
 

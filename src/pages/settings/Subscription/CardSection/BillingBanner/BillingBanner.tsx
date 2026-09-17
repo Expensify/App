@@ -1,47 +1,42 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type BillingBannerProps = {
-    /** The title of the banner. */
-    title: string | React.ReactNode;
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
-    /** The subtitle of the banner. */
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
+type BillingBannerProps = {
+    title: string | React.ReactNode;
     subtitle: string | React.ReactNode;
 
     /** The icon to display in the banner. */
     icon: IconAsset;
 
-    /** The type of brick road indicator to show. */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
     /** Styles to apply to the container. */
     style?: StyleProp<ViewStyle>;
 
-    /** Styles to apply to the title. */
     titleStyle?: StyleProp<TextStyle>;
-
-    /** Styles to apply to the subtitle. */
     subtitleStyle?: StyleProp<TextStyle>;
 
     /** An icon to be rendered instead of the RBR / GBR indicator. */
     rightIcon?: IconAsset;
 
-    /** Callback to be called when the right icon is pressed. */
     onRightIconPress?: () => void;
-
-    /** Accessibility label for the right icon. */
     rightIconAccessibilityLabel?: string;
 
     /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */

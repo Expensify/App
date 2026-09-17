@@ -1,8 +1,12 @@
 import {act, render, renderHook} from '@testing-library/react-native';
-import type {ReactElement, ReactNode} from 'react';
+
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {ReactElement, ReactNode} from 'react';
 
 type ShowConfirmModalOptions = {
     prompt?: ReactNode;
@@ -191,7 +195,13 @@ describe('useCreateEmptyReportConfirmation', () => {
 
         // ConfirmationPrompt is captured but not rendered — render it now
         mockTranslate.mockClear();
-        render(lastShowConfirmModalOptions?.prompt as ReactElement);
+        render(
+            <>
+                {lastShowConfirmModalOptions?.prompt}
+                {/* Keep this null second child to render the ReactNode prompt without triggering react/jsx-no-useless-fragment. */}
+                {null}
+            </>,
+        );
 
         // The modal link text must use the same translation key as the Reports search tab
         expect(mockTranslate).toHaveBeenCalledWith(reportsTranslationPath);

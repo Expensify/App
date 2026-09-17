@@ -1,4 +1,10 @@
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {reportNameSelector} from '@selectors/ReportAttributes';
+
 import useOnyx from './useOnyx';
 
 /**
@@ -20,12 +26,47 @@ function useReportAttributes() {
  * when that specific report's attributes change — not on every global report change.
  */
 function useReportAttributesByID(reportID: string | undefined) {
-    const reportAttributesByIDSelector = (value: {reports?: Record<string, unknown>} | undefined) => (reportID ? value?.reports?.[reportID] : undefined);
+    const reportAttributesByIDSelector = (value: OnyxEntry<ReportAttributesDerivedValue>) => (reportID ? value?.reports?.[reportID] : undefined);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: reportAttributesByIDSelector,
     });
     return reportAttributes;
 }
 
+/**
+ * Returns a single report's name using a selector.
+ *
+ * Use this when a component only needs one report's name: the selector output is a primitive string, so its
+ * comparison is trivial and the component re-renders only when that specific report's name changes — not on
+ * every global report attribute change.
+ */
+function useDerivedReportNameByReportID(reportID: string | undefined) {
+    const [reportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (value: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(value, reportID),
+    });
+    return reportName;
+}
+
+/**
+ * Returns a `{reportID: reportName}` map for the given reportIDs from a single REPORT_ATTRIBUTES subscription.
+ *
+ * Use this instead of calling `useDerivedReportNameByReportID` multiple times in one component: it subscribes to
+ * REPORT_ATTRIBUTES once (not once per report) while still selecting only the needed names (reusing
+ * `reportNameSelector`), so the component re-renders only when one of those names changes. The selector output is
+ * tiny (one name per requested ID), so its `deepEqual` is cheap.
+ */
+function useDerivedReportNamesByReportIDs(reportIDs: Array<string | undefined>) {
+    const [reportNames] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (value: OnyxEntry<ReportAttributesDerivedValue>) =>
+            reportIDs.reduce<Record<string, string | undefined>>((acc, reportID) => {
+                if (reportID) {
+                    acc[reportID] = reportNameSelector(value, reportID);
+                }
+                return acc;
+            }, {}),
+    });
+    return reportNames;
+}
+
 export default useReportAttributes;
-export {useReportAttributesByID};
+export {useReportAttributesByID, useDerivedReportNameByReportID, useDerivedReportNamesByReportIDs};

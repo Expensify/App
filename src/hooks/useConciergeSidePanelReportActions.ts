@@ -1,9 +1,12 @@
-import {useCallback, useLayoutEffect, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {isCreatedAction} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 
 type UseConciergeSidePanelReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -124,7 +127,11 @@ function useConciergeSidePanelReportActions({
             return undefined;
         }
         return reportActions.reduce<string | undefined>((earliest, action) => {
-            if (isCreatedAction(action) || action.created < sessionStartTime || action.actorAccountID !== currentUserAccountID) {
+            const isCurrentSessionUserMessage =
+                !isCreatedAction(action) &&
+                action.actorAccountID === currentUserAccountID &&
+                (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime);
+            if (!isCurrentSessionUserMessage) {
                 return earliest;
             }
             return !earliest || action.created < earliest ? action.created : earliest;
@@ -137,14 +144,23 @@ function useConciergeSidePanelReportActions({
                 return false;
             }
             if (isConciergeMainDM) {
-                return isCreatedAction(action) || action.created >= sessionStartTime;
+                return isCreatedAction(action) || isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime;
             }
             if (!firstUserMessageCreated) {
                 return false;
             }
-            return isCreatedAction(action) || (action.created >= sessionStartTime && action.created >= firstUserMessageCreated);
+            // The firstUserMessageCreated floor only trims the user's OWN pre-question messages, so apply it to
+            // current-user actions alone. Concierge replies are server-stamped and already bounded by the
+            // server-anchored sessionStartTime; gating them on the question's `created` would hide a reply whenever
+            // that `created` was clamped forward onto an ahead client clock to stay monotonic across sends.
+            const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+            return (
+                isCreatedAction(action) ||
+                isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+                (action.created >= sessionStartTime && (!isFromCurrentUser || action.created >= firstUserMessageCreated))
+            );
         },
-        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated],
+        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated, currentUserAccountID],
     );
 
     const filterActions = useCallback(
@@ -164,6 +180,12 @@ function useConciergeSidePanelReportActions({
             }
             const filtered = actions.filter(isCurrentSessionAction);
             if (filtered.length === 0) {
+                // Side panel: nothing matched the current session yet (e.g. just after reopen, before the new
+                // message propagates). Show the greeting instead of `actions` to avoid flashing stale history.
+                if (!isConciergeMainDM && conciergeGreetingAction) {
+                    const createdAction = actions.find(isCreatedAction);
+                    return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
+                }
                 return actions;
             }
             if (conciergeGreetingAction) {
@@ -172,7 +194,16 @@ function useConciergeSidePanelReportActions({
             }
             return filtered;
         },
-        [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeHiddenHistory, showFullHistory, sessionStartTime, isCurrentSessionAction, hadUserMessageAtSessionStart],
+        [
+            showConciergeSidePanelWelcome,
+            conciergeGreetingAction,
+            isConciergeHiddenHistory,
+            showFullHistory,
+            sessionStartTime,
+            isCurrentSessionAction,
+            hadUserMessageAtSessionStart,
+            isConciergeMainDM,
+        ],
     );
 
     const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);

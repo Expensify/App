@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
+
 import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
+
+import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
 
 function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsProps) {
     const onPressOpenPicker = (openPicker?: OpenPickerCallback) => {

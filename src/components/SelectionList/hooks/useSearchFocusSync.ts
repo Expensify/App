@@ -1,6 +1,8 @@
-import {useEffect} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import usePrevious from '@hooks/usePrevious';
+
+import {useEffect} from 'react';
 
 type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** The current search value from text input */
@@ -9,7 +11,6 @@ type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Array of items (filtered data) */
     data: TData[];
 
-    /** Count of currently selected options */
     selectedOptionsCount: number;
 
     /** Function to check if an item is selected */
@@ -21,20 +22,11 @@ type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Whether focus index should be updated when selection changes */
     shouldUpdateFocusedIndex: boolean;
 
-    /** Function to scroll to an index */
     scrollToIndex: (index: number, animated?: boolean) => void;
-
-    /** Function to set the focused index */
     setFocusedIndex: (index: number) => void;
-
-    /** The current focused index — needed to avoid arming scroll suppression when the index won't actually change */
-    focusedIndex?: number;
 
     /** The first focusable index in the list (useful when index 0 is a header). Defaults to 0. */
     firstFocusableIndex?: number;
-
-    /** Optional callback to suppress the scroll that onFocusedIndexChange would otherwise trigger when setFocusedIndex is called */
-    suppressNextFocusScroll?: () => void;
 };
 
 /**
@@ -53,9 +45,7 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
     shouldUpdateFocusedIndex,
     scrollToIndex,
     setFocusedIndex,
-    focusedIndex,
     firstFocusableIndex = 0,
-    suppressNextFocusScroll,
 }: UseSearchFocusSyncParams<TItem, TData>) {
     const prevSearchValue = usePrevious(searchValue);
     const prevSelectedOptionsCount = usePrevious(selectedOptionsCount);
@@ -80,9 +70,6 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
 
             if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
                 scrollToIndex(foundSelectedItemIndex, false);
-                if (foundSelectedItemIndex !== focusedIndex) {
-                    suppressNextFocusScroll?.();
-                }
                 setFocusedIndex(foundSelectedItemIndex);
                 return;
             }
@@ -102,9 +89,6 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
 
         // Scroll to top of list and focus on first focusable item (not header)
         scrollToIndex(0, false);
-        if (firstFocusableIndex !== focusedIndex) {
-            suppressNextFocusScroll?.();
-        }
         setFocusedIndex(firstFocusableIndex);
     }, [
         canSelectMultiple,
@@ -118,9 +102,7 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
         shouldUpdateFocusedIndex,
         searchValue,
         isItemSelected,
-        focusedIndex,
         firstFocusableIndex,
-        suppressNextFocusScroll,
     ]);
 }
 

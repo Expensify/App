@@ -1,9 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
+
 import type {IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type UseConfirmationCtaTextParams = {
     /** Number of expenses being created on confirm (drives bulk copy) */
@@ -11,9 +15,6 @@ type UseConfirmationCtaTextParams = {
 
     /** Whether the current IOU type is invoice */
     isTypeInvoice: boolean;
-
-    /** Whether the current IOU type is track-expense */
-    isTypeTrackExpense: boolean;
 
     /** Whether the current IOU type is split */
     isTypeSplit: boolean;
@@ -53,12 +54,11 @@ type UseConfirmationCtaTextParams = {
 function useConfirmationCtaText({
     expensesNumber,
     isTypeInvoice,
-    isTypeTrackExpense,
     isTypeSplit,
     isTypeRequest,
     iouAmount,
-    policy,
     iouType,
+    policy,
     formattedAmount,
     receiptPath,
     isDistanceRequestWithPendingRoute,
@@ -75,11 +75,11 @@ function useConfirmationCtaText({
         } else {
             text = translate('common.next');
         }
-    } else if (isTypeTrackExpense) {
-        text = translate('iou.createExpense');
     } else if (isTypeSplit && iouAmount === 0) {
         text = translate('iou.splitExpense');
     } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
+        // Sits between the two split branches on purpose: a non-zero split with a pending distance route or per diem
+        // keeps the create copy rather than falling through to "Split expense".
         text = translate('iou.createExpense');
     } else if (isTypeSplit) {
         text = translate('iou.splitExpense');

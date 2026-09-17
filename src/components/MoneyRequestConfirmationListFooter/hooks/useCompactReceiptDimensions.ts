@@ -1,10 +1,14 @@
-import {useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import getCompactReceiptDimensions from '@components/MoneyRequestConfirmationListFooter/getCompactReceiptDimensions';
 import getImageCompactModeStyle from '@components/MoneyRequestConfirmationListFooter/getImageCompactModeStyle';
 import getReceiptContainerCompactModeStyle from '@components/MoneyRequestConfirmationListFooter/getReceiptContainerCompactModeStyle';
+
 import {endSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useRef, useState} from 'react';
 
 type UseCompactReceiptDimensionsParams = {
     /** Whether the user has expanded the optional fields (disables compact mode) */
@@ -30,11 +34,16 @@ function useCompactReceiptDimensions({showMoreFields, isScan, isInLandscapeMode,
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
     const hasEndedReceiptLoadSpan = useRef(false);
 
-    const handleReceiptLoad = (event?: {nativeEvent: {width: number; height: number}}) => {
-        if (!hasEndedReceiptLoadSpan.current) {
-            hasEndedReceiptLoadSpan.current = true;
-            endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
+    const endReceiptLoadSpan = () => {
+        if (hasEndedReceiptLoadSpan.current) {
+            return;
         }
+        hasEndedReceiptLoadSpan.current = true;
+        endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
+    };
+
+    const handleReceiptLoad = (event?: {nativeEvent: {width: number; height: number}}) => {
+        endReceiptLoadSpan();
         const width = event?.nativeEvent.width ?? 0;
         const height = event?.nativeEvent.height ?? 0;
         if (!width || !height) {
@@ -77,6 +86,7 @@ function useCompactReceiptDimensions({showMoreFields, isScan, isInLandscapeMode,
     return {
         isCompactMode,
         handleReceiptLoad,
+        endReceiptLoadSpan,
         handleCompactReceiptContainerLayout,
         compactReceiptStyle,
         compactReceiptContainerStyle,

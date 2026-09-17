@@ -1,10 +1,12 @@
-import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {RefObject} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+
 import type {CardList, Transaction} from '@src/types/onyx';
+
+import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
+import type {RefObject} from 'react';
+import type {NativeSyntheticEvent} from 'react-native';
 
 type BaseSearchListProps = Pick<
     FlashListProps<SearchListItem>,
@@ -21,10 +23,7 @@ type BaseSearchListProps = Pick<
     | 'stickyHeaderConfig'
     | 'overrideItemLayout'
 > & {
-    /** The data to display in the list */
     data: SearchListItem[];
-
-    /** The function to render each item in the list */
     renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
 
     /** The columns that might change to trigger re-render via extraData */
@@ -33,16 +32,12 @@ type BaseSearchListProps = Pick<
     /** The transactions that might trigger re-render via extraData */
     newTransactions: Transaction[];
 
-    /** The length of the flattened items in the list */
     flattenedItemsLength: number;
 
     /** The callback, which is run when a row is pressed */
     onSelectRow: (item: SearchListItem) => void;
 
-    /** The ref to the list */
     ref: RefObject<FlashListRef<SearchListItem> | null>;
-
-    /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;
 
     /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */

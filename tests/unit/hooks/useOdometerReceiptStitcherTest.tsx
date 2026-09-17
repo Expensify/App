@@ -1,10 +1,16 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import type useOdometerReceiptStitcherType from '@hooks/useOdometerReceiptStitcher';
 import type {UseOdometerReceiptStitcherArgs} from '@hooks/useOdometerReceiptStitcher';
+
 import type * as DeriveOdometerReceiptModule from '@libs/OdometerReceipt/deriveOdometerReceipt';
+import type stitchTask from '@libs/OdometerReceipt/stitchTask';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import createMock from '../../utils/createMock';
 
 type HookModule = {default: typeof useOdometerReceiptStitcherType};
 const useOdometerReceiptStitcher = jest.requireActual<HookModule>('@hooks/useOdometerReceiptStitcher/index.ts').default;
@@ -40,13 +46,13 @@ jest.mock('@userActions/IOU/Receipt', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
 }));
 
-type StitchedResult = {uri: string; name: string; type: string | undefined};
-const mockStitchTask = jest.fn<Promise<StitchedResult>, unknown[]>();
+type StitchedResult = Awaited<ReturnType<typeof stitchTask>>;
+const mockStitchTask = jest.fn<Promise<StitchedResult>, Parameters<typeof stitchTask>>();
 jest.mock('@libs/OdometerReceipt', () => {
     const actualDerive = jest.requireActual<typeof DeriveOdometerReceiptModule>('@libs/OdometerReceipt/deriveOdometerReceipt').default;
     return {
         deriveOdometerReceipt: actualDerive,
-        stitchTask: (...args: unknown[]) => mockStitchTask(...args),
+        stitchTask: (...args: Parameters<typeof stitchTask>) => mockStitchTask(...args),
     };
 });
 
@@ -57,14 +63,14 @@ jest.mock('@libs/Log', () => ({
 
 // OdometerImageUtils is used inline by the hook. Stub it to break the transitive import chain
 // (FileUtils → saveLastRoute → API → ...). The hook only needs getOdometerImageUri.
-jest.mock('@libs/OdometerImageUtils', () => ({
+jest.mock('@libs/OdometerUtils', () => ({
     __esModule: true,
     getOdometerImageUri: (image: unknown) => {
         if (typeof image === 'string') {
             return image;
         }
-        if (image && typeof image === 'object' && 'uri' in image) {
-            return (image as {uri: string}).uri ?? '';
+        if (image && typeof image === 'object' && 'uri' in image && typeof image.uri === 'string') {
+            return image.uri;
         }
         return '';
     },
@@ -72,14 +78,14 @@ jest.mock('@libs/OdometerImageUtils', () => ({
         if (typeof image === 'string') {
             return image.split('/').pop() ?? '';
         }
-        if (image && typeof image === 'object' && 'name' in image) {
-            return (image as {name: string}).name ?? '';
+        if (image && typeof image === 'object' && 'name' in image && typeof image.name === 'string') {
+            return image.name;
         }
         return '';
     },
     getOdometerImageType: (image: unknown) => {
-        if (image && typeof image === 'object' && 'type' in image) {
-            return (image as {type: string}).type;
+        if (image && typeof image === 'object' && 'type' in image && typeof image.type === 'string') {
+            return image.type;
         }
         return undefined;
     },
@@ -97,11 +103,11 @@ function setVerifierResult({hasVerifiedBlobs = true}: {hasVerifiedBlobs?: boolea
 }
 
 function buildTx(overrides: Partial<OnyxTypes.Transaction> = {}): OnyxTypes.Transaction {
-    return {
+    return createMock<OnyxTypes.Transaction>({
         transactionID: TX_ID,
         comment: {},
         ...overrides,
-    } as OnyxTypes.Transaction;
+    });
 }
 
 function buildArgs(overrides: Partial<UseOdometerReceiptStitcherArgs> = {}): UseOdometerReceiptStitcherArgs {
@@ -333,8 +339,8 @@ describe('useOdometerReceiptStitcher (web FSM, composes verifier)', () => {
         it('aborts in-flight stitch on unmount', async () => {
             let observedSignal: AbortSignal | undefined;
             let resolveStitch: ((value: StitchedResult) => void) | undefined;
-            mockStitchTask.mockImplementation((args: unknown) => {
-                observedSignal = (args as {signal: AbortSignal}).signal;
+            mockStitchTask.mockImplementation((args) => {
+                observedSignal = args.signal;
                 return new Promise<StitchedResult>((resolve) => {
                     resolveStitch = resolve;
                 });

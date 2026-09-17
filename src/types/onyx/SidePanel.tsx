@@ -4,6 +4,12 @@ type SidePanel = {
 
     /** Whether the Side Panel is open on small screens */
     openNarrowScreen: boolean;
+
+    /** Whether the Side Panel should always show the Concierge report, ignoring the admins room override */
+    forceConcierge: boolean;
+
+    /** The report the Side Panel shows instead of the Concierge chat it defaults to */
+    reportID?: string;
 };
 
 /**

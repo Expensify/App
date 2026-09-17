@@ -1,17 +1,23 @@
-import type {FlashListRef} from '@shopify/flash-list';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import emojis from '@assets/emojis';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
 import {getHeaderEmojis, getSpacersIndexes, mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis, suggestEmojis} from '@libs/EmojiUtils';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
-import CONST from '@src/CONST';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeightInLandscapeMode';
+
+import type {FlashListRef} from '@shopify/flash-list';
+
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 const useEmojiPickerMenu = () => {
     const emojiListRef = useRef<FlashListRef<EmojiPickerListItem>>(null);
@@ -28,8 +34,9 @@ const useEmojiPickerMenu = () => {
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
-    const {keyboardHeight} = useKeyboardState();
+    const {keyboardActiveHeight} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    const {top: topSafeAreaInset} = useSafeAreaInsets();
 
     /**
      * The EmojiPicker sets the `innerContainerStyle` with `maxHeight: '95%'` in `styles.popoverInnerContainer`
@@ -39,7 +46,7 @@ const useEmojiPickerMenu = () => {
      */
     const listStyle = StyleUtils.getEmojiPickerListHeight(
         isListFiltered,
-        windowHeight * (isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : 0.95) - keyboardHeight,
+        isInLandscapeMode ? calculateModalHeightInLandscapeMode(windowHeight, topSafeAreaInset, keyboardActiveHeight) : (windowHeight - topSafeAreaInset) * 0.95 - keyboardActiveHeight,
     );
 
     useEffect(() => {

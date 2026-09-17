@@ -1,0 +1,28 @@
+diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+index ea8febf..6dbdded 100644
+--- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
++++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+@@ -1021,13 +1021,21 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+ 
+     // Show list if:
+     // 1. Platform is supported
+-    // 2. There's data to show (dataSource has items)
++    // 2. There's data to show (dataSource has items), OR there is an empty state
++    //    to render in its place (the loader, or the "no results" component)
+     // 3. listViewDisplayed is true OR we're in 'auto' mode (auto-shows when data exists)
+     const isAutoMode =
+       listViewDisplayedProp === 'auto' || listViewDisplayedProp === undefined;
++    // ListEmptyComponent only renders when the list is empty, so gating the whole
++    // list on dataSource.length > 0 makes the loader and the empty state
++    // unreachable. Requiring stateText.length > minLength mirrors 2.5.6 and keeps
++    // the loader hidden once the input is cleared.
++    const hasEmptyStateToShow =
++      stateText.length > minLength &&
++      (listLoaderDisplayed || !!props.listEmptyComponent);
+     const shouldShowList =
+       supportedPlatform() &&
+-      dataSource.length > 0 &&
++      (dataSource.length > 0 || hasEmptyStateToShow) &&
+       (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
+ 
+     if (shouldShowList) {

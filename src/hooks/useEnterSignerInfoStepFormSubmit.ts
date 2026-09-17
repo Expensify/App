@@ -1,10 +1,13 @@
 import type {FormOnyxKeys} from '@components/Form/types';
+
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useStepFormSubmit from './useStepFormSubmit';
-import type {SubStepProps} from './useSubStep/types';
 
-type UseEnterSignerInfoStepFormSubmit = Pick<SubStepProps, 'onNext'> & {
+import type {SubPageProps} from './useSubPage/types';
+
+import useStepFormSubmit from './useStepFormSubmit';
+
+type UseEnterSignerInfoStepFormSubmit = Pick<SubPageProps, 'onNext'> & {
     formId?: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>;
     shouldSaveDraft: boolean;

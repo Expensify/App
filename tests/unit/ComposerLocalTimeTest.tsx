@@ -1,14 +1,19 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import ComposerLocalTime from '@pages/inbox/report/ReportActionCompose/ComposerLocalTime';
 import ComposerProvider from '@pages/inbox/report/ReportActionCompose/ComposerProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -110,9 +115,10 @@ describe('ComposerLocalTime', () => {
         const personalDetails: PersonalDetailsList = {
             [RECIPIENT_ACCOUNT_ID]: {
                 accountID: RECIPIENT_ACCOUNT_ID,
-                login: 'agent_999@expensify.ai',
+                login: 'testbot_999@expensify.ai',
                 displayName: 'Agent 999',
                 firstName: 'Agent',
+                isCustomAgent: true,
                 validated: true,
                 timezone: {automatic: true, selected: 'America/New_York'},
             },
@@ -126,7 +132,7 @@ describe('ComposerLocalTime', () => {
 
         await waitForBatchedUpdates();
 
-        // Component should render nothing for agent emails
+        // Component should render nothing for custom agents.
         expect(toJSON()).toBeNull();
     });
 });

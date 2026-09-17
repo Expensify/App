@@ -1,7 +1,8 @@
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
-import type {hasInvoicingDetails} from '@userActions/Policy/Policy';
+
+import {hasInvoicingDetails} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
-import type {Participant} from '@src/types/onyx/IOU';
 
 const mockNavigate = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -10,19 +11,17 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@userActions/Policy/Policy', () => ({hasInvoicingDetails: jest.fn(() => true)}));
 
-type Params = Parameters<typeof buildConfirmAction>[0];
+const mockHasInvoicingDetails = jest.mocked(hasInvoicingDetails);
 
-const selectedParticipants = [{accountID: 1}] as unknown as Participant[];
+type Params = Parameters<typeof buildConfirmAction>[0];
 
 function makeBase(overrides: Partial<Params> = {}): Params {
     return {
         iouType: CONST.IOU.TYPE.SUBMIT,
         policy: undefined,
         transactionID: 'txn1',
-        reportID: 'report1',
         routeError: undefined,
         formError: '',
-        selectedParticipants,
         isDelegateAccessRestricted: false,
         validate: jest.fn(() => ({errorKey: null})),
         setFormError: jest.fn(),
@@ -43,7 +42,7 @@ describe('buildConfirmAction', () => {
         const params = makeBase();
         const handler = buildConfirmAction(params);
         handler({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
-        expect(params.onConfirm).toHaveBeenCalledWith(selectedParticipants);
+        expect(params.onConfirm).toHaveBeenCalledWith();
         expect(params.onSendMoney).not.toHaveBeenCalled();
     });
 
@@ -76,19 +75,31 @@ describe('buildConfirmAction', () => {
         expect(params.onConfirm).not.toHaveBeenCalled();
     });
 
-    it('navigates to company-info step for invoice with no invoicing details', () => {
-        const policyMock = jest.requireMock<{hasInvoicingDetails: typeof hasInvoicingDetails}>('@userActions/Policy/Policy');
-        (policyMock.hasInvoicingDetails as jest.Mock).mockReturnValueOnce(false);
+    it('navigates to company-info step for invoice with no invoicing details once the expense is valid', () => {
+        mockHasInvoicingDetails.mockReturnValueOnce(false);
         const params = makeBase({iouType: CONST.IOU.TYPE.INVOICE});
         buildConfirmAction(params)({paymentType: undefined});
+        expect(params.validate).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalled();
-        expect(params.validate).not.toHaveBeenCalled();
+        expect(params.onConfirm).not.toHaveBeenCalled();
+    });
+
+    it('blocks the company-info step for an invalid invoice instead of routing past validation (#96579)', () => {
+        // Given an invoice whose sender workspace has no company info yet, and a cleared date
+        mockHasInvoicingDetails.mockReturnValueOnce(false);
+        const params = makeBase({iouType: CONST.IOU.TYPE.INVOICE, validate: jest.fn(() => ({errorKey: 'common.error.fieldRequired'}))});
+
+        // When the user confirms
+        buildConfirmAction(params)({paymentType: undefined});
+
+        // Then the error surfaces and the company info step - which sends the invoice without revalidating - is not reached
+        expect(params.setFormError).toHaveBeenCalledWith('common.error.fieldRequired');
+        expect(mockNavigate).not.toHaveBeenCalled();
         expect(params.onConfirm).not.toHaveBeenCalled();
     });
 
     it('does not navigate to company-info step when routeError is set', () => {
-        const policyMock = jest.requireMock<{hasInvoicingDetails: typeof hasInvoicingDetails}>('@userActions/Policy/Policy');
-        (policyMock.hasInvoicingDetails as jest.Mock).mockReturnValueOnce(false);
+        mockHasInvoicingDetails.mockReturnValueOnce(false);
         const params = makeBase({iouType: CONST.IOU.TYPE.INVOICE, routeError: 'route error'});
         buildConfirmAction(params)({paymentType: undefined});
         expect(mockNavigate).not.toHaveBeenCalled();

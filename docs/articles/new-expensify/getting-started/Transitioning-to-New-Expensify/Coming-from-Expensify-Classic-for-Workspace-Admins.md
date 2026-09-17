@@ -16,7 +16,7 @@ This guide explains where familiar Workspace workflows now happen in New Expensi
 If you want a curated tour of what's new, what's better, and how to take advantage of it as an admin, see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Explore-whats-changed-in-New-Expensify). A few of the most popular improvements for Workspace Admins include **customizable, savable searches**, **bulk paying reports**, **full approver visibility into direct reports' activity in every status**, **Workspace merchant rules**, **seeing unassigned company cards**, and **better Insights reporting**.
 
 If you'd like a guided walkthrough of common Workspace workflows in New Expensify, explore the interactive product tours:
-- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/qlgnexxbsdtp)
+- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/rbncowjn0nav)
 - [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).
@@ -35,6 +35,8 @@ Many administrative workflows remain familiar in New Expensify, but Workspace ma
 | No shared admin collaboration space | Dedicated `#admins` chat for each Workspace | Every Workspace includes an `#admins` room where admins can collaborate in real time and review Workspace setting changes and administrative activity. |
 | Limited automated expense controls | Advanced Workspace rules and automation | Workspace Admins can configure detailed expense rules through **Rules** within the Workspace to enforce company policies, automate coding, restrict expense types, and more. |
 
+![Workspace settings menu showing More features]({{site.url}}/assets/images/ExpensiHelp-Workspace-more-features.png){:width="100%"}
+
 ---
 
 ## How to complete familiar Workspace Admin tasks in New Expensify
@@ -49,6 +51,8 @@ Use the examples below to understand where common Expensify Classic workflows no
 | Reimburse reports | Open the **Spend** tab and apply the **Ready to pay** filter to review reports ready to reimburse. Select **Pay** next to the report to reimburse it. | [Learn how to pay reports](/articles/new-expensify/wallet-and-payments/Pay-Expenses). |
 | Search for expenses and reports | Open the **Spend** tab and use filters and search operators to find expenses, reports, reimbursements, and company card activity. | [Learn how to use advanced search operators](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze). |
 | Configure expense rules | Within your Workspace, select **Rules** to configure expense restrictions, receipt requirements, company card enforcement, and automated coding rules. | [Learn how to configure Workspace rules](/articles/new-expensify/workspaces/Workspace-Rules). |
+
+![The Company Cards page within a Workspace showing the card feed with an Assign button next to an unassigned card]({{site.url}}/assets/images/ExpensiHelp-Company-card-assignment.png){:width="100%"}
 
 ---
 

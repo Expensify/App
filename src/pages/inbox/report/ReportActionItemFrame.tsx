@@ -1,7 +1,11 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import ReportActionItemDraft from './ReportActionItemDraft';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionItemSingle from './ReportActionItemSingle';
@@ -10,7 +14,6 @@ type ReportActionItemFrameProps = {
     /** Action content */
     children: React.ReactNode;
 
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Report for this action */
@@ -22,7 +25,6 @@ type ReportActionItemFrameProps = {
     /** True when this message is edited inline on a wide layout; right-aligns the reaction row under the composer. */
     isEditingInline: boolean;
 
-    /** Whether the report action is a whisper */
     isWhisper: boolean;
 
     /** Whether the search-page UI is active */

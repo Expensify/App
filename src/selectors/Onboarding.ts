@@ -1,7 +1,10 @@
-import type {OnyxValue} from 'react-native-onyx';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+
+import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxValue} from 'react-native-onyx';
 
 /**
  * Selector to get the value of hasCompletedGuidedSetupFlow from the Onyx store
@@ -87,4 +90,19 @@ function isTrackIntentUserSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_
     return isTrackOnboardingChoice(introSelected?.choice);
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, guidedSetupAndTourStatusSelector, isTrackIntentUserSelector};
+/**
+ * Selector to check if the user selected the "Something else" (LOOKING_AROUND) onboarding choice
+ */
+function isLookingAroundUserSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean {
+    return introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+}
+
+export {
+    hasCompletedGuidedSetupFlowSelector,
+    tryNewDotOnyxSelector,
+    hasSeenTourSelector,
+    wasInvitedToNewDotSelector,
+    guidedSetupAndTourStatusSelector,
+    isTrackIntentUserSelector,
+    isLookingAroundUserSelector,
+};

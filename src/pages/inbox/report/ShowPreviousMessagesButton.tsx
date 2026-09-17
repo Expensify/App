@@ -1,19 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
-type ShowPreviousMessagesButtonProps = {
-    /** The ID of the report this list item belongs to */
-    reportID: string;
+import React from 'react';
+import {View} from 'react-native';
 
-    /** The action type of the report action being rendered for this list item */
+type ShowPreviousMessagesButtonProps = {
+    reportID: string;
     actionType: ReportAction['actionName'];
 
     /** Whether there are previous messages hidden before the session start */
@@ -54,12 +54,12 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <View>
                 <Button
-                    small
-                    shouldShowRightIcon
-                    iconRight={expensifyIcons.UpArrow}
-                    text={translate('common.concierge.showHistory')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}
-                />
+                >
+                    <Button.Text>{translate('common.concierge.showHistory')}</Button.Text>
+                    <Button.Icon src={expensifyIcons.UpArrow} />
+                </Button>
             </View>
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
         </View>

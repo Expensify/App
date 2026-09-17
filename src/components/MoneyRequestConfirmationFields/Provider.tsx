@@ -1,7 +1,12 @@
-import React from 'react';
-import type {ReactNode} from 'react';
+import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 import ConfirmationFieldsContext from './context';
 
 type ProviderProps = {
@@ -32,8 +37,14 @@ type ProviderProps = {
     /** Whether we're editing an existing split expense */
     isEditingSplitBill?: boolean;
 
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually?: boolean;
+
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
+
+    /** Whether the active transaction is a scan request */
+    isScanRequest?: boolean;
 
     /** Whether the active transaction is a distance request */
     isDistanceRequest?: boolean;
@@ -56,6 +67,15 @@ type ProviderProps = {
     /** Whether the active transaction is a GPS distance request */
     isGPSDistanceRequest?: boolean;
 
+    /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
+    scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
+
+    /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
+    onSubmitForm?: () => void;
+
+    /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
+    onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -70,7 +90,9 @@ function Provider({
     isReadOnly = false,
     didConfirm = false,
     isEditingSplitBill = false,
+    canEnterScanFieldsManually = false,
     isPolicyExpenseChat = false,
+    isScanRequest = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
     isTimeRequest = false,
@@ -78,6 +100,9 @@ function Provider({
     isManualDistanceRequest = false,
     isOdometerDistanceRequest = false,
     isGPSDistanceRequest = false,
+    scrollFocusedInputIntoView,
+    onSubmitForm,
+    onTaxAmountEmptyChange,
     children,
 }: ProviderProps) {
     const value = {
@@ -90,7 +115,9 @@ function Provider({
         isReadOnly,
         didConfirm,
         isEditingSplitBill,
+        canEnterScanFieldsManually,
         isPolicyExpenseChat,
+        isScanRequest,
         isDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
@@ -98,6 +125,9 @@ function Provider({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
         isGPSDistanceRequest,
+        scrollFocusedInputIntoView,
+        onSubmitForm,
+        onTaxAmountEmptyChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

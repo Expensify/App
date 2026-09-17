@@ -1,14 +1,18 @@
-import React from 'react';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type SidePanelButtonProps from './types';
 
 function SidePanelButtonBase({style}: SidePanelButtonProps) {
@@ -17,7 +21,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const {translate} = useLocalize();
     const {shouldHideHelpButton} = useSidePanelState();
     const {openSidePanel} = useSidePanelActions();
-    const {ConciergeAvatar} = useMemoizedLazyExpensifyIcons(['ConciergeAvatar']);
+    const {Concierge} = useMemoizedLazyExpensifyIcons(['Concierge']);
 
     if (shouldHideHelpButton) {
         return null;
@@ -32,10 +36,8 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
                 onPress={openSidePanel}
             >
                 <Icon
-                    src={ConciergeAvatar}
+                    src={Concierge}
                     fill={theme.icon}
-                    width={28}
-                    height={28}
                 />
             </PressableWithoutFeedback>
         </Tooltip>

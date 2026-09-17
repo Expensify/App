@@ -1,9 +1,13 @@
-import React, {useContext, useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
+
+import React, {useContext, useEffect, useState} from 'react';
+
+import type ChildrenProps from './types/utils/ChildrenProps';
+
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
-import type ChildrenProps from './types/utils/ChildrenProps';
+import loadUnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater/load';
 
 type SplashScreenState = ValueOf<typeof CONST.BOOT_SPLASH_STATE>;
 
@@ -25,8 +29,8 @@ const SplashScreenActionsContext = React.createContext<SplashScreenActionsContex
 
 function loadPostSplashScreenModules() {
     import('./libs/actions/replaceOptimisticReportWithActualReport');
-    import('./libs/registerPaginationConfig');
-    import('./libs/UnreadIndicatorUpdater');
+    import('./libs/actions/replaceOptimisticAgentWithActualAgent');
+    loadUnreadIndicatorUpdater();
 }
 
 function SplashScreenStateContextProvider({children}: ChildrenProps) {

@@ -1,8 +1,10 @@
 import Emojis, {emojiNameTable, findEmojiByHexCode, importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
+
 import * as Browser from '@libs/Browser';
 import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
+
 import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 

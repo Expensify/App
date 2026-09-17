@@ -1,17 +1,23 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getForwardedReportActionMessage, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type ApprovalFlowContentProps = {
     action: OnyxTypes.ReportAction;
@@ -36,6 +42,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isPendingAdd = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
@@ -67,6 +74,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
                 isTrackIntentUser,
                 policy,
                 report: originalReport,
+                rules,
             })
         ) {
             return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
@@ -98,6 +106,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
                 isTrackIntentUser,
                 policy,
                 report: originalReport,
+                rules,
             })
         ) {
             return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;

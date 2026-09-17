@@ -1,7 +1,12 @@
+import useOnyx from '@hooks/useOnyx';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import {useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {Freeze} from 'react-freeze';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import getIsScreenBlurred from './getIsScreenBlurred';
 
 type FreezeWrapperProps = ChildrenProps & {
@@ -12,6 +17,9 @@ type FreezeWrapperProps = ChildrenProps & {
 function FreezeWrapper({children, freezeWhenInTabBackground = true}: FreezeWrapperProps) {
     const navigation = useNavigation();
     const currentRoute = useRoute();
+    const [isAnyModalOpen] = useOnyx(ONYXKEYS.MODAL, {
+        selector: (modal) => !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible,
+    });
 
     const [isScreenBlurred, setIsScreenBlurred] = useState(false);
     const [freezed, setFreezed] = useState(false);
@@ -24,8 +32,11 @@ function FreezeWrapper({children, freezeWhenInTabBackground = true}: FreezeWrapp
     // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
     // and stuck in an infinite loop
     useLayoutEffect(() => {
+        if (isScreenBlurred && isAnyModalOpen) {
+            return;
+        }
         setFreezed(isScreenBlurred);
-    }, [isScreenBlurred]);
+    }, [isAnyModalOpen, isScreenBlurred]);
 
     return <Freeze freeze={freezed}>{children}</Freeze>;
 }

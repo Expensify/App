@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import {cleanAndTransformState, transformNumericKeysToArray} from '../../src/libs/ImportOnyxStateUtils';
 
 describe('transformNumericKeysToArray', () => {
@@ -67,6 +68,20 @@ describe('cleanAndTransformState', () => {
         expect(() => cleanAndTransformState('invalid json')).toThrow();
     });
 
+    it('omits preserved session/account so an imported dump cannot clobber the local restoration state', () => {
+        const input = JSON.stringify({
+            [ONYXKEYS.PRESERVED_USER_SESSION]: {authToken: 'masked', email: 'user@example.com'},
+            [ONYXKEYS.PRESERVED_ACCOUNT]: {primaryLogin: 'masked'},
+            keepThis: 'value',
+        });
+
+        const result = cleanAndTransformState(input);
+
+        expect(result).toEqual({keepThis: 'value'});
+        expect(result).not.toHaveProperty(ONYXKEYS.PRESERVED_USER_SESSION);
+        expect(result).not.toHaveProperty(ONYXKEYS.PRESERVED_ACCOUNT);
+    });
+
     it('removes all specified ONYXKEYS', () => {
         const input = JSON.stringify({
             [ONYXKEYS.ACTIVE_CLIENTS]: 'remove1',
@@ -74,6 +89,7 @@ describe('cleanAndTransformState', () => {
             [ONYXKEYS.NETWORK]: 'remove3',
             [ONYXKEYS.CREDENTIALS]: 'remove4',
             [ONYXKEYS.PREFERRED_THEME]: 'remove5',
+            [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: true,
             keepThis: 'value',
         });
 
@@ -89,5 +105,6 @@ describe('cleanAndTransformState', () => {
         expect(result).not.toHaveProperty(ONYXKEYS.NETWORK);
         expect(result).not.toHaveProperty(ONYXKEYS.CREDENTIALS);
         expect(result).not.toHaveProperty(ONYXKEYS.PREFERRED_THEME);
+        expect(result).not.toHaveProperty(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
     });
 });

@@ -1,19 +1,30 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
+import {act, render} from '@testing-library/react-native';
+
+import type {SelectionListProps} from '@components/SelectionList/types';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
+
 import DynamicPaymentCardCurrencySelectorPage from '@pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage';
+
 import {setPaymentMethodCurrency} from '@userActions/PaymentMethods';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 type CurrencyOption = {text: string; value: string; keyForList: string; isSelected: boolean};
 
+type ConfirmButtonOptions = {showButton?: boolean; text?: string; onConfirm?: () => void; isDisabled?: boolean};
+
 let capturedData: CurrencyOption[] = [];
 let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
-let capturedCustomListHeader: React.ReactNode;
+let capturedCustomListHeader: SelectionListProps<CurrencyOption>['customListHeader'];
+let capturedConfirmButtonOptions: ConfirmButtonOptions | undefined;
 
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
 
@@ -66,10 +77,21 @@ jest.mock('@components/HeaderWithBackButton', () => {
 });
 
 jest.mock('@components/SelectionList', () => {
-    function MockSelectionList({data, onSelectRow, customListHeader}: {data: CurrencyOption[]; onSelectRow: (option: CurrencyOption) => void; customListHeader?: React.ReactNode}) {
+    function MockSelectionList({
+        data,
+        onSelectRow,
+        customListHeader,
+        confirmButtonOptions,
+    }: {
+        data: CurrencyOption[];
+        onSelectRow: (option: CurrencyOption) => void;
+        customListHeader?: SelectionListProps<CurrencyOption>['customListHeader'];
+        confirmButtonOptions?: ConfirmButtonOptions;
+    }) {
         capturedData = data ?? [];
         capturedOnSelectRow = onSelectRow;
         capturedCustomListHeader = customListHeader;
+        capturedConfirmButtonOptions = confirmButtonOptions;
         return (data ?? []).map((item) => item.text).join(',');
     }
     return MockSelectionList;
@@ -113,6 +135,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         capturedData = [];
         capturedOnSelectRow = undefined;
         capturedCustomListHeader = undefined;
+        capturedConfirmButtonOptions = undefined;
         mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/change-billing-currency');
         mockOnyx();
@@ -160,17 +183,60 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
     });
 
-    it('writes the chosen currency to both flows and navigates back on select', () => {
+    it('moves the checkmark on select without persisting or navigating (deferred until Save)', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
         const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        capturedOnSelectRow?.(aud!);
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(mockSetDraftValues).not.toHaveBeenCalled();
+        expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
+
+        const selected = capturedData.filter((option) => option.isSelected);
+        expect(selected).toHaveLength(1);
+        expect(selected.at(0)?.value).toBe('AUD');
+    });
+
+    it('writes the chosen currency to both flows and navigates back when Save is tapped', () => {
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(capturedConfirmButtonOptions?.showButton).toBe(true);
+        act(() => {
+            capturedConfirmButtonOptions?.onConfirm?.();
+        });
 
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
         expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
+    });
+
+    it('disables Save while the selection still matches the persisted currency, and enables it after a change', () => {
+        mockOnyx('USD');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(true);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(false);
     });
 
     it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {
@@ -178,9 +244,18 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        const header = capturedCustomListHeader as React.ReactElement<{isSectionList?: boolean}>;
+        const header = capturedCustomListHeader;
         expect(header).toBeTruthy();
+        if (!React.isValidElement(header)) {
+            throw new Error('Expected the captured custom list header to be a React element');
+        }
+        if (header.type !== 'PaymentCardCurrencyHeader') {
+            throw new Error('Expected the captured custom list header to be PaymentCardCurrencyHeader');
+        }
         expect(header.type).toBe('PaymentCardCurrencyHeader');
+        if (typeof header.props !== 'object' || header.props === null || !('isSectionList' in header.props) || typeof header.props.isSectionList !== 'boolean') {
+            throw new Error('Expected PaymentCardCurrencyHeader to receive a boolean isSectionList prop');
+        }
         expect(header.props.isSectionList).toBe(true);
     });
 

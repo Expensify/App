@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
 
 type CustomStylesForChildrenContextType = StyleProp<ViewStyle & TextStyle> | null;
 

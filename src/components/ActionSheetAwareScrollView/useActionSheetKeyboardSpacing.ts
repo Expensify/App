@@ -1,10 +1,13 @@
-import {useEffect} from 'react';
-import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import type Reanimated from 'react-native-reanimated';
-import {useAnimatedReaction, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {AnimatedRef} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import type Reanimated from 'react-native-reanimated';
+import type {AnimatedRef} from 'react-native-reanimated';
+
+import {useEffect} from 'react';
+import {useKeyboardHandler} from 'react-native-keyboard-controller';
+import {useAnimatedReaction, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+
 import {Actions, States, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 
 const KeyboardState = {

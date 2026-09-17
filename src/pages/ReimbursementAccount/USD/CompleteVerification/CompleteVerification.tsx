@@ -1,18 +1,24 @@
-import React, {useCallback, useMemo} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
+
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
+
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import {acceptACHContractForBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useCallback, useMemo} from 'react';
+
 import ConfirmAgreements from './subSteps/ConfirmAgreements';
 
 type CompleteVerificationProps = {
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press (URL-based navigation) */

@@ -1,23 +1,35 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {cleanup, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
+import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+
 import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import variables from '@styles/variables';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 
 // Configurable per-test: simulates which tab is currently focused inside TAB_NAVIGATOR.
 jest.mock('@hooks/useRootNavigationState', () => ({
@@ -26,19 +38,15 @@ jest.mock('@hooks/useRootNavigationState', () => ({
 }));
 
 const setMockFocusedTab = (tabName: string) => {
-    (useRootNavigationState as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
-        selector({
-            routes: [
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {
-                        routes: [{name: tabName, params: {}}],
-                        index: 0,
-                    },
-                },
-            ],
-            index: 0,
-        }),
+    // Keep this partial runtime fixture tied to the production NavigationState
+    // contract while preserving the selected route values.
+    jest.mocked(useRootNavigationState).mockImplementation((selector) =>
+        selector(
+            createMock<NavigationState>({
+                routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {routes: [{name: tabName, params: {}}], index: 0}}],
+                index: 0,
+            }),
+        ),
     );
 };
 
@@ -46,6 +54,11 @@ const setMockFocusedTab = (tabName: string) => {
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
     default: jest.fn(),
+}));
+
+jest.mock('@hooks/useSidePanelDisplayStatus', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({shouldHideSidePanel: true})),
 }));
 
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280})));
@@ -87,7 +100,7 @@ describe('DebugTabView', () => {
     });
     beforeEach(() => {
         Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]);
-        (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: true});
+        jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true}));
     });
 
     afterEach(async () => {
@@ -191,7 +204,17 @@ describe('DebugTabView', () => {
 
     describe('Wide layout', () => {
         beforeEach(() => {
-            (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: false});
+            jest.mocked(useResponsiveLayout).mockReturnValue(
+                createMock<ReturnType<typeof useResponsiveLayout>>({
+                    shouldUseNarrowLayout: false,
+                    isExtraLargeScreenWidth: false,
+                }),
+            );
+            jest.mocked(useSidePanelDisplayStatus).mockReturnValue(
+                createMock<ReturnType<typeof useSidePanelDisplayStatus>>({
+                    shouldHideSidePanel: true,
+                }),
+            );
             Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             Onyx.set(ONYXKEYS.LOGINS, {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -214,7 +237,11 @@ describe('DebugTabView', () => {
 
             const container = await screen.findByTestId('DebugTabViewContainer');
             expect(container.props.pointerEvents).toBe('box-none');
-            expect((container.props.style as Array<Record<string, unknown>>).at(0)).toEqual(
+            const style: unknown = container.props.style;
+            if (!Array.isArray(style)) {
+                throw new Error('Expected DebugTabViewContainer style to be an array.');
+            }
+            expect(style.at(0)).toEqual(
                 expect.objectContaining({
                     top: 0,
                     left: variables.navigationTabBarSize,
@@ -230,11 +257,64 @@ describe('DebugTabView', () => {
 
             const container = await screen.findByTestId('DebugTabViewContainer');
             expect(container.props.pointerEvents).toBe('box-none');
-            expect((container.props.style as Array<Record<string, unknown>>).at(0)).toEqual(
+            const style: unknown = container.props.style;
+            if (!Array.isArray(style)) {
+                throw new Error('Expected DebugTabViewContainer style to be an array.');
+            }
+            expect(style.at(0)).toEqual(
                 expect.objectContaining({
                     bottom: 0,
                     left: variables.navigationTabBarSize,
                     width: 1280 - variables.navigationTabBarSize,
+                }),
+            );
+        });
+
+        it('positions at full width for domains tab', async () => {
+            setMockFocusedTab(SCREENS.DOMAINS_LIST);
+
+            renderWithNavigation(<DebugTabView selectedTab={NAVIGATION_TABS.WORKSPACES} />);
+
+            const container = await screen.findByTestId('DebugTabViewContainer');
+            const style: unknown = container.props.style;
+            if (!Array.isArray(style)) {
+                throw new Error('Expected DebugTabViewContainer style to be an array.');
+            }
+            expect(style.at(0)).toEqual(
+                expect.objectContaining({
+                    bottom: 0,
+                    left: variables.navigationTabBarSize,
+                    width: 1280 - variables.navigationTabBarSize,
+                }),
+            );
+        });
+
+        it('excludes side panel width when Concierge is open on the workspaces root', async () => {
+            jest.mocked(useResponsiveLayout).mockReturnValue(
+                createMock<ReturnType<typeof useResponsiveLayout>>({
+                    shouldUseNarrowLayout: false,
+                    isExtraLargeScreenWidth: true,
+                }),
+            );
+            jest.mocked(useSidePanelDisplayStatus).mockReturnValue(
+                createMock<ReturnType<typeof useSidePanelDisplayStatus>>({
+                    shouldHideSidePanel: false,
+                }),
+            );
+            setMockFocusedTab(SCREENS.WORKSPACES_LIST);
+
+            renderWithNavigation(<DebugTabView selectedTab={NAVIGATION_TABS.WORKSPACES} />);
+
+            const container = await screen.findByTestId('DebugTabViewContainer');
+            const style: unknown = container.props.style;
+            if (!Array.isArray(style)) {
+                throw new Error('Expected DebugTabViewContainer style to be an array.');
+            }
+            expect(style.at(0)).toEqual(
+                expect.objectContaining({
+                    bottom: 0,
+                    left: variables.navigationTabBarSize,
+                    width: 1280 - variables.navigationTabBarSize - variables.sidePanelWidth,
                 }),
             );
         });

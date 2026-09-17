@@ -1,13 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Checkbox from '@components/Checkbox';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import BaseListItem from './BaseListItem';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, SpendRuleListItemProps, SpendRuleListItemType} from './types';
+
+import BaseListItem from './BaseListItem';
 
 function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRuleListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -29,7 +34,6 @@ function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRul
     return (
         <BaseListItem
             item={item}
-            keyForList={item.keyForList}
             onSelectRow={onSelectRow}
             showTooltip={false}
             rightHandSideComponent={rightHandSideComponent}

@@ -1,8 +1,14 @@
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
+
 import CONST from '@src/CONST';
 
+import createMock from '../../../utils/createMock';
+
 jest.mock('@userActions/MultifactorAuthentication');
+
+const mockRegisterAuthenticationKey = jest.mocked(registerAuthenticationKey);
+type RegisterAuthenticationKeyResponse = Awaited<ReturnType<typeof registerAuthenticationKey>>;
 
 describe('MultifactorAuthentication processing', () => {
     beforeEach(() => {
@@ -11,10 +17,12 @@ describe('MultifactorAuthentication processing', () => {
 
     describe('processRegistration', () => {
         beforeEach(() => {
-            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
-                httpStatusCode: 200,
-                reason: 'Registration successful',
-            });
+            mockRegisterAuthenticationKey.mockResolvedValue(
+                createMock<RegisterAuthenticationKeyResponse>({
+                    httpStatusCode: 200,
+                    reason: undefined,
+                }),
+            );
         });
 
         // Given a keyInfo object with biometric type (HSM)
@@ -65,10 +73,12 @@ describe('MultifactorAuthentication processing', () => {
         // When processRegistration receives this 2xx status code
         // Then it should return success because 2xx status codes indicate the credential was successfully registered on the backend
         it('should return success when HTTP response is 2xx', async () => {
-            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
-                httpStatusCode: 201,
-                reason: 'Created',
-            });
+            mockRegisterAuthenticationKey.mockResolvedValue(
+                createMock<RegisterAuthenticationKeyResponse>({
+                    httpStatusCode: 201,
+                    reason: undefined,
+                }),
+            );
 
             const result = await processRegistration({
                 keyInfo: {rawId: 'key', type: 'biometric-hsm' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.ES256}}},
@@ -81,10 +91,12 @@ describe('MultifactorAuthentication processing', () => {
         // When processRegistration receives this non-2xx status code
         // Then it should return failure because non-2xx status codes indicate the credential registration was rejected by the backend
         it('should return failure when HTTP response is non-2xx', async () => {
-            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
-                httpStatusCode: 400,
-                reason: 'Bad request',
-            });
+            mockRegisterAuthenticationKey.mockResolvedValue(
+                createMock<RegisterAuthenticationKeyResponse>({
+                    httpStatusCode: 400,
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED,
+                }),
+            );
 
             const result = await processRegistration({
                 keyInfo: {rawId: 'key', type: 'biometric-hsm' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.ES256}}},
@@ -100,7 +112,7 @@ describe('MultifactorAuthentication processing', () => {
         beforeEach(() => {
             mockAction.mockResolvedValue({
                 httpStatusCode: 200,
-                reason: 'Action successful',
+                reason: undefined,
             });
         });
 
@@ -115,7 +127,8 @@ describe('MultifactorAuthentication processing', () => {
         // Then it should return failure because the signature is required to prove authenticity
         it('should return failure when signedChallenge is missing', async () => {
             const result = await processScenarioAction(mockAction, {
-                signedChallenge: '' as unknown as Parameters<typeof processScenarioAction>[1]['signedChallenge'],
+                // @ts-expect-error -- deliberately empty runtime input exercises the missing-signature branch.
+                signedChallenge: '',
                 authenticationMethod: 'BIOMETRIC_FACE',
             });
 
@@ -155,7 +168,7 @@ describe('MultifactorAuthentication processing', () => {
         it('should return failure when action returns non-2xx', async () => {
             mockAction.mockResolvedValue({
                 httpStatusCode: 403,
-                reason: 'Forbidden',
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED,
             });
 
             const result = await processScenarioAction(mockAction, {
@@ -172,7 +185,7 @@ describe('MultifactorAuthentication processing', () => {
         it('should forward body from action response', async () => {
             mockAction.mockResolvedValue({
                 httpStatusCode: 200,
-                reason: 'Success',
+                reason: undefined,
                 body: {pin: 1234},
             });
 

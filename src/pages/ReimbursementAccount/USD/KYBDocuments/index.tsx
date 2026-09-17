@@ -1,6 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -8,19 +5,27 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getRequiredKYBDocuments} from '@libs/BankAccountUtils';
+
 import {uploadUserKYBDocs} from '@userActions/BankAccounts';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 type KYBDocumentsProps = {
     /** Goes to the previous step */
@@ -59,17 +64,15 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
     const isLoading = reimbursementAccount?.isLoading;
 
     const handleNavigateToConciergeChat = () =>
-        navigateToConciergeChat(
+        navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
             betas,
-            true,
-            undefined,
-            undefined,
-            reimbursementAccount?.achData?.ACHRequestReportActionID,
-        );
+            shouldDismissModal: true,
+            reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
+        });
 
     const defaultValues = {
         [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: reimbursementAccountDraft?.[INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID] ?? [],
@@ -164,12 +167,13 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
 
     const footer = (
         <Button
-            large
+            size={CONST.BUTTON_SIZE.LARGE}
             style={[styles.mv3]}
-            text={translate('documentsStep.finishViaChat')}
             onPress={handleNavigateToConciergeChat}
             isDisabled={isLoading}
-        />
+        >
+            <Button.Text>{translate('documentsStep.finishViaChat')}</Button.Text>
+        </Button>
     );
 
     return (

@@ -1,4 +1,5 @@
 import {getTabScreenParam, getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 

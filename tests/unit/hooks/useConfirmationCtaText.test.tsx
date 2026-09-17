@@ -1,10 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useConfirmationCtaText from '@components/MoneyRequestConfirmationList/hooks/useConfirmationCtaText';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 type Params = Parameters<typeof useConfirmationCtaText>[0];
@@ -12,7 +17,6 @@ type Params = Parameters<typeof useConfirmationCtaText>[0];
 const baseParams: Params = {
     expensesNumber: 1,
     isTypeInvoice: false,
-    isTypeTrackExpense: false,
     isTypeSplit: false,
     isTypeRequest: false,
     iouAmount: 100,
@@ -52,7 +56,7 @@ describe('useConfirmationCtaText', () => {
     });
 
     it('uses createExpense copy for track expense with zero amount', () => {
-        const {result} = renderHook(() => useConfirmationCtaText({...baseParams, isTypeTrackExpense: true, iouType: CONST.IOU.TYPE.TRACK, iouAmount: 0}), {wrapper: Wrapper});
+        const {result} = renderHook(() => useConfirmationCtaText({...baseParams, iouType: CONST.IOU.TYPE.TRACK, iouAmount: 0}), {wrapper: Wrapper});
         expect(result.current.at(0)?.text.toLowerCase()).toContain('expense');
     });
 
@@ -77,7 +81,7 @@ describe('useConfirmationCtaText', () => {
     });
 
     it('includes formatted amount in sendInvoice copy when invoicing details are present', () => {
-        const policy = {invoice: {companyName: 'Acme', companyWebsite: 'acme.com'}} as Params['policy'];
+        const policy = createMock<NonNullable<Params['policy']>>({invoice: {companyName: 'Acme', companyWebsite: 'acme.com'}});
         const {result} = renderHook(() => useConfirmationCtaText({...baseParams, isTypeInvoice: true, iouType: CONST.IOU.TYPE.INVOICE, policy, formattedAmount: '$50.00'}), {
             wrapper: Wrapper,
         });
@@ -89,7 +93,6 @@ describe('useConfirmationCtaText', () => {
             () =>
                 useConfirmationCtaText({
                     ...baseParams,
-                    isTypeTrackExpense: true,
                     iouType: CONST.IOU.TYPE.TRACK,
                     iouAmount: 100,
                     formattedAmount: '$1.23',

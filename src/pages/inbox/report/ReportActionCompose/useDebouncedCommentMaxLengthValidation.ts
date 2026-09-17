@@ -1,10 +1,11 @@
-import lodashDebounce from 'lodash/debounce';
-import {useState} from 'react';
 import {getCommentLength} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 
+import lodashDebounce from 'lodash/debounce';
+import {useState} from 'react';
+
 type UseDebouncedCommentValidationProps = {
-    /** The report ID */
     reportID: string | undefined;
 
     /** Whether the composer is in edit mode */

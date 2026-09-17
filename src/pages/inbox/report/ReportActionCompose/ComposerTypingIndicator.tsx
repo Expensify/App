@@ -1,6 +1,9 @@
-import React from 'react';
 import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
+
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
+
+import React from 'react';
+
 import {useComposerState} from './ComposerContext';
 
 function ComposerTypingIndicator() {

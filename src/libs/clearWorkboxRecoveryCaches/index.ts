@@ -1,5 +1,6 @@
-import {Platform} from 'react-native';
 import Log from '@libs/Log';
+
+import {Platform} from 'react-native';
 
 /**
  * Clears all Cache Storage entries for this origin and unregisters every

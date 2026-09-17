@@ -1,7 +1,9 @@
-import {useEffect} from 'react';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import {useEffect} from 'react';
 
 type DraftWorkspaceOpenerProps = {
     isCreatingTrackExpense: boolean;

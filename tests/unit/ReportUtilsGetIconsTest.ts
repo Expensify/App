@@ -1,5 +1,5 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {
     getIcons,
@@ -25,12 +25,19 @@ import {
     isWorkspaceTaskReport,
     isWorkspaceThread,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {formatPhoneNumber} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 const FAKE_PERSONAL_DETAILS = LHNTestUtils.fakePersonalDetails;
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -124,8 +131,8 @@ beforeAll(() => {
 
 describe('getIcons', () => {
     it('should return a fallback icon if the report is empty', () => {
-        const report = {} as Report;
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const report = createMock<Report>({});
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
     });
 
@@ -142,7 +149,7 @@ describe('getIcons', () => {
         expect(isExpenseRequest(report)).toBe(true);
         expect(isThread(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.name).toBe('Email One');
     });
@@ -157,7 +164,7 @@ describe('getIcons', () => {
         // Verify report type conditions
         expect(isArchivedNonExpenseReport(report, true)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy, undefined, true);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy, undefined, true);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe(policy.name);
         expect(icons.at(0)?.type).toBe('workspace');
@@ -174,9 +181,21 @@ describe('getIcons', () => {
         expect(isChatThread(report)).toBe(true);
         expect(isThread(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
-        expect(icons.at(0)?.name).toBe('Email\u00A0Two');
+        expect(icons.at(0)?.name).toBe('Email Two');
+    });
+
+    it('should return the Concierge icon for a thread under the Concierge DM', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([1], 0, true),
+            parentReportID: '1',
+            parentReportActionID: '1',
+        };
+
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, undefined, undefined, false, undefined, '1');
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
     });
 
     it('should return the correct icons for a task report', () => {
@@ -189,9 +208,24 @@ describe('getIcons', () => {
         // Verify report type conditions
         expect(isTaskReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe('Email One');
+    });
+
+    it('should resolve the task owner fallback name through the provided translate function', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([1], 0, true),
+            type: CONST.REPORT.TYPE.TASK,
+            // An owner without personal details resolves the icon name via translate('common.hidden').
+            ownerAccountID: 999999,
+        };
+        const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+        const icons = getIcons(report, formatPhoneNumber, translateWithHiddenMarker, FAKE_PERSONAL_DETAILS);
+
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.name).toBe('HiddenMarker');
     });
 
     it('should return the correct icons for a domain room', () => {
@@ -200,7 +234,7 @@ describe('getIcons', () => {
             chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
             reportName: '#domain-test',
         };
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe('domain-test');
     });
@@ -212,7 +246,7 @@ describe('getIcons', () => {
             policyID: '1',
         };
         const policy = LHNTestUtils.getFakePolicy('1');
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe('Workspace-Test-001');
     });
@@ -230,7 +264,7 @@ describe('getIcons', () => {
         expect(isUserCreatedPolicyRoom(report)).toBe(true);
         expect(isChatReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(0)?.source).toBe('https://example.com/avatar.png');
@@ -248,7 +282,7 @@ describe('getIcons', () => {
         expect(isPolicyExpenseChat(report)).toBe(true);
         expect(isChatReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_AVATAR);
@@ -265,7 +299,7 @@ describe('getIcons', () => {
         // Verify report type conditions
         expect(isExpenseReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
@@ -285,7 +319,7 @@ describe('getIcons', () => {
         expect(isIOUReport(report)).toBe(true);
         expect(isMoneyRequestReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.name).toBe('Email\u0020Two');
         expect(icons.at(1)?.name).toBe('Email One');
@@ -301,7 +335,7 @@ describe('getIcons', () => {
         expect(isSelfDM(report)).toBe(true);
         expect(isChatReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe('Email Five');
     });
@@ -311,7 +345,7 @@ describe('getIcons', () => {
             ...LHNTestUtils.getFakeReport([], 0, true),
             chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
         };
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.NOTIFICATIONS);
     });
@@ -326,7 +360,7 @@ describe('getIcons', () => {
         expect(isGroupChat(report)).toBe(true);
         expect(isChatReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
     });
 
@@ -335,7 +369,7 @@ describe('getIcons', () => {
             ...LHNTestUtils.getFakeReport([1, 2, 3], 0, true),
             chatType: CONST.REPORT.CHAT_TYPE.GROUP,
         };
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
     });
 
@@ -345,7 +379,7 @@ describe('getIcons', () => {
             chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             avatarUrl: 'https://example.com/avatar.png',
         };
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
     });
 
@@ -361,7 +395,7 @@ describe('getIcons', () => {
         // Verify report type conditions
         expect(isInvoiceReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(1)?.name).toBe('Email Three');
@@ -371,7 +405,7 @@ describe('getIcons', () => {
         const report: Report = {
             ...LHNTestUtils.getFakeReport([1], 0, true),
         };
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe('Email One');
     });
@@ -381,7 +415,7 @@ describe('getIcons', () => {
             ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, true),
             type: undefined,
         };
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(4);
     });
 
@@ -400,7 +434,7 @@ describe('getIcons', () => {
         expect(isChatThread(report)).toBe(true);
         expect(isWorkspaceThread(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
 
         expect(icons).toHaveLength(2); // Actor + workspace icon
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
@@ -421,7 +455,7 @@ describe('getIcons', () => {
         expect(isTaskReport(report)).toBe(true);
         expect(isWorkspaceTaskReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
 
         expect(icons).toHaveLength(2); // Owner + workspace icon
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
@@ -440,7 +474,7 @@ describe('getIcons', () => {
         expect(isAdminRoom(report)).toBe(true);
         expect(isChatRoom(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
     });
@@ -457,7 +491,7 @@ describe('getIcons', () => {
         expect(isAnnounceRoom(report)).toBe(true);
         expect(isChatRoom(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
     });
@@ -478,7 +512,7 @@ describe('getIcons', () => {
         expect(isInvoiceRoom(report)).toBe(true);
         expect(isIndividualInvoiceRoom(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2); // Workspace + individual receiver
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_AVATAR);
@@ -496,7 +530,7 @@ describe('getIcons', () => {
             },
         };
         const policy = LHNTestUtils.getFakePolicy('1');
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy, receiverPolicy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy, receiverPolicy);
         expect(icons).toHaveLength(2); // Workspace + receiver workspace
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
@@ -528,7 +562,7 @@ describe('getIcons', () => {
         expect(isMoneyRequestReport(report)).toBe(true);
         expect(getOneTransactionThreadReportID(report, chatReport, reportActions)).toBeFalsy();
 
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
 
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.name).toBe('Email\u0020Two');
@@ -544,7 +578,7 @@ describe('getIcons', () => {
                 },
             },
         };
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
     });
@@ -561,7 +595,7 @@ describe('getIcons', () => {
         expect(isInvoiceReport(report)).toBe(true);
 
         const policy = LHNTestUtils.getFakePolicy('1');
-        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(1)?.name).toBe('Email Three');

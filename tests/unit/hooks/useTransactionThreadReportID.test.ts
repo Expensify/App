@@ -1,12 +1,17 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxKey, ResultMetadata, UseOnyxResult} from 'react-native-onyx';
+
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import type {OnyxKey, ResultMetadata, UseOnyxResult} from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
@@ -88,7 +93,7 @@ function makeSentMoneyPayAction(extra: Partial<ReportAction> = {}): ReportAction
     } as ReportAction;
 }
 
-const loadedReportMetadata: ResultMetadata<Report> = {status: 'loaded'};
+const loadedReportMetadata: ResultMetadata = {status: 'loaded'};
 
 function asReportOnyxResult(report: Report | undefined): UseOnyxResult<Report> {
     return [report, loadedReportMetadata];
@@ -160,10 +165,10 @@ describe('useTransactionThreadReportID', () => {
         });
         mockUseReportTransactionsCollection.mockReturnValue(
             transactionsRecordForReport([
-                {
+                createMock<Transaction>({
                     transactionID: 'txn-1',
                     reportID: MONEY_REPORT_ID,
-                } as Transaction,
+                }),
             ]),
         );
 
@@ -189,10 +194,10 @@ describe('useTransactionThreadReportID', () => {
         });
         mockUseReportTransactionsCollection.mockReturnValue(
             transactionsRecordForReport([
-                {
+                createMock<Transaction>({
                     transactionID: 'txn-1',
                     reportID: MONEY_REPORT_ID,
-                } as Transaction,
+                }),
             ]),
         );
 
@@ -219,10 +224,10 @@ describe('useTransactionThreadReportID', () => {
         });
         mockUseReportTransactionsCollection.mockReturnValue(
             transactionsRecordForReport([
-                {
+                createMock<Transaction>({
                     transactionID: 'txn-1',
                     reportID: MONEY_REPORT_ID,
-                } as Transaction,
+                }),
             ]),
         );
 
@@ -247,7 +252,10 @@ describe('useTransactionThreadReportID', () => {
             report: moneyReport,
         });
         mockUseReportTransactionsCollection.mockReturnValue(
-            transactionsRecordForReport([{transactionID: 'txn-1', reportID: MONEY_REPORT_ID} as Transaction, {transactionID: 'txn-2', reportID: MONEY_REPORT_ID} as Transaction]),
+            transactionsRecordForReport([
+                createMock<Transaction>({transactionID: 'txn-1', reportID: MONEY_REPORT_ID}),
+                createMock<Transaction>({transactionID: 'txn-2', reportID: MONEY_REPORT_ID}),
+            ]),
         );
 
         const {result} = renderHook(() => useTransactionThreadReportID(MONEY_REPORT_ID));

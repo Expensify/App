@@ -1,7 +1,9 @@
 import CONST from '@src/CONST';
 import type OnyxState from '@src/types/onyx/OnyxState';
-import {maskOnyxState} from './common';
+
 import type {ExportOnyxStateModule, ReadFromOnyxDatabase, ShareAsFile} from './types';
+
+import {maskOnyxState} from './common';
 
 const readFromOnyxDatabase: ReadFromOnyxDatabase = () =>
     new Promise((resolve) => {

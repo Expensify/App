@@ -1,5 +1,6 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const validTransactionDraftsSelector = (drafts: OnyxCollection<Transaction>): Record<string, Transaction> =>
     Object.values(drafts ?? {}).reduce<Record<string, Transaction>>((acc, draft) => {

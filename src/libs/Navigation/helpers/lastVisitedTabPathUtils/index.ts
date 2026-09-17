@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
 
 type LastVisitedTabPathKey = ValueOf<typeof CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH>;
 

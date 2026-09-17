@@ -1,11 +1,11 @@
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ExpenseReportListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 
 type ReportSearchHeaderProps = {
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report?: ExpenseReportListItemType;
 
-    /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
     /** Transactions inside report */

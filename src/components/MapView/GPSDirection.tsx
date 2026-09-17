@@ -1,9 +1,10 @@
-import Direction from './Direction';
 import type {Coordinate, GPSDirectionProps} from './MapViewTypes';
-import useAnimatedTrailingDirectionCoordinate from './useAnimatedTrailingDirectionCoordinate';
+
+import Direction from './Direction';
+import useAnimatedLeadingDirectionCoordinate from './useAnimatedLeadingDirectionCoordinate';
 
 function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation, belowLayerID}: GPSDirectionProps) {
-    const animatedTrailingCoordinate = useAnimatedTrailingDirectionCoordinate({
+    const animatedLeadingCoordinate = useAnimatedLeadingDirectionCoordinate({
         isEnabled: isTrackingGPS && !!lastLocation && directionCoordinates.flat().length > 0,
         targetCoordinate: lastLocation ? [lastLocation.longitude, lastLocation.latitude] : undefined,
         directionCoordinates,
@@ -19,7 +20,7 @@ function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation, belowL
             return directionCoordinates;
         }
 
-        const lastLocationCoordinate: Coordinate = animatedTrailingCoordinate ?? [lastLocation.longitude, lastLocation.latitude];
+        const lastLocationCoordinate: Coordinate = animatedLeadingCoordinate ?? [lastLocation.longitude, lastLocation.latitude];
 
         const newLastSegment = [...lastSegment.slice(0, lastSegment.length === 1 ? undefined : -1), lastLocationCoordinate];
 

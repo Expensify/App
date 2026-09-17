@@ -1,11 +1,17 @@
-import type {ArrayValues} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 import type {Reservation, ReservationTimeDetails, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SafeString from '@src/utils/SafeString';
+
+import type {ArrayValues} from 'type-fest';
+
+import {format, subSeconds} from 'date-fns';
+import {fromZonedTime, toZonedTime} from 'date-fns-tz';
+import {SafeString} from 'expensify-common';
+
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
 type TripReservationIcons = Record<'Plane' | 'PlaneCircleSlash' | 'Bed' | 'BedCircleSlash' | 'CarWithKey' | 'CarCircleSlash' | 'Train' | 'TrainCircleSlash' | 'Luggage', IconAsset>;
@@ -71,15 +77,16 @@ function getTripReservationCode(reservation: Reservation): string {
 }
 
 function parseDurationToSeconds(duration: string): number {
-    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+    const regex = /P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?/;
     const matches = duration.match(regex);
     if (!matches) {
         return 0;
     }
-    const hours = parseInt(matches[1] || '0', 10);
-    const minutes = parseInt(matches[2] || '0', 10);
-    const seconds = parseInt(matches[3] || '0', 10);
-    return hours * 3600 + minutes * 60 + seconds;
+    const days = parseInt(matches[1] || '0', 10);
+    const hours = parseInt(matches[2] || '0', 10);
+    const minutes = parseInt(matches[3] || '0', 10);
+    const seconds = parseInt(matches[4] || '0', 10);
+    return days * 86400 + hours * 3600 + minutes * 60 + seconds;
 }
 
 function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']>, legIdx: number, flightIdx: number): string | undefined {
@@ -232,6 +239,38 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
     return reservationList;
 }
 
+function getCancellationDeadline(pnrData: HotelPnr): string | undefined {
+    const deadlineUtc = pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
+    const duration = pnrData.room.cancellationPolicy?.durationBeforeArrivalDeadline?.iso8601;
+    const checkIn = pnrData.checkInDateTime?.iso8601;
+    if (deadlineUtc && duration && checkIn) {
+        // 1. Extract the target UTC offset from deadlineUtc (e.g. "-04:00")
+        const match = deadlineUtc.match(/(Z|[+-]\d{2}:\d{2})$/);
+        if (!match) {
+            return pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
+        }
+        const utcOffset = match[1] === 'Z' ? '+00:00' : match[1];
+
+        // 2. Convert the check-in wall-clock time to an absolute UTC instant,
+        //    treating it as being expressed in the target offset timezone.
+        const checkInUtc = fromZonedTime(checkIn, utcOffset);
+
+        // 3. Subtract the duration in UTC-space (preserves wall-clock intent for
+        //    day/hour units; DST transitions are irrelevant for fixed offsets).
+        const deadlineUtcInstant = subSeconds(checkInUtc, parseDurationToSeconds(duration));
+
+        // 4. Convert back to the target offset's wall-clock representation.
+        const deadlineZoned = toZonedTime(deadlineUtcInstant, utcOffset);
+
+        // 5. Format as ISO-8601 with the explicit offset suffix.
+        //    `format` with "yyyy-MM-dd'T'HH:mm:ss" gives the bare local datetime;
+        //    we then append the offset so the result is a proper fixed-offset string.
+        const localPart = format(deadlineZoned, "yyyy-MM-dd'T'HH:mm:ss");
+        return `${localPart}${utcOffset}`;
+    }
+    return pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
+}
+
 function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
     const reservationList: ReservationItem[] = [];
 
@@ -274,7 +313,7 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIt
             numberOfRooms: pnrData.numberOfRooms,
             roomClass: pnrData.room.roomName,
             cancellationPolicy: pnrData.room.cancellationPolicy?.policy ?? null,
-            cancellationDeadline: pnrData.room.cancellationPolicy?.deadline?.iso8601 ?? null,
+            cancellationDeadline: getCancellationDeadline(pnrData),
             confirmations,
             travelerPersonalInfo: {
                 name: getTravelerName(traveler),
@@ -464,9 +503,9 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
     return reservations.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
-function getReservationsFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationData[] {
-    if (tripReport?.tripData?.payload) {
-        return getReservationsFromSpotnanaPayload(tripReport.reportID, tripReport.tripData.payload);
+function getReservationsFromTripReport(tripReport?: Report, reportNameValuePairs?: ReportNameValuePairs, transactions?: Transaction[]): ReservationData[] {
+    if (tripReport && reportNameValuePairs?.tripData?.payload) {
+        return getReservationsFromSpotnanaPayload(tripReport.reportID, reportNameValuePairs.tripData.payload);
     }
     if (transactions) {
         return getReservationsFromTripTransactions(transactions);
@@ -483,8 +522,8 @@ function formatTransitLocationLabel(reservationTimeDetails: ReservationTimeDetai
     return longName ? `${longName} (${shortName})` : `(${shortName})`;
 }
 
-function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationPNRData[] {
-    const reservations = getReservationsFromTripReport(tripReport, transactions);
+function getPNRReservationDataFromTripReport(tripReport?: Report, reportNameValuePairs?: ReportNameValuePairs, transactions?: Transaction[]): ReservationPNRData[] {
+    const reservations = getReservationsFromTripReport(tripReport, reportNameValuePairs, transactions);
     if (reservations.length === 0) {
         return [];
     }
@@ -509,7 +548,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
     }
 
     return Array.from(pnrMap.values()).map((pnrData) => {
-        const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
+        const pnrPayloadData = reportNameValuePairs?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
         return {
             ...pnrData,
             totalFareAmount: ((pnrPayloadData?.data?.totalFareAmount?.base?.amount ?? 0) + (pnrPayloadData?.data?.totalFareAmount?.tax?.amount ?? 0)) * 100,
@@ -518,14 +557,17 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
     });
 }
 
-function getTripTotal(tripReport: Report): {
+function getTripTotal(
+    tripReport: Report,
+    reportNameValuePairs?: ReportNameValuePairs,
+): {
     totalDisplaySpend: number;
     currency?: string;
 } {
-    if (tripReport?.tripData?.payload) {
+    if (reportNameValuePairs?.tripData?.payload) {
         return {
-            totalDisplaySpend: (tripReport.tripData.payload.tripPaymentInfo?.totalFare?.amount ?? 0) * 100,
-            currency: tripReport.tripData.payload.tripPaymentInfo?.totalFare?.currencyCode,
+            totalDisplaySpend: (reportNameValuePairs.tripData.payload.tripPaymentInfo?.totalFare?.amount ?? 0) * 100,
+            currency: reportNameValuePairs.tripData.payload.tripPaymentInfo?.totalFare?.currencyCode,
         };
     }
 

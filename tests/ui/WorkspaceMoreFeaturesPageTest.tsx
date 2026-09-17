@@ -1,57 +1,48 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import WorkspaceMoreFeaturesPage from '@pages/workspace/WorkspaceMoreFeaturesPage';
+
 import * as ReportActions from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-
-// useConfirmModal resolves only after react-native-modal calls onModalHide via the underlying
-// Modal's onDismiss callback, which never fires in tests because animations are disabled. This mock
-// ports the same trick used by WorkspaceCategoriesTest so that showConfirmModal promises resolve.
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
-
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
-        const wasVisible = useRef<boolean>(isVisible);
-
-        useEffect(() => {
-            if (wasVisible.current && !isVisible) {
-                onModalHide?.();
-            }
-            wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
-
-        if (!isVisible) {
-            return null;
-        }
-
-        return children as React.ReactElement;
-    };
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
 });
 
 jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
@@ -133,7 +124,7 @@ const hasAccountingFeatureConnectionMock = jest.mocked(PolicyUtils.hasAccounting
 const useIsUberConnectedMock = jest.mocked(useIsPolicyConnectedToUberReceiptPartner);
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => undefined);
-const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => undefined);
+const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => Promise.resolve());
 
 function escapeRegExp(value: string): string {
     return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -157,10 +148,12 @@ describe('WorkspaceMoreFeaturesPage', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
 
         isSmartLimitEnabledMock.mockReturnValue(false);
         getCompanyFeedsMock.mockReturnValue({});
@@ -261,13 +254,13 @@ describe('WorkspaceMoreFeaturesPage', () => {
     describe('Travel toggle (locked when Travel Invoicing is enabled)', () => {
         const workspaceAccountID = LHNTestUtils.getFakePolicy().policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-        const enableTravelInvoicing = () => Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true}});
+        const enableTravelBilling = () => Onyx.merge(getTravelBillingCardSettingsKey(workspaceAccountID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true}});
 
         it('locks the Travel switch when Travel Invoicing is enabled', async () => {
             await TestHelper.signInWithTestUser();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
-                await enableTravelInvoicing();
+                await enableTravelBilling();
             });
 
             renderPage({policyID: POLICY_ID});
@@ -292,7 +285,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
-                await enableTravelInvoicing();
+                await enableTravelBilling();
             });
 
             renderPage({policyID: POLICY_ID});
@@ -412,6 +405,97 @@ describe('WorkspaceMoreFeaturesPage', () => {
 
             expect(navigateSpy).not.toHaveBeenCalled();
             expect(navigateToConciergeChatSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Vendors row (visibility gated on a supported integration)', () => {
+        const renderWithVendorMatching = async (connections: Record<string, unknown>, isBetaEnabled = true) => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.BETAS, isBetaEnabled ? [CONST.BETAS.VENDOR_MATCHING] : []);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, connections}));
+            });
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const vendorsSwitchQuery = () => screen.queryByRole(CONST.ROLE.SWITCH, {name: new RegExp(escapeRegExp(TestHelper.translateLocal('workspace.moreFeatures.vendors.subtitle')), 'i')});
+
+        it('hides the Vendors row when no accounting connection is present', async () => {
+            await renderWithVendorMatching({});
+            expect(screen.queryByRole(CONST.ROLE.SWITCH, {name: new RegExp(escapeRegExp(TestHelper.translateLocal('workspace.moreFeatures.vendors.subtitle')), 'i')})).toBeNull();
+        });
+
+        it('hides the Vendors row for an unsupported integration (NetSuite)', async () => {
+            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {config: {}}});
+            expect(screen.queryByRole(CONST.ROLE.SWITCH, {name: new RegExp(escapeRegExp(TestHelper.translateLocal('workspace.moreFeatures.vendors.subtitle')), 'i')})).toBeNull();
+        });
+
+        it('shows the Vendors row locked for a supported integration and explains the lock on press', async () => {
+            await renderWithVendorMatching({
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}},
+            });
+
+            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.vendors.subtitle'));
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.vendors.disabledMessage'))).toBeOnTheScreen();
+            });
+        });
+
+        it('shows the Vendors row for a supported integration even when its export config does not scope vendors (discovery state)', async () => {
+            await renderWithVendorMatching({
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL}},
+            });
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        // QBO R1 is GA, so a connected QBO workspace shows the row regardless of the vendorMatching beta.
+        it('shows the Vendors row locked ON for QBO scoping vendors even with the beta disabled (QBO is GA)', async () => {
+            await renderWithVendorMatching(
+                {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}}},
+                false,
+            );
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('shows the Vendors row locked OFF for QBO not scoping vendors even with the beta disabled (discovery state, QBO is GA)', async () => {
+            await renderWithVendorMatching(
+                {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL}}},
+                false,
+            );
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it.each([
+            {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: false},
+            {isBetaEnabled: true, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: true},
+            {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, shouldShowVendors: true},
+        ])(
+            'sets Vendors visibility to $shouldShowVendors for DualEntry with QBO exporting $qboDestination and beta=$isBetaEnabled',
+            async ({isBetaEnabled, qboDestination, shouldShowVendors}) => {
+                // Given a configured DualEntry connection and a retained QBO connection
+                const connections = {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {nonReimbursableExpensesExportDestination: qboDestination}},
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {config: {isConfigured: true}},
+                };
+
+                // When the More features page renders with the selected beta state
+                await renderWithVendorMatching(connections, isBetaEnabled);
+
+                // Then visibility follows the active vendor source's beta requirement
+                if (shouldShowVendors) {
+                    await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+                } else {
+                    expect(vendorsSwitchQuery()).toBeNull();
+                }
+            },
+        );
+
+        // Sage Intacct (R2) and Xero (R3) are still beta-gated, so they stay hidden when the beta is off.
+        it('hides the Vendors row for a beta-gated integration (Xero) when the beta is disabled', async () => {
+            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}}, false);
+            expect(vendorsSwitchQuery()).toBeNull();
         });
     });
 });

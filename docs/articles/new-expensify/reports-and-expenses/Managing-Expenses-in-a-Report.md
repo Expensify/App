@@ -45,16 +45,21 @@ You can move expenses to a different report, create a new report, or remove them
 **To move or remove a single expense from a report:**
 
 1. Open the draft report. 
-2. Click the checkbox next to the expense(s) you want to move. 
-3. Choose the green **selected** button > **Move expense(s)**.
-4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report**.
+2. Click the checkbox next to the expense you want to move. 
+3. Click the green **1 selected** button > **Move to report**.
+4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expense to your personal space.
 
 **To move or remove all expenses from a report**
 
 1. In the left side tabs, choose **Spend** > **Reports**
 2. Click the report with the expense(s) you want to move. 
-3. Choose the green **selected** button > **Move expense(s)**.
-4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report**.
+3. Click the checkbox next to each expense you want to move.
+4. Click the green **1 selected** button > **Move to report**. The count in the button label matches the number of expenses you selected.
+5. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expenses to your personal space.
+
+**Note:** A system message records the move in the expense when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message, because a draft report is not yet part of the audit trail.
+
+**Note:** Reports are limited to 500 expenses. If you choose a destination report that already has 500 expenses, the move is blocked and a message appears: *Reports are limited to 500 expenses. Please move some to another report.* Move some expenses out of that report or pick a different destination.
 
 **Note:** Workspace Admins can also create reports on behalf of employees by moving expenses to a new report. This is particularly useful for processing company card expenses or splitting expenses across different accounting periods. See [Create and Submit Reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports) for more details.
 
@@ -93,16 +98,38 @@ After it’s unapproved:
 
 ## How to view and use the expense table
 
-Each report includes a table showing all attached expenses.
+Each report includes an expense table showing the following default columns:
 
-Each report includes an expense table showing:
+  - Receipt
   - Date
   - Merchant
-  - Category
+  - Reimbursable
+  - Card
+  - Description
+  - Total
   - Amount
-  - Workspace violations (if applicable)
+  - Category
+  - Workspace violations, if applicable
 
-Additional columns such as **Attendees** and **Per attendee** can be enabled via the **Columns** picker when attendee tracking is available.
+Additional columns can be enabled from the **Columns** picker:
+
+  - Attendees
+  - Billable
+  - Category GL code
+  - Custom field 1
+  - Custom field 2
+  - Exchange rate
+  - International reimbursement IDs
+  - MCC
+  - Per attendee
+  - Posted
+  - Purchase amount
+  - Tag
+  - Tag GL code
+  - Tax
+  - Tax code
+  - Tax rate
+  - Withdrawal ID
 
 Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
 
@@ -114,16 +141,6 @@ Every report has a comment thread where you can:
   - Upload documents to support conversations
 
 Comments update live for everyone with access to the report.
-
-## How to edit expenses inline on desktop
-
-On desktop, you can edit certain expense fields directly in the table without opening the expense details:
-
-1. Click a **date**, **merchant**, **description**, **category**, or **amount** cell in the expense table.
-2. Edit the value using the inline editor that appears (a text input, date picker, or category picker depending on the field).
-3. Click outside the cell or press Enter to save your changes.
-
-**Note:** Inline editing is only available on desktop (wide layout). On mobile, tap the expense row to open the full details screen.
 
 ---
 
@@ -143,5 +160,6 @@ You may be filtered into a different workspace or be using a mismatched search t
 
   - You don’t have permission to edit the report.
   - The report is approved or paid.
+  - The destination report already has 500 expenses (the per-report limit).
 
-**Solution**: Ask a Workspace Admin to unapprove the report, or retract it if you submitted it.
+**Solution**: Ask a Workspace Admin to unapprove the report, or retract it if you submitted it. If the destination report is at the 500-expense limit, move some expenses out of it or choose a different destination report.

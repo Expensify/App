@@ -1,28 +1,34 @@
-import sortBy from 'lodash/sortBy';
-import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
 import {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import sortBy from 'lodash/sortBy';
+import React from 'react';
+import {View} from 'react-native';
+
 import AddReactionBubble from './AddReactionBubble';
 import ReportActionReactionBubble from './ReportActionReactionBubble';
 
 type ReportActionItemEmojiReactionsProps = {
-    /** The report action that these reactions are for */
     reportAction: ReportAction;
 
     /** The ID of the chat report this action belongs to */
@@ -34,7 +40,6 @@ type ReportActionItemEmojiReactionsProps = {
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
 
-    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
@@ -42,7 +47,6 @@ type FormattedReaction = {
     /** The emoji codes to display in the bubble */
     emojiCodes: string[];
 
-    /** IDs of users used the reaction */
     userAccountIDs: number[];
 
     /** Total reaction count */
@@ -54,10 +58,7 @@ type FormattedReaction = {
     /** Oldest timestamp of when the emoji was added */
     oldestTimestamp: string;
 
-    /** Callback to fire on press */
     onPress: () => void;
-
-    /** The name of the emoji */
     reactionEmojiName: string;
 
     /** The type of action that's pending */
@@ -72,6 +73,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
 
     const reportActionID = reportAction.reportActionID;
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     // Prime the locale emoji table when this action has reactions.
     // Skip the default locale since getLocalizedEmojiName never reads localeEmojis for it.
@@ -83,12 +85,14 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
         if (isAnonymousUser()) {
             hideContextMenu(false);
 
-            InteractionManager.runAfterInteractions(() => {
-                signOutAndRedirectToSignIn();
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    signOutAndRedirectToSignIn();
+                },
             });
             return;
         }
-        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, ignoreSkinToneOnCompare);
+        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, reportActions, ignoreSkinToneOnCompare);
     };
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone

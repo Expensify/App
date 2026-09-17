@@ -1,14 +1,19 @@
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+
 import {updateZenefitsApprovalMode} from '@libs/actions/connections/Zenefits';
-import {isZenefitsConnected} from '@libs/HRUtils';
+import {isZenefitsConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import HRApprovalModePageBase from '@pages/workspace/hr/HRApprovalModePageBase';
 import type {HRApprovalModeProviderConfig} from '@pages/workspace/hr/HRApprovalModePageBase';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 type ZenefitsApprovalModePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_ZENEFITS_APPROVAL_MODE>;
 
@@ -25,7 +30,7 @@ function ZenefitsApprovalModePage({
         approvalModes: CONST.ZENEFITS.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
-        getHeaderTitle: () => translate('workspace.hr.approvalMode'),
+        getHeaderTitle: () => translate('workspace.merge.approvalMode'),
         handleSave: ({draftApprovalMode, currentApprovalMode}) => updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
     };
 

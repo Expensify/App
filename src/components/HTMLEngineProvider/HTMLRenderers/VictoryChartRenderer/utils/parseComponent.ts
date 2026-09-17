@@ -1,5 +1,6 @@
-import {HTMLContentModel} from 'react-native-render-html';
 import type {HTMLContentModel as HTMLContentModelType, TNode, TRenderEngine} from 'react-native-render-html';
+
+import {HTMLContentModel} from 'react-native-render-html';
 
 /**
  * Parse an inline HTML attribute into a valid TNode

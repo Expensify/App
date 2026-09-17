@@ -1,22 +1,29 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
+import type {Filter} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ItemCallback = (filter: SearchFilter['key']) => void;
 type FilterItemCallbacks = {
@@ -27,10 +34,16 @@ type FilterItemCallbacks = {
 
 type FilterListProps = FilterItemCallbacks & {
     type: SearchDataTypes | undefined;
-    policyID: string[] | undefined;
+    policyID: Filter;
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
+    onPointerMove?: (event: {clientX: number; clientY: number}) => void;
+
+    /** Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only. */
+    onPointerLeave?: (event: {clientX: number}) => void;
 };
 
 type FilterItemProps = FilterItemCallbacks & {
@@ -77,10 +90,15 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
                         width={variables.iconSizeSmall}
                         height={variables.iconSizeSmall}
                     />
-                    <Text style={[styles.flex1]}>{translate(labelKey)}</Text>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.flex1]}
+                    >
+                        {translate(labelKey)}
+                    </Text>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isSelected, pressed))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isSelected, isPressed: pressed})})}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />
@@ -90,7 +108,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     );
 }
 
-function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: FilterListProps) {
+function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
     const styles = useThemeStyles();
     const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
 
@@ -99,6 +117,8 @@ function FilterList({type, policyID, selectedFilter, style, contentContainerStyl
             style={[style]}
             contentContainerStyle={[contentContainerStyle]}
             showsVerticalScrollIndicator={false}
+            onMouseMove={onPointerMove}
+            onMouseLeave={onPointerLeave}
         >
             {typeFiltersKeys.map((section, index) => (
                 <View key={`${section.at(0)}`}>

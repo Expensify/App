@@ -34,7 +34,7 @@ Anyone can enable Two-Factor Authentication on their own account. Domain Admins 
 # What to expect when logging in
 
 After setup, login requires both:
-1. Your magic code (sent via email).  
+1. Your security code (sent via email).  
 2. The 6-digit verification code from your authenticator app.
 
 ---

@@ -1,8 +1,11 @@
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {Linking} from 'react-native';
-import CONST from '@src/CONST';
-import BaseLocationErrorMessage from './BaseLocationErrorMessage';
+
 import type LocationErrorMessageProps from './types';
+
+import BaseLocationErrorMessage from './BaseLocationErrorMessage';
 
 /** Opens expensify help site in a new browser tab */
 const navigateToExpensifyHelpSite = () => {

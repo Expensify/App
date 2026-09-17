@@ -1,8 +1,8 @@
 ---
 title: Manage Personal Cards
 description: Learn how to view, manage, and fix broken connections for personal credit cards in New Expensify.
-keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card]
-internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings and fixing broken card connections. Does not cover connecting new personal cards or company card programs.
+keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card, temporary bank issue, can't auto-match receipt]
+internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings, fixing broken card connections, and recognizing temporary bank issues that resolve on their own. Does not cover connecting new personal cards or company card programs.
 ---
 
 # Manage Personal Cards
@@ -84,6 +84,8 @@ When a personal card connection breaks, you'll see:
 - A red dot indicator on **Wallet** in the navigation tabs. 
 - A red dot indicator on the card in **Wallet** leading to the error.
 
+These reminders appear while the connection has recently broken. If a personal card has gone 90 days or more without a successful sync, the **Time Sensitive** notification on **Home** and the red dot on **Wallet** in the navigation tabs stop showing. The card still appears in **Wallet** with its red dot, and you can select it and choose **Fix card** to restore the connection at any time.
+
 <!-- SCREENSHOT:
 Suggestion: Show broken personal card connection with indicators on Wallet and on the card. 
 Design request: https://github.com/Expensify/Expensify/issues/620248
@@ -111,12 +113,32 @@ You can tap the hyperlinked text in the violation to go directly to the **Card d
 
 ---
 
+## How to tell a temporary bank issue from a broken personal card connection
+
+Some card messages point to a temporary problem at your bank rather than a broken connection. When your bank returns a temporary error, the expense shows this message instead:
+
+“Can't auto-match receipt due to a temporary bank issue. Please try again later.”
+
+This message means Expensify couldn't reach your bank right now, not that your card needs to be reconnected.
+
+- Do not choose **Fix card**. The connection is still valid.
+- No action is required from you.
+- Expensify retries automatically, and the message clears once the transaction imports and matches the receipt.
+
+Unlike a broken connection violation, this message always stays visible on the expense and in the expense report header, so you can see why the expense is being held.
+
+---
+
 # FAQ
 
 
 ## Can I change the reimbursable setting for past transactions?
 
 No. Changes to the reimbursable setting only apply to transactions imported after the change.
+
+## Can I set the transaction start date to a future date?
+
+Yes. The **Transaction start date** can be set to a past or future date. If you choose a future date, Expensify begins importing transactions for the card from that date onward.
 
 ## Why don't I see my personal card in the Wallet?
 
@@ -133,3 +155,11 @@ The broken connection error is automatically removed when any of the following o
 - Logging into your bank successfully re-authenticates the connection.
 - Tapping Update card successfully refreshes the card.
 - Expensify's daily automatic card refresh succeeds.
+
+## Why does my expense say “Can't auto-match receipt due to a temporary bank issue”?
+
+Your bank returned a temporary error, so Expensify couldn't pull the card transaction to match against the receipt. Your card connection is not broken, so you don't need to choose **Fix card**. Expensify retries automatically and the message clears once the transaction imports.
+
+## Why did the broken connection reminders disappear while the card still shows an error?
+
+If a personal card has gone 90 days or more without a successful sync, Expensify stops showing the proactive reminders — the **Time Sensitive** notification on **Home** and the red dot on **Wallet** in the navigation tabs. The card itself still appears in **Wallet** with a red dot, so you can select it and choose **Fix card** to reconnect it whenever you're ready.

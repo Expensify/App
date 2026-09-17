@@ -1,20 +1,25 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
+import {getInvalidAddressErrorTranslationPath, isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
+import type {FormOnyxValues} from './Form/types';
+import type {State} from './StateSelector';
+
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import type {FormOnyxValues} from './Form/types';
-import type {State} from './StateSelector';
 import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
@@ -62,6 +67,23 @@ type AddressFormProps = {
 
     /** Whether the form submit button should be enabled when offline */
     enabledWhenOffline?: boolean;
+
+    /**
+     * Whether to force the zip/postal code to be present. Workspace addresses for homeAndOffice commuter exclusions
+     * require a complete address
+     */
+    shouldRequireZip?: boolean;
+
+    /** Whether PO boxes and mail drops are rejected on address lines */
+    shouldValidatePhysicalAddress?: boolean;
+
+    /**
+     * Whether the form should apply its own bottom safe-area padding. Defaults to true for the common case of a
+     * screen whose own ScreenWrapper has delegated bottom safe-area handling to this form (edge-to-edge mode).
+     * Set to false when the parent already applies it (e.g. a ScreenWrapper using the legacy, non-edge-to-edge
+     * default), otherwise the inset is padded twice, visible as extra bottom padding on iOS.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 function AddressForm({
@@ -78,6 +100,9 @@ function AddressForm({
     zip = '',
     shouldHideCountrySelector = false,
     enabledWhenOffline: enabledWhenOfflineProp = true,
+    shouldRequireZip = false,
+    shouldValidatePhysicalAddress = false,
+    addBottomSafeAreaPadding = true,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -103,7 +128,8 @@ function AddressForm({
             const errors: Errors & {
                 zipPostCode?: string | string[];
             } = {};
-            const requiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
+            const baseRequiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
+            const requiredFields = shouldRequireZip ? ([...baseRequiredFields, 'zipPostCode'] as const) : baseRequiredFields;
 
             // Check "State" dropdown is a valid state if selected Country is USA
             if (values.country === CONST.COUNTRY.US && !values.state) {
@@ -136,6 +162,18 @@ function AddressForm({
                 errors.state = translate('common.error.characterLimitExceedCounter', values.state.length, CONST.STATE_CHARACTER_LIMIT);
             }
 
+            if (shouldValidatePhysicalAddress) {
+                const addressLine1Error = getInvalidAddressErrorTranslationPath(values.addressLine1);
+                if (values.addressLine1 && addressLine1Error) {
+                    errors.addressLine1 = translate(addressLine1Error);
+                }
+
+                const addressLine2Error = getInvalidAddressErrorTranslationPath(values.addressLine2);
+                if (values.addressLine2 && addressLine2Error) {
+                    errors.addressLine2 = translate(addressLine2Error);
+                }
+            }
+
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
             const countryRegexDetails = (values.country ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
@@ -157,7 +195,7 @@ function AddressForm({
 
             return errors;
         },
-        [translate, shouldHideCountrySelector, country],
+        [translate, shouldHideCountrySelector, country, shouldRequireZip, shouldValidatePhysicalAddress],
     );
 
     return (
@@ -168,7 +206,7 @@ function AddressForm({
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
             enabledWhenOffline={enabledWhenOfflineProp}
-            addBottomSafeAreaPadding
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             <View>
                 <InputWrapper

@@ -1,17 +1,22 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
+import {render, screen} from '@testing-library/react-native';
+
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+
 import AgentsPage from '@pages/settings/Agents/AgentsPage';
+
 import {openAgentsPage} from '@userActions/Agent';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type ReactNative from 'react-native';
+
+import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
     openAgentsPage: jest.fn(),
 }));
-
-jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -33,6 +38,30 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
 
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    __esModule: true,
+    default: () => ({didScreenTransitionEnd: true}),
+}));
+
+jest.mock('@components/Tables/AgentsTable', () => {
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
+    function MockAgentsTable({agents}: {agents: Array<{displayName: string}>}) {
+        if (agents.length === 0) {
+            return <Text>agentsPage.emptyAgents.title</Text>;
+        }
+
+        return agents.map((agent) => (
+            <Text
+                key={agent.displayName}
+                testID={`agent-${agent.displayName}`}
+            >
+                {agent.displayName}
+            </Text>
+        ));
+    }
+    return MockAgentsTable;
+});
+
 jest.mock('@hooks/useDocumentTitle', () => jest.fn());
 
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -45,8 +74,6 @@ jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}])
 jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: jest.fn(() => ({})),
     useSession: jest.fn(() => ({})),
-    usePolicyCategories: jest.fn(() => ({})),
-    usePolicyTags: jest.fn(() => ({})),
     useAllReportsTransactionsAndViolations: jest.fn(() => ({})),
 }));
 
@@ -109,14 +136,6 @@ jest.mock('@components/RenderHTML', () => {
     return MockRenderHTML;
 });
 
-jest.mock('@pages/ErrorPage/NotFoundPage', () => {
-    function MockNotFoundPage() {
-        return 'NotFoundPage';
-    }
-    return MockNotFoundPage;
-});
-
-const mockUsePermissions = jest.mocked(usePermissions);
 const mockOpenAgentsPage = jest.mocked(openAgentsPage);
 const mockUseOnyx = jest.mocked(useOnyx);
 const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
@@ -124,39 +143,21 @@ const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
 describe('AgentsPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUsePermissions.mockReturnValue({isBetaEnabled: () => true});
         mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
         mockUsePersonalDetails.mockReturnValue({});
     });
 
-    it('renders page content when customAgent beta is enabled', () => {
+    it('renders page content', () => {
         const {toJSON} = render(<AgentsPage />);
         const output = JSON.stringify(toJSON());
 
-        expect(output).not.toContain('NotFoundPage');
         expect(output).toContain('agentsPage.title');
-    });
-
-    it('renders NotFoundPage when customAgent beta is disabled', () => {
-        mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
-
-        const {toJSON} = render(<AgentsPage />);
-
-        expect(JSON.stringify(toJSON())).toContain('NotFoundPage');
     });
 
     it('calls openAgentsPage on mount', () => {
         render(<AgentsPage />);
 
         expect(mockOpenAgentsPage).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call openAgentsPage when beta is disabled', () => {
-        mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
-
-        render(<AgentsPage />);
-
-        expect(mockOpenAgentsPage).not.toHaveBeenCalled();
     });
 
     it('shows empty state when no agents exist', () => {
@@ -184,11 +185,10 @@ describe('AgentsPage', () => {
             },
         });
 
-        const {toJSON} = render(<AgentsPage />);
-        const output = JSON.stringify(toJSON());
+        render(<AgentsPage />);
 
-        expect(output).toContain('Test Agent');
-        expect(output).not.toContain('agentsPage.emptyAgents.title');
+        expect(screen.getByText('Test Agent')).toBeOnTheScreen();
+        expect(screen.queryByText('agentsPage.emptyAgents.title')).not.toBeOnTheScreen();
     });
 
     it('excludes agents whose personal details are missing from the list', () => {

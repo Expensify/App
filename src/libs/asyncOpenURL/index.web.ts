@@ -1,8 +1,12 @@
-import {Linking} from 'react-native';
-import type {Linking as LinkingWeb} from 'react-native-web';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
+
+import type {Linking as LinkingWeb} from 'react-native-web';
+
+import {Linking} from 'react-native';
+
 import type AsyncOpenURL from './types';
 
 /**

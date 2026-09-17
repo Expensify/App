@@ -1,9 +1,11 @@
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
 import reauthenticate from '@libs/Reauthentication';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Session from '@src/types/onyx/Session';
+
+import Onyx from 'react-native-onyx';
 
 let active = false;
 let currentActiveSession: Session = {};

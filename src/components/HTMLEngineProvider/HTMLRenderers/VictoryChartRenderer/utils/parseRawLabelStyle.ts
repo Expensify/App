@@ -1,5 +1,7 @@
-import lodashIsObject from 'lodash/isObject';
 import type {RawLabelStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+
+import lodashIsObject from 'lodash/isObject';
+
 import parseAttribute from './parseAttribute';
 
 function parseRawLabelStyle(attribute: string): RawLabelStyle[] {

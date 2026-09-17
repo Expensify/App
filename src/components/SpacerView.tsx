@@ -1,18 +1,14 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import usePrevious from '@hooks/usePrevious';
+
 import CONST from '@src/CONST';
 
-type SpacerViewProps = {
-    /**
-     * Should we show the spacer
-     */
-    shouldShow: boolean;
+import type {StyleProp, ViewStyle} from 'react-native';
 
-    /**
-     * Array of style objects
-     */
+import React from 'react';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
+type SpacerViewProps = {
+    shouldShow: boolean;
     style?: StyleProp<ViewStyle>;
 };
 

@@ -1,7 +1,9 @@
+import type {LinkProps, PressProps} from '@components/TextLink';
+
+import type {TranslationPaths} from '@src/languages/types';
+
 import type React from 'react';
 import type {ForwardedRef} from 'react';
-import type {LinkProps, PressProps} from '@components/TextLink';
-import type {TranslationPaths} from '@src/languages/types';
 
 type SignInPageLayoutProps = {
     /** The children to show inside the layout */
@@ -28,8 +30,6 @@ type SignInPageLayoutProps = {
     customHeroBody?: string;
 
     navigateFocus?: () => void;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<SignInPageLayoutRef>;
 };
 

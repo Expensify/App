@@ -1,24 +1,34 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type AddMatchTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE>;
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddMatchTypePageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MATCH_TYPE
+>;
 
 type MatchTypeItem = ListItem & {
     value: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
@@ -26,16 +36,23 @@ type MatchTypeItem = ListItem & {
 
 function AddMatchTypePage({route}: AddMatchTypePageProps) {
     const {policyID, ruleID} = route.params;
+    // Sits above merchant-to-match, not the rule page, so each flow names it: the callout by dropping this suffix,
+    // settings by the route passed here.
+    const {backToRoute} = useMerchantRuleRoute(
+        DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID !== ROUTES.NEW ? ruleID : undefined),
+    );
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isEditing = ruleID !== ROUTES.NEW;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
     const selectedValue = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, isEditing ? ruleID : undefined));
+        Navigation.goBack(backToRoute);
     };
 
     const items: MatchTypeItem[] = [

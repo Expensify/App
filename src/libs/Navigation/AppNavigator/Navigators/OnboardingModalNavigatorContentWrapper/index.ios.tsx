@@ -1,14 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type OnboardingModalNavigatorContentWrapperProps = {
-    /** Rendered child component */
-    children: React.ReactNode;
+import React from 'react';
+import {View} from 'react-native';
 
-    /** Whether the onboarding is on a medium or larger screen width */
+type OnboardingModalNavigatorContentWrapperProps = {
+    children: React.ReactNode;
     onboardingIsMediumOrLargerScreenWidth: boolean;
 };
 

@@ -1,6 +1,8 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React from 'react';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import type TextInputLabelProps from './types';
 
 function TextInputLabel({label, labelScale, labelTranslateY, isMultiline, shouldLabelStayOnSingleLine}: TextInputLabelProps) {

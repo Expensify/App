@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 type SignInWithShortLivedAuthTokenParams = {
     authToken: string;
@@ -11,6 +12,7 @@ type SignInWithShortLivedAuthTokenParams = {
      * method is known.
      */
     authMethod?: ValueOf<typeof CONST.AUTH_METHOD>;
+    deviceInfo: string;
 };
 
 export default SignInWithShortLivedAuthTokenParams;

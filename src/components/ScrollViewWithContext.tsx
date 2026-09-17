@@ -1,9 +1,13 @@
+import CONST from '@src/CONST';
+
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {createContext, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
-import CONST from '@src/CONST';
+
+import React, {createContext, useMemo, useRef, useState} from 'react';
+
 import type {ScrollViewProps} from './ScrollView';
+
 import ScrollView from './ScrollView';
 
 type ScrollContextValue = {

@@ -1,26 +1,33 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo} from 'react';
-import type {ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions as ReportActionsType} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useCallback, useMemo} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import OptionRowLHN from './OptionRowLHN';
 
 /*
@@ -45,7 +52,8 @@ function OptionRowLHNData({
     const styles = useThemeStyles();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
@@ -123,6 +131,7 @@ function OptionRowLHNData({
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -139,6 +148,7 @@ function OptionRowLHNData({
     // When getOptionData returns a fresh object with the same content, the Compiler
     // ensures that only expressions whose inputs actually changed recompute.
     const optionItem = SidebarUtils.getOptionData({
+        dateFnsLocale,
         report: fullReport,
         reportAttributes,
         oneTransactionThreadReport,
@@ -152,6 +162,8 @@ function OptionRowLHNData({
         card,
         lastAction,
         translate,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         localeCompare,
         isReportArchived,
         lastActionReport,
@@ -162,6 +174,8 @@ function OptionRowLHNData({
         policyTags,
         currentUserLogin: login ?? '',
         isTrackIntentUser,
+        formatPhoneNumber,
+        rules,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
@@ -193,11 +207,12 @@ function OptionRowLHNData({
         return isReportFocused ? null : <View style={placeholderRowStyle} />;
     }
 
-    const shouldUseMarkAsDone =
+    const shouldShowMarkAsDoneCopy =
         shouldShowMarkAsDone({
             report: fullReport,
             isTrackIntentUser,
             policy,
+            rules,
         }) && finalOptionItem?.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
 
     return (
@@ -207,7 +222,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             hasDraftComment={hasDraftComment}
-            isMarkAsDone={shouldUseMarkAsDone}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
         />
     );
 }

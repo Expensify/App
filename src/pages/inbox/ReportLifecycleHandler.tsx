@@ -1,16 +1,20 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect} from 'react';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useBankAccountUnlockEffect from '@hooks/useBankAccountUnlockEffect';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelAllSendMessageSpans} from '@libs/telemetry/sendMessageSpans';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect} from 'react';
 
 type ReportLifecycleHandlerProps = {
     reportID: string | undefined;
@@ -48,7 +52,7 @@ function ReportLifecycleHandler({reportID}: ReportLifecycleHandlerProps) {
             cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${onyxReportID}`);
 
             // Cancel any pending send-message spans to prevent orphaned spans when navigating away
-            cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
+            cancelAllSendMessageSpans();
         };
     }, [onyxReportID]);
 

@@ -1,10 +1,15 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import FloatingActionButton from '@components/FloatingActionButton';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
 
 // FloatingActionButton relies on ProductTrainingContext, so provide a minimal mock.
 jest.mock('@components/ProductTrainingContext', () => ({
@@ -21,7 +26,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 
 // useResponsiveLayout determines LHB visibility. Mock a wide layout to keep behaviour deterministic.
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 let mockUseAnimatedStyleUpdater: () => Record<string, unknown>;
 // Silence react-native-reanimated warnings in Jest

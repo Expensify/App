@@ -1,33 +1,44 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
-import Navigation from '@libs/Navigation/Navigation';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
+
 import {sendExportFileFromConcierge} from '@userActions/Export';
+import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
+const selectEncryptedAuthToken = (session: OnyxEntry<Session>) => session?.encryptedAuthToken;
+
 type ExportDownloadStatusModalProps = {
     /** The export ID to subscribe to */
     exportID: string;
 
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Callback when the modal is closed */
@@ -46,11 +57,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {environment} = useEnvironment();
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.encryptedAuthToken});
+    const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: selectEncryptedAuthToken});
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
+    const wasRecordCleared = !exportDownload && !!displayedExport;
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
@@ -58,15 +69,27 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const exportType = displayedExport?.exportType;
     const failedReportCount = displayedExport?.failedReportCount ?? 0;
     const reportCount = displayedExport?.reportCount ?? 0;
+    const receiptCount = displayedExport?.receiptCount;
+    const failedReceiptCount = displayedExport?.failedReceiptCount ?? 0;
+    const isTruncated = !!displayedExport?.truncated;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
-    const isConcierge = !!shouldSendFromConcierge;
+    const isConcierge = !!shouldSendFromConcierge && state !== CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
-    const isPartialFailure = isReady && failedReportCount > 0;
+    const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
+
+    const wasPreparingRef = useRef(false);
+    useEffect(() => {
+        if (state !== CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
+            return;
+        }
+
+        wasPreparingRef.current = true;
+    }, [state]);
 
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
-    // via the encryptedAuthToken — no separate OldDot sign-in needed.
+    // via the encryptedAuthToken, so no separate OldDot sign-in is needed.
     const downloadFile = () => {
         if (!fileName || !currentUserLogin) {
             return;
@@ -75,26 +98,30 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         const isCSV = fileName.endsWith('.csv');
         const secureType = isCSV ? CONST.SECURE_DOWNLOAD_TYPE.CSV_EXPORT : CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT;
         const url = buildSecureDownloadURL({baseURL, secureType, fileName, downloadName: fileName, email: currentUserLogin});
-        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari());
+        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari(), undefined, undefined, undefined, undefined, false);
     };
 
     useEffect(() => {
-        if (!isReady || !fileName || shouldSendFromConcierge) {
+        // Only the leader tab auto-downloads, so a ready export isn't downloaded once per open tab.
+        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts || !isClientTheLeader() || !wasPreparingRef.current) {
             return;
         }
         downloadFile();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, fileName, shouldSendFromConcierge]);
+    }, [isReady, fileName, shouldSendFromConcierge, isEmptyReceipts]);
 
     const handleSendFromConcierge = () => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
     };
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
+
+    if (wasRecordCleared) {
+        return null;
+    }
 
     const handleGoToConcierge = () => {
-        onClose();
-        if (conciergeReportID) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: conciergeReportID}));
-        }
+        close(() => openConciergeAnywhere({forceConcierge: true}));
     };
 
     const handleDownloadFile = () => {
@@ -112,17 +139,15 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                 <>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
                         <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
-                        <ActivityIndicator
-                            size="small"
-                            reasonAttributes={{context: 'ExportDownloadStatusModal.preparing'}}
-                        />
+                        <ActivityIndicator size="small" />
                     </View>
                     <Text style={styles.mb5}>{translate('exportDownload.preparingBody')}</Text>
                     <Button
-                        text={translate('exportDownload.sendFromConcierge')}
                         onPress={handleSendFromConcierge}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.sendFromConcierge')}</Button.Text>
+                    </Button>
                 </>
             );
         }
@@ -133,25 +158,51 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
                     <Text style={styles.mb5}>{translate('exportDownload.conciergeBody')}</Text>
                     <Button
-                        success
-                        text={translate('exportDownload.goToConcierge')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={handleGoToConcierge}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.goToConcierge')}</Button.Text>
+                    </Button>
                     <Button
-                        text={translate('exportDownload.dismiss')}
                         onPress={onClose}
                         style={[styles.w100, styles.mt3]}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.dismiss')}</Button.Text>
+                    </Button>
+                </>
+            );
+        }
+
+        if (isEmptyReceipts) {
+            return (
+                <>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.noReceiptsTitle')}</Text>
+                    <Text style={styles.mb5}>{translate('exportDownload.noReceiptsBody')}</Text>
+                    <Button
+                        onPress={onClose}
+                        style={styles.w100}
+                    >
+                        <Button.Text>{translate('exportDownload.close')}</Button.Text>
+                    </Button>
                 </>
             );
         }
 
         if (isReady) {
-            return (
-                <>
-                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
-                    {isPartialFailure ? (
+            const renderPartialBody = () => {
+                if (exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && failedReceiptCount > 0) {
+                    return (
+                        <Text style={styles.mb5}>
+                            {translate('exportDownload.receiptsPartialBody', {
+                                count: (receiptCount ?? 0) - failedReceiptCount,
+                                total: receiptCount ?? 0,
+                            })}
+                        </Text>
+                    );
+                }
+                if (failedReportCount > 0) {
+                    return (
                         <View style={styles.mb5}>
                             <RenderHTML
                                 html={translate('exportDownload.readyPartialBody', {
@@ -160,30 +211,48 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                                 })}
                             />
                         </View>
-                    ) : (
-                        <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
-                    )}
+                    );
+                }
+                return <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>;
+            };
+
+            return (
+                <>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
+                    {isTruncated && <Text style={styles.mb2}>{translate('exportDownload.truncatedBody')}</Text>}
+                    {renderPartialBody()}
                     <Button
-                        success
-                        text={translate('exportDownload.downloadFile')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={handleDownloadFile}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.downloadFile')}</Button.Text>
+                    </Button>
                 </>
             );
         }
 
         if (isFailed) {
-            const resolvedFailedBody = failedBody ?? (exportType === CONST.EXPORT_DOWNLOAD.TYPE.CSV ? translate('exportDownload.csvFailedBody') : translate('exportDownload.pdfFailedBody'));
+            const getDefaultFailedBody = () => {
+                if (exportType === CONST.EXPORT_DOWNLOAD.TYPE.CSV) {
+                    return translate('exportDownload.csvFailedBody');
+                }
+                if (exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS) {
+                    return translate('exportDownload.receiptsFailedBody');
+                }
+                return translate('exportDownload.pdfFailedBody');
+            };
+            const resolvedFailedBody = failedBody ?? getDefaultFailedBody();
             return (
                 <>
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
                     {!!resolvedFailedBody && <Text style={styles.mb5}>{resolvedFailedBody}</Text>}
                     <Button
-                        text={translate('exportDownload.close')}
                         onPress={onClose}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.close')}</Button.Text>
+                    </Button>
                 </>
             );
         }
@@ -196,10 +265,12 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             isVisible={isVisible}
             onClose={isNonDismissible ? () => {} : onClose}
             onBackdropPress={isNonDismissible ? () => {} : undefined}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={styles.m5}>{renderContent()}</View>
+            <View style={bottomSafeAreaPaddingStyle}>{renderContent()}</View>
         </Modal>
     );
 }

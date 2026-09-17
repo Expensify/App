@@ -1,14 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SortableHeaderText from './SortableHeaderText';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
+
+import {useSearchColumnStyles} from './SearchColumnWidthsContext';
+import SortableHeaderText from './SortableHeaderText';
 
 type ColumnConfig = {
     columnName: SearchColumnType;
@@ -61,6 +67,7 @@ function SortableTableHeader({
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const getSearchColumnStyles = useSearchColumnStyles();
     const {translate} = useLocalize();
 
     return (
@@ -75,9 +82,14 @@ function SortableTableHeader({
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
+                    const isConversionAmountColumn =
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED;
                     const textStyle = [
                         columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
-                        isReimbursableOrBillableColumn ? styles.flexShrink1 : null,
+                        isReimbursableOrBillableColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
                     ];
 
                     return (
@@ -89,9 +101,9 @@ function SortableTableHeader({
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
+                            innerContainerStyle={canEdit && styles.editableCellHeader}
                             containerStyle={[
-                                canEdit && styles.editableCellHeader,
-                                StyleUtils.getReportTableColumnStyles(columnName, {
+                                getSearchColumnStyles(columnName, {
                                     isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,

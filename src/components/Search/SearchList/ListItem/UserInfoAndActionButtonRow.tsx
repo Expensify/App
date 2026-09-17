@@ -1,17 +1,25 @@
+import StatusBadge from '@components/StatusBadge';
+
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
 // NOTE: This component has a static twin in SearchStaticList
 // (src/components/Search/SearchStaticList.tsx) used for fast perceived
 // performance. If you change the UI here, verify the static version still
 // looks visually identical.
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import StatusBadge from '@components/StatusBadge';
-import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {getReportStatusColorStyle, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+
 import type {ExpenseReportListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './types';
+
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
 function UserInfoAndActionButtonRow({
@@ -32,9 +40,11 @@ function UserInfoAndActionButtonRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
-    const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
-    const badgeBackgroundColor = getStatusBadgeBackgroundColor(theme, stateNum, statusNum, undefined, isSelected);
+    const isDeleted = isDeletedTransaction(item);
+    const statusText = getReportStatusTranslation({stateNum, statusNum, translate, isDeleted});
+    const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
+    const badgeBackgroundColor = getStatusBadgeBackgroundColor(theme, stateNum, statusNum, isDeleted, isSelected);
+    const tooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate, isDeleted});
     const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, containerStyles]}>
@@ -45,7 +55,7 @@ function UserInfoAndActionButtonRow({
                     participantFromDisplayName={participantFromDisplayName}
                     participantToDisplayName=""
                     participantTo={item?.to}
-                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    avatarSize={CONST.AVATAR_SIZE.XXX_SMALL}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                     infoCellsTextStyle={styles.mutedNormalTextLabel}
                     infoCellsAvatarStyle={styles.pr1half}
@@ -58,6 +68,7 @@ function UserInfoAndActionButtonRow({
                     text={statusText}
                     backgroundColor={badgeBackgroundColor}
                     textColor={reportStatusColorStyle.textColor}
+                    tooltipText={tooltipText}
                 />
             )}
         </View>

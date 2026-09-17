@@ -1,7 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 const policyWorkspaceAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.policyAccountID;

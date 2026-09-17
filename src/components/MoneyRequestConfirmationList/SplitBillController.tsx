@@ -1,10 +1,15 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import {adjustRemainingSplitShares} from '@libs/actions/IOU/Split';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type SplitBillControllerProps = {
     transaction: OnyxEntry<Transaction>;
@@ -22,6 +27,7 @@ type SplitBillControllerProps = {
  */
 function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCode, currentUserAccountID, isFocused, onFormError}: SplitBillControllerProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
@@ -59,8 +65,8 @@ function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCo
         if (!isTypeSplit || !transaction?.splitShares) {
             return;
         }
-        adjustRemainingSplitShares(transaction);
-    }, [isTypeSplit, transaction]);
+        adjustRemainingSplitShares(transaction, getCurrencyDecimals);
+    }, [isTypeSplit, transaction, getCurrencyDecimals]);
 
     return null;
 }

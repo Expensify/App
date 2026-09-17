@@ -1,13 +1,15 @@
-import React, {useState} from 'react';
-import Animated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated';
-import type {DerivedValue, SharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint} from '@components/Charts/types';
+
+import type {DerivedValue, SharedValue} from 'react-native-reanimated';
+
+import React, {useState} from 'react';
+import Animated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import ChartTooltip from './ChartTooltip';
 
 type ChartTooltipLayerProps = {
-    /** SharedValue for the currently matched data index */
     matchedIndex: SharedValue<number>;
 
     /** DerivedValue that is true when the tooltip should be visible */

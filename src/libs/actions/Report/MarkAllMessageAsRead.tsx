@@ -1,37 +1,48 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {isAnonymousUser} from '@libs/actions/Session';
 import * as API from '@libs/API';
 import type {MarkAllMessagesAsReadParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getDBTimeWithSkew} from '@libs/NetworkState';
+import {getDBTimeWithSkew, getIsOffline} from '@libs/NetworkState';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isUnread} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
+
+import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 // We use connectWithoutView because markAllMessagesAsRead doesn't affect the UI rendering
 // and this avoids unnecessary re-rendering in AuthScreen whenever any report or report action is updated
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (value) => (allReportActions = value),
 });
 
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
 
-function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
+// The archived state is passed in by the caller (read via useOnyx with reportNameValuePairsArchivedSelector) rather
+// than subscribed to here, so this action stays a plain function and callers only re-render when the archived flags
+// actually change.
+/**
+ * Marks every unread report as read. Pass `reportIDs` to limit it to a subset, e.g. only the reports listed under one
+ * Inbox tab; when omitted, every unread report is marked read.
+ */
+function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>, reportIDs?: string[]) {
     if (isAnonymousUser()) {
         return;
     }
 
     const newLastReadTime = getDBTimeWithSkew();
+    // Read the in-memory offline state directly since this is an imperative one-shot action (reactivity is not needed here).
+    const isOffline = getIsOffline();
 
     type PartialReport = {
         lastReadTime: Report['lastReadTime'] | null;
@@ -39,13 +50,14 @@ function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameVa
     const optimisticReports: Record<string, PartialReport> = {};
     const failureReports: Record<string, PartialReport> = {};
     const reportIDList: string[] = [];
-    for (const report of Object.values(allReports ?? {})) {
+    const reportsToMark = reportIDs ? reportIDs.map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : Object.values(allReports ?? {});
+    for (const report of reportsToMark) {
         if (!report) {
             continue;
         }
 
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         if (!isUnread(report, oneTransactionThreadReport, isReportArchived)) {
@@ -80,6 +92,7 @@ function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameVa
 
     const parameters: MarkAllMessagesAsReadParams = {
         reportIDList,
+        lastReadTime: newLastReadTime,
     };
 
     API.write(WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ, parameters, {optimisticData, failureData});

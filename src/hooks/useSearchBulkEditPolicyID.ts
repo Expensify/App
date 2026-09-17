@@ -1,8 +1,12 @@
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
+
 import {withSnapshotReports, withSnapshotTransactions} from '@pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import useOnyx from './useOnyx';
 
 /**

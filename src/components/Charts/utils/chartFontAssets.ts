@@ -1,5 +1,7 @@
-import type {DataModule} from '@shopify/react-native-skia';
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
+
+import type {DataModule} from '@shopify/react-native-skia';
+
 import chartWebFont from './chartWebFont';
 
 const EXPENSIFY_MONO_REGULAR = chartWebFont(require('@assets/fonts/web/ExpensifyMono-Regular.woff2') as string);

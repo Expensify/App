@@ -1,5 +1,7 @@
 import type * as ReactNavigation from '@react-navigation/native';
+
 import {useEffect} from 'react';
+
 import createAddListenerMock from '../../../tests/utils/createAddListenerMock';
 
 const isJestEnv = process.env.NODE_ENV === 'test';

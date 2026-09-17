@@ -1,29 +1,16 @@
 import React from 'react';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useTheme from '@hooks/useTheme';
-import MenuItem from './MenuItem';
+
 import type {MenuItemProps} from './MenuItem';
 
-type MenuItemWithTopDescriptionProps = MenuItemProps & {
-    /** Should the menu item be highlighted? */
-    highlighted?: boolean;
-};
+import MenuItem from './MenuItem';
 
-function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...props}: MenuItemWithTopDescriptionProps) {
-    const theme = useTheme();
-    const highlightedOuterWrapperStyle = useAnimatedHighlightStyle({
-        shouldHighlight: highlighted ?? false,
-        highlightColor: theme.messageHighlightBG,
-        itemEnterDelay: 0,
-    });
-
+function MenuItemWithTopDescription({ref, ...props}: MenuItemProps) {
     return (
         <MenuItem
             {...props}
             ref={ref}
             shouldShowBasicTitle
             shouldShowDescriptionOnTop
-            outerWrapperStyle={highlighted ? highlightedOuterWrapperStyle : outerWrapperStyle}
         />
     );
 }

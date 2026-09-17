@@ -1,10 +1,15 @@
-import {useEffect, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
+
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {useEffect, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useLocalize from './useLocalize';
@@ -13,28 +18,52 @@ import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 
 type UseUnreadMarkerParams = {
+    /** The report whose unread marker is being computed */
     reportID: string;
+
+    /** The visible actions (FlatList `data` domain) that the marker scan runs over. Newest-first, or oldest-first when `isReversed`. */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** Whether `sortedVisibleReportActions` is oldest-first (non-inverted list, e.g. the money-request report view) */
+    isReversed?: boolean;
+
+    /** All sorted actions (the full chain); used to find the earliest-received-while-offline message index */
     sortedReportActions: OnyxTypes.ReportAction[];
+
+    /** The oldest unread action id used as the pagination anchor for marker placement before actions have fully loaded */
     oldestUnreadReportActionID: string | undefined;
+
+    /** Whether the list is scrolled past the threshold where incoming actions are treated as out of view */
     isScrolledOverThreshold: boolean;
+
+    /** Whether report actions have loaded at least once; once true, the pagination anchor is ignored in favor of the scan */
     hasOnceLoadedReportActions: boolean;
+
+    /** Concierge hidden-history boundary: actions created before this were revealed/loaded from history,
+     * not received live, so they are never treated as read-on-arrival */
+    newMessageBoundaryTime?: string | null;
 };
 
 type UseUnreadMarkerResult = {
+    /** The reportActionID the unread marker should render above, or `null` if none qualifies */
     unreadMarkerReportActionID: string | null;
+
+    /** Index of that action within `sortedVisibleReportActions`, or `-1` if none */
     unreadMarkerReportActionIndex: number;
 };
 
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
+const manuallyMarkedUnreadReportActionIDSelector = (report: OnyxTypes.Report | undefined) => report?.manuallyMarkedUnreadReportActionID ?? null;
 
 function useUnreadMarker({
     reportID,
     sortedVisibleReportActions,
+    isReversed = false,
     sortedReportActions,
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
     hasOnceLoadedReportActions,
+    newMessageBoundaryTime,
 }: UseUnreadMarkerParams): UseUnreadMarkerResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -46,17 +75,11 @@ function useUnreadMarker({
     });
     const reportLastReadTime = reportLastReadTimeValue ?? '';
 
+    const [manuallyMarkedUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        selector: manuallyMarkedUnreadReportActionIDSelector,
+    });
+
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
-
-    const [trackedReportID, setTrackedReportID] = useState(reportID);
-    if (trackedReportID !== reportID) {
-        setTrackedReportID(reportID);
-        setUnreadMarkerTime(reportLastReadTime);
-    }
-
-    if (unreadMarkerTime === '' && reportLastReadTime !== '') {
-        setUnreadMarkerTime(reportLastReadTime);
-    }
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -82,11 +105,12 @@ function useUnreadMarker({
         return actions;
     }, {});
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
+    const [prevUnreadMarkerReportActionID, setPrevUnreadMarkerReportActionID] = useState<string | null>(null);
 
     let earliestReceivedOfflineMessageIndex: number | undefined;
     for (let i = sortedReportActions.length - 1; i >= 0; i--) {
         const message = sortedReportActions.at(i);
-        if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime)) {
+        if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)) {
             earliestReceivedOfflineMessageIndex = i;
             break;
         }
@@ -109,20 +133,33 @@ function useUnreadMarker({
         unreadMarkerTime,
         isScrolledOverThreshold,
         isOffline,
-        isReversed: false,
+        isReversed,
         isAnonymousUser,
+        prevUnreadMarkerReportActionID,
+        manuallyMarkedUnreadReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
+        newMessageBoundaryTime,
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
         oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
 
-    // When the user reads a new message as it is received, push unreadMarkerTime down to the
-    // latest action's timestamp so new incoming actions display over those new messages instead of
-    // sticking to the initial lastReadTime.
-    const mostRecentReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
-    if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime) {
+    if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
+        setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
+    }
+
+    // When the user reads a new message as it arrives, advance the watermark so that only actions
+    // arriving after it count as unread. Only push when the newest visible `created` has advanced:
+    // a bulk history reveal (Concierge "Show history") also scans to a null marker, and pushing then
+    // would move the watermark past the unread message and permanently hide the New divider. The
+    // synthetic greeting is not a valid push target either, because its `created` tracks
+    // report.lastReadTime and would drag the watermark to "now".
+    const isRealAction = (action: OnyxTypes.ReportAction) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID;
+    const newestVisibleReportActionCreated = sortedVisibleReportActions.at(isReversed ? -1 : 0)?.created ?? '';
+    const prevNewestVisibleReportActionCreated = usePrevious(newestVisibleReportActionCreated);
+    const mostRecentReportActionCreated = (isReversed ? sortedVisibleReportActions.findLast(isRealAction) : sortedVisibleReportActions.find(isRealAction))?.created ?? '';
+    if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime && newestVisibleReportActionCreated > prevNewestVisibleReportActionCreated) {
         setUnreadMarkerTime(mostRecentReportActionCreated);
     }
 

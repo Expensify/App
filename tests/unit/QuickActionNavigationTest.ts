@@ -2,7 +2,9 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRe
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {startOutCreateTaskQuickAction} from '@libs/actions/Task';
 import {generateReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
 import createPersonalDetails from '../utils/collections/personalDetails';
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
@@ -163,6 +165,23 @@ describe('IOU Utils', () => {
 
             // Then we should start per diem request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, [], CONST.IOU.REQUEST_TYPE.PER_DIEM, true, undefined, undefined);
+        });
+
+        it('should be navigated to Track Per Diem Expense', () => {
+            // When the quick action is TRACK_PER_DIEM
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.TRACK_PER_DIEM, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs: [],
+            });
+
+            // Then we should start per diem track flow
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, [], CONST.IOU.REQUEST_TYPE.PER_DIEM, true, undefined, undefined);
         });
 
         it('should be navigated to Time Expense', () => {

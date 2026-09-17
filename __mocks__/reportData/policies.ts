@@ -1,6 +1,7 @@
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+
 import connections from './connections';
 
 const mccGroup = {
@@ -72,7 +73,6 @@ const policy420A: Policy = {
     outputCurrency: 'USD',
     avatarURL: '',
     employeeList: {},
-    isPolicyExpenseChatEnabled: true,
     lastModified: '1744880511066991',
     chatReportIDAnnounce: '0',
     chatReportIDAdmins: '1552825053855260',

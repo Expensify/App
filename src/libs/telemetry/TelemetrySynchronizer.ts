@@ -1,15 +1,22 @@
+import {getActivePolicies} from '@libs/PolicyUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 /**
  * This file contains the logic for sending additional data to Sentry.
  *
  * It uses Onyx.connectWithoutView as nothing here is related to the UI. We only send data to the external provider and want to keep this outside of the render loop.
  */
 import * as Sentry from '@sentry/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getActivePolicies} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+
+import {cleanupCrashDiagnostics, initializeCrashDiagnostics} from './crashDiagnostics';
+import {cleanupDatabaseSizeTracking, requestDatabaseSizeRemeasurement} from './databaseSizeTracker';
+import {clearGlobalSpanAttributes, setGlobalSpanAttribute} from './globalSpanAttributes';
 import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
 /**
@@ -35,43 +42,66 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         if (!value?.email) {
+            session = undefined;
+            handleAccountChange();
             return;
         }
+        const previousEmail = session?.email;
         session = value;
+        if (previousEmail && previousEmail !== value.email) {
+            handleAccountChange();
+        }
         sendPoliciesContext();
     },
 });
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
     callback: (value) => {
-        if (!value) {
+        if (!value || !session?.email) {
             return;
         }
         policies = value;
         sendPoliciesContext();
+        requestDatabaseSizeRemeasurement(Object.keys(value).length);
     },
 });
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
-        if (!value) {
+        if (!value || !session?.email) {
             return;
         }
-        sendReportsCountTag(Object.keys(value).length);
+        const reportsCount = Object.keys(value).length;
+        sendReportsCount(reportsCount);
+        requestDatabaseSizeRemeasurement(reportsCount);
     },
 });
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        if (!value) {
+        if (!value || !session?.email) {
             return;
         }
-        sendPersonalDetailsCountTag(Object.keys(value).length);
+        const personalDetailsCount = Object.keys(value).length;
+        sendPersonalDetailsCount(personalDetailsCount);
+        requestDatabaseSizeRemeasurement(personalDetailsCount);
+    },
+});
+
+// This module-level callback updates telemetry without rendering UI.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    callback: (value) => {
+        if (!value && !session?.email) {
+            return;
+        }
+        // An account can have zero transactions, which Onyx delivers as undefined. Count it as 0 so the zero cohort stays in the data.
+        const transactionsCount = Object.keys(value ?? {}).length;
+        sendTransactionsCount(transactionsCount);
+        requestDatabaseSizeRemeasurement(transactionsCount);
     },
 });
 
@@ -136,6 +166,12 @@ function bucketReportCount(count: number): string {
     return '10000+';
 }
 
+function handleAccountChange() {
+    clearGlobalSpanAttributes();
+    activePolicyID = undefined;
+    policies = undefined;
+}
+
 function sendPoliciesContext() {
     if (!policies || !session?.email || !activePolicyID) {
         return;
@@ -158,6 +194,7 @@ function sendPoliciesContext() {
     Sentry.setTag(CONST.TELEMETRY.TAGS.POLICIES_COUNT, policiesCountBucket);
     Sentry.setTag(CONST.TELEMETRY.TAGS.USER_ROLE, userRole);
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
+    setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW, activePolicies.length);
 }
 
 function sendTryNewDotCohortTag() {
@@ -168,14 +205,32 @@ function sendTryNewDotCohortTag() {
     Sentry.setTag(CONST.TELEMETRY.TAGS.NUDGE_MIGRATION_COHORT, cohort);
 }
 
-function sendReportsCountTag(reportsCount: number) {
+function sendReportsCount(reportsCount: number) {
     const reportsCountBucket = bucketReportCount(reportsCount);
     Sentry.setTag(CONST.TELEMETRY.TAGS.REPORTS_COUNT, reportsCountBucket);
+    setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW, reportsCount);
 }
 
-function sendPersonalDetailsCountTag(personalDetailsCount: number) {
+function sendPersonalDetailsCount(personalDetailsCount: number) {
     const personalDetailsCountBucket = bucketReportCount(personalDetailsCount);
     Sentry.setTag(CONST.TELEMETRY.TAGS.PERSONAL_DETAILS_COUNT, personalDetailsCountBucket);
+    setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW, personalDetailsCount);
 }
 
-export {initializeMemoryTracking as initializeMemoryTrackingTelemetry, cleanupMemoryTracking as cleanupMemoryTrackingTelemetry};
+function sendTransactionsCount(transactionsCount: number) {
+    // Attribute only for now. The bucketed tag comes once borders can be derived from this data (https://github.com/Expensify/App/issues/98432).
+    setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_TRANSACTIONS_COUNT_RAW, transactionsCount);
+}
+
+function initializeTelemetryTrackers() {
+    initializeMemoryTracking();
+    initializeCrashDiagnostics();
+}
+
+function cleanupTelemetryTrackers() {
+    cleanupMemoryTracking();
+    cleanupCrashDiagnostics();
+    cleanupDatabaseSizeTracking();
+}
+
+export {initializeTelemetryTrackers, cleanupTelemetryTrackers};

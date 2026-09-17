@@ -1,9 +1,14 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 import type {LabelMenuItemForwardProps} from './types';
 
 type LabelOwnProps = {

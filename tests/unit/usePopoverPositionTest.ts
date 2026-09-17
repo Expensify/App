@@ -1,7 +1,12 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {View} from 'react-native';
+
 import usePopoverPosition from '@hooks/usePopoverPosition';
+
 import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+
+import createMock from '../utils/createMock';
 
 // Mock responsive layout to control small/large screen behavior
 let mockIsSmallScreenWidth = false;
@@ -11,7 +16,7 @@ type MeasureInWindow = (callback: (x: number, y: number, width: number, height: 
 
 const createAnchorRef = (x: number, y: number, width: number, height: number) => {
     const measureInWindow: MeasureInWindow = (callback) => callback(x, y, width, height);
-    return {current: {measureInWindow} as unknown as View};
+    return {current: createMock<View>({measureInWindow})};
 };
 
 describe('usePopoverPosition', () => {

@@ -1,13 +1,19 @@
-import type {ReactNode} from 'react';
-import React, {Fragment, useState} from 'react';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+
+import React, {Fragment, useState} from 'react';
+
+import type {CurrencyListItem} from './CurrencySelectionList/types';
+
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import CurrencySelectionList from './CurrencySelectionList';
-import type {CurrencyListItem} from './CurrencySelectionList/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';
@@ -17,10 +23,7 @@ type CurrencyPickerProps = {
     /** Label for the input */
     label: string;
 
-    /** Current value of the selected item */
     value?: string;
-
-    /** Custom content to display in the header */
     headerContent?: ReactNode;
 
     /** Callback when the list item is selected */
@@ -29,7 +32,6 @@ type CurrencyPickerProps = {
     /** Form Error description */
     errorText?: string;
 
-    /** List of currencies to exclude from the list */
     excludeCurrencies?: string[];
 
     /** Is the MenuItem disabled */

@@ -1,4 +1,5 @@
 import type {CanvasKitInitOptions} from 'canvaskit-wasm';
+
 import canvaskitWasmPath from 'canvaskit-wasm/bin/full/canvaskit.wasm' with {type: 'file'};
 import {dirname, isAbsolute, join} from 'node:path';
 

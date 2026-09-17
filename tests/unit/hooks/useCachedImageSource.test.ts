@@ -1,7 +1,12 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import type {ImageSource} from 'expo-image';
+
 import useCachedImageSource from '@hooks/useCachedImageSource';
+
 import CONST from '@src/CONST';
+
+import type {ImageSource} from 'expo-image';
+
+import createMock from '../../utils/createMock';
 
 const MOCK_URI = 'https://example.com/image.png';
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -17,13 +22,14 @@ let mockCreateObjectURL: jest.Mock;
 let mockRevokeObjectURL: jest.Mock;
 
 const createMockResponse = (ok = true) => {
-    const response = {
+    const clone = jest.fn<Response, []>();
+    const response = createMock<Response>({
         ok,
         blob: jest.fn().mockResolvedValue(MOCK_BLOB),
-        clone: jest.fn(),
-    };
-    response.clone.mockReturnValue(response);
-    return response as unknown as Response;
+        clone,
+    });
+    clone.mockReturnValue(response);
+    return response;
 };
 
 beforeEach(() => {

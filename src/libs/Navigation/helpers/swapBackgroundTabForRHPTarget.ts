@@ -1,14 +1,18 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {NavigationState} from '@react-navigation/native';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute, StackNavigationAction} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+
 import {getMatchingFullScreenRoute} from './getAdaptedStateFromPath';
 import getStateFromPath from './getStateFromPath';
-import {shouldChangeToMatchingFullScreen} from './linkTo';
+import {getMatchingFullScreenRouteParams, shouldChangeToMatchingFullScreen} from './linkTo';
 import {getTabState} from './tabNavigatorUtils';
 
 type CrossTabContext = {
@@ -91,12 +95,11 @@ function swapBackgroundTabForRHPTarget(currentState: NavigationState | undefined
         navigationRef.dispatch(additionalAction);
     } else {
         // Plain tab switch within the existing TAB_NAVIGATOR.
-        const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
         const additionalAction: StackNavigationAction = {
             type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
             payload: {
                 name: matchingFullScreenRoute.name,
-                params: lastRouteInMatchingFullScreen ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params} : matchingFullScreenRoute.params,
+                params: getMatchingFullScreenRouteParams(matchingFullScreenRoute),
             },
             target: tabNavigatorStateKey,
         };

@@ -1,7 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,15 +7,25 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SpendRuleMerchantEditForm';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type SpendRuleMerchantEditBasePageProps = {
     policyID: string;
@@ -34,7 +40,6 @@ type MatchTypeItem = ListItem & {
 };
 
 function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes, merchantNames, onMerchantDataChange}: SpendRuleMerchantEditBasePageProps) {
-    const navigation = useNavigation();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -64,7 +69,11 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
     ];
 
     const goBack = () => {
-        navigation.goBack();
+        Navigation.goBack();
+    };
+
+    const saveAndGoBack = () => {
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     const submit = () => {
@@ -76,7 +85,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
                 const updatedMerchantMatchTypes = merchantMatchTypes.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
             }
-            goBack();
+            saveAndGoBack();
             return;
         }
 
@@ -89,7 +98,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
             : merchantMatchTypes.map((type, merchantArrayIndex) => (merchantArrayIndex === index ? matchType : type));
 
         onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
-        goBack();
+        saveAndGoBack();
     };
 
     const onSelectMatchType = (item: MatchTypeItem) => {

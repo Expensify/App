@@ -1,6 +1,8 @@
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 type DatePickerBaseProps = ForwardedFSClassProps & {
@@ -33,7 +35,6 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
-    /** ID of the wrapping form */
     formID?: keyof OnyxFormValuesMapping;
 
     /**
@@ -59,6 +60,28 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldDeferShowUntilPositioned?: boolean;
+
+        /**
+         * Blurs any focused text input and dismisses the keyboard when opening the picker, then prevents focus from
+         * returning when the picker closes. Use in multi-field forms where another text input may still be focused
+         * (e.g. a name field above the date picker) to avoid a brief keyboard flash after closing the calendar.
+         * The picker opens immediately after blur; keyboard dismissal runs in parallel rather than blocking the open.
+         * @default false
+         */
+        shouldDismissKeyboardBeforeShow?: boolean;
+
+        /**
+         * Reports whether the calendar is open. Opening the picker blurs the input, so this is the signal for "the
+         * user is on this field" rather than `onFocus`, and it is what drives the input's focused border.
+         */
+        onPickerVisibilityChange?: (isVisible: boolean) => void;
+
+        /**
+         * Hides the trailing calendar icon the empty input shows by default. Use it when the caller renders its own
+         * `rightHandSideComponent` in that space and the two would otherwise sit side by side.
+         * @default false
+         */
+        shouldHideCalendarIcon?: boolean;
     };
 
 type DatePickerProps = {
@@ -91,7 +114,6 @@ type DatePickerProps = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
-    /** ID of the wrapping form */
     formID?: keyof OnyxFormValuesMapping;
 
     /** Whether the modal is visible */
@@ -100,7 +122,6 @@ type DatePickerProps = {
     /** Callback to close the modal */
     onClose: () => void;
 
-    /** Callback when date is selected */
     onSelected?: (value: string) => void;
 
     /** Whether to close the modal when browser navigation changes */

@@ -1,6 +1,8 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useMemo, useRef, useState} from 'react';
 
 type ReportWasDeletedResult = {
     /** Whether the report was deleted (was accessible, now is not) */

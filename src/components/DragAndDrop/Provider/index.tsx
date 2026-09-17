@@ -1,17 +1,19 @@
+import useDragAndDrop from '@hooks/useDragAndDrop';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {shouldAcceptDrop} from '@libs/DragAndDropUtils';
+
+import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import viewRef from '@src/types/utils/viewRef';
+
 import {PortalHost} from '@gorhom/portal';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import useDragAndDrop from '@hooks/useDragAndDrop';
-import useThemeStyles from '@hooks/useThemeStyles';
-import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
-import viewRef from '@src/types/utils/viewRef';
-import {DragAndDropActionsContext, DragAndDropStateContext} from './DragAndDropContext';
+
 import type {DragAndDropActionsContextType, DragAndDropProviderProps, DragAndDropStateContextType, SetOnDropHandlerCallback} from './types';
 
-function shouldAcceptDrop(event: DragEvent): boolean {
-    return !!event.dataTransfer?.types.some((type) => type === 'Files');
-}
+import {DragAndDropActionsContext, DragAndDropStateContext} from './DragAndDropContext';
 
 function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = () => {}}: DragAndDropProviderProps) {
     const styles = useThemeStyles();

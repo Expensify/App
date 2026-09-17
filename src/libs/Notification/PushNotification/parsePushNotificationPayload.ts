@@ -1,6 +1,9 @@
-import type {JsonObject, JsonValue} from '@ua/react-native-airship';
-import pako from 'pako';
 import Log from '@libs/Log';
+
+import type {JsonObject, JsonValue} from '@ua/react-native-airship';
+
+import pako from 'pako';
+
 import type {AnyPushNotificationData} from './NotificationType';
 
 const GZIP_MAGIC_NUMBER = '\x1f\x8b';

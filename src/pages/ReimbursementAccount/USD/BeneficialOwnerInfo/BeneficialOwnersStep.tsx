@@ -1,19 +1,24 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
+
 import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString, Str} from 'expensify-common';
+import React, {useCallback, useEffect} from 'react';
+
 import BeneficialOwnerDetailsFormPages from './BeneficialOwnerDetailsFormPages';
 import CompanyOwnersListUBO from './subSteps/CompanyOwnersListUBO';
 
@@ -24,10 +29,7 @@ type BeneficialOwnersStepProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Name of the current sub page */
     currentSubPage?: string;
-
-    /** ID of current policy */
     policyID?: string;
 
     /** Back to URL for preserving navigation context */
@@ -93,7 +95,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     );
 
     const submit = () => {
-        const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
+        const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssn', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwnersData = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => {

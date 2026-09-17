@@ -1,13 +1,13 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
+
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,8 +15,12 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo} from 'react';
+
 type TwoFactorAuthWrapperProps = ChildrenProps & {
-    /** Name of the step */
     stepName: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
 
     /** Title of the Header */
@@ -28,10 +32,7 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress?: () => void;
 
-    /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
-
-    /** Flag to indicate if max height should be enabled */
     shouldEnableMaxHeight?: boolean;
 };
 

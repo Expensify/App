@@ -1,12 +1,17 @@
-import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type ReactNative from 'react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 import type {SearchSingleSelectionPickerItem} from '@components/Search/SearchSingleSelectionPicker';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import type ReactNative from 'react-native';
+
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
 
 jest.mock('@shopify/flash-list', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
@@ -128,7 +133,7 @@ function renderPicker(props: Partial<React.ComponentProps<typeof SearchSingleSel
 
 describe('SearchSingleSelectionPicker', () => {
     beforeEach(() => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
     });
 
     it('renders all items', () => {
@@ -206,5 +211,53 @@ describe('SearchSingleSelectionPicker', () => {
 
         const noneItem = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${CONST.SEARCH.NONE_OPTION_KEY}`);
         expect(noneItem).toBeSelected();
+    });
+
+    // Returns the rendered list-item testIDs in visual order so we can assert what is pinned to the top.
+    const getRenderedOrder = () => screen.getAllByTestId(new RegExp(`^${CONST.BASE_LIST_ITEM_TEST_ID}`)).map((node) => String(node.props.testID));
+
+    it('pins the initially selected item to the top even when it sorts last', () => {
+        // "Travel" sorts after "Food"/"Office", so seeing it first proves pinning (not alphabetical order) put it there.
+        renderPicker({initiallySelectedItem: mockItems.at(1)});
+
+        const order = getRenderedOrder();
+        const travelIndex = order.indexOf(`${CONST.BASE_LIST_ITEM_TEST_ID}travel`);
+        const foodIndex = order.indexOf(`${CONST.BASE_LIST_ITEM_TEST_ID}food`);
+
+        expect(travelIndex).toBe(0);
+        expect(travelIndex).toBeLessThan(foodIndex);
+    });
+
+    it('keeps the originally pinned item at the top when the selected prop changes', () => {
+        const {rerender} = render(
+            <OnyxListItemProvider>
+                <SearchSingleSelectionPicker
+                    items={mockItems}
+                    initiallySelectedItem={mockItems.at(1)}
+                    onSaveSelection={jest.fn()}
+                    shouldAutoSave
+                />
+            </OnyxListItemProvider>,
+        );
+
+        // The parent re-passes a new selection (e.g. after saving); the pinned item must NOT jump to the new value.
+        rerender(
+            <OnyxListItemProvider>
+                <SearchSingleSelectionPicker
+                    items={mockItems}
+                    initiallySelectedItem={mockItems.at(2)}
+                    onSaveSelection={jest.fn()}
+                    shouldAutoSave
+                />
+            </OnyxListItemProvider>,
+        );
+
+        const order = getRenderedOrder();
+        const travelIndex = order.indexOf(`${CONST.BASE_LIST_ITEM_TEST_ID}travel`);
+        const officeIndex = order.indexOf(`${CONST.BASE_LIST_ITEM_TEST_ID}office`);
+
+        expect(travelIndex).toBeGreaterThanOrEqual(0);
+        // The frozen initial item ("Travel") stays pinned above the newly selected one ("Office").
+        expect(travelIndex).toBeLessThan(officeIndex);
     });
 });

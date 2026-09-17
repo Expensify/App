@@ -1,5 +1,6 @@
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+
 import getStateFromPath from './getStateFromPath';
 
 /**

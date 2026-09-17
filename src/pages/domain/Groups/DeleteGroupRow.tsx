@@ -1,18 +1,23 @@
-import {defaultSecurityGroupIDSelector, selectGroupByID} from '@selectors/Domain';
-import React from 'react';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {deleteDomainSecurityGroup} from '@userActions/Domain';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {defaultSecurityGroupIDSelector, selectGroupByID} from '@selectors/Domain';
+import React from 'react';
+
 type DeleteGroupRowProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */
@@ -43,9 +48,9 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
             title: translate('domain.groups.deleteGroupDangerConfirmationModal'),
             prompt: translate('domain.groups.deleteGroupDangerConfirmationModalDescription', defaultSecurityGroup?.name ?? ''),
             confirmText: translate('domain.groups.deleteGroup'),
-            cancelText: translate('domain.groups.neverMind'),
+            cancelText: translate('domain.common.neverMind'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action !== ModalActions.CONFIRM) {
@@ -57,7 +62,7 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
     };
 
     return groupID !== defaultSecurityGroupID ? (
-        <MenuItem
+        <MenuItemAction
             icon={icons.Trashcan}
             title={translate('domain.groups.deleteGroup')}
             onPress={() => {

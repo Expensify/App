@@ -1,5 +1,6 @@
-import {useCallback, useRef} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
+
+import {useCallback, useRef} from 'react';
 
 function useActiveRoute() {
     const currentReportRHPActiveRoute = useRef('');

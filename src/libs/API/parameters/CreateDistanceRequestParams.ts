@@ -23,16 +23,21 @@ type CreateDistanceRequestParams = {
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
     payerEmail?: string;
+    payerAccountID?: number;
     splits?: string;
     chatType?: string;
     description?: string;
     attendees?: string;
     distance?: number;
+    modifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
     distanceRequestType?: string;
     customUnitPolicyID?: string;
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to primary route */
+    selectedRouteDistance?: number;
 
     /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
     shouldDeferAutoSubmit?: boolean;

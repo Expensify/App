@@ -1,14 +1,13 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {BaseSelectionListProps} from '@components/SelectionList/types';
+
 import type CONST from '@src/CONST';
 
-type Section<TItem extends ListItem> = {
-    /** Title of the section */
-    title?: string;
+import type {ReactElement, ReactNode} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 
-    /** Custom header to display */
+type Section<TItem extends ListItem> = {
+    title?: string;
     customHeader?: ReactElement;
 
     /** Array of items in the section */
@@ -26,25 +25,15 @@ type Section<TItem extends ListItem> = {
  * Extends BaseSelectionListProps with section-specific features.
  */
 type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
-    /** Reference to the SelectionList component */
     ref?: React.Ref<SelectionListWithSectionsHandle>;
-
-    /** Array of sections to display in the list */
     sections: Array<Section<TItem>>;
 
     /** Index to scroll to initially (when different from the initially focused item) */
     initialScrollIndex?: number;
 
-    /** Custom content to display in the header */
     customHeaderContent?: ReactNode;
-
-    /** Whether to hide the keyboard when scrolling the list */
     shouldHideKeyboardOnScroll?: boolean;
-
-    /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
-
-    /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */
@@ -57,6 +46,8 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     titleNumberOfLines?: number;
 };
 
+type MeasurableInput = unknown;
+
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
     scrollToIndex: (index: number) => void;
@@ -64,6 +55,9 @@ type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => TItem | undefined;
+
+    /** Scrolls the list so an input rendered inside `listFooterContent` is not hidden behind the keyboard. */
+    scrollInputIntoView: (input: MeasurableInput) => void;
 };
 
 type SectionHeader = {
@@ -83,4 +77,4 @@ type SectionListItem<TItem extends ListItem> = TItem & {
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
-export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, FlattenedItem};
+export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, FlattenedItem, MeasurableInput};

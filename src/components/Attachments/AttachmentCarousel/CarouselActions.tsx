@@ -1,8 +1,8 @@
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+
 import CONST from '@src/CONST';
 
 type CarouselActionsProps = {
-    /** Callback to cycle through attachments */
     onCycleThroughAttachments: (deltaSlide: number) => void;
 };
 
