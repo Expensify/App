@@ -83,12 +83,6 @@ type ReanimatedModalProps = ViewProps &
         /** Whether the modal should have a backdrop */
         hasBackdrop?: boolean;
 
-        /**
-         * Leaves focus where it was instead of trapping it inside the modal. Only for modals that sit alongside the
-         * control that opened them and must leave it usable, such as the calendar the user keeps typing a date into.
-         */
-        shouldDisableFocusTrap?: boolean;
-
         backdropColor?: string;
         backdropOpacity?: number;
 

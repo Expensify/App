@@ -190,6 +190,17 @@ function DatePicker({
         [shouldAllowTyping, isModalVisible, showDatePickerModal],
     );
 
+    // Reaching the field by keyboard never fires a press, so focus is what opens the calendar once typing is allowed.
+    const handleFocus = () => {
+        segmentInput.onFocus();
+
+        if (isModalVisible) {
+            return;
+        }
+
+        showDatePickerModal();
+    };
+
     const handleInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
             if (!isNumeric(event.nativeEvent.key)) {
@@ -272,7 +283,7 @@ function DatePicker({
                     hideFocusedState={shouldDismissKeyboardBeforeShow && !shouldAllowTyping}
                     onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
-                    onFocus={shouldAllowTyping ? segmentInput.onFocus : undefined}
+                    onFocus={shouldAllowTyping ? handleFocus : undefined}
                     onBlur={shouldAllowTyping ? segmentInput.onBlur : undefined}
                     onChangeText={shouldAllowTyping ? segmentInput.onChangeText : undefined}
                     onSelectionChange={shouldAllowTyping ? segmentInput.onSelectionChange : undefined}
@@ -300,8 +311,8 @@ function DatePicker({
                 forwardedFSClass={forwardedFSClass}
                 shouldCloseWhenBrowserNavigationChanged
                 anchorRef={anchorRef}
-                hasBackdrop={shouldAllowTyping ? false : undefined}
-                shouldDisableFocusTrap={shouldAllowTyping}
+                withoutOverlay={shouldAllowTyping}
+                shouldAllowWithoutOverlayInNarrowPane={shouldAllowTyping}
             />
         </>
     );

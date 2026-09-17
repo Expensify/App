@@ -34,6 +34,7 @@ function Popover(props: PopoverProps) {
         animationInTiming = CONST.MENU_ANIMATION_DURATION,
         disableAnimation = true,
         withoutOverlay = false,
+        shouldAllowWithoutOverlayInNarrowPane = false,
         anchorPosition = {},
         anchorRef = () => {},
         animationIn = 'fadeIn',
@@ -133,7 +134,11 @@ function Popover(props: PopoverProps) {
         );
     }
 
-    if (withoutOverlay && !shouldUseNarrowLayout) {
+    // A narrow pane normally forces the full modal. An opting-in caller keeps the overlay-free popover there, but a
+    // small screen never does, since there is no room for a popover beside the control that opened it.
+    const canSkipOverlay = !shouldUseNarrowLayout || (shouldAllowWithoutOverlayInNarrowPane && !isSmallScreenWidth);
+
+    if (withoutOverlay && canSkipOverlay) {
         return createPortal(
             <PopoverWithoutOverlay
                 {...props}

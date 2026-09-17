@@ -47,8 +47,8 @@ function DatePickerModal({
     forwardedFSClass,
     shouldEnableMonthYearBackdropInNarrowPane = false,
     anchorRef: anchorRefProp,
-    hasBackdrop,
-    shouldDisableFocusTrap = false,
+    withoutOverlay = false,
+    shouldAllowWithoutOverlayInNarrowPane = false,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const fallbackAnchorRef = useRef<View>(null);
@@ -101,8 +101,8 @@ function DatePickerModal({
             forwardedFSClass={forwardedFSClass}
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
-            hasBackdrop={hasBackdrop}
-            shouldDisableFocusTrap={shouldDisableFocusTrap}
+            withoutOverlay={withoutOverlay}
+            shouldAllowWithoutOverlayInNarrowPane={shouldAllowWithoutOverlayInNarrowPane}
         >
             <CalendarPicker
                 minDate={minDate}
