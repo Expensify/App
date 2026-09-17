@@ -3796,8 +3796,15 @@ ${amount} voor ${merchant} - ${date}`,
         vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vervanger tijdens vakantie.',
         asVacationDelegate: (nameOrEmail: string) => `als vakantiewaarnemer van ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `aan ${submittedToName} als vakantieplaatsvervanger voor ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Je wijst ${nameOrEmail} aan als jouw vervang(st)er tijdens afwezigheid. Diegene zit nog niet in al je werkruimtes. Als je doorgaat, wordt er een e-mail naar alle beheerders van je werkruimtes gestuurd om diegene toe te voegen.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> is geen lid van de onderstaande werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> is geen lid van de onderstaande werkruimtes. Wil je diegene nu uitnodigen?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> is geen lid van de onderstaande werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen. Wil je diegene nu uitnodigen voor de werkruimtes waar je beheerder van bent?`,
+            youAreAMemberOf: 'Je bent lid van deze werkruimtes:',
+            youAreAnAdminOf: 'Je bent beheerder van deze werkruimtes:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Stap ${step}`;
@@ -4715,6 +4722,7 @@ ${amount} voor ${merchant} - ${date}`,
             defaultDescription: 'Eén plek voor al je bonnetjes en uitgaven.',
             descriptionHint: 'Deel informatie over deze werkruimte met alle leden.',
             welcomeNote: 'Gebruik Expensify om je kwitanties in te dienen voor vergoeding, bedankt!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} heeft je uitgenodigd voor ${workspaceName}`,
             subscription: 'Abonnement',
             markAsEntered: 'Markeren als handmatig ingevoerd',
             markAsExported: 'Markeren als geëxporteerd',

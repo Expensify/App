@@ -3813,8 +3813,15 @@ ${amount} für ${merchant} – ${date}`,
         vacationDelegateError: 'Beim Aktualisieren Ihrer Vertretung im Urlaub ist ein Fehler aufgetreten.',
         asVacationDelegate: (nameOrEmail: string) => `als Urlaubsvertretung von ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `an ${submittedToName} als Urlaubsvertretung für ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Sie weisen ${nameOrEmail} als Ihre Urlaubsvertretung zu. Diese Person ist noch nicht in all Ihren Arbeitsbereichen. Wenn Sie fortfahren, wird eine E-Mail an alle Admins Ihrer Arbeitsbereiche gesendet, damit sie hinzugefügt wird.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Möchten Sie die Person jetzt einladen?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen. Möchten Sie die Person jetzt zu den Arbeitsbereichen einladen, in denen Sie Admin sind?`,
+            youAreAMemberOf: 'Sie sind Mitglied dieser Arbeitsbereiche:',
+            youAreAnAdminOf: 'Sie sind Admin dieser Arbeitsbereiche:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Schritt ${step}`;
@@ -4744,6 +4751,7 @@ ${amount} für ${merchant} – ${date}`,
             defaultDescription: 'Ein Ort für all Ihre Belege und Ausgaben.',
             descriptionHint: 'Teile Informationen über diesen Arbeitsbereich mit allen Mitgliedern.',
             welcomeNote: 'Bitte nutze Expensify, um deine Belege zur Erstattung einzureichen, danke!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} hat dich zu ${workspaceName} eingeladen`,
             subscription: 'Abonnement',
             markAsEntered: 'Als manuell erfasst markieren',
             markAsExported: 'Als exportiert markieren',

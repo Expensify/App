@@ -3784,8 +3784,15 @@ ${amount} para ${merchant} - ${date}`,
         vacationDelegateError: 'Ocorreu um erro ao atualizar seu delegado de férias.',
         asVacationDelegate: (nameOrEmail: string) => `como delegado de férias de ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `para ${submittedToName} como delegado(a) de férias de ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Você está atribuindo ${nameOrEmail} como seu delegado de férias. Elu ainda não está em todos os seus espaços de trabalho. Se você decidir continuar, será enviado um e-mail a todos os admins dos seus espaços de trabalho para que elu seja adicionado.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> não é membro dos workspaces abaixo. Os admins dos workspaces que você não gerencia serão solicitados a adicioná-lo(a).`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> não é membro dos workspaces abaixo. Deseja convidá-lo(a) agora?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> não é membro dos workspaces abaixo. Os admins dos workspaces que você não gerencia serão solicitados a adicioná-lo(a). Deseja convidá-lo(a) agora para os workspaces em que você é admin?`,
+            youAreAMemberOf: 'Você é membro destes workspaces:',
+            youAreAnAdminOf: 'Você é admin destes workspaces:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Etapa ${step}`;
@@ -4708,6 +4715,7 @@ ${amount} para ${merchant} - ${date}`,
             defaultDescription: 'Um só lugar para todos os seus recibos e despesas.',
             descriptionHint: 'Compartilhe informações sobre este espaço de trabalho com todos os membros.',
             welcomeNote: 'Use o Expensify para enviar seus recibos para reembolso, obrigado!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} convidou você para ${workspaceName}`,
             subscription: 'Assinatura',
             markAsEntered: 'Marcar como inserido manualmente',
             markAsExported: 'Marcar como exportado',
