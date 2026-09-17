@@ -1,4 +1,8 @@
 {
+    "ignoreIssues": {
+        "src/hooks/usePersonalDetails.ts": ["exports"],
+        "src/libs/PersonalDetailsUtils.ts": ["exports"]
+    },
     "workspaces": {
         ".": {
             "entry": [
@@ -15,6 +19,7 @@
                 "tests/globals.d.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "metro.config.js",
+                "config/babel/oxcJestTransformer.js",
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
                 "rock.config.mjs",
@@ -87,5 +92,5 @@
         "diff-so-fancy",
         "@babel/plugin-proposal-class-properties"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert"]
+    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl"]
 }

@@ -20,33 +20,23 @@ function noop() {
 type ReportActionEditMessageState = ValueOf<typeof CONST.REPORT_ACTION_EDIT_MESSAGE_STATE>;
 
 type ReportActionActiveEdit = {
-    /** The report ID */
     editingReportID: string | null;
-    /** The report action ID */
     editingReportActionID: string | null;
-    /** The report action */
     editingReportAction: OnyxTypes.ReportAction | null;
-    /** The editing message */
     editingMessage: string | null;
 };
 
 type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
-    /** The current edit message selection */
     currentEditMessageSelection: TextSelection | null;
-    /** The editing state */
     editingState: ReportActionEditMessageState;
     /** The report action ID the report actions list still has to scroll into view, if any */
     pendingScrollToEditingReportActionID: string | null;
 };
 
 type ReportActionEditMessageContextActions = {
-    /** Set the editing message */
     setEditingMessage: Dispatch<SetStateAction<string | null>>;
-    /** Set the current edit message selection */
     setCurrentEditMessageSelection: Dispatch<SetStateAction<TextSelection | null>>;
-    /** Submit the edit */
     submitEdit: () => void;
-    /** Stop the editing */
     stopEditing: () => void;
     /** Ask the report actions list to scroll the action that just entered edit mode into view */
     requestScrollToEditingAction: (reportActionID: string) => void;
@@ -74,7 +64,6 @@ const ReportActionEditMessageActionsContext = createContext<ReportActionEditMess
 });
 
 type ReportActionEditMessageContextProviderProps = {
-    /** The report ID */
     reportID: string | undefined;
     /**
      * When set, drafts for edits that render on money-request views but persist under the
@@ -83,7 +72,6 @@ type ReportActionEditMessageContextProviderProps = {
      * `ReportScreenEditMessageProviderWithTransactionThread`.
      */
     effectiveTransactionThreadReportID?: string;
-    /** The children */
     children: React.ReactNode;
 };
 

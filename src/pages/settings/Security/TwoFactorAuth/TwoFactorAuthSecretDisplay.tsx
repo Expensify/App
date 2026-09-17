@@ -20,7 +20,6 @@ type TwoFactorAuthSecretDisplayProps = {
     /** The contact method (email) for the authenticator URL */
     contactMethod: string;
 
-    /** The two-factor auth secret key */
     secretKey: string;
 
     /** Optional description text to show above the QR code */

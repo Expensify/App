@@ -495,6 +495,76 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
     });
 });
 
+describe('usePersonalDetailSearchSelector search term trimming', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet(MOCK_ONYX_STATE);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    /** Renders the hook with the invite option enabled and types searchTerm into it, flushing the debounce. */
+    const renderWithSearchTerm = async (searchTerm: string) => {
+        jest.useFakeTimers();
+        const {result} = renderHook(() =>
+            usePersonalDetailSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                includeUserToInvite: true,
+                includeRecentReports: false,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            result.current.setSearchTerm(searchTerm);
+        });
+        // Advance past the debounce delay (300ms)
+        await act(async () => {
+            jest.advanceTimersByTime(400);
+        });
+        await waitForBatchedUpdatesWithAct();
+        jest.useRealTimers();
+
+        return result;
+    };
+
+    it('still shows the invite option when the email has a leading space', async () => {
+        const result = await renderWithSearchTerm(' invitee@gmail.com');
+
+        expect(result.current.availableOptions.userToInvite?.login).toBe('invitee@gmail.com');
+    });
+
+    it('still shows the invite option when the email has a trailing space', async () => {
+        const result = await renderWithSearchTerm('invitee@gmail.com ');
+
+        expect(result.current.availableOptions.userToInvite?.login).toBe('invitee@gmail.com');
+    });
+
+    it('still shows the invite option when the phone number is space padded', async () => {
+        const result = await renderWithSearchTerm(' +1 (234) 567-8901 ');
+
+        expect(result.current.availableOptions.userToInvite?.login).toBe('+12345678901');
+    });
+
+    it('does not show an invite option for a search term that is only whitespace', async () => {
+        const result = await renderWithSearchTerm('   ');
+
+        expect(result.current.availableOptions.userToInvite).toBeNull();
+    });
+});
+
 describe('usePersonalDetailSearchSelector includeLoginsOnly', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});

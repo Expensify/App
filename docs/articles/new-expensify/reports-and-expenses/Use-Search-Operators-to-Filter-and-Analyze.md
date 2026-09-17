@@ -65,20 +65,22 @@ Use these operators to refine results across different types:
 
 You can use the following operators to filter expenses:
 
-- `merchant:` – expense merchant name
-- `category:` – expense category label
-- `tag:` – tag or multiple tags
-- `amount:` / `purchase-amount:` – supports `=`, `>`, `<`, `>=`, `<=`
-- `status:` – unreported, draft, outstanding, approved, paid, done
-- `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`. Also supports comparisons (`date>=2024-01-01 date<=2024-01-31`) for date ranges
-- `has:` – attachment, receipt, category, tag
-- `expense-type:` – cash, card, distance, per-diem
-- `receipt-type:` – ereceipt, itemized
-- `reimbursable:` and `billable:` – yes or no
-- `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
-- `posted:` – credit card posted date, e.g. `posted:last-statement`
-- `bank-account:` – settlement bank account an expense was reimbursed from. Start typing after the colon to choose from your bank accounts, each shown as the bank name and last four digits (e.g. `Chase xx1234`). Available only when you have at least one bank account.
-- `paid-by:` – the member who paid the expense's report, by email or phone number, e.g. `paid-by:admin@company.com`. Returns nothing for expenses that have not been paid
+| **Syntax** | **Description** | **Example** |
+|---|---|---|
+| `merchant:` | Filter by expense merchant name | `merchant:"Delta Air Lines"` |
+| `category:` | Filter by expense category label | `category:"Travel"` |
+| `tag:` | Filter by one or multiple tags | `tag:"Client A"` |
+| `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
+| `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
+| `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
+| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, or `submitted-violation` | `has:receipt` |
+| `expense-type:` | Filter by expense type (`cash`, `card`, `distance`, `per-diem`) | `expense-type:card` |
+| `receipt-type:` | Filter by receipt type (`ereceipt`, `itemized`) | `receipt-type:itemized` |
+| `reimbursable:` | Filter by whether an expense is reimbursable (`yes` or `no`) | `reimbursable:yes` |
+| `billable:` | Filter by whether an expense is billable (`yes` or `no`) | `billable:no` |
+| `attendee:` | Filter by expense attendee using an email, phone number, display name, or `me` | `attendee:"Jason Mills"` |
+| `posted:` | Filter by the date a credit card expense was posted | `posted:last-statement` |
+| `bank-account:` | Filter by the settlement bank account an expense was reimbursed from. Start typing after the colon to choose an account, shown by bank name and last four digits. Available only when you have at least one bank account. | `bank-account:"Chase xx1234"` |
 
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
@@ -90,22 +92,23 @@ You can use the following operators to filter expenses:
 
 You can use the following operators to filter reports:
 
-- `report-id:` – unique report reference
-- `status:` – draft, outstanding, approved, paid, done
-- `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates, and comparisons for date ranges (e.g., `submitted>=2024-01-01 submitted<=2024-01-31`)
-- `exported-to:` – filter by where reports or expenses were exported, such as a connected accounting integration.
-- `title:` – report title
-- `total:` – total amount with relative comparisons
-- `amount-debited:` – amount the company was debited when a report was reimbursed across currencies, in the settlement currency. Supports `=`, `>`, `<`, `>=`, `<=`
-- `amount-reimbursed:` – amount the member was reimbursed when a report was paid across currencies, in their deposit account's currency. Supports `=`, `>`, `<`, `>=`, `<=`
-- `withdrawn:` – ACH withdrawal date
-- `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
-- `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
-- `paid-by:` – the member who paid the report, by email or phone number, e.g. `paid-by:admin@company.com`. Returns nothing for reports that have not been paid
-- `action:` – blocking report action, e.g. `action:approve`
-- `submitter-user-id:` – Custom field 1 value set for the report submitter
-- `submitter-payroll-id:` – Custom field 2 value set for the report submitter
-- `order-deal-numbers:` – International reimbursement IDs on the report
+| **Syntax** | **Description** | **Example** |
+|---|---|---|
+| `report-id:` | Filter by unique report reference | `report-id:123456789` |
+| `status:` | Filter by report status (`draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
+| `submitted:` / `approved:` / `paid:` / `exported:` | Filter by the corresponding date using absolute or relative dates, or comparison operators for a date range | `submitted>=2024-01-01 submitted<=2024-01-31` |
+| `exported-to:` | Filter by where reports or expenses were exported, such as a connected accounting integration | `exported-to:QuickBooks` |
+| `title:` | Filter by report title | `title:"January Expenses"` |
+| `total:` | Filter by report total using relative comparisons | `total:>1000` |
+| `amount-debited:` | Filter by the amount the company was debited when a report was reimbursed across currencies, in the settlement currency. Supports `=`, `>`, `<`, `>=`, `<=` | `amount-debited:>1000` |
+| `amount-reimbursed:` | Filter by the amount the member was reimbursed when a report was paid across currencies, in their deposit account's currency. Supports `=`, `>`, `<`, `>=`, `<=` | `amount-reimbursed:>1000` |
+| `withdrawn:` | Filter by ACH withdrawal date | `withdrawn:2024-01-15` |
+| `withdrawal-type:` | Filter by withdrawal type (`reimbursement`, `expensify-card`, `central-travel-invoicing`) | `withdrawal-type:reimbursement` |
+| `paid-status:` | Filter by how the report was paid (`markedAsPaid`, `withdrawing`, `confirmed`). Combine multiple values with commas | `paid-status:markedAsPaid,confirmed` |
+| `action:` | Filter by blocking report action | `action:approve` |
+| `submitter-user-id:` | Filter by the Custom field 1 value set for the report submitter | `submitter-user-id:12345` |
+| `submitter-payroll-id:` | Filter by the Custom field 2 value set for the report submitter | `submitter-payroll-id:67890` |
+| `order-deal-numbers:` | Filter by international reimbursement IDs on the report | `order-deal-numbers:123456` |
 
 **Example query:**
 `status:paid exported<=2026-01-01 exported-to:xero`
@@ -116,10 +119,12 @@ You can use the following operators to filter reports:
 
 You can use the following operators to filter chats:
 
-- `in:` – channel name or DM
-- `has:` – attachment, link
-- `is:` – unread, read, pinned
-- `date:` – message timestamp
+| **Syntax** | **Description** | **Example** |
+|---|---|---|
+| `in:` | Filter by channel name or direct message | `in:"General"` |
+| `has:` | Filter by chats with an `attachment` or `link` | `has:attachment` |
+| `is:` | Filter by chat status (`unread`, `read`, `pinned`) | `is:unread` |
+| `date:` | Filter by message timestamp | `date:this-week` |
 
 **Example query:**
 `type:chat in:"Concierge" is:unread`
@@ -130,11 +135,13 @@ You can use the following operators to filter chats:
 
 You can use the following operators to filter tasks:
 
-- `assignee:` – assigned member (email, phone, display name, or `me`)
-- `status:` – outstanding, completed
-- `description:` – task description
-- `title:` – task title
-- `in:` – channel name or DM for tasks
+| **Syntax** | **Description** | **Example** |
+|---|---|---|
+| `assignee:` | Filter by assigned member using an email, phone number, display name, or `me` | `assignee:me` |
+| `status:` | Filter by task status (`outstanding`, `completed`) | `status:outstanding` |
+| `description:` | Filter by task description | `description:"Submit expenses"` |
+| `title:` | Filter by task title | `title:"Review report"` |
+| `in:` | Filter by the channel name or direct message associated with a task | `in:"General"` |
 
 **Example query:**
 `type:task assignee:"Charlie Brown" status:outstanding`
@@ -167,19 +174,21 @@ Supported values include standard ISO currency codes such as:
 
 **Group results by dimension**
 
-Supported grouping options include:
+Use `group-by:` to group results by a specific dimension.
 
-- `group-by:report` – Group by report  
-- `group-by:from` – Group by submitter  
-- `group-by:card` – Group by card  
-- `group-by:withdrawal-id` – Group by withdrawal ID  
-- `group-by:merchant` – Group by merchant  
-- `group-by:category` – Group by category  
-- `group-by:tag` – Group by tag  
-- `group-by:month` – Group by month  
-- `group-by:week` – Group by week  
-- `group-by:quarter` – Group by quarter  
-- `group-by:year` – Group by year
+| **Syntax** | **Description** | **Example** |
+|---|---|---|
+| `group-by:report` | Group results by report | `type:expense group-by:report` |
+| `group-by:from` | Group results by submitter | `type:expense group-by:from` |
+| `group-by:card` | Group results by card | `type:expense group-by:card` |
+| `group-by:withdrawal-id` | Group results by withdrawal ID | `type:expense group-by:withdrawal-id` |
+| `group-by:merchant` | Group results by merchant | `type:expense group-by:merchant` |
+| `group-by:category` | Group results by category | `type:expense group-by:category` |
+| `group-by:tag` | Group results by tag | `type:expense group-by:tag` |
+| `group-by:month` | Group results by month | `type:expense group-by:month` |
+| `group-by:week` | Group results by week | `type:expense group-by:week` |
+| `group-by:quarter` | Group results by quarter | `type:expense group-by:quarter` |
+| `group-by:year` | Group results by year | `type:expense group-by:year` |
   
 ---
 
@@ -208,6 +217,9 @@ Here are some common examples:
 
 - **Top spenders (table)**  
   `type:expense group-by:from date:last-month view:table`
+
+- **Violations by submitter (table)**  
+  `type:expense group-by:from submitted:last-month has:submitted-violation sort-by:group-expenses sort-order:desc view:table limit:10`
 
 - **Spend over time (line chart)**  
   `type:expense group-by:month date:year-to-date view:line`
