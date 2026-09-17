@@ -822,10 +822,6 @@ describe('DateUtils', () => {
     });
 
     describe('Search day formatting', () => {
-        test('formats a full day label', () => {
-            expect(DateUtils.getFormattedDayForSearch('2026-09-15', undefined)).toBe('September 15, 2026');
-        });
-
         test('formats a compact day label', () => {
             expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined)).toBe('Sep 15, ’26');
         });

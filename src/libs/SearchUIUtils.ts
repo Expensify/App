@@ -3971,7 +3971,7 @@ function getDaySections(
             transactions: [],
             transactionsQueryJSON,
             ...dayGroup,
-            formattedDay: DateUtils.getFormattedDayForSearch(dayGroup.day, dateFnsLocale),
+            formattedDay: DateUtils.formatToReadableString(dayGroup.day, dateFnsLocale),
             shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale),
             keyForList: key,
         };

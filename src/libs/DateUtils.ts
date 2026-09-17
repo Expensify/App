@@ -1208,11 +1208,6 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
-/** Returns a day label, e.g. "September 15, 2026". */
-function getFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(parse(day, 'yyyy-MM-dd', new Date()), 'MMMM d, yyyy', {locale: dateFnsLocale});
-}
-
 /** Returns a compact day label, e.g. "Sep 15, ’26". */
 function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined): string {
     return format(parse(day, 'yyyy-MM-dd', new Date()), 'MMM d, ’yy', {locale: dateFnsLocale});
@@ -1381,7 +1376,6 @@ const DateUtils = {
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,
-    getFormattedDayForSearch,
     getShortFormattedDayForSearch,
     getFormattedMonthForSearch,
     getShortFormattedMonthForSearch,
