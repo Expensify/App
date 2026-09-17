@@ -19,12 +19,17 @@ import useOnyx from './useOnyx';
  */
 function useScreenShareRequestPrompt() {
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
 
     // Keeps a re-render from stacking a second prompt on top of the one that is already open. Both branches below clear
     // SCREEN_SHARE_REQUEST, so clearing the key is what makes the next request eligible to show a prompt again.
     const isPromptShownRef = useRef(false);
+
+    // Tracks whether this hook's entry is still on the modal stack, which `isPromptShownRef` cannot answer: it stays
+    // true from the moment the prompt is shown until the key is cleared, which is *after* the user has answered and the
+    // entry has already been popped. Closing on that would pop whatever unrelated modal is on top by then.
+    const isPromptOpenRef = useRef(false);
 
     // The request is read when the user answers rather than when the prompt is shown, so that a request replaced while
     // the prompt is open is still joined with the token that is current, as it was when the modal read it on render.
@@ -35,6 +40,16 @@ function useScreenShareRequestPrompt() {
 
         if (!screenShareRequest) {
             isPromptShownRef.current = false;
+
+            // The deprecated component was declarative on this key (`isVisible={!!screenShareRequest}`), so it went
+            // away the moment the key did. The modal stack is imperative, so the entry it pushed has to be popped by
+            // hand when something other than the two branches below clears the key - most concretely `Onyx.clear()`
+            // on logout. Without this the prompt stays up over the signed-out state, and a later request stacks a
+            // second prompt that uncovers this stale one again once it is answered.
+            if (isPromptOpenRef.current) {
+                isPromptOpenRef.current = false;
+                closeModal();
+            }
             return;
         }
 
@@ -42,6 +57,7 @@ function useScreenShareRequestPrompt() {
             return;
         }
         isPromptShownRef.current = true;
+        isPromptOpenRef.current = true;
 
         showConfirmModal({
             title: translate('guides.screenShare'),
@@ -49,9 +65,19 @@ function useScreenShareRequestPrompt() {
             confirmText: translate('common.join'),
             cancelText: translate('common.decline'),
         }).then((result) => {
+            // The entry is off the stack by the time this resolves, however it was closed, so nothing below may call
+            // `closeModal()` for it again.
+            isPromptOpenRef.current = false;
+
             const request = screenShareRequestRef.current;
 
-            if (result.action !== ModalActions.CONFIRM || !request) {
+            // The key is already gone when the effect above closed this prompt because the request disappeared on its
+            // own, so there is nothing left to join and nothing left to clear.
+            if (!request) {
+                return;
+            }
+
+            if (result.action !== ModalActions.CONFIRM) {
                 clearScreenShareRequest();
                 return;
             }
@@ -59,7 +85,7 @@ function useScreenShareRequestPrompt() {
             // `joinScreenShare` clears SCREEN_SHARE_REQUEST itself.
             joinScreenShare(request.accessToken, request.roomName);
         });
-    }, [screenShareRequest, showConfirmModal, translate]);
+    }, [closeModal, screenShareRequest, showConfirmModal, translate]);
 }
 
 export default useScreenShareRequestPrompt;

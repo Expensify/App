@@ -195,4 +195,43 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
         expect(mockRemovePolicyConnection).not.toHaveBeenCalled();
         expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
     });
+
+    it('should keep the setup flow blocked when the policy disappears before the prompt is confirmed', async () => {
+        const ref = React.createRef<StartFlowHandle>();
+        const {rerender} = render(
+            <AccountingContextProvider policy={policy}>
+                <TestHarness ref={ref} />
+            </AccountingContextProvider>,
+        );
+
+        await startFlowNeedingDisconnect(ref);
+
+        // Losing the policy mid-prompt is what the deprecated handler's `!policyID` guard covered: with no policy
+        // there is nothing to disconnect, so the setup flow must stay held back rather than start against a
+        // connection that was never removed.
+        rerender(
+            <AccountingContextProvider policy={undefined}>
+                <TestHarness ref={ref} />
+            </AccountingContextProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        await act(async () => {
+            resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+            await waitForBatchedUpdates();
+        });
+
+        // The policy has to come back before this proves anything: `renderActiveIntegration()` returns null whenever
+        // `policyID` is missing, so while the policy is gone the setup flow stays unmounted either way. With the policy
+        // back, the only thing still holding the flow back is the confirmation state the guard preserved.
+        rerender(
+            <AccountingContextProvider policy={policy}>
+                <TestHarness ref={ref} />
+            </AccountingContextProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(mockRemovePolicyConnection).not.toHaveBeenCalled();
+        expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
 });

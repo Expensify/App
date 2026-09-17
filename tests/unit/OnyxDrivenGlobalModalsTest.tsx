@@ -9,7 +9,7 @@ import Onyx from 'react-native-onyx';
 
 import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
-import {getShowConfirmModalOption, MockModalActions, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
+import {getShowConfirmModalOption, mockCloseModal, MockModalActions, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () => () => ({
@@ -164,6 +164,31 @@ describe('Onyx-driven global modal prompts', () => {
             await waitForBatchedUpdates();
 
             expect(mockJoinScreenShare).toHaveBeenCalledWith('token-2', 'room-2');
+        });
+
+        it('should close the prompt when the request is cleared while it is still open', async () => {
+            renderHook(() => useScreenShareRequestPrompt());
+            await setScreenShareRequest(SCREEN_SHARE_REQUEST);
+
+            // Nothing answers the prompt here -- the key disappears on its own, as it does when logout calls
+            // `Onyx.clear()`. The deprecated component was declarative on the key, so it went away with it.
+            await setScreenShareRequest(null);
+
+            expect(mockCloseModal).toHaveBeenCalledTimes(1);
+            expect(mockJoinScreenShare).not.toHaveBeenCalled();
+        });
+
+        it('should not close anything when the request is cleared after the user already answered', async () => {
+            renderHook(() => useScreenShareRequestPrompt());
+            await setScreenShareRequest(SCREEN_SHARE_REQUEST);
+
+            // Declining pops the entry itself, so the clear that follows must not pop a second time -- by then the top
+            // of the stack is whatever unrelated modal is open.
+            resolveShowConfirmModal({action: MockModalActions.CLOSE});
+            await waitForBatchedUpdates();
+            await setScreenShareRequest(null);
+
+            expect(mockCloseModal).not.toHaveBeenCalled();
         });
 
         it('should show a prompt again for a request that arrives after the previous one was answered', async () => {
