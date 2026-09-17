@@ -1,5 +1,5 @@
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
-import type {SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 import useOnyx from '@hooks/useOnyx';
 
@@ -18,12 +18,12 @@ import {resolveInsightsChartData} from './resolveChartData';
 /** Resolves one chart's data from the snapshot the dashboard record names for it. */
 function useInsightsChartData(
     dashboardID: InsightsDashboardID,
+    hash: number | undefined,
     chart: InsightsChartSpec,
     filters: InsightsFilters,
-    groupByOverride?: SearchGroupBy,
 ): InsightsChartData & {queryJSON: Readonly<SearchQueryJSON> | undefined} {
-    const queryJSON = buildSearchQueryJSON(applyInsightsFilters(chart, filters, groupByOverride));
-    const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}`);
+    const queryJSON = buildSearchQueryJSON(applyInsightsFilters(chart, filters));
+    const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[chart.graphKey]?.snapshotHash}`);
     const sortedData = useGroupedItems(snapshot, queryJSON);
 

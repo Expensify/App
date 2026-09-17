@@ -5,7 +5,6 @@ import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {SearchQueryString} from '@components/Search/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -44,22 +43,29 @@ const INSIGHTS_DASHBOARD_STATE = {
 
 type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 
-/** Resolves the page's state for the query on screen from the dashboard's stored record. */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboardRecord>, inputQuery: SearchQueryString | undefined, isOffline: boolean): InsightsDashboardState {
-    if (!!inputQuery && dashboard?.inputQuery === inputQuery) {
-        return INSIGHTS_DASHBOARD_STATE.DATA;
+/** Resolves the page's state from the record stored for the query on screen, which the key it is read under already scopes. */
+function getDashboardState(dashboard: OnyxEntry<InsightsDashboardRecord>, isOffline: boolean): InsightsDashboardState {
+    // Only a response sets `inputQuery`, so until one lands the record holds nothing to draw.
+    const isDataLoaded = !!dashboard?.inputQuery;
+
+    if (isOffline && !isDataLoaded) {
+        return INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
-    if (!!inputQuery && dashboard?.requestedQuery === inputQuery) {
-        return INSIGHTS_DASHBOARD_STATE.LOADING;
-    }
-    if (Object.keys(dashboard?.errors ?? {}).length > 0) {
+    if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return INSIGHTS_DASHBOARD_STATE.ERROR;
     }
-    return isOffline ? INSIGHTS_DASHBOARD_STATE.OFFLINE : INSIGHTS_DASHBOARD_STATE.LOADING;
+    if (!isDataLoaded) {
+        return INSIGHTS_DASHBOARD_STATE.LOADING;
+    }
+    return INSIGHTS_DASHBOARD_STATE.DATA;
 }
 
 type InsightsDashboardContentProps = {
     dashboardID: InsightsDashboardID;
+
+    /** Hash of the dashboard-wide query, which the record every chart reads is stored under */
+    hash: number | undefined;
+
     state: InsightsDashboardState;
 
     /** Page-level filters every chart on the dashboard is narrowed by */
@@ -70,7 +76,7 @@ type InsightsDashboardContentProps = {
 };
 
 /** Everything below the top bar: the charts, or what stands in for them. */
-function InsightsDashboardContent({dashboardID, state, filters, onRetry}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -116,9 +122,9 @@ function InsightsDashboardContent({dashboardID, state, filters, onRetry}: Insigh
             <View style={styles.insightsDashboardLayout}>
                 <InsightsChartWidget
                     dashboardID={dashboardID}
+                    hash={hash}
                     chart={headlineChart}
                     filters={filters}
-                    groupByOverride={filters.groupBy}
                     onRetry={onRetry}
                 />
                 <View style={styles.insightsChartGrid}>
@@ -129,6 +135,7 @@ function InsightsDashboardContent({dashboardID, state, filters, onRetry}: Insigh
                         >
                             <InsightsChartWidget
                                 dashboardID={dashboardID}
+                                hash={hash}
                                 chart={chart}
                                 filters={filters}
                                 onRetry={onRetry}
@@ -150,13 +157,13 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
 
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
     const jsonQuery = query?.jsonQuery;
-    const inputQuery = query?.inputQuery;
+    const hash = query?.hash;
 
     const requestDashboard = () => {
-        if (!jsonQuery || !inputQuery || isOffline) {
+        if (!jsonQuery || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, jsonQuery, inputQuery);
+        getInsights(dashboardID, hash, jsonQuery);
     };
 
     const onQueryChanged = useEffectEvent(() => {
@@ -168,9 +175,9 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             return;
         }
         onQueryChanged();
-    }, [dashboardID, jsonQuery, inputQuery, isFocused, isOffline]);
+    }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
-    const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}`);
+    const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
 
     return (
         <ScreenWrapper
@@ -185,7 +192,8 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             />
             <InsightsDashboardContent
                 dashboardID={dashboardID}
-                state={getDashboardState(dashboard, inputQuery, isOffline)}
+                hash={hash}
+                state={getDashboardState(dashboard, isOffline)}
                 filters={filters}
                 onRetry={requestDashboard}
             />

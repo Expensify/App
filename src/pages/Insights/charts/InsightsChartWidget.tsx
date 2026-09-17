@@ -1,7 +1,6 @@
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import SearchChartView from '@components/Search/SearchChartView';
-import type {SearchGroupBy} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
@@ -35,8 +34,8 @@ type InsightsChartWidgetProps = {
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
-    /** Bucket the page's Group-by selection asks for, set only for the headline chart */
-    groupByOverride?: SearchGroupBy;
+    /** Hash of the dashboard-wide query, which the record naming this chart's snapshot is stored under */
+    hash: number | undefined;
 
     /** Asks for the dashboard again, offered to the reader when this chart's snapshot failed */
     onRetry: () => void;
@@ -44,13 +43,13 @@ type InsightsChartWidgetProps = {
     containerStyles?: StyleProp<ViewStyle>;
 };
 
-function InsightsChartWidget({dashboardID, chart, filters, groupByOverride, onRetry, containerStyles}: InsightsChartWidgetProps) {
+function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, containerStyles}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
-    const {queryJSON, data, state} = useInsightsChartData(dashboardID, chart, filters, groupByOverride);
+    const {queryJSON, data, state} = useInsightsChartData(dashboardID, hash, chart, filters);
     const groupBy = queryJSON?.groupBy;
 
     if (!queryJSON || !groupBy) {
