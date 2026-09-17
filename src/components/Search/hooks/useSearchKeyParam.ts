@@ -18,7 +18,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type {NavigationState} from '@react-navigation/routers';
 
 import {useNavigation} from '@react-navigation/native';
-import {useEffect, useEffectEvent} from 'react';
+import {useEffect} from 'react';
 
 // `usePreviousDefined` keeps the last non-nullish value, so the focused-but-keyless case needs a value of its
 // own that isn't `undefined`. An empty string is never a valid search key, so `isExistingSearchKey` rejects it.
