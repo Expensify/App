@@ -69,6 +69,7 @@ type MockSelectionListProps = {
 
 describe('PronounsPage', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows the props captured from the mocked SelectionList in this test
     const getSelectionListProps = () => mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
 
     beforeEach(() => {
@@ -102,12 +103,13 @@ describe('PronounsPage', () => {
         // Pick a different row in the middle of the results and select it (staged, not yet saved).
         const middleItem = getSelectionListProps()?.data.find((item) => item.value !== SELECTED_PRONOUN);
         act(() => {
-            if (middleItem) {
-                getSelectionListProps()?.onSelectRow?.(middleItem);
+            if (!middleItem) {
+                return;
             }
+            getSelectionListProps()?.onSelectRow?.(middleItem);
         });
 
-        // Simulate returning to the page (e.g. after closing the Troubleshoot overlay), which fires the focus effect.
+        // Fire the focus effect, which re-snapshots the frozen selection; it must stay on the saved pronoun.
         act(() => {
             mockFocus.callback?.();
         });
