@@ -1,4 +1,3 @@
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 
 import {setMoneyRequestTaxAmount, setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
@@ -23,10 +22,9 @@ type TaxControllerProps = {
  * and tax amount when the transaction or policy changes.
  */
 function TaxController({distanceState}: TaxControllerProps) {
-    const {transactionID, policyID, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense, transaction, policy, customUnitRateID} = useConfirmationData();
+    const {transactionID, policyID, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense, transaction, policy, policyForMovingExpenses, customUnitRateID} = useConfirmationData();
     const transactionTaxAmount = transaction?.taxAmount;
 
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits} = useTaxAmount({

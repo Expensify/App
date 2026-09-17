@@ -7,6 +7,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import type useConfirmationPolicyData from './useConfirmationPolicyData';
 import type useDistanceRequestState from './useDistanceRequestState';
 
 /**
@@ -22,7 +23,13 @@ type ConfirmationDistanceState = Pick<
     'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency' | 'prevCurrency'
 >;
 
+/** Everything the confirmation reads from the workspace, resolved once per list by {@link useConfirmationPolicyData}. */
+type ConfirmationPolicyData = ReturnType<typeof useConfirmationPolicyData>;
+
 type UseConfirmationListDataParams = MoneyRequestConfirmationListProps & {
+    /** Resolved by the entry hook, so the distance one can build its distance state from the policy first */
+    policyData: ConfirmationPolicyData;
+
     /** Not a page prop: the distance variant sets it for itself */
     isDistanceRequest?: boolean;
 
@@ -97,4 +104,4 @@ type UseParticipantSectionParams = {
     onOpenParticipantPicker?: () => void;
 };
 
-export type {ConfirmationDistanceState, UseConfirmationListDataParams, UseConfirmationPolicyDataParams, UseParticipantSectionParams};
+export type {ConfirmationDistanceState, ConfirmationPolicyData, UseConfirmationListDataParams, UseConfirmationPolicyDataParams, UseParticipantSectionParams};

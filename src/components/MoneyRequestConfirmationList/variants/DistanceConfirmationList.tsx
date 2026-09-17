@@ -3,8 +3,7 @@ import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/Co
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import DistanceRequestController from '@components/MoneyRequestConfirmationList/DistanceRequestController';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
-import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
-import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
+import useDistanceConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useDistanceConfirmationListData';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
@@ -12,21 +11,8 @@ import DistanceManualFooter from '@components/MoneyRequestConfirmationListFooter
 import DistanceMapFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceMapFooter';
 import DistanceOdometerFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceOdometerFooter';
 
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
-
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
-import {
-    getCreated,
-    getCurrency,
-    hasValidModifiedAmount,
-    isGPSDistanceRequest as isGPSDistanceRequestUtil,
-    isManualDistanceRequest as isManualDistanceRequestUtil,
-} from '@libs/TransactionUtils';
-
-import CONST from '@src/CONST';
+import {getCreated, isGPSDistanceRequest as isGPSDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -43,11 +29,6 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
         isOdometerDistanceRequest = false,
         receiptStitchError,
         isParticipantPickerVisible = false,
-        isPolicyExpenseChat = false,
-        iouType = CONST.IOU.TYPE.SUBMIT,
-        action = CONST.IOU.ACTION.CREATE,
-        policyID,
-        onConfirm,
         onToggleBillable,
         onToggleReimbursable,
         receiptOptions,
@@ -56,52 +37,8 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
 
-    const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
-    const iouCurrencyCode = getCurrency(transaction);
-
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
-
-    const {policy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: policyID,
-        action,
-        iouType,
-        isPerDiemRequest: false,
-    });
-
-    const distanceState = useDistanceRequestState({
-        transaction,
-        policy,
-        policyID,
-        policyForMovingExpenses,
-        isMovingTransactionFromTrackExpense,
-        isDistanceRequest: true,
-        isPolicyExpenseChat,
-        iouAmount,
-        iouCurrencyCode,
-    });
+    const {data, distanceState} = useDistanceConfirmationListData(props);
     const {mileageRate, unit, currency, distance, hasRoute, isDistanceRequestWithPendingRoute} = distanceState;
-
-    // A distance request can be blocked before submission by a missing home address, or by a policy that requires
-    // a map or GPS, so the guard wraps this surface's own confirm callback.
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: isPolicyExpenseChat ? policy?.id : undefined,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-    });
-
-    const data = useConfirmationListData({
-        ...props,
-        isDistanceRequest: true,
-        distanceState,
-        onConfirm: () => {
-            if (blockDistanceRequestIfNeeded()) {
-                return;
-            }
-            onConfirm?.();
-        },
-    });
 
     const shouldShowRateAutoUpdatedTooltip =
         !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);

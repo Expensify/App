@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
+import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAttendees from '@hooks/useAttendees';
@@ -36,17 +37,18 @@ import useTransactionReportForConfirmation from './useTransactionReportForConfir
 const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
 
 /**
- * Everything the confirmation surface needs regardless of which expense type is being confirmed: the policy data,
- * the participant rows, the form errors, the validation gate, and the confirm button.
+ * Everything the confirmation surface needs regardless of which expense type is being confirmed: the participant
+ * rows, the form errors, the validation gate, and the confirm button, all derived from an already resolved policy.
  *
- * What differs per type — the distance state, the tax controller, the receipt sections, and the footer itself —
- * stays with the variant that mounts this.
+ * Not called by a variant directly. {@link useConfirmationListData} resolves the policy and calls this for every
+ * non-distance variant; `useDistanceConfirmationListData` does the same after building the distance state.
  */
-function useConfirmationListData({
+function useConfirmationListDataWithPolicy({
     transaction,
     action = CONST.IOU.ACTION.CREATE,
     iouType = CONST.IOU.TYPE.SUBMIT,
     policyID,
+    policyData,
     reportID = '',
     reportActionID,
     selectedParticipants: selectedParticipantsProp,
@@ -83,13 +85,7 @@ function useConfirmationListData({
     }: Partial<ConfirmationDistanceState> = distanceState ?? {};
 
     const transactionReport = useTransactionReportForConfirmation(transaction?.reportID);
-    const {policy, policyCategories, policyTags, policyTagLists, shouldSelectPolicy} = useConfirmationPolicyData({
-        transaction,
-        policyID,
-        action,
-        iouType,
-        isPerDiemRequest,
-    });
+    const {policy, policyForMovingExpenses, policyCategories, policyTags, policyTagLists, shouldSelectPolicy} = policyData;
 
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -319,6 +315,7 @@ function useConfirmationListData({
         // Shared values, read from context by the side-effect controllers and passed on to the footers
         transaction,
         policy,
+        policyForMovingExpenses,
         policyID,
         policyTags,
         policyTagLists,
@@ -360,5 +357,17 @@ function useConfirmationListData({
     };
 }
 
+/**
+ * The data hook for every variant except distance: resolves the policy, then derives the shared confirmation data
+ * from it. The distance variant needs the policy before it can build its distance state, so it goes through
+ * `useDistanceConfirmationListData` instead.
+ */
+function useConfirmationListData(props: MoneyRequestConfirmationListProps) {
+    const {transaction, policyID, action = CONST.IOU.ACTION.CREATE, iouType = CONST.IOU.TYPE.SUBMIT, isPerDiemRequest = false} = props;
+    const policyData = useConfirmationPolicyData({transaction, policyID, action, iouType, isPerDiemRequest});
+
+    return useConfirmationListDataWithPolicy({...props, policyData});
+}
+
 export default useConfirmationListData;
-export {INLINE_FIELD_ERROR_KEYS};
+export {INLINE_FIELD_ERROR_KEYS, useConfirmationListDataWithPolicy};

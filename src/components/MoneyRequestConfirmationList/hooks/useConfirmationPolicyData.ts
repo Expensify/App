@@ -13,7 +13,7 @@ import usePolicyTagsForConfirmation from './usePolicyTagsForConfirmation';
 function useConfirmationPolicyData({transaction, policyID, action, iouType, isPerDiemRequest}: UseConfirmationPolicyDataParams) {
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
-    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {shouldSelectPolicy, policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const {policy} = usePolicyForTransaction({
         transaction,
@@ -23,7 +23,7 @@ function useConfirmationPolicyData({transaction, policyID, action, iouType, isPe
         isPerDiemRequest,
     });
 
-    return {policy, policyCategories, policyTags, policyTagLists, shouldSelectPolicy};
+    return {policy, policyForMovingExpenses, policyCategories, policyTags, policyTagLists, shouldSelectPolicy};
 }
 
 export default useConfirmationPolicyData;
