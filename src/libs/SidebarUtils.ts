@@ -41,7 +41,7 @@ import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
 import {getIOUReportIDFromReportActionPreview, getReportAction} from './ReportActionsUtils';
 import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -441,7 +441,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        const displayName = deprecatedGetReportName(report, reportAttributes);
+        const displayName = getReportName(report, reportAttributes?.[report.reportID]?.reportName);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -915,7 +915,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = deprecatedGetReportName(report, reportAttributesDerived);
+    const reportName = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
 
     if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
         loggedChatReportIDs.delete(report.reportID);
