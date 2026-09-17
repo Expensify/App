@@ -68,7 +68,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 
     if (hasSelectedTransactions && !isTransactionThread) {
         return (
-            <View style={shouldDisplayNarrowMoreButton ? undefined : [styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
+            <View style={shouldDisplayNarrowMoreButton ? undefined : [styles.dFlex, styles.w100, styles.ph5, styles.pt2, styles.pb3]}>
                 <MoneyReportHeaderSelectionDropdown
                     reportID={reportID}
                     primaryAction={narrowedPrimaryAction}
@@ -80,7 +80,13 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     }
 
     return (
-        <View style={[styles.flexRow, styles.gap2, ...(!shouldDisplayNarrowMoreButton ? [styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter] : [])]}>
+        <View
+            style={[
+                styles.flexRow,
+                styles.gap2,
+                ...(!shouldDisplayNarrowMoreButton ? [styles.pt2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter] : []),
+            ]}
+        >
             {!!primaryAction && (
                 <View style={!shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
                     <MoneyReportHeaderPrimaryAction
