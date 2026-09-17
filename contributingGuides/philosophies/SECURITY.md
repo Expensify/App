@@ -82,8 +82,8 @@ Updated rules for managing members across all types of chats in New Expensify.
 
 - Everyone can be removed/can leave from the room including creator
 - Guests are not able to remove anyone from the room
-- Auditors are not added to user-created rooms automatically. They can discover and join non-private workspace rooms, and they can leave freely
-- Auditors can invite and remove other participants in any room they are a participant of
+- Auditors are added to the workspace rooms that are not private when they are given the Auditor role. Private rooms are skipped, so they join those by invitation only
+- Auditors are able to invite and remove other participants in the rooms that their role shared with them
 
 #### Expense chats
 |                    | Admin | Member(default) | Member(invited) |
