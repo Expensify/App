@@ -3,6 +3,7 @@ import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchS
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import SearchBulkActionsBarWide from '@components/Search/SearchBulkActionsBarWide';
 import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
@@ -22,6 +23,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
@@ -91,7 +93,7 @@ function SearchPageWide({
         return [styles.mtAuto];
     }, [shouldReserveFooterSpace, styles]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
     const receiptDropTargetRef = useRef<View>(null);
 
@@ -141,6 +143,8 @@ function SearchPageWide({
                                         />
                                     )}
                                     {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
+                                    {/* Floats over the bottom of the list, which already ends above SearchSelectionFooter. */}
+                                    <SearchBulkActionsBarWide queryJSON={queryJSON} />
                                 </View>
                                 <SearchSelectionFooter searchResults={searchResults} />
                             </>

@@ -5,6 +5,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection} from '@libs/AccountingUtils';
@@ -74,6 +75,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, queryHasViolationFilter, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
     getColumnsToShow,
     getSearchColumnTranslationKey,
@@ -195,25 +197,99 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
 }
 
+/**
+ * The group rows a selection covers in full.
+ *
+ * A group is fully selected when the number of selected children matches the group's remaining transaction
+ * count. Snapshot `count` is not decremented for pending-delete children, so `isEntireGroupSelected` (stamped
+ * after subtracting those children) is what covers a second-batch delete of the rest. Clicking the group
+ * checkbox is not enough on its own: a `limit:` smaller than that count leaves children unloaded, so delete
+ * cannot remove the whole group. An empty group row is still selected under its own group key.
+ */
+function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, searchData?: SearchResultDataType): SearchGroupKey[] {
+    const selectedCountByGroupKey = new Map<SearchGroupKey, {selectedCount: number; isEntireGroupSelected: boolean}>();
+    const groupKeys = new Set<SearchGroupKey>();
+
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (isGroupEntry(key)) {
+            groupKeys.add(key);
+            continue;
+        }
+        if (!transaction.groupKey || !isGroupEntry(transaction.groupKey)) {
+            continue;
+        }
+        const current = selectedCountByGroupKey.get(transaction.groupKey) ?? {selectedCount: 0, isEntireGroupSelected: false};
+        current.selectedCount += 1;
+        current.isEntireGroupSelected = current.isEntireGroupSelected || !!transaction.isEntireGroupSelected;
+        selectedCountByGroupKey.set(transaction.groupKey, current);
+    }
+
+    for (const [groupKey, {selectedCount, isEntireGroupSelected}] of selectedCountByGroupKey) {
+        const groupCount = getSearchGroupCountByKey(searchData, groupKey);
+        if (groupCount !== undefined) {
+            if (isEntireGroupSelected || selectedCount === groupCount) {
+                groupKeys.add(groupKey);
+            }
+            continue;
+        }
+        if (isEntireGroupSelected) {
+            groupKeys.add(groupKey);
+        }
+    }
+
+    return [...groupKeys];
+}
+
+/**
+ * Maps each selected transaction to the group it belongs to when that group is fully covered by the
+ * selection. Each delete request only flags its own group, so a failed request cannot restore a
+ * different group's snapshot row.
+ */
+function getFullyDeletedGroupKeysByTransactionID(selectedTransactions: SelectedTransactions, searchData?: SearchResultDataType): Record<string, SearchGroupKey> {
+    const fullyDeletedGroupKeys = new Set(getSelectedGroupKeys(selectedTransactions, searchData));
+    if (fullyDeletedGroupKeys.size === 0) {
+        return {};
+    }
+
+    const byTransactionID: Record<string, SearchGroupKey> = {};
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (isGroupEntry(key) || !transaction.groupKey || !isGroupEntry(transaction.groupKey) || !fullyDeletedGroupKeys.has(transaction.groupKey)) {
+            continue;
+        }
+        byTransactionID[key] = transaction.groupKey;
+    }
+    return byTransactionID;
+}
+
+/**
+ * Groups the user selected through a group header, including when `limit:` left children unloaded.
+ * Export uses this instead of `getSelectedGroupKeys`, which only covers a whole-group delete.
+ */
+function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions): SearchGroupKey[] {
+    const groupKeys = new Set<SearchGroupKey>();
+
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (isGroupEntry(key)) {
+            groupKeys.add(key);
+            continue;
+        }
+        if (!transaction.isSelectedViaGroup || !transaction.groupKey || !isGroupEntry(transaction.groupKey)) {
+            continue;
+        }
+        groupKeys.add(transaction.groupKey);
+    }
+
+    return [...groupKeys];
+}
+
 function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
         return queryJSON;
     }
 
-    const groupKeys = new Set<string>();
-    for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        if (!isGroupSelection(key, transaction)) {
-            continue;
-        }
-        if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-            groupKeys.add(key);
-        } else if (transaction.groupKey) {
-            groupKeys.add(transaction.groupKey);
-        }
-    }
-
-    if (groupKeys.size === 0) {
+    const groupKeys = getGroupKeysSelectedViaGroup(selectedTransactions);
+    if (groupKeys.length === 0) {
         return queryJSON;
     }
 
@@ -550,6 +626,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
@@ -571,6 +648,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedReportIDs = Object.values(selectedReports)
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
+
+    // Reports with no expenses have nothing to export, so every export flow blocks them instead of producing an empty file.
+    const emptyReports = useMemo(
+        () =>
+            selectedReports.filter((selectedReport) => {
+                if (!selectedReport) {
+                    return false;
+                }
+                const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+                return !!fullReport && (fullReport.transactionCount ?? 0) === 0;
+            }),
+        [selectedReports, currentSearchResults?.data],
+    );
+    const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
 
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
     const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
@@ -840,16 +931,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, policyID: string | undefined, exportName: string) => {
-            const emptyReports =
-                selectedReports?.filter((selectedReport) => {
-                    if (!selectedReport) {
-                        return false;
-                    }
-                    const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-                    return !!fullReport && (fullReport.transactionCount ?? 0) === 0;
-                }) ?? [];
-            const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
-
             if (hasOnlyEmptyReports) {
                 setEmptyReportsCount(emptyReports.length);
                 setIsDownloadErrorModalVisible(true);
@@ -900,7 +981,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             clearSelectedTransactions(undefined, true);
         },
         [
-            selectedReports,
+            hasOnlyEmptyReports,
+            emptyReports.length,
             selectedTransactions,
             isOffline,
             areAllMatchingItemsSelected,
@@ -980,6 +1062,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const handleCSVExport = useCallback(
         async (isBasicExport: boolean) => {
+            if (hasOnlyEmptyReports) {
+                setEmptyReportsCount(emptyReports.length);
+                setIsDownloadErrorModalVisible(true);
+                return;
+            }
             if (isOffline) {
                 setIsOfflineModalVisible(true);
                 return;
@@ -1043,6 +1130,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         },
         [
+            hasOnlyEmptyReports,
+            emptyReports.length,
             isOffline,
             areAllMatchingItemsSelected,
             queryJSON,
@@ -1268,11 +1357,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
+            // A group row's snapshot entry outlives its child transactions, so the row would read as "not deleted"
+            // again between the children being cleared and the next Search response dropping the group. Only groups
+            // whose selected children cover the group's full count are flagged, so a `limit:` that left rows unloaded
+            // does not hide a group that still has expenses.
+            const fullyDeletedGroupKeys = queryJSON?.groupBy ? getFullyDeletedGroupKeysByTransactionID(selectedTransactions, searchResults?.data) : {};
             // Route individual transactions through the split-aware hook so that deleting a
             // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
             // bare deleteMoneyRequest.
             if (transactionIDsToDelete.length > 0) {
-                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
+                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash, undefined, fullyDeletedGroupKeys);
             }
 
             // Whole-report deletions keep their existing path.
@@ -1301,6 +1395,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showConfirmModal,
         deleteModalTitle,
         deleteModalPrompt,
+        queryJSON?.groupBy,
         translate,
         allTransactions,
         allTransactionViolations,
@@ -1808,9 +1903,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions, rules]);
 
-    const headerButtonsOptions = useMemo(() => {
+    const {headerButtonsOptions, dropdownButtonsOptions} = useMemo(() => {
         if ((selectedTransactionsKeys.length === 0 && !(isExpenseType && areAllMatchingItemsSelected)) || !hash) {
-            return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
+            const noOptions = CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
+            return {headerButtonsOptions: noOptions, dropdownButtonsOptions: noOptions};
         }
 
         const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
@@ -2180,15 +2276,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         /**
-         * Export is sometimes the only bulk action available (most commonly under "select all"). There is no main menu
-         * to go back to then, so the dropdown opens directly onto the export options rather than nesting them behind
+         * Export is sometimes the only bulk action available (most commonly under "select all"). The dropdown has no
+         * main menu to go back to then, so it opens directly onto the export options rather than nesting them behind
          * an "Export" row whose submenu would render a back arrow leading nowhere. The "Export" label is not lost:
          * `bulkActionsMenuHeaderText` below puts it back as a plain (non-interactive) header above the options.
+         *
+         * This only suits the dropdown. The bulk action bar renders each action as its own button, so flattening
+         * there would spread the export options across the bar under a heading instead of keeping them under one
+         * "Export" button. It takes the nested options, where "Export" opens its menu directly and has no back arrow.
          */
         const openExportOptionsDirectlyIfSoleAction = (builtOptions: Array<DropdownOption<SearchHeaderOptionValue>>): Array<DropdownOption<SearchHeaderOptionValue>> => {
             const isExportTheOnlyAction = builtOptions.length === 1 && builtOptions.at(0)?.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT;
             return isExportTheOnlyAction && subMenuItems.length > 0 ? subMenuItems : builtOptions;
         };
+
+        const buildResult = (builtOptions: Array<DropdownOption<SearchHeaderOptionValue>>) => ({
+            headerButtonsOptions: builtOptions,
+            dropdownButtonsOptions: openExportOptionsDirectlyIfSoleAction(builtOptions),
+        });
 
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
@@ -2207,7 +2312,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            return openExportOptionsDirectlyIfSoleAction(shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption]);
+            return buildResult(shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption]);
         }
 
         if (allSelectedAreDeleted) {
@@ -2242,7 +2347,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 });
             }
 
-            return deletedTransactionOptions;
+            return buildResult(deletedTransactionOptions);
         }
 
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -2533,7 +2638,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('common.downloadAsPDF'),
+                text: translate('common.downloadReport', {count: selectedReportIDs.length}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
                 shouldCloseModalOnSelect: true,
                 onSelected: async () => {
@@ -2560,13 +2665,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        const hasSelectedReportsWithReceipts = Object.values(allTransactions ?? {}).some(
+        const selectedReportReceiptCount = Object.values(allTransactions ?? {}).filter(
             (transaction) => !!transaction && selectedReports.some((report) => report.reportID === transaction.reportID) && hasReceiptTransactionUtils(transaction),
-        );
-        if (isExpenseReportSearch && selectedReportIDs.length > 0 && hasSelectedReportsWithReceipts) {
+        ).length;
+        if (isExpenseReportSearch && selectedReportIDs.length > 0 && selectedReportReceiptCount > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('common.downloadReceipts'),
+                text: translate('common.downloadReceipt', {count: selectedReportReceiptCount}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
@@ -2596,7 +2701,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (isExpenseSearch && transactionIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('common.downloadReceipts'),
+                text: translate('common.downloadReceipt', {count: transactionIDs.length}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
@@ -2862,7 +2967,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        return openExportOptionsDirectlyIfSoleAction(options);
+        return buildResult(options);
     }, [
         selectedTransactionsKeys,
         hash,
@@ -2956,11 +3061,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         rules,
     ]);
 
-    // When the export options are surfaced directly there is no "Export" row above them, so on its own the list gives
-    // no clue what the options refer to. Put "Export" back as a plain header — it reads the same as the label the back
-    // button normally carries, minus the caret, since there is no menu to go back to.
+    // When the dropdown surfaces the export options directly there is no "Export" row above them, so on its own the
+    // list gives no clue what the options refer to. Put "Export" back as a plain header. It reads the same as the
+    // label the back button normally carries, minus the caret, since there is no menu to go back to.
     const isShowingExportOptionsDirectly =
-        headerButtonsOptions.length > 0 && headerButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT && !option.subMenuItems);
+        dropdownButtonsOptions.length > 0 && dropdownButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT && !option.subMenuItems);
     const bulkActionsMenuHeaderText = isShowingExportOptionsDirectly ? translate('common.export') : undefined;
 
     const handleOfflineModalClose = useCallback(() => {
@@ -3011,6 +3116,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     return {
         headerButtonsOptions,
+        dropdownButtonsOptions,
         bulkActionsMenuHeaderText,
         selectedPolicyIDs,
         selectedTransactionReportIDs,
@@ -3048,5 +3154,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {shouldShowBulkDuplicateOption};
+export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};
