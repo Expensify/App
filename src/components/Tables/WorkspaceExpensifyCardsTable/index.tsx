@@ -1,6 +1,8 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import getExportAccountColumn from '@components/Tables/getExportAccountColumn';
+import MEMBER_CELL_AVATAR_WIDTH from '@components/Tables/memberCellAvatarWidth';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,8 +32,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
-
-const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
 
 type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'exportAccount' | 'limit' | 'remainingLimit' | 'actions';
 
@@ -118,6 +118,11 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'name',
             label: translate('workspace.expensifyCard.name'),
             sortable: true,
+            styling: {
+                // Cell text never wraps, so without minWidth: 0 the grid track sizes from the full string instead of
+                // its share and the row overflows the table.
+                containerStyles: [styles.mnw0],
+            },
             dynamicSizing: {
                 // Whichever of the cardholder's name or the card's title renders wider decides the column's width.
                 getContentToMeasure: (item) => [
@@ -131,6 +136,9 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'type',
             label: translate('common.type'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => [
                     {text: item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical'), fontSize: fontScale.text},
@@ -142,6 +150,9 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'limitType',
             label: translate('workspace.card.issueNewCard.limitType'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate(getTranslationKeyForLimitType(item.limitType)), fontSize: fontScale.text}],
                 shouldFitContent: true,
@@ -160,6 +171,9 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'status',
             label: translate('common.status'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => {
                     const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
@@ -168,18 +182,7 @@ export default function WorkspaceExpensifyCardsTable({
                 shouldFitContent: true,
             },
         },
-        ...(shouldShowExportAccountColumn
-            ? [
-                  {
-                      key: 'exportAccount' as const,
-                      label: translate('workspace.moreFeatures.companyCards.exportAccount'),
-                      sortable: true,
-                      dynamicSizing: {
-                          getContentToMeasure: (item: WorkspaceExpensifyCardTableRowData) => (item.exportAccountTitle ? [{text: item.exportAccountTitle, fontSize: fontScale.text}] : []),
-                      },
-                  },
-              ]
-            : []),
+        ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceExpensifyCardTableRowData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
         {
             key: 'limit',
             label: translate('workspace.expensifyCard.limit'),

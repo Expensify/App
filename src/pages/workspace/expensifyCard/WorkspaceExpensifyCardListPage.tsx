@@ -159,7 +159,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     currency: settlementCurrency,
                     isVirtual: !!card.nameValuePairs?.isVirtual,
                     limitType: card.nameValuePairs?.limitType,
-                    exportAccountTitle: getCardExportAccountTitle(cardExportSettings, card),
+                    exportAccountTitle: shouldShowExportAccountColumn ? getCardExportAccountTitle(cardExportSettings, card) : undefined,
                     frozenByDisplayName,
                     frozenByAccountID: card.nameValuePairs?.frozen?.byAccountID,
                     frozenDate: card.nameValuePairs?.frozen?.date,
@@ -169,7 +169,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
                 };
             }),
-        [allCards, cardExportSettings, defaultFundID, personalDetails, settlementCurrency, translate, formatPhoneNumber],
+        [allCards, cardExportSettings, shouldShowExportAccountColumn, defaultFundID, personalDetails, settlementCurrency, translate, formatPhoneNumber],
     );
 
     const bulkExportOptions: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>> = [

@@ -1,5 +1,6 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import MEMBER_CELL_AVATAR_WIDTH from '@components/Tables/memberCellAvatarWidth';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -52,9 +53,6 @@ type WorkspaceMembersTableProps = {
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
-
-/** Width the member cell's avatar and the space after it take before the name and email start. */
-const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',

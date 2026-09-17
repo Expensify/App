@@ -5,6 +5,8 @@ import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import getExportAccountColumn from '@components/Tables/getExportAccountColumn';
+import MEMBER_CELL_AVATAR_WIDTH from '@components/Tables/memberCellAvatarWidth';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -48,8 +50,6 @@ import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTabl
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'actions';
-
-const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
 
 type WorkspaceCompanyCardsTableHandle = {
     clearSelection: () => void;
@@ -207,6 +207,11 @@ function WorkspaceCompanyCardsTable({
             key: 'member',
             label: translate('common.member'),
             sortable: true,
+            styling: {
+                // Cell text never wraps, so without minWidth: 0 the grid track sizes from the full string instead of
+                // its share and the row overflows the table.
+                containerStyles: [styles.mnw0],
+            },
             dynamicSizing: {
                 // Whichever of the cardholder's name (or the unassigned label) or their login renders wider decides the column's width.
                 getContentToMeasure: (item) => [
@@ -223,6 +228,9 @@ function WorkspaceCompanyCardsTable({
             key: 'card',
             label: translate('workspace.companyCards.card'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: formatMaskedCardName(item.cardName), fontSize: fontScale.text}],
                 shouldFitContent: true,
@@ -232,22 +240,14 @@ function WorkspaceCompanyCardsTable({
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
             },
         },
-        ...(shouldShowExportAccountColumn
-            ? [
-                  {
-                      key: 'exportAccount' as const,
-                      label: translate('workspace.moreFeatures.companyCards.exportAccount'),
-                      sortable: true,
-                      dynamicSizing: {
-                          getContentToMeasure: (item: WorkspaceCompanyCardTableItemData) => (item.exportAccountTitle ? [{text: item.exportAccountTitle, fontSize: fontScale.text}] : []),
-                      },
-                  },
-              ]
-            : []),
+        ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
         {
             key: 'actions',
             label: '',
@@ -286,7 +286,7 @@ function WorkspaceCompanyCardsTable({
                       assignedCard,
                       cardholder,
                       // Unassigned cards have no details page and so no Accounting section to match, hence no title.
-                      exportAccountTitle: assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
+                      exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
                       errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                       pendingAction: assignedCard?.pendingAction,
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),

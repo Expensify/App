@@ -131,7 +131,7 @@ function WorkspaceCompanyCardTableRow({
             {({hovered}) => (
                 <>
                     <View
-                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         {isAssigned ? (
@@ -147,7 +147,7 @@ function WorkspaceCompanyCardTableRow({
                             CardFeedIcon
                         )}
 
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
+                        <View style={[styles.flex1, styles.mnw0, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={memberColumnTitle}
@@ -165,7 +165,7 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.justifyContentCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip
@@ -179,7 +179,7 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.justifyContentCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip
@@ -193,7 +193,7 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && shouldShowExportAccountColumn && (
                         <View
-                            style={[styles.flex1, styles.justifyContentCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip

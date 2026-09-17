@@ -114,7 +114,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             {({hovered}) => (
                 <>
                     <View
-                        style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         <UserAvatar
@@ -122,7 +122,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                             accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                             size={avatarSize}
                         />
-                        <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
+                        <View style={[styles.flex1, styles.mnw0, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
