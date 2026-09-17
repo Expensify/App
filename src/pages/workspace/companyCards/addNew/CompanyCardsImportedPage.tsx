@@ -62,13 +62,13 @@ function getCompanyCardImportColumnRoles(translate: LocaleContextProps['translat
 function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard, addNewCardMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const feedDomainAccountID = addNewCard?.data?.domainAccountID ?? workspaceAccountID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
+    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
@@ -87,15 +87,20 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
     const hasAppliedColumnMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
+    const lastAppliedMappingsRef = useRef(savedColumnMappings);
 
     useEffect(() => {
-        // Reset the flag when new spreadsheet data is loaded so the mapping is recomputed for the new file.
-        if (spreadsheet?.data !== lastProcessedDataRef.current) {
+        if (spreadsheet?.data !== lastProcessedDataRef.current || savedColumnMappings !== lastAppliedMappingsRef.current) {
             hasAppliedColumnMappings.current = false;
             lastProcessedDataRef.current = spreadsheet?.data;
+            lastAppliedMappingsRef.current = savedColumnMappings;
         }
 
         if (hasAppliedColumnMappings.current) {
+            return;
+        }
+
+        if (isLoadingOnyxValue(workspaceCardFeedsMetadata, addNewCardMetadata)) {
             return;
         }
 
@@ -112,7 +117,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             savedColumnMappings,
             columnRoles.map((role) => role.value),
         );
-    }, [spreadsheet?.data, savedColumnMappings, columnRoles]);
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles, workspaceCardFeedsMetadata, addNewCardMetadata]);
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
     const {containsHeader = true} = spreadsheet ?? {};
