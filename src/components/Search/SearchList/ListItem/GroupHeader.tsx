@@ -23,7 +23,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout, isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -198,12 +197,6 @@ function GroupHeader({
     const handleSelectionButtonPress = () => {
         onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
-
-    const pendingAction =
-        item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined);
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
         onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
@@ -380,7 +373,7 @@ function GroupHeader({
     };
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onPress={handlePress}

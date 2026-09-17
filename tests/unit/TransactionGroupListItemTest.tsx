@@ -44,6 +44,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
     isTodoSearch: jest.fn(() => false),
     isCashBackWithdrawalGroup: jest.fn(() => false),
+    isExistingSearchKey: jest.fn(() => false),
+    getSearchKeyForDataType: jest.fn(() => undefined),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
@@ -422,6 +424,29 @@ describe('TransactionGroupListItem', () => {
         await collapse();
 
         expect(screen.getByLabelText('Expand')).toBeTruthy();
+    });
+
+    it('should collapse when every loaded transaction is pending delete and the group is not', async () => {
+        const {rerender} = renderTransactionGroupListItem();
+        await waitForBatchedUpdatesWithAct();
+        await expand();
+
+        rerender(
+            <TransactionGroupListItem
+                {...defaultProps}
+                item={{
+                    ...report,
+                    transactions: report.transactions.map((transaction) => ({
+                        ...transaction,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    })),
+                }}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByLabelText('Expand')).toBeTruthy();
+        expect(screen.queryByLabelText('Collapse')).toBeNull();
     });
 
     it(`should show only ${CONST.TRANSACTION.RESULTS_PAGE_SIZE} transactions when collapsed and expanded again`, async () => {
