@@ -111,7 +111,11 @@ describe('no-layout-spacing-conditional', () => {
             },
             {
                 code: 'const style = shouldUseNarrowLayout ? styles.pl5 : styles.pl8;',
-                errors: [{messageId: 'layoutSpacingConditional', data: {test: 'shouldUseNarrowLayout', first: 'pl5', second: 'pl8'}}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'shouldUseNarrowLayout', first: 'pl5', second: 'pl8', replacement: 'cardPaddingLeft'}}],
+            },
+            {
+                code: 'const style = shouldUseNarrowLayout ? styles.mh5 : styles.mh8;',
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'shouldUseNarrowLayout', first: 'mh5', second: 'mh8', replacement: 'cardMarginHorizontal'}}],
             },
             {
                 code: 'const style = isLargeScreenWidth ? styles.mr8 : styles.mr5;',
