@@ -140,14 +140,18 @@ describe('VacationDelegatePage', () => {
     });
 
     it('calls setVacationDelegate once for a single selection', async () => {
+        // Given a signed-in creator (see beforeEach) and a side-effect request mocked to succeed, so only what the
+        // page sends and does next is under test
         apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS}));
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When a delegate row is tapped
         fireEvent.press(screen.getByTestId('select-delegate-a'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then setVacationDelegate is sent exactly once with the mapped params, and the page navigates back to the status page
         expect(apiSideEffectSpy).toHaveBeenCalledTimes(1);
         expect(apiSideEffectSpy).toHaveBeenCalledWith(
             SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
@@ -157,8 +161,9 @@ describe('VacationDelegatePage', () => {
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_STATUS);
     });
 
-    // Regression: an EXP_ERROR response's server-provided message must reach the error modal instead of being dropped for the generic copy.
     it('surfaces the EXP_ERROR response message in the error modal and restores the previous delegate on dismissal', async () => {
+        // Given a response carrying a server-provided EXP_ERROR message, since a regression once dropped this message
+        // for the generic copy and this page owns the guarantee that it reaches the user
         const EXP_ERROR_MESSAGE = 'This delegate has already been assigned as your submitsTo approver.';
         apiSideEffectSpy = jest
             .spyOn(require('@libs/API'), 'makeRequestWithSideEffects')
@@ -169,9 +174,11 @@ describe('VacationDelegatePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When a delegate row is tapped and the request fails
         fireEvent.press(screen.getByTestId('select-delegate-a'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then the server's own message reaches the error modal, the page does not navigate away, and no delegate or error is left behind
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: EXP_ERROR_MESSAGE}));
         expect(Navigation.goBack).not.toHaveBeenCalled();
 
@@ -180,30 +187,34 @@ describe('VacationDelegatePage', () => {
         expect(vacationDelegate?.errors).toBeFalsy();
     });
 
-    // Without a server message (e.g. a non-EXP_ERROR failure, or a transport rejection), the generic translation is used instead.
     it('falls back to the generic error copy when the response carries no EXP_ERROR message', async () => {
+        // Given a failure response with no server-provided message, e.g. a non-EXP_ERROR failure or a transport rejection
         apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve({jsonCode: CONST.JSON_CODE.BAD_REQUEST}));
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When a delegate row is tapped and the request fails
         fireEvent.press(screen.getByTestId('select-delegate-a'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then the generic translation is used instead of a blank or missing prompt
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: TestHelper.translateLocal('statusPage.vacationDelegateError')}));
     });
 
     it('ignores a second row selection while the first request is still pending', async () => {
-        // Never resolves, so the request stays "in flight" for the duration of the test.
+        // Given a request that never resolves, so the first pick stays "in flight" for the duration of the test
         apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => new Promise(() => {}));
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When a second row is tapped before the first request settles
         fireEvent.press(screen.getByTestId('select-delegate-a'));
         fireEvent.press(screen.getByTestId('select-delegate-b'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then only the first pick is sent, so a fast double tap cannot fire two overlapping requests
         expect(apiSideEffectSpy).toHaveBeenCalledTimes(1);
         expect(apiSideEffectSpy).toHaveBeenCalledWith(
             SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
@@ -213,7 +224,8 @@ describe('VacationDelegatePage', () => {
     });
 
     it('rolls back the optimistic delegate instead of leaving a stuck pending row when the request rejects', async () => {
-        // Simulates a transport failure (e.g. connection dropped after the tap), which rejects rather than resolving with a jsonCode.
+        // Given a request that rejects outright, simulating a transport failure (e.g. connection dropped after the tap)
+        // rather than a resolved response with a jsonCode
         apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.reject(new Error('Failed to fetch')));
         // jest.mock's factory functions (unlike jest.spyOn) are not reset by jest.restoreAllMocks() in afterEach, so call counts otherwise leak across tests in this file.
         jest.mocked(Navigation.goBack).mockClear();
@@ -221,26 +233,29 @@ describe('VacationDelegatePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When a delegate row is tapped and the request rejects
         fireEvent.press(screen.getByTestId('select-delegate-a'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then the optimistic delegate and any error are rolled back instead of left stuck, and the page does not navigate away
         expect(Navigation.goBack).not.toHaveBeenCalled();
         const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
         expect(vacationDelegate?.pendingAction).toBeFalsy();
         expect(vacationDelegate?.delegate).toBeFalsy();
         expect(vacationDelegate?.errors).toBeFalsy();
 
-        // A second tap must not be ignored as "still pending" once the failed request has settled.
+        // When the same row is tapped again after the failed request has settled
         fireEvent.press(screen.getByTestId('select-delegate-a'));
         await waitForBatchedUpdatesWithAct();
+
+        // Then the new tap is not ignored as "still pending", since the earlier request already settled
         expect(apiSideEffectSpy).toHaveBeenCalledTimes(2);
     });
 
     it('rolls back to the last confirmed delegate, not to an unconfirmed one, when a previous change is still unresolved', async () => {
-        // Never resolves, so the optimistic write for the second selection stays in place for the assertion.
+        // Given a request that never resolves, so the optimistic write for the second selection stays in place for the
+        // assertion, and an NVP already left in the state a failed change the user has not dismissed leaves behind: delegateA shown but never saved
         apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => new Promise(() => {}));
-
-        // What a failed change the user has not dismissed yet leaves behind: delegateA is shown but was never saved.
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
                 creator: CREATOR_EMAIL,
@@ -253,10 +268,12 @@ describe('VacationDelegatePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When a different delegate is picked
         fireEvent.press(screen.getByTestId('select-delegate-b'));
         await waitForBatchedUpdatesWithAct();
 
-        // The API call is mocked out, so the optimistic data it was handed is where the rollback target is visible.
+        // Then the rollback target is the original confirmed delegate, not the unconfirmed delegateA; the API call is
+        // mocked out, so the optimistic data it was handed is where that target is visible
         expect(apiSideEffectSpy).toHaveBeenLastCalledWith(
             SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
             expect.objectContaining({vacationDelegateEmail: DELEGATE_B_EMAIL}),
@@ -267,6 +284,7 @@ describe('VacationDelegatePage', () => {
     });
 
     it('rolls back the optimistic delegate instead of leaving an unconfirmed policy diff behind when the screen loses focus before the response resolves', async () => {
+        // Given a request whose resolution is held open, so the screen can navigate away before it settles
         let resolveSideEffect: (response: {jsonCode: number; data?: {policyDiff: unknown}}) => void = () => {};
         apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(
             () =>
@@ -282,18 +300,20 @@ describe('VacationDelegatePage', () => {
         fireEvent.press(screen.getByTestId('select-delegate-a'));
         await waitForBatchedUpdatesWithAct();
 
-        // Simulates the user swiping the RHP away (or otherwise navigating off this screen) before the request settles.
+        // When the screen loses focus before the request settles, simulating the user swiping the RHP away (or otherwise navigating off this screen)
         await act(async () => {
             testNavigationRef.current?.navigate('Other');
             await waitForBatchedUpdatesWithAct();
         });
 
+        // When the request then resolves with a 305 policy diff warning
         await act(async () => {
             resolveSideEffect({jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff: {adminPolicies: [], nonAdminPolicies: []}}});
             await waitForBatchedUpdatesWithAct();
         });
 
-        // There's no longer a screen to carry the user into the missing-workspaces step, so it must not be pushed onto whatever they navigated to instead.
+        // Then the missing-workspaces step is not pushed onto whatever the user navigated to instead, since there's no longer a
+        // screen to carry them into it, and the optimistic delegate/policy diff are rolled back rather than left unconfirmed
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
 
         const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
