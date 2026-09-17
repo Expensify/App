@@ -999,12 +999,16 @@ describe('ReportUtils', () => {
                 expect.objectContaining({
                     value: expect.objectContaining({
                         choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         addWorkEmail: expect.any(String),
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         validateEmail: expect.any(String),
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         joinWorkspace: expect.any(String),
                     }),
                 }),
             );
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             expect(optimisticTaskIDs).not.toEqual(expect.objectContaining({value: expect.objectContaining({createWorkspace: expect.anything()})}));
 
             const rollbackTaskIDs = result?.failureData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);

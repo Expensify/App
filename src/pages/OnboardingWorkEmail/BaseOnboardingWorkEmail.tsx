@@ -53,7 +53,6 @@ import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 
 import type {BaseOnboardingWorkEmailProps} from './types';
 
@@ -272,6 +271,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         returnToOriginReport();
     }, [returnToOriginReport]);
 
+    // The Concierge task flow returns to the task thread, the regular join flow restarts at the purpose step,
+    // and every other flow leaves the blocked view without a confirm action.
+    let handleMergingAccountBlockedConfirm: (() => void) | undefined;
+    if (isConciergeTaskFlow) {
+        handleMergingAccountBlockedConfirm = handleConciergeTaskErrorConfirm;
+    } else if (isJoiningCompanyWorkspace) {
+        handleMergingAccountBlockedConfirm = handleRegularJoinWorkspaceErrorConfirm;
+    }
+
     const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
         if (
             errorTranslation !== 'onboarding.workEmail2FAError' &&
@@ -352,7 +360,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                     <OnboardingMergingAccountBlockedView
                         workEmail={workEmail}
                         isVsb={isVsb}
-                        onConfirm={isConciergeTaskFlow ? handleConciergeTaskErrorConfirm : isJoiningCompanyWorkspace ? handleRegularJoinWorkspaceErrorConfirm : undefined}
+                        onConfirm={handleMergingAccountBlockedConfirm}
                     />
                 </View>
             ) : (

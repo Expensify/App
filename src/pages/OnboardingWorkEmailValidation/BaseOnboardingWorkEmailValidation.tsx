@@ -94,7 +94,15 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {
             forceReplace: true,
         });
-    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb, isFocused]);
+    }, [
+        onboardingValues?.isMergeAccountStepCompleted,
+        onboardingValues?.shouldRedirectToClassicAfterMerge,
+        onboardingValues?.isMergeAccountStepSkipped,
+        isVsb,
+        isSmb,
+        isFocused,
+        isConciergeTaskFlow,
+    ]);
 
     const sendValidateCode = () => {
         if (!credentials?.login) {

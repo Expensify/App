@@ -182,7 +182,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (getAccessiblePoliciesAction?.loading === false) {
             continueAfterPrivateDomain(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         }
-    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep, continueAfterPrivateDomain]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep, continueAfterPrivateDomain, isConciergeTaskFlow]);
 
     if (shouldBlockPublicDomain) {
         return null;
