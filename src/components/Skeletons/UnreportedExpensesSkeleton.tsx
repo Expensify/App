@@ -41,9 +41,8 @@ type UnreportedExpensesSkeletonProps = {
 function UnreportedExpensesSkeleton({fixedNumberOfItems}: UnreportedExpensesSkeletonProps) {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth(40);
     const styles = useThemeStyles();
-    // Passed only when this is the pagination-loading footer appended below already-rendered table rows, not the
-    // full-page loading state, so it picks up a top divider connecting it to the real row above it instead of
-    // rounding its own top corners.
+    // Passed only when this is the pagination-loading footer appended below already-rendered table rows, so it picks up
+    // a top divider connecting it to the real row above it instead of rounding its own top corners.
     const isPaginationFooter = !!fixedNumberOfItems;
 
     const skeletonItem = useCallback(
@@ -95,7 +94,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: UnreportedExpensesSkel
                 itemViewHeight={72}
                 itemViewStyle={[styles.highlightBG, styles.mr0]}
                 itemContainerStyle={styles.borderBottom}
-                style={[styles.mh5, styles.overflowHidden, styles.tableBottomRadius, isPaginationFooter && styles.borderTop]}
+                style={[styles.mh5, styles.overflowHidden, styles.tableBottomRadius, isPaginationFooter ? styles.borderTop : styles.tableTopRadius]}
                 shouldAnimate
                 fixedNumItems={fixedNumberOfItems}
                 renderSkeletonItem={skeletonItem}

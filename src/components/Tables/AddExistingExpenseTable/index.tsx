@@ -25,9 +25,20 @@ type AddExistingExpenseTableProps = Pick<
     data: UnreportedExpenseTableRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    isMobileSelectionModeEnabled: boolean;
+    onMobileSelectionModeChange: (isEnabled: boolean) => void;
 };
 
-function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEndReached, onEndReachedThreshold, ListFooterComponent}: AddExistingExpenseTableProps) {
+function AddExistingExpenseTable({
+    data,
+    selectedKeys,
+    onRowSelectionChange,
+    isMobileSelectionModeEnabled,
+    onMobileSelectionModeChange,
+    onEndReached,
+    onEndReachedThreshold,
+    ListFooterComponent,
+}: AddExistingExpenseTableProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -119,10 +130,14 @@ function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEn
             columns={columns}
             selectionEnabled
             shouldEnableSelectionInNarrowPaneModal
-            // Expenses are confirmed in one batch, so searching must not drop what is already picked.
-            shouldPreserveSelectionOnSearch
+            // Expenses are confirmed in one batch, so searching or filtering must not drop what is already picked.
+            shouldPreserveSelectionOnSearchAndFilter
+            // The skeleton appended while the next page loads continues the rows, so it draws the bottom corners.
+            shouldFooterRenderAsLastRow
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
+            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+            onMobileSelectionModeChange={onMobileSelectionModeChange}
             initialSortColumn="date"
             initialSortOrder="desc"
             compareItems={compareItems}

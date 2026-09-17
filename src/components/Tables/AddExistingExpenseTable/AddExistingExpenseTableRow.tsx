@@ -4,6 +4,7 @@ import TransactionItemRow from '@components/TransactionItemRow';
 
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -26,6 +27,8 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
     const styles = useThemeStyles();
     // The item FlashList passes to renderItem is the plain row data, so selection state comes from processedData.
     const {tableMethods, processedData} = useTableContext<UnreportedExpenseTableRowData>();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const rowData = processedData.at(rowIndex);
     const isSelected = !!rowData?.selected;
     const isRowDisabled = !!rowData?.disabled;
@@ -45,9 +48,10 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM}
             offlineWithFeedback={{pendingAction: item.pendingAction}}
-            // This list has no per-row navigation, so the whole row is the selection target.
+            // This list has no per-row navigation, so the whole row is the selection target. On small screens the row is
+            // only a target once selection mode is on, which the user enters by long pressing, as in the other tables.
             onPress={() => {
-                if (item.isSelectionDisabled) {
+                if (item.isSelectionDisabled || isSmallScreenWidth) {
                     return;
                 }
                 tableMethods.handleSingleRowSelection(item.keyForList);
