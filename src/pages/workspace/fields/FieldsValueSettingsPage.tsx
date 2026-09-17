@@ -164,8 +164,8 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                         </View>
                     </View>
                     <MenuItemField
-                        value={currentValueName ?? oldValueName}
                         name={translate('common.value')}
+                        value={currentValueName ?? oldValueName}
                         onPress={canWrite && !reportFieldID ? navigateToEditValue : undefined}
                     />
                     {canWrite && !isImportedReportField && (
