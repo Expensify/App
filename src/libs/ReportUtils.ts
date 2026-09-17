@@ -79,7 +79,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ColorValue} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 
@@ -131,6 +131,7 @@ import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import {getDBTimeWithSkew, getServerAnchoredDBTime} from './NetworkState';
 import {rand64} from './NumberUtils';
+import {isTrackOnboardingChoice} from './OnboardingUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
@@ -2060,7 +2061,7 @@ function isReportOpenOrUnsubmitted(reportID: string | undefined, reports: OnyxCo
     return report.stateNum === CONST.REPORT.STATE_NUM.OPEN;
 }
 
-function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions>): boolean {
+function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     if (!report?.reportID) {
         return false;
     }
@@ -5079,7 +5080,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    reportActions?: OnyxEntry<ReportActions>,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -5289,7 +5290,17 @@ function canEditMultipleTransactions(
             CONST.EDIT_REQUEST_FIELD.TAX_RATE,
         ];
 
-        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy, rules}));
+        const isTransactionEditable = fieldsToCheck.some((field) =>
+            canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report,
+                policy,
+                reportActions: actionsForReport,
+                rules,
+            }),
+        );
 
         if (!isTransactionEditable) {
             return false;
@@ -5351,6 +5362,7 @@ function canEditFieldOfMoneyRequest({
     report,
     policy,
     reportNameValuePairs,
+    reportActions,
     rules,
 }: {
     reportAction: OnyxInputOrEntry<ReportAction>;
@@ -5363,6 +5375,8 @@ function canEditFieldOfMoneyRequest({
     policy?: OnyxEntry<Policy>;
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    // Temporarily optional while callers are migrated in smaller PRs. Once every caller passes it, the module-level fallback in hasReportBeenForwardedSinceLastSubmit is removed as part of https://github.com/Expensify/App/issues/66419.
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[];
     rules: OnyxCollection<Rule>;
 }): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
@@ -5385,7 +5399,7 @@ function canEditFieldOfMoneyRequest({
         return canUnreportedBeMoved(transaction, allPolicies);
     }
 
-    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, rules, isChatReportArchived, report, policy)) {
+    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, rules, isChatReportArchived, report, policy, reportActions)) {
         return false;
     }
 
@@ -9310,9 +9324,13 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[], cur
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 /**
  * Returns true if the admin room should be pinned by default for the current user.
- * Admin rooms are pinned by default for all users except for Expensify Team members and users who own a paid policy.
+ * Admin rooms are pinned by default for all users except for track users, Expensify Team members, and users who own a paid policy.
  */
-function shouldPinAdminRoomByDefault(currentUserEmail?: string, hasOwnedPaidPolicy = false) {
+function shouldPinAdminRoomByDefault(currentUserEmail?: string, hasOwnedPaidPolicy = false, engagementChoice?: OnboardingPurpose) {
+    if (isTrackOnboardingChoice(engagementChoice)) {
+        return false;
+    }
+
     return !isExpensifyTeam(currentUserEmail ?? deprecatedCurrentUserEmail) && !hasOwnedPaidPolicy;
 }
 
@@ -9323,6 +9341,7 @@ function buildOptimisticWorkspaceChats(
     currentUserEmail: string | undefined,
     expenseReportId?: string,
     hasOwnedPaidPolicy?: boolean,
+    engagementChoice?: OnboardingPurpose,
 ): OptimisticWorkspaceChats {
     const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const adminsChatData = {
@@ -9333,7 +9352,7 @@ function buildOptimisticWorkspaceChats(
             policyID,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             oldPolicyName: policyName,
-            isPinned: shouldPinAdminRoomByDefault(currentUserEmail, hasOwnedPaidPolicy),
+            isPinned: shouldPinAdminRoomByDefault(currentUserEmail, hasOwnedPaidPolicy, engagementChoice),
             currentUserAccountID,
         }),
     };
@@ -12181,6 +12200,33 @@ function getOutstandingReportsForUser(
 }
 
 /**
+ * Get the submitter's most recently created open report for a policy, or null when they have none.
+ *
+ * This is the fallback used when creating an expense on a workspace chat whose `iouReportID` can't be resolved,
+ * so the expense joins the submitter's existing open report instead of starting a new one.
+ *
+ * Only reports that are still open qualify. `allowSubmitted = false` is not enough on its own: `isReportOutstanding`
+ * also returns submitted reports when `canAddTransaction` is true, which it is for a report awaiting first-level
+ * approval. Submitting a report clears the chat's `iouReportID`, which is precisely when this fallback runs, so
+ * without the open-only filter the next expense would land on the report the submitter just sent for approval.
+ *
+ * @param policyID - The policy ID to filter reports by
+ * @param reportOwnerAccountID - The accountID of the report owner
+ * @param reports - Collection of reports to filter
+ */
+function getNewestOutstandingReportForUser(
+    policyID: string | undefined,
+    reportOwnerAccountID: number | undefined,
+    rules: OnyxCollection<Rule>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reports: OnyxCollection<Report> = deprecatedAllReports,
+): OnyxInputValue<Report> {
+    const openReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, rules, reportNameValuePairs, reports, false).filter(isOpenExpenseReport);
+
+    return openReports.reduce<OnyxInputValue<Report>>((newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest), openReports.at(0) ?? null);
+}
+
+/**
  * Whether the member is the approver of any of the policy's reports that are waiting for their approval.
  * An approver assigned through "Change approver" is only stored in the report's `managerID`, so they are not covered by `isPolicyApprover`.
  * @param accountID - The accountID of the member to check
@@ -14551,6 +14597,7 @@ export {
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
     getOutstandingReportsForUser,
+    getNewestOutstandingReportForUser,
     isApproverOfOutstandingPolicyReports,
     isReportOutstanding,
     isReportTotalPending,

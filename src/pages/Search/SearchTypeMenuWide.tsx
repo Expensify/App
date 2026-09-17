@@ -1,6 +1,6 @@
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchQueryActions, useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -79,7 +79,6 @@ function SearchTypeMenuWide() {
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const typeMenuSections = useSearchTypeMenuSectionsForDisplay();
-    const {setCurrentSearchKey} = useSearchQueryActions();
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     // Intentionally left enabled (no focus freeze): the wide menu renders in the search navigator's ExtraContent
     // slot, where useIsFocused() does not track visibility, so freezing on it would be unreliable.
@@ -98,7 +97,7 @@ function SearchTypeMenuWide() {
     };
 
     const handleTypeMenuItemPress = singleExecution((searchKey: SearchKey, searchQuery: string) => {
-        navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions, setCurrentSearchKey);
+        navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions);
     });
 
     useLayoutEffect(() => {

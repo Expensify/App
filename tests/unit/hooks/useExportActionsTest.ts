@@ -6,6 +6,11 @@ import useExportActions from '@hooks/useExportActions';
 
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
+
+import createRandomTransaction from '../../utils/collections/transaction';
+
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
 const mockClearSelectedTransactions = jest.fn();
 
@@ -53,7 +58,8 @@ jest.mock('@hooks/useExportAgainModal', () => ({
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({translate: (key: string) => key}),
+    // Echo the plural count so tests can assert which form a label asks for.
+    default: () => ({translate: (key: string, params?: {count?: number}) => (params?.count === undefined ? key : `${key}:${params.count}`)}),
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
@@ -70,9 +76,10 @@ jest.mock('@hooks/usePaginatedReportActions', () => ({
     default: () => ({reportActions: []}),
 }));
 
+let mockReportTransactions: Record<string, Transaction> = {};
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({
     __esModule: true,
-    default: () => ({transactions: {}}),
+    default: () => ({transactions: mockReportTransactions}),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -129,5 +136,34 @@ describe('useExportActions - template export status modal', () => {
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
         expect(mockShowDecisionModal).toHaveBeenCalled();
+    });
+});
+
+describe('useExportActions - download labels', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockReportTransactions = {};
+    });
+
+    it('labels the PDF download with the singular "Download report" since the page acts on one report', () => {
+        const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
+
+        expect(result.current.exportActionEntries[CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF].text).toBe('common.downloadReport:1');
+    });
+
+    it('labels the receipts download by how many of the report expenses carry a receipt', () => {
+        const withReceipt = {...createRandomTransaction(1), reportID: REPORT_ID, hasEReceipt: false, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
+        const withoutReceipt = {...createRandomTransaction(2), reportID: REPORT_ID, hasEReceipt: false, receipt: undefined};
+        mockReportTransactions = {tx1: withReceipt, tx2: withoutReceipt};
+        const {result, rerender} = renderHook(() => useExportActions({reportID: REPORT_ID}));
+
+        // One of the two expenses has a receipt, so the label is singular.
+        expect(result.current.exportActionEntries[CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS].text).toBe('common.downloadReceipt:1');
+
+        mockReportTransactions = {tx1: withReceipt, tx2: {...withoutReceipt, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}}};
+        rerender({});
+
+        expect(result.current.exportActionEntries[CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS].text).toBe('common.downloadReceipt:2');
     });
 });
