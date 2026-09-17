@@ -38,6 +38,9 @@ const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fi
 /**
  * Everything the confirmation surface needs regardless of which expense type is being confirmed: the policy data,
  * the participant rows, the form errors, the validation gate, and the confirm button.
+ *
+ * What differs per type — the distance state, the tax controller, the receipt sections, and the footer itself —
+ * stays with the variant that mounts this.
  */
 function useConfirmationListData({
     transaction,
