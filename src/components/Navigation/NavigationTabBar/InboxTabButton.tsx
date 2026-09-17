@@ -36,6 +36,7 @@ function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
         name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        forceTransaction: true,
         attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout},
     });
 }

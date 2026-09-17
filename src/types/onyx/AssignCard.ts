@@ -21,7 +21,6 @@ type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
  *   - For commercial feeds (Visa/Mastercard/Amex): encrypted value from cardList
  */
 type AssignCardData = {
-    /** The cardholder personal details */
     cardholder?: PersonalDetails;
 
     /** The email address of the assignee */
@@ -34,7 +33,6 @@ type AssignCardData = {
      */
     encryptedCardNumber: string;
 
-    /** The name of the feed */
     bankName: CardFeedWithNumber;
 
     /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234"). This is the original card identifier and should not be edited. */
@@ -47,6 +45,12 @@ type AssignCardData = {
      */
     customCardName: string;
 
+    /**
+     * Whether the user has manually edited the custom card name in CardNameStep.
+     * When true, the name is preserved instead of being recomputed from the selected assignee.
+     */
+    isCustomCardNameEdited: boolean;
+
     /** The transaction start date of the card */
     startDate: string;
 
@@ -54,21 +58,17 @@ type AssignCardData = {
     dateOption: string;
 
     /** Bank ID for Plaid */
-    institutionId?: CardFeedWithNumber;
+    institutionId?: string;
 
     /** Access token for Plaid bank */
     plaidAccessToken?: string;
 
-    /** Plaid feed name */
     plaidConnectedFeedName?: string;
-
-    /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
 
     /** The email address of the inviting member */
     invitingMemberEmail: string;
 
-    /** The accountID of the inviting member */
     invitingMemberAccountID: number;
 };
 
@@ -86,7 +86,6 @@ type AssignCard = {
     /** Whether the assignment flow has finished */
     isAssignmentFinished?: boolean;
 
-    /** Whether the card is assigning */
     isAssigning?: boolean;
 
     /** Whether the feed connection is currently being refreshed */

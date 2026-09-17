@@ -1,7 +1,19 @@
 import CONST from '@src/CONST';
 
-const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, MULTI_SCAN_EDUCATIONAL_MODAL, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
-    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {
+    CONCIERGE_LHN_GBR,
+    OUTSTANDING_FILTER,
+    ACCOUNT_SWITCHER,
+    SCAN_TEST_DRIVE_CONFIRMATION,
+    MULTI_SCAN_EDUCATIONAL_MODAL,
+    GPS_TOOLTIP,
+    HAS_FILTER_NEGATION,
+    MILEAGE_RATE_AUTO_UPDATED,
+    MARK_ALL_AS_READ,
+    ACCOUNT_MOVED_TO_TOP_BAR,
+    REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
+    REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
+} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -78,6 +90,28 @@ type DismissedProductTraining = {
      * When user dismisses the mileage rate auto-updated tooltip, we store the timestamp here.
      */
     [MILEAGE_RATE_AUTO_UPDATED]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the mark all as read tooltip, we store the timestamp here.
+     */
+    [MARK_ALL_AS_READ]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the tooltip pointing at the account button in the top bar, we store the timestamp here.
+     */
+    [ACCOUNT_MOVED_TO_TOP_BAR]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the require fields rule tooltip explaining why Receipt is locked while
+     * Itemized receipt is required, we store the timestamp here.
+     */
+    [REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the require fields rule tooltip explaining why Itemized receipt is locked
+     * while Receipt is waived, we store the timestamp here.
+     */
+    [REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP]: DismissedProductTrainingElement;
 };
 
 export default DismissedProductTraining;

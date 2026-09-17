@@ -23,10 +23,19 @@ fi
 
 # Setup Skia WASM
 echo -e "\n${GREEN}Setting up Skia WASM!${NC}"
-npx setup-skia-web
+./node_modules/.bin/setup-skia-web
 
 # Clean up web/static created by setup-skia-web
 rm -rf "$ROOT_DIR/web/static"
 
 # Apply packages using patch-package
-scripts/applyPatches.sh
+bun scripts/applyPatches.ts
+
+# `@typescript/old` (pulled in by `@typescript/typescript6`) also ships a `tsc` bin.
+# npm's last-writer-wins linking can point `node_modules/.bin/tsc` at TypeScript 6.
+# Force the TypeScript 7 native compiler, so `npx tsc` is the compiler `npm run typecheck` runs.
+#
+# It is not the same *command*: the root tsconfig.json is a solution that lists projects and owns no
+# files, and project mode does not follow `references`. `npx tsc` at the repo root therefore checks
+# nothing and exits 0. Use `npx tsc --build`, which walks the references, or `npm run typecheck`.
+ln -sfn ../typescript/bin/tsc "$ROOT_DIR/node_modules/.bin/tsc"

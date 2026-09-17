@@ -1,4 +1,4 @@
-import SubmitPlanWelcomeModalGuard, {resetSessionFlag} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
+import SubmitPlanWelcomeModalGuard, {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 // eslint-disable-next-line no-restricted-imports -- type-only namespace import used solely to type jest.requireActual for the module mock below
@@ -35,7 +35,6 @@ const submitPlanWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.SUBMIT_PLAN_WEL
 /** Enables all trigger conditions so the guard would redirect. */
 async function setUpEligibleUser() {
     mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
-    await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
     await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.EMPLOYER});
     await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
     // HAS_LOADED_APP flips to true only after OpenApp finishes loading this session's account data (incl. the
@@ -99,15 +98,6 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         }
     });
 
-    it('should allow when the SUBMIT_2026 beta is not enabled', async () => {
-        await setUpEligibleUser();
-        await Onyx.merge(ONYXKEYS.BETAS, []);
-        await waitForBatchedUpdates();
-
-        const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
-        expect(result.type).toBe('ALLOW');
-    });
-
     it('should allow when the user did not select the EMPLOYER intent', async () => {
         await setUpEligibleUser();
         await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
@@ -149,6 +139,29 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
+    it("should allow when the user's domain restricts workspace creation via a migrated security group", async () => {
+        // Same case as the previous test, but the membership is the migrated object form and the group lives under the
+        // sharedNVP collection instead of the legacy SECURITY_GROUP collection.
+        // Given an eligible user with an object membership for their domain
+        await setUpEligibleUser();
+        const restrictedDomain = 'restricted.example.com';
+        const securityGroupID = '654321';
+        const ownerAccountID = 456;
+        await Onyx.merge(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[restrictedDomain]: {securityGroupID, ownerAccountID}});
+
+        // Given the group forbids creating workspaces, stored under the sharedNVP key
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`, {enableRestrictedPolicyCreation: true});
+        await waitForBatchedUpdates();
+        // The guard reads the email from its cached session, populated via its SESSION subscription.
+        await markSessionReady({authToken: 'test-token', accountID: 123, email: `employee@${restrictedDomain}`});
+
+        // When the guard evaluates a navigation action
+        const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+
+        // Then navigation is allowed, since a restricted user must not see the modal
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should allow while the app is still loading this session (HAS_LOADED_APP not yet set)', async () => {
         await setUpEligibleUser();
         // Simulate the sign-in window where the eligibility NVPs are present but OpenApp has not yet delivered
@@ -168,6 +181,14 @@ describe('SubmitPlanWelcomeModalGuard', () => {
 
         const secondResult = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
         expect(secondResult.type).toBe('ALLOW');
+    });
+
+    it('should allow when an intent=submit deeplink is creating the workspace already', async () => {
+        await setUpEligibleUser();
+        suppressWelcomeModalForSubmitDeeplink();
+
+        const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        expect(result.type).toBe('ALLOW');
     });
 
     it('should allow when already on the submit plan welcome modal screen', async () => {
@@ -200,6 +221,16 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             await markSessionReady({authToken: 'test-token', accountID: 123});
 
             expect(mockNavigate).toHaveBeenCalledWith(submitPlanWelcomeRoute);
+        });
+
+        it('should not navigate when an intent=submit deeplink is creating the workspace already', async () => {
+            await setUpEligibleUser();
+            suppressWelcomeModalForSubmitDeeplink();
+            mockNavigate.mockClear();
+
+            await markSessionReady({authToken: 'test-token', accountID: 123});
+
+            expect(mockNavigate).not.toHaveBeenCalled();
         });
 
         it('should not navigate when there is no session', async () => {

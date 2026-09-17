@@ -35,6 +35,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
@@ -130,7 +131,7 @@ beforeAll(() => {
 
 describe('getIcons', () => {
     it('should return a fallback icon if the report is empty', () => {
-        const report = {} as Report;
+        const report = createMock<Report>({});
         const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
     });
@@ -182,7 +183,19 @@ describe('getIcons', () => {
 
         const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
-        expect(icons.at(0)?.name).toBe('Email\u00A0Two');
+        expect(icons.at(0)?.name).toBe('Email Two');
+    });
+
+    it('should return the Concierge icon for a thread under the Concierge DM', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([1], 0, true),
+            parentReportID: '1',
+            parentReportActionID: '1',
+        };
+
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, undefined, undefined, false, undefined, '1');
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
     });
 
     it('should return the correct icons for a task report', () => {

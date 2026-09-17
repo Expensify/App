@@ -29,8 +29,12 @@ function useDefaultFundID(policyID: string | undefined) {
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
+            // Compare the parsed fund ID rather than testing the raw key for a substring: a substring test
+            // also excludes unrelated funds whose ID merely contains these digits, and while the workspace
+            // fund is still unresolved it holds CONST.DEFAULT_NUMBER_ID, which would drop every fund whose
+            // ID contains a zero.
             const eligibleEntries = Object.entries(cardSettings ?? {}).filter(
-                ([key, settings]) => !!settings && !key.includes(workspaceAccountID.toString()) && settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                ([key, settings]) => !!settings && getFundIdFromSettingsKey(key) !== workspaceAccountID && settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
 
             if (policyID) {
@@ -45,7 +49,7 @@ function useDefaultFundID(policyID: string | undefined) {
                 }
             }
 
-            return getFundIdFromSettingsKey('');
+            return undefined;
         },
         [policyID, workspaceAccountID],
     );

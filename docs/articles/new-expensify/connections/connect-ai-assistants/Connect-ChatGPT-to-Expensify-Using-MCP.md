@@ -16,40 +16,23 @@ Learn more about supported AI clients, permissions, and security in [Use the Exp
 
 ## Who can connect ChatGPT to Expensify using MCP
 
-Any member with an Expensify account and access to ChatGPT developer mode can connect ChatGPT to Expensify using MCP.
+Any member with an Expensify account and access to ChatGPT can connect using the Expensify connector in the ChatGPT connector directory.
 
 Requirements:
 
-- Access to ChatGPT developer mode
+- A ChatGPT account
 - An active Expensify account
 - Internet access for OAuth authentication
 
 ---
 
-## How to enable developer mode in ChatGPT
-
-For the latest requirements and instructions, see the [ChatGPT Developer mode documentation](https://developers.openai.com/api/docs/guides/developer-mode).
+## How to connect Expensify in ChatGPT
 
 1. Open ChatGPT.
 2. Go to **Settings**.
-3. Select **Apps**.
-4. Select **Advanced settings**.
-5. Enable **Developer mode**.
-
----
-
-## How to create the Expensify connector in ChatGPT
-
-1. Open **Settings**.
-2. Select **Apps**.
-3. Select **Create App**.
-4. Enter the following details:
-
-- **Name:** Expensify
-- **Description:** Search your Expensify expenses, reports, receipts, trips, and tasks.
-- **Connection:** `https://www.expensify.com/mcp/`
-
-5. Click **Create**.
+3. Select **Plugins**.
+4. Select **Expensify** from the list.
+5. Click **Connect**.
 6. Complete the OAuth sign-in and approval flow in your browser.
 7. Click **Allow**.
 
@@ -87,15 +70,15 @@ ChatGPT cannot:
 
 # FAQ
 
-## Why can’t ChatGPT access my Expensify data?
+## Why can't ChatGPT access my Expensify data?
 
 Make sure you completed the OAuth approval flow in your browser.
 
 If ChatGPT still cannot access your data:
 
-- Go to **Settings** > **Apps** in ChatGPT and confirm that **Expensify** appears under **Enabled Apps**.
+- Go to **Settings** > **Plugins** in ChatGPT and confirm that **Expensify** appears under **Enabled Plugins**.
 - Open the **Expensify** connector in ChatGPT, select the three dots **(⋮)**, and click **Reconnect**.
-- Remove the Expensify connector and create it again by following the setup instructions in this article.
+- Remove the Expensify connector and add it again by following the setup instructions in this article.
 
 ## Can ChatGPT edit expenses or approve reports?
 

@@ -28,7 +28,7 @@ function buildRoute(key: string, params: Record<string, unknown> = {}, nestedRou
 }
 
 function buildState(routes: NavigationState['routes']): NavigationState {
-    return {routes, index: 0, key: 'root', routeNames: [], stale: false, type: 'stack'} as unknown as NavigationState;
+    return {routes, index: 0, key: 'root', routeNames: [], stale: false, type: 'stack'};
 }
 
 describe('cleanStaleReportActionBackToParam', () => {

@@ -17,14 +17,14 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
         // Protected screens, only accessible with an authToken. Show a loader (not a blank
         // screen) while the lazy AuthScreens chunk downloads during the sign-in swap.
         return (
-            <Suspense fallback={<LoadingIndicator reasonAttributes={{context: 'AppNavigator.AuthScreens'}} />}>
+            <Suspense fallback={<LoadingIndicator />}>
                 <AuthScreens />
             </Suspense>
         );
     }
 
     return (
-        <Suspense fallback={<LoadingIndicator reasonAttributes={{context: 'AppNavigator.PublicScreens'}} />}>
+        <Suspense fallback={<LoadingIndicator />}>
             <PublicScreens />
         </Suspense>
     );

@@ -29,7 +29,6 @@ import FormContext from './FormContext';
 
 type FormWrapperProps = ChildrenProps &
     FormProps & {
-        /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Whether to apply flex to the submit button */
@@ -44,13 +43,11 @@ type FormWrapperProps = ChildrenProps &
         /** Whether the submit button is disabled */
         isSubmitDisabled?: boolean;
 
-        /** Callback to submit the form */
         onSubmit: () => void;
 
         /** should render the extra button above submit button */
         shouldRenderFooterAboveSubmit?: boolean;
 
-        /** Whether the form is loading */
         isLoading?: boolean;
 
         /** Whether the fix errors alert should be visible */
@@ -59,23 +56,13 @@ type FormWrapperProps = ChildrenProps &
         /** Server side field errors keyed by field name */
         serverErrorFields?: ErrorFields | null;
 
-        /** Server side error message */
         serverErrorMessage?: string;
 
         /** If enabled, the content will have a bottom padding equal to account for the safe bottom area inset. */
         addBottomSafeAreaPadding?: boolean;
 
-        /** Whether to add bottom safe area padding to the content. */
         addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
-        /** Whether the submit button should stick to the bottom of the screen. */
         shouldSubmitButtonStickToBottom?: boolean;
-
-        /**
-         * Whether the button should have a background layer in the color of theme.appBG.
-         * This is needed for buttons that allow content to display under them.
-         */
-        shouldSubmitButtonBlendOpacity?: boolean;
 
         /** Fires at most once per frame during scrolling. */
         onScroll?: () => void;
@@ -84,9 +71,10 @@ type FormWrapperProps = ChildrenProps &
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
         ref?: ForwardedRef<FormWrapperRef>;
+        submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
 
-        /** Whether to display the submit button and footer in one row in landscape mode */
-        shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode?: boolean;
+        /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
+        submitButtonInnerStyles?: StyleProp<ViewStyle>;
     };
 
 function FormWrapper({
@@ -101,7 +89,7 @@ function FormWrapper({
     submitButtonStyles,
     submitFlexEnabled = true,
     enabledWhenOffline,
-    isSubmitActionDangerous = false,
+    buttonVariant,
     formID,
     shouldUseScrollView = true,
     scrollContextEnabled = false,
@@ -117,13 +105,13 @@ function FormWrapper({
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
-    shouldSubmitButtonBlendOpacity = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
-    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode = false,
+    submitButtonAndFooterContainerStyles,
+    submitButtonInnerStyles,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -173,6 +161,13 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
+    const scrollTo = (y: number) => {
+        // Wait for the keyboard animation to complete
+        setTimeout(() => {
+            formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
+        }, CONST.ANIMATED_TRANSITION);
+    };
+
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
     // In this case, we want to get and apply the padding unconditionally.
@@ -198,6 +193,7 @@ function FormWrapper({
 
     useImperativeHandle(ref, () => ({
         scrollToEnd,
+        scrollTo,
     }));
 
     const SubmitButton = isSubmitButtonVisible && (
@@ -220,14 +216,14 @@ function FormWrapper({
                 shouldSubmitButtonStickToBottom && [styles.stickToBottom, style],
             ]}
             enabledWhenOffline={enabledWhenOffline}
-            isSubmitActionDangerous={isSubmitActionDangerous}
+            buttonVariant={buttonVariant}
             disablePressOnEnter={disablePressOnEnter}
             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
-            shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
             sentryLabel={sentryLabel}
-            shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode={shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode}
+            buttonAndFooterContainerStyles={submitButtonAndFooterContainerStyles}
+            buttonStyles={submitButtonInnerStyles}
         />
     );
 

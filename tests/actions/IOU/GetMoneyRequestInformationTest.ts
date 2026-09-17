@@ -2,15 +2,21 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Beta, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    navigationRef: {
+        getRootState: jest.fn(),
+        getCurrentRoute: jest.fn(),
+        isReady: jest.fn(() => true),
+    },
 }));
 
 const POLICY_ID = 'policy-test-1';
@@ -18,6 +24,7 @@ const CHAT_REPORT_ID = 'report-chat-1';
 const PAYEE_ACCOUNT_ID = 100;
 const PAYER_ACCOUNT_ID = 200;
 const TAG_LIST = 'Department';
+const EMPTY_TAG_LIST = '';
 const TAG_NAME = 'Engineering';
 
 const parentChatReport: Report = {
@@ -43,6 +50,7 @@ const policyTagListA: PolicyTagLists = {
 };
 
 const baseParams = {
+    isVendorMatchingBetaEnabled: false,
     parentChatReport,
     participantParams: {
         payeeAccountID: PAYEE_ACCOUNT_ID,
@@ -70,6 +78,8 @@ const baseParams = {
     personalDetails: {},
     delegateAccountID: undefined,
     isTrackIntentUser: false,
+    formatPhoneNumber,
+    rules: undefined,
 } as const;
 
 describe('getMoneyRequestInformation', () => {
@@ -86,6 +96,7 @@ describe('getMoneyRequestInformation', () => {
     describe('optimistic recently used tags', () => {
         it('should store recently used tags at the correct policy key when policyTagList and tag are provided', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: policyTagListA,
@@ -105,6 +116,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should not store recently used tags when tag is not provided', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: policyTagListA,
@@ -119,6 +131,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should store tags under empty-string list key when policyTagList has no named tag lists', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: {},
@@ -133,13 +146,13 @@ describe('getMoneyRequestInformation', () => {
             const tagEntry = result.onyxData.optimisticData?.find((entry) => entry.key === expectedKey);
 
             expect(tagEntry).toBeDefined();
-            const value = tagEntry?.value as Record<string, string[]>;
-            expect(value['']).toEqual([TAG_NAME]);
+            expect(tagEntry?.value).toEqual({[EMPTY_TAG_LIST]: [TAG_NAME]});
         });
 
         it('should use parentChatReport.policyID for the recently used tags key', () => {
             const otherPolicyID = 'policy-other';
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 parentChatReport: {
                     ...parentChatReport,
@@ -177,6 +190,7 @@ describe('getMoneyRequestInformation', () => {
             await waitForBatchedUpdates();
 
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 moneyRequestReportID,
                 policyParams: {
@@ -197,6 +211,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should fall back to parentChatReport.policyID when moneyRequestReportID is empty string', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 moneyRequestReportID: '',
                 policyParams: {
@@ -219,7 +234,7 @@ describe('getMoneyRequestInformation', () => {
     describe('pendingNewTransactionIDs metadata rail', () => {
         // Only the 0→1 negative is testable here (the resolved report has no existing txs); the >= 1 positive path lives in the useNewTransactions consumer tests.
         it('does NOT flag the first transaction of a report (no stale flag to re-highlight the original on a later add)', () => {
-            const result = getMoneyRequestInformation(baseParams);
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
             const newTxID = result.transaction.transactionID;
 
@@ -227,5 +242,167 @@ describe('getMoneyRequestInformation', () => {
                 expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
             );
         });
+    });
+
+    describe('destination report when the chat has no iouReportID', () => {
+        const OLDER_REPORT_ID = 'outstanding-expense-report-older';
+        const NEWER_REPORT_ID = 'outstanding-expense-report-newer';
+        const OTHER_OWNER_REPORT_ID = 'outstanding-expense-report-other-owner';
+        const PENDING_REPORT_ID = 'expense-report-not-in-onyx-yet';
+        const SUBMITTED_REPORT_ID = 'expense-report-awaiting-approval';
+        const APPROVER_ACCOUNT_ID = 300;
+        const APPROVER_EMAIL = 'approver@example.com';
+
+        function buildOutstandingExpenseReport(reportID: string, created: string, ownerAccountID = PAYEE_ACCOUNT_ID): Report {
+            return {
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: POLICY_ID,
+                chatReportID: CHAT_REPORT_ID,
+                ownerAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: 'USD',
+                total: 0,
+                created,
+            };
+        }
+
+        beforeEach(async () => {
+            // `canAddTransaction` requires the submitter to own the report and the policy to be a group policy.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+            // The chat deliberately has no `iouReportID`, which is the state left behind when the report it pointed at is deleted.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentChatReport);
+            await waitForBatchedUpdates();
+        });
+
+        it('adds the expense to the submitter outstanding report instead of creating a new one', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).toBe(OLDER_REPORT_ID);
+        });
+
+        it('picks the newest outstanding report when the submitter has more than one', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEWER_REPORT_ID}`, buildOutstandingExpenseReport(NEWER_REPORT_ID, '2024-03-04'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).toBe(NEWER_REPORT_ID);
+        });
+
+        it('creates a new report when the only outstanding report belongs to someone else', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_OWNER_REPORT_ID}`, buildOutstandingExpenseReport(OTHER_OWNER_REPORT_ID, '2024-01-02', PAYER_ACCOUNT_ID));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).not.toBe(OTHER_OWNER_REPORT_ID);
+        });
+
+        it('creates a new report when the submitter has no outstanding report', () => {
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).toBeTruthy();
+            expect(result.iouReport.reportID).not.toBe(OLDER_REPORT_ID);
+        });
+
+        it('still honours an explicitly chosen report over the outstanding fallback', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEWER_REPORT_ID}`, buildOutstandingExpenseReport(NEWER_REPORT_ID, '2024-03-04'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, moneyRequestReportID: OLDER_REPORT_ID});
+
+            expect(result.iouReport.reportID).toBe(OLDER_REPORT_ID);
+        });
+
+        it('reuses an outstanding report when the chat points at a report that cannot be resolved', async () => {
+            // The chat still points at PENDING_REPORT_ID, but that key is missing from Onyx. That happens both when the
+            // report was deleted or moved away and when it simply has not hydrated yet, and the two are indistinguishable
+            // here. Reusing the submitter's own open report beats creating a duplicate, which is the bug being fixed.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                parentChatReport: {...parentChatReport, iouReportID: PENDING_REPORT_ID},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            expect(result.iouReport.reportID).toBe(OLDER_REPORT_ID);
+        });
+
+        it('creates a new report when the submitter only has a report that is awaiting approval', async () => {
+            // Submitting a report clears the chat's `iouReportID`, so this fallback runs right after a submit too.
+            // The submitted report must never be reused — the next expense belongs on a fresh report.
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PAYEE_ACCOUNT_ID]: {accountID: PAYEE_ACCOUNT_ID, login: 'payee@example.com'},
+                [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {approver: APPROVER_EMAIL, owner: APPROVER_EMAIL, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMITTED_REPORT_ID}`, {
+                ...buildOutstandingExpenseReport(SUBMITTED_REPORT_ID, '2024-01-02'),
+                // Awaiting first-level approval, which is what makes `canAddTransaction` true for this report.
+                managerID: APPROVER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
+        });
+    });
+
+    it('does not copy commuter exclusion data to an optimistic split', () => {
+        const customUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID: 'distance-unit',
+            customUnitRateID: 'rate-123',
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            quantity: 2.24,
+        } as const;
+        const existingTransaction: Transaction = {
+            transactionID: 'original-transaction',
+            reportID: 'expense-report',
+            amount: -280,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: '4.48 mi @ $0.625 / mi',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            comment: {
+                customUnit: {
+                    ...customUnit,
+                    quantity: 6.48,
+                    commuterExclusion: 2,
+                    reimbursableDistance: 4.48,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                },
+            },
+        };
+
+        const result = getMoneyRequestInformation({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            ...baseParams,
+            existingTransaction,
+            isSplitExpense: true,
+            transactionParams: {
+                ...baseParams.transactionParams,
+                amount: 140,
+                modifiedAmount: 140,
+                originalTransactionID: existingTransaction.transactionID,
+                customUnit,
+            },
+        });
+
+        expect(result.transaction.comment?.customUnit).toEqual(customUnit);
     });
 });

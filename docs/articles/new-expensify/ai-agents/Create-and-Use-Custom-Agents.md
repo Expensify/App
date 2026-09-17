@@ -1,7 +1,7 @@
 ---
 title: Create and Use Agents
 description: Create personal agents in New Expensify, chat with them, and Copilot into their accounts. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
-keywords: [custom agents, agents, new agent, ai agent, agent instructions, copilot into account, new expensify]
+keywords: [custom agents, agents, new agent, ai agent, agent instructions, agent template, build custom agent, copilot into account, agent copilot permissions, agent edit expenses, agent edit access, new expensify]
 internalScope: Audience is individual New Expensify users. Covers creating, configuring, and managing agents from the Agents page in Account settings. Does not cover Agent Rules, RuleBot, or workspace-level automation.
 ---
 
@@ -29,15 +29,30 @@ If you don't see **Agents** in your **Account** settings, the Beta isn't enabled
 
 ## How to create an Agent
 
+When you click **New agent**, the **New agent** screen opens. From here you can build an agent from scratch with **Build custom agent**, or, when starter templates are available, choose one from the **Or start with a template:** list. If no templates are available, only the **Build custom agent** option appears.
+
+**To build a custom agent from scratch:**
+
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
 3. Click **New agent**.
-4. Review the auto-generated profile image and display name. If needed, you can edit these later.
-5. Click **Write custom instructions** and describe what you want the agent to do.
-6. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
+4. Click **Build custom agent**.
+5. Review the auto-generated profile image and display name. If needed, you can edit these later.
+6. Click **Write custom instructions** and describe what you want the agent to do.
+7. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
+8. Click **Create agent**.
+
+**To start from a template:**
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
+2. Click **Agents**.
+3. Click **New agent**.
+4. Under **Or start with a template:**, find the template you want, then click **Add**.
+5. Review the pre-filled instructions and edit them if needed.
+6. Review the auto-generated profile image and display name. If needed, you can edit these later.
 7. Click **Create agent**.
 
-After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
+After you click **Create agent**, you're taken directly to a direct message (DM) with the new agent, where its welcome message appears once it arrives. The new agent also appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
 
 ![The Agents page in Account settings, showing the New agent button and a list of created agents]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-1.png){:width="100%"}
 
@@ -47,6 +62,7 @@ After saving, the new agent appears in your **Agents** list with **Edit**, **Cha
 
 After you create an agent:
 
+- You're taken directly to a DM with the agent, where its welcome message appears once it arrives.
 - A new Expensify account is created for the agent.
 - You become the agent's owner.
 - You're automatically added as a full-access Copilot on the agent's account.
@@ -126,6 +142,8 @@ Deleting the agent from the **Security** page also ends the Copilot session and 
 
 Deleting an agent can't be undone.
 
+If the agent still has reports awaiting its approval, the deletion fails and an error appears on the agent's row asking you to review those reports first. Approve, reject, or reassign the outstanding reports, then delete the agent again.
+
 ---
 
 ## How to delete multiple agents at once
@@ -186,9 +204,17 @@ For details on configuring approval workflows generally, see [Learn how to add a
 
 Agents are in **Beta** and may not be enabled on your account yet. When the feature is available, an **Agents** option appears in your **Account** settings with a **Beta** badge.
 
+## What's the difference between building a custom agent and starting from a template?
+
+**Build custom agent** opens the agent form so you can write your own instructions from scratch. Starting from a template on the **New agent** screen opens the same form with the template's instructions already filled in, which you can review and edit before creating the agent. If no templates are available, only the **Build custom agent** option appears.
+
 ## Who can edit or delete an agent?
 
 Only the agent's owner can edit its instructions or delete it. The owner is the account that created the agent.
+
+## Why can't I delete an agent?
+
+If the agent is a workspace approver and has reports awaiting its approval, the deletion fails and an error appears on the agent's row. Review the outstanding reports (approve, reject, or reassign them to another approver), then delete the agent again.
 
 ## Does an agent have its own Expensify account?
 
@@ -215,6 +241,20 @@ On Collect plans, workspaces support a single approver. An agent can be used as 
 ## Is an agent added as a Copilot on my own account?
 
 Yes. When you create an agent, it's automatically added as a full-access Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated Access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
+
+## What can an agent do as a Copilot on my account?
+
+A Copilot agent manages your expenses and reports with the same permissions you have. It can view, create, and edit your expenses, submit and manage your reports, and look up your expense data. Every action it takes is recorded as yours, marked **via Copilot**, so there is a full audit trail. A few account-level actions stay with you as the owner. For example, a Copilot can't add or remove other Copilots.
+
+You don't need to grant the agent any special edit access, and you don't need to add it as an approver for it to manage your own expenses — its full-access Copilot role already covers that. Adding an agent as an approver is only for reviewing reports that other members submit to it through an approval workflow.
+
+Some edit limits apply to everyone, no matter who is editing. Common examples:
+
+- The amount of a company card transaction can't be changed — it comes from the card feed.
+- The amount and date of an expense can't be changed once its report is Approved or Reimbursed.
+- Editing another member's expenses is only possible when you (the account the agent acts for) have admin or approver authority over that member's report.
+
+These are common examples, not a complete list. Other field-specific rules also apply. For example, you can't edit the amount, currency, or merchant of a per-diem expense. If an agent says it can't make a specific change, it is usually one of these edit locks and not a missing permission on the agent.
 
 ## Why does the Security page look different when I Copilot into an agent?
 

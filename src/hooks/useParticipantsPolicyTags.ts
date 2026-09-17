@@ -38,3 +38,4 @@ function useParticipantsPolicyTags(participants: ParticipantWithPolicyID[]): Par
 }
 
 export default useParticipantsPolicyTags;
+export {getPolicyTagsSelector};

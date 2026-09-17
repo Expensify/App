@@ -40,7 +40,6 @@ type SortingMethods<ColumnKey extends string = string> = {
     /** Callback to update the sorting configuration. */
     updateSorting: (value: SetStateAction<ActiveSorting<ColumnKey>>) => void;
 
-    /** Callback to toggle sorting for a specific column. */
     toggleColumnSorting: (columnKey?: ColumnKey) => void;
 
     /** Callback to get the active sorting configuration. */
@@ -188,4 +187,4 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
 }
 
 export default useSorting;
-export type {CompareItemsCallback, ActiveSorting, SortingMethods};
+export type {CompareItemsCallback, ActiveSorting, SortingMethods, SortOrder};

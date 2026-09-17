@@ -1,11 +1,10 @@
-import TopBar from '@components/Navigation/TopBar';
 import type {SearchQueryJSON} from '@components/Search/types';
-
-import useLocalize from '@hooks/useLocalize';
 
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 
 import React from 'react';
+
+import SearchPageHeaderCommon from './SearchPageHeaderCommon';
 
 type SearchPageHeaderNarrowProps = {
     queryJSON: SearchQueryJSON;
@@ -14,17 +13,14 @@ type SearchPageHeaderNarrowProps = {
 };
 
 function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobileSelectionModeEnabled}: SearchPageHeaderNarrowProps) {
-    const {translate} = useLocalize();
-
     if (isMobileSelectionModeEnabled) {
         return <SearchSelectedNarrow queryJSON={queryJSON} />;
     }
 
     return (
-        <TopBar
+        <SearchPageHeaderCommon
+            queryJSONType={queryJSON.type}
             shouldShowLoadingBar={shouldShowLoadingBar}
-            breadcrumbLabel={translate('common.spend')}
-            shouldDisplayHelpButton
         />
     );
 }

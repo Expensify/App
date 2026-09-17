@@ -149,6 +149,7 @@ describe('ReportActions (orchestrator)', () => {
 
         render(<ReportActions />);
 
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMoneyRequestList).not.toHaveBeenCalled();
@@ -159,9 +160,16 @@ describe('ReportActions (orchestrator)', () => {
 
         render(<ReportActions />);
 
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMoneyRequestList).not.toHaveBeenCalled();
+    });
+
+    it('passes report pending state to transaction readiness', () => {
+        render(<ReportActions />);
+
+        expect(mockShouldWaitForTransactions).toHaveBeenLastCalledWith(mockReport, [], expect.objectContaining({hasOnceLoadedReportActions: true}), false, false);
     });
 
     it('renders the money-request table view for a money-request report', () => {
@@ -193,7 +201,7 @@ describe('ReportActions (orchestrator)', () => {
 
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
-        expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+        expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(REPORT_ID, mockReport, {warm: false});
     });
 
     it('mounts the body (not the orchestrator app-load skeleton) for a Concierge report during app load', () => {

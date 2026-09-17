@@ -4,6 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -23,14 +24,10 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getReimbursable, getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
+import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
-}
-
-function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
-    return transactions.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
@@ -99,6 +96,11 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
             return true;
         }
 
+        // A reject the server refused leaves the expense on the report with an error the user has to dismiss.
+        if (!isEmptyObject(transaction.errorFields?.reject ?? {})) {
+            return true;
+        }
+
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
         if (!action && includeOrphanedTransactions) {
             return true;
@@ -142,7 +144,13 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
-function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportLoadingState: OnyxEntry<ReportLoadingState>, isOffline = false) {
+function shouldWaitForTransactions(
+    report: OnyxEntry<Report>,
+    transactions: Transaction[] | undefined,
+    reportLoadingState: OnyxEntry<ReportLoadingState>,
+    isReportLoadPending: boolean,
+    isOffline = false,
+) {
     if (isOffline) {
         return false;
     }
@@ -152,9 +160,7 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
     // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
     // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
     const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
-    const isStillLoadingData =
-        transactions?.length === 0 &&
-        ((!!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
+    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&
@@ -180,7 +186,7 @@ const getTotalAmountForIOUReportPreviewButton = (
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
-    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions);
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions, convertToDisplayString);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
@@ -221,5 +227,4 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
-    hasNonReimbursableTransactions,
 };

@@ -106,13 +106,13 @@ describe('QuickbooksOnlineSetupPage', () => {
     it('disables policy taxes because QBO does not support them', () => {
         renderQuickbooksOnlineSetupPage();
 
-        expect(mockedEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false);
+        expect(mockedEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false, false);
     });
 
     it('shows the loading indicator until the authenticated setup URL resolves, then opens a WebView pointing at it', async () => {
         renderQuickbooksOnlineSetupPage();
 
-        expect(mockedGetQuickbooksOnlineSetupLink).toHaveBeenCalledWith(POLICY_ID);
+        expect(mockedGetQuickbooksOnlineSetupLink).toHaveBeenCalledWith(POLICY_ID, false, false);
         expect(mockedGetShortLivedAuthTokenURL).toHaveBeenCalledWith(`https://qbo-setup.example/${POLICY_ID}`);
 
         // Until the short-lived auth token resolves, only the loading indicator should be visible.

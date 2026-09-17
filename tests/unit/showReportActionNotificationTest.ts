@@ -1,4 +1,6 @@
-import {afterEach, beforeAll, beforeEach, describe, expect, it, jest} from '@jest/globals';
+import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+
+import type {LocalNotificationModule, LocalNotificationModifiedExpenseParams} from '@libs/Notification/LocalNotification/types';
 
 import CONST from '@src/CONST';
 import * as Report from '@src/libs/actions/Report';
@@ -14,13 +16,17 @@ jest.mock('@libs/ActiveClientManager', () => ({
     init: jest.fn(),
 }));
 
-const mockShowModifiedExpenseNotification = jest.fn();
-const mockShowCommentNotification = jest.fn();
+const mockShowModifiedExpenseNotification = jest.fn<void, [LocalNotificationModifiedExpenseParams]>();
+const mockShowCommentNotification = jest.fn<void, Parameters<LocalNotificationModule['showCommentNotification']>>();
 jest.mock('@libs/Notification/LocalNotification', () => ({
     __esModule: true,
     default: {
-        showModifiedExpenseNotification: (...args: unknown[]) => mockShowModifiedExpenseNotification(...args),
-        showCommentNotification: (...args: unknown[]) => mockShowCommentNotification(...args),
+        showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => {
+            mockShowModifiedExpenseNotification(params);
+        },
+        showCommentNotification: (...args: Parameters<LocalNotificationModule['showCommentNotification']>) => {
+            mockShowCommentNotification(...args);
+        },
         showUpdateAvailableNotification: jest.fn(),
         clearReportNotifications: jest.fn(),
     },
@@ -29,7 +35,7 @@ jest.mock('@libs/Notification/LocalNotification', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        getTopmostReportId: jest.fn(() => 'other-report-id'),
+        getFocusedReportId: jest.fn(() => 'other-report-id'),
         navigate: jest.fn(),
     },
 }));
@@ -46,7 +52,7 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_LOGIN = 'test@user.com';
 const REPORT_ID = '100';
 const OTHER_USER_ACCOUNT_ID = 2;
-const REPORT_ATTRIBUTES = {someReportKey: {reportName: 'Test Report'}} as Record<string, unknown>;
+const DERIVED_REPORT_NAME = 'Test Report';
 
 describe('showReportActionNotification', () => {
     beforeAll(() => {
@@ -94,17 +100,18 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            REPORT_ATTRIBUTES as Parameters<typeof Report.showReportActionNotification>[5],
+            undefined,
+            DERIVED_REPORT_NAME,
         );
         await waitForBatchedUpdates();
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
-        const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0) as Record<string, unknown>;
-        expect(callArgs.reportAttributes).toBe(REPORT_ATTRIBUTES);
+        const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
+        expect(callArgs?.derivedMovedFromReportName).toBe(DERIVED_REPORT_NAME);
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
 
-    it('passes undefined reportAttributes to showModifiedExpenseNotification when not provided', async () => {
+    it('passes undefined derivedMovedFromReportName to showModifiedExpenseNotification when not provided', async () => {
         await setupReport();
 
         const reportAction = {
@@ -123,12 +130,13 @@ describe('showReportActionNotification', () => {
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
             undefined,
+            undefined,
         );
         await waitForBatchedUpdates();
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
-        const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0) as Record<string, unknown>;
-        expect(callArgs.reportAttributes).toBeUndefined();
+        const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
+        expect(callArgs?.derivedMovedFromReportName).toBeUndefined();
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
 
@@ -150,7 +158,8 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            REPORT_ATTRIBUTES as Parameters<typeof Report.showReportActionNotification>[5],
+            DERIVED_REPORT_NAME,
+            undefined,
         );
         await waitForBatchedUpdates();
 

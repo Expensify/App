@@ -46,8 +46,6 @@ jobs:
   build:
     needs: [prep, resolveRefs]
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-latest' || 'macos-latest' }}
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -75,6 +73,9 @@ jobs:
           git fetch origin ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
           git checkout ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
           echo "Checked out Mobile-Expensify PR #${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }} (${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }})"
+
+      - name: Set up Xcode version
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

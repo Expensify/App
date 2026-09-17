@@ -16,17 +16,18 @@ import {useCallback, useEffect, useState} from 'react';
 import type {MiddlewareHookResult} from './types';
 
 type UseSelectionProps<DataType extends TableData> = {
-    /** The data being used in the table */
     data: DataType[];
 
     /** The number of non-disabled items in the original (pre-search/filter) data */
     originalSelectableCount: number;
 
-    /** The list of selected keys */
     selectedKeys: string[];
 
     /** The list of actively applied filters */
     currentFilters: Record<string, unknown>;
+
+    /** The search string currently applied to the table */
+    activeSearchString: string;
 
     /** Callback that is fired when the selection of rows in the table changes */
     onRowSelectionChange?: (selectedRowKeys: string[]) => void;
@@ -62,6 +63,7 @@ export default function useSelection<DataType extends TableData>({
     originalSelectableCount,
     selectedKeys,
     currentFilters,
+    activeSearchString,
     onRowSelectionChange,
     shouldEnableSelectionInNarrowPaneModal,
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
@@ -130,8 +132,8 @@ export default function useSelection<DataType extends TableData>({
         clearSelection();
     }, [isSelectionModeEnabled, selectedKeys.length, clearSelection, wasSelectionModeEnabled]);
 
-    // When the table filters change, clear the current selection
-    useEffect(() => clearSelection(), [currentFilters, clearSelection]);
+    // When the table filters or the search string change, clear the current selection
+    useEffect(() => clearSelection(), [currentFilters, activeSearchString, clearSelection]);
 
     // When the table unmounts, clear the selection. Should only run on unmount
     // eslint-disable-next-line react-hooks/exhaustive-deps

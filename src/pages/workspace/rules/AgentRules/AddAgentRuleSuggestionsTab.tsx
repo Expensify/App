@@ -4,7 +4,7 @@
  */
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -43,7 +43,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     const {isOffline} = useNetwork();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isKeyboardActive} = useKeyboardState();
-    const shouldUseFixedFooter = isInLandscapeMode && isKeyboardActive;
+    const shouldMoveFooterToScrollView = isInLandscapeMode && isKeyboardActive;
 
     const {data, isLoading} = useSuggestedAgentRules();
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
@@ -71,10 +71,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     if (shouldShowLoadingIndicator) {
         return (
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'AddAgentRuleSuggestionsTab'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }
@@ -165,10 +162,10 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                     })
                 )}
 
-                {shouldUseFixedFooter && button}
+                {shouldMoveFooterToScrollView && button}
             </ScrollView>
 
-            {!shouldUseFixedFooter && <FixedFooter style={styles.pt5}>{button}</FixedFooter>}
+            {!shouldMoveFooterToScrollView && <FixedFooter style={styles.pt5}>{button}</FixedFooter>}
         </View>
     );
 }

@@ -6,10 +6,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type OnboardingModalNavigatorContentWrapperProps = {
-    /** Rendered child component */
     children: React.ReactNode;
-
-    /** Whether the onboarding is on a medium or larger screen width */
     onboardingIsMediumOrLargerScreenWidth: boolean;
 };
 

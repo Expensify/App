@@ -14,6 +14,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
@@ -59,6 +60,12 @@ type SubmitExpenseOrchestratorProps = {
      * report like a TRACK expense instead of taking the global-create Search path.
      */
     isSelfDMDestination: boolean;
+
+    /**
+     * Whether the user onboarded as "Something else" (LOOKING_AROUND). Such users have no workspace, so a global-create
+     * expense is routed to Spend > Expenses (Search) instead of dismissing into their self-DM report.
+     */
+    isLookingAroundUser: boolean;
 
     /** Request sub-type (manual, scan, distance). Used for telemetry scenario derivation. */
     requestType: string | undefined;
@@ -128,6 +135,7 @@ function SubmitExpenseOrchestrator({
     isFromGlobalCreate,
     iouType,
     isSelfDMDestination,
+    isLookingAroundUser,
     requestType,
     canDismissFromSearch,
     gpsRequired,
@@ -207,6 +215,8 @@ function SubmitExpenseOrchestrator({
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
             isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
+            isLookingAroundUser,
+            isSelfDMDestination,
         };
     };
 
@@ -275,6 +285,9 @@ function SubmitExpenseOrchestrator({
         // When Search is not visible (e.g. submitting from Home/Settings), we must navigate there.
         const isSearchVisible = isSearchTopmostFullScreenRoute();
         const shouldNavigateToSearch = !isSameType || !isSearchVisible;
+        // forceReplace resolves to a no-op for SEARCH.ROOT (it stays on the submitting tab), so skip it for the
+        // LOOKING_AROUND self-DM flow to make the navigation to Search actually happen. Other callers keep forceReplace.
+        const shouldSkipForceReplace = isFromGlobalCreateForNavigation && isLookingAroundUser && isSelfDMDestination;
         setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
@@ -312,7 +325,8 @@ function SubmitExpenseOrchestrator({
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: true});
+                    const searchKey = getSearchKeyForDataType(searchType);
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType}), searchKey}), {forceReplace: !shouldSkipForceReplace});
                 });
             },
         });

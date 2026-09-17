@@ -7,6 +7,7 @@ import YourSpendSection from '@pages/home/YourSpendSection';
 import type * as UseYourSpendDataModule from '@pages/home/YourSpendSection/useYourSpendData';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/useYourSpendData';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
@@ -14,9 +15,10 @@ import type * as NativeNavigation from '@react-navigation/native';
 import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Pressable as RNPressable, Text as RNText, View as RNView} from 'react-native';
-import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+
+import createMock from '../../../utils/createMock';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -148,34 +150,17 @@ jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => {
             cardRows: [],
             awaitingApprovalQuery: '',
             repaidLast30DaysQuery: '',
+            isApprovalStale: false,
+            isPaymentStale: false,
         })),
     };
 });
 
-type MockCardRow = {
-    cardID: number;
-    query: string;
-    lastFour: string;
-    total: number | undefined;
-    currency: string | undefined;
-    spentFraction?: number | undefined;
-    kind?: 'expensify' | 'thirdParty';
-    bank?: CardFeedWithNumber;
-    fundID?: string | undefined;
-};
-
-type MockHookData = {
-    approvalRowState: ValueOf<typeof YOUR_SPEND_ROW_STATE>;
-    approvalTotals: {total: number | undefined; currency: string | undefined};
-    paymentRowState: ValueOf<typeof YOUR_SPEND_ROW_STATE>;
-    paymentTotals: {total: number | undefined; currency: string | undefined};
-    cardRows: MockCardRow[];
-    awaitingApprovalQuery: string;
-    repaidLast30DaysQuery: string;
-};
+type MockHookData = ReturnType<typeof useYourSpendData>;
+type MockCardRow = MockHookData['cardRows'][number];
 
 function mockHook(data: Partial<MockHookData>) {
-    (useYourSpendData as jest.Mock).mockReturnValue({
+    jest.mocked(useYourSpendData).mockReturnValue({
         approvalRowState: YOUR_SPEND_ROW_STATE.HIDDEN,
         approvalTotals: {total: undefined, currency: undefined},
         paymentRowState: YOUR_SPEND_ROW_STATE.HIDDEN,
@@ -183,6 +168,8 @@ function mockHook(data: Partial<MockHookData>) {
         cardRows: [],
         awaitingApprovalQuery: 'type:expense status:outstanding',
         repaidLast30DaysQuery: 'type:expense status:paid',
+        isApprovalStale: false,
+        isPaymentStale: false,
         ...data,
     });
 }
@@ -234,14 +221,14 @@ describe('YourSpendSection', () => {
         // useLocalize is mocked to (key) => key).
         const description = screen.getByText('homePage.yourSpend.awaitingApproval');
         fireEvent.press(description);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('renders a card row for each entry in cardRows', () => {
         mockHook({
             cardRows: [
-                {cardID: 1, query: 'type:expense cardID:1', lastFour: '1234', total: undefined, currency: undefined},
-                {cardID: 2, query: 'type:expense cardID:2', lastFour: '5678', total: undefined, currency: undefined},
+                createMock<MockCardRow>({cardID: 1, query: 'type:expense cardID:1', lastFour: '1234', total: undefined, currency: undefined}),
+                createMock<MockCardRow>({cardID: 2, query: 'type:expense cardID:2', lastFour: '5678', total: undefined, currency: undefined}),
             ],
         });
         render(<YourSpendSection />);
@@ -276,6 +263,7 @@ describe('YourSpendSection — third-party rows', () => {
             kind: 'thirdParty',
             bank: THIRD_PARTY_BANK,
             fundID: '767578',
+            isPersonal: false,
             ...overrides,
         };
     }
@@ -291,6 +279,7 @@ describe('YourSpendSection — third-party rows', () => {
             kind: 'expensify',
             bank: 'Expensify Card' as CardFeedWithNumber,
             fundID: '999',
+            isPersonal: false,
             ...overrides,
         };
     }
@@ -316,15 +305,15 @@ describe('YourSpendSection — third-party rows', () => {
     });
 
     it('navigates to SEARCH_ROOT with the third-party row query when tapped (R-8)', () => {
-        (Navigation.navigate as jest.Mock).mockClear();
+        jest.mocked(Navigation.navigate).mockClear();
         mockHook({cardRows: [thirdPartyRow()]});
         render(<YourSpendSection />);
         const row = screen.getByTestId(`your-spend-card-row-${THIRD_PARTY_CARD_ID}`);
         // The mock MenuItem renders as a Pressable wrapping a description Text. fireEvent.press
-        // requires a Pressable target, so we press the description text inside the row.
-        const description = within(row).getByText('homePage.yourSpend.recentTransactions');
+        // requires a Pressable target, so we press the description text (the card's last four) inside the row.
+        const description = within(row).getByText('9876');
         fireEvent.press(description);
-        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY}));
+        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('renders no skeleton inside the third-party card row (R-6)', () => {
@@ -407,7 +396,11 @@ describe('YourSpendSection — third-party rows', () => {
         // Match approval-row, payment-row, and any card-row-* element under the section,
         // then assert their relative order in the rendered tree.
         const allRows = within(section).getAllByTestId(/^your-spend-(approval-row|payment-row|card-row-\d+)$/);
-        const collectedTestIDs = allRows.map((el) => (el.props as {testID: string}).testID);
-        expect(collectedTestIDs).toEqual(['your-spend-approval-row', 'your-spend-payment-row', `your-spend-card-row-${expRow.cardID}`, `your-spend-card-row-${tpRow.cardID}`]);
+        expect(allRows).toEqual([
+            within(section).getByTestId('your-spend-approval-row'),
+            within(section).getByTestId('your-spend-payment-row'),
+            within(section).getByTestId(`your-spend-card-row-${expRow.cardID}`),
+            within(section).getByTestId(`your-spend-card-row-${tpRow.cardID}`),
+        ]);
     });
 });

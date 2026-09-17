@@ -47,7 +47,7 @@ function JustSignedInModal({is2FARequired}: JustSignedInModalProps) {
                         />
                     )}
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
+                <Text style={[styles.textHeadline, styles.textAlignCenter]}>
                     {translate(is2FARequired ? 'validateCodeModal.tfaRequiredTitle' : 'validateCodeModal.successfulSignInTitle')}
                 </Text>
                 <View style={[styles.mt2, styles.mb2]}>

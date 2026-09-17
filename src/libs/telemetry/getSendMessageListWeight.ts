@@ -11,7 +11,7 @@ type SendMessageListWeight = {
 };
 
 /**
- * Counts the report's actions and preview cards for the `ManualSendMessage` span so we can group send latency
+ * Counts the report's actions and preview cards for the `ManualSendMessageVisible` span so we can group send latency
  * in Sentry by how "heavy" the chat is. We filter through `getSortedReportActionsForDisplay` to skip hidden/deleted
  * actions, and pass `reportID` so actions missing their own `reportID` aren't dropped (same as the report view does).
  *

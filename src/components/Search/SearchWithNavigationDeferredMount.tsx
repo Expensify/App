@@ -16,8 +16,6 @@ import React from 'react';
 
 import Search from './index';
 
-const REASON_ATTRIBUTES = {context: 'SearchPage.NavigationDeferred'} as const;
-
 function handleSkeletonLayout() {
     endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
     endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
@@ -45,7 +43,6 @@ function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>)
                     shouldAnimate
                     onLayout={handleSkeletonLayout}
                     containerStyle={containerStyle}
-                    reasonAttributes={REASON_ATTRIBUTES}
                 />
             }
         >

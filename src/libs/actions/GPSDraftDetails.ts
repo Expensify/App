@@ -1,4 +1,4 @@
-import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from '@libs/GPSDraftDetailsUtils';
+import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from '@libs/GPSPointUtils';
 
 import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {updateGpsTripNotificationDistance} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
@@ -80,13 +80,14 @@ function removeLastSegment(gpsPoints: GPSPoint[][]) {
     });
 }
 
-function initGpsDraft(reportID: string, unit: Unit) {
+function initGpsDraft(reportID: string, unit: Unit, accountID?: number) {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: [[]],
         isTracking: true,
         distanceInMeters: 0,
         reportID,
         unit,
+        accountID,
     });
 }
 

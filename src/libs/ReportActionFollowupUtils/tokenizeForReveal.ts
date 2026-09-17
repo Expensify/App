@@ -99,11 +99,15 @@ function tokenizeForReveal(html: string): string[] {
     if (!html) {
         return [''];
     }
-    const doc = parseDocument(html);
+    // `recognizeSelfClosing` defaults to false in HTML mode, which makes the parser ignore the trailing slash on
+    // custom tags like `<victorypie … />` and nest each following sibling inside the previous one. `decodeEntities`
+    // keeps `&amp;`, `&lt;` and `&gt;` escaped on the way back out, so escaped markup in a comment stays text
+    // instead of being re-serialized as live markup.
+    const doc = parseDocument(html, {recognizeSelfClosing: true});
     const anchors = collectAnchors(doc);
     const stages: string[] = [''];
     for (const anchor of anchors) {
-        stages.push(render(buildClippedNodes(doc, anchor)));
+        stages.push(render(buildClippedNodes(doc, anchor), {decodeEntities: true}));
     }
     return stages;
 }
