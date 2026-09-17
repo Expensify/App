@@ -123,13 +123,7 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    const onSortPressedCallback = useCallback(() => {
-        setIsReloadingResults(true);
-    }, []);
-
-    const onFooterDisplayChangeCallback = useCallback(() => {
-        setIsReloadingResults(true);
-    }, []);
+    const startResultsReload = () => setIsReloadingResults(true);
 
     const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
     const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
@@ -152,8 +146,8 @@ function SearchPage({route}: SearchPageProps) {
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            onSortPressedCallback={onSortPressedCallback}
-                            onFooterDisplayChange={onFooterDisplayChangeCallback}
+                            onSortPressedCallback={startResultsReload}
+                            onFooterDisplayChange={startResultsReload}
                             searchOverlayContent={searchOverlayContent}
                             onSearchContentReady={onSearchContentReady}
                             hasFilterBars={hasFilterBars}
@@ -165,8 +159,8 @@ function SearchPage({route}: SearchPageProps) {
                             searchResults={searchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             handleSearchAction={handleSearchAction}
-                            onSortPressedCallback={onSortPressedCallback}
-                            onFooterDisplayChange={onFooterDisplayChangeCallback}
+                            onSortPressedCallback={startResultsReload}
+                            onFooterDisplayChange={startResultsReload}
                             route={route}
                             searchOverlayContent={searchOverlayContent}
                             onSearchContentReady={onSearchContentReady}

@@ -15,6 +15,13 @@ import React, {useState} from 'react';
 import CurrencyPopup from './CurrencyPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 
+/** Which selector the menu has drilled into, or null while it is showing its list of rows */
+type SelectedFooterFilter =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY
+    | null;
+
 type SearchFooterPopupProps = {
     /** The count the footer is currently displaying. Undefined hides the count row, e.g. while the footer describes a selection. */
     countType: SearchFooterCount | undefined;
@@ -69,9 +76,7 @@ function SearchFooterPopup({
 }: SearchFooterPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [selectedFooterFilter, setSelectedFooterFilter] = useState<
-        typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY | null
-    >(null);
+    const [selectedFooterFilter, setSelectedFooterFilter] = useState<SelectedFooterFilter>(null);
 
     const countItems: Array<SingleSelectItem<SearchFooterCount>> = [
         {text: translate('common.expenses'), value: CONST.SEARCH.FOOTER_COUNT.EXPENSES},
