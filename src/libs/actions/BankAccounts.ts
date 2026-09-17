@@ -1888,6 +1888,9 @@ function pressLockedBankAccount(
         bankAccountIDToUnlock: bankAccountID,
         optimisticReportActionID: optimisticReportActionID ?? null,
     });
+
+    // Write the NVP immediately so the "already requested" guard fires on the next press.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}`, new Date().toISOString());
 }
 
 export {
