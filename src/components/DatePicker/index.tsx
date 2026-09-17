@@ -268,7 +268,7 @@ function DatePicker({
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
+                    icon={selectedDate || segmentInput.hasTypedDigits || shouldHideCalendarIcon ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}

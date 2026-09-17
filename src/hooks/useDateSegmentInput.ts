@@ -65,6 +65,9 @@ type UseDateSegmentInputResult = {
     /** The month the calendar should show, so it follows the date being typed. Undefined leaves the calendar alone */
     viewDate: Date | undefined;
 
+    /** Whether any digit has been typed, so the field is showing more than an untouched mask */
+    hasTypedDigits: boolean;
+
     onKeyPress: (event: TextInputKeyPressEvent) => void;
     onSelectionChange: (event: TextInputSelectionChangeEvent) => void;
     onChangeText: (text: string) => void;
@@ -255,6 +258,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
             displayValue: value,
             selection: undefined,
             viewDate: undefined,
+            hasTypedDigits: false,
             onKeyPress: () => {},
             onSelectionChange: () => {},
             onChangeText: () => {},
@@ -267,6 +271,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
         displayValue: isEditing ? editingValue : value,
         selection: isEditing ? {start: caretPosition, end: caretPosition} : undefined,
         viewDate: isEditing ? viewDate : undefined,
+        hasTypedDigits: isEditing && hasAnySegment(segments),
         onKeyPress: handleKeyPress,
         onSelectionChange: handleSelectionChange,
         onChangeText: handleChangeText,
