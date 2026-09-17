@@ -1,0 +1,35 @@
+/**
+ * Subscriber registry for new report actions, kept out of the Report hub so callers can notify without importing it.
+ */
+import type ReportAction from '@src/types/onyx/ReportAction';
+
+type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
+
+type ActionSubscriber = {
+    reportID: string;
+    callback: SubscriberCallback;
+};
+
+let newActionSubscribers: ActionSubscriber[] = [];
+
+function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallback): () => void {
+    newActionSubscribers.push({callback, reportID});
+    return () => {
+        newActionSubscribers = newActionSubscribers.filter((subscriber) => subscriber.reportID !== reportID);
+    };
+}
+
+function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
+    if (!reportID) {
+        return;
+    }
+    const ids = Array.isArray(reportID) ? reportID : [reportID];
+    for (const id of ids) {
+        const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === id);
+        if (actionSubscriber) {
+            actionSubscriber.callback(isFromCurrentUser, reportAction);
+        }
+    }
+}
+
+export {subscribeToNewActionEvent, notifyNewAction};

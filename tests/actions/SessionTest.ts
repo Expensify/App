@@ -3,7 +3,7 @@
 import {beforeEach, jest, test} from '@jest/globals';
 
 import {openApp, reconnectApp} from '@libs/actions/App';
-import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
+import buildOldDotURL from '@libs/actions/buildOldDotURL';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 import {initReconnect} from '@libs/actions/Reconnect';
@@ -17,6 +17,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
 import {isRecord} from '@libs/ObjectUtils';
+import openExternalLink from '@libs/openExternalLink';
 import reauthenticate from '@libs/Reauthentication';
 
 import CONFIG from '@src/CONFIG';
@@ -61,6 +62,16 @@ jest.mock('@libs/actions/Link', () => {
         openExternalLink: jest.fn(),
     };
 });
+
+jest.mock('@libs/actions/buildOldDotURL', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve('mockOldDotURL')),
+}));
+
+jest.mock('@libs/openExternalLink', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 

@@ -33,7 +33,8 @@ import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {canActionTask, canModifyTask, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {clearTaskErrors} from '@userActions/Task/TaskDeletion';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
