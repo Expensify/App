@@ -1,6 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
+import {getGroupPendingDeleteOnyxUpdate, getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -789,6 +789,30 @@ describe('actions/IOU', () => {
             expect(snapshotUpdate).toBeDefined();
             expect(snapshotUpdate?.value).not.toHaveProperty(['data', groupKey]);
             expect(snapshotUpdate?.value).toHaveProperty(['data', transactionKey, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
+        });
+    });
+
+    describe('getGroupPendingDeleteOnyxUpdate', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}42` as const;
+        const otherGroupKey = `${CONST.SEARCH.GROUP_PREFIX}43` as const;
+
+        it('flags each group optimistically and clears the flag on failure', () => {
+            // A group row's snapshot entry outlives its child transactions, so the flag has to ride in the delete
+            // request itself: without the failureData a failed delete would hide the group row for good.
+            const result = getGroupPendingDeleteOnyxUpdate(1234, [groupKey, otherGroupKey]);
+
+            expect(result?.optimisticData?.at(0)?.key).toBe(`${ONYXKEYS.COLLECTION.SNAPSHOT}1234`);
+            expect(result?.optimisticData?.at(0)?.value).toHaveProperty(['data', groupKey, 'pendingAction'], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(result?.optimisticData?.at(0)?.value).toHaveProperty(['data', otherGroupKey, 'pendingAction'], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            expect(result?.failureData?.at(0)?.key).toBe(`${ONYXKEYS.COLLECTION.SNAPSHOT}1234`);
+            expect(result?.failureData?.at(0)?.value).toHaveProperty(['data', groupKey, 'pendingAction'], null);
+            expect(result?.failureData?.at(0)?.value).toHaveProperty(['data', otherGroupKey, 'pendingAction'], null);
+        });
+
+        it('returns undefined for a delete that wipes out no whole group', () => {
+            expect(getGroupPendingDeleteOnyxUpdate(1234, [])).toBeUndefined();
+            expect(getGroupPendingDeleteOnyxUpdate(undefined, [groupKey])).toBeUndefined();
         });
     });
 });
