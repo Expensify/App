@@ -3271,7 +3271,7 @@ function canDeleteMoneyRequestReport(
     // Card liability does not apply here: deleting a draft report leaves its expenses unreported rather than deleting them.
     const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
     if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
-        return reportTransactions.every((t) => canDeleteCardTransactionByLiabilityType(t));
+        return true;
     }
 
     if (isInvoiceReport(report)) {
@@ -3337,11 +3337,9 @@ function canDeleteReportAction(
         }
     }
 
-    if (isReportPreviewAction(reportAction)) {
-        // Deleting a preview deletes the money request report it previews, which is also what `transactions` and
-        // `childReportActions` describe.
+    if (report && isReportPreviewAction(reportAction)) {
         return canDeleteMoneyRequestReport(
-            getReportOrDraftReport(reportAction.childReportID),
+            report,
             Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
