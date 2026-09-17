@@ -16,6 +16,7 @@ const mockGetTopmostReportParams = jest.fn<{reportID: string} | undefined, [unkn
 const mockGetReportOrDraftReport = jest.fn();
 const mockIsMoneyRequestReport = jest.fn<boolean, [unknown]>();
 const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
+const mockGetSearchKeyForDataType = jest.fn<string | undefined, [SearchDataTypes | undefined]>();
 
 jest.mock('@libs/deferredLayoutWrite', () => ({
     flushDeferredWrite: jest.fn(),
@@ -44,6 +45,9 @@ jest.mock('@libs/ReportUtils', () => ({
 jest.mock('@libs/SearchQueryUtils', () => ({
     buildCannedSearchQuery: jest.fn(() => 'type:expense'),
 }));
+jest.mock('@libs/SearchKeyUtils', () => ({
+    getSearchKeyForDataType: (type: SearchDataTypes | undefined) => mockGetSearchKeyForDataType(type),
+}));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     setPendingSubmitFollowUpAction: jest.fn(),
     endSubmitFollowUpActionSpan: jest.fn(),
@@ -59,6 +63,7 @@ describe('submitDismissStrategies', () => {
         mockGetReportOrDraftReport.mockReturnValue(undefined);
         mockIsMoneyRequestReport.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+        mockGetSearchKeyForDataType.mockReturnValue(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
     });
 
     describe('dismissOnly', () => {
@@ -165,6 +170,7 @@ describe('submitDismissStrategies', () => {
             dismissWideToNewSearchType('expense' as SearchDataTypes, runAfterDismiss);
 
             expect(buildCannedSearchQuery).toHaveBeenCalledWith({type: 'expense'});
+            expect(mockGetSearchKeyForDataType).toHaveBeenCalledWith('expense');
             expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({afterTransition: runAfterDismiss}));
         });
     });

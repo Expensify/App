@@ -367,6 +367,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Werkruimte downgraden',
         companyID: 'Bedrijfs-ID',
         userID: 'Gebruikers-ID',
+        tenantID: 'Tenant-ID',
+        environmentName: 'Naam van omgeving',
+        clientID: 'Client-ID',
+        clientSecret: 'Clientgeheim',
         disable: 'Uitschakelen',
         export: 'Exporteren',
         initialValue: 'Beginwaarde',
@@ -415,8 +419,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Subtarief',
         perDiem: 'Dagvergoeding',
         validate: 'Valideren',
-        downloadAsPDF: 'Downloaden als PDF',
-        downloadReceipts: 'Bonnetjes downloaden',
+        downloadReport: () => ({
+            one: 'Rapport downloaden',
+            other: 'Rapporten downloaden',
+        }),
+        downloadReceipt: () => ({
+            one: 'Bon downloaden',
+            other: 'Bonnen downloaden',
+        }),
         downloadAsCSV: 'Downloaden als CSV',
         submitViaPDF: 'Indienen via pdf',
         print: 'Afdrukken',
@@ -1004,6 +1014,11 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {title: 'Voeg je gegevens toe om je Expensify Kaart te bekijken en te gebruiken.', subtitle: 'Expensify Kaart', cta: 'Toevoegen'},
             enterSignerInfo: {title: 'Ondertekenaargegevens vereist', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankrekening ${bankAccountLastFour}`},
+            payOverdueInvoice: {
+                cta: 'Beoordelen',
+                dueSoonTitle: ({date}: {date: string}) => `Betaal je factuur vóór ${date} om onderbreking van de service te voorkomen`,
+                overdueTitle: 'Je betaling is achterstallig, betaal alsjeblieft je factuur.',
+            },
         },
         discoverSection: {
             title: 'Ontdekken',
@@ -1784,6 +1799,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Dit rapport is afgekeurd. We wachten tot jij de problemen oplost en het handmatig opnieuw indient.',
             selectMemberError: 'Selecteer een lid om dit rapport naar terug te sturen.',
             couldNotReject: 'Het rapport kon niet worden afgewezen. Probeer het opnieuw.',
+            couldNotRejectExpense: 'De uitgave kon niet worden afgewezen omdat deze mogelijk al is verplaatst of afgewezen.',
         },
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesMaxTransactionsError: `Rapporten zijn beperkt tot ${CONST.REPORT.MAX_TRANSACTIONS} uitgaven. Verplaats er enkele naar een ander rapport.`,
@@ -1876,6 +1892,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Schakel tags in op de werkruimte om de onkostendetails te bewerken of de tag uit deze onkosten te verwijderen.',
             confirmText: 'Label verwijderen',
         },
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
     },
     transactionMerge: {
         listPage: {
@@ -3151,7 +3168,7 @@ ${amount} voor ${merchant} - ${date}`,
             merchantHint: 'Typ . om een regel te maken die van toepassing is op alle aanbieders',
             addToReport: 'Toevoegen aan een rapport met de naam',
             createReport: 'Maak indien nodig een rapport',
-            applyToExistingExpenses: 'Toepassen op bestaande overeenkomende uitgaven',
+            applyToExistingExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
             confirmError: 'Voer handelaar in en pas minstens één wijziging toe',
             confirmErrorMerchant: 'Voer handelaar in',
             confirmErrorUpdate: 'Pas ten minste één wijziging toe',
@@ -3784,8 +3801,15 @@ ${amount} voor ${merchant} - ${date}`,
         vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vervanger tijdens vakantie.',
         asVacationDelegate: (nameOrEmail: string) => `als vakantiewaarnemer van ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `aan ${submittedToName} als vakantieplaatsvervanger voor ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Je wijst ${nameOrEmail} aan als jouw vervang(st)er tijdens afwezigheid. Diegene zit nog niet in al je werkruimtes. Als je doorgaat, wordt er een e-mail naar alle beheerders van je werkruimtes gestuurd om diegene toe te voegen.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> is geen lid van de onderstaande werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> is geen lid van de onderstaande werkruimtes. Wil je diegene nu uitnodigen?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> is geen lid van de onderstaande werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen. Wil je diegene nu uitnodigen voor de werkruimtes waar je beheerder van bent?`,
+            youAreAMemberOf: 'Je bent lid van deze werkruimtes:',
+            youAreAnAdminOf: 'Je bent beheerder van deze werkruimtes:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Stap ${step}`;
@@ -4703,6 +4727,7 @@ ${amount} voor ${merchant} - ${date}`,
             defaultDescription: 'Eén plek voor al je bonnetjes en uitgaven.',
             descriptionHint: 'Deel informatie over deze werkruimte met alle leden.',
             welcomeNote: 'Gebruik Expensify om je kwitanties in te dienen voor vergoeding, bedankt!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} heeft je uitgenodigd voor ${workspaceName}`,
             subscription: 'Abonnement',
             markAsEntered: 'Markeren als handmatig ingevoerd',
             markAsExported: 'Markeren als geëxporteerd',
@@ -7097,6 +7122,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7330,6 +7357,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Kaartafrekeningen synchroniseren';
                         case 'campfireSyncTravelSettlements':
                             return 'Reisverrekeningen synchroniseren';
+                        case 'businessCentralSyncTitle':
+                            return 'Dynamics 365 Business Central-gegevens synchroniseren';
+                        case 'businessCentralSyncConnection':
+                            return 'Verbinding met Dynamics 365 Business Central initialiseren';
+                        case 'businessCentralSyncImportData':
+                            return 'Gegevens laden';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
                         }
@@ -7373,6 +7406,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -7538,7 +7572,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             yourWorkspace: `Je werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lijst met ondersteunde valuta's</a>.`,
             chooseAnExisting: 'Kies een bestaande bankrekening om onkosten te betalen of voeg een nieuwe toe.',
             changeBankAccount: 'Bankrekening wijzigen',
-            updateCurrencyForExpensifyCard: 'De Expensify Kaart kan alleen in USD worden uitgegeven. Werk deze workspace bij naar USD of gebruik een andere workspace.',
             updateCurrencyForExpensifyCardTitle: 'Vraag de Expensify Kaart aan',
             euUkUpdateCurrencyForExpensifyCard:
                 'De Expensify Kaart kan worden uitgegeven in USD, GBP en EUR. Werk deze werkruimte bij naar een ondersteunde valuta of gebruik een andere werkruimte.',
@@ -7683,6 +7716,12 @@ ${reportName}`,
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Campfire-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Campfire-configuratie voor helderder financieel inzicht.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Onze Campfire-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Dynamics 365 Business Central-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Dynamics 365 Business Central-configuratie voor helderder financieel inzicht.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze Dynamics 365 Business Central-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Geavanceerde goedkeuringen',
@@ -8526,8 +8565,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             providerApprovalMode: (providerName: string) => `${providerName}-goedkeuringsmodus`,
             providerFinalApprover: (providerName: string) => `Laatste ${providerName}-fiatteur`,
             syncing: 'Werknemers synchroniseren',
-            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
-            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
             approvalModeDescription: (providerName: string) => `Leden en managers zijn ingesteld om te synchroniseren met ${providerName}.`,
             approvalModeWarningTitle: 'Goedkeuringsmodus wijzigen?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -8621,6 +8658,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 custom: 'Aangepaste goedkeuring',
                 advanced: 'Geavanceerde goedkeuring',
             },
+            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
+            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
             syncLimitReached: {title: 'Probeer het morgen opnieuw', prompt: 'Je hebt je synchronisatielimiet voor vandaag bereikt.'},
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
@@ -8633,6 +8672,22 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subsidiarySelectDescription: 'Kies de dochteronderneming in Campfire waarvan je gegevens wilt importeren.',
             noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
             noSubsidiariesFoundDescription: 'Voeg alsjeblieft een entiteit toe in Campfire en synchroniseer de verbinding opnieuw',
+            importDescription: 'Kies welke boekhoudconfiguraties je wilt importeren uit Campfire.',
+            accountTypesDescription: 'Je Campfire-accounts worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Campfire-accounts zijn beschikbaar als categorieën.',
+            dimensionsImport: 'Alle Campfire-dimensies worden als labels geïmporteerd',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
+            prerequisitesTitle: 'Voordat je verbinding maakt...',
+            followSteps: 'Volg de stappen in onze instructies ‘How-to: Connect to Dynamics 365 Business Central’',
+            enterCredentials: 'Vul je Dynamics 365 Business Central-gegevens in',
+            helpArticle: `<muted-text>Raadpleeg dit <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">helpartikel</a> om deze informatie te vinden.</muted-text>`,
+            subsidiary: 'Dochteronderneming',
+            subsidiarySelectDescription: 'Selecteer de Dynamics 365 Business Central-dochteronderneming om met deze workspace te synchroniseren.',
+            noCompaniesFound: 'Geen bedrijven gevonden',
+            noCompaniesFoundDescription: 'Voeg een bedrijf toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
         },
     },
     getAssistancePage: {
@@ -9446,6 +9501,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 title: 'Geen declaraties om goed te keuren',
                 subtitle: 'Nul uitgaven. Maximale chill. Goed gedaan!',
             },
+            staleResults: {title: 'Vernieuwen nodig', subtitle: 'Deze pagina is verouderd, vernieuw om de laatste versie te zien', buttonText: 'Verversen'},
         },
         columns: 'Kolommen',
         editColumns: 'Kolommen bewerken',
@@ -10956,6 +11012,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mileageRateAutoUpdated: '<tooltip>We hebben het tarief bijgewerkt op basis van je reisdatum.</tooltip>',
         markAllAsRead: '<tooltip>Klik met de rechtermuisknop om <strong>alles als gelezen te markeren</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Ga naar je account en persoonlijke instellingen.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
@@ -11231,8 +11288,9 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             permissions: 'Groepsmachtigingen',
             createNewGroupButton: 'Nieuwe groep',
             createGroupSubmitButton: 'Groep aanmaken',
-            expensifyCardPreferredWorkspace: 'Expensify Card voorkeurswerkruimte',
-            expensifyCardPreferredWorkspaceDescription: 'Alle Expensify Card-transacties worden aangemaakt in de Expensify Card-voorkeurswerkruimte in plaats van de voorkeurswerkruimte.',
+            expensifyCardPreferredWorkspace: 'Voorkeurswerkruimte voor kaart',
+            expensifyCardPreferredWorkspaceDescription:
+                'Alle transacties met de Expensify Kaart en bedrijfspassen worden aangemaakt in de kaartvoorkeurswerkruimte in plaats van in de voorkeurswerkruimte. Als je deze functie inschakelt, wordt de instelling voor de voorkeurswerkruimte overschreven, maar alleen voor kaarttransacties.',
             strictlyEnforceWorkspaceRules: 'Werkruimteregels strikt afdwingen',
             strictlyEnforceWorkspaceRulesDescription:
                 'Aan alle werkruimteregels moet worden voldaan voordat een rapport kan worden ingediend. Handmatige uitzonderingen zijn niet toegestaan.',
@@ -11250,7 +11308,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             noWorkspacesMessage: 'Er zijn geen werkruimtes op dit domein. Een werkruimte is vereist om deze beperking in te schakelen.',
             restrictDefaultLoginSelection: 'Standaard login-selectie beperken',
             restrictDefaultLoginSelectionDescription: 'Voorkomt dat leden hun login-e-mail wijzigen naar een adres buiten het bedrijfsdomein om beleidsbeperkingen te omzeilen.',
-            expensifyCardPreferredWorkspaceDisabledMessage: 'Om deze instelling in te schakelen, schakelt u eerst een voorkeurswerkruimte in en stelt u Expensify Cards in op uw domein.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Schakel eerst een voorkeurswerkruimte in en stel een Expensify Kaart of een bedrijfskaartfeed in op je domein om deze instelling in te schakelen.',
             findGroup: 'Groep zoeken',
         },
     },
