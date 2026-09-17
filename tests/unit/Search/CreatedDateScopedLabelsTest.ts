@@ -28,10 +28,10 @@ describe('Created date scoped labels (#98148)', () => {
         });
     });
 
-    describe('getSearchColumnTranslationKey (column header, Sort by, Edit columns, saved search, CSV current view)', () => {
-        it('returns "Created" for the DATE column in expense-report and task search', () => {
-            expect(getSearchColumnTranslationKey(DATE, EXPENSE_REPORT)).toBe('search.filters.created');
-            expect(getSearchColumnTranslationKey(DATE, TASK)).toBe('search.filters.created');
+    describe('getSearchColumnTranslationKey (Sort by, Edit columns, saved search, CSV current view - everything but the table header)', () => {
+        it('returns "Created date" for the DATE column in expense-report and task search', () => {
+            expect(getSearchColumnTranslationKey(DATE, EXPENSE_REPORT)).toBe('search.filters.createdDate');
+            expect(getSearchColumnTranslationKey(DATE, TASK)).toBe('search.filters.createdDate');
         });
 
         it('keeps "Date" for the DATE column in invoice, expense and trip', () => {
