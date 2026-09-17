@@ -2,6 +2,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import type {InsightsQuery} from '@pages/Insights/insightsQueries';
 import buildInsightsJsonQuery, {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
@@ -14,6 +15,22 @@ const FILTERS: InsightsFilters = {
 };
 
 const SPEND_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
+
+type InsightsPayload = {
+    hash: number;
+    inputQuery: string;
+};
+
+/** Reads back the payload a built request sends to the backend. */
+function parsePayload(request: InsightsQuery | undefined): InsightsPayload | undefined {
+    if (!request) {
+        return undefined;
+    }
+
+    const payload: unknown = JSON.parse(request.jsonQuery);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return payload as InsightsPayload;
+}
 
 /** The snapshot hash expected of every chart on the spend dashboard, taken from what the chart declares. */
 function buildExpectedHashes(filters: InsightsFilters) {
@@ -37,14 +54,28 @@ describe('insightsQueries', () => {
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
             // Then it is addressed to the spend dashboard and names the snapshot each chart's data belongs in
-            const queryJSON = request?.inputQuery ? buildSearchQueryJSON(request.inputQuery) : undefined;
-            expect(request?.jsonQuery ? JSON.parse(request.jsonQuery) : undefined).toEqual({
+            const payload = parsePayload(request);
+            const queryJSON = payload?.inputQuery ? buildSearchQueryJSON(payload.inputQuery) : undefined;
+            expect(payload).toEqual({
+                hash: queryJSON?.hash,
                 searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
-                inputQuery: request?.inputQuery,
+                inputQuery: payload?.inputQuery,
                 groupBy: filters.groupBy,
                 filters: queryJSON?.filters,
                 insightsHashes: buildExpectedHashes(filters),
             });
+        });
+
+        it('hashes every set of filters on its own', () => {
+            // Given the spend dashboard grouped by month
+            const monthly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS);
+
+            // When the same dashboard is grouped by quarter instead
+            const quarterly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.QUARTER});
+
+            // Then each request carries the hash of the query it asks for, so the two responses are stored apart
+            expect(monthly?.hash).toBe(parsePayload(monthly)?.hash);
+            expect(quarterly?.hash).not.toBe(monthly?.hash);
         });
 
         it('asks for nothing the page filters did not set', () => {
@@ -55,7 +86,7 @@ describe('insightsQueries', () => {
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
             // Then the query carries those filters and nothing else, such as the sorting of a table no chart renders
-            expect(request?.inputQuery).toBe('groupBy:month groupCurrency:USD policyID:A1 date:year-to-date');
+            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD policyID:A1 date:year-to-date');
         });
 
         it('reports on a date range as well as a preset', () => {
@@ -69,8 +100,8 @@ describe('insightsQueries', () => {
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
             // Then the query is bounded by the range, and the charts ask for snapshots of it
-            expect(request?.inputQuery).toBe('groupBy:month groupCurrency:USD date>2026-01-01 date<2026-03-31');
-            expect(request?.jsonQuery ? JSON.parse(request.jsonQuery) : undefined).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
+            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date>2026-01-01 date<2026-03-31');
+            expect(parsePayload(request)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
 
         it('leaves the workspaces out of the query until some are selected', () => {
@@ -82,9 +113,9 @@ describe('insightsQueries', () => {
             const twoWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
             // Then only the second query names them, and its charts point at different snapshots
-            expect(allWorkspaces?.inputQuery).not.toContain('policyID');
-            expect(twoWorkspaces?.inputQuery).toContain('policyID:A1,B2');
-            expect(twoWorkspaces?.jsonQuery ? JSON.parse(twoWorkspaces.jsonQuery) : undefined).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
+            expect(parsePayload(allWorkspaces)?.inputQuery).not.toContain('policyID');
+            expect(parsePayload(twoWorkspaces)?.inputQuery).toContain('policyID:A1,B2');
+            expect(parsePayload(twoWorkspaces)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
     });
 

@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 
 import type {Errors} from './OnyxCommon';
 
-/** Suffix identifying an entry in the Insights Onyx collection */
+/** Identifies a dashboard, paired with the query hash in the key an entry is stored under */
 type InsightsDashboardID = ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
 
 /** Key identifying a graph within a dashboard response */
@@ -21,12 +21,13 @@ type InsightsDashboard = {
     /** Where each chart finds its data, keyed by the graph slot its spec declares */
     graphs?: Partial<Record<InsightsGraphKey, InsightsGraph>>;
 
-    /** Query the stored graphs were returned for, so a chart can tell whether they answer the query on screen */
+    /** Whether the account has any expenses at all, regardless of the query, so an empty account can be told apart from filters that matched nothing */
+    hasResults?: boolean;
+
+    /** Query the stored graphs answer */
     inputQuery?: string;
 
-    /** Query the last request asked for, set before the response arrives so the page can show it is loading */
-    requestedQuery?: string;
-
+    isLoading?: boolean;
     errors?: Errors;
 };
 

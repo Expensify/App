@@ -131,7 +131,7 @@ function GroupHeader({
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
     const snapshotData = transactionsSnapshot?.data;
-    const snapshotSearchType = transactionsSnapshot?.search?.type;
+    const snapshotSearchType = transactionsSnapshot?.search.type;
 
     let subHeaderColumns: SearchColumnType[] = [];
     if (isExpenseReportType) {

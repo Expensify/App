@@ -37,8 +37,8 @@ type InsightsQuery = {
     /** Request payload for GetInsights. */
     jsonQuery: string;
 
-    /** The same query the payload carries, kept apart so the dashboard can store what it asked for. */
-    inputQuery: SearchQueryString;
+    /** Hash of the dashboard-wide query, which the response is stored under so every set of filters keeps its own dashboard entry. */
+    hash: number;
 };
 
 /** Builds one request for the whole dashboard: the shared filters query plus the snapshot hash each graph's data is stored under. */
@@ -57,15 +57,17 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
 
     return {
         jsonQuery: JSON.stringify({
+            hash: queryJSON.hash,
             groupBy: queryJSON.groupBy,
             filters: queryJSON.filters,
             inputQuery,
             searchKey,
             insightsHashes,
         }),
-        inputQuery,
+        hash: queryJSON.hash,
     };
 }
 
 export {applyInsightsFilters};
+export type {InsightsQuery};
 export default buildInsightsJsonQuery;

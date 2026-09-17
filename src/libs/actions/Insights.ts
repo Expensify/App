@@ -9,22 +9,38 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-function getInsights(dashboard: InsightsDashboardID, jsonQuery: string, inputQuery: string) {
+function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string) {
+    const key = `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}_${hash}` as const;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}`,
-            value: {requestedQuery: inputQuery, errors: null},
+            key,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}`,
-            value: {requestedQuery: null, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            key,
+            value: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
         },
     ];
-    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData});
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData, finallyData});
 }
 
 // eslint-disable-next-line import/prefer-default-export

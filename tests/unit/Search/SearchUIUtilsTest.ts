@@ -40,7 +40,7 @@ import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
-import type {SearchResultsInfo, SearchTask} from '@src/types/onyx/SearchResults';
+import type {SearchTask} from '@src/types/onyx/SearchResults';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
@@ -9829,11 +9829,8 @@ describe('SearchUIUtils', () => {
                     state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
-            const {search} = results;
-            if (search) {
-                Reflect.deleteProperty(search, 'sortBy');
-                Reflect.deleteProperty(search, 'sortOrder');
-            }
+            Reflect.deleteProperty(results.search, 'sortBy');
+            Reflect.deleteProperty(results.search, 'sortOrder');
 
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
@@ -9902,7 +9899,7 @@ describe('SearchUIUtils', () => {
     describe('Test isSearchPending', () => {
         const queryJSON = buildSearchQueryJSON('type:expense');
 
-        function makeSearch(state: SearchResultsInfo['state']): OnyxTypes.SearchResults {
+        function makeSearch(state: OnyxTypes.SearchResults['search']['state']): OnyxTypes.SearchResults {
             return {
                 data: {personalDetailsList: {}},
                 search: {
@@ -10128,11 +10125,11 @@ describe('SearchUIUtils', () => {
     });
 
     test('Should return true if the search result has valid type', () => {
-        expect(SearchUIUtils.shouldShowEmptyState(false, transactionReportGroupListItems.length, searchResults.search?.type)).toBe(true);
-        expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search?.type)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(false, transactionReportGroupListItems.length, searchResults.search.type)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
         const inValidSearchType = 'expensify';
         expect(Reflect.apply(SearchUIUtils.shouldShowEmptyState, undefined, [true, transactionReportGroupListItems.length, inValidSearchType])).toBe(true);
-        expect(SearchUIUtils.shouldShowEmptyState(true, transactionReportGroupListItems.length, searchResults.search?.type)).toBe(false);
+        expect(SearchUIUtils.shouldShowEmptyState(true, transactionReportGroupListItems.length, searchResults.search.type)).toBe(false);
     });
 
     test('Should determine whether the date, amount, and tax column require wide columns or not', () => {

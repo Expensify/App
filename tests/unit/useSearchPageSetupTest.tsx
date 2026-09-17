@@ -6,7 +6,6 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -60,7 +59,7 @@ const queryJSON = buildSearchQueryJSON(QUERY);
 const queryJSONB = buildSearchQueryJSON(QUERY_B);
 
 /** A snapshot left behind by a failed request: `errors` present, no data, and no server verdict. */
-function buildErroredSnapshot(hash: number): SearchResults & {search: SearchResultsInfo} {
+function buildErroredSnapshot(hash: number): SearchResults {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {
         search: {
@@ -74,7 +73,7 @@ function buildErroredSnapshot(hash: number): SearchResults & {search: SearchResu
             responseJsonCode: 0,
         },
         errors: {error: 'Oops... something went wrong'},
-    } as unknown as SearchResults & {search: SearchResultsInfo};
+    } as unknown as SearchResults;
 }
 
 /** The hashes openSearch() was asked to clear, ignoring the plain calls that only load bank account data. */

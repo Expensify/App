@@ -1155,7 +1155,7 @@ function Search({
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
-                    hasResults={!!searchResults?.search?.hasResults}
+                    hasResults={searchResults?.search?.hasResults}
                     queryJSON={queryJSON}
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}

@@ -367,7 +367,7 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
     if (!searchResults) {
         return YOUR_SPEND_ROW_STATE.LOADING;
     }
-    if (!searchResults.search?.count) {
+    if (!searchResults.search.count) {
         return YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY;
     }
     return YOUR_SPEND_ROW_STATE.READY;
@@ -479,8 +479,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
     const paymentRowStateRaw = getYourSpendRowState({isApplicable: isPaymentApplicable, isOffline, searchResults: paymentSearchResults});
 
-    const approvalTotalsRaw: YourSpendRowTotals = {total: approvalSearchResults?.search?.total, currency: approvalSearchResults?.search?.currency};
-    const paymentTotalsRaw: YourSpendRowTotals = {total: paymentSearchResults?.search?.total, currency: paymentSearchResults?.search?.currency};
+    const approvalTotalsRaw: YourSpendRowTotals = {total: approvalSearchResults?.search.total, currency: approvalSearchResults?.search.currency};
+    const paymentTotalsRaw: YourSpendRowTotals = {total: paymentSearchResults?.search.total, currency: paymentSearchResults?.search.currency};
 
     // The Search screen reuses the same snapshot key and calls `search()` with
     // `shouldCalculateTotals: false`, wiping `count/total/currency` on the shared
@@ -513,8 +513,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
         setCachedPaymentReady({total: paymentTotalsRaw.total, currency: paymentTotalsRaw.currency});
     }
 
-    const approvalCount = approvalSearchResults?.search?.count;
-    const paymentCount = paymentSearchResults?.search?.count;
+    const approvalCount = approvalSearchResults?.search.count;
+    const paymentCount = paymentSearchResults?.search.count;
     const approvalCountIsMissing = approvalCount === undefined || approvalCount === null;
     const paymentCountIsMissing = paymentCount === undefined || paymentCount === null;
 

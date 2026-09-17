@@ -36,14 +36,14 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
 
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
     const jsonQuery = query?.jsonQuery;
-    const inputQuery = query?.inputQuery;
+    const hash = query?.hash;
 
     useEffect(() => {
-        if (!jsonQuery || !inputQuery || !isFocused || isOffline) {
+        if (!jsonQuery || hash === undefined || !isFocused || isOffline) {
             return;
         }
-        getInsights(dashboardID, jsonQuery, inputQuery);
-    }, [dashboardID, jsonQuery, inputQuery, isFocused, isOffline]);
+        getInsights(dashboardID, hash, jsonQuery);
+    }, [dashboardID, hash, jsonQuery, isFocused, isOffline]);
 
     return (
         <ScreenWrapper

@@ -6,7 +6,6 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -61,7 +60,7 @@ function makeUnresolvedSearchResults(hash: number, isLoading: boolean): SearchRe
     return searchResults;
 }
 
-function makeCachedSearchResults(hash: number, isLoading: boolean, state: SearchResultsInfo['state'], offset = 0): SearchResults {
+function makeCachedSearchResults(hash: number, isLoading: boolean, state: SearchResults['search']['state'], offset = 0): SearchResults {
     return {
         data: {personalDetailsList: {}},
         search: {
