@@ -551,11 +551,13 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
             lodashSet(commentJSON, 'customUnit', customUnit);
         } else {
             const routeDistanceMeters = routes?.route0?.distance ?? existingTransaction?.routes?.route0?.distance;
-            lodashSet(commentJSON, 'customUnit', existingTransaction?.comment?.customUnit ?? {});
+            lodashSet(commentJSON, 'customUnit', {...existingTransaction?.comment?.customUnit});
             // Set the distance unit, which comes from the policy distance unit or the P2P rate data
             lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
             lodashSet(commentJSON, 'customUnit.quantity', distance);
-            lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            if (customUnitRateID) {
+                lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            }
             lodashSet(commentJSON, 'customUnit.name', existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE);
             if (typeof routeDistanceMeters === 'number') {
                 lodashSet(commentJSON, 'customUnit.routeDistanceMeters', routeDistanceMeters);
@@ -909,11 +911,17 @@ function getUpdatedTransaction({
                       policy,
                       storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
+                      hasTripChanged: waypointsActuallyChanged,
                   })
                 : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            } else if (waypointsActuallyChanged) {
+                // The exclusion described the trip being replaced, so it goes with it rather than showing a deduction that no longer applies.
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusion', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.reimbursableDistance', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusionMethod', null);
             }
 
             const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
@@ -2596,10 +2604,8 @@ function hasDuplicateTransactions(
     ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     allTransactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportTransactions: Transaction[],
 ): boolean {
-    const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = transactionsByIouReportID;
-
     return (
         reportTransactions.length > 0 &&
         reportTransactions.some((transaction) =>

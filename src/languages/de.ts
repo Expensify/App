@@ -416,8 +416,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Nebensatzrate',
         perDiem: 'Tagegeld',
         validate: 'Validieren',
-        downloadAsPDF: 'Als PDF herunterladen',
-        downloadReceipts: 'Belege herunterladen',
+        downloadReport: () => ({
+            one: 'Bericht herunterladen',
+            other: 'Berichte herunterladen',
+        }),
+        downloadReceipt: () => ({
+            one: 'Beleg herunterladen',
+            other: 'Belege herunterladen',
+        }),
         downloadAsCSV: 'Als CSV herunterladen',
         submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
@@ -1004,6 +1010,11 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.', subtitle: 'Expensify Karte', cta: 'Hinzufügen'},
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
+            payOverdueInvoice: {
+                cta: 'Prüfen',
+                dueSoonTitle: ({date}: {date: string}) => `Bezahlen Sie Ihre Rechnung bis zum ${date}, um eine Unterbrechung des Dienstes zu vermeiden`,
+                overdueTitle: 'Ihre Zahlung ist überfällig, bitte begleichen Sie Ihre Rechnung',
+            },
         },
         discoverSection: {
             title: 'Entdecken',
@@ -1170,6 +1181,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Ziehen Sie Ihre Tabelle hierher und legen Sie sie ab oder wählen Sie unten eine Datei aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Erfahren Sie mehr</a> über unterstützte Dateiformate.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Wähle eine Tabellenkalkulationsdatei zum Importieren aus. Unterstützte Formate: .csv, .txt, .xls und .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Wählen Sie eine Tabellenkalkulationsdatei zum Importieren aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Weitere Informationen</a> zu unterstützten Dateiformaten.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Ziehen Sie Ihre Tabelle oder Ihren Kontoauszug hierher und legen Sie sie ab oder wählen Sie unten eine Datei aus. Unterstützte Formate: .csv, .txt, .xls, .xlsx, .ofx und .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Wähle eine Tabellenkalkulations- oder Kontoauszugsdatei zum Importieren aus. Unterstützte Formate: .csv, .txt, .xls, .xlsx, .ofx und .qfx.</muted-link>',
         fileContainsHeader: 'Datei enthält Spaltenüberschriften',
         column: (name: string) => `Spalte ${name}`,
         fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,
@@ -1230,6 +1245,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 Transaktion wurde importiert.',
             other: `${count} Transaktionen wurden importiert.`,
         }),
+        importStatementSuccessfulDescription: 'Dein Kontoauszug wurde hochgeladen.',
         importFailedTitle: 'Import fehlgeschlagen',
         importFailedDescription: 'Bitte stelle sicher, dass alle Felder korrekt ausgefüllt sind, und versuche es erneut. Wenn das Problem weiterhin besteht, wende dich bitte an Concierge.',
         importDescription: 'Wähle aus, welche Felder aus deiner Tabelle zugeordnet werden sollen, indem du unten in der Dropdown-Liste neben jeder importierten Spalte klickst.',
@@ -1625,6 +1641,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Sie können diesen Bericht nicht als erledigt markieren, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
             allExpensesOnHoldDescription: 'Sie können diesen Bericht nicht einreichen, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um ihn einzureichen.',
             allExpensesOnHoldMarkAsDoneDescription: 'Sie können diesen Bericht nicht als erledigt markieren, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um fortzufahren.',
+            reportsNotSubmittedTitle: 'Berichte einreichen',
+            reportsNotMarkedAsDoneTitle: 'Berichte als erledigt markieren',
+            reportsNotSubmittedDescription:
+                'Diese Berichte konnten nicht eingereicht werden. Stellen Sie sicher, dass Ausgaben nicht zurückgehalten oder ausstehend sind, und versuchen Sie es dann erneut.',
+            reportsNotMarkedAsDoneDescription:
+                'Diese Berichte konnten nicht als erledigt markiert werden. Prüfen Sie, dass Ausgaben nicht zurückgehalten oder ausstehend sind, und versuchen Sie es dann erneut.',
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
@@ -1778,6 +1800,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Dieser Bericht wurde abgelehnt. Wir warten darauf, dass Sie die Probleme beheben und ihn manuell erneut einreichen.',
             selectMemberError: 'Wählen Sie ein Mitglied aus, an das dieser Bericht zurückgewiesen werden soll.',
             couldNotReject: 'Der Bericht konnte nicht abgelehnt werden. Bitte versuchen Sie es erneut.',
+            couldNotRejectExpense: 'Die Ausgabe konnte nicht abgelehnt werden, da sie möglicherweise bereits verschoben oder abgelehnt wurde.',
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesMaxTransactionsError: `Berichte sind auf ${CONST.REPORT.MAX_TRANSACTIONS} Ausgaben begrenzt. Bitte verschiebe einige in einen anderen Bericht.`,
@@ -1873,6 +1896,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
             confirmText: 'Tag löschen',
         },
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
     },
     transactionMerge: {
         listPage: {
@@ -5188,6 +5212,9 @@ ${amount} für ${merchant} – ${date}`,
                 xeroInvoiceCollectionAccount: 'Xero-Forderungskonto für Rechnungen',
                 xeroBillPaymentAccountDescription: 'Wählen Sie, von wo aus Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Xero.',
                 invoiceAccountSelectorDescription: 'Wählen Sie aus, wohin Rechnungzahlungen eingehen sollen, und wir erstellen die Zahlung in Xero.',
+                xeroFxExpenseAccount: 'Xero-Konto für Währungsumrechnungsgebühren',
+                fxExpenseAccountDescription:
+                    'Wenn Ihr Unternehmen die Kosten für die Währungsumrechnung bei einer im Ausland getätigten Zahlung übernimmt, buchen wir diese Kosten in Xero auf dieses Konto als „Geldausgabe“-Transaktion.',
             },
             exportDate: {
                 label: 'Rechnungsdatum des Einkaufs',
@@ -5556,6 +5583,9 @@ ${amount} für ${merchant} – ${date}`,
                 error: {
                     customFormID: 'Bitte gib eine gültige numerische benutzerdefinierte Formular-ID ein',
                 },
+                fxExpenseAccount: 'Konto für Währungsumrechnungsgebühren',
+                fxExpenseAccountDescription:
+                    'Wenn Ihr Unternehmen die Währungsumrechnungskosten für eine im Ausland gezahlte Erstattung übernimmt, buchen wir diese Kosten als Buchungssatz auf das untenstehende NetSuite-Konto.',
             },
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in NetSuite hinzu und synchronisieren Sie die Verbindung erneut.',
@@ -6649,6 +6679,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 disabledTitle: 'Nicht so schnell...',
                 disabledMessage: 'Um diese Funktion zu aktivieren oder zu deaktivieren, müssen Sie Ihre Buchhaltungsimporteinstellungen ändern.',
             },
+            recruitingWarningModal: {
+                disconnectText: ({integration}: {integration: string}) => `Um Recruiting zu deaktivieren, trennen Sie bitte zuerst die Verbindung von ${integration} mit diesem Workspace.`,
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -7580,7 +7613,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
             changeBankAccount: 'Bankkonto ändern',
-            updateCurrencyForExpensifyCard: 'Die Expensify Karte kann in USD ausgegeben werden. Bitte aktualisieren Sie diesen Workspace auf USD oder verwenden Sie einen anderen Workspace.',
             updateCurrencyForExpensifyCardTitle: 'Expensify Karte bestellen',
             euUkUpdateCurrencyForExpensifyCard:
                 'Die Expensify Karte kann in USD, GBP und EUR ausgestellt werden. Bitte aktualisieren Sie diesen Workspace auf eine unterstützte Währung oder verwenden Sie einen anderen Workspace.',
@@ -7937,6 +7969,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     'Wenn Sie möchten, dass Expensify Ihre Kilometerpauschalen automatisch aktualisiert, sobald Ihre Regierung neue Richtlinien veröffentlicht, ist diese Funktion genau das Richtige für Sie.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Automatisch aktualisierte amtliche Sätze sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Mehrere Genehmigungsebenen',
+                description:
+                    'Mehrere Genehmigungsstufen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -8572,8 +8611,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             providerApprovalMode: (providerName: string) => `${providerName}-Genehmigungsmodus`,
             providerFinalApprover: (providerName: string) => `${providerName} Endgenehmigende*r`,
             syncing: 'Mitarbeitende werden synchronisiert',
-            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
-            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             approvalModeDescription: (providerName: string) => `Mitglieder und Manager sind für die Synchronisation mit ${providerName} eingerichtet.`,
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -8641,6 +8678,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             importSettings: 'Import-Einstellungen',
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
+            subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
         },
         merge: {
             connections: 'Verbindungen',
@@ -8666,6 +8704,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 custom: 'Benutzerdefinierte Genehmigung',
                 advanced: 'Erweiterte Genehmigung',
             },
+            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
+            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
         },
         emptyDomain: {
@@ -9159,7 +9199,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
         commuterExclusions: {
-            changedToFixedDistance: 'Ausschluss von Arbeitswegen in eine feste Entfernung pro Abrechnung geändert',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Arbeitswegen in eine feste Entfernung pro Abrechnung geändert (zuvor ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Pendelstrecken geändert, um nach Wohnort und Büro zu berechnen (zuvor ${previousMethod})`,
+            previousMethod: {disabled: 'Arbeitswege nicht ausschließen', fixedDistance: 'Feste Entfernung pro Antrag', homeAndOffice: 'Zuhause und Büro'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `feste Entfernungsausschlussgrenze von ${formattedDistance} pro Abrechnung festlegen`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `Feste Streckenausschlussgrenze auf ${formattedNewDistance} pro Antrag geändert (zuvor ${formattedOldDistance})`,
@@ -11008,6 +11050,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         mileageRateAutoUpdated: '<tooltip>Wir haben den Kurs basierend auf Ihrem Reisedatum aktualisiert.</tooltip>',
         markAllAsRead: '<tooltip>Rechtsklick, um <strong>alles als gelesen zu markieren</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Lange drücken, um <strong>alles als gelesen zu markieren</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Greifen Sie auf Ihr Konto und Ihre persönlichen Einstellungen zu.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',
@@ -11085,6 +11128,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Achtung! Dieser Export war zu groß und wurde auf die ersten 50.000 Berichte begrenzt, die Ihrer Suche entsprachen.',
     },
     domain: {
         notVerified: 'Nicht verifiziert',
@@ -11280,9 +11324,9 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             permissions: 'Gruppenberechtigungen',
             createNewGroupButton: 'Neue Gruppe',
             createGroupSubmitButton: 'Gruppe erstellen',
-            expensifyCardPreferredWorkspace: 'Bevorzugter Workspace für Expensify Card',
+            expensifyCardPreferredWorkspace: 'Bevorzugter Arbeitsbereich für Karte',
             expensifyCardPreferredWorkspaceDescription:
-                'Alle Expensify Card-Transaktionen werden im bevorzugten Expensify Card-Arbeitsbereich anstelle des bevorzugten Arbeitsbereichs erstellt. Durch Aktivieren dieser Funktion wird die Einstellung des bevorzugten Arbeitsbereichs nur für Expensify Card-Transaktionen überschrieben.',
+                'Alle Transaktionen der Expensify Karte und der Firmenkarte werden im bevorzugten Karten-Arbeitsbereich statt im bevorzugten Arbeitsbereich erstellt. Wenn Sie diese Funktion aktivieren, wird die Einstellung des bevorzugten Arbeitsbereichs nur für Kartentransaktionen überschrieben.',
             strictlyEnforceWorkspaceRules: 'Workspace-Regeln strikt durchsetzen',
             strictlyEnforceWorkspaceRulesDescription: 'Alle Workspace-Regeln müssen erfüllt sein, bevor ein Bericht eingereicht wird. Manuelle Ausnahmen sind nicht zulässig.',
             restrictExpenseWorkspaceCreation: 'Erstellen/Entfernen von Ausgaben-Workspaces einschränken',
@@ -11301,7 +11345,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             restrictDefaultLoginSelectionDescription:
                 'Verhindert, dass Mitglieder ihre Login-E-Mail-Adresse außerhalb der Unternehmensdomäne ändern, um Richtlinienbeschränkungen zu umgehen.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Um diese Einstellung zu aktivieren, aktiviere zuerst einen bevorzugten Workspace und richte Expensify Cards in deiner Domain ein.',
+                'Um diese Einstellung zu aktivieren, aktivieren Sie bitte zuerst einen bevorzugten Arbeitsbereich und richten Sie eine Expensify Karte oder einen Firmenkarten-Feed in Ihrer Domain ein.',
             findGroup: 'Gruppe suchen',
         },
     },

@@ -56,14 +56,14 @@ type ReportActionAvatarsProps = {
     accountIDs?: number[];
 
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
-    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
 
-    subscriptAvatarBorderColor?: ColorValue;
+    /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
+    backdropColor?: ColorValue;
 
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CardFeed;
@@ -103,11 +103,10 @@ function ReportActionAvatars({
     horizontalStacking,
     sort: sortAvatars,
     singleAvatarContainerStyle,
-    subscriptAvatarBorderColor,
+    backdropColor,
     subscriptAvatarContainerStyle,
     subscriptCardFeed,
     subscriptCardFeedIconSize,
-    secondaryAvatarContainerStyle,
     isInReportAction = false,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
@@ -137,7 +136,7 @@ function ReportActionAvatars({
     const {
         avatarType: notPreciseAvatarType,
         avatars: unsortedIcons,
-        details: {delegateAccountID},
+        details: {delegateAccountID, shouldUseConciergeAvatar},
         source,
     } = useReportActionAvatars({
         report,
@@ -188,7 +187,7 @@ function ReportActionAvatars({
         return null;
     }
 
-    const delegateAccountIDFromAction = source.action?.delegateAccountID;
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : source.action?.delegateAccountID;
     const singleAvatar: AvatarIcon = delegateAccountIDFromAction
         ? {
               ...primaryAvatar,
@@ -207,7 +206,7 @@ function ReportActionAvatars({
                 cardFeedIconSize={subscriptCardFeedIconSize}
                 size={size}
                 containerStyle={subscriptAvatarContainerStyle}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -220,7 +219,7 @@ function ReportActionAvatars({
                 secondaryAvatar={secondaryAvatar}
                 size={size}
                 containerStyle={subscriptAvatarContainerStyle}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -245,7 +244,7 @@ function ReportActionAvatars({
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+                backdropColor={backdropColor}
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
             />

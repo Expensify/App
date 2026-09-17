@@ -9,7 +9,6 @@ import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -79,7 +78,6 @@ function ReportActionItemSingle({
     const {latestDecision, hasBeenFlagged} = getModerationFlagState(action);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, dateFnsLocale} = useLocalize();
     const isOnSearch = useIsOnSearch();
 
@@ -165,12 +163,8 @@ function ReportActionItemSingle({
                     <ReportActionAvatars
                         singleAvatarContainerStyle={styles.actionAvatar}
                         subscriptAvatarContainerStyle={styles.mr0}
-                        subscriptAvatarBorderColor={getBackgroundColor()}
+                        backdropColor={getBackgroundColor()}
                         isInReportAction
-                        secondaryAvatarContainerStyle={[
-                            StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
-                            isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
-                        ]}
                         reportID={iouReportID}
                         chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}

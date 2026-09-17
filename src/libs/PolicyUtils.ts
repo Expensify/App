@@ -22,6 +22,7 @@ import type {
 import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
+    Account,
     ApprovalRule,
     ConnectionLastSync,
     ConnectionName,
@@ -2169,7 +2170,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  * Returns the accountID of the policy reimburser, if not available returns -1.
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
-    const reimburserEmail = policy?.achAccount?.reimburser ?? '';
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
@@ -2279,6 +2280,16 @@ function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: 
     }));
 }
 
+/** Only profit and loss accounts can take a currency conversion cost, so these are kept apart from the bank accounts. */
+function getXeroExpenseAccounts(expenseAccounts: Account[] | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
 function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
@@ -2330,6 +2341,17 @@ function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selecte
         text: name,
         keyForList: id,
         isSelected: id === selectedBankAccountId,
+    }));
+}
+
+function getNetSuiteExpenseAccountOptions(policy: Policy | undefined, selectedExpenseAccountId: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.netsuite?.options.data.expenseAccounts;
+
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: id === selectedExpenseAccountId,
     }));
 }
 
@@ -2525,9 +2547,10 @@ function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: str
     }));
 }
 
-function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-    return vendors.map(({id, value}) => ({
+    const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
+    return sortedVendors.map(({id, value}) => ({
         value: id,
         text: value,
         keyForList: id,
@@ -2800,6 +2823,21 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
  */
 function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return getActiveVendorMatchingVendors(policy) ?? [];
+}
+
+/**
+ * Sorts vendors alphabetically by name using the provided localeCompare.
+ * Uses vendor id as a stable tie-breaker when names match.
+ * Non-mutating: returns a new sorted array.
+ */
+function sortVendors<TVendor extends {id: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
+    return [...vendors].sort((a, b) => {
+        const nameComparison = localeCompare(a.name ?? '', b.name ?? '');
+        if (nameComparison !== 0) {
+            return nameComparison;
+        }
+        return localeCompare(a.id, b.id);
+    });
 }
 
 /**
@@ -3440,6 +3478,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getXeroSupplierByID,
@@ -3542,6 +3581,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccounts,
+    getXeroExpenseAccounts,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -3555,6 +3595,7 @@ export {
     getNetSuiteApprovalAccountOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
+    getNetSuiteExpenseAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
     getSageIntacctVendors,
