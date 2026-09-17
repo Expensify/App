@@ -631,7 +631,6 @@ describe('SequentialQueue - conflict replace addressing', () => {
     });
 
     it.each([
-        // A follow-up replace with no identity, which the type allows
         {
             name: 'replace that omits requestIndex',
             resolution: {conflictAction: {type: 'delete', indices: [1], pushNewRequest: false, nextAction: {type: 'replace', index: 0}}} satisfies ConflictActionData,
