@@ -18,8 +18,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getDelegateSubmitMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
@@ -60,6 +62,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import React from 'react';
 
 import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
@@ -359,6 +362,14 @@ function ActionContentRouter({
             </ReportActionItemBasicMessage>
         );
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                {/* The helper returns plain text, so encode it before it becomes HTML or a workspace name containing an entity like `&copy;` would be parsed as markup. */}
+                <RenderHTML html={`<comment><muted-text>${Str.htmlEncode(getConciergeAutoSelectDistanceRateMessage(translate, action))}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE)) {
         return (
             <ReportActionItemBasicMessage message="">
@@ -473,6 +484,13 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBrokenMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }

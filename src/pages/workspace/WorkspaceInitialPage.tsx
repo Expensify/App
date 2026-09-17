@@ -99,7 +99,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Document',
         'ExpensifyAppIcon',
         'ExpensifyCard',
-        'Feed',
         'Folder',
         'Gear',
         'Hashtag',
@@ -113,6 +112,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'LuggageWithLines',
         'Clock',
         'Bolt',
+        'Bot',
+        'UserPlus',
     ]);
 
     const policyName = policy?.name ?? '';
@@ -182,8 +183,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
         shouldShowRBR,
-        isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         convertToDisplayString,
     }).map((item) => ({
         ...item,
@@ -243,6 +244,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     policyAvatar={policyAvatar}
                     policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldDisplayAccountButton
                 />
 
                 <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14]}>

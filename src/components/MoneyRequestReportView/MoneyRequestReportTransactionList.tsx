@@ -42,7 +42,6 @@ import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportL
 import {
     canAddTransaction,
     getActionErrorsByTransaction,
-    getAddExpenseDropdownOptions,
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
@@ -64,6 +63,8 @@ import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperW
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
+
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -212,7 +213,7 @@ type MoneyRequestReportTransactionListProps = {
     accessibilityLabel: string;
 
     /** FlashList onLayout callback (distinct from the empty-state `onLayout` above). */
-    onListLayout: () => void;
+    onListLayout: (event: LayoutChangeEvent) => void;
 
     /** FlashList onScroll callback. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -221,7 +222,7 @@ type MoneyRequestReportTransactionListProps = {
     onScrollBeginDrag: () => void;
 
     /** FlashList onContentSizeChange callback. */
-    onContentSizeChange: () => void;
+    onContentSizeChange: (width: number, height: number) => void;
 
     /** FlashList onViewableItemsChanged callback. */
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
@@ -305,7 +306,8 @@ function MoneyRequestReportTransactionList({
     const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerLoginSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldShowAddExpenseButton = canAddTransaction(report, rules, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);

@@ -183,6 +183,7 @@ function ParticipantSearchResults({
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -317,6 +318,7 @@ function ParticipantSearchResults({
             translate,
             convertToDisplayString,
             dateFnsLocale,
+            rules,
             personalDetails,
             true,
             undefined,
@@ -394,6 +396,7 @@ function ParticipantSearchResults({
                               userToInviteExpenseReportPolicy,
                               {translate, dateFnsLocale, convertToDisplayString},
                               currentUserAccountID,
+                              rules,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails, translate);

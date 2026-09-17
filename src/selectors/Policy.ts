@@ -114,6 +114,14 @@ const createWorkspaceListPoliciesSelector =
 
             const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
+
+            // A `policy_` record is merged field-by-field, so a freshly joined workspace can show up here before its
+            // `id` has landed. Such a row has no key, no avatar seed and nothing to navigate to, so skip it until the
+            // next update fills it in. Join requests are exempt because they carry their ID in `nonMemberDetails`.
+            if (!policy.id && !isJoinRequestPending) {
+                continue;
+            }
+
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
                 const nonMemberEntry = Object.entries(policy.policyDetailsForNonMembers ?? {}).at(0);
@@ -467,6 +475,9 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+/** The policy fields a workspace avatar renders from. */
+const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
+
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
 const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
@@ -529,6 +540,7 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     homeAndOfficeCommuterExclusionPolicyNameSelector,
+    policyAvatarFieldsSelector,
     policyNameSelector,
     policyRoleSelector,
     policyTypeSelector,
