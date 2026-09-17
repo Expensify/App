@@ -23,7 +23,7 @@ function haveSameDetails(first: PersonalDetailsByLogin, second: PersonalDetailsB
 }
 
 /**
- * Returns a getter for the whole login -> personal details map.
+ * Returns a getter for the whole map of personal details keyed by login.
  *
  * Unlike the hooks below it does not subscribe to anything, so its consumers never re-render when personal
  * details change. Because of that the getter may only be called from an event handler or another imperative
