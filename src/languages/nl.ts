@@ -1875,6 +1875,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Schakel tags in op de werkruimte om de onkostendetails te bewerken of de tag uit deze onkosten te verwijderen.',
             confirmText: 'Label verwijderen',
         },
+        expenseDetails: 'Declaratiedetails',
     },
     transactionMerge: {
         listPage: {

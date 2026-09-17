@@ -1859,6 +1859,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
             confirmText: 'タグを削除',
         },
+        expenseDetails: '経費の詳細',
     },
     transactionMerge: {
         listPage: {

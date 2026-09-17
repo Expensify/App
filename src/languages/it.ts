@@ -1878,6 +1878,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita le etichette nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’etichetta da questa spesa.',
             confirmText: 'Elimina tag',
         },
+        expenseDetails: 'Dettagli spesa',
     },
     transactionMerge: {
         listPage: {

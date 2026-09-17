@@ -1909,6 +1909,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Włącz tagi w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć ten tag z tego wydatku.',
             confirmText: 'Usuń znacznik',
         },
+        expenseDetails: 'Szczegóły wydatku',
     },
     transactionMerge: {
         listPage: {

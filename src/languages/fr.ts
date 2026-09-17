@@ -1888,6 +1888,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Active les tags dans l’espace de travail pour modifier les détails de la dépense ou supprimer le tag de cette dépense.',
             confirmText: 'Supprimer le tag',
         },
+        expenseDetails: 'Détails de la dépense',
     },
     transactionMerge: {
         listPage: {

@@ -1873,6 +1873,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita las etiquetas en el espacio de trabajo para editar los detalles del gasto o eliminar la etiqueta de este gasto.',
             confirmText: 'Eliminar etiqueta',
         },
+        expenseDetails: 'Detalles del gasto',
     },
     transactionMerge: {
         listPage: {
