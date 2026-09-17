@@ -2,7 +2,6 @@ import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
-import type {DraggableListRenderItemParams} from '@components/DraggableList/types';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +15,7 @@ import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
+import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
@@ -42,7 +42,7 @@ type DistanceMapTabContentProps = {
     extractKey: (key: string) => string;
     updateWaypoints: (data: {data: string[]}) => void;
     scrollViewRef: React.RefObject<RNScrollView | null>;
-    renderItem: (params: DraggableListRenderItemParams<string>) => React.JSX.Element;
+    renderItem: (params: RenderItemParams<string>) => React.JSX.Element;
     navigateToWaypointEditPage: (index: number) => void;
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;

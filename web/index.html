@@ -81,11 +81,6 @@
             -webkit-user-select: none !important;
             -webkit-touch-callout: none !important;
         }
-        /*
-         * Shows the grabbing cursor everywhere while a list row is being dragged. It has to be global and
-         * !important because the cursor of the innermost element under the pointer wins, and the elements you
-         * grab a row by - the row pressable, the checkbox - each set cursor: pointer on themselves.
-         */
         .drag-in-progress, .drag-in-progress * {
             cursor: grabbing !important;
         }
