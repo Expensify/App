@@ -1343,6 +1343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Άφησέ το να πάει',
         dropMessage: 'Αποθέστε το αρχείο σας εδώ',
         flash: 'φλας',
+        flipCamera: 'περιστροφή κάμερας',
         multiScan: 'πολλαπλή σάρωση',
         shutter: 'κλείστρο',
         gallery: 'συλλογή',
@@ -5696,6 +5697,7 @@ ${amount} για ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια θυγατρική στο NetSuite και συγχρονίστε ξανά τη σύνδεση',
             tokenInput: {
                 title: 'Ρύθμιση NetSuite',
+                connectWithTokenAuthentication: 'Συνδεθείτε με έλεγχο ταυτότητας βάσει διακριτικού (SOAP) αντ’ αυτού',
                 formSteps: {
                     installBundle: {
                         title: 'Εγκαταστήστε το πακέτο Expensify',

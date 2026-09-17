@@ -3471,6 +3471,9 @@ const CONST = {
                 OAUTH: 'enable-oauth',
                 REST: 'enable-rest',
             },
+            AUTH_TYPE: {
+                TBA: 'tba',
+            },
             STEP_KEYS: {
                 install: 'installBundle',
                 authentication: 'enableTokenAuthentication',
@@ -9982,6 +9985,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+        },
+        SEARCH_KEY: {
+            SPEND: 'insightsSpend',
+        },
+        GRAPH: {
+            SPEND_OVER_TIME: 'spendOverTime',
+            TOP_MERCHANTS: 'topMerchants',
+            TOP_CATEGORIES: 'topCategories',
+            TOP_SPENDERS: 'topSpenders',
         },
     },
 

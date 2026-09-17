@@ -1240,6 +1240,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '随它去',
         dropMessage: '将文件拖放到此处',
         flash: '闪光',
+        flipCamera: '翻转摄像头',
         multiScan: '多重扫描',
         shutter: '快门',
         gallery: '图库',
@@ -5375,6 +5376,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noSubsidiariesFoundDescription: '请在 NetSuite 中添加一个子公司，然后再次同步连接',
             tokenInput: {
                 title: 'NetSuite 设置',
+                connectWithTokenAuthentication: '改为使用基于令牌的身份验证（SOAP）连接',
                 formSteps: {
                     installBundle: {
                         title: '安装 Expensify 插件包',
