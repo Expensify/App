@@ -7,14 +7,9 @@ import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasOnlyHeldExpenses, hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
-import type {SubmitViolationsSummary} from '@libs/TransactionUtils';
-import {
-    getSubmitViolationsSummary,
-    getTransactionViolations,
-    hasOnlyPendingCardTransactions,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import type {SubmitViolationsSummary} from '@libs/SubmitViolationsUtils';
+import {getSubmitViolationsSummary} from '@libs/SubmitViolationsUtils';
+import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {markRejectedTransactionsAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -111,6 +106,12 @@ jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     getTransactionViolations: jest.fn(),
     hasOnlyPendingCardTransactions: jest.fn(() => false),
+    showPendingCardTransactionsBlockModal: jest.fn(),
+    showHeldExpensesBlockModal: jest.fn(),
+}));
+
+jest.mock('@libs/SubmitViolationsUtils', () => ({
+    __esModule: true,
     getSubmitViolationsSummary: jest.fn(() => ({
         hasSevenDayHoldViolation: false,
         hasGenericPendingRTERViolation: false,
@@ -123,8 +124,6 @@ jest.mock('@libs/TransactionUtils', () => ({
     hasAnySubmitViolation: jest.fn(
         (summary: SubmitViolationsSummary) => summary.hasSevenDayHoldViolation || summary.hasRejectedViolation || summary.hasReportBeenRejected || summary.otherViolations.length > 0,
     ),
-    showPendingCardTransactionsBlockModal: jest.fn(),
-    showHeldExpensesBlockModal: jest.fn(),
 }));
 
 jest.mock('@libs/ReportUtils', () => {

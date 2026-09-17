@@ -1,8 +1,8 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SubmitViolationsBulletList from '@components/SubmitViolationsBulletList';
 
-import type {SubmitViolationsSummary} from '@libs/TransactionUtils';
-import {hasAnySubmitViolation} from '@libs/TransactionUtils';
+import type {SubmitViolationsSummary} from '@libs/SubmitViolationsUtils';
+import {hasAnySubmitViolation} from '@libs/SubmitViolationsUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import React from 'react';

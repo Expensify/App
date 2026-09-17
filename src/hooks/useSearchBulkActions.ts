@@ -89,6 +89,7 @@ import {
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
 import StringUtils from '@libs/StringUtils';
+import {hasTransactionBeenRejected} from '@libs/SubmitViolationsUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getDeleteConfirmationPrompt,
@@ -97,7 +98,6 @@ import {
     hasCustomUnitOutOfPolicyViolation,
     hasOnlyPendingCardTransactions,
     hasReceipt as hasReceiptTransactionUtils,
-    hasTransactionBeenRejected,
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,

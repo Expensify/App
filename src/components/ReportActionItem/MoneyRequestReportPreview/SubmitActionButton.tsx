@@ -19,14 +19,8 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {
-    getSubmitViolationsSummary,
-    getTransactionViolations,
-    hasAnySubmitViolation,
-    hasOnlyPendingCardTransactions,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import {getSubmitViolationsSummary, hasAnySubmitViolation} from '@libs/SubmitViolationsUtils';
+import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {markRejectedTransactionsAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';

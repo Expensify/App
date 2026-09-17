@@ -2,7 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useConfirmViolationsAndProceed from '@hooks/useConfirmViolationsAndProceed';
 
-import type {SubmitViolationsSummary} from '@libs/TransactionUtils';
+import type {SubmitViolationsSummary} from '@libs/SubmitViolationsUtils';
 
 import CONST from '@src/CONST';
 

@@ -302,6 +302,15 @@ jest.mock('@libs/PaymentUtils', () => ({
 
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
+    hasOnlyPendingCardTransactions: jest.fn(() => false),
+    showPendingCardTransactionsBlockModal: jest.fn(),
+    isExpensifyCardTransaction: jest.fn(() => false),
+    isPending: jest.fn(() => false),
+    getReimbursable: jest.fn(() => true),
+}));
+
+jest.mock('@libs/SubmitViolationsUtils', () => ({
+    __esModule: true,
     getSubmitViolationsSummary: jest.fn(() => ({
         hasSevenDayHoldViolation: false,
         hasGenericPendingRTERViolation: false,
@@ -309,11 +318,6 @@ jest.mock('@libs/TransactionUtils', () => ({
         hasReportBeenRejected: false,
         otherViolations: [],
     })),
-    hasOnlyPendingCardTransactions: jest.fn(() => false),
-    showPendingCardTransactionsBlockModal: jest.fn(),
-    isExpensifyCardTransaction: jest.fn(() => false),
-    isPending: jest.fn(() => false),
-    getReimbursable: jest.fn(() => true),
 }));
 
 jest.mock('@userActions/Transaction', () => ({

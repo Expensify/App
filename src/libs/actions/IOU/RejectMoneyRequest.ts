@@ -28,7 +28,8 @@ import {
     isIOUReport,
     isOpenReport,
 } from '@libs/ReportUtils';
-import {getAmount, getCurrency, hasTransactionBeenRejected} from '@libs/TransactionUtils';
+import {hasTransactionBeenRejected} from '@libs/SubmitViolationsUtils';
+import {getAmount, getCurrency} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {notifyNewAction} from '@userActions/Report';
