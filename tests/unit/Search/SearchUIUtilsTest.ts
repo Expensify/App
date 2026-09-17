@@ -31,6 +31,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
@@ -67,10 +68,7 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: globalThis.createTransactionThreadReportMock ?? (globalThis.createTransactionThreadReportMock = jest.fn()),
 }));
-jest.mock('@userActions/Search', () => ({
-    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    setOptimisticDataForTransactionThreadPreview: globalThis.setOptimisticDataForTransactionThreadPreviewMock ?? (globalThis.setOptimisticDataForTransactionThreadPreviewMock = jest.fn()),
-}));
+jest.mock('@userActions/Search', () => ({setOptimisticDataForTransactionThreadPreview: jest.fn()}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
@@ -11339,6 +11337,43 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('Should not show Violations when FORWARDED snapshot data is present without a violation has-filter', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'forwarded-without-filter',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID}`]: {
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                        created: '2025-01-01 00:00:00',
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {
+                                transactions: {
+                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                                },
+                            },
+                        },
+                    },
+                },
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
@@ -11376,7 +11411,7 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
@@ -11421,7 +11456,12 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data,
+                visibleColumns: customVisibleColumns,
+                shouldShowViolationsColumn: true,
+            });
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
         });
@@ -11461,8 +11501,41 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data,
+                visibleColumns: customVisibleColumns,
+                shouldShowViolationsColumn: true,
+            });
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('Should strip Violations from custom column layouts without a violation has-filter', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'custom-columns-strip-violations',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+            const customVisibleColumns = [
+                CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ];
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
         test('Should only show Category GL Code when that column is selected', () => {
@@ -14143,26 +14216,6 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('searchKeyToSavedSearchID', () => {
-        it('strips the prefix to recover the saved search ID', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`)).toBe('12345');
-        });
-
-        it('returns undefined for a non saved-search key', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(CONST.SEARCH.SEARCH_KEYS.EXPENSES)).toBeUndefined();
-        });
-
-        it('returns undefined when the key is undefined', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(undefined)).toBeUndefined();
-        });
-    });
-
-    describe('savedSearchIDToSearchKey', () => {
-        it('prefixes a saved search ID to build a search key', () => {
-            expect(SearchUIUtils.savedSearchIDToSearchKey('12345')).toBe(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`);
-        });
-    });
-
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 
@@ -14371,7 +14424,7 @@ describe('splitGroupsIntoPairs', () => {
 
 describe('getLastSearchQuery', () => {
     const submitKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
-    const savedSearchKey = SearchUIUtils.savedSearchIDToSearchKey('100');
+    const savedSearchKey = savedSearchIDToSearchKey('100');
     const submitQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`;
     const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`;
 
@@ -14409,7 +14462,7 @@ describe('getLastSearchQuery', () => {
     });
 
     it('returns undefined when the search key has no filter', () => {
-        expect(SearchUIUtils.getLastSearchQuery(searchFilters, SearchUIUtils.savedSearchIDToSearchKey('200'))).toBeUndefined();
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, savedSearchIDToSearchKey('200'))).toBeUndefined();
     });
 
     it('returns undefined when there are no filters at all', () => {
