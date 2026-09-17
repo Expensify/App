@@ -425,10 +425,10 @@ function makeTripRoomReport(reportID: string, ownerAccountID: number = TEST_ACCO
     } as Report;
 }
 
-function makeTraveler(email: string): PnrData['travelers'][number] {
+function makeTraveler(email?: string): PnrData['travelers'][number] {
     return {
         travelerPersonalInfo: {loyaltyInfos: []},
-        user: {email, addresses: [], identityDocs: [], paymentInfos: [], phoneNumbers: []},
+        user: email ? {email, addresses: [], identityDocs: [], paymentInfos: [], phoneNumbers: []} : undefined,
         userBusinessInfo: {phoneNumbers: [], designatedApproverInfos: [], designatedApproverUserIds: []},
         userOrgId: {},
         persona: '',
@@ -669,6 +669,27 @@ describe('useUpcomingTravelReservations', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}800`, tripRoom);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}800`, makeTripRoomReportNameValuePairs('800', [flight], OTHER_USER_EMAIL));
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
+    });
+
+    it('should exclude trips with travelers missing user details', async () => {
+        const flight = makeAirPnr('PNR_MISSING_USER', daysFromNow(2), daysFromNow(2, 15));
+        const tripRoom = makeTripRoomReport('850');
+        const tripReportNameValuePairs = makeTripRoomReportNameValuePairs('850', [flight]);
+        const firstPnr = tripReportNameValuePairs.tripData?.payload?.pnrs.at(0);
+
+        if (firstPnr) {
+            firstPnr.data.travelers = [makeTraveler()];
+        }
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}850`, tripRoom);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}850`, tripReportNameValuePairs);
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useUpcomingTravelReservations());
