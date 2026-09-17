@@ -3,7 +3,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,10 +14,9 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import type ConnectToHRFlowProps from './types';
+import type ConnectToMergeFlowProps from './types';
 
-function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
-    const {translate} = useLocalize();
+function ConnectToMergeFlow({setupLink, title, onDone}: ConnectToMergeFlowProps) {
     const styles = useThemeStyles();
     const hasOpened = useRef(false);
     const isDismissed = useRef(false);
@@ -77,7 +75,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.hr')}
+                title={title}
                 onBackButtonPress={dismiss}
             />
             <FullPageOfflineBlockingView>
@@ -89,4 +87,4 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
     );
 }
 
-export default ConnectToHRFlow;
+export default ConnectToMergeFlow;
