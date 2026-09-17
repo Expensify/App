@@ -4554,8 +4554,30 @@ function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, s
     return typeof searchFilter === 'object' ? searchFilter.query : undefined;
 }
 
-function searchKeyToSavedSearchID(key: SearchKey | undefined) {
+function searchKeyToSavedSearchID(key: string | undefined) {
     return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
+}
+
+function isExistingSearchKey(value: string | undefined, suggestedSearchKeys: SearchKey[], savedSearchIDs: string[]): value is SearchKey {
+    if (!value) {
+        return false;
+    }
+
+    const savedSearchID = searchKeyToSavedSearchID(value);
+    if (savedSearchID) {
+        return savedSearchIDs.includes(savedSearchID);
+    }
+
+    return suggestedSearchKeys.some((searchKey) => searchKey === value);
+}
+
+const DATA_TYPE_TO_SEARCH_KEY: Partial<Record<SearchDataTypes, SearchKey>> = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+};
+
+function getSearchKeyForDataType(type: SearchDataTypes | undefined): SearchKey | undefined {
+    return type ? DATA_TYPE_TO_SEARCH_KEY[type] : undefined;
 }
 
 /**
@@ -6396,6 +6418,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
@@ -6528,7 +6551,7 @@ function getColumnsToShow({
             columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
         }
 
-        if (!isExpenseReportView && !!transaction.comment?.vendor?.externalID) {
+        if (transaction.comment?.vendor?.externalID) {
             columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
         }
 
@@ -7132,6 +7155,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 
 export {
     getSearchBulkEditPolicyID,
+    getSearchKeyForDataType,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,
@@ -7158,6 +7182,7 @@ export {
     shouldShowYear,
     getOverflowMenu,
     getLastSearchQuery,
+    isExistingSearchKey,
     savedSearchIDToSearchKey,
     searchKeyToSavedSearchID,
     isCorrectSearchUserName,
@@ -7242,4 +7267,4 @@ export {
     SKIPPED_SEARCH_FILTERS,
     SEARCH_TYPE_MENU_ICON_NAMES,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, SearchGroupKey, GroupBySection, SearchFilter};

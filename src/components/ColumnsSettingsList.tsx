@@ -1,19 +1,12 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getVendorSearchAvailability} from '@libs/PolicyUtils';
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -72,20 +65,28 @@ type ColumnsSettingsListProps = {
     /** The default columns for the active group-by mode when no customization has been applied */
     defaultGroupColumns?: SearchCustomColumnIds[];
 
+    /** Whether the vendor column is labelled "Supplier", which is what Xero calls vendors */
+    shouldUseSupplierLabel?: boolean;
+
     /** Callback fired with the updated column list when the user saves changes */
     onSave: (columns: SearchCustomColumnIds[]) => void;
 };
 
-function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns, requiredColumns, groupBy, groupColumns = [], defaultGroupColumns = [], onSave}: ColumnsSettingsListProps) {
+function ColumnsSettingsList({
+    allColumns,
+    defaultSelectedColumns,
+    currentColumns,
+    requiredColumns,
+    groupBy,
+    groupColumns = [],
+    defaultGroupColumns = [],
+    shouldUseSupplierLabel = false,
+    onSave,
+}: ColumnsSettingsListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
     const {translate, localeCompare} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const [shouldUseSupplierLabel = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled).shouldUseSupplierLabel,
-    });
 
     const isGrouped = !!groupBy;
 

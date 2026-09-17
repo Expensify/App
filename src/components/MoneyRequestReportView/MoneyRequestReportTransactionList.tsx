@@ -36,7 +36,7 @@ import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
+import {isPolicyTaxEnabled, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
@@ -943,6 +943,7 @@ function MoneyRequestReportTransactionList({
                         sortOrder={sortOrder}
                         shouldRemoveTotalColumnFlex={hasFlexColumn(columnsToShow)}
                         columns={columnsToShow}
+                        shouldUseSupplierLabel={isXeroActiveMatchingSource(policy)}
                         dateColumnSize={dateColumnSize}
                         postedColumnSize={postedColumnSize}
                         amountColumnSize={amountColumnSize}
