@@ -6037,6 +6037,10 @@ const translations = {
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
         },
+        businessCentral: {
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
+        },
         dualEntry: {
             dualEntrySetup: 'DualEntry setup',
             enterCredentials: 'Enter your DualEntry API key',
