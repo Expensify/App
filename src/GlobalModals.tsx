@@ -1,6 +1,5 @@
 import React, {startTransition, useEffect, useState} from 'react';
 
-import DeferredGlobalModals from './components/DeferredGlobalModals';
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
@@ -10,6 +9,10 @@ import {growlRef} from './libs/Growl';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
 const LazyPopoverReportActionContextMenu = React.lazy(() => import('./pages/inbox/report/ContextMenu/PopoverReportActionContextMenu'));
+// Kept as its own dynamic import (not a static one) so its module graph - the deferred-prompt hooks, their
+// useOnyx subscriptions, and @userActions/User - stays out of this chunk and is only fetched once
+// shouldRenderDeferredModals flips true, instead of being parsed/evaluated during the ManualAppStartup span.
+const LazyDeferredGlobalModals = React.lazy(() => import('./components/DeferredGlobalModals'));
 
 // Maximum time (ms) the context menu mount can stay deferred before requestIdleCallback forces it to run,
 // guaranteeing mount even if the main thread never becomes idle.
@@ -57,7 +60,11 @@ function GlobalModals() {
             </DelegateNoAccessModalProvider>
             {/* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
             <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
-            {shouldRenderDeferredModals && <DeferredGlobalModals />}
+            {shouldRenderDeferredModals && (
+                <LazyModalSlot>
+                    <LazyDeferredGlobalModals />
+                </LazyModalSlot>
+            )}
         </>
     );
 }
