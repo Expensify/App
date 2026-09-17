@@ -11,6 +11,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isInvoiceReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {
     getChildTransactions,
@@ -149,6 +150,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
      * @param duplicateTransactionViolations - Collection of duplicate transaction violations
      * @param currentSearchHash - Current search hash for updating split transactions
      * @param isSingleTransactionView - Optional flag indicating if the deletion is from a single transaction view
+     * @param fullyDeletedGroupKeys - Grouped-search group rows this delete wipes out entirely, keyed by transaction ID
      * @returns Result describing whether the delete redirected or deleted transaction threads
      */
     const deleteTransactions = useCallback(
@@ -158,6 +160,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             duplicateTransactionViolations: OnyxCollection<TransactionViolations>,
             currentSearchHash?: number,
             isSingleTransactionView?: boolean,
+            fullyDeletedGroupKeys?: Record<string, SearchGroupKey>,
         ): DeleteTransactionsResult => {
             if (!transactionIDs.length) {
                 return {
@@ -406,6 +409,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isSingleTransactionView,
                     transactionIDsPendingDeletion: deletedTransactionIDs,
                     selectedTransactionIDs: transactionIDs,
+                    searchHash: currentSearchHash,
+                    fullyDeletedGroupKey: fullyDeletedGroupKeys?.[transactionID],
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
