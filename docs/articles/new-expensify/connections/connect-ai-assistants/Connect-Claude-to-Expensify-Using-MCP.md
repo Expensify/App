@@ -1,8 +1,8 @@
 ---
 title: Connect Claude to Expensify
 description: Learn how to connect Claude to Expensify using the Expensify MCP server.
-keywords: [Claude Desktop Expensify MCP, Claude AI, Claude custom connector, connect Claude to Expensify, Expensify MCP Claude setup]
-internalScope: Audience is members using Claude. Covers connecting Claude to Expensify using Claude's connections director and MCP. Does not cover other AI clients or general MCP workflows.
+keywords: [Claude Desktop Expensify MCP, Claude AI, Claude Cowork, Claude custom connector, connect Claude to Expensify, Expensify MCP Claude setup]
+internalScope: Audience is members using Claude. Covers connecting Claude to Expensify using Claude's Connectors Directory and MCP. Does not cover other AI clients or general MCP workflows.
 order: 3
 ---
 
@@ -10,7 +10,7 @@ order: 3
 
 You can connect Claude to Expensify to search and analyze your Expensify data using natural language. 
 
-Expensify is available in Claude’s Connections Directory. The Expensify connector uses MCP to securely connect Claude to your Expensify account.
+Expensify is available in Claude’s Connectors Directory. The Expensify connector uses MCP to securely connect Claude to your Expensify account.
 
 ## Who can connect Claude to Expensify
 
@@ -24,7 +24,7 @@ Find the **Expensify** connector, then follow Claude’s instructions to connect
 
 ## What happens after you connect Claude to Expensify
 
-Once connected, Claude can search, retrieve and analyze your Expensify data.
+Once connected, Claude can search, retrieve, and analyze your Expensify data.
 
 Claude can:
 
@@ -44,7 +44,7 @@ Claude cannot:
 
 ## Can I connect Claude to Expensify using a custom connector?
 
-Yes. You can manually connect Claude to the Expensify MCP server instead of adding Expensify from Claude’s Connections Directory.
+Yes. You can manually connect Claude to the Expensify MCP server instead of adding Expensify from Claude’s Connectors Directory.
 
 For instructions, see Claude’s documentation: [How to add a custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp#h_3d1a65aded).
 
@@ -52,7 +52,7 @@ When prompted for the server URL, enter `https://www.expensify.com/mcp/`, then c
 
 ## Can I connect Claude to Expensify through Claude for Small Business?
 
-Yes. Expensify is included as a connector in Anthropic’s Claude for Small Business plugin, which provides a collection of connectors for business tools.
+Yes. Expensify is included as a connector in Anthropic’s Claude for Small Business plugin, which provides a collection of connectors across a range of popular business tools.
 
 Add the Claude for Small Business plugin, then use the included Expensify connector and follow Claude’s instructions to connect your Expensify account. [Learn more about Claude for Small Business](https://www.anthropic.com/news/claude-for-small-business).
 
