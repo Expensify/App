@@ -9365,9 +9365,9 @@ ${reportName}`,
             }),
             undelete: 'Restaurar',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
-            markAsExportedAllMatchingTitle: 'Aún no se pueden exportar todos los informes',
+            markAsExportedAllMatchingTitle: 'Todavía no se pueden exportar todos los informes',
             markAsExportedAllMatchingPrompt: ({total}: {total?: number}) =>
-                `Por ahora solo se pueden exportar los informes cargados en esta página${total ? `, no los ${total} informes coincidentes` : ''}. Filtra o selecciona los informes individualmente para exportarlos todos.`,
+                `Solo se pueden exportar ahora los informes cargados en esta página${total ? `, no todos los ${total} informes coincidentes` : ''}. Reduce el filtro o selecciona los informes individualmente para exportarlos todos.`,
         },
         expensifyCardStatementPDF: {
             title: 'Descargar extracto',

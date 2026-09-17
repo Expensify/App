@@ -9326,9 +9326,9 @@ ${reportName}`,
                 other: (count: number) => (count === 1 ? '経費を複製' : '経費を一括複製'),
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
-            markAsExportedAllMatchingTitle: 'まだすべてのレポートをエクスポートできません',
+            markAsExportedAllMatchingTitle: '一部のレポートはまだエクスポートできません',
             markAsExportedAllMatchingPrompt: ({total}: {total?: number}) =>
-                `現在、このページに読み込まれているレポートのみをエクスポートできます${total ? `。一致する${total}件すべてのレポートはエクスポートできません` : ''}。すべてエクスポートするには、絞り込むかレポートを個別に選択してください。`,
+                `現在このページに読み込まれているレポートのみエクスポートできます${total ? `、一致する ${total} 件すべてのレポートではありません` : ''}。すべてをエクスポートするには、フィルターを絞り込むか、レポートを個別に選択してください。`,
             undelete: '削除を取り消す',
             duplicateReport: () => ({
                 one: 'レポートを複製',
