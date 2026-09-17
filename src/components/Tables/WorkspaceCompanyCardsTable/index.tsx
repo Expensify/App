@@ -231,12 +231,7 @@ function WorkspaceCompanyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: formatMaskedCardName(item.cardName), fontSize: fontScale.text}],
-                // A masked card number ellipsizes at its tail, which is the part identifying the card, so it is never
-                // squeezed below its content.
                 shouldFitContent: true,
-                // formatMaskedCardName returns the feed's name unchanged unless it is all digits, so this column can
-                // also hold long free text. The cap bounds what such a name may reserve, since the width a fitted column
-                // asks for is also the width it refuses to go below.
                 maxWidth: CONST.TABLES.DYNAMIC_COLUMNS.MAX_FREE_TEXT_COLUMN_WIDTH,
             },
         },
