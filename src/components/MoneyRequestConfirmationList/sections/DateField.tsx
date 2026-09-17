@@ -11,6 +11,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestCreated, setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
+import DateUtils from '@libs/DateUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,7 +50,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
@@ -154,7 +155,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
-            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+            title={iouCreated ? DateUtils.formatInUTCToMedium(iouCreated, preferredLocale) : DateUtils.formatToMediumDate(new Date(), preferredLocale)}
             description={translate('common.date')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}

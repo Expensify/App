@@ -594,6 +594,15 @@ describe('DateUtils', () => {
         );
     });
 
+    describe('formatToLocalDateTime', () => {
+        it.each([
+            [CONST.LOCALES.EN, 'Sep 18, 2026, 2:30 PM'],
+            [CONST.LOCALES.ES, '18 sept 2026, 14:30'],
+        ] as const)('renders the date and time in the order and clock of %s', (locale, expected) => {
+            expect(DateUtils.formatToLocalDateTime(new Date(2026, 8, 18, 14, 30), locale)).toBe(expected);
+        });
+    });
+
     describe('getMonthNames / getFilteredMonthItems', () => {
         it('keeps a month as written inside a sentence and capitalizes it only as a picker label', () => {
             const spanishMonths = DateUtils.getMonthNames(CONST.LOCALES.ES);

@@ -1720,6 +1720,7 @@ const DateUtils = {
     formatToShortMonthDayTime,
     formatToWeekdayLongDate,
     formatToLocalizedShortDate,
+    formatToLocalDateTime,
     formatInUTCToMedium,
     formatInUTCToLong,
     formatTransactionListDate,

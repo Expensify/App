@@ -38,6 +38,7 @@ import {
     getPlaidInstitutionIconUrl,
     maskCardNumber,
 } from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,7 +66,6 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
-import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -79,7 +79,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const feedName = decodeURIComponent(feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
 
-    const {translate, formatPhoneNumber, getLocalDateFromDatetime} = useLocalize();
+    const {translate, formatPhoneNumber, getLocalDateFromDatetime, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -143,7 +143,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
     const lastScrape = card?.lastScrape
-        ? format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING)
+        ? DateUtils.formatToLocalDateTime(getLocalDateFromDatetime(card.lastScrape), preferredLocale)
         : translate('workspace.moreFeatures.companyCards.neverUpdated');
 
     const errorRowStyles = [styles.ph5, styles.mb3];
@@ -273,7 +273,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                 canWriteCompanyCards ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName)) : undefined
                             }
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
-                            value={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
+                            value={card?.scrapeMinDate ? DateUtils.formatToMediumDate(card.scrapeMinDate, preferredLocale) : ''}
                         >
                             {!!card?.errorFields?.scrapeMinDate && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                         </MenuItemField>

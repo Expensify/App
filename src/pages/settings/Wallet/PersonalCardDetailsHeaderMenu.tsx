@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCardName} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -21,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type {Card, PersonalDetails} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {format, isValid, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -54,14 +54,11 @@ function PersonalCardDetailsHeaderMenu({
     onUnassignCard,
     onDeleteCard,
 }: PersonalCardDetailsHeaderMenuProps) {
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Table', 'Trashcan']);
 
-    // Guard against an invalid scrapeMinDate, since`format` throws `RangeError: Invalid time value`
-    // when `parseISO` can't parse the value
-    const parsedScrapeMinDate = card?.scrapeMinDate ? parseISO(card.scrapeMinDate) : undefined;
-    const transactionStartDateTitle = parsedScrapeMinDate && isValid(parsedScrapeMinDate) ? format(parsedScrapeMinDate, CONST.DATE.FNS_FORMAT_STRING) : '';
+    const transactionStartDateTitle = card?.scrapeMinDate ? DateUtils.formatToMediumDate(card.scrapeMinDate, preferredLocale) : '';
 
     return (
         <>
