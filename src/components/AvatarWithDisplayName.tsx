@@ -383,3 +383,4 @@ function AvatarWithDisplayName({
 }
 
 export default AvatarWithDisplayName;
+export type {AvatarWithDisplayNameProps};
