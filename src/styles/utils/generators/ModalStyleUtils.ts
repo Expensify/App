@@ -286,10 +286,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 animationOut = 'fadeOut';
                 break;
             case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED: {
-                // On wide layout the outer box holds a floating card inset from it on every side. The card is border-box,
-                // so it has to carry its border on top of `rhpWidth` for its content to end up that wide. Both terms have
-                // to match RightModalNavigator's frame or the two cards sit 2px apart and their borders read as one
-                // doubled line where they overlap.
+                // Border-box card inset on every side. Both terms must match RightModalNavigator's frame or the two cards sit 2px apart and their borders read as one doubled line.
                 const rightDockedBoxWidth = variables.rhpWidth + 2 * variables.rhpFloatingCardBorderWidth + 2 * variables.rhpFloatingCardMargin;
                 modalStyle = {
                     ...modalStyle,
@@ -308,9 +305,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                       }
                     : {
                           flex: 1,
-                          // The insets are spelled out per edge on purpose. getModalPaddingStyles reads `marginTop` and
-                          // `marginBottom` off this object and writes them back over it, so a `margin` shorthand leaves
-                          // both undefined and the card is returned with 0 top and bottom margin, taller than the RHP.
+                          // Per-edge insets on purpose. getModalPaddingStyles reads and rewrites marginTop/marginBottom, so a `margin` shorthand leaves both undefined and the card gets 0 top/bottom margin.
                           marginTop: variables.rhpFloatingCardMargin,
                           marginBottom: variables.rhpFloatingCardMargin,
                           marginLeft: variables.rhpFloatingCardMargin,

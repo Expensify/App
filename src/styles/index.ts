@@ -82,8 +82,7 @@ type SelectionListPopover = {
     extraHeight?: number;
 };
 
-// Chrome shared by every RHP card in the stacked report flow. There the frame itself is invisible, so each card draws
-// its own inset, bordered modal and the scrim behind it dims the card underneath. Only the width differs per card.
+// Shared chrome of every RHP card in the stacked report flow, where the frame is invisible and each card draws its own inset bordered modal. Only the width differs.
 const getRHPExtendedCardFrame = (theme: ThemeColors): ViewStyle => ({
     position: 'absolute',
     top: variables.rhpFloatingCardMargin,
@@ -120,7 +119,6 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
 
-/** Horizontal anchor of an overlay, either a fixed pixel value or an animated one derived from the RHP width. */
 type OverlayPositionValue = number | Animated.Value | Animated.AnimatedAddition<number> | Animated.AnimatedSubtraction<string | number>;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
@@ -3339,16 +3337,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        // Invisible frame docked at the viewport margin and sized to the widest RHP card. It draws nothing, because in the
-        // stacked report flow each card inside is its own bordered modal, and it must not clip or those borders and
-        // shadows get cut off at its edges.
+        // Invisible frame for the stacked report flow. Each card inside draws its own bordered modal, so the frame must not clip or the shadows get cut off.
         RHPCenteredFrame: {
             right: variables.rhpFloatingCardMargin,
             height: '100%',
         },
 
-        // Anchoring for the floating RHP card on web wide layout. It replaces the card's `r0` and `h100`.
-        // Width stays driven by the animated RHP width at the call site.
+        // Anchors the floating RHP card on web wide layout in place of `r0` and `h100`. Width comes from the call site.
         RHPFloatingCard: {
             top: variables.rhpFloatingCardMargin,
             right: variables.rhpFloatingCardMargin,

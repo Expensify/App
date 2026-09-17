@@ -45,9 +45,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
     // Adjust props on wide layout and when the wide RHP is visible
     const shouldAdjustInterpolatorProps = !isSmallScreenWidth && wideRHPRouteKeys.length;
 
-    // A wide or super-wide RHP is a centered card. Any RHP pushed while one is in context is a skinny card stacked on
-    // top of it (the initial centered card mounts as index 0 and never runs this entering animation). Give that push
-    // the same subtle slide-and-fade as the centered cards instead of a full-width slide from the screen edge.
+    // A skinny RHP pushed over a centered wide card gets the same slide-and-fade as the centered cards instead of a full-width slide.
     const isWideRHPContext = !isSmallScreenWidth && (wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0);
 
     return useMemo<PlatformStackNavigationOptions>(() => {
@@ -56,8 +54,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
             animation: Animations.SLIDE_FROM_RIGHT,
             gestureDirection: 'horizontal',
             web: {
-                // Stacked over a centered card: subtle slide-and-fade. Otherwise the .forHorizontalIOS interpolator from
-                // `@react-navigation` is misbehaving on Safari, so we override it with the Expensify custom interpolator.
+                // Otherwise forHorizontalIOS misbehaves on Safari, so the custom interpolator replaces it there.
                 // eslint-disable-next-line no-nested-ternary
                 cardStyleInterpolator: isWideRHPContext
                     ? (props) => customInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}})

@@ -26,16 +26,13 @@ type BaseOverlayProps = {
     /** Overlay position from the right edge of the container */
     positionRightValue?: OverlayPositionValue;
 
-    /** Max opacity the scrim ramps up to. Defaults to `variables.overlayOpacity`. The floating RHP passes the lighter `rhpOverlayOpacity`. */
     maxOpacity?: number;
 
-    /** Overlay position from the top edge of the container. The floating RHP overlays pass the card's inset so the scrim doesn't bleed past it. */
     positionTopValue?: number;
 
-    /** Overlay position from the bottom edge of the container. The floating RHP overlays pass the card's inset so the scrim doesn't bleed past it. */
     positionBottomValue?: number;
 
-    /** Render without the dimming background. The overlay stays positioned and pressable, it just paints nothing. */
+    /** Stays positioned and pressable, just paints nothing. */
     transparent?: boolean;
 };
 

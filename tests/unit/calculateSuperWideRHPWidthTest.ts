@@ -13,9 +13,7 @@ jest.mock('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth', () =>
     jest.requireActual('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth/index.ts'),
 );
 
-// The expected widths below are pinned to concrete pixels rather than recomputed from variables, so any
-// change to superWideRHPLeftMargin (360), receiptPaneRHPMaxWidth (465), wideRHPRightPaneWidth (460) or
-// sidePanelWidth (375) forces a deliberate, visible update here instead of silently tracking the value.
+// Widths are pinned to concrete pixels so a change to any of the underlying variables forces a visible update here.
 describe('calculateSuperWideRHPWidth', () => {
     it('leaves the configured 360px left margin on a wide window', () => {
         // 1440 - 360 (superWideRHPLeftMargin) = 1080.

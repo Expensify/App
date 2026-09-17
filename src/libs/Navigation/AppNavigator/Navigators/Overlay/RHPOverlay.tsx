@@ -8,7 +8,6 @@ import Overlay from '.';
 
 type RHPOverlayProps = Omit<BaseOverlayProps, 'maxOpacity'>;
 
-/** Overlay for the RHP stack. Its scrim is lighter than the one the other modal backdrops use. */
 function RHPOverlay({...rest}: RHPOverlayProps) {
     return (
         <Overlay

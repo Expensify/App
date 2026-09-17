@@ -185,9 +185,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     /**
      * Effect that manages the tertiary overlay animation and rendering state.
      */
-    // Render the press target above the card whenever a skinny RHP sits over a wide one, with or without a super wide
-    // report underneath. react-navigation's card wrapper swallows clicks on the dimmed area, so the overlay rendered
-    // from the screen below cannot catch them.
+    // react-navigation's card wrapper swallows clicks on the dimmed area, so the overlay from the screen below can't catch them when a skinny RHP sits over a wide one.
     const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow, thirdOverlayProgress);
 
     /**

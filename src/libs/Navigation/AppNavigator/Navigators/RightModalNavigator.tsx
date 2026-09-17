@@ -168,8 +168,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
 
-    // While a report or an expense is stacked in the RHP, every card draws its own modal and the frame is invisible.
-    // A plain RHP on its own keeps the single floating card.
+    // With a report or expense stacked in the RHP every card draws its own modal, so the frame is invisible.
     const shouldUseCenteredFrame =
         !shouldUseNarrowLayout &&
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);

@@ -45,8 +45,7 @@ function useWideModalStackScreenOptions() {
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
             if (!isSmallScreenWidth) {
-                // Each of these cards draws its own bordered modal. The slide interpolator clips the card container, so
-                // every branch has to let the container overflow or the border and shadow are cut off at its edges.
+                // Each card draws its own bordered modal, so the container must overflow or the border and shadow get cut off.
                 if (superWideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
@@ -76,8 +75,7 @@ function useWideModalStackScreenOptions() {
                     contentStyle: styles.navigationScreenCardStyle,
                 },
                 web: {
-                    // The RHP provides its own scrim (BaseOverlay). Disable react-navigation's built-in card overlay so
-                    // stacked RHP screens don't fade in a dark backdrop before sliding in.
+                    // The RHP has its own scrim (BaseOverlay), so stacked screens must not fade in react-navigation's dark backdrop too.
                     cardOverlayEnabled: false,
                     cardStyle: isSmallScreenWidth ? StyleUtils.getStyleWithEnvSafeAreaPadding(styles.navigationScreenCardStyle) : styles.navigationScreenCardStyle,
                     cardStyleInterpolator,

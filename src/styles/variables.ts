@@ -108,9 +108,8 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
-    // Inset on the top/right/bottom edges of the floating RHP card (web wide layout only).
     rhpFloatingCardMargin: 12,
-    // Border on the floating RHP card. The frame width compensates for it.
+    // The frame width compensates for this border.
     rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
@@ -128,8 +127,7 @@ export default {
     superWideRHPLeftMargin: 360,
     // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
     rhpWidth: 440,
-    // Right (detail) pane width of the wide and super wide expense views. Decoupled from rhpWidth so the expense
-    // report view's right pane can differ from the standalone skinny RHP.
+    // Decoupled from rhpWidth so the expense report's right pane can differ from the skinny RHP.
     wideRHPRightPaneWidth: 460,
     searchSidebarExpandedWidth: 320,
     searchSidebarCollapsedWidth: 76,

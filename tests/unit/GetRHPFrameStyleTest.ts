@@ -8,14 +8,12 @@ import {Animated} from 'react-native';
 
 import createMock from '../utils/createMock';
 
-// Both platform variants are loaded explicitly. Jest resolves the bare specifier to index.native.ts under the
-// jest-expo preset, so the web card would never be covered otherwise.
+// Both variants are loaded explicitly because jest-expo resolves the bare specifier to index.native.ts, which would leave the web card uncovered.
 const getRHPFrameStyleWeb = jest.requireActual<{default: GetRHPFrameStyle}>('@libs/Navigation/AppNavigator/Navigators/getRHPFrameStyle/index.ts').default;
 const getRHPFrameStyleNative = jest.requireActual<{default: GetRHPFrameStyle}>('@libs/Navigation/AppNavigator/Navigators/getRHPFrameStyle/index.native.ts').default;
 
 const RHP_WIDTH = 375;
 
-// Sentinel objects so the assertions can match on identity rather than on the real theme values.
 const styles = createMock<ThemeStyles>({
     pAbsolute: {position: 'absolute'},
     r0: {right: 0},
@@ -29,7 +27,6 @@ function buildAnimatedWidth() {
     return Animated.subtract(new Animated.Value(RHP_WIDTH), new Animated.Value(0));
 }
 
-/** The width is always the last entry of the frame style array. */
 function getWidth(style: ReturnType<GetRHPFrameStyle>) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return (style as Array<{width?: unknown}>).at(-1)?.width;
