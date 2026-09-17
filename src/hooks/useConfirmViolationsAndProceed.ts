@@ -13,13 +13,9 @@ import {useCurrencyListActions} from './useCurrencyList';
 import useLocalize from './useLocalize';
 
 /**
- * Hook that returns a callback to confirm a report's submit-blocking violations before proceeding with submission.
- *
- * A generic (non-seven-day) pending RTER violation predates #101213 and is unrelated to it, so it is delegated
- * unchanged to the original standalone useConfirmPendingRTERAndProceed prompt. Everything #101213 added —
- * seven-day-hold, rejected expenses, a whole-report rejection, and any other un-dismissed violation — is shown
- * together afterward in a single bulleted modal that offers to resolve the ones with a known resolution before
- * submitting anyway.
+ * Confirms a report's submit-blocking violations before proceeding with submission. Generic pending RTER predates
+ * #101213, so it keeps the original standalone useConfirmPendingRTERAndProceed prompt; everything #101213 added
+ * (seven-day-hold, rejected expenses, report rejection, other violations) shows afterward in one bulleted modal.
  */
 function useConfirmViolationsAndProceed(violationsSummary: SubmitViolationsSummary, onMarkPendingRTERTransactionsAsCash: () => void, onMarkRejectedTransactionsAsResolved: () => void) {
     const {showConfirmModal} = useConfirmModal();

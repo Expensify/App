@@ -2064,9 +2064,8 @@ function getTransactionViolations(
 }
 
 /**
- * Check if a single violation is a pending (unmatched) RTER violation, meaning it is still awaiting a card match
- * and is not a broken card connection. A broken connection is surfaced separately because it has no cash-matching
- * resolution.
+ * Check if a violation is a pending (unmatched) RTER violation, i.e. still awaiting a card match and not a broken
+ * connection (surfaced separately since it has no cash-matching resolution).
  */
 function isPendingRTERViolation(violation: TransactionViolation): boolean {
     return violation.name === CONST.VIOLATIONS.RTER && !!violation.data?.pendingPattern && !isBrokenConnectionViolation(violation);
@@ -2080,8 +2079,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
- * Check if a pending RTER violation is specifically the seven-day-hold subtype (an unmatched receipt still pending
- * after 7 days), as opposed to a recently-pending match or a broken card connection.
+ * Check if a pending RTER violation is the seven-day-hold subtype (unmatched 7+ days), not a recent match or broken connection.
  */
 function isSevenDayHoldViolation(violation: TransactionViolation): boolean {
     return violation.name === CONST.VIOLATIONS.RTER && violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD;

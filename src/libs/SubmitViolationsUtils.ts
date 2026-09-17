@@ -8,10 +8,7 @@ import {getTransactionViolations, isBrokenConnectionViolation, isPendingRTERViol
 type SubmitViolationsSummary = {
     /** Whether any transaction has an unmatched RTER violation that has been pending for more than 7 days. */
     hasSevenDayHoldViolation: boolean;
-    /**
-     * Whether any transaction has an RTER violation that is still recently pending, i.e. not a broken connection and not a seven-day hold.
-     * This predates #101213. The pre-existing "mark as cash" resolution for this case is preserved as-is.
-     */
+    /** Whether any transaction has a recently-pending (non-broken-connection, non-seven-day-hold) RTER violation. Predates #101213; keeps its existing "mark as cash" resolution. */
     hasGenericPendingRTERViolation: boolean;
     /** Whether any transaction has been rejected by an approver and not yet marked as resolved. */
     hasRejectedViolation: boolean;
@@ -25,10 +22,9 @@ export type {SubmitViolationsSummary};
 
 /**
  * Categorizes a report's non-dismissed transaction violations, plus the whole-report-rejected state, for the
- * pre-submit acknowledgement modal. Violations with a known one-click resolution (seven-day hold or generic pending
- * RTER resolve to "mark as cash", rejected expense resolves to "mark as resolved") are tracked as booleans so the
- * modal can offer that resolution. Everything else, including a whole-report rejection that has no resolution beyond
- * resubmitting, is collected for display only.
+ * pre-submit acknowledgement modal. Violations with a known one-click resolution (RTER -> "mark as cash", rejected
+ * expense -> "mark as resolved") are tracked as booleans so the modal can offer it; everything else, including a
+ * whole-report rejection with no resolution beyond resubmitting, is collected for display only.
  */
 function getSubmitViolationsSummary(
     transactions: Array<OnyxEntry<Transaction>>,
@@ -83,17 +79,13 @@ function getSubmitViolationsSummary(
 }
 
 /**
- * Whether a summary contains any of the #101213 submit-blocking violations that require the user to acknowledge
- * them via the pre-submit modal. A generic (non-seven-day) pending RTER violation predates #101213 and keeps its
- * own standalone "mark as cash?" prompt (see useConfirmViolationsAndProceed), so it is intentionally excluded here.
+ * Whether a summary has any #101213 submit-blocking violation requiring acknowledgement via the pre-submit modal.
+ * Generic pending RTER predates #101213 and keeps its own standalone "mark as cash?" prompt, so it's excluded here.
  */
 function hasAnySubmitViolation(summary: SubmitViolationsSummary): boolean {
     return summary.hasSevenDayHoldViolation || summary.hasRejectedViolation || summary.hasReportBeenRejected || summary.otherViolations.length > 0;
 }
 
-/**
- * Check if a transaction has been rejected
- */
 function hasTransactionBeenRejected(transactionViolations: OnyxEntry<TransactionViolations>): boolean {
     return !!transactionViolations && transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }

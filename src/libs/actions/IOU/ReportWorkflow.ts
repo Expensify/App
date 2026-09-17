@@ -149,7 +149,10 @@ type SubmitReportFunctionParams = {
      */
     shouldExportToPDF?: boolean;
 
-    /** When true, submitted after the user confirmed pending violations (seven-day hold, rejected expense) in the pre-submit acknowledgement modal. Tells the backend to resolve those violations server-side too. */
+    /**
+     * When true, the user confirmed pending violations (seven-day hold, rejected expense) in the pre-submit
+     * acknowledgement modal. Tells the backend to resolve those violations server-side too.
+     */
     shouldResolveAcknowledgedViolations?: boolean;
 
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
