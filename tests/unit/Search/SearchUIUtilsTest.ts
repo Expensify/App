@@ -11090,16 +11090,20 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
-        test('Should show the vendor column only when an expense has a vendor assigned', () => {
+        test('Should show the vendor column on Search only when picked, and in the report view when an expense has a vendor assigned', () => {
             const transactionWithoutVendor = createRandomTransaction(1);
             const transactionWithVendor = {...createRandomTransaction(2), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
 
-            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithoutVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE})).not.toContain(
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE})).not.toContain(
                 CONST.SEARCH.TABLE_COLUMNS.VENDOR,
             );
-            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE})).toContain(
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: pickedColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE})).toContain(
                 CONST.SEARCH.TABLE_COLUMNS.VENDOR,
             );
+            expect(
+                SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithoutVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE, isExpenseReportView: true}),
+            ).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
             expect(
                 SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE, isExpenseReportView: true}),
             ).toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
