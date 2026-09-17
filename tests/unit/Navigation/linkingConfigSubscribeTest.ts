@@ -3,13 +3,15 @@ import subscribe from '@libs/Navigation/linkingConfig/subscribe';
 
 import {Linking} from 'react-native';
 
-// A jest mock factory replaces the whole module, and subscribe() also pulls CurrentUserStore in through
-// ROUTES -> Log, which needs getCurrentUserEmail.
+// CurrentUserStore is also imported by Log and NetworkStore for getCurrentUserEmail, so that export
+// needs to exist on the mock too.
 jest.mock('@libs/CurrentUserStore', () => ({
     getCurrentUserEmail: jest.fn(() => null),
     hasAuthToken: jest.fn(),
 }));
 
+// subscribe() only reads the ref to resolve the focused screen for its skip rules. None of the URLs
+// exercised here match a skip rule, so an empty ref keeps that branch out of the way.
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {current: null},
@@ -21,8 +23,15 @@ const REPORT_ID = '269886405016917';
 const ACCOUNT_ID = '22839920';
 const VALIDATE_CODE = 'ABC123';
 
+/**
+ * Delivers a single warm deep link (a React Native `Linking` `url` event) to subscribe()'s handler and
+ * returns the React Navigation listener it was given, so callers can assert whether (and with what)
+ * the link was forwarded.
+ */
 function deliverDeepLink(url: string): jest.Mock {
     const listener = jest.fn();
+    // Capture the handler subscribe() registers, then hand it the URL directly. The teardown it returns
+    // is left alone on purpose: Linking is mocked here and hands back no subscription to remove.
     const addEventListener = jest.spyOn(Linking, 'addEventListener').mockImplementation(jest.fn());
 
     subscribe?.(listener);
@@ -43,6 +52,9 @@ describe('linkingConfig subscribe', () => {
             mockedHasAuthToken.mockReturnValue(false);
         });
 
+        // The Report screen lives in AuthScreens and is not mounted while PublicScreens is showing, so
+        // forwarding these would throw "NAVIGATE ... was not handled by any navigator".
+        // openReportFromDeepLink() opens the public room anonymously instead. See #92672.
         it.each([
             'https://new.expensify.com/r/269886405016917',
             'https://staging.new.expensify.com/r/269886405016917',
@@ -56,6 +68,9 @@ describe('linkingConfig subscribe', () => {
             expect(deliverDeepLink(url)).not.toHaveBeenCalled();
         });
 
+        // The guard matches on the path only, so a report route parked in a query string or fragment no
+        // longer swallows the link. Without this, the magic link below never reached ValidateLoginPage and
+        // the invited user was dropped into the app signed out. See #99156.
         it.each([
             `https://staging.new.expensify.com/v/${ACCOUNT_ID}/${VALIDATE_CODE}?exitTo=/r/${REPORT_ID}`,
             `new-expensify://v/${ACCOUNT_ID}/${VALIDATE_CODE}?exitTo=/r/${REPORT_ID}`,
