@@ -108,6 +108,17 @@ type ApprovalWorkflowRuleMatch = {
     forwardsTo?: string;
 };
 
+type VendorSearchAvailability = {
+    /** Whether at least one workspace the user can see has the vendor feature, so Search can offer the vendor filter and column. */
+    isAvailable: boolean;
+
+    /** Whether every eligible workspace takes its vendors from Xero, which calls them suppliers. */
+    shouldUseSupplierLabel: boolean;
+
+    /** IDs of the workspaces that have the vendor feature. */
+    eligiblePolicyIDs: string[];
+};
+
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
  */
@@ -2725,17 +2736,6 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
         (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy))
     );
 }
-
-type VendorSearchAvailability = {
-    /** Whether at least one workspace the user can see has the vendor feature, so Search can offer the vendor filter and column. */
-    isAvailable: boolean;
-
-    /** Whether every eligible workspace takes its vendors from Xero, which calls them suppliers. */
-    shouldUseSupplierLabel: boolean;
-
-    /** IDs of the workspaces that have the vendor feature. */
-    eligiblePolicyIDs: string[];
-};
 
 /**
  * Search spans every workspace at once, so the vendor filter and column are offered when any workspace has the vendor
