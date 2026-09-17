@@ -1,6 +1,6 @@
 ---
 title: Connect to NetSuite
-description: Connect NetSuite to New Expensify using OAuth 2.0 and REST web services for streamlined expense reporting and accounting sync.
+description: Connect NetSuite to New Expensify for streamlined expense reporting and accounting sync.
 keywords: [New Expensify, NetSuite integration, connect NetSuite, NetSuite OAuth 2.0, NetSuite REST web services, NetSuite token-based authentication, NetSuite bundle, accounting sync]
 internalScope: Audience is Workspace admins on the Control plan who are also NetSuite administrators, covers setting up a new NetSuite connection using OAuth 2.0 and REST web services plus the legacy token-based authentication steps that are still supported, does not cover configuring import/export settings after connecting or troubleshooting a broken connection
 order: 1
