@@ -1,4 +1,4 @@
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteParserRange} from '@components/Search/types';
 
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 type SubstitutionMap = Record<string, string>;
 
-const getSubstitutionMapKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+const getSubstitutionMapKey = (filterKey: SearchAutocompleteParserRange['key'], value: string) => `${filterKey}:${value}`;
 
 const USER_FILTER_KEYS = new Set<string>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
@@ -23,7 +23,7 @@ const USER_FILTER_KEYS = new Set<string>([
  * Key for the Nth occurrence of the same filter+value (e.g. multiple workspaces with the same name).
  * Index 0 uses the base key for backward compatibility; index > 0 uses baseKey:index.
  */
-const getSubstitutionMapKeyWithIndex = (filterKey: SearchFilterKey, value: string, index: number) =>
+const getSubstitutionMapKeyWithIndex = (filterKey: SearchAutocompleteParserRange['key'], value: string, index: number) =>
     index === 0 ? getSubstitutionMapKey(filterKey, value) : `${getSubstitutionMapKey(filterKey, value)}:${index}`;
 
 /**
@@ -41,7 +41,7 @@ const getSubstitutionMapKeyWithIndex = (filterKey: SearchFilterKey, value: strin
  * return: `A from:9876 A`
  */
 function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap, currentUserAccountID?: number) {
-    const parsed = parse(changedQuery) as {ranges: SearchAutocompleteQueryRange[]};
+    const parsed = parse(changedQuery);
 
     const searchAutocompleteQueryRanges = parsed.ranges;
 
