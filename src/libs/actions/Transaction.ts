@@ -150,6 +150,10 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
 
         // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
         routes: null,
+
+        // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
+        // response that replaces the routes carries the matching decision with it.
+        commuterExclusionPreview: null,
     });
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
@@ -366,10 +370,11 @@ function stringifyWaypointsForAPI(waypoints: WaypointCollection): string {
  * Used so we can generate a map view of the provided waypoints
  */
 
-function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
+function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT, policyID?: string) {
     const parameters: GetRouteParams = {
         transactionID,
         waypoints: stringifyWaypointsForAPI(waypoints),
+        policyID,
     };
 
     let command;
@@ -460,6 +465,10 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
 
         // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
         routes: null,
+
+        // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
+        // response that replaces the routes carries the matching decision with it.
+        commuterExclusionPreview: null,
     });
 }
 
@@ -713,7 +722,12 @@ function abandonReviewDuplicateTransactions() {
 }
 
 function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        errors: null,
+        errorFields: {route: null, waypoints: null, routes: null, reject: null},
+        // Dropping a reject error also drops the pin that kept the expense listed on the report it was rejected from
+        rejectFailedFromReportID: null,
+    });
 }
 
 /**

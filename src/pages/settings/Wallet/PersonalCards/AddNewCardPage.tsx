@@ -76,7 +76,7 @@ function AddPersonalNewCardPage() {
                                 if (result.action !== ModalActions.CONFIRM) {
                                     return;
                                 }
-                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
                             })
                             .finally(() => {
                                 setIsModalVisible(false);

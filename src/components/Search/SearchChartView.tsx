@@ -18,6 +18,7 @@ import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQu
 
 import {buildChartSeries} from './buildChartSeries';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
     queryJSON: Readonly<SearchQueryJSON>;
@@ -44,6 +45,7 @@ type SearchChartViewProps = {
 function SearchChartView({queryJSON, view, groupBy, data, isLoading, renderDetails}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
 
@@ -72,7 +74,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, renderDetai
         };
 
         const newQueryString = buildSearchQueryString(newQueryJSON);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
+        // Drilling into a chart segment stays within the same search, so the key travels with it.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString, searchKey: currentSearchKey}));
     };
 
     const firstItem = data.at(0);

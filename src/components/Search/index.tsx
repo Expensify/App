@@ -818,6 +818,7 @@ function Search({
                 Navigation.setParams({
                     q: buildCannedSearchQuery(),
                     rawQuery: undefined,
+                    searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 });
             });
             if (shouldResetSearchQuery) {

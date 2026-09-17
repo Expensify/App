@@ -1,5 +1,5 @@
 import CollapsibleSection from '@components/CollapsibleSection';
-import ConnectToHRFlow from '@components/ConnectToHRFlow';
+import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -8,6 +8,7 @@ import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useMergeInitialSyncingModal from '@hooks/useMergeInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -27,6 +28,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -40,15 +42,17 @@ const PAGE_CONFIG = {
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         openPage: openPolicyHRPage,
         testID: 'WorkspaceHRPage',
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR,
     },
     [CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
         openPage: openPolicyRecruitingPage,
         testID: 'WorkspaceRecruitingPage',
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS,
     },
 } as const;
 
-type MergeConnectionsPageBaseProps = {
+type MergeConnectionsPageBaseContentProps = {
     /** The workspace whose connections are listed. */
     policyID: string;
 
@@ -60,16 +64,14 @@ type MergeConnectionsPageBaseProps = {
 
     /** Category-specific content rendered under the provider list while nothing is connected, e.g. what to do when the provider isn't listed. */
     footer?: React.ReactNode;
+};
 
+type MergeConnectionsPageBaseProps = MergeConnectionsPageBaseContentProps & {
     /** Whether to block access to the page, e.g. when the category is still behind a beta. */
     shouldBeBlocked?: boolean;
 };
 
-/**
- * The shared workspace page listing every provider for one connection category, connected ones first and the rest
- * under a collapsed "Other" section. Only one provider per category may be connected at a time.
- */
-function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBlocked}: MergeConnectionsPageBaseProps) {
+function MergeConnectionsPageBaseContent({policyID, category, cards, footer}: MergeConnectionsPageBaseContentProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -77,16 +79,11 @@ function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBl
     const policy = usePolicy(policyID);
     const [activeSetupFlow, setActiveSetupFlow] = useState<{setupLink: string; key: number} | undefined>();
     const {showConfirmModal} = useConfirmModal();
+    const isFocused = useIsFocused();
 
-    const {featureName, openPage, testID} = PAGE_CONFIG[category];
+    const {testID, connectionName} = PAGE_CONFIG[category];
 
-    useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
-
-    useNetwork({onReconnect: () => openPage(policyID)});
-
-    useEffect(() => {
-        openPage(policyID);
-    }, [openPage, policyID]);
+    useMergeInitialSyncingModal(policyID, connectionName, isFocused);
 
     const connectedCards: MergeProviderCardDescriptor[] = [];
     const disconnectedCards: MergeProviderCardDescriptor[] = [];
@@ -150,6 +147,90 @@ function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBl
     ));
 
     return (
+        <ScreenWrapper
+            enableEdgeToEdgeBottomSafeAreaPadding
+            style={styles.defaultModalContainer}
+            testID={testID}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+        >
+            {!!activeSetupFlow && (
+                <ConnectToMergeFlow
+                    key={activeSetupFlow.key}
+                    setupLink={activeSetupFlow.setupLink}
+                    title={translate(`workspace.common.${category}`)}
+                    onDone={() => setActiveSetupFlow(undefined)}
+                />
+            )}
+            <HeaderWithBackButton
+                title={translate(`workspace.${category}.title`)}
+                shouldDisplayHelpButton
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldUseHeadlineHeader
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <ScrollView
+                contentContainerStyle={styles.pt3}
+                addBottomSafeAreaPadding
+                keyboardShouldPersistTaps="handled"
+            >
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('workspace.merge.connections')}
+                        subtitle={translate(`workspace.${category}.connectionsSubtitle`)}
+                        isCentralPane
+                        subtitleMuted
+                        titleStyles={styles.accountSettingsSectionTitle}
+                        childrenStyles={styles.pt5}
+                    >
+                        {connectedCards.map((card) => (
+                            <MergeProviderCard
+                                key={card.key}
+                                card={card}
+                                policy={policy}
+                                handleConnect={() => handleConnect(card)}
+                                canWriteMoreFeatures={canWriteMoreFeatures}
+                                showReadOnlyModal={showReadOnlyModal}
+                            />
+                        ))}
+                        {connectedCards.length === 0 && (
+                            <>
+                                {maybeSearchBar}
+                                {disconnectedProviderCards}
+                                {footer}
+                            </>
+                        )}
+
+                        {connectedCards.length > 0 && disconnectedCards.length > 0 && !connectedCards.some((c) => c.isInitialSyncInProgress) && (
+                            <CollapsibleSection
+                                title={translate('workspace.accounting.other')}
+                                wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
+                                titleStyle={[styles.textNormal, styles.colorMuted]}
+                                textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
+                            >
+                                {maybeSearchBar}
+                                {disconnectedProviderCards}
+                            </CollapsibleSection>
+                        )}
+                    </Section>
+                </View>
+            </ScrollView>
+        </ScreenWrapper>
+    );
+}
+
+function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBlocked}: MergeConnectionsPageBaseProps) {
+    const {featureName, openPage} = PAGE_CONFIG[category];
+
+    useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
+
+    useNetwork({onReconnect: () => openPage(policyID)});
+
+    useEffect(() => {
+        openPage(policyID);
+    }, [openPage, policyID]);
+
+    return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -157,74 +238,12 @@ function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBl
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             shouldBeBlocked={shouldBeBlocked}
         >
-            <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
-                style={styles.defaultModalContainer}
-                testID={testID}
-                shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
-            >
-                {!!activeSetupFlow && (
-                    <ConnectToHRFlow
-                        key={activeSetupFlow.key}
-                        setupLink={activeSetupFlow.setupLink}
-                        onDone={() => setActiveSetupFlow(undefined)}
-                    />
-                )}
-                <HeaderWithBackButton
-                    title={translate(`workspace.${category}.title`)}
-                    shouldDisplayHelpButton
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <ScrollView
-                    contentContainerStyle={styles.pt3}
-                    addBottomSafeAreaPadding
-                    keyboardShouldPersistTaps="handled"
-                >
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <Section
-                            title={translate('workspace.merge.connections')}
-                            subtitle={translate(`workspace.${category}.connectionsSubtitle`)}
-                            isCentralPane
-                            subtitleMuted
-                            titleStyles={styles.accountSettingsSectionTitle}
-                            childrenStyles={styles.pt5}
-                        >
-                            {connectedCards.map((card) => (
-                                <MergeProviderCard
-                                    key={card.key}
-                                    card={card}
-                                    policy={policy}
-                                    handleConnect={() => handleConnect(card)}
-                                    canWriteMoreFeatures={canWriteMoreFeatures}
-                                    showReadOnlyModal={showReadOnlyModal}
-                                />
-                            ))}
-                            {connectedCards.length === 0 && (
-                                <>
-                                    {maybeSearchBar}
-                                    {disconnectedProviderCards}
-                                    {footer}
-                                </>
-                            )}
-
-                            {connectedCards.length > 0 && disconnectedCards.length > 0 && !connectedCards.some((c) => c.isInitialSyncInProgress) && (
-                                <CollapsibleSection
-                                    title={translate('workspace.accounting.other')}
-                                    wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
-                                    titleStyle={[styles.textNormal, styles.colorMuted]}
-                                    textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
-                                >
-                                    {maybeSearchBar}
-                                    {disconnectedProviderCards}
-                                </CollapsibleSection>
-                            )}
-                        </Section>
-                    </View>
-                </ScrollView>
-            </ScreenWrapper>
+            <MergeConnectionsPageBaseContent
+                policyID={policyID}
+                category={category}
+                cards={cards}
+                footer={footer}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
