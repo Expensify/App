@@ -15,6 +15,8 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
+    getVendorDisplayName,
+    getVendorSearchAvailability,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -4610,6 +4612,55 @@ describe('PolicyUtils', () => {
             it('returns undefined when no supported connection exists', () => {
                 const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
                 expect(getMatchingVendorByID(policy, 'v-1')).toBeUndefined();
+            });
+        });
+
+        describe('getVendorSearchAvailability', () => {
+            const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
+            const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
+            const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
+            const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
+
+            it('is unavailable when no workspace has the vendor feature', () => {
+                expect(getVendorSearchAvailability({[plainKey]: plainPolicy}, true)).toEqual({isAvailable: false, shouldUseSupplierLabel: false});
+            });
+
+            it('is available with the vendor label for a QBO workspace exporting card expenses as credit card transactions, without the beta', () => {
+                expect(getVendorSearchAvailability({[qboKey]: qboPolicy, [plainKey]: plainPolicy}, false)).toEqual({isAvailable: true, shouldUseSupplierLabel: false});
+            });
+
+            it('uses the supplier label when every eligible workspace takes its vendors from Xero', () => {
+                expect(getVendorSearchAvailability({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, true)).toEqual({isAvailable: true, shouldUseSupplierLabel: true});
+            });
+
+            it('keeps the vendor label when Xero and QBO workspaces are both eligible', () => {
+                expect(getVendorSearchAvailability({[xeroKey]: xeroPolicy, [qboKey]: qboPolicy}, true)).toEqual({isAvailable: true, shouldUseSupplierLabel: false});
+            });
+
+            it('ignores beta-gated integrations while the beta is off', () => {
+                expect(getVendorSearchAvailability({[xeroKey]: xeroPolicy}, false).isAvailable).toBe(false);
+            });
+        });
+
+        describe('getVendorDisplayName', () => {
+            const qboPolicy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+
+            it('returns an empty string when no vendor is assigned', () => {
+                expect(getVendorDisplayName(qboPolicy, undefined)).toBe('');
+            });
+
+            it('prefers the synced vendor name over the name stored on the transaction', () => {
+                expect(getVendorDisplayName(qboPolicy, {externalID: 'v-1', name: 'Old Acme', wasManuallySet: true})).toBe('Acme Co');
+            });
+
+            it('falls back to the stored name when the vendor is no longer in the synced list', () => {
+                expect(getVendorDisplayName(qboPolicy, {externalID: 'gone', name: 'Former Vendor', wasManuallySet: true})).toBe('Former Vendor');
+            });
+
+            it('returns an empty string for a legacy vendor with neither a synced nor a stored name', () => {
+                expect(getVendorDisplayName(undefined, {externalID: 'v-9', wasManuallySet: true})).toBe('');
             });
         });
 

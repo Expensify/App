@@ -5,6 +5,7 @@ import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isSortableColumnName} from '@libs/ReportUtils';
+import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -22,6 +23,9 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     columns: SearchColumnType[];
     shouldRemoveTotalColumnFlex?: boolean;
+
+    /** Whether the vendor column is labelled "Supplier", which is what Xero calls vendors */
+    shouldUseSupplierLabel?: boolean;
 };
 function MoneyRequestReportTableHeader({
     sortBy,
@@ -34,6 +38,7 @@ function MoneyRequestReportTableHeader({
     amountColumnSize,
     taxAmountColumnSize,
     shouldRemoveTotalColumnFlex,
+    shouldUseSupplierLabel = false,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
@@ -41,6 +46,7 @@ function MoneyRequestReportTableHeader({
         () => [
             ...getExpenseHeaders().map((header) => ({
                 ...header,
+                translationKey: header.columnName === CONST.SEARCH.TABLE_COLUMNS.VENDOR ? getSearchColumnTranslationKey(header.columnName, shouldUseSupplierLabel) : header.translationKey,
                 isColumnSortable: isSortableColumnName(header.columnName),
             })),
             {
@@ -49,7 +55,7 @@ function MoneyRequestReportTableHeader({
                 isColumnSortable: false,
             },
         ],
-        [],
+        [shouldUseSupplierLabel],
     );
 
     const orderedColumnConfig = useMemo(() => {

@@ -7360,6 +7360,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                VENDOR: {
+                    column: this.TABLE_COLUMNS.VENDOR,
+                    search: true,
+                    reportView: true,
+                },
                 DESCRIPTION: {
                     column: this.TABLE_COLUMNS.DESCRIPTION,
                     search: true,
@@ -7721,6 +7726,7 @@ const CONST = {
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
+            VENDOR: 'vendor',
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
@@ -7963,6 +7969,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.POSTED]: 'posted',
                 [this.TABLE_COLUMNS.EXPORTED]: 'exported',
                 [this.TABLE_COLUMNS.MERCHANT]: 'merchant',
+                [this.TABLE_COLUMNS.VENDOR]: 'vendor',
                 [this.TABLE_COLUMNS.DESCRIPTION]: 'description',
                 [this.TABLE_COLUMNS.FROM]: 'from',
                 [this.TABLE_COLUMNS.TO]: 'to',
