@@ -159,6 +159,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
         if (!generationID || generatedRule?.generationID !== generationID) {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Concierge answers asynchronously on an Onyx key, so this effect is how that external update reaches local state
         applyGeneratedRule(generatedRule);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- applyGeneratedRule reads only what it is given
     }, [generationID, generatedRule]);
