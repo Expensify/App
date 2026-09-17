@@ -77,10 +77,7 @@ type ConciergePromptBoxProps = {
     isMenuVisible: boolean;
     setIsMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
 
-    /**
-     * The date and greeting read data that lands during app load (timezone, first name), so painting them early
-     * shows "Good morning." and then swaps it for "Good afternoon, <first name>".
-     */
+    /** Shows skeleton bars in place of the date, the greeting and the composer's placeholder. */
     isCopyLoading: boolean;
 };
 
@@ -217,6 +214,8 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
     return (
         <View style={styles.gap6}>
             <View style={styles.gap1}>
+                {/* The date and greeting wait on data that lands during app load (timezone, first name), so painting
+                    them early shows "Good morning." and then swaps it for "Good afternoon, <first name>". */}
                 {isCopyLoading ? (
                     <>
                         <SkeletonTextLine
