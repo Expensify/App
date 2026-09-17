@@ -12,8 +12,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 
 import type {ReportScreenProps} from '@pages/inbox/ReportScreen';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +31,7 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  */
 function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
-    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(variables.inboxSideBarWidth);
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(SCREENS.INBOX);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
     const shouldClearInitialReportActionsDefer = !!route.params && 'shouldDeferInitialReportActions' in route.params && route.params.shouldDeferInitialReportActions === true;

@@ -241,7 +241,9 @@ function DebugTabView({selectedTab}: Props) {
     } else if (isOnFullWidthTabRoot) {
         positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize - sidePanelOffset};
     } else {
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
+        // The Inbox LHN is wider than the other tabs' LHNs, so the bar spans whichever one is behind it.
+        const lhnWidth = selectedTab === NAVIGATION_TABS.INBOX ? variables.inboxSideBarWidth : variables.sideBarWithLHBWidth;
+        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: lhnWidth - variables.cropBorderWidth};
     }
 
     // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent

@@ -1,11 +1,8 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSplitNavigatorSidebarWidth from '@libs/Navigation/AppNavigator/getSplitNavigatorSidebarWidth';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-
-import variables from '@styles/variables';
-
-import SCREENS from '@src/SCREENS';
 
 import type {ParamListBase} from '@react-navigation/native';
 import type {ReactNode} from 'react';
@@ -21,8 +18,8 @@ type SidebarSpacerWrapperProps = {
 function SidebarSpacerWrapper({children, state}: SidebarSpacerWrapperProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    // The sidebar screen is the first route in a split navigator, so its width sets the central pane offset.
-    const sidebarWidth = state?.routes.at(0)?.name === SCREENS.INBOX ? variables.inboxSideBarWidth : variables.sideBarWithLHBWidth;
+    // The sidebar screen is the first route in a split navigator, and its width sets the central pane offset.
+    const sidebarWidth = getSplitNavigatorSidebarWidth(state?.routes.at(0)?.name);
 
     return <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout, sidebarWidth)}>{children}</View>;
 }

@@ -163,7 +163,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
             >
-                {!shouldUseNarrowLayout && (
+                {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
                     /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
                     <View style={styles.mr2}>
                         <AccountSwitcherButton isScreenFocused={isScreenFocused} />
