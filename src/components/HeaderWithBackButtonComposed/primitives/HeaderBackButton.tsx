@@ -49,3 +49,4 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, should
 }
 
 export default HeaderBackButton;
+export type {HeaderBackButtonProps};
