@@ -60,6 +60,9 @@ React Compiler auto-memoizes code in components and hooks (excluding `tests/`). 
 
 Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that compile with React Compiler.
 
+### React Compiler
+React Compiler is enabled (`babel.config.js`) and auto-memoizes components/hooks. New files must be fully compliant - no manual `useMemo`/`useCallback`/`React.memo`. After editing any React component, verify it compiles with `npm run react-compiler-compliance-check check <file>`. If it fails, fix the issue (see `contributingGuides/REACT_COMPILER.md`) or prompt the user.
+
 ### Code Quality
 
 - **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
