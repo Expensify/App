@@ -117,14 +117,14 @@ Expense categories map to Expensify categories and are linked to GL accounts so 
 
 ## How to set up tax groups in NetSuite
 
-Expensify supports tax groups, not individual tax codes, except when you use SuiteTax. Under **Setup > Accounting > Set Up Taxes**, set **Tax Code Lists Include** to **Tax Groups And Tax Codes** or **Tax Groups Only**. In the UK and Ireland, make sure each tax group contains only one tax code.
+Expensify supports Tax Groups, not individual Tax Codes, except when you use SuiteTax. Under **Setup > Accounting > Set Up Taxes**, set **Tax Code Lists Include** to **Tax Groups And Tax Codes** or **Tax Groups Only**. In the UK and Ireland, make sure each Tax Group contains only one Tax Code.
 
-To create a tax group:
+To create a Tax Group:
 
 1. Go to **Setup > Accounting > Tax Groups**
 2. Click **New**
 3. Set the country, name, and subsidiary
-4. Choose a tax code and click **Add**
+4. Choose a Tax Code and click **Add**
 5. Click **Save**
 6. Repeat for each tax rate you want to show in Expensify
 
