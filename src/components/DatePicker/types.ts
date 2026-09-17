@@ -5,6 +5,9 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+
 type DatePickerBaseProps = ForwardedFSClassProps & {
     /**
      * The datepicker supports any value that `new Date()` can parse.
@@ -135,6 +138,12 @@ type DatePickerProps = {
      * Used by inline editing flows that require background dimming.
      */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
+
+    /**
+     * The element the calendar is positioned against, normally the date input. Clicks inside it do not dismiss the
+     * calendar, so the user can keep editing the input while the calendar is open. Falls back to an internal ref.
+     */
+    anchorRef?: RefObject<View | null>;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};

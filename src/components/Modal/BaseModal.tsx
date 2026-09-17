@@ -77,6 +77,7 @@ function BaseModal({
     enableEdgeToEdgeBottomSafeAreaPadding,
     shouldApplySidePanelOffset: shouldApplySidePanelOffsetProp,
     hasBackdrop,
+    shouldDisableFocusTrap = false,
     backdropOpacity,
     shouldDisableBottomSafeAreaPadding = false,
     shouldIgnoreBackHandlerDuringTransition = false,
@@ -369,6 +370,7 @@ function BaseModal({
                         backdropOpacity={backdropOpacityAdjusted}
                         backdropTransitionOutTiming={0}
                         hasBackdrop={hasBackdrop ?? fullscreen}
+                        shouldDisableFocusTrap={shouldDisableFocusTrap}
                         coverScreen={fullscreen}
                         style={modalStyle}
                         deviceHeight={windowHeight}

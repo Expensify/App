@@ -36,6 +36,7 @@ function ReanimatedModal({
     coverScreen = true,
     children,
     hasBackdrop = true,
+    shouldDisableFocusTrap = false,
     backdropColor = 'black',
     backdropOpacity = variables.overlayOpacity,
     customBackdrop = null,
@@ -256,7 +257,7 @@ function ReanimatedModal({
                     </KeyboardAvoidingView>
                 ) : (
                     <FocusTrapForModal
-                        active={modalVisibility}
+                        active={modalVisibility && !shouldDisableFocusTrap}
                         initialFocus={initialFocus}
                         shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}

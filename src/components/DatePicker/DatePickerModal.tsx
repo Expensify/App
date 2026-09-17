@@ -46,9 +46,15 @@ function DatePickerModal({
     shouldPositionFromTop = false,
     forwardedFSClass,
     shouldEnableMonthYearBackdropInNarrowPane = false,
+    anchorRef: anchorRefProp,
+    hasBackdrop,
+    shouldDisableFocusTrap = false,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
-    const anchorRef = useRef<View>(null);
+    const fallbackAnchorRef = useRef<View>(null);
+    // PopoverProvider treats a click inside the anchor as "not outside", so the caller's own anchor has to be used
+    // or clicking the date input while the calendar is open would dismiss it.
+    const anchorRef = anchorRefProp ?? fallbackAnchorRef;
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
@@ -95,6 +101,8 @@ function DatePickerModal({
             forwardedFSClass={forwardedFSClass}
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
+            hasBackdrop={hasBackdrop}
+            shouldDisableFocusTrap={shouldDisableFocusTrap}
         >
             <CalendarPicker
                 minDate={minDate}
