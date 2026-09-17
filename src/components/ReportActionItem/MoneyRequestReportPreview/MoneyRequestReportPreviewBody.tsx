@@ -114,7 +114,7 @@ function MoneyRequestReportPreviewBody({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             StyleUtils.getBackgroundColorStyle(theme.cardBG),
-                            shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                            shouldShowBorder ? styles.borderedReportPreviewCard : styles.reportContainerBorderRadius,
                             isReportDeleted && styles.pointerEventsNone,
                         ]}
                         role={CONST.ROLE.BUTTON}
