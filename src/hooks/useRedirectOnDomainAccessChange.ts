@@ -13,7 +13,7 @@ import useOnyx from './useOnyx';
 type DomainAccessRedirects = {
     /**
      * Route to open once the RHP is dismissed when a domain that had loaded is taken away, e.g. an admin denied the user's adminship
-     * request. The whole RHP goes because screens deeper in the flow leave the earlier ones stale underneath; replacing only the top
+     * request. The whole RHP goes because screens deeper in the flow leave the earlier ones stale underneath. Replacing only the top
      * screen would let going back land on a stale one and redirect again. A domain that was never there is left alone, so deep links
      * to unknown domains still show not found.
      */
