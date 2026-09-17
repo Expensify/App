@@ -2939,9 +2939,9 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
 }
 
 /**
- * Display name of the vendor assigned to a transaction, or an empty string when none is assigned. The workspace's
- * synced vendor list wins so renames in the accounting system show through, then the name persisted on the
- * transaction when the vendor was assigned covers vendors that have since left the synced list.
+ * Display name of a transaction's vendor, or an empty string when none is assigned. The workspace's synced vendor list
+ * wins so renames in the accounting system show through. The name stored on the transaction covers vendors since
+ * removed from that list.
  */
 function getVendorDisplayName(policy: OnyxEntry<Policy>, vendor: TransactionCommentVendor | undefined): string {
     if (!vendor?.externalID) {
