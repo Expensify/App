@@ -200,12 +200,9 @@ function OptionRow({
                                             />
                                         ) : (
                                             <ReportAvatar
-                                                subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                backdropColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                                 reportID={reportID}
                                                 size={CONST.AVATAR_SIZE.DEFAULT}
-                                                secondaryAvatarContainerStyle={[
-                                                    StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor),
-                                                ]}
                                             />
                                         )}
                                     </AvatarTooltipsProvider>

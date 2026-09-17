@@ -81,6 +81,9 @@ export type {default as UpdateDualEntryTravelInvoicingSettlementsAccountParams} 
 export type {default as UpdateDualEntryTravelInvoicingPayableAccountParams} from './UpdateDualEntryTravelInvoicingPayableAccountParams';
 export type {default as SyncPolicyToCampfireParams} from './SyncPolicyToCampfireParams';
 export type {default as UpdateCampfireSubsidiaryParams} from './UpdateCampfireSubsidiaryParams';
+export type {default as UpdateCampfireFieldMappingParams} from './UpdateCampfireFieldMappingParams';
+export type {default as UpdateCampfireEnableNewCategoriesParams} from './UpdateCampfireEnableNewCategoriesParams';
+export type {default as UpdateCampfireSyncTaxRatesParams} from './UpdateCampfireSyncTaxRatesParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
@@ -305,6 +308,7 @@ export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as EnablePolicyHRParams} from './EnablePolicyHRParams';
+export type {default as EnablePolicyRecruitingParams} from './EnablePolicyRecruitingParams';
 export type {default as EnablePolicyMCPParams} from './EnablePolicyMCPParams';
 export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyReceiptPartnersParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
@@ -639,6 +643,7 @@ export type {default as ResendValidateCodeParams} from './ResendValidateCodePara
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
+export type {default as UploadOFXParams} from './UploadOFXParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
 export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';
 export type {default as DismissMarketingWindowParams} from './DismissMarketingWindow';
