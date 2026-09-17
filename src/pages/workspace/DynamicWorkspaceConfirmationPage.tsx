@@ -42,7 +42,7 @@ function DynamicWorkspaceConfirmationPage() {
     const delegateAccountID = useDelegateAccountID();
     const privateSubscription = usePrivateSubscription();
     const isAnnualSubscription = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const [activePolicy] = useActivePolicy();
+    const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 

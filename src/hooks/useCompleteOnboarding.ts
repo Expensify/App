@@ -43,7 +43,7 @@ function useCompleteOnboarding() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
-    const [activePolicy] = useActivePolicy();
+    const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();

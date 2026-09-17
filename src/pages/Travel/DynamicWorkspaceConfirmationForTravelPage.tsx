@@ -27,7 +27,7 @@ function DynamicWorkspaceConfirmationForTravelPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
-    const [activePolicy] = useActivePolicy();
+    const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
