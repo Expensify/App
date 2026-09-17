@@ -78,7 +78,6 @@ import type {
     ViolationName,
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
-import type Locale from '@src/types/onyx/Locale';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -912,11 +911,17 @@ function getUpdatedTransaction({
                       policy,
                       storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
+                      hasTripChanged: waypointsActuallyChanged,
                   })
                 : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            } else if (waypointsActuallyChanged) {
+                // The exclusion described the trip being replaced, so it goes with it rather than showing a deduction that no longer applies.
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusion', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.reimbursableDistance', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusionMethod', null);
             }
 
             const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
@@ -1504,10 +1509,9 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * scanning, and normalizes the `DEFAULT_MERCHANT` ("Expense") and `PARTIAL_TRANSACTION_MERCHANT` ("(none)") placeholder
  * values to an empty string so they never leak into the UI.
  */
-function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, locale: Locale): string {
+function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, locale: LocaleContextProps['preferredLocale']): string {
     const shouldShowMerchant = transaction.shouldShowMerchant ?? true;
 
-    // Search already rendered `formattedMerchant` for this reader.
     let merchant = transaction?.formattedMerchant ?? getDisplayMerchant(transaction, getMerchant(transaction), locale);
 
     if (isScanning(transaction) && shouldShowMerchant) {

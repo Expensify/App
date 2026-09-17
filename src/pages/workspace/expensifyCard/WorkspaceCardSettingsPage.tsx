@@ -14,8 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
-import DateUtils from '@libs/DateUtils';
+import {getCardProgramKey, getCardSettings, toMonthlySettlementDate} from '@libs/CardUtils';
 import {toLocaleDayOfMonth} from '@libs/LocaleDigitUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -58,8 +57,12 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
-    const settlementDay = settings?.monthlySettlementDate ? toLocaleDayOfMonth(preferredLocale, DateUtils.toLocalDate(settings.monthlySettlementDate).getDate()) : '';
-    const monthlySettlementDateText = settlementDay ? translate('workspace.expensifyCard.monthlySettlementDate', settlementDay) : undefined;
+    const settlementDate = toMonthlySettlementDate(settings?.monthlySettlementDate);
+    // Nothing is shown when the settlement date can't be resolved to a real day — an empty hint beats a wrong settlement date.
+    const monthlySettlementDateText =
+        settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settlementDate
+            ? translate('workspace.expensifyCard.monthlySettlementDate', toLocaleDayOfMonth(preferredLocale, settlementDate.getDate()))
+            : undefined;
 
     return (
         <AccessOrNotFoundWrapper

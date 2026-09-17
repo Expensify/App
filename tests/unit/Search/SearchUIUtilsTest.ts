@@ -67,10 +67,7 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: globalThis.createTransactionThreadReportMock ?? (globalThis.createTransactionThreadReportMock = jest.fn()),
 }));
-jest.mock('@userActions/Search', () => ({
-    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    setOptimisticDataForTransactionThreadPreview: globalThis.setOptimisticDataForTransactionThreadPreviewMock ?? (globalThis.setOptimisticDataForTransactionThreadPreviewMock = jest.fn()),
-}));
+jest.mock('@userActions/Search', () => ({setOptimisticDataForTransactionThreadPreview: jest.fn()}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
@@ -11339,6 +11336,43 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('Should not show Violations when FORWARDED snapshot data is present without a violation has-filter', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'forwarded-without-filter',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID}`]: {
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                        created: '2025-01-01 00:00:00',
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {
+                                transactions: {
+                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                                },
+                            },
+                        },
+                    },
+                },
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
@@ -11376,7 +11410,7 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
@@ -11421,7 +11455,12 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data,
+                visibleColumns: customVisibleColumns,
+                shouldShowViolationsColumn: true,
+            });
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
         });
@@ -11461,8 +11500,41 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data,
+                visibleColumns: customVisibleColumns,
+                shouldShowViolationsColumn: true,
+            });
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('Should strip Violations from custom column layouts without a violation has-filter', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'custom-columns-strip-violations',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+            const customVisibleColumns = [
+                CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ];
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
         test('Should only show Category GL Code when that column is selected', () => {
@@ -14143,6 +14215,43 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('isExistingSearchKey', () => {
+        const suggestedSearchKeys = [CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS];
+        const savedSearchIDs = ['12345'];
+
+        it('accepts a suggested search key that is currently visible', () => {
+            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SEARCH_KEYS.EXPENSES, suggestedSearchKeys, savedSearchIDs)).toBe(true);
+        });
+
+        it('rejects a valid search key that is not among the visible suggested searches', () => {
+            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SEARCH_KEYS.STATEMENTS, suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+
+        it('accepts a saved search key whose ID exists', () => {
+            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`, suggestedSearchKeys, savedSearchIDs)).toBe(true);
+        });
+
+        it('rejects a saved search key whose ID no longer exists', () => {
+            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}99999`, suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+
+        it('rejects a saved search key when the user has no saved searches', () => {
+            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`, suggestedSearchKeys, [])).toBe(false);
+        });
+
+        it('rejects the bare saved search prefix', () => {
+            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SAVED_SEARCH_PREFIX, suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+
+        it.each([undefined, ''])('rejects %p', (value) => {
+            expect(SearchUIUtils.isExistingSearchKey(value, suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+
+        it('rejects an unknown string', () => {
+            expect(SearchUIUtils.isExistingSearchKey('someUnknownKey', suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+    });
+
     describe('searchKeyToSavedSearchID', () => {
         it('strips the prefix to recover the saved search ID', () => {
             expect(SearchUIUtils.searchKeyToSavedSearchID(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`)).toBe('12345');
@@ -14160,6 +14269,27 @@ describe('SearchUIUtils', () => {
     describe('savedSearchIDToSearchKey', () => {
         it('prefixes a saved search ID to build a search key', () => {
             expect(SearchUIUtils.savedSearchIDToSearchKey('12345')).toBe(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`);
+        });
+    });
+
+    describe('getSearchKeyForDataType', () => {
+        it('maps the expense type to the Expenses search', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE)).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+
+        it('maps the expense report type to the Reports search', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it.each([CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TASK, CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.DATA_TYPES.CHAT])(
+            'returns undefined for the "%s" type',
+            (type) => {
+                expect(SearchUIUtils.getSearchKeyForDataType(type)).toBeUndefined();
+            },
+        );
+
+        it('returns undefined when the type is undefined', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(undefined)).toBeUndefined();
         });
     });
 

@@ -6,6 +6,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
+import Parser from '@libs/Parser';
 import {isExpenseReport} from '@libs/ReportUtils';
 
 import IntlStore from '@src/languages/IntlStore';
@@ -13,6 +14,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
@@ -66,6 +68,7 @@ import {
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
+    getUpdatedCommuterExclusionsMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -91,6 +94,8 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 type TakeControlAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
 type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['originalMessage']>;
+
+type ConciergeAutoSelectDistanceRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>;
 
 type LegacyReportActionFields = {
     message?: string;
@@ -1583,6 +1588,90 @@ describe('ReportActionsUtils', () => {
             };
 
             expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+    });
+
+    describe('getConciergeAutoSelectDistanceRateMessage', () => {
+        function buildConciergeAutoSelectDistanceRateAction(
+            originalMessage: ConciergeAutoSelectDistanceRateAction['originalMessage'],
+            backendText = 'rate updated by the backend',
+        ): ConciergeAutoSelectDistanceRateAction {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE,
+                reportActionID: 'concierge-auto-select-distance-rate-1',
+                created: '2026-09-10 12:00:00.000',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: backendText, html: backendText}],
+                originalMessage,
+            };
+        }
+
+        it('should name the workspace the report moved to', () => {
+            // Given an action for a report whose workspace changed
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then it should name the new workspace, and no individual rate, because each expense on the report can land on a different one
+            expect(message).toBe("distance rates updated for the new workspace - Hal's Burgers");
+        });
+
+        it('should not escape a workspace name that contains markup', () => {
+            // Given a workspace name that looks like markup
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: '<strong>Ops</strong>'});
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then the name should be interpolated as-is, because this helper returns plain text
+            expect(message).toBe('distance rates updated for the new workspace - <strong>Ops</strong>');
+        });
+
+        it('should fall back to the text of the action when the workspace name is missing', () => {
+            // Given an action without a workspace name
+            const backendText = 'rate updated by the backend';
+            const action = buildConciergeAutoSelectDistanceRateAction({}, backendText);
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then it should fall back to the text the backend provided
+            expect(message).toBe(backendText);
+        });
+
+        it('should be used for the message fragments of the action', () => {
+            // Given a CONCIERGE_AUTO_SELECT_DISTANCE_RATE action
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
+
+            // When getting the message fragments of the action
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then the text fragment should be the message as-is, and the html fragment should carry its encoded form
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+            expect(fragments).toEqual([{text: message, html: `<muted-text>${Str.htmlEncode(message)}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should keep a workspace name containing an HTML entity literal on the html fragment', () => {
+            // Given a workspace name that contains an entity-shaped substring, which workspace name validation allows because it only rejects angle-bracket tags
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: 'R&D &copy;'});
+
+            // When getting the message fragments of the action
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then the text fragment should stay plain
+            const message = 'distance rates updated for the new workspace - R&D &copy;';
+            expect(fragments.at(0)?.text).toBe(message);
+
+            // And decoding the html fragment should give that same string back, rather than parsing the entity into a copyright sign
+            expect(Parser.htmlToText(fragments.at(0)?.html ?? '')).toBe(message);
+        });
+
+        it('should be visible in the report', () => {
+            // Given a CONCIERGE_AUTO_SELECT_DISTANCE_RATE action
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
+
+            // Then the action should not be filtered out as an unsupported action type
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
         });
     });
 
@@ -4385,6 +4474,38 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getUpdatedCommuterExclusionsMessage', () => {
+        const buildMethodChangeAction = (newValue: string, oldValue?: string) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    updatedField: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD,
+                    newValue,
+                    ...(oldValue ? {oldValue} : {}),
+                },
+                message: [],
+            }) as ReportAction;
+
+        it.each([
+            [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, 'changed exclude commutes to calculate by home and office (previously do not exclude commutes)'],
+            [
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                'changed exclude commutes to calculate by home and office (previously fixed distance per claim)',
+            ],
+            [
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                'changed exclude commutes to a fixed distance per claim (previously home and office)',
+            ],
+            [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, undefined, 'changed exclude commutes to a fixed distance per claim (previously do not exclude commutes)'],
+        ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
+            expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
+        });
+    });
+
     describe('getUpdatedCardFeedLiabilityMessage', () => {
         it('should return enabled message when liabilityType is ALLOW', () => {
             const action = {
@@ -6367,7 +6488,9 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns false when message is from current user and is already present (not new, not optimistic) and no existing marker', () => {
+        it('returns false for a self-authored already-present action on a cold open when no marker exists and it was not explicitly marked unread (Expensify/App#91940 guard)', () => {
+            // A persisted self-authored action (e.g. a reimbursable toggle) that reads as unread must not anchor
+            // the marker on a cold open. An explicit mark-as-unread is handled separately, by the tests below.
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -6394,6 +6517,65 @@ describe('ReportActionsUtils', () => {
                     message,
                     prevSortedVisibleReportActionsObjects,
                     prevUnreadMarkerReportActionID: 'deleted-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('does not move the marker from one self-authored action to a different self-authored action while the previous anchor is still present', () => {
+            // The previous anchor is still present, so `isDifferentUnread` stops this action stealing the marker
+            // off it (the Expensify/App#91940 hop) even though it reads as unread.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'});
+            const prevMarkedAction = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [prevMarkedAction.reportActionID]: prevMarkedAction,
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: true,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('moves the marker to another self-authored action once the previous anchor has been deleted', () => {
+            // The previous anchor was deleted, so the marker must be free to relocate to the next unread message.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'});
+            const prevMarkedAction = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [prevMarkedAction.reportActionID]: prevMarkedAction,
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: false,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('keeps the marker on the same self-authored action it was previously anchored on', () => {
+            // The action being evaluated is the previous anchor, so `isDifferentUnread` is false and it keeps the marker.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: true,
                     isOffline: false,
                 }),
             ).toBe(true);
@@ -6439,6 +6621,93 @@ describe('ReportActionsUtils', () => {
                     isOffline: false,
                 }),
             ).toBe(true);
+        });
+
+        it('anchors the marker on the explicitly marked-unread action even after its confirmed created drifts before unreadMarkerTime', () => {
+            // The offline→online case: the confirmed `created` lands before unreadMarkerTime, so the timestamp
+            // check reads the action as "read" and only the stable id can still anchor the marker.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', pendingAction: null, created: '2023-01-01 09:00:00.000'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'marked-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('does not anchor the marker on a just-sent self-message when no action is marked unread', () => {
+            // Same confirmed self-message, but with nothing marked unread the just-sent suppression still applies,
+            // keeping the #91443 fix intact.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'confirmed-action-id', pendingAction: null});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'confirmed-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    manuallyMarkedUnreadReportActionID: null,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('keeps the marker on the explicitly marked-unread action even when a newer message is present', () => {
+            // The marked action is the oldest unread by construction (lastReadTime = its created - 1ms), so a
+            // newer message arriving after the mark must not steal the marker off it.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', created: '2023-01-01 11:00:00.000'});
+            const nextMessage = makeAction({created: '2023-01-01 11:30:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    nextMessage,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false for any action that is not the marked one while a manual mark is active (sole anchor)', () => {
+            // The marked action is the sole anchor, so even an unread message from another user is suppressed.
+            const message = makeAction({actorAccountID: 99, reportActionID: 'other-action-id', created: '2023-01-01 11:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false for the earliest-received-offline message while a different action is marked unread', () => {
+            // The manual mark takes precedence over the earliest-received-offline branch.
+            const message = makeAction({actorAccountID: 99, reportActionID: 'offline-action-id', created: '2023-01-01 11:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isEarliestReceivedOfflineMessage: true,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(false);
         });
     });
 

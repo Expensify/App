@@ -616,6 +616,8 @@ type CreateWorkspaceWithPolicyDraftParams = {
     hasActiveAdminPolicies: boolean;
     hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
+    /** AccountID of the delegate acting on behalf of the current user */
+    delegateAccountID: number | undefined;
 };
 
 /**
@@ -645,6 +647,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         hasActiveAdminPolicies,
         hasOwnedPaidPolicy,
         isAnnualSubscription = false,
+        delegateAccountID,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -686,6 +689,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             isAnnualSubscription,
+            delegateAccountID,
         });
 
         if (transitionFromOldDot) {
@@ -725,6 +729,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        delegateAccountID,
         hasOwnedPaidPolicy,
     } = params;
 
@@ -755,6 +760,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        delegateAccountID,
         hasOwnedPaidPolicy,
     });
 }
@@ -780,6 +786,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     hasActiveAdminPolicies: boolean;
     hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
+    delegateAccountID: number | undefined;
 };
 
 /**
@@ -806,6 +813,7 @@ function savePolicyDraftByNewWorkspace({
     hasActiveAdminPolicies,
     hasOwnedPaidPolicy,
     isAnnualSubscription = false,
+    delegateAccountID,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwner,
@@ -829,6 +837,7 @@ function savePolicyDraftByNewWorkspace({
         hasActiveAdminPolicies,
         hasOwnedPaidPolicy,
         isAnnualSubscription,
+        delegateAccountID,
     });
 }
 
@@ -861,6 +870,7 @@ type SetUpPoliciesAndNavigateParams = {
     policyOwnerAccountID: number | undefined;
     policyOwnerDisplayName: string | undefined;
     hasOwnedPaidPolicy: boolean;
+    delegateAccountID: number | undefined;
 };
 
 function setUpPoliciesAndNavigate({
@@ -877,6 +887,7 @@ function setUpPoliciesAndNavigate({
     conciergeChat,
     policyOwnerAccountID,
     policyOwnerDisplayName,
+    delegateAccountID,
 }: SetUpPoliciesAndNavigateParams) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -912,6 +923,7 @@ function setUpPoliciesAndNavigate({
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            delegateAccountID,
             hasOwnedPaidPolicy,
         });
         return;

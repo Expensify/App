@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
@@ -395,6 +395,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
             fallbackPolicyID: policyForMovingExpensesID,
             sortBy: queryJSON.sortBy,
+            shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
         });
     })();
 
