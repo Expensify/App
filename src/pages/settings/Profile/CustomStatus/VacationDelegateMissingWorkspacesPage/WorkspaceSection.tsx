@@ -45,6 +45,4 @@ function WorkspaceSection({title, policyIDs, policies}: WorkspaceSectionProps) {
     );
 }
 
-WorkspaceSection.displayName = 'WorkspaceSection';
-
 export default WorkspaceSection;

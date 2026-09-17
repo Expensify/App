@@ -171,6 +171,4 @@ function VacationDelegateMissingWorkspacesPage() {
     );
 }
 
-VacationDelegateMissingWorkspacesPage.displayName = 'VacationDelegateMissingWorkspacesPage';
-
 export default VacationDelegateMissingWorkspacesPage;

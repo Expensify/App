@@ -47,6 +47,4 @@ function WorkspaceRow({policyID, policy, shouldShowSeparator}: WorkspaceRowProps
     );
 }
 
-WorkspaceRow.displayName = 'WorkspaceRow';
-
 export default WorkspaceRow;

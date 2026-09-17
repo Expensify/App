@@ -45,6 +45,4 @@ function MissingWorkspacesIntro({delegate, hasAdminWorkspaces, hasNonAdminWorksp
     );
 }
 
-MissingWorkspacesIntro.displayName = 'MissingWorkspacesIntro';
-
 export default MissingWorkspacesIntro;

@@ -60,6 +60,4 @@ function MissingWorkspacesFooter({canInvite, isInviteDisabled, onInvite, onSkip}
     );
 }
 
-MissingWorkspacesFooter.displayName = 'MissingWorkspacesFooter';
-
 export default MissingWorkspacesFooter;
