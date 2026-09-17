@@ -101,6 +101,7 @@ function MoneyReportView({
     const {translate} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isSettled = isSettledReportUtils(report?.reportID);
     const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
 
@@ -181,7 +182,7 @@ function MoneyReportView({
                                 }
 
                                 const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID);
+                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
                                 const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
