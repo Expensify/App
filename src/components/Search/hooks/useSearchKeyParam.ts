@@ -101,16 +101,12 @@ function useSearchKeyParam(currentSearchQueryJSON: SearchQueryJSON | undefined, 
     const currentSearchKey = isSearchKeyFromParamValid ? searchKeyFromParam : getSearchKeyForQuery(currentSearchQueryJSON);
     const currentDefaultSearchQueryJSON = isSearchKeyFromParamValid ? paramDefaultSearchQueryJSON : getDefaultSearchQueryJSON(currentSearchKey);
 
-    const syncSearchKeyParam = useEffectEvent(() => {
-        Navigation.setParams({searchKey: currentSearchKey});
-    });
-
     useEffect(() => {
         if (!isSearchScreenFocused || isSearchKeyFromParamValid) {
             return;
         }
-        syncSearchKeyParam();
-    }, [isSearchScreenFocused, isSearchKeyFromParamValid]);
+        Navigation.setParams({searchKey: currentSearchKey});
+    }, [isSearchScreenFocused, isSearchKeyFromParamValid, currentSearchKey]);
 
     return {currentSearchKey, currentDefaultSearchQueryJSON, getSearchKeyForQuery};
 }
