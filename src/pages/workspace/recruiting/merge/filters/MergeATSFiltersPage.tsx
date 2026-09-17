@@ -3,6 +3,7 @@ import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -80,15 +81,17 @@ function MergeATSFiltersPage({
                 <HeaderWithBackButton title={translate('workspace.recruiting.importSettings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('workspace.recruiting.filters.description', providerName)}</Text>
-                    {filterRows.map(({filterType, title}) => (
-                        <MenuItemWithTopDescription
-                            key={filterType}
-                            description={title}
-                            title={getMergeATSFilterLabel(filterType, filters, mergeATS?.data) ?? translate('workspace.recruiting.filters.skipImport')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
-                        />
-                    ))}
+                    <OfflineWithFeedback pendingAction={mergeATS?.config.pendingFields?.filters}>
+                        {filterRows.map(({filterType, title}) => (
+                            <MenuItemWithTopDescription
+                                key={filterType}
+                                description={title}
+                                title={getMergeATSFilterLabel(filterType, filters, mergeATS?.data) ?? translate('workspace.recruiting.filters.skipImport')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
+                            />
+                        ))}
+                    </OfflineWithFeedback>
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     {!hasRequiredFilter && hasAttemptedSave && (
