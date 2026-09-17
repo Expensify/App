@@ -199,6 +199,42 @@ function Comparison() {
             />
 
             <Card
+                title="brickRoadIndicator, description, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Export as"
+                        title="Vendor bill"
+                        shouldShowRightIcon
+                        onPress={noop}
+                        brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Export as</MenuItem.FieldName>
+                                <MenuItem.FieldValue>Vendor bill</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Export as"
+                        onPress={noop}
+                        value="Vendor bill"
+                    >
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    </MenuItemField>
+                }
+            />
+
+            <Card
                 title="description, non-interactive, title"
                 legacy={
                     <MenuItemWithTopDescription

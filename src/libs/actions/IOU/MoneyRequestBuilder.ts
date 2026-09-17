@@ -25,6 +25,7 @@ import {
     computeOptimisticReportNameWithMetadata,
     generateReportID,
     getChatByParticipants,
+    getNewestOutstandingReportForUser,
     getOutstandingChildRequest,
     getReimbursableTotal,
     getReportTransactions,
@@ -129,6 +130,11 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
     receipt?: Receipt;
+    /**
+     * Overrides the state carried on `receipt` when the caller derives it at submit time. The Scan confirmation does,
+     * because a receipt validated before the user finished typing carries a state that is a field behind.
+     */
+    receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     waypoints?: WaypointCollection;
     comment?: string;
     originalTransactionID?: string;
@@ -309,6 +315,7 @@ type BuildOnyxDataForTestDriveIOUParams = {
     chatOptimisticParams: MoneyRequestOptimisticParams['chat'];
     testDriveCommentReportActionID?: string;
     currentUserAccountIDParam: number;
+    delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -390,17 +397,15 @@ function buildOnyxDataForTestDriveIOU(
         iouReportID: testDriveIOUParams.iouOptimisticParams.report.reportID,
         transactionID: testDriveIOUParams.transaction.transactionID,
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
-        // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-        delegateAccountIDParam: undefined,
+        delegateAccountIDParam: testDriveIOUParams.delegateAccountID,
         getCurrencyDecimals: testDriveIOUParams.getCurrencyDecimals,
     });
     const text = translateLocal('testDrive.employeeInviteMessage', getAllPersonalDetails()?.[testDriveIOUParams.currentUserAccountIDParam]?.firstName ?? '');
-    // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
     const textComment = buildOptimisticAddCommentReportAction({
         text,
         actorAccountID: testDriveIOUParams.currentUserAccountIDParam,
         reportActionID: testDriveIOUParams.testDriveCommentReportActionID,
-        delegateAccountIDParam: undefined,
+        delegateAccountIDParam: testDriveIOUParams.delegateAccountID,
     });
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
@@ -466,6 +471,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         selfDMReportID,
         shouldSkipReportHighlightRail,
         isTrackIntentUser,
+        delegateAccountID,
         getCurrencyDecimals,
         rules,
     } = moneyRequestParams;
@@ -774,6 +780,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             chatOptimisticParams: chat,
             testDriveCommentReportActionID,
             currentUserAccountIDParam,
+            delegateAccountID,
             getCurrencyDecimals,
         });
         onyxData.optimisticData?.push(...testDriveOptimisticData);
@@ -1323,6 +1330,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         created,
         merchant,
         receipt,
+        receiptState,
         category,
         tag,
         taxCode,
@@ -1404,6 +1412,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+
+        if (!iouReport && isPolicyExpenseChat) {
+            iouReport = getNewestOutstandingReportForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports);
+        }
     }
 
     const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
@@ -1525,6 +1537,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             created,
             merchant,
             receipt,
+            receiptState,
             category,
             tag,
             taxCode,
