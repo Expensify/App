@@ -76,6 +76,9 @@ function useWideModalStackScreenOptions() {
                     contentStyle: styles.navigationScreenCardStyle,
                 },
                 web: {
+                    // The RHP provides its own scrim (BaseOverlay). Disable react-navigation's built-in card overlay so
+                    // stacked RHP screens don't fade in a dark backdrop before sliding in.
+                    cardOverlayEnabled: false,
                     cardStyle: isSmallScreenWidth ? StyleUtils.getStyleWithEnvSafeAreaPadding(styles.navigationScreenCardStyle) : styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
                     transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,

@@ -71,7 +71,7 @@
 ### [@react-navigation+stack+7.8.5+005+keep-card-overflow-visible.patch](@react-navigation+stack+7.8.5+005+keep-card-overflow-visible.patch)
 
 - Reason: In the web floating RHP every stacked card draws its own drop shadow (`getRHPExtendedCardFrame`). `CardA11yWrapper` wraps each card with `overflow: hidden` whenever the card is not the top of the stack (`active === false`, and `active` is `index === routes.length - 1`), and the wrapper is sized to the card. That clips the shadow of a card sitting under the focused one, so opening an expense over an expense report cuts the report card's left/bottom shadow. This adds a `keepCardOverflowVisible` card option threaded `CardStack → CardContainer → CardA11yWrapper`, changing the style to `overflow: active || keepCardOverflowVisible ? undefined : 'hidden'`.
-- Upstream PR/issue: N/A — the clip is deliberate upstream (it stops a buried, wider page from expanding the web scroll area). Our floating RHP cards are absolute/fixed inside a fixed frame, so that scroll-area concern does not apply to them.
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/13254 — asking for an opt-out; the clip is deliberate upstream (it stops a buried, wider page from expanding the web scroll area), and our floating RHP cards are absolute/fixed inside a fixed frame, so that scroll-area concern does not apply to them. Re-evaluate / drop this patch if upstream lands an escape hatch.
 - E/App issue: N/A — from the internal web floating-RHP styling work.
 - PR Introducing Patch: [#101093](https://github.com/callstack-internal/Expensify-App/pull/101093)
 - PR Updating Patch: N/A
