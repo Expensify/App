@@ -7,12 +7,12 @@ import Text from '@components/Text';
 
 import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensifyCardProgram';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
@@ -34,8 +34,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -54,6 +52,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -68,7 +67,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const {canEnrollNewCardProgram, isUkEuCurrencySupported} = useCanEnrollNewExpensifyCardProgram(policy?.id);
-    const {isBetaEnabled} = usePermissions();
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
 
     // Dismiss the currency modal if the workspace currency becomes a supported one externally (e.g. from another device)
@@ -136,9 +134,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
         const result = await showConfirmModal({
             title: translate('workspace.bankAccount.updateCurrencyForExpensifyCardTitle'),
-            prompt: translate(
-                isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? 'workspace.bankAccount.euUkUpdateCurrencyForExpensifyCard' : 'workspace.bankAccount.updateCurrencyForExpensifyCard',
-            ),
+            prompt: translate('workspace.bankAccount.euUkUpdateCurrencyForExpensifyCard'),
             confirmText: translate(shouldBlockCurrencyChange ? 'common.buttonConfirm' : 'workspace.bankAccount.updateWorkspaceCurrency'),
             cancelText: shouldBlockCurrencyChange ? undefined : translate('common.cancel'),
             shouldShowCancelButton: !shouldBlockCurrencyChange,
@@ -160,7 +156,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
             addBottomSafeAreaPadding
         >
-            <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
+            <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - contentHeaderHeight}]}>
                 <FeatureList
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate(hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.existingFeedTitle' : 'workspace.moreFeatures.expensifyCard.feed.title')}

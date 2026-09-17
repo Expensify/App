@@ -57,10 +57,10 @@ function TaskFieldAvatar({reportID}: {reportID?: string}) {
 
     return (
         <ReportActionAvatars
-            singleAvatarContainerStyle={[styles.actionAvatar]}
-            subscriptAvatarBorderColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
+            singleAvatarContainerStyle={styles.actionAvatar}
+            subscriptAvatarContainerStyle={styles.mr0}
+            backdropColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
             reportID={reportID}
-            noRightMarginOnSubscriptContainer
         />
     );
 }
