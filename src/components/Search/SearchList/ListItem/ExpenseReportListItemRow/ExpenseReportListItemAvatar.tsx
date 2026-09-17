@@ -47,7 +47,7 @@ function ExpenseReportListItemAvatar({item}: ExpenseReportListItemAvatarProps) {
                 primaryAvatar={primaryIcon}
                 secondaryAvatar={secondaryIcon}
                 size={CONST.AVATAR_SIZE.SMALL}
-                subscriptAvatarBorderColor={finalAvatarBorderColor}
+                backdropColor={finalAvatarBorderColor}
             />
         );
     } else if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL) {

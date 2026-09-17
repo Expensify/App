@@ -2208,7 +2208,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         appContentHeader: {
-            height: variables.contentHeaderHeight,
             justifyContent: 'center',
             display: 'flex',
             paddingRight: 20,
@@ -2221,7 +2220,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         LHNToggle: {
             alignItems: 'center',
-            height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
         },
@@ -2891,7 +2889,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             display: 'flex',
             paddingLeft: 20,
-            height: variables.contentHeaderHeight,
             width: '100%',
         },
 
@@ -2909,6 +2906,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarHeight: {
             height: variables.contentHeaderHeight,
+        },
+
+        headerBarNarrowHeight: {
+            height: variables.contentHeaderNarrowHeight,
         },
 
         imageViewContainer: {
@@ -6676,9 +6677,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
-        },
-        chartExpandedContent: {
-            transformOrigin: 'top left',
         },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
