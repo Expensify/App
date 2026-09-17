@@ -1,0 +1,28 @@
+name: Test syncVersions script
+
+# The syncVersions workflow runs on macOS, and its full version sync path depends on PlistBuddy and
+# BSD `sed -i ''`. Those tests skip themselves on the Ubuntu runners the main Jest job uses, so this
+# runs the same suite on macOS whenever the script or its tests change.
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths: ['.github/scripts/syncVersions.sh', 'tests/unit/SyncVersionsTest.ts', '.github/workflows/testSyncVersions.yml']
+
+concurrency:
+  group: ${{ github.ref }}-testSyncVersions
+  cancel-in-progress: true
+
+jobs:
+  testSyncVersions:
+    runs-on: blacksmith-6vcpu-macos-latest
+    steps:
+      - name: Check out
+        # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Jest tests
+        run: npm test -- --silent tests/unit/SyncVersionsTest.ts
