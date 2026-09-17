@@ -98,8 +98,7 @@ function MergeATSApprovalModePage({
             approvalMode: selectedApprovalMode,
             currentApprovalMode,
             ...(selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.ADVANCED && {approverField, currentApproverField: getMergeATSApproverField(policy)}),
-            ...(selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM &&
-                !!finalApprover && {finalApprover, currentFinalApprover: getMergeFinalApprover(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS)}),
+            ...(selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM && {finalApprover, currentFinalApprover: getMergeFinalApprover(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS)}),
         });
 
         Navigation.goBack();
