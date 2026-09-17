@@ -415,8 +415,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'サブレート',
         perDiem: '日当',
         validate: '検証',
-        downloadAsPDF: 'PDFとしてダウンロード',
-        downloadReceipts: '領収書をダウンロード',
+        downloadReport: () => ({
+            one: 'レポートをダウンロード',
+            other: 'レポートをダウンロード',
+        }),
+        downloadReceipt: () => ({
+            one: 'レシートをダウンロード',
+            other: '領収書をダウンロード',
+        }),
         downloadAsCSV: 'CSVとしてダウンロード',
         submitViaPDF: 'PDFで提出',
         print: '印刷',
@@ -991,6 +997,11 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
+            payOverdueInvoice: {
+                cta: 'レビュー',
+                dueSoonTitle: ({date}: {date: string}) => `サービス中断を防ぐため、${date}までに請求書をお支払いください`,
+                overdueTitle: 'お支払いの期限が過ぎています。請求書をお支払いください。',
+            },
         },
         discoverSection: {
             title: '発見',
@@ -1767,6 +1778,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'このレポートは却下されました。問題を修正し、手動で再提出していただくのをお待ちしています。',
             selectMemberError: 'このレポートを差し戻すメンバーを選択してください。',
             couldNotReject: 'レポートを拒否できませんでした。もう一度お試しください。',
+            couldNotRejectExpense: 'この経費は、すでに移動または却下されている可能性があるため、却下できませんでした。',
         },
         moveExpenses: 'レポートに移動',
         moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
@@ -1859,6 +1871,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
             confirmText: 'タグを削除',
         },
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
     },
     transactionMerge: {
         listPage: {
@@ -3751,8 +3764,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         vacationDelegateError: '休暇の代理人を更新中にエラーが発生しました。',
         asVacationDelegate: (nameOrEmail: string) => `${nameOrEmail} さんの休暇代理として`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `${nameOrEmail} さんをあなたの休暇代理人に指定しようとしています。この人は、まだすべてのワークスペースに参加していません。続行すると、すべてのワークスペース管理者に、この人を追加するようメールが送信されます。`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。今すぐ招待しますか？`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。あなたが管理者になっているワークスペースには今すぐ招待しますか？`,
+            youAreAMemberOf: 'あなたはこれらのワークスペースのメンバーです：',
+            youAreAnAdminOf: 'あなたはこれらのワークスペースの管理者です：',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `ステップ ${step}`;
@@ -4664,6 +4684,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             defaultDescription: 'すべての領収書と経費を一か所で管理。',
             descriptionHint: 'このワークスペースに関する情報をすべてのメンバーと共有します。',
             welcomeNote: '精算のための領収書提出には Expensify をご利用ください。ありがとうございます！',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName}さんがあなたを${workspaceName}に招待しました`,
             subscription: 'サブスクリプション',
             markAsEntered: '手入力としてマーク',
             markAsExported: 'エクスポート済みにする',
@@ -7465,7 +7486,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
             chooseAnExisting: '既存の銀行口座を選択して経費を支払うか、新しい口座を追加してください。',
             changeBankAccount: '銀行口座を変更',
-            updateCurrencyForExpensifyCard: 'Expensify カードは USD でのみ発行できます。このワークスペースを USD に更新するか、別のワークスペースをご利用ください。',
             updateCurrencyForExpensifyCardTitle: 'Expensify カードを申し込む',
             euUkUpdateCurrencyForExpensifyCard: 'Expensify カードは USD、GBP、EUR で発行できます。このワークスペースを対応している通貨に更新するか、別のワークスペースを使用してください。',
         },
@@ -8438,8 +8458,6 @@ ${reportName}`,
             providerApprovalMode: (providerName: string) => `${providerName} 承認モード`,
             providerFinalApprover: (providerName: string) => `${providerName} 最終承認者`,
             syncing: '従業員を同期しています',
-            syncingModalTitle: '接続を同期しています',
-            syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             approvalModeDescription: (providerName: string) => `メンバーとマネージャーは ${providerName} と同期するように設定されています。`,
             approvalModeWarningTitle: '承認モードを変更しますか？',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -8540,6 +8558,8 @@ ${reportName}`,
                 custom: 'カスタム承認',
                 advanced: '詳細承認',
             },
+            syncingModalTitle: '接続を同期しています',
+            syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
         },
         emptyDomain: {
@@ -11117,8 +11137,9 @@ ${reportName}`,
             permissions: 'グループの権限',
             createNewGroupButton: '新しいグループ',
             createGroupSubmitButton: 'グループを作成',
-            expensifyCardPreferredWorkspace: 'Expensify Card の優先ワークスペース',
-            expensifyCardPreferredWorkspaceDescription: 'すべてのExpensify Cardトランザクションは、優先ワークスペースではなくExpensify Card優先ワークスペースで作成されます。',
+            expensifyCardPreferredWorkspace: 'カード優先ワークスペース',
+            expensifyCardPreferredWorkspaceDescription:
+                'すべての Expensify カードおよび会社カードの取引は、「優先ワークスペース」ではなく「カード優先ワークスペース」で作成されます。この機能を有効にすると、カード取引に限り、優先ワークスペースの設定が上書きされます。',
             strictlyEnforceWorkspaceRules: 'ワークスペースのルールを厳密に適用する',
             strictlyEnforceWorkspaceRulesDescription: 'レポートを送信する前にすべてのワークスペースのルールを満たす必要があります。手動による例外は許可されていません。',
             restrictExpenseWorkspaceCreation: '経費ワークスペースの作成／削除を制限する',
@@ -11135,7 +11156,8 @@ ${reportName}`,
             noWorkspacesMessage: 'このドメインにワークスペースがありません。この制限を有効にするにはワークスペースが必要です。',
             restrictDefaultLoginSelection: 'デフォルトのログイン選択を制限する',
             restrictDefaultLoginSelectionDescription: 'メンバーがポリシー制限を回避するために、ログイン用のメールアドレスを会社のドメイン以外に変更することを防ぎます。',
-            expensifyCardPreferredWorkspaceDisabledMessage: 'この設定を有効にするには、まず優先するワークスペースを有効にし、ドメインでExpensify Cardsを設定してください。',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'この設定を有効にするには、まず優先ワークスペースを有効にし、ドメイン上で Expensify カードまたは会社カードフィードを設定してください。',
             findGroup: 'グループを検索',
         },
     },
