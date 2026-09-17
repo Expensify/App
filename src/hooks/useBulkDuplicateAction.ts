@@ -45,7 +45,8 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -81,6 +82,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
 
     const handleDuplicate = () => {
         bulkDuplicateExpenses({
+            isVendorMatchingBetaEnabled,
             dateFnsLocale,
             getCurrencyDecimals,
             transactionIDs: selectedTransactionsKeys,

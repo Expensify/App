@@ -245,7 +245,6 @@ import type {
     RecentlyUsedReportFields,
     Report,
     ReportAction,
-    ReportAttributesDerivedValue,
     ReportUserIsTyping,
     Rule,
     SidePanelContext,
@@ -379,6 +378,13 @@ type OpenReportActionParams = {
 
     hasReportActions: boolean | undefined;
 
+    /**
+     * Whether this report's actions loaded at least once this session (RAM-only, so falsy means a page refresh /
+     * cold start — when a manual unread marker is cleared). Only the report screen passes it; other callers omit
+     * it to leave the marker alone.
+     */
+    hasOnceLoadedReportActions?: boolean;
+
     /** Whether opening the report should update its read state. Set to false when fetching report data without the user actually viewing the conversation */
     shouldMarkAsRead?: boolean;
 
@@ -470,6 +476,7 @@ type MergeReportsProps = {
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -528,6 +535,19 @@ Onyx.connect({
         allReports = value;
     },
 });
+
+// RAM-only set of reportIDs the user navigated away from this session, so `openReport` can clear a manual
+// unread marker on the return trip only. A blur uniquely identifies that trip: it doesn't fire on the repeated
+// openReport calls of a single visit, and being RAM-only it is empty after a refresh.
+const reportsNavigatedAwayFrom = new Set<string>();
+
+/** Records that the user navigated away from the report, so the next `openReport` clears its manual unread marker. */
+function flagReportNavigatedAway(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    reportsNavigatedAwayFrom.add(reportID);
+}
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
@@ -1660,6 +1680,9 @@ function getGuidedSetupDataForOpenReport(
         isSelfTourViewed,
         wasInvited: isPendingInviteOnboarding && isOnboardingCompleted,
         currentUserAccountID,
+        // delegateAccountID will be threaded in PR 16 together with the other openReport params.
+        // buildOptimisticAddCommentReportAction falls back to the module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        delegateAccountID: undefined,
     });
 
     if (!onboardingData) {
@@ -1708,6 +1731,8 @@ function openReport(params: OpenReportActionParams) {
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions,
+        // Defaults to true so only the report screen, the one caller that passes it, can clear a manual unread marker.
+        hasOnceLoadedReportActions = true,
         shouldMarkAsRead = true,
         conciergeChat,
     } = params;
@@ -1719,7 +1744,21 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-    const optimisticReport: Partial<Pick<Report, 'reportName'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
+    // True only on a genuine return trip: `flagReportNavigatedAway` sets it on blur/unmount, so it is false on the
+    // first open, on the repeated openReport calls of a single visit, and after a refresh (the set is RAM-only).
+    const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
+    reportsNavigatedAwayFrom.delete(reportID);
+    // A refresh resets the report screen's RAM-only `hasOnceLoadedReportActions`, which is how we detect one here.
+    // A genuine first open has no marker to clear, so this only affects a marker persisted from before the refresh.
+    const isFirstLoadAfterRefresh = !hasOnceLoadedReportActions;
+    const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
+
+    // A manual mark-as-unread keeps its marker anchored while the user stays in the report, and is cleared only on
+    // a return trip or a refresh. This is a client-side decision, so it goes in optimisticData to apply immediately
+    // and offline. It is deliberately not restored in failureData — that would resurrect a marker already moved past.
+    if (didNavigateBackToReport || isFirstLoadAfterRefresh) {
+        optimisticReport.manuallyMarkedUnreadReportActionID = null;
+    }
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -3198,6 +3237,8 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
 
     const lastReadTime = getDBTimeWithSkew();
 
+    // Deliberately leaves `manuallyMarkedUnreadReportActionID` alone so an auto-read doesn't wipe a marker the
+    // user created. `openReport` clears it on a return trip or a refresh.
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3280,6 +3321,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
 
     const reportValue = {
         lastReadTime,
+        manuallyMarkedUnreadReportActionID: reportAction?.reportActionID ?? null,
         ...(lastActorAccountID && {lastActorAccountID}),
     };
 
@@ -3291,11 +3333,18 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         },
     ];
 
+    // Deliberately omits `manuallyMarkedUnreadReportActionID`. If this request is still queued when `openReport`
+    // clears the marker (e.g. the mark happened offline), reasserting the id on reconnect would resurrect a marker
+    // the user has moved past. The optimistic value above persists on its own, since the server MERGE never
+    // carries this client-only field.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: reportValue,
+            value: {
+                lastReadTime,
+                ...(lastActorAccountID && {lastActorAccountID}),
+            },
         },
     ];
 
@@ -3306,6 +3355,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             value: {
                 lastReadTime: report?.lastReadTime ?? null,
                 lastActorAccountID: report?.lastActorAccountID ?? null,
+                manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID ?? null,
             },
         },
     ];
@@ -4555,7 +4605,6 @@ type BuildNewReportOptimisticDataParams = {
     reportPreviewReportActionID: string;
     hasViolationsParam: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<Beta[]>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
@@ -4570,7 +4619,6 @@ function buildNewReportOptimisticData({
     reportPreviewReportActionID,
     hasViolationsParam,
     isASAPSubmitBetaEnabled,
-    betas,
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
@@ -4579,7 +4627,18 @@ function buildNewReportOptimisticData({
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas, getCurrencyDecimals, rules);
+    const optimisticReportData = buildOptimisticEmptyReport(
+        reportID,
+        accountID,
+        login,
+        parentReport,
+        reportPreviewReportActionID,
+        policy,
+        timeOfCreation,
+        isASAPSubmitBetaEnabled,
+        getCurrencyDecimals,
+        rules,
+    );
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -4800,13 +4859,11 @@ function buildNewReportOptimisticData({
 }
 
 // Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
 function createNewReport(
     ownerPersonalDetails: CurrentUserPersonalDetails,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
-    betas: OnyxEntry<Beta[]>,
     isTrackIntentUser: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
@@ -4827,7 +4884,6 @@ function createNewReport(
         reportPreviewReportActionID,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
-        betas,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
@@ -5242,7 +5298,8 @@ function showReportActionNotification(
     topmostOneTransactionThreadReportID: string | undefined,
     currentUserAccountID: number,
     currentUserLogin: string,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    derivedReportName: string | undefined,
+    derivedMovedFromReportName: string | undefined,
 ) {
     if (!shouldShowReportActionNotification(reportID, topmostOneTransactionThreadReportID, currentUserAccountID, reportAction)) {
         return;
@@ -5262,9 +5319,18 @@ function showReportActionNotification(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserAccountID, currentUserLogin, reportAttributes});
+        LocalNotification.showModifiedExpenseNotification({
+            report,
+            reportAction,
+            onClick,
+            movedFromReport,
+            movedToReport,
+            currentUserAccountID,
+            currentUserLogin,
+            derivedMovedFromReportName,
+        });
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick, reportAttributes);
+        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);
@@ -6094,6 +6160,8 @@ type CompleteOnboardingProps = {
     selfDMReport?: OnyxEntry<Report>;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
+    /** AccountID of the delegate acting on behalf of the current user */
+    delegateAccountID: number | undefined;
 };
 
 async function completeOnboarding({
@@ -6119,6 +6187,7 @@ async function completeOnboarding({
     adminsChatReport,
     selfDMReport,
     shouldSkipConciergeOnboarding,
+    delegateAccountID,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -6136,6 +6205,7 @@ async function completeOnboarding({
         adminsChatReport,
         selfDMReport,
         shouldSkipConciergeOnboarding,
+        delegateAccountID,
     });
     if (!onboardingData) {
         return;
@@ -8732,6 +8802,7 @@ function mergeReports({
     delegateAccountID,
     getCurrencyDecimals,
     getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -8745,6 +8816,7 @@ function mergeReports({
     }
 
     const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData({
+        isVendorMatchingBetaEnabled,
         transactionIDs: transactionIDsToMove,
         isASAPSubmitBetaEnabled,
         accountID,
@@ -8980,6 +9052,7 @@ export {
     leaveRoom,
     markAsManuallyExported,
     markCommentAsUnread,
+    flagReportNavigatedAway,
     navigateToAndOpenChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,

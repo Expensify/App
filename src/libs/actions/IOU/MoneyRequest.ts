@@ -108,6 +108,7 @@ type CreateTransactionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
@@ -159,6 +160,7 @@ function createTransaction({
     getCurrencyDecimals,
     conciergeChat,
     rules,
+    isVendorMatchingBetaEnabled,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -229,8 +231,8 @@ function createTransaction({
             const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
+                isVendorMatchingBetaEnabled,
                 report,
-                betas,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
