@@ -697,7 +697,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 createDraftTransactionAndNavigateToParticipantSelector({
                     ...sendTrackedExpenseParams,
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
-                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail ?? '', lastWorkspaceNumber, translate, currentUserDisplayName),
+                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail ?? '', currentUserDisplayName, lastWorkspaceNumber, translate),
                 });
             },
         },
