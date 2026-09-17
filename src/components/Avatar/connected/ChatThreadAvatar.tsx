@@ -1,3 +1,4 @@
+import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import type {AvatarIcon} from '@components/Avatar/types';
@@ -27,7 +28,10 @@ import {getParentReportActionSelector} from '@selectors/ReportAction';
 import React from 'react';
 
 import {useSeededAccountIcons} from './useAccountIcons';
+import WorkspaceHorizontalAvatars from './WorkspaceHorizontalAvatars';
 import WorkspaceSubscriptAvatar from './WorkspaceSubscriptAvatar';
+
+type SortingOption = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
 type ChatThreadAvatarProps = {
     /** Chat thread whose avatars to render */
@@ -45,12 +49,18 @@ type ChatThreadAvatarProps = {
     /** Container styles for the subscript stack, merged over its size-derived defaults */
     subscriptContainerStyle?: StyleProp<ViewStyle>;
 
+    /** Whether (and how) to stack the avatars horizontally. Only a thread that pairs its actor with a workspace icon has a second avatar to stack */
+    horizontalStacking?: HorizontalStackingOptions | boolean;
+
+    /** How to order the avatars before rendering them. Only applies to a horizontal stack, where every avatar sits in an equivalent slot */
+    sort?: SortingOption | SortingOption[];
+
     /** Display name used as a fallback for avatar tooltips */
     fallbackDisplayName?: string;
 };
 
 /** Renders a chat thread's avatars from its parent report action. */
-function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscriptContainerStyle, fallbackDisplayName}: ChatThreadAvatarProps) {
+function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscriptContainerStyle, horizontalStacking, sort, fallbackDisplayName}: ChatThreadAvatarProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
@@ -66,13 +76,35 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
     const isExpenseRequest = parentKind === CONST.REPORT_AVATAR_KIND.EXPENSE && isTransactionThread(parentAction);
     // A trip room is a thread of its trip preview, so it gets the workspace subscript too.
     const hasTripRoomChatType = thread?.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
+    // Mirrors `isWorkspaceThread` in ReportUtils: a thread inherits its room's chat type.
+    const isWorkspaceThread = CONST.WORKSPACE_ROOM_TYPES.some((chatType) => thread?.chatType === chatType);
 
-    const delegateAccountID = getDelegateAccountIDFromReportAction(parentAction);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    // A thread under the Concierge chat is a conversation with Concierge, so it shows Concierge rather than whoever asked. Mirrors `getIconsForChatThread`.
+    const isConciergeThread = !!conciergeReportID && parentReportID === conciergeReportID;
+
+    const delegateAccountID = isConciergeThread ? undefined : getDelegateAccountIDFromReportAction(parentAction);
     // Concierge for harvested and automatic actions.
     const actorAccountID = getReportActionActorAccountID(parentAction, undefined, undefined);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentAction);
-    const primaryAccountID = delegateAccountID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [primaryAvatar, humanAgentIcon] = useSeededAccountIcons(humanAgentAccountID ? [primaryAccountID, humanAgentAccountID] : [primaryAccountID]);
+    // Like the legacy component, a revealed agent only shows once their personal details have arrived. Until then Concierge stands alone.
+    const loadedHumanAgentAccountID = humanAgentAccountID && personalDetails?.[humanAgentAccountID] ? humanAgentAccountID : undefined;
+    const primaryAccountID = isConciergeThread ? CONST.ACCOUNT_ID.CONCIERGE : (delegateAccountID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const [primaryAvatar, humanAgentIcon] = useSeededAccountIcons(loadedHumanAgentAccountID ? [primaryAccountID, loadedHumanAgentAccountID] : [primaryAccountID]);
+
+    // A horizontal stack pairs every workspace thread with its workspace icon. Without one, only an expense request and a trip room show it, as a subscript.
+    if (horizontalStacking && (isExpenseRequest || hasTripRoomChatType || isWorkspaceThread)) {
+        return (
+            <WorkspaceHorizontalAvatars
+                report={thread}
+                primaryAvatar={primaryAvatar}
+                size={size}
+                horizontalStacking={horizontalStacking}
+                sort={sort}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    }
 
     if (isExpenseRequest || hasTripRoomChatType) {
         return (

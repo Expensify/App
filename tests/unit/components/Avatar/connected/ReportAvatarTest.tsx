@@ -194,7 +194,7 @@ describe('ReportAvatar (connected)', () => {
         });
     });
 
-    it('should drop the single container styles for a chat thread inside a horizontal stack', async () => {
+    it('should hand a chat thread the stacking props and drop its single container styles inside a horizontal stack', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, parentReportID: 'parent1', parentReportActionID: 'parentAction1'});
         await waitForBatchedUpdatesWithAct();
 
@@ -209,8 +209,8 @@ describe('ReportAvatar (connected)', () => {
 
         expect(mockCapturedChatThreadAvatarProps.containerStyle).toEqual([]);
         expect(mockCapturedChatThreadAvatarProps.subscriptContainerStyle).toBeUndefined();
-        expect(mockCapturedChatThreadAvatarProps).not.toHaveProperty('horizontalStacking');
-        expect(mockCapturedChatThreadAvatarProps).not.toHaveProperty('sort');
+        expect(mockCapturedChatThreadAvatarProps.horizontalStacking).toEqual({maxRows: 2});
+        expect(mockCapturedChatThreadAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
     });
 
     it('should render ChatThreadAvatar for a trip room, which is a thread of its trip preview', async () => {

@@ -18,6 +18,7 @@ const PARENT_ACTION_ID = 'parentAction789';
 const FALLBACK_NAME = 'Fallback Name';
 const CONTAINER_STYLE = [{marginRight: 12}];
 const SUBSCRIPT_CONTAINER_STYLE = {marginRight: 0};
+const HORIZONTAL_STACKING = {maxRows: 2, overlapDivider: 4};
 const HUMAN_SUPPORT_AGENT_KEY = 'reportAction.humanSupportAgent';
 
 const ACTOR_ACCOUNT_ID = 42;
@@ -35,6 +36,7 @@ function MockFallbackAvatar() {
 
 // Capture the props handed to each layout primitive: the routing and the icons are this component's whole contract.
 let mockCapturedWorkspaceSubscriptAvatarProps: Record<string, unknown> = {};
+let mockCapturedWorkspaceHorizontalAvatarsProps: Record<string, unknown> = {};
 let mockCapturedSubscriptAvatarProps: Record<string, unknown> = {};
 let mockCapturedSingleAvatarProps: Record<string, unknown> = {};
 
@@ -78,6 +80,15 @@ jest.mock('@components/Avatar/connected/WorkspaceSubscriptAvatar', () => {
     return (props: Record<string, unknown>) => {
         mockCapturedWorkspaceSubscriptAvatarProps = props;
         return <View testID="MockedWorkspaceSubscriptAvatar" />;
+    };
+});
+
+jest.mock('@components/Avatar/connected/WorkspaceHorizontalAvatars', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedWorkspaceHorizontalAvatarsProps = props;
+        return <View testID="MockedWorkspaceHorizontalAvatars" />;
     };
 });
 
@@ -158,6 +169,7 @@ describe('ChatThreadAvatar (connected)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCapturedWorkspaceSubscriptAvatarProps = {};
+        mockCapturedWorkspaceHorizontalAvatarsProps = {};
         mockCapturedSubscriptAvatarProps = {};
         mockCapturedSingleAvatarProps = {};
         mockOnyxData = {};
@@ -194,6 +206,52 @@ describe('ChatThreadAvatar (connected)', () => {
         );
 
         expect(screen.getByTestId(expectedTestID)).toBeOnTheScreen();
+    });
+
+    it.each([
+        ['an expense report and a created expense', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedWorkspaceHorizontalAvatars', {}],
+        ['a workspace chat and a trip preview', CONST.REPORT.TYPE.CHAT, tripPreviewAction, 'MockedWorkspaceHorizontalAvatars', {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
+        // Inside a horizontal stack every workspace thread pairs its actor with the workspace icon, matching the legacy component.
+        ['a policy room and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedWorkspaceHorizontalAvatars', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}],
+        ['a policy expense chat and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedWorkspaceHorizontalAvatars', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT}],
+        ['an invoice room and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedWorkspaceHorizontalAvatars', {chatType: CONST.REPORT.CHAT_TYPE.INVOICE}],
+        ['a chat and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedSingleAvatar', {}],
+        ['an expense report and a comment', CONST.REPORT.TYPE.EXPENSE, createCommentAction(), 'MockedSingleAvatar', {}],
+    ])('should route a thread under %s inside a horizontal stack', (_case, parentType, parentAction, expectedTestID, threadOverrides: Partial<Report>) => {
+        seedThread(parentType, parentAction, threadOverrides);
+
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                horizontalStacking
+            />,
+        );
+
+        expect(screen.getByTestId(expectedTestID)).toBeOnTheScreen();
+    });
+
+    it('should hand a horizontal stack the thread row, the resolved actor, the stacking options and the sort order', () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction(), {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM});
+
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                horizontalStacking={HORIZONTAL_STACKING}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        expect(mockCapturedWorkspaceHorizontalAvatarsProps).toEqual({
+            report: expect.objectContaining({parentReportID: PARENT_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}),
+            primaryAvatar: expect.objectContaining({id: ACTOR_ACCOUNT_ID, source: ACTOR_AVATAR_URL}),
+            size: CONST.AVATAR_SIZE.XXXX_LARGE,
+            horizontalStacking: HORIZONTAL_STACKING,
+            sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
     });
 
     it('should hand an expense request the subscript props, its row and the resolved actor', () => {
@@ -292,6 +350,42 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(mockCapturedSingleAvatarProps.avatar).toEqual(
             expect.objectContaining({id: DELEGATE_ACCOUNT_ID, source: DELEGATE_AVATAR_URL, copilot: {accountID: DELEGATE_ACCOUNT_ID, actedForAccountID: ACTOR_ACCOUNT_ID}}),
         );
+    });
+
+    it('should render Concierge for a thread under the Concierge chat, without a copilot badge', () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction({delegateAccountID: DELEGATE_ACCOUNT_ID}));
+        mockOnyxData[ONYXKEYS.CONCIERGE_REPORT_ID] = PARENT_REPORT_ID;
+
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: CONST.ACCOUNT_ID.CONCIERGE}));
+        expect(mockCapturedSingleAvatarProps.avatar).not.toHaveProperty('copilot');
+    });
+
+    it('should render Concierge alone while the revealed human agent has no personal details yet', () => {
+        delete mockPersonalDetails[AGENT_ACCOUNT_ID];
+        seedThread(
+            CONST.REPORT.TYPE.CHAT,
+            createCommentAction({
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                originalMessage: {html: 'Hello', whisperedTo: [], humanAgentAccountID: AGENT_ACCOUNT_ID},
+            }),
+        );
+
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
+        expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: CONST.ACCOUNT_ID.CONCIERGE}));
     });
 
     it('should render Concierge for a harvested submit', () => {

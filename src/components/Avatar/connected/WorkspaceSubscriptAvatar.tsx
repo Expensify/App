@@ -1,7 +1,7 @@
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
+import type {AvatarIcon} from '@components/Avatar/types';
 
 import type CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ReportAvatarFields} from '@selectors/Report';
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
@@ -15,8 +15,8 @@ type WorkspaceSubscriptAvatarProps = {
     /** The report the workspace icon resolves from, through its policy and the chat it links to */
     report: ReportAvatarFields | undefined;
 
-    /** The account the report is about */
-    primaryAvatar: Icon;
+    /** The account the report is about, or the copilot who acted for it */
+    primaryAvatar: AvatarIcon;
 
     /** Size of the avatar */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;

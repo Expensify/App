@@ -22,6 +22,12 @@ const OWNER_ACCOUNT_ID = 42;
 const OWNER_LOGIN = 'john@example.com';
 const OWNER_AVATAR_URL = 'https://example.com/owner-avatar.png';
 
+const PARENT_REPORT_ID = 'parentChat456';
+const PARENT_REPORT_ACTION_ID = 'action789';
+const DELEGATE_ACCOUNT_ID = 77;
+const DELEGATE_LOGIN = 'copilot@example.com';
+const DELEGATE_AVATAR_URL = 'https://example.com/delegate-avatar.png';
+
 // Stands in for the bundled fallback SVG so a resolved account icon can be asserted by identity.
 function MockFallbackAvatar() {
     return null;
@@ -58,6 +64,7 @@ const createExpenseReport = (overrides: Partial<Report> = {}): Report => ({
     type: CONST.REPORT.TYPE.EXPENSE,
     ownerAccountID: OWNER_ACCOUNT_ID,
     policyID: POLICY_ID,
+    parentReportID: PARENT_REPORT_ID,
     ...overrides,
 });
 
@@ -106,6 +113,42 @@ describe('ExpenseReportAvatar (connected)', () => {
             containerStyle: CONTAINER_STYLE,
             fallbackDisplayName: FALLBACK_NAME,
         });
+        expect(mockCapturedWorkspaceSubscriptAvatarProps.primaryAvatar).not.toHaveProperty('copilot');
+    });
+
+    it.each([
+        ['parentReportID', {parentReportActionID: PARENT_REPORT_ACTION_ID}],
+        // An optimistic expense report links its workspace chat only through chatReportID.
+        ['chatReportID only', {parentReportActionID: PARENT_REPORT_ACTION_ID, parentReportID: undefined, chatReportID: PARENT_REPORT_ID}],
+    ])('should render the copilot as the primary avatar when the parent action carries a delegate (chat linked via %s)', async (_case, reportOverrides) => {
+        mockPersonalDetails[DELEGATE_ACCOUNT_ID] = {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_LOGIN, avatar: DELEGATE_AVATAR_URL};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport(reportOverrides));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
+            [PARENT_REPORT_ACTION_ID]: {
+                reportActionID: PARENT_REPORT_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actorAccountID: OWNER_ACCOUNT_ID,
+                delegateAccountID: DELEGATE_ACCOUNT_ID,
+                created: '2024-01-01 00:00:00',
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ExpenseReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockCapturedWorkspaceSubscriptAvatarProps.primaryAvatar).toEqual(
+            expect.objectContaining({
+                id: DELEGATE_ACCOUNT_ID,
+                source: DELEGATE_AVATAR_URL,
+                copilot: {accountID: DELEGATE_ACCOUNT_ID, actedForAccountID: OWNER_ACCOUNT_ID},
+            }),
+        );
     });
 
     it('should render the fallback avatar as the primary when the report has no owner', async () => {

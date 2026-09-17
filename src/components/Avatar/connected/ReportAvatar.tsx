@@ -53,8 +53,8 @@ function ReportAvatar({
     backdropColor,
     noRightMarginOnSubscriptContainer = false,
     horizontalStacking,
+    sort,
     fallbackDisplayName,
-    ...rest
 }: ReportAvatarProps) {
     const styles = useThemeStyles();
     const [kindFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportAvatarKindSelector});
@@ -99,6 +99,8 @@ function ReportAvatar({
                     backdropColor={backdropColor}
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     subscriptContainerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : undefined}
+                    horizontalStacking={horizontalStacking}
+                    sort={sort}
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
@@ -119,8 +121,8 @@ function ReportAvatar({
                     backdropColor={backdropColor}
                     noRightMarginOnSubscriptContainer={noRightMarginOnSubscriptContainer}
                     horizontalStacking={horizontalStacking}
+                    sort={sort}
                     fallbackDisplayName={fallbackDisplayName}
-                    {...rest}
                 />
             );
     }
