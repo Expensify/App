@@ -80,7 +80,7 @@ function DatePicker({
         onInputChange?.(newDate);
     };
 
-    const segmentInput = useDateSegmentInput({value: selectedDate, mask: dateMask, isEnabled: shouldAllowTyping, onCommit: handleTypedDate});
+    const segmentInput = useDateSegmentInput({value: selectedDate, mask: dateMask, isEnabled: shouldAllowTyping, minDate, maxDate, onCommit: handleTypedDate});
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
@@ -313,6 +313,7 @@ function DatePicker({
                 anchorRef={anchorRef}
                 withoutOverlay={shouldAllowTyping}
                 shouldAllowWithoutOverlayInNarrowPane={shouldAllowTyping}
+                viewDate={segmentInput.viewDate}
             />
         </>
     );

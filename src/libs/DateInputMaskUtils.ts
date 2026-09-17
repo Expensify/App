@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {isValid, parse} from 'date-fns';
+import {endOfMonth, isValid, parse} from 'date-fns';
 
 const DATE_SEGMENT_NAMES = ['year', 'month', 'day'] as const;
 
@@ -221,6 +221,28 @@ function typeDigitIntoSegments(
     return {segments: filled, nextSegmentName};
 }
 
+/**
+ * Which month the calendar should show for the date being typed, or undefined when there is nowhere useful to go and
+ * the calendar should stay where it is. A month only counts once both its digits read as a real month, so the calendar
+ * does not lurch to January while the user is still on the first digit.
+ *
+ * A month outside the allowed range is refused rather than clamped. Every year is out of range while it is being
+ * typed, since 1985 passes through 1, 19 and 198, and clamping those would drag the calendar to the limit and back on
+ * every keystroke.
+ */
+function getViewDateFromSegments(segments: DateSegments, fallbackMonthIndex: number, minDate: Date, maxDate: Date): Date | undefined {
+    if (segments.year.length !== YEAR_LENGTH) {
+        return undefined;
+    }
+
+    const monthNumber = Number(segments.month);
+    const hasMonth = segments.month.length === SEGMENT_LENGTH && monthNumber >= FIRST_MONTH && monthNumber <= SEGMENT_LIMITS.month.max;
+    const viewDate = new Date(Number(segments.year), hasMonth ? monthNumber - 1 : fallbackMonthIndex, 1);
+
+    // A month holding no selectable day at all is not worth moving to
+    return endOfMonth(viewDate) < minDate || viewDate > maxDate ? undefined : viewDate;
+}
+
 /** Drops the last digit of a segment. Returns undefined when there was nothing left to drop */
 function removeLastDigit(segments: DateSegments, name: DateSegmentName): DateSegments | undefined {
     if (!segments[name]) {
@@ -289,6 +311,7 @@ export {
     getSegmentNameAtPosition,
     getSegmentsFromISODate,
     getSegmentsFromText,
+    getViewDateFromSegments,
     hasAnySegment,
     removeLastDigit,
     typeDigitIntoSegments,

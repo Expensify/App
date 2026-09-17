@@ -144,6 +144,9 @@ type DatePickerProps = {
      * calendar, so the user can keep editing the input while the calendar is open. Falls back to an internal ref.
      */
     anchorRef?: RefObject<View | null>;
+
+    /** Moves the calendar to this month without selecting a day, so it follows the date being typed into the input */
+    viewDate?: Date;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};

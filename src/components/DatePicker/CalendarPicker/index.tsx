@@ -52,6 +52,12 @@ type CalendarPickerProps = {
 
     /** Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
+
+    /**
+     * Moves the calendar to this month without selecting a day, so it can follow a date being typed into the input.
+     * The calendar still owns its own view, so its arrows and month picker keep working between updates.
+     */
+    viewDate?: Date;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -85,6 +91,7 @@ function CalendarPicker({
     headerContainerStyle,
     containerStyle,
     shouldEnableMonthYearBackdropInNarrowPane = false,
+    viewDate,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -94,9 +101,18 @@ function CalendarPicker({
     const pressableRef = useRef<View>(null);
     const monthPressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
+    const [appliedViewDate, setAppliedViewDate] = useState(viewDate);
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
     const isFirstRender = useRef(true);
+
+    // Catching up with the caller here rather than in an effect keeps the view and the month matrix in step within a
+    // single render, so the calendar never paints the old month first. The date arrives already inside the allowed
+    // range, and is deliberately not clamped: clamping would show the limit's month instead of the typed one.
+    if (viewDate && viewDate.getTime() !== appliedViewDate?.getTime()) {
+        setAppliedViewDate(viewDate);
+        setCurrentDateView(viewDate);
+    }
 
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();

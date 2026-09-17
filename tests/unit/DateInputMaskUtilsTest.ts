@@ -5,6 +5,7 @@ import {
     getSegmentNameAtPosition,
     getSegmentsFromISODate,
     getSegmentsFromText,
+    getViewDateFromSegments,
     hasAnySegment,
     removeLastDigit,
     typeDigitIntoSegments,
@@ -67,6 +68,43 @@ describe('DateInputMaskUtils', () => {
 
         it('has nothing to carry into past the day, so a rejected pair restarts it', () => {
             expect(typeDigitIntoSegments(segments('2026', '09', '3'), 'day', '9')).toEqual({segments: segments('2026', '09', '03'), nextSegmentName: undefined});
+        });
+    });
+
+    describe('getViewDateFromSegments', () => {
+        /** September, standing in for the month the calendar happens to be showing */
+        const FALLBACK_MONTH_INDEX = 8;
+        const MIN_DATE = new Date(1876, 8, 17);
+        const MAX_DATE = new Date(2126, 8, 17);
+        const viewDateFor = (dateSegments: DateSegments) => getViewDateFromSegments(dateSegments, FALLBACK_MONTH_INDEX, MIN_DATE, MAX_DATE);
+
+        it('leaves the calendar alone while the year is unfinished', () => {
+            expect(viewDateFor(segments('202', '', ''))).toBeUndefined();
+            expect(viewDateFor(EMPTY)).toBeUndefined();
+        });
+
+        it('moves the year while keeping the month on screen', () => {
+            expect(viewDateFor(segments('2030', '', ''))).toEqual(new Date(2030, 8, 1));
+            expect(viewDateFor(segments('2030', '1', ''))).toEqual(new Date(2030, 8, 1));
+        });
+
+        it('moves the month once both of its digits read as a real month', () => {
+            expect(viewDateFor(segments('2030', '02', ''))).toEqual(new Date(2030, 1, 1));
+            expect(viewDateFor(segments('2030', '00', ''))).toEqual(new Date(2030, 8, 1));
+        });
+
+        it('ignores the day, which picks a date rather than a month to show', () => {
+            expect(viewDateFor(segments('2030', '02', '28'))).toEqual(new Date(2030, 1, 1));
+        });
+
+        it('stays put for a year outside the range rather than jumping to the limit', () => {
+            expect(viewDateFor(segments('1111', '01', '03'))).toBeUndefined();
+            expect(viewDateFor(segments('9999', '01', ''))).toBeUndefined();
+        });
+
+        it('moves to the month holding the limit itself, which still has days to select', () => {
+            expect(viewDateFor(segments('1876', '09', ''))).toEqual(new Date(1876, 8, 1));
+            expect(viewDateFor(segments('1876', '08', ''))).toBeUndefined();
         });
     });
 

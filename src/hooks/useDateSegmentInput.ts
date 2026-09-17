@@ -11,6 +11,7 @@ import {
     getSegmentNameAtPosition,
     getSegmentsFromISODate,
     getSegmentsFromText,
+    getViewDateFromSegments,
     hasAnySegment,
     removeLastDigit,
     typeDigitIntoSegments,
@@ -42,6 +43,12 @@ type UseDateSegmentInputParams = {
     /** Whether this platform lets the user type a date at all */
     isEnabled: boolean;
 
+    /** The oldest date the calendar can show, so it is not moved somewhere with nothing to select */
+    minDate: Date;
+
+    /** The newest date the calendar can show */
+    maxDate: Date;
+
     /** Called with a stored format date once every segment holds a valid value */
     onCommit: (isoDate: string) => void;
 };
@@ -52,6 +59,9 @@ type UseDateSegmentInputResult = {
 
     /** The range covering the segment being edited, which selects it as a whole */
     selection: DateSegmentRange | undefined;
+
+    /** The month the calendar should show, so it follows the date being typed. Undefined leaves the calendar alone */
+    viewDate: Date | undefined;
 
     onKeyPress: (event: TextInputKeyPressEvent) => void;
     onSelectionChange: (event: TextInputSelectionChangeEvent) => void;
@@ -64,12 +74,14 @@ function isMoveKey(key: string): key is keyof typeof MOVE_KEYS {
     return key in MOVE_KEYS;
 }
 
-export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: UseDateSegmentInputParams): UseDateSegmentInputResult {
+export default function useDateSegmentInput({value, mask, isEnabled, minDate, maxDate, onCommit}: UseDateSegmentInputParams): UseDateSegmentInputResult {
     // The segments only describe an edit in progress, so they are seeded on focus rather than synced with the value
     const [segments, setSegments] = useState<DateSegments>(EMPTY_SEGMENTS);
     const [activeSegmentName, setActiveSegmentName] = useState<DateSegmentName>(FIRST_SEGMENT_NAME);
     const [caretOffset, setCaretOffset] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
+    // The month the calendar should show, which follows the typed date once the year is complete
+    const [viewDate, setViewDate] = useState<Date | undefined>(undefined);
     // Re-rendering with a new value makes the browser report a caret of its own choosing. Honouring that would drag
     // the active segment around, so the first report after a keystroke is discarded as an echo of our own update.
     const hasPendingCaretEchoRef = useRef(false);
@@ -113,8 +125,18 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         onCommit(isoDate);
     };
 
+    /**
+     * The one place segments are written, so the calendar cannot fall out of step with them. The month already on
+     * screen is the fallback while the typed month is unfinished, which keeps the calendar where the user left it.
+     */
     const applySegments = (newSegments: DateSegments) => {
         setSegments(newSegments);
+
+        const nextViewDate = getViewDateFromSegments(newSegments, (viewDate ?? new Date()).getMonth(), minDate, maxDate);
+        if (nextViewDate) {
+            setViewDate(nextViewDate);
+        }
+
         commitIfComplete(newSegments);
     };
 
@@ -152,7 +174,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
                 return;
             }
 
-            setSegments(trimmedSegments);
+            applySegments(trimmedSegments);
             shouldOverwriteRef.current = false;
             moveCaret(activeSegmentName, trimmedSegments[activeSegmentName].length, trimmedSegments);
             return;
@@ -203,6 +225,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         const seededSegments = getSegmentsFromISODate(value);
 
         setSegments(seededSegments);
+        setViewDate(getViewDateFromSegments(seededSegments, new Date().getMonth(), minDate, maxDate));
         shouldOverwriteRef.current = false;
         moveCaret(FIRST_SEGMENT_NAME, getFurthestOffset(FIRST_SEGMENT_NAME, seededSegments), seededSegments);
         setIsEditing(true);
@@ -213,6 +236,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         setIsEditing(false);
         setSegments(EMPTY_SEGMENTS);
         setCaretOffset(0);
+        setViewDate(undefined);
         shouldOverwriteRef.current = false;
     };
 
@@ -220,6 +244,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         return {
             displayValue: value,
             selection: undefined,
+            viewDate: undefined,
             onKeyPress: () => {},
             onSelectionChange: () => {},
             onChangeText: () => {},
@@ -231,6 +256,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
     return {
         displayValue: isEditing ? editingValue : value,
         selection: isEditing ? {start: caretPosition, end: caretPosition} : undefined,
+        viewDate: isEditing ? viewDate : undefined,
         onKeyPress: handleKeyPress,
         onSelectionChange: handleSelectionChange,
         onChangeText: handleChangeText,

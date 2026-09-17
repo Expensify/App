@@ -49,6 +49,7 @@ function DatePickerModal({
     anchorRef: anchorRefProp,
     withoutOverlay = false,
     shouldAllowWithoutOverlayInNarrowPane = false,
+    viewDate,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const fallbackAnchorRef = useRef<View>(null);
@@ -111,6 +112,7 @@ function DatePickerModal({
                 onSelected={handleDateSelection}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
+                viewDate={viewDate}
             />
         </PopoverWithMeasuredContent>
     );
