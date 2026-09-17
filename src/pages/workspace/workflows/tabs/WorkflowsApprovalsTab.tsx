@@ -156,20 +156,11 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(
-            policy,
-            policy?.owner ?? '',
-            CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            currentUserAccountID,
-            currentUserEmail,
-            isTrackIntentUser,
-            {
-                transactionViolations,
-                betas,
-                personalDetailsList: personalDetails,
-            },
-            rulesCollection,
-        );
+        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, rulesCollection, {
+            transactionViolations,
+            betas,
+            personalDetailsList: personalDetails,
+        });
     }, [betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
 
     const navigateToHRSettings = useCallback(() => {
@@ -366,12 +357,12 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     currentUserAccountID,
                     currentUserEmail,
                     isTrackIntentUser,
+                    rulesCollection,
                     {
                         transactionViolations,
                         betas,
                         personalDetailsList: personalDetails,
                     },
-                    rulesCollection,
                 );
             }}
             subMenuItems={
