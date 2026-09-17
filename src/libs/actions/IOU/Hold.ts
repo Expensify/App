@@ -768,11 +768,11 @@ function getReportFromHoldRequestsOnyxData({
         chatReport,
         optimisticExpenseReport,
         getCurrencyDecimals,
+        delegateAccountID,
         '',
         firstHoldTransaction,
         optimisticExpenseReport.reportID,
         newParentReportActionID,
-        delegateAccountID,
     );
 
     let optimisticCreatedReportForUnapprovedAction: OnyxTypes.ReportAction | null = null;
