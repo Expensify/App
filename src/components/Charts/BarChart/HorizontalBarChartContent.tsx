@@ -30,7 +30,7 @@ import type {BarChartBodyProps} from './BarChartContent';
 const BASE_DOMAIN_PADDING = {top: 8, bottom: 8, left: 0, right: 8};
 
 /** Gap between the bar tip and the tooltip pointer, lifting the tooltip clear of the bar. */
-const TOOLTIP_TIP_GAP = 16;
+const TOOLTIP_TIP_GAP = 4;
 
 /** Fraction of each row reserved as gap, leaving a thin centered bar (matches the ranking design). */
 const HORIZONTAL_BAR_PADDING = 0.7;
