@@ -1,7 +1,7 @@
 /**
  * Leaf helpers for optimistic search snapshot updates.
- * Kept separate from SearchUIUtils so action modules (e.g. Transaction → SearchUpdate) can use them
- * without pulling Report/MoneyRequest and creating import cycles.
+ * Kept separate from SearchUIUtils so action modules (for example the Transaction action's SearchUpdate helper) can use them
+ * without pulling in Report/MoneyRequest and creating import cycles.
  */
 import type {SearchQueryJSON} from '@components/Search/types';
 

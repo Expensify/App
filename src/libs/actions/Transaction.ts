@@ -1712,13 +1712,16 @@ function getChangeTransactionsReportOnyxData({
             transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
         }
 
-        const searchTransaction: Transaction = {
+        const searchTransaction = {
             ...transactionForViolations,
             reportID,
-            comment: isUnreported ? {...transactionForViolations.comment, hold: ''} : transactionForViolations.comment,
+            comment: isUnreported ? {...transactionForViolations.comment, hold: null} : transactionForViolations.comment,
             originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : undefined,
             originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : undefined,
-        };
+            reimbursable: transactionReimbursable,
+            ...(shouldClearAmount && {convertedAmount: null, convertedTaxAmount: null}),
+        } as Transaction;
+
         const searchIOUAction = {
             ...newIOUAction,
             reportID: targetReportID ?? newIOUAction.reportID,

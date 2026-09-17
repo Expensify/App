@@ -64,12 +64,14 @@ function shouldOptimisticallyUpdateSearch(
     }
 
     const currentSearchPolicyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
-    if (currentSearchPolicyIDs.value?.length && iouReport?.policyID) {
-        if (!currentSearchPolicyIDs.isNegated && !currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
+    if (currentSearchPolicyIDs.value?.length) {
+        if (!iouReport?.policyID) {
+            if (!currentSearchPolicyIDs.isNegated) {
+                return false;
+            }
+        } else if (!currentSearchPolicyIDs.isNegated && !currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
             return false;
-        }
-
-        if (currentSearchPolicyIDs.isNegated && currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
+        } else if (currentSearchPolicyIDs.isNegated && currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
             return false;
         }
     }
@@ -221,7 +223,10 @@ function getSearchOnyxUpdate({
 
         const snapshotData: NullishDeep<SearchResultDataType> = {...baseSnapshotData};
 
-        if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+        // Create paths add the expense to the group; move paths must not re-increment when it is already listed.
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+        const alreadyInSnapshot = !!existingSnapshot?.data?.[transactionKey];
+        if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM && !alreadyInSnapshot) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;
             const existingGroup = existingSnapshot?.data?.[groupKey];
             snapshotData[groupKey] = {

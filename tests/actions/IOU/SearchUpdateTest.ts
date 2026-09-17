@@ -9,7 +9,7 @@ import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import {buildCannedSearchQuery} from '@src/libs/SearchQueryUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 
@@ -383,6 +383,32 @@ describe('actions/IOU', () => {
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
+        it('when the current hash includes a positive policyID filter and there is no iou report, it should return false', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const policyID = '12345';
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
+                type: 'expense',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                filters: {operator: 'eq', left: 'policyID', right: policyID},
+                inputQuery: `type:expense sortBy:date sortOrder:desc policyID:${policyID}`,
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID}],
+                    },
+                ],
+                hash: 591785023,
+                recentSearchHash: 714245045,
+                similarSearchHash: 1023624111,
+            });
+
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, undefined, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
         it('when the current hash includes a non-negated status filter it should only return true if the iou report matches the status', () => {
             const transaction = {
                 ...createRandomTransaction(1),
@@ -710,6 +736,59 @@ describe('actions/IOU', () => {
             const snapshotUpdate = result?.optimisticData?.find((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
             expect(snapshotUpdate).toBeDefined();
             expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`, oldActionID, 'originalMessage', 'IOUTransactionID'], null);
+        });
+
+        it('does not re-increment groupBy:from aggregates when the transaction is already in the snapshot', async () => {
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+
+            const groupHash = 424242;
+            const transaction = {...createRandomTransaction(1), amount: -5000, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(
+                createMock<SearchQueryJSON>({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    filters: undefined,
+                    inputQuery: 'type:expense groupBy:from',
+                    flatFilters: [],
+                    hash: groupHash,
+                    recentSearchHash: groupHash,
+                    similarSearchHash: groupHash,
+                }),
+            );
+
+            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`, {
+                search: {hash: groupHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hasResults: true},
+                data: {
+                    [transactionKey]: transaction,
+                    [groupKey]: {
+                        accountID: RORY_ACCOUNT_ID,
+                        count: 3,
+                        total: -15000,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const result = getSearchOnyxUpdate({
+                transaction: {...transaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`);
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).not.toHaveProperty(['data', groupKey]);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', transactionKey, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
         });
     });
 });
