@@ -3577,4 +3577,10 @@ export type {
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,
+    CampfireExportDate,
+    CampfireVendor,
+    CampfireAccount,
+    CampfireExport,
+    CampfireAutoSync,
+    CampfireSync,
 };
