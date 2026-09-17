@@ -12,6 +12,7 @@ import type {SearchResults} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
@@ -122,6 +123,18 @@ function buildSearchResults(
             hasResults: true,
         },
         data: {},
+    };
+}
+
+// An expense of `amount`, carrying the flags the total aggregates classify on. Expenses display as a negative amount,
+// and the footer totals the displayed amounts, so a selection of expenses sums to a negative figure.
+function buildFlaggedTransaction(amount: number, flags: {reimbursable?: boolean; billable?: boolean}): SelectedTransactionInfo {
+    return {
+        ...buildSelectedTransaction(CONST.CURRENCY.USD),
+        amount,
+        displayAmount: -amount,
+        // The aggregates classify on the row's own transaction, which is what the search list attaches to a selection.
+        transaction: {...createRandomTransaction(amount), reimbursable: flags.reimbursable, billable: flags.billable},
     };
 }
 
@@ -437,6 +450,102 @@ describe('SearchSelectionFooter', () => {
         });
     });
 
+    describe('total selector over a selection', () => {
+        beforeEach(() => {
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {
+                reimbursable1: buildFlaggedTransaction(100, {reimbursable: true, billable: true}),
+                reimbursable2: buildFlaggedTransaction(200, {reimbursable: true, billable: false}),
+                nonReimbursable1: buildFlaggedTransaction(300, {reimbursable: false, billable: false}),
+            };
+        });
+
+        async function renderWithTotal(totalType: SearchFooterTotal) {
+            setSearchQuery(`type:expense footerTotal:${totalType}`);
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+            return mockCapturedFooterProps.current;
+        }
+
+        it('sums every selected expense for the plain total', async () => {
+            expect(await renderWithTotal(CONST.SEARCH.FOOTER_TOTAL.TOTAL)).toEqual(expect.objectContaining({total: -600}));
+        });
+
+        it('sums only the reimbursable selected expenses', async () => {
+            expect(await renderWithTotal(CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE)).toEqual(expect.objectContaining({total: -300}));
+        });
+
+        it('sums only the non-reimbursable selected expenses', async () => {
+            expect(await renderWithTotal(CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE)).toEqual(expect.objectContaining({total: -300}));
+        });
+
+        it('sums only the billable selected expenses', async () => {
+            expect(await renderWithTotal(CONST.SEARCH.FOOTER_TOTAL.BILLABLE)).toEqual(expect.objectContaining({total: -100}));
+        });
+
+        it('sums only the non-billable selected expenses', async () => {
+            expect(await renderWithTotal(CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE)).toEqual(expect.objectContaining({total: -500}));
+        });
+
+        it('labels a breakdown of selected reports in the default currency, since a Reports search converts by report', async () => {
+            setSearchQuery(`type:expense-report footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockSelectedTransactions.current = {reimbursable1: buildFlaggedTransaction(100, {reimbursable: true})};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(CONST.CURRENCY.EUR);
+                await waitForBatchedUpdates();
+            });
+
+            // A per-report converted total has no breakdown inside it, and the reports' expenses are not converted
+            // individually — so the figure stays in the currency it is actually denominated in.
+            expect(mockCapturedFooterProps.current?.currency).not.toBe(CONST.CURRENCY.EUR);
+        });
+
+        it('applies a total over a selection without re-running the search, so the selection survives', async () => {
+            setSearchQuery('type:expense');
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            await act(async () => {
+                mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
+                await waitForBatchedUpdates();
+            });
+
+            // Nothing is written to the query, so the search hash holds and the selected rows are not cleared.
+            expect(mockSetParams).not.toHaveBeenCalled();
+            expect(mockOnDisplayChange).not.toHaveBeenCalled();
+            // The breakdown still applies: only the billable expense of the three selected.
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: -100}));
+        });
+
+        it('shows zero when no selected expense matches the total, rather than hiding the option', async () => {
+            mockSelectedTransactions.current = {
+                nonBillable1: buildFlaggedTransaction(100, {reimbursable: true, billable: false}),
+                nonBillable2: buildFlaggedTransaction(200, {reimbursable: true, billable: false}),
+            };
+
+            expect(await renderWithTotal(CONST.SEARCH.FOOTER_TOTAL.BILLABLE)).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: 0}));
+        });
+    });
+
     describe('currency selector', () => {
         it('converts on the client and carries the choice in the query, without re-running the search', async () => {
             setSearchQuery('type:expense');
@@ -544,9 +653,91 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 87, countType: CONST.SEARCH.FOOTER_COUNT.REPORTS}));
         });
 
-        it('offers no count selector while the footer describes a partial selection', async () => {
-            setSearchQuery('type:expense-report footerCount:reports');
-            mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
+        it('keeps the count selector on a hand-picked selection, counting the reports those rows sit on', async () => {
+            setSearchQuery('type:expense footerCount:reports');
+            // Two expenses from one report, one from another: three expenses, two reports.
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
+                transaction3: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report2'},
+            };
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // The server's 87 describes the whole search, so the selection reports its own two.
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 2}));
+        });
+
+        it('counts the selected expenses when the count selector is on expenses', async () => {
+            setSearchQuery('type:expense footerCount:expenses');
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
+            };
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, count: 2}));
+        });
+
+        it('offers the total selector but not the count on a grouped search with nothing selected', async () => {
+            setSearchQuery('type:expense groupBy:category');
+            mockSelectedTransactions.current = {};
+
+            // A grouped search counts expenses only, so the server sends no report count to switch to.
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, count: 1204, total: 36000}));
+        });
+
+        it('offers both selectors on a grouped search once individual expenses are selected', async () => {
+            setSearchQuery('type:expense groupBy:category footerTotal:reimbursable');
+            // Expanded rows are stored as transactions, not as the group, so their own flags are available.
+            mockSelectedTransactions.current = {
+                reimbursable1: buildFlaggedTransaction(100, {reimbursable: true}),
+                nonReimbursable1: buildFlaggedTransaction(300, {reimbursable: false}),
+            };
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(
+                expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, totalType: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE, count: 2, total: -100}),
+            );
+        });
+
+        it('keeps both selectors on the Reports tab, where a selected report row is the search unit', async () => {
+            setSearchQuery('type:expense-report');
+            // Selecting a report stores its expenses, flagged as selected via the row — the same flag a grouped search
+            // uses for a group. On a Reports search those expenses are exactly what the footer should describe.
+            mockSelectedTransactions.current = {
+                transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: 'report1', isSelectedViaGroup: true},
+                transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: 'report1', isSelectedViaGroup: true},
+            };
 
             render(
                 <SearchSelectionFooter
@@ -556,12 +747,64 @@ describe('SearchSelectionFooter', () => {
             );
             await waitForBatchedUpdates();
 
-            // The selection is counted in expenses, so the report count must not be displayed against it.
-            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-            expect(mockCapturedFooterProps.current?.count).toBe(1);
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: -400}));
         });
 
-        it('offers no count selector while a select-all has exclusions, since the report count cannot account for them', async () => {
+        it('offers neither selector while a group with no loaded expenses is selected', async () => {
+            setSearchQuery('type:expense groupBy:category');
+            mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -100)};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
+            expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
+        });
+
+        it('offers neither selector while a group row is selected through its header, which stores its expenses', async () => {
+            setSearchQuery('type:expense groupBy:category');
+            // Ticking a group whose expenses are loaded stores them individually, each flagged as selected via the group.
+            mockSelectedTransactions.current = {
+                transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`, isSelectedViaGroup: true},
+                transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`, isSelectedViaGroup: true},
+            };
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
+            expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
+        });
+
+        it('brings both selectors back once a group is part-deselected, which clears the group flag', async () => {
+            setSearchQuery('type:expense groupBy:category');
+            mockSelectedTransactions.current = {
+                transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`, isSelectedViaGroup: false},
+            };
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL}));
+        });
+
+        it('keeps the server report count on a select-all with exclusions, which the selection cannot recount', async () => {
+            setSearchQuery('type:expense footerCount:reports');
             mockSelectedTransactions.current = {};
             mockExcludedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
             mockAreAllMatchingItemsSelected.current = true;
@@ -574,8 +817,51 @@ describe('SearchSelectionFooter', () => {
             );
             await waitForBatchedUpdates();
 
-            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-            expect(mockCapturedFooterProps.current?.count).toBe(171);
+            // A select-all covers rows that were never loaded, so only the server can say how many reports they span.
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 87}));
+        });
+
+        it('writes a count change into the query even over a selection, since it changes no hash and has to stick', async () => {
+            setSearchQuery('type:expense');
+            // Three expenses across two reports, so the two counts can't be confused for each other.
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
+                transaction3: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report2'},
+            };
+
+            const {rerender} = render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, count: 3}));
+
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCountChange?.(CONST.SEARCH.FOOTER_COUNT.REPORTS);
+                await waitForBatchedUpdates();
+            });
+
+            // The query carries the choice, which is what makes it survive leaving and returning to the tab...
+            const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q;
+            expect(nextQuery).toContain('footerCount:reports');
+            // ...and the hash is unchanged, so the selected rows are not cleared.
+            expect(mockOnDisplayChange).not.toHaveBeenCalled();
+
+            // Replaying the query the app would now be on: the footer counts the two reports those expenses sit on.
+            setSearchQuery(nextQuery ?? '');
+            rerender(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 2}));
         });
 
         it('applies a count change by writing it into the query, which leaves the search hash alone', async () => {
