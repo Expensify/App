@@ -210,7 +210,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                             errorText={violationError}
                             inputStyle={styles.pointerEventsNone}
                             icon={icons.DownArrow}
-                            iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDown]}
+                            // `pr0` makes the icon container's padding asymmetric, so it has to flip in place —
+                            // `flipUpsideDown` would rotate that padding too and shift the caret left when open.
+                            iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDownInPlace]}
                             onPress={onPress}
                             onBlur={() => setHasBeenBlurred(true)}
                             onSubmitEditing={onPress}

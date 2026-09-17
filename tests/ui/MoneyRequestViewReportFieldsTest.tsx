@@ -17,6 +17,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -113,6 +114,19 @@ const buildListField = (): OnyxTypes.PolicyReportField => ({
     values: ['Option1', 'Option2'],
     disabledOptions: [false, false],
 });
+
+/** Every flattened style currently on screen, so a test can assert that some node does (or does not) carry one. */
+const getRenderedStyles = (): unknown[] => {
+    const renderedStyles: unknown[] = [];
+    for (const node of screen.UNSAFE_root.findAll(() => true)) {
+        renderedStyles.push(StyleSheet.flatten(node.props.style));
+    }
+    return renderedStyles;
+};
+
+// `getTextInputIconContainerStyles` gives every icon container a full-height centred box, and `pr0` then strips the
+// right half of its padding. That one-sided padding identifies the caret container.
+const caretContainer = {height: '100%', paddingHorizontal: 11, paddingRight: 0};
 
 const buildFieldList = (fieldCount: number): Record<string, OnyxTypes.PolicyReportField> => {
     const fieldList: Record<string, OnyxTypes.PolicyReportField> = {};
@@ -328,6 +342,22 @@ describe('MoneyRequestViewReportFields', () => {
 
         expect(screen.getByLabelText('ListField')).toHaveProp('accessibilityState', {expanded: true});
         expect(screen.getByText('Option2')).toBeOnTheScreen();
+    });
+
+    it('keeps the caret in the same place when the option list opens', async () => {
+        await renderReportFields(1, [buildListField()]);
+
+        expect(getRenderedStyles()).toEqual(expect.arrayContaining([expect.objectContaining(caretContainer)]));
+
+        fireEvent.press(screen.getByLabelText('ListField'));
+        await waitForBatchedUpdatesWithAct();
+
+        // The caret container is padded on one side only, so `rotate(180deg)` would mirror that padding along with
+        // the caret and slide it 11px left the moment the list opens. Mirroring on the vertical axis turns the caret
+        // over while leaving its box — and so the caret's distance from the field's right edge — untouched.
+        const expandedStyles = getRenderedStyles();
+        expect(expandedStyles).toEqual(expect.arrayContaining([expect.objectContaining({...caretContainer, transform: 'scaleY(-1)'})]));
+        expect(expandedStyles).not.toEqual(expect.arrayContaining([expect.objectContaining({transform: 'rotate(180deg)'})]));
     });
 
     it('sizes the option popover like the Spend dropdowns instead of matching the field width', async () => {
