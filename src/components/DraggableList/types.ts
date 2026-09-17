@@ -42,7 +42,8 @@ type DraggableListProps<T> = {
 
 type SortableItemProps = {
     id: string | number;
-    children: React.ReactNode;
+    /** Render the row content. Receives whether this item is currently being dragged, which only dnd-kit knows. */
+    children: (isDragging: boolean) => React.ReactNode;
     /** Whether dragging is disabled for this item */
     disabled?: boolean;
     /** Whether this item is currently focused for keyboard navigation */

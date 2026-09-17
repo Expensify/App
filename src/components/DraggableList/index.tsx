@@ -114,14 +114,6 @@ function DraggableList<T>({
         const isDisabled = isItemDisabled?.(item) ?? false;
         const isItemFocused = index === activeFocusedIndex && !isDisabled;
 
-        const renderedItem = renderItem({
-            item,
-            getIndex: () => index,
-            isActive: false,
-            drag: () => {},
-            isFocused: isItemFocused,
-        });
-
         return (
             <SortableItem
                 id={key}
@@ -129,7 +121,15 @@ function DraggableList<T>({
                 disabled={isDragDisabled}
                 isFocused={isItemFocused}
             >
-                {renderedItem}
+                {(isDragging) =>
+                    renderItem({
+                        item,
+                        getIndex: () => index,
+                        isActive: isDragging,
+                        drag: () => {},
+                        isFocused: isItemFocused,
+                    })
+                }
             </SortableItem>
         );
     });

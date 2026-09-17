@@ -125,7 +125,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                 isDisabled: isRequired,
                 isDragDisabled,
                 leftElement: (
-                    <View style={[styles.mr3, isDragDisabled ? styles.cursorDisabled : styles.cursorGrab]}>
+                    <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
                         <Icon
                             src={icons.DragHandles}
                             fill={theme.icon}
@@ -215,7 +215,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         onSave(selectedColumnIds);
     };
 
-    const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
+    const renderItem = ({item, isFocused, isActive}: {item: ListItem; isFocused?: boolean; isActive?: boolean}) => {
         return (
             <MultiSelectListItem
                 item={item}
@@ -223,6 +223,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                 showTooltip={false}
                 onSelectRow={onSelectItem}
                 isDisabled={item.isDisabled}
+                // The row is what moves with the pointer while dragging, so it owns the grabbing cursor.
+                wrapperStyle={isActive && styles.cursorGrabbing}
             />
         );
     };

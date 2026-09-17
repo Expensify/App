@@ -14,6 +14,8 @@ const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [tabindex]:not([tabindex="-1"])';
 function SortableItem({id, children, disabled = false, isFocused = false}: SortableItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition, isDragging, node} = useSortable({id, disabled});
 
+    const renderedChildren = children(isDragging);
+
     useEffect(() => {
         if (!isFocused || !node.current) {
             return;
@@ -40,7 +42,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         for (const el of Array.from(node.current.querySelectorAll<HTMLElement>(PRESSABLE_SELECTOR))) {
             el.setAttribute('tabindex', '-1');
         }
-    }, [children, node]);
+    }, [renderedChildren, node]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         // Cancel drag on Tab but let default Tab behavior move focus naturally.
@@ -118,7 +120,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
             role="button"
             tabIndex={0}
         >
-            {children}
+            {renderedChildren}
         </div>
     );
 }
