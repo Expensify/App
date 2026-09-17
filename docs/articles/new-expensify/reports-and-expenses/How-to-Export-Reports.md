@@ -1,7 +1,7 @@
 ---
 title: How to Export Reports
 description: Learn how to export reports to CSV, download them as PDFs, or download their receipts.
-keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
+keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data, export empty report, download failed]
 internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
@@ -119,6 +119,12 @@ You can download the receipts on several reports at once in a single ZIP file.
 ## Where do I find the exported CSV file?
 
 **Basic export** and **Export current view** download directly to your device. Other templates — and any export started with **Select all** — are prepared in the background; the file then downloads automatically, or is delivered through Concierge and by email if you selected **Send me the file when it's ready**.
+
+## Why can't I export a report with no expenses?
+
+A report with no expenses has nothing to export, so Expensify blocks the export instead of producing an empty file. You'll see **Download failed** with the message **You can't export an empty report.** Select **Got it**, add at least one expense to the report, then export again.
+
+This applies whether you export a single report from its **More** menu or select only empty reports on the **Reports** page and export them. If you select a mix of empty and non-empty reports, the export runs and includes only the reports that have expenses.
 
 ## What happens if some reports fail to download as PDFs?
 
