@@ -21,7 +21,7 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 
 const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
 
@@ -75,12 +75,29 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
     // The segments only describe an edit in progress, so they are seeded on focus rather than synced with the value
     const [segments, setSegments] = useState<DateSegments>(EMPTY_SEGMENTS);
     const [activeSegmentName, setActiveSegmentName] = useState<DateSegmentName>(FIRST_SEGMENT_NAME);
+    const [caretOffset, setCaretOffset] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
+    // Re-rendering with a new value makes the browser report a caret of its own choosing. Honouring that would drag
+    // the active segment around, so the first report after a keystroke is discarded as an echo of our own update.
+    const hasPendingCaretEchoRef = useRef(false);
 
     const {value: editingValue, ranges} = getDateDisplay(segments, mask);
-    // A caret parked at the start of the segment reads as three fields sharing one box. Selecting the whole segment
-    // instead would highlight it as a block, which is not what the design asks for.
-    const activeSegmentStart = ranges[activeSegmentName].start;
+    const activeRange = ranges[activeSegmentName];
+    // A caret parked on a digit place reads as three fields sharing one box. Selecting the whole segment instead would
+    // highlight it as a block, which is not what the design asks for.
+    const caretPosition = activeRange.start + caretOffset;
+
+    /**
+     * A caret may rest on any digit place already typed, or just after the last of them, but never out on a mask
+     * letter. An empty segment therefore only ever has its start, which is what stops a click landing on a bare Y.
+     */
+    const getFurthestOffset = (name: DateSegmentName, currentSegments: DateSegments) => currentSegments[name].length;
+
+    const moveCaret = (name: DateSegmentName, offset: number, nextSegments: DateSegments = segments) => {
+        hasPendingCaretEchoRef.current = true;
+        setActiveSegmentName(name);
+        setCaretOffset(Math.min(Math.max(offset, 0), getFurthestOffset(name, nextSegments)));
+    };
 
     const commitIfComplete = (newSegments: DateSegments) => {
         const isoDate = getISODateFromSegments(newSegments);
@@ -104,27 +121,47 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
             const result = typeDigitIntoSegment(segments, activeSegmentName, key);
             applySegments(result.segments);
 
-            if (result.isSegmentComplete) {
-                setActiveSegmentName(getAdjacentSegmentName(activeSegmentName, 1));
-            }
+            // A completed segment hands over to its neighbour. The last one has nowhere to hand over to, so the caret
+            // rests after the digit just typed and the next digit overwrites the segment.
+            const nextSegmentName = result.isSegmentComplete ? getAdjacentSegmentName(activeSegmentName, 1) : activeSegmentName;
+            const nextOffset = nextSegmentName === activeSegmentName ? result.segments[activeSegmentName].length : 0;
+
+            moveCaret(nextSegmentName, nextOffset, result.segments);
             return;
         }
 
         if (isStepKey(key)) {
             event.preventDefault();
-            applySegments(stepSegment(segments, activeSegmentName, STEP_KEYS[key]));
+            const steppedSegments = stepSegment(segments, activeSegmentName, STEP_KEYS[key]);
+            applySegments(steppedSegments);
+            moveCaret(activeSegmentName, caretOffset, steppedSegments);
             return;
         }
 
         if (isMoveKey(key)) {
             event.preventDefault();
-            setActiveSegmentName(getAdjacentSegmentName(activeSegmentName, MOVE_KEYS[key]));
+            const step = MOVE_KEYS[key];
+            const nextOffset = caretOffset + step;
+
+            // Stepping past either end of what has been typed carries on into the neighbouring segment.
+            if (nextOffset >= 0 && nextOffset <= getFurthestOffset(activeSegmentName, segments)) {
+                moveCaret(activeSegmentName, nextOffset);
+                return;
+            }
+
+            const adjacentSegmentName = getAdjacentSegmentName(activeSegmentName, step);
+            if (adjacentSegmentName === activeSegmentName) {
+                return;
+            }
+
+            moveCaret(adjacentSegmentName, step > 0 ? 0 : getFurthestOffset(adjacentSegmentName, segments));
             return;
         }
 
         if (key === BACKSPACE_KEY || key === DELETE_KEY) {
             event.preventDefault();
             setSegments(clearSegment(segments, activeSegmentName));
+            moveCaret(activeSegmentName, 0);
             return;
         }
 
@@ -134,17 +171,21 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
 
         // A separator means the user is finished with this segment even if they only typed one digit into it
         event.preventDefault();
-        setActiveSegmentName(getAdjacentSegmentName(activeSegmentName, 1));
+        moveCaret(getAdjacentSegmentName(activeSegmentName, 1), 0);
     };
 
-    // Clicking into the text lands the caret anywhere, so snap the selection out to whichever segment was clicked
+    // Clicking into the text lands the caret anywhere, so snap it onto the digit place that was clicked
     const handleSelectionChange = (event: TextInputSelectionChangeEvent) => {
-        const clickedSegmentName = getSegmentNameAtPosition(event.nativeEvent.selection.start, ranges);
-        if (clickedSegmentName === activeSegmentName) {
+        if (hasPendingCaretEchoRef.current) {
+            hasPendingCaretEchoRef.current = false;
             return;
         }
 
-        setActiveSegmentName(clickedSegmentName);
+        const position = event.nativeEvent.selection.start;
+        const clickedSegmentName = getSegmentNameAtPosition(position, ranges);
+        const clickedOffset = position - ranges[clickedSegmentName].start;
+
+        moveCaret(clickedSegmentName, clickedOffset);
     };
 
     // Every keystroke is prevented, so this only runs for text the user pasted in
@@ -155,11 +196,12 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         }
 
         applySegments(pastedSegments);
+        moveCaret(FIRST_SEGMENT_NAME, 0);
     };
 
     const handleFocus = () => {
         setSegments(getSegmentsFromISODate(value));
-        setActiveSegmentName(FIRST_SEGMENT_NAME);
+        moveCaret(FIRST_SEGMENT_NAME, 0);
         setIsEditing(true);
     };
 
@@ -167,6 +209,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
     const handleBlur = () => {
         setIsEditing(false);
         setSegments(EMPTY_SEGMENTS);
+        setCaretOffset(0);
     };
 
     if (!isEnabled) {
@@ -183,7 +226,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
 
     return {
         displayValue: isEditing ? editingValue : value,
-        selection: isEditing ? {start: activeSegmentStart, end: activeSegmentStart} : undefined,
+        selection: isEditing ? {start: caretPosition, end: caretPosition} : undefined,
         onKeyPress: handleKeyPress,
         onSelectionChange: handleSelectionChange,
         onChangeText: handleChangeText,

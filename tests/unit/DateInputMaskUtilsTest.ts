@@ -103,6 +103,12 @@ describe('DateInputMaskUtils', () => {
             expect(getDateDisplay(segments('2026', '09', '18'), MASK).value).toBe('2026-09-18');
         });
 
+        it('keeps the mask letters of the digit places a half typed segment has not reached', () => {
+            expect(getDateDisplay(segments('2', '', ''), MASK).value).toBe('2YYY-MM-DD');
+            expect(getDateDisplay(segments('20', '', ''), MASK).value).toBe('20YY-MM-DD');
+            expect(getDateDisplay(segments('2026', '1', ''), MASK).value).toBe('2026-1M-DD');
+        });
+
         it('reports where each segment sits in the text', () => {
             expect(getDateDisplay(segments('2026', '09', '18'), MASK).ranges).toEqual({
                 year: {start: 0, end: 4},
@@ -111,12 +117,11 @@ describe('DateInputMaskUtils', () => {
             });
         });
 
-        it('shifts the later ranges when a segment holds a single digit', () => {
-            const {value, ranges} = getDateDisplay(segments('2026', '1', ''), MASK);
+        it('holds the ranges still while a segment is half typed, so a caret position keeps its meaning', () => {
+            const {ranges} = getDateDisplay(segments('2026', '1', ''), MASK);
 
-            expect(value).toBe('2026-1-DD');
-            expect(ranges.month).toEqual({start: 5, end: 6});
-            expect(ranges.day).toEqual({start: 7, end: 9});
+            expect(ranges.month).toEqual({start: 5, end: 7});
+            expect(ranges.day).toEqual({start: 8, end: 10});
         });
 
         it('uses the letters and separators of the localized mask', () => {

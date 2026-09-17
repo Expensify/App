@@ -124,7 +124,10 @@ function getDateDisplay(segments: DateSegments, mask: string): DateDisplay {
     const ranges: Record<DateSegmentName, DateSegmentRange> = {year: {start: 0, end: 0}, month: {start: 0, end: 0}, day: {start: 0, end: 0}};
 
     for (const part of getDateMaskParts(mask)) {
-        const text = segments[part.name] || part.placeholder;
+        // Typed digits replace the mask letters one at a time, so a half typed year reads as 2YYY rather than 2. This
+        // keeps every segment the width of its mask, which is what lets a caret position mean the same thing twice.
+        const digits = segments[part.name].slice(0, part.placeholder.length);
+        const text = `${digits}${part.placeholder.slice(digits.length)}`;
 
         ranges[part.name] = {start: value.length, end: value.length + text.length};
         value += `${text}${part.separator}`;
