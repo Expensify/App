@@ -164,7 +164,7 @@ function WalletPage() {
                 return;
             }
             pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
-            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas});
             return;
         }
 
@@ -634,6 +634,7 @@ function WalletPage() {
                                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                                     cardID: String(paymentMethod.methodID),
                                 }),
+                                searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                             }),
                         );
                     });

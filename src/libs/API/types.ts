@@ -16,6 +16,7 @@ type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
     IMPORT_CSV_TRANSACTIONS: 'ImportCSVTransactions',
+    UPLOAD_OFX: 'UploadOFX',
     CLEAN_POLICY_TAGS: 'ClearPolicyTags',
     IMPORT_MULTI_LEVEL_TAGS: 'ImportMultiLevelTags',
     SET_WORKSPACE_AUTO_HARVESTING: 'SetWorkspaceAutoHarvesting',
@@ -53,6 +54,7 @@ const WRITE_COMMANDS = {
     REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD: 'ReportVirtualExpensifyCardFraud',
     REQUEST_REPLACEMENT_EXPENSIFY_CARD: 'RequestReplacementExpensifyCard',
     ACTIVATE_PHYSICAL_EXPENSIFY_CARD: 'ActivatePhysicalExpensifyCard',
+    APPROVE_DIGITAL_WALLET_CARD_ADDITION: 'ApproveDigitalWalletCardAddition',
     RESOLVE_FRAUD_ALERT: 'ResolveFraudAlert',
     UPDATE_EXPENSIFY_CARD_LIMIT: 'UpdateExpensifyCardLimit',
     UPDATE_EXPENSIFY_CARD_TITLE: 'UpdateExpensifyCardTitle',
@@ -265,6 +267,8 @@ const WRITE_COMMANDS = {
     ENABLE_POLICY_CATEGORIES: 'EnablePolicyCategories',
     ENABLE_POLICY_CONNECTIONS: 'EnablePolicyConnections',
     ENABLE_POLICY_HR: 'EnablePolicyHR',
+    ENABLE_POLICY_RECRUITING: 'EnablePolicyRecruiting',
+    ENABLE_POLICY_MCP: 'EnablePolicyMCP',
     TOGGLE_RECEIPT_PARTNERS: 'TogglePolicyReceiptPartners',
     INVITE_WORKSPACE_EMPLOYEES_TO_UBER: 'InviteWorkspaceEmployeesToUber',
     ENABLE_POLICY_DISTANCE_RATES: 'EnablePolicyDistanceRates',
@@ -469,6 +473,7 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_ACCOUNTING_METHOD: 'UpdateNetSuiteAccountingMethod',
     UPDATE_NETSUITE_JOURNALS_TO: 'UpdateNetSuiteExportJournalsTo',
     UPDATE_NETSUITE_APPROVAL_ACCOUNT: 'UpdateNetSuiteApprovalAccount',
+    UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT: 'UpdateNetSuiteFxExpenseAccount',
     UPDATE_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateNetSuiteTravelBillingPayableAccount',
     UPDATE_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'UpdateNetSuiteTravelBillingJournalPostingPreference',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsReimbursable',
@@ -570,6 +575,9 @@ const WRITE_COMMANDS = {
     UPDATE_BUSINESS_CENTRAL_SYNC_ITEMS: 'UpdateBusinessCentralSyncItems',
     CONNECT_POLICY_TO_CAMPFIRE: 'ConnectPolicyToCampfire',
     UPDATE_CAMPFIRE_SUBSIDIARY: 'UpdateCampfireSubsidiary',
+    UPDATE_CAMPFIRE_FIELD_MAPPING: 'UpdateCampfireFieldMapping',
+    UPDATE_CAMPFIRE_ENABLE_NEW_CATEGORIES: 'UpdateCampfireEnableNewCategories',
+    UPDATE_CAMPFIRE_SYNC_TAX_RATES: 'UpdateCampfireSyncTaxRates',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -622,6 +630,7 @@ const WRITE_COMMANDS = {
     UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID: 'UpdateXeroSyncInvoiceCollectionsAccountID',
     UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS: 'UpdateXeroSyncSyncReimbursedReports',
     UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID: 'UpdateXeroSyncReimbursementAccountID',
+    UPDATE_XERO_FX_EXPENSE_ACCOUNT: 'UpdateXeroFxExpenseAccount',
     REQUEST_FEED_SETUP: 'RequestFeedSetup',
     SET_COMPANY_CARD_FEED_NAME: 'SetFeedName',
     DELETE_COMPANY_CARD_FEED: 'RemoveFeed',
@@ -667,6 +676,7 @@ const WRITE_COMMANDS = {
     ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT: 'EnableGlobalReimbursementsForUSDBankAccount',
     REOPEN_REPORT: 'ReopenReport',
     TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
+    SET_VACATION_DELEGATE: 'SetVacationDelegate',
     DELETE_VACATION_DELEGATE: 'DeleteVacationDelegate',
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
     ADD_PERSONAL_PLAID_CARD: 'AddPersonalPlaidCard',
@@ -686,6 +696,7 @@ const WRITE_COMMANDS = {
     ADD_DOMAIN_ADMIN: 'AddDomainAdmin',
     REMOVE_DOMAIN_ADMIN: 'RemoveDomainAdmin',
     REQUEST_DOMAIN_ADMINSHIP: 'RequestDomainAdminship',
+    DECLINE_DOMAIN_ADMINSHIP_REQUEST: 'DeclineDomainAdminshipRequest',
     DELETE_DOMAIN: 'DeleteDomain',
     DELETE_DOMAIN_MEMBER: 'DeleteDomainMember',
     TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN: 'ToggleTwoFactorAuthRequiredForDomain',
@@ -717,6 +728,7 @@ type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
 
 type WriteCommandParameters = {
     [WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS]: Parameters.ImportCSVTransactionsParams;
+    [WRITE_COMMANDS.UPLOAD_OFX]: Parameters.UploadOFXParams;
     [WRITE_COMMANDS.CLEAN_POLICY_TAGS]: Parameters.CleanPolicyTagsParams;
     [WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS]: Parameters.ImportMultiLevelTagsParams;
     [WRITE_COMMANDS.DISMISS_REFERRAL_BANNER]: Parameters.DismissReferralBannerParams;
@@ -737,6 +749,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD]: Parameters.ReportVirtualExpensifyCardFraudParams;
     [WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD]: Parameters.RequestReplacementExpensifyCardParams;
     [WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD]: Parameters.ActivatePhysicalExpensifyCardParams;
+    [WRITE_COMMANDS.APPROVE_DIGITAL_WALLET_CARD_ADDITION]: Parameters.ApproveDigitalWalletCardAdditionParams;
     [WRITE_COMMANDS.RESOLVE_FRAUD_ALERT]: Parameters.ResolveFraudAlertParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT]: Parameters.UpdateExpensifyCardLimitParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE]: Parameters.UpdateExpensifyCardTitleParams;
@@ -976,6 +989,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES]: Parameters.EnablePolicyCategoriesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS]: Parameters.EnablePolicyConnectionsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_HR]: Parameters.EnablePolicyHRParams;
+    [WRITE_COMMANDS.ENABLE_POLICY_RECRUITING]: Parameters.EnablePolicyRecruitingParams;
+    [WRITE_COMMANDS.ENABLE_POLICY_MCP]: Parameters.EnablePolicyMCPParams;
     [WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS]: Parameters.TogglePolicyReceiptPartnersParams;
     [WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER]: Parameters.InviteWorkspaceEmployeesToUberParams;
     [WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES]: Parameters.EnablePolicyDistanceRatesParams;
@@ -1148,6 +1163,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
+    [WRITE_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
     [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: Parameters.DeleteVacationDelegateParams | null;
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
@@ -1246,6 +1262,9 @@ type WriteCommandParameters = {
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_CAMPFIRE]: Parameters.ConnectPolicyToCampfireParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SUBSIDIARY]: Parameters.UpdateCampfireSubsidiaryParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_FIELD_MAPPING]: Parameters.UpdateCampfireFieldMappingParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_ENABLE_NEW_CATEGORIES]: Parameters.UpdateCampfireEnableNewCategoriesParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TAX_RATES]: Parameters.UpdateCampfireSyncTaxRatesParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
@@ -1306,6 +1325,7 @@ type WriteCommandParameters = {
 
     [WRITE_COMMANDS.UPDATE_NETSUITE_JOURNALS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE]: Parameters.UpdateNetSuiteGenericTypeParams<
         'value',
@@ -1334,7 +1354,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY]: Parameters.ConfigureExpensifyCardsForPolicyParams;
     [WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE]: Parameters.SetExpensifyCardRuleParams;
     [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'validFrom' | 'validThru'>;
-    [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'feedCountry'>;
+    [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Parameters.CreateExpensifyCardParams;
     [WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING]: Parameters.QueueExpensifyCardForBillingParams;
     [WRITE_COMMANDS.ADD_DELEGATE]: Parameters.AddDelegateParams;
     [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: Parameters.UpdateDelegateRoleParams;
@@ -1375,6 +1395,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_XERO_FX_EXPENSE_ACCOUNT]: Parameters.UpdateXeroGenericTypeParams;
 
     // Invoice API
     [WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT]: Parameters.SetInvoicingTransferBankAccountParams;
@@ -1421,6 +1442,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_DOMAIN]: Parameters.DeleteDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
     [WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP]: Parameters.RequestDomainAdminshipParams;
+    [WRITE_COMMANDS.DECLINE_DOMAIN_ADMINSHIP_REQUEST]: Parameters.DeclineDomainAdminshipRequestParams;
     [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: Parameters.AddMemberToDomainParams;
     [WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN]: Parameters.ToggleTwoFactorAuthRequiredForDomainParams;
     [WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN]: Parameters.SetTwoFactorAuthExemptEmailForDomainParams;
@@ -1466,6 +1488,7 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
     OPEN_PAYMENTS_PAGE: 'OpenPaymentsPage',
+    GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL: 'GetExpensifyCardPendingWalletApproval',
     OPEN_BANK_ACCOUNT_SHARE_PAGE: 'OpenBankAccountSharePage',
     OPEN_PUBLIC_PROFILE_PAGE: 'OpenPublicProfilePage',
     OPEN_PLAID_BANK_LOGIN: 'OpenPlaidBankLogin',
@@ -1580,6 +1603,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
     [READ_COMMANDS.OPEN_PAYMENTS_PAGE]: Parameters.OpenPaymentsPageParams | null;
+    [READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL]: null;
     [READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE]: null;
     [READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE]: Parameters.OpenPublicProfilePageParams;
     [READ_COMMANDS.OPEN_PLAID_BANK_LOGIN]: Parameters.OpenPlaidBankLoginParams;

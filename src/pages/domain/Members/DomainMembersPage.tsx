@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
@@ -46,7 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -72,7 +72,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: memberPendingActionSelector});
-    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     const {showConfirmModal} = useConfirmModal();
@@ -128,12 +127,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 pendingAction: customProps?.pendingAction,
                 disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
                 action: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID)),
-                dismissError: () => {
-                    if (!defaultSecurityGroupID) {
-                        return;
-                    }
-                    clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction);
-                },
+                dismissError: () => clearDomainMemberError(domainAccountID, accountID, login, group?.id, !!details?.isOptimisticPersonalDetail),
             };
         });
 

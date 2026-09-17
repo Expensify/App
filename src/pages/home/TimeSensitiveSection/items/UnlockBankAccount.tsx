@@ -50,7 +50,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
             return;
         }
         pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID, initiatingBankAccountUnlock);
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
     };
 
     return (
