@@ -344,6 +344,15 @@ function getGroupByValueForValidation(segment: string) {
     return isCompleteQuotedValue(valueWithoutTrailingCommas) ? valueWithoutTrailingCommas.slice(1, -1) : valueWithoutTrailingCommas;
 }
 
+function getUnclosedQuotedGroupByValue(segment: string | undefined) {
+    if (!segment || !isQuoteChar(segment.at(0)) || hasClosingQuote(segment, 0)) {
+        return;
+    }
+
+    const value = segment.slice(1);
+    return VALID_GROUP_BYS.has(value.toLowerCase()) ? value : undefined;
+}
+
 function shouldCombineKeywordSegments(segment: string, nextSegment: string | undefined) {
     if (!nextSegment || !syntaxWithoutValueRegex.test(segment)) {
         return false;
@@ -375,6 +384,12 @@ function escapeKeyword(keywords: string) {
             }
 
             const nextSegment = segments.at(index + 1);
+            const unclosedGroupByValue = groupByWithoutValueRegex.test(segment) ? getUnclosedQuotedGroupByValue(nextSegment) : undefined;
+            if (unclosedGroupByValue) {
+                skipNextSegment = true;
+                return `${segment}${unclosedGroupByValue}`;
+            }
+
             skipNextSegment = shouldCombineKeywordSegments(segment, nextSegment);
             const q = skipNextSegment ? `${segment} ${nextSegment}` : segment;
 
