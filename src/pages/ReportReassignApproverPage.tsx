@@ -9,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
@@ -47,7 +48,7 @@ type ReportReassignApproverPageProps = WithReportOrNotFoundProps & PlatformStack
 function ReportReassignApproverPage({report, policy, isLoadingReportData}: ReportReassignApproverPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [selectedMemberEmail, setSelectedMemberEmail] = useState<string>();
     const {isLoading, startWithLoading} = usePressLoading();
