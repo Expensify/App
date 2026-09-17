@@ -195,13 +195,15 @@ function useMarkAsRead({
     const didMarkOnReportChangeRef = useRef(false);
 
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
-        // Same hold as the initial pass: a preloaded tab can satisfy the visible+focus guard while hidden,
-        // and cached actions make isReportActionsLoaded true, so without this it marks the report read before opening.
+        didMarkOnReportChangeRef.current = false;
+
+        // Same hold as the initial pass: a preloaded tab can satisfy the visible+focus guard while hidden, and cached
+        // actions make isReportActionsLoaded true, so without this it marks the report read before opening. The hold
+        // sits below the reset so a held pass cannot leave a stale true behind for handleAppVisibilityMarkAsRead.
         if (isInPreloadedTab) {
             return;
         }
 
-        didMarkOnReportChangeRef.current = false;
         if (reportID !== getScopeReportID(scopeKey)) {
             return;
         }
@@ -230,9 +232,11 @@ function useMarkAsRead({
     });
 
     // Only re-run on newest-action changes; otherwise any report update can prematurely consume unread state.
+    // isInPreloadedTab is safe to add because it flips once, when the user opens the tab, and re-running there is the
+    // point: the pass held while preloaded is what clears a notification referrer and latches a skipped read.
     useEffect(() => {
         handleReportChangeMarkAsRead();
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded, isInPreloadedTab]);
 
     // isFocused is passed as an arg because the Effect Event closure can be stale (stuck true) on frozen screens,
     // re-marking a just-unread report as read on report switch

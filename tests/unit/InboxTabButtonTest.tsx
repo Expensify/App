@@ -98,7 +98,7 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
     getSpan: () => ({setAttribute: mockSetSpanAttribute}),
 }));
 
-function buildRootState(preloadedRouteKeys: string[] = []) {
+function buildRootState(preloadedRouteKeys: string[] = [], mounted = true) {
     return {
         key: 'root-state',
         index: 0,
@@ -114,14 +114,16 @@ function buildRootState(preloadedRouteKeys: string[] = []) {
                         {
                             key: 'reports-route',
                             name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                            state: {
-                                key: 'reports-state',
-                                index: 1,
-                                routes: [
-                                    {key: 'inbox-route', name: SCREENS.INBOX},
-                                    {key: 'report-route', name: SCREENS.REPORT, params: {reportID: '123'}},
-                                ],
-                            },
+                            state: mounted
+                                ? {
+                                      key: 'reports-state',
+                                      index: 1,
+                                      routes: [
+                                          {key: 'inbox-route', name: SCREENS.INBOX},
+                                          {key: 'report-route', name: SCREENS.REPORT, params: {reportID: '123'}},
+                                      ],
+                                  }
+                                : undefined,
                         },
                     ],
                 },
@@ -167,7 +169,7 @@ describe('InboxTabButton', () => {
         expect(mockSetSpanAttribute).toHaveBeenCalledWith('waited_on_open_report', true);
     });
 
-    it('reuses the preloaded report on the first tap and marks the span as waiting on OpenReport', () => {
+    it('reuses the preloaded report on the first tap without restarting its open-report span', () => {
         mockRootState = buildRootState(['reports-route']);
 
         render(
@@ -179,6 +181,7 @@ describe('InboxTabButton', () => {
 
         fireEvent.press(screen.getByTestId('inbox-tab-button'));
 
+        // The preloaded list already laid out, so nothing would close a span started here.
         expect(mockStartOpenReportSpan).not.toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -189,6 +192,36 @@ describe('InboxTabButton', () => {
             }),
         );
         expect(mockSetSpanAttribute).toHaveBeenCalledWith('waited_on_open_report', true);
+    });
+
+    // A stale preloadedRouteKeys entry outlives the report route when the TAB_NAVIGATOR remounts, and the report
+    // actions must still be deferred because nothing is warm to reuse.
+    it('keeps deferring report actions when the Reports route is marked preloaded but never mounted', () => {
+        mockRootState = buildRootState(['reports-route'], false);
+
+        render(
+            <InboxTabButton
+                selectedTab={NAVIGATION_TABS.HOME}
+                isWideLayout
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('inbox-tab-button'));
+
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                target: 'tab-state',
+                payload: expect.objectContaining({
+                    params: expect.objectContaining({
+                        shouldDeferInitialReportActions: true,
+                        params: expect.objectContaining({
+                            reportID: '123',
+                        }),
+                        screen: SCREENS.REPORT,
+                    }),
+                }),
+            }),
+        );
     });
 
     it('reuses the report without a span or nested params after Inbox was visited', () => {

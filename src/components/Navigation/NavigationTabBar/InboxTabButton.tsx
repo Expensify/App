@@ -130,8 +130,10 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 const tabNavigatorStateKey = getTabNavigatorStateKey(rootState);
                 const reusableReportsTabStateKey = getReusableReportsTabStateKey(rootState, reportID, reportActionID, doesLastReportActionExist);
                 // A preloaded tab already rendered the report, so there is nothing left to defer. Passing nested params
-                // here would change the route and fire a second OpenReport.
-                const isPreloaded = isReportsTabPreloaded(rootState);
+                // here would change the route and fire a second OpenReport. The reusable key is part of the check
+                // because preloadedRouteKeys alone can outlive the mounted report route when the TAB_NAVIGATOR remounts,
+                // and skipping the defer for a screen that is not actually mounted would jank the tab switch.
+                const isPreloaded = isReportsTabPreloaded(rootState) && !!reusableReportsTabStateKey;
                 const shouldDeferReportActions = !hasVisitedInboxTab.current && !isPreloaded;
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo);
 
