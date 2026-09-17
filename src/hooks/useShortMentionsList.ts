@@ -47,6 +47,8 @@ const buildAvailableLoginsList = memoize(
     {maxSize: 1, equality: 'shallow', monitoringName: 'buildAvailableLoginsList'},
 );
 
+const availableLoginsListSelector = (currentUserLogin: string) => (personalDetails: OnyxEntry<PersonalDetailsList>) => buildAvailableLoginsList(personalDetails, currentUserLogin);
+
 /**
  * This hook returns data to be used with short mentions in LiveMarkdown/Composer.
  * Short mentions have the format `@username`, where username is the first part of user's login (email).
@@ -58,7 +60,7 @@ export default function useShortMentionsList() {
     const [currentUserLogin = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     // The selector output is compared by value, so consumers re-render only when the list changes.
-    const [availableLoginsList = emptyLoginsList] = useAllPersonalDetailsWithoutSnapshots((personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin));
+    const [availableLoginsList = emptyLoginsList] = useAllPersonalDetailsWithoutSnapshots(availableLoginsListSelector(currentUserLogin));
 
     // We want to highlight both short and long version of current user login
     const currentUserMentions = useMemo(() => {

@@ -8467,7 +8467,7 @@ function buildOptimisticTaskReportAction(
 
     // Derive the avatar/person from the actor rather than the current user: onboarding tasks are completed as a
     // side effect by Concierge (or the assigned guide), so `actorAccountID` is not always the current user.
-    const actorPersonalDetails = getPersonalDetail(actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const actorPersonalDetails = getPersonalDetail(actorAccountID);
 
     return {
         actionName,
