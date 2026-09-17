@@ -34,6 +34,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -50,7 +51,6 @@ import {
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
     isTransactionSearchType,
-    searchKeyToSavedSearchID,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -816,6 +816,7 @@ function Search({
                 Navigation.setParams({
                     q: buildCannedSearchQuery(),
                     rawQuery: undefined,
+                    searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 });
             });
             if (shouldResetSearchQuery) {
