@@ -83,7 +83,7 @@ function useCompleteOnboarding() {
                 ? createWorkspace({
                       policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName),
+                      policyName: generateDefaultWorkspaceName(email, currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                       currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
