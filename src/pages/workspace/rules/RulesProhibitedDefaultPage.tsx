@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -116,10 +116,10 @@ function RulesProhibitedDefaultPage({
                 shouldEnableMaxHeight
                 testID="RulesProhibitedDefaultPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.generalTab.flagReceiptLineItems')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <Header>
+                    <Header.BackButton onPress={() => Navigation.goBack()} />
+                    <Header.Title title={translate('workspace.rules.generalTab.flagReceiptLineItems')} />
+                </Header>
                 <ScrollView
                     style={[styles.flexGrow1]}
                     contentContainerStyle={[styles.ph5, styles.pb5]}
