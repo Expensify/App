@@ -10,11 +10,30 @@ import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {getDecodedTagName, isTagMissing} from './TagUtils';
 import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
+/** Compares the leading (first rendered) transaction of two groups under the sort the user selected */
+type CompareLeadingTransactions = (a: Transaction, b: Transaction) => number;
+
 /**
- * Sorts groups alphabetically (A→Z) with empty keys at the end
+ * Sorts groups alphabetically (A→Z) with empty keys at the end.
+ * When `compareLeadingTransactions` is passed, the groups follow the sorted column instead, so the group headers
+ * can't hold a group in place while the rows inside it move. Alphabetical order remains the tiebreak.
  */
-function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
-    return groups.sort((a, b) => {
+function sortGroupedTransactions(
+    groups: GroupedTransactions[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    compareLeadingTransactions?: CompareLeadingTransactions,
+): GroupedTransactions[] {
+    return [...groups].sort((a, b) => {
+        if (compareLeadingTransactions) {
+            const leadingA = a.transactions.at(0);
+            const leadingB = b.transactions.at(0);
+            if (leadingA && leadingB) {
+                const result = compareLeadingTransactions(leadingA, leadingB);
+                if (result !== 0) {
+                    return result;
+                }
+            }
+        }
         if (a.groupKey === '' && b.groupKey !== '') {
             return 1;
         }
@@ -57,7 +76,12 @@ function calculateGroupTotal(transactionList: Transaction[], reportCurrency: str
 /**
  * Groups transactions by category
  */
-function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
+function groupTransactionsByCategory(
+    transactions: Transaction[],
+    report: OnyxEntry<Report>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    compareLeadingTransactions?: CompareLeadingTransactions,
+): GroupedTransactions[] {
     if (!report) {
         return [];
     }
@@ -86,13 +110,18 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
         });
     }
 
-    return sortGroupedTransactions(result, localeCompare);
+    return sortGroupedTransactions(result, localeCompare, compareLeadingTransactions);
 }
 
 /**
  * Groups transactions by tag
  */
-function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
+function groupTransactionsByTag(
+    transactions: Transaction[],
+    report: OnyxEntry<Report>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    compareLeadingTransactions?: CompareLeadingTransactions,
+): GroupedTransactions[] {
     if (!report) {
         return [];
     }
@@ -121,7 +150,8 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
         });
     }
 
-    return sortGroupedTransactions(result, localeCompare);
+    return sortGroupedTransactions(result, localeCompare, compareLeadingTransactions);
 }
 
 export {groupTransactionsByCategory, groupTransactionsByTag};
+export type {CompareLeadingTransactions};

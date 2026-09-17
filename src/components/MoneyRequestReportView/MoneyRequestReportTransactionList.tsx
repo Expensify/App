@@ -26,6 +26,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
+import type {CompareLeadingTransactions} from '@libs/ReportLayoutUtils';
 import {
     getActionErrorsByTransaction,
     getMoneyRequestSpendBreakdown,
@@ -373,7 +374,10 @@ function MoneyRequestReportTransactionList({
     });
 
     const {sortBy, sortOrder} = sortConfig;
-    const isDefaultSort = sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
+    // Date/ASC is both the initial state and where every second Date press lands, so pressing a column has to be
+    // tracked separately for an explicit sort to win over the RBR ordering below.
+    const [hasUserSortedTransactions, setHasUserSortedTransactions] = useState(false);
+    const isDefaultSort = !hasUserSortedTransactions && sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
     // In a single pass over reportActions, build:
     // - reportActionsMap: keyed by reportActionID for transactionHasRBR.
@@ -495,18 +499,35 @@ function MoneyRequestReportTransactionList({
     const currentGroupBy: OnyxTypes.ReportLayoutGroupBy = currentSelection !== CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX ? currentSelection : getReportLayoutGroupBy(reportLayoutGroupBy);
     const shouldGroupTransactions = shouldShowGroupedTransactions && !isLayoutMatrixSelected;
 
+    // Once the user presses a column the group headers follow that column too, otherwise the groups stay alphabetical
+    // and only the rows inside each group would be ordered.
+    const compareLeadingTransactions: CompareLeadingTransactions | undefined = useMemo(() => {
+        if (!hasUserSortedTransactions) {
+            return undefined;
+        }
+        return (a, b) =>
+            compareValues(
+                getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
+                getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
+                sortOrder,
+                sortBy,
+                localeCompare,
+                true,
+            );
+    }, [hasUserSortedTransactions, sortBy, sortOrder, report, policy, policyCategories, policyTagLists, localeCompare]);
+
     const groupedTransactions = useMemo(() => {
         if (!shouldGroupTransactions) {
             return [];
         }
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
-            return groupTransactionsByTag(resolvedTransactions, report, localeCompare);
+            return groupTransactionsByTag(resolvedTransactions, report, localeCompare, compareLeadingTransactions);
         }
-        return groupTransactionsByCategory(resolvedTransactions, report, localeCompare);
+        return groupTransactionsByCategory(resolvedTransactions, report, localeCompare, compareLeadingTransactions);
         // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
         // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
+    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions, compareLeadingTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldGroupTransactions || groupedTransactions.length === 0) {
@@ -818,6 +839,7 @@ function MoneyRequestReportTransactionList({
                     if (!isSortableColumnName(selectedSortBy)) {
                         return;
                     }
+                    setHasUserSortedTransactions(true);
                     setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                 }}
                 dateColumnSize={dateColumnSize}
