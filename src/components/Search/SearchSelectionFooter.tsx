@@ -536,8 +536,6 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     };
 
     const handleFooterCurrencyChange = (currency: string) => {
-        // The backend ignores `footerCurrency`: the figures are converted on the client, through the conversion cache
-        // below, whose own totals honour `footerTotal` too. Writing it into the query only carries the selection.
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: currency,

@@ -2301,7 +2301,7 @@ describe('SearchQueryUtils', () => {
             expect(total?.hash).not.toEqual(reimbursable?.hash);
         });
 
-        it('leaves every hash alone for the footer currency, which the backend ignores and the client converts', () => {
+        it('leaves every hash alone for the footer currency, which Search ignores and a separate command converts', () => {
             const noSelection = buildSearchQueryJSON('type:expense');
             const usd = buildSearchQueryJSON('type:expense footerCurrency:USD');
             const eur = buildSearchQueryJSON('type:expense footerCurrency:EUR');

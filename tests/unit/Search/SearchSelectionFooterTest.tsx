@@ -547,7 +547,7 @@ describe('SearchSelectionFooter', () => {
     });
 
     describe('currency selector', () => {
-        it('converts on the client and carries the choice in the query, without re-running the search', async () => {
+        it('converts through GetTransactionsConvertedAmount and carries the choice in the query, without re-running the search', async () => {
             setSearchQuery('type:expense');
             mockSelectedTransactions.current = {};
 
@@ -564,7 +564,7 @@ describe('SearchSelectionFooter', () => {
                 await waitForBatchedUpdates();
             });
 
-            // The backend ignores footerCurrency, so the conversion is requested from the client...
+            // Search ignores footerCurrency, so the conversion is requested separately...
             expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR}));
             // ...while the query carries the choice so it survives a reload, with no results reload of its own.
             expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCurrency:EUR');
