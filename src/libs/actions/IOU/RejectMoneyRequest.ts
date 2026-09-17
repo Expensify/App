@@ -1243,15 +1243,5 @@ function rejectExpenseReport(
     API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * Dismiss the "this expense has already been moved" error by dropping the stale local copy of the expense.
- *
- * The reject failed because the server no longer has the expense on the report it was rejected from, so it should
- * stop showing there.
- */
-function dismissRejectExpenseError(transactionID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
-}
-
-export {dismissRejectExpenseError, dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
+export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
 export type {RejectMoneyRequestData};

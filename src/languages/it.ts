@@ -368,6 +368,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Declassa spazio di lavoro',
         companyID: 'ID azienda',
         userID: 'ID utente',
+        tenantID: 'ID tenant',
+        environmentName: 'Nome ambiente',
+        clientID: 'ID client',
+        clientSecret: 'Segreto client',
         disable: 'Disattiva',
         export: 'Esporta',
         initialValue: 'Valore iniziale',
@@ -3160,7 +3164,7 @@ ${amount} per ${merchant} - ${date}`,
             merchantHint: 'Digita . per creare una regola che si applica a tutti gli esercenti',
             addToReport: 'Aggiungi a un report chiamato',
             createReport: 'Crea il report se necessario',
-            applyToExistingExpenses: 'Applica alle spese corrispondenti esistenti',
+            applyToExistingExpenses: 'Applica alle spese esistenti non inviate',
             confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
             confirmErrorMerchant: 'Inserisci l’esercente',
             confirmErrorUpdate: 'Applica almeno un aggiornamento',
@@ -3795,8 +3799,15 @@ ${amount} per ${merchant} - ${date}`,
         vacationDelegateError: 'Si è verificato un errore durante l’aggiornamento del tuo delegato per le ferie.',
         asVacationDelegate: (nameOrEmail: string) => `come delegato per le ferie di ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `a ${submittedToName} come delegato ferie per ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Stai assegnando ${nameOrEmail} come tuo delegato per le ferie. Non fa ancora parte di tutti i tuoi spazi di lavoro. Se scegli di continuare, verrà inviata un’email a tutti gli amministratori dei tuoi spazi di lavoro per aggiungerlo.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> non è membro degli spazi di lavoro elencati di seguito. Agli amministratori degli spazi di lavoro che non gestisci verrà chiesto di aggiungerlo.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> non è membro degli spazi di lavoro elencati di seguito. Vuoi invitarlo ora?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> non è membro degli spazi di lavoro elencati di seguito. Agli amministratori degli spazi di lavoro che non gestisci verrà chiesto di aggiungerlo. Vuoi invitarlo ora in quelli di cui sei amministratore?`,
+            youAreAMemberOf: 'Sei membro di questi spazi di lavoro:',
+            youAreAnAdminOf: 'Sei amministratore di questi spazi di lavoro:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Passaggio ${step}`;
@@ -4715,6 +4726,7 @@ ${amount} per ${merchant} - ${date}`,
             defaultDescription: 'Un unico posto per tutte le tue ricevute e spese.',
             descriptionHint: 'Condividi informazioni su questo workspace con tutti i membri.',
             welcomeNote: 'Usa Expensify per inviare le tue ricevute per il rimborso, grazie!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} ti ha invitato a ${workspaceName}`,
             subscription: 'Abbonamento',
             markAsEntered: 'Segna come inserito manualmente',
             markAsExported: 'Segna come esportato',
@@ -7125,6 +7137,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7358,6 +7372,12 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Sincronizzazione delle chiusure carta';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizzazione dei conguagli di viaggio';
+                        case 'businessCentralSyncTitle':
+                            return 'Sincronizzazione dei dati Dynamics 365 Business Central';
+                        case 'businessCentralSyncConnection':
+                            return 'Inizializzazione della connessione a Dynamics 365 Business Central';
+                        case 'businessCentralSyncImportData':
+                            return 'Caricamento dei dati';
                         default: {
                             return `Traduzione mancante per fase: ${stage}`;
                         }
@@ -7401,6 +7421,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',
@@ -7712,6 +7733,12 @@ ${reportName}`,
                 description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Campfire. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Campfire per una maggiore visibilità finanziaria.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La nostra integrazione con Campfire è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Dynamics 365 Business Central. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Dynamics 365 Business Central per una maggiore visibilità finanziaria.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La nostra integrazione con Dynamics 365 Business Central è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approvazioni avanzate',
@@ -8668,6 +8695,22 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             subsidiarySelectDescription: 'Scegli la consociata in Campfire da cui vuoi importare i dati.',
             noSubsidiariesFound: 'Nessuna consociata trovata',
             noSubsidiariesFoundDescription: "Aggiungi un'entità in Campfire e sincronizza di nuovo la connessione",
+            importDescription: 'Scegli quali configurazioni di codifica importare da Campfire.',
+            accountTypesDescription: 'I tuoi account Campfire verranno importati come categorie.',
+            enableNewAccountsTitle: 'Abilita i conti appena importati',
+            enableNewAccountsDescription: 'I nuovi account Campfire saranno disponibili come categorie.',
+            dimensionsImport: 'Tutte le dimensioni Campfire vengono importate come tag',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Configurazione Dynamics 365 Business Central',
+            prerequisitesTitle: 'Prima di connetterti...',
+            followSteps: 'Segui i passaggi nelle nostre istruzioni Come fare: Connettersi a Dynamics 365 Business Central',
+            enterCredentials: 'Inserisci i tuoi dati di Dynamics 365 Business Central',
+            helpArticle: `<muted-text>Fai riferimento a questo <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">articolo della guida</a> per trovare queste informazioni.</muted-text>`,
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Seleziona la consociata Dynamics 365 Business Central da sincronizzare con questo spazio di lavoro.',
+            noCompaniesFound: 'Nessuna azienda trovata',
+            noCompaniesFoundDescription: "Aggiungi un'azienda in Dynamics 365 Business Central e sincronizza di nuovo la connessione",
         },
     },
     getAssistancePage: {
@@ -9489,6 +9532,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 title: 'Nessuna spesa da approvare',
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
             },
+            staleResults: {title: 'Aggiornamento necessario', subtitle: 'Questa pagina non è aggiornata, ricarica per vedere le ultime novità', buttonText: 'Aggiorna'},
         },
         columns: 'Colonne',
         editColumns: 'Modifica colonne',

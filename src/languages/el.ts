@@ -371,6 +371,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Υποβιβασμός χώρου εργασίας',
         companyID: 'ID εταιρείας',
         userID: 'Αναγνωριστικό χρήστη',
+        tenantID: 'Αναγνωριστικό μισθωτή',
+        environmentName: 'Όνομα περιβάλλοντος',
+        clientID: 'Αναγνωριστικό πελάτη',
+        clientSecret: 'Μυστικό πελάτη',
         disable: 'Απενεργοποίηση',
         export: 'Εξαγωγή',
         initialValue: 'Αρχική τιμή',
@@ -3225,7 +3229,7 @@ ${amount} για ${merchant} - ${date}`,
             merchantHint: 'Πληκτρολογήστε . για να δημιουργήσετε έναν κανόνα που ισχύει για όλους τους εμπόρους',
             addToReport: 'Προσθήκη σε αναφορά με όνομα',
             createReport: 'Δημιουργήστε αναφορά αν χρειάζεται',
-            applyToExistingExpenses: 'Εφαρμογή σε υπάρχουσες αντιστοιχισμένες δαπάνες',
+            applyToExistingExpenses: 'Εφαρμογή σε υφιστάμενες μη υποβληθείσες δαπάνες',
             confirmError: 'Εισαγάγετε τον έμπορο και εφαρμόστε τουλάχιστον μία ενημέρωση',
             confirmErrorMerchant: 'Παρακαλούμε εισαγάγετε τον έμπορο',
             confirmErrorUpdate: 'Παρακαλούμε εφαρμόστε τουλάχιστον μία ενημέρωση',
@@ -3867,8 +3871,15 @@ ${amount} για ${merchant} - ${date}`,
         vacationDelegateError: 'Παρουσιάστηκε σφάλμα κατά την ενημέρωση του αναπληρωτή σας για την άδεια.',
         asVacationDelegate: (nameOrEmail: string) => `ως εκπρόσωπος αδειών του/της ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `στον/στη ${submittedToName} ως αναπληρωτής/τρια αδειούχου για τον/τη ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Ορίζετε τον/την ${nameOrEmail} ως αναπληρωτή/τριά σας κατά τις διακοπές. Δεν συμμετέχει ακόμη σε όλους τους χώρους εργασίας σας. Αν επιλέξετε να συνεχίσετε, θα σταλεί email σε όλους τους διαχειριστές των χώρων εργασίας σας για να τον/την προσθέσουν.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θα ζητηθεί από τους διαχειριστές των χώρων εργασίας που δεν διαχειρίζεστε να τον/την προσθέσουν.`,
+            notAMemberInviteThemNow: (delegate: string) => `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θέλετε να τον/την προσκαλέσετε τώρα;`,
+            notAMemberMixed: (delegate: string) =>
+                `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θα ζητηθεί από τους διαχειριστές των χώρων εργασίας που δεν διαχειρίζεστε να τον/την προσθέσουν. Θέλετε να τον/την προσκαλέσετε τώρα σε αυτούς που διαχειρίζεστε ως διαχειριστής;`,
+            youAreAMemberOf: 'Είστε μέλος αυτών των χώρων εργασίας:',
+            youAreAnAdminOf: 'Είστε διαχειριστής αυτών των χώρων εργασίας:',
+        },
     },
     stepCounter: (step, total, text) => {
         let result = `Βήμα ${step}`;
@@ -4818,6 +4829,7 @@ ${amount} για ${merchant} - ${date}`,
             defaultDescription: 'Ένα μέρος για όλες τις αποδείξεις και τα έξοδά σας.',
             descriptionHint: 'Κοινοποιήστε πληροφορίες σχετικά με αυτόν τον χώρο εργασίας σε όλα τα μέλη.',
             welcomeNote: 'Παρακαλούμε χρησιμοποιήστε το Expensify για να υποβάλετε τις αποδείξεις σας για αποζημίωση, ευχαριστούμε!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# Ο/Η ${inviterName} σας προσκάλεσε στο ${workspaceName}`,
             subscription: 'Συνδρομή',
             markAsEntered: 'Σήμανση ως καταχωρισμένο χειροκίνητα',
             markAsExported: 'Επισήμανση ως εξαχθέν',
@@ -7301,6 +7313,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7535,6 +7549,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Συγχρονισμός διακανονισμών κάρτας';
                         case 'campfireSyncTravelSettlements':
                             return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
+                        case 'businessCentralSyncTitle':
+                            return 'Συγχρονισμός δεδομένων Dynamics 365 Business Central';
+                        case 'businessCentralSyncConnection':
+                            return 'Γίνεται προετοιμασία σύνδεσης με το Dynamics 365 Business Central';
+                        case 'businessCentralSyncImportData':
+                            return 'Φόρτωση δεδομένων';
                         default: {
                             return `Λείπει η μετάφραση για το στάδιο: ${stage}`;
                         }
@@ -7578,6 +7598,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         hr: {
             title: 'HR',
@@ -8015,6 +8036,12 @@ ${reportName}`,
                 description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Campfire. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Campfire για πιο ξεκάθαρη οικονομική εικόνα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η ενοποίησή μας με το Campfire είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Dynamics 365 Business Central. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Dynamics 365 Business Central για πιο ξεκάθαρη οικονομική εικόνα.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Η ενοποίησή μας με το Dynamics 365 Business Central είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Προηγμένες εγκρίσεις',
@@ -8887,6 +8914,22 @@ ${reportName}`,
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο Campfire από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noSubsidiariesFound: 'Δεν βρέθηκαν θυγατρικές',
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια οντότητα στο Campfire και συγχρονίστε ξανά τη σύνδεση',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το Campfire.',
+            accountTypesDescription: 'Οι λογαριασμοί Campfire σας θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Campfire θα είναι διαθέσιμοι ως κατηγορίες.',
+            dimensionsImport: 'Όλες οι διαστάσεις Campfire εισάγονται ως ετικέτες',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
+            prerequisitesTitle: 'Πριν συνδεθείτε...',
+            followSteps: 'Ακολουθήστε τα βήματα στις οδηγίες μας «Οδηγός: σύνδεση με το Dynamics 365 Business Central»',
+            enterCredentials: 'Εισαγάγετε τα στοιχεία του Dynamics 365 Business Central σας',
+            helpArticle: `<muted-text>Ανατρέξτε σε αυτό το <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">άρθρο βοήθειας</a> για να βρείτε αυτές τις πληροφορίες.</muted-text>`,
+            subsidiary: 'Θυγατρική',
+            subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική του Dynamics 365 Business Central για συγχρονισμό με αυτόν τον χώρο εργασίας.',
+            noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
+            noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {
@@ -9741,6 +9784,7 @@ ${reportName}`,
             emptyViolationSnapshotResults: {
                 subtitle: (formattedDate) => `Οι παραβάσεις παρακολουθούνται μόνο από ${formattedDate} και μετά. Δοκιμάστε να προσαρμόσετε τα φίλτρα ημερομηνίας σας.`,
             },
+            staleResults: {title: 'Απαιτείται ανανέωση', subtitle: 'Αυτή η σελίδα είναι παρωχημένη, κάντε ανανέωση για να δείτε τα πιο πρόσφατα', buttonText: 'Ανανέωση'},
         },
         columns: 'Στήλες',
         editColumns: 'Επεξεργασία στηλών',

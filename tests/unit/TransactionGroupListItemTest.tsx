@@ -13,6 +13,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 
 import registerMiddlewares from '@libs/Middleware/register';
+import type * as SearchKeyUtils from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
@@ -36,6 +37,12 @@ jest.mock('@libs/actions/Search', () => ({
     handleActionButtonPress: jest.fn(),
 }));
 
+jest.mock('@libs/SearchKeyUtils', () => ({
+    ...jest.requireActual<typeof SearchKeyUtils>('@libs/SearchKeyUtils'),
+    isExistingSearchKey: jest.fn(() => false),
+    getSearchKeyForDataType: jest.fn(() => undefined),
+}));
+
 jest.mock('@libs/SearchUIUtils', () => ({
     getSections: jest.fn(() => []),
     isCorrectSearchUserName: jest.fn(() => true),
@@ -44,8 +51,6 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
     isTodoSearch: jest.fn(() => false),
     isCreatedDateType: jest.fn(() => false),
-    isExistingSearchKey: jest.fn(() => false),
-    getSearchKeyForDataType: jest.fn(() => undefined),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
