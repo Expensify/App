@@ -486,6 +486,10 @@ function NumberWithSymbolForm({
         onInputChange?.(newValue);
     }, [currentNumber, onInputChange]);
 
+    // Borderless buttons read as part of the field rather than as controls on top of it, so their labels take the
+    // supporting text color instead of the button's own, matching the icons beside them.
+    const borderlessButtonTextStyle = shouldUseBorderlessButtons ? styles.textSupporting : undefined;
+
     /**
      * Creates the right-hand side component for text input mode
      * Renders flip (+/-) button and/or currency selection button when enabled
@@ -509,7 +513,7 @@ function NumberWithSymbolForm({
                             src={icons.PlusMinus}
                             accessibilityLabel={translate('iou.flip')}
                         />
-                        <Button.Text>{translate('iou.flip')}</Button.Text>
+                        <Button.Text style={borderlessButtonTextStyle}>{translate('iou.flip')}</Button.Text>
                     </Button>
                 )}
                 {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
@@ -529,7 +533,7 @@ function NumberWithSymbolForm({
                             src={icons.CoinsButton}
                             accessibilityLabel={translate('common.currency')}
                         />
-                        <Button.Text>{currencyOrUnitButtonText}</Button.Text>
+                        <Button.Text style={borderlessButtonTextStyle}>{currencyOrUnitButtonText}</Button.Text>
                     </Button>
                 )}
             </View>
@@ -539,6 +543,7 @@ function NumberWithSymbolForm({
         allowNegativeInput,
         disabled,
         shouldUseBorderlessButtons,
+        borderlessButtonTextStyle,
         shouldShowCurrencyButton,
         leadingRightHandSideComponent,
         styles,

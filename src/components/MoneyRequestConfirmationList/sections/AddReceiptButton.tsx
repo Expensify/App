@@ -33,7 +33,7 @@ function AddReceiptButton() {
             accessibilityLabel={translate('receipt.upload')}
             role={CONST.ROLE.BUTTON}
             style={styles.moneyRequestAddReceiptButton}
-            hoverStyle={styles.hoveredComponentBG}
+            hoverStyle={styles.buttonHoveredBG}
             onPress={() => {
                 if (!transactionID) {
                     return;

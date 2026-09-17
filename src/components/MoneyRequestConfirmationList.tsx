@@ -611,6 +611,7 @@ function MoneyRequestConfirmationList({
                         shouldShowCategories,
                         shouldShowTax,
                         isParticipantPickerVisible,
+                        hasParticipantSection: sections.length > 0,
                     }}
                     errorState={{shouldDisplayFieldError, formError, clearFormErrors, setFormError}}
                     toggleHandlers={{onToggleReimbursable, onToggleBillable}}

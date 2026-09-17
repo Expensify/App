@@ -3520,14 +3520,12 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        // Square icon-only button sitting beside the amount field, standing in for the full-width add-receipt button.
+        // Circular icon-only button sitting beside the amount field, standing in for the full-width add-receipt button.
         moneyRequestAddReceiptButton: {
             width: variables.componentSizeLarge,
             height: variables.componentSizeLarge,
-            borderRadius: variables.componentBorderRadiusNormal,
-            borderWidth: 1,
-            borderColor: theme.bordersBold,
-            backgroundColor: theme.appBG,
+            borderRadius: variables.componentSizeLarge / 2,
+            backgroundColor: theme.buttonDefaultBG,
             alignItems: 'center',
             justifyContent: 'center',
         },

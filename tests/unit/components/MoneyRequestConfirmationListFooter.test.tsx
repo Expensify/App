@@ -61,6 +61,7 @@ const footerProps: MoneyRequestConfirmationListFooterProps = {
         shouldShowCategories: false,
         shouldShowTax: false,
         isParticipantPickerVisible: false,
+        hasParticipantSection: false,
     },
     errorState: {shouldDisplayFieldError: false, formError: '', clearFormErrors: jest.fn(), setFormError: jest.fn()},
     receiptOptions: {receiptFilename: '', receiptPath: '', shouldDisplayReceipt: false},

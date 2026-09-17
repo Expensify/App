@@ -33,6 +33,9 @@ function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, 
 
     return (
         <View>
+            {/* Separates the workspace row above from the expense details, so the two read as distinct sections. */}
+            {visibilityFlags.hasParticipantSection && <View style={styles.dividerLine} />}
+
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{hasReceipt ? translate('common.receipt') : translate('iou.expenseDetails')}</Text>
             </View>
