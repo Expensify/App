@@ -2,7 +2,7 @@ import type ReceiptStorage from './types';
 
 /**
  * Web has no filesystem to move receipts into. A blob:/file: object URL is only valid for this
- * document — Onyx may still restore the string after a reload, but the Blob is gone. Track the
+ * document. Onyx may still restore the string after a reload, but the Blob is gone. Track the
  * URIs this document created so resolve() can refuse stale ones and callers fall back to the
  * server receipt.
  *
