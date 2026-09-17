@@ -34,13 +34,6 @@ import {View} from 'react-native';
 /**
  * Confirms a distance expense, for all three of its shapes: a mapped route, a manually entered distance, and an
  * odometer reading.
- *
- * The three share one list because they mount exactly the same things — `DistanceRequestController` gates every
- * effect on `isDistanceRequest`, which is true for all of them, and the commuter-exclusion fields are written for
- * all three. What differs is only the footer: the mapped route shows a map, and the odometer flow is the one that
- * can surface a receipt stitch error.
- *
- * A distance expense is never a scan and never enters the compact layout.
  */
 function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {
@@ -69,7 +62,6 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
-    // The distance state needs the policy before the shared data hook runs, so this surface resolves it itself.
     const {policy} = usePolicyForTransaction({
         transaction,
         reportPolicyID: policyID,
@@ -140,8 +132,6 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
         receiptOptions,
     };
 
-    // Ordered as the footer dispatcher ordered them. A transaction carries a single request type, so at most one
-    // of these matches.
     const renderFooter = () => {
         if (isManualDistanceRequest) {
             return <DistanceManualFooter {...footerProps} />;
@@ -154,7 +144,6 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
                 />
             );
         }
-        // `DISTANCE`, `DISTANCE_MAP` and `DISTANCE_GPS` all confirm against the route map.
         return <DistanceMapFooter {...footerProps} />;
     };
 
