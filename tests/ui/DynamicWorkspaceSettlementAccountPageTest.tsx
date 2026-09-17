@@ -3,6 +3,7 @@ import {act, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {BankAccountListItem} from '@components/SettlementAccountSelector';
 
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -26,10 +27,12 @@ const WORKSPACE_ACCOUNT_ID = 424242;
 const CURRENT_BANK_ACCOUNT_ID = 111;
 const NEW_BANK_ACCOUNT_ID = 789;
 let selectAccount: (value: number) => void;
+let settlementAccountOptions: BankAccountListItem[];
 
 jest.mock('@components/SettlementAccountSelector', () => ({
     __esModule: true,
-    default: ({onSelectAccount}: {onSelectAccount: (value: number) => void}) => {
+    default: ({listOptions, onSelectAccount}: {listOptions: BankAccountListItem[]; onSelectAccount: (value: number) => void}) => {
+        settlementAccountOptions = listOptions;
         selectAccount = onSelectAccount;
         return null;
     },
@@ -157,5 +160,17 @@ describe('DynamicWorkspaceSettlementAccountPage', () => {
 
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(screen.getByText('Reconnect this account through Plaid.')).toBeTruthy();
+    });
+
+    it('keeps settlement account options enabled when unrelated card settings are loading', async () => {
+        await act(async () => {
+            await Onyx.merge(cardSettingsKey, {isLoading: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(settlementAccountOptions.every((option) => !option.isDisabled)).toBe(true);
     });
 });

@@ -119,7 +119,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
             alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
             keyForList: bankAccountID?.toString() ?? '',
             isSelected: bankAccountID === paymentBankAccountID,
-            isDisabled: cardSettings?.isLoading,
+            isDisabled: !!settlementAccountPendingAction,
         };
     });
 
@@ -130,7 +130,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
         alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
         keyForList: paymentBankAccountID?.toString() ?? '',
         isSelected: true,
-        isDisabled: cardSettings?.isLoading,
+        isDisabled: !!settlementAccountPendingAction,
     };
 
     const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [fallbackBankAccountOption];
