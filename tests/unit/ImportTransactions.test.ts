@@ -1,5 +1,11 @@
 import {applyCompanyCardSavedColumnMappings, applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
-import importTransactionsFromCSV, {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes, getExistingCardImportSettings} from '@libs/actions/ImportTransactions';
+import importTransactionsFromCSV, {
+    buildColumnLayout,
+    buildTransactionListFromSpreadsheet,
+    getColumnIndexes,
+    getExistingCardImportSettings,
+    uploadOFXStatement,
+} from '@libs/actions/ImportTransactions';
 import * as API from '@libs/API';
 
 import CONST from '@src/CONST';
@@ -21,6 +27,7 @@ describe('ImportTransactions', () => {
         jest.clearAllMocks();
         // Spy on Onyx.merge for tests that need to verify it was called
         jest.spyOn(Onyx, 'merge').mockResolvedValue(undefined);
+        writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
     });
 
     afterEach(() => {
@@ -890,14 +897,6 @@ describe('ImportTransactions', () => {
             containsHeader: true,
         });
 
-        beforeEach(() => {
-            writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
-        });
-
-        afterEach(() => {
-            writeSpy.mockRestore();
-        });
-
         it('returns the failed-import modal and skips the API call when no transactions are parsed', async () => {
             const result = await importTransactionsFromCSV({...validSpreadsheet, data: []}, CURRENT_USER_ACCOUNT_ID);
 
@@ -958,6 +957,57 @@ describe('ImportTransactions', () => {
             expect(params.currency).toBe('AUD');
             expect(params.reimbursable).toBe(false);
             expect(params.columnMappings).toBe(JSON.stringify(buildColumnLayout(validSpreadsheet, 'Aussie Card', 'AUD', false, true)));
+        });
+    });
+
+    describe('uploadOFXStatement', () => {
+        const CURRENT_USER_ACCOUNT_ID = 12345;
+        const statement = {name: 'statement.ofx', type: 'application/x-ofx', uri: 'file:///statement.ofx'};
+
+        it('sends the file itself so the backend parses it', async () => {
+            await uploadOFXStatement(statement, {}, CURRENT_USER_ACCOUNT_ID);
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            const [command, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(command).toBe('UploadOFX');
+            expect(params.file).toBe(statement);
+        });
+
+        it('queues an optimistic card when no existingCardID is passed', async () => {
+            await uploadOFXStatement(statement, {cardDisplayName: 'Citi Personal', isReimbursable: false}, CURRENT_USER_ACCOUNT_ID);
+
+            const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe('Citi Personal');
+            expect(params.reimbursable).toBe(false);
+            const cardUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE, true);
+            const [optimisticCard] = Object.values(cardUpdate.value);
+            expect(optimisticCard).toEqual(expect.objectContaining({reimbursable: false}));
+            expect(Object.keys(cardUpdate.value).at(0)).toBe(String(params.cardID));
+        });
+
+        it('reuses an existingCardID without queuing an optimistic card', async () => {
+            const existingCardID = 987654321;
+
+            await uploadOFXStatement(statement, {}, CURRENT_USER_ACCOUNT_ID, existingCardID);
+
+            const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardID).toBe(existingCardID);
+            const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+            expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.CARD_LIST})]));
+        });
+
+        it('falls back to the same default name the spreadsheet import uses', async () => {
+            await uploadOFXStatement(statement, {}, CURRENT_USER_ACCOUNT_ID);
+
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe(CONST.DEFAULT_IMPORTED_CARD_NAME);
+            expect(params.reimbursable).toBe(true);
+        });
+
+        it('returns the failed-import modal when the request throws', async () => {
+            const result = await uploadOFXStatement(statement, {}, CURRENT_USER_ACCOUNT_ID);
+
+            expect(result).toEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.importFailedDescription'});
         });
     });
 
