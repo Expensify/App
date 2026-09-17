@@ -3148,14 +3148,12 @@ function getMemberSections(
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
 ): [TransactionMemberGroupListItemType[], number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
-    // GetInsights delivers the members it grouped by in the global list rather than in the snapshot.
-    const personalDetailsList = mergePersonalDetailsLists(onyxPersonalDetailsList, data.personalDetailsList);
 
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
 
-            const personalDetails = personalDetailsList[memberGroup.accountID] ?? emptyPersonalDetails;
+            const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? onyxPersonalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
             const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID) : undefined;
 
             memberSections[key] = {

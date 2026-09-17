@@ -4,14 +4,20 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 
-import {getSections, getSortedSections, isGroupedItemArray} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, isGroupedItemArray, isGroupEntry} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+/** Returns the accounts named in the snapshot's groups, so the hook can subscribe to just their personal details. */
+function getGroupedAccountIDs(data: SearchResults['data'] = {}): number[] {
+    return Object.keys(data).flatMap((key) => (isGroupEntry(key) && 'accountID' in data[key] && data[key].accountID ? [data[key].accountID] : []));
+}
 
 /**
  * Turns a search snapshot into the sorted rows a chart plots, grouped and ordered the way the query asks for.
@@ -23,9 +29,9 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [onyxPersonalDetailsList] = useAllPersonalDetails();
-
     const groupBy = queryJSON?.groupBy;
+    const [onyxPersonalDetailsList] = usePersonalDetailsByIDs(groupBy === CONST.SEARCH.GROUP_BY.FROM ? getGroupedAccountIDs(searchResults?.data) : undefined);
+
     const sortedSections =
         searchResults?.data && queryJSON && groupBy && login
             ? getSortedSections(
