@@ -14,6 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -70,6 +72,7 @@ function AccountAvatarButtonContent() {
                   horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
+              shiftHorizontal: variables.accountAvatarTooltipShiftHorizontal,
           }
         : {text: translate('initialSettingsPage.account'), isFocused};
 
