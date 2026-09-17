@@ -1,3 +1,5 @@
+/** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
+
 import type {SearchGroupBy, SearchView} from '@components/Search/types';
 
 import CONST from '@src/CONST';
