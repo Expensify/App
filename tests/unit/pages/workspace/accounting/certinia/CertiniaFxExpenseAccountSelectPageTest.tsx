@@ -67,8 +67,11 @@ function buildPolicy(config: {hasPSAOnly?: boolean; hasPSA?: boolean}): Policy {
     });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- HOC is mocked as identity so the page accepts policy.
+const PickerPage = CertiniaFxExpenseAccountSelectPage as ComponentType<{policy: Policy}>;
+
 function renderPicker(config: {hasPSAOnly?: boolean; hasPSA?: boolean}) {
-    render(<CertiniaFxExpenseAccountSelectPage policy={buildPolicy(config)} />);
+    render(<PickerPage policy={buildPolicy(config)} />);
     const selectionScreenProps = jest.mocked(SelectionScreen).mock.calls.at(-1)?.[0];
     if (!selectionScreenProps) {
         throw new Error('Expected SelectionScreen to render');
