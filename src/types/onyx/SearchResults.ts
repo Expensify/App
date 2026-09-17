@@ -141,6 +141,9 @@ type SearchGroupBase = {
     /** Currency of total value */
     currency: string;
 
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
+
     /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
     pendingAction?: PendingAction;
 };
