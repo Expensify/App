@@ -3,12 +3,6 @@ import type {RenderItemParams} from 'react-native-draggable-flatlist';
 
 type DraggableListRenderItemParams<T> = RenderItemParams<T> & {
     isFocused?: boolean;
-
-    /**
-     * Whether this row is currently being dragged. Kept separate from `isActive` so a row can react to
-     * the drag itself (e.g. the cursor) without picking up the active/focused styling `isActive` drives.
-     */
-    isDragging: boolean;
 };
 
 type DraggableListData<T> = {
@@ -48,8 +42,7 @@ type DraggableListProps<T> = {
 
 type SortableItemProps = {
     id: string | number;
-    /** Render the row content. Receives whether this item is currently being dragged, which only dnd-kit knows. */
-    children: (isDragging: boolean) => React.ReactNode;
+    children: React.ReactNode;
     /** Whether dragging is disabled for this item */
     disabled?: boolean;
     /** Whether this item is currently focused for keyboard navigation */

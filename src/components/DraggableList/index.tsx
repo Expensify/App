@@ -4,10 +4,11 @@ import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
+import DragCursor from '@libs/DragCursor';
 
 import CONST from '@src/CONST';
 
-import type {DragEndEvent} from '@dnd-kit/core';
+import type {DragEndEvent, DragStartEvent} from '@dnd-kit/core';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
@@ -57,6 +58,8 @@ function DraggableList<T>({
     // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
     useEffect(() => {
         return () => {
+            // Unmounting mid-drag means no drag end event ever fires, which would strand the grabbing cursor.
+            DragCursor.hide();
             if (!isDraggingRef.current) {
                 return;
             }
@@ -79,8 +82,14 @@ function DraggableList<T>({
 
     const activeFocusedIndex = isControlled ? controlledFocusedIndex : internalFocusedIndex;
 
-    const onDragStart = () => {
+    const onDragStart = (event: DragStartEvent) => {
         isDraggingRef.current = true;
+
+        // A keyboard drag is driven by arrow keys, so forcing a cursor the user isn't holding would be noise.
+        if (event.activatorEvent instanceof KeyboardEvent) {
+            return;
+        }
+        DragCursor.show();
     };
 
     /**
@@ -90,6 +99,7 @@ function DraggableList<T>({
      */
     const onDragEnd = (event: DragEndEvent) => {
         isDraggingRef.current = false;
+        DragCursor.hide();
         const {active, over} = event;
 
         if (over !== null && active.id !== over.id) {
@@ -106,6 +116,7 @@ function DraggableList<T>({
 
     const onDragCancel = () => {
         isDraggingRef.current = false;
+        DragCursor.hide();
     };
 
     const sortableItems = data.map((item, index) => {
@@ -114,6 +125,14 @@ function DraggableList<T>({
         const isDisabled = isItemDisabled?.(item) ?? false;
         const isItemFocused = index === activeFocusedIndex && !isDisabled;
 
+        const renderedItem = renderItem({
+            item,
+            getIndex: () => index,
+            isActive: false,
+            drag: () => {},
+            isFocused: isItemFocused,
+        });
+
         return (
             <SortableItem
                 id={key}
@@ -121,16 +140,7 @@ function DraggableList<T>({
                 disabled={isDragDisabled}
                 isFocused={isItemFocused}
             >
-                {(isDragging) =>
-                    renderItem({
-                        item,
-                        getIndex: () => index,
-                        isActive: false,
-                        drag: () => {},
-                        isFocused: isItemFocused,
-                        isDragging,
-                    })
-                }
+                {renderedItem}
             </SortableItem>
         );
     });

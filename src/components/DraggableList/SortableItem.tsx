@@ -14,8 +14,6 @@ const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [tabindex]:not([tabindex="-1"])';
 function SortableItem({id, children, disabled = false, isFocused = false}: SortableItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition, isDragging, node} = useSortable({id, disabled});
 
-    const renderedChildren = children(isDragging);
-
     useEffect(() => {
         if (!isFocused || !node.current) {
             return;
@@ -26,9 +24,9 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         node.current.scrollIntoView({block: 'nearest'});
     }, [isFocused, node]);
 
-    // Every row's transform makes it its own stacking context, so rows paint in DOM order and a later
-    // sibling covers an earlier one. Lift the dragged row above the rest: while dragging downward it
-    // overlaps the row below, which would otherwise paint on top, take the pointer, and flash the cursor.
+    // Every row's transform makes it its own stacking context, so rows paint in DOM order and a later sibling
+    // covers an earlier one. Lift the dragged row above the rest, otherwise dragging downward tucks it under
+    // the row it overlaps.
     const style: React.CSSProperties = {
         touchAction: 'none',
         transform: CSS.Transform.toString(transform),
@@ -47,7 +45,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         for (const el of Array.from(node.current.querySelectorAll<HTMLElement>(PRESSABLE_SELECTOR))) {
             el.setAttribute('tabindex', '-1');
         }
-    }, [renderedChildren, node]);
+    }, [children, node]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         // Cancel drag on Tab but let default Tab behavior move focus naturally.
@@ -125,7 +123,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
             role="button"
             tabIndex={0}
         >
-            {renderedChildren}
+            {children}
         </div>
     );
 }

@@ -3,7 +3,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isWaypointNullIsland} from '@libs/TransactionUtils';
 
@@ -24,27 +23,12 @@ type DistanceRequestProps = WithSentryLabel & {
     onSecondaryInteraction?: () => void;
     getIndex?: () => number | undefined;
     isActive?: boolean;
-
-    /** Whether this row is currently being dragged. Separate from `isActive` so the drag doesn't apply the focused styling. */
-    isDragging?: boolean;
-
     onPress?: (index: number) => void;
     disabled?: boolean;
 };
 
-function DistanceRequestRenderItem({
-    waypoints,
-    item = '',
-    onSecondaryInteraction,
-    getIndex,
-    isActive = false,
-    isDragging = false,
-    onPress = () => {},
-    disabled = false,
-    sentryLabel,
-}: DistanceRequestProps) {
+function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false, sentryLabel}: DistanceRequestProps) {
     const theme = useTheme();
-    const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator', 'DragHandles']);
     const {translate} = useLocalize();
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
@@ -81,9 +65,6 @@ function DistanceRequestRenderItem({
             onPress={() => onPress(index)}
             onSecondaryInteraction={onSecondaryInteraction}
             focused={isActive}
-            // MenuItem merges wrapperStyle into the pressable's own style, after the cursor the pressable sets for itself,
-            // so this wins while the row is being dragged.
-            wrapperStyle={isDragging && styles.cursorGrabbing}
             key={item}
             disabled={disabled}
             errorText={errorText}

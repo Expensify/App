@@ -300,7 +300,7 @@ function IOURequestStepDistanceMap({
     }, [blockDistanceRequestIfNeeded, duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep]);
 
     const renderItem = useCallback(
-        ({item, drag, isActive, isDragging, getIndex}: DraggableListRenderItemParams<string>) => {
+        ({item, drag, isActive, getIndex}: DraggableListRenderItemParams<string>) => {
             const index = getIndex?.();
             const sentryLabel = index === 0 ? CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM : CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
             return (
@@ -309,7 +309,6 @@ function IOURequestStepDistanceMap({
                     item={getWaypointKey(item)}
                     onSecondaryInteraction={drag}
                     isActive={isActive}
-                    isDragging={isDragging}
                     getIndex={getIndex}
                     onPress={navigateToWaypointEditPage}
                     disabled={isLoadingRoute}

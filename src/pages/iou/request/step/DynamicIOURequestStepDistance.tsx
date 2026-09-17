@@ -811,13 +811,12 @@ function DynamicIOURequestStepDistance({
     ]);
 
     const renderItem = useCallback(
-        ({item, drag, isActive, isDragging, getIndex}: DraggableListRenderItemParams<string>) => (
+        ({item, drag, isActive, getIndex}: DraggableListRenderItemParams<string>) => (
             <DistanceRequestRenderItem
                 waypoints={waypoints}
                 item={getWaypointKey(item)}
                 onSecondaryInteraction={drag}
                 isActive={isActive}
-                isDragging={isDragging}
                 getIndex={getIndex}
                 onPress={navigateToWaypointEditPage}
                 disabled={isLoadingRoute}
