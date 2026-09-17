@@ -8,6 +8,7 @@ import {
     getAdjacentSegmentName,
     getCaretOffsetLimit,
     getDateDisplay,
+    getFirstUnfilledSegmentName,
     getISODateFromSegments,
     getSegmentNameAtPosition,
     getSegmentsFromISODate,
@@ -202,7 +203,10 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
         }
 
         const position = event.nativeEvent.selection.start;
-        const clickedSegmentName = getSegmentNameAtPosition(position, ranges);
+
+        // Landing past the end of the text means the empty space in the field was clicked rather than a segment, so
+        // the first segment still to be filled in takes it, which is the year on an untouched field.
+        const clickedSegmentName = position >= editingValue.length ? (getFirstUnfilledSegmentName(segments) ?? LAST_SEGMENT_NAME) : getSegmentNameAtPosition(position, ranges);
         const clickedOffset = position - ranges[clickedSegmentName].start;
 
         // Clicking is aiming at a digit place rather than arriving at a segment, so the next digit extends what is
@@ -224,11 +228,16 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
 
     const handleFocus = () => {
         const seededSegments = getSegmentsFromISODate(value);
+        const firstSegmentName = getFirstUnfilledSegmentName(seededSegments) ?? FIRST_SEGMENT_NAME;
 
         setSegments(seededSegments);
         setViewDate(getViewDateFromSegments(seededSegments, new Date().getMonth(), minDate, maxDate));
         shouldOverwriteRef.current = false;
-        moveCaret(FIRST_SEGMENT_NAME, getCaretOffsetLimit(seededSegments, FIRST_SEGMENT_NAME), seededSegments);
+        setActiveSegmentName(firstSegmentName);
+        setCaretOffset(getCaretOffsetLimit(seededSegments, firstSegmentName));
+
+        // Deliberately not arming the caret echo guard. The click that brought focus here reports its own position
+        // next, and that report is what moves the caret off the end of the text and onto a segment.
         setIsEditing(true);
     };
 

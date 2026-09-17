@@ -2,6 +2,7 @@ import {
     getAdjacentSegmentName,
     getCaretOffsetLimit,
     getDateDisplay,
+    getFirstUnfilledSegmentName,
     getISODateFromSegments,
     getSegmentNameAtPosition,
     getSegmentsFromISODate,
@@ -203,6 +204,26 @@ describe('DateInputMaskUtils', () => {
         it('stays on the outermost segment rather than wrapping', () => {
             expect(getAdjacentSegmentName('year', -1)).toBe('year');
             expect(getAdjacentSegmentName('day', 1)).toBe('day');
+        });
+    });
+
+    describe('getFirstUnfilledSegmentName', () => {
+        it('points at the year on an untouched date', () => {
+            expect(getFirstUnfilledSegmentName(EMPTY)).toBe('year');
+        });
+
+        it('skips the segments already holding all of their digits', () => {
+            expect(getFirstUnfilledSegmentName(segments('2026', '', ''))).toBe('month');
+            expect(getFirstUnfilledSegmentName(segments('2026', '09', ''))).toBe('day');
+        });
+
+        it('counts a half typed segment as unfilled', () => {
+            expect(getFirstUnfilledSegmentName(segments('202', '09', '18'))).toBe('year');
+            expect(getFirstUnfilledSegmentName(segments('2026', '1', ''))).toBe('month');
+        });
+
+        it('reports nothing once the whole date is filled in', () => {
+            expect(getFirstUnfilledSegmentName(segments('2026', '09', '18'))).toBeUndefined();
         });
     });
 

@@ -290,7 +290,8 @@ function getSegmentsFromISODate(value: string | undefined): DateSegments {
     };
 }
 
-function getNextUnfilledSegmentName(segments: DateSegments): DateSegmentName | undefined {
+/** The first segment still short of its digits, which is where a click on the field rather than on a segment lands */
+function getFirstUnfilledSegmentName(segments: DateSegments): DateSegmentName | undefined {
     return DATE_SEGMENT_NAMES.find((name) => segments[name].length < getSegmentLength(name));
 }
 
@@ -300,7 +301,7 @@ function getSegmentsFromText(text: string): DateSegments {
     let filled = EMPTY_SEGMENTS;
 
     for (const digit of digits) {
-        const name = getNextUnfilledSegmentName(filled);
+        const name = getFirstUnfilledSegmentName(filled);
         if (!name) {
             break;
         }
@@ -332,6 +333,7 @@ export {
     getAdjacentSegmentName,
     getCaretOffsetLimit,
     getDateDisplay,
+    getFirstUnfilledSegmentName,
     getISODateFromSegments,
     getSegmentNameAtPosition,
     getSegmentsFromISODate,
