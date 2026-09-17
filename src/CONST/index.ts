@@ -9986,6 +9986,15 @@ const CONST = {
         DASHBOARD: {
             SPEND: 'spend',
         },
+        SEARCH_KEY: {
+            SPEND: 'insightsSpend',
+        },
+        GRAPH: {
+            SPEND_OVER_TIME: 'spendOverTime',
+            TOP_MERCHANTS: 'topMerchants',
+            TOP_CATEGORIES: 'topCategories',
+            TOP_SPENDERS: 'topSpenders',
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {
