@@ -152,10 +152,7 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
         });
     }
 
-    /**
-     * @param hasSessionActivity when false, nothing has happened in this session yet — the fresh-session welcome
-     * state, where `filterActions` returns early before the session filter runs.
-     */
+    /** @param hasSessionActivity when false, nothing has happened yet this session — the welcome state. */
     function renderMainDM(taskAction: ReportAction, hasSessionActivity = true) {
         const createdAction = buildAction('10', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: toDBTime(CLIENT_OPEN_MS - 7_200_000)});
         const preSessionUser = buildAction('11', {created: toDBTime(CLIENT_OPEN_MS - 3_600_000)});
@@ -163,8 +160,6 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
         const inSessionUser = buildAction('20', {created: toDBTime(CLIENT_OPEN_MS + 1000)});
         const reportActions = [createdAction, preSessionUser, preSessionConcierge, taskAction, ...(hasSessionActivity ? [inSessionUser] : [])];
 
-        // `hasOutstandingChildTask` no longer reaches this hook as `showFullHistory` — the pin below is what keeps
-        // the task reachable, so the rest of the read history can stay collapsed behind "Show history".
         const report: Report = {...createRandomReport(Number(REPORT_ID)), reportID: REPORT_ID, lastReadTime: SESSION_START, hasOutstandingChildTask: true};
 
         return renderHook(() =>
@@ -203,8 +198,7 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
     });
 
     it('keeps a still-open child task visible in the fresh-session welcome state', () => {
-        // Given the DM is opened with nothing sent yet — the welcome state, which used to return early with just the
-        // greeting and drop the pinned task
+        // Given the DM is opened with nothing sent yet — the welcome state, which used to drop the pinned task
         const {result} = renderMainDM(buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN), false);
 
         // When the main DM filters the session's actions
@@ -218,7 +212,7 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
     });
 
     it('does not pin an open child task assigned to someone else', () => {
-        // Given an open task whose assignee is another account — `hasOutstandingChildTask` never covered these
+        // Given an open task assigned to another account
         const {result} = renderMainDM(buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN, {childManagerAccountID: CONCIERGE_ACCOUNT_ID}), false);
 
         // When the main DM filters the session's actions
@@ -230,8 +224,7 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
     });
 
     it('does not pin a canceled task whose parent action is still optimistically OPEN', () => {
-        // Given a canceled task: `deleteTask` marks the parent action deleted but leaves childStateNum/childStatusNum
-        // at OPEN until the server responds, so the state/status pair alone is not enough to trust
+        // Given a canceled task, which `deleteTask` leaves at OPEN until the server responds
         const canceledTask = buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN, {
             message: [{type: 'COMMENT', html: '', text: '', isDeletedParentAction: true}],
             childVisibleActionCount: 1,
@@ -312,8 +305,7 @@ describe('useConciergeSidePanelReportActions (main DM sent-message retention)', 
         const {result, landServerResponse} = renderSurface(isConciergeMainDM);
         expect(result.current.filteredReportActions.map((action) => action.reportActionID)).toContain('20');
 
-        // When the server response lands and re-stamps `created` behind the boundary — what happens on a device whose
-        // clock runs ahead of the server
+        // When the server response lands and re-stamps `created` behind the boundary
         landServerResponse();
 
         // Then the message stays on screen and the welcome state does not come back over the conversation.

@@ -9,11 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 
-/**
- * A task posted into the chat still needs this user's attention when its parent action is an OPEN task assigned to
- * them. Scoped to the current user and to non-canceled tasks so it matches the `hasOutstandingChildTask` flag it
- * replaces: `deleteTask` only marks the parent action deleted, it leaves `childStateNum`/`childStatusNum` at OPEN.
- */
+/** An OPEN task assigned to the current user. Canceled tasks stay OPEN optimistically, so deleted parents are excluded. */
 function isOpenChildTaskAction(action: OnyxTypes.ReportAction, currentUserAccountID: number): boolean {
     return (
         action.childType === CONST.REPORT.TYPE.TASK &&
@@ -68,12 +64,8 @@ function useConciergeSidePanelReportActions({
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
 
-    // Report actions the user sent during this session, captured while they were still pending. `sessionStartTime` is
-    // anchored with a network skew that isn't measured yet on a cold open, so on a device whose clock runs ahead the
-    // boundary can land past the real server clock. The server-stamped `created` then falls below it and the message
-    // the user just sent is filtered out seconds after appearing — taking the view back to the welcome state with it.
-    // Applies to the side panel as well as the main DM; both compare against a boundary anchored the same way.
-    // Membership here is sticky for the life of the session, so a re-stamp can never evict a message we already showed.
+    // Actions sent this session, captured while pending. The server can re-stamp `created` below the boundary, so keep
+    // them sticky rather than re-deriving visibility from the timestamp.
     const [sessionSentActionIDs, setSessionSentActionIDs] = useState<ReadonlySet<string>>(() => new Set());
 
     const hadMessagesAtSessionStart = localHadMessagesAtSessionStart;
@@ -141,8 +133,7 @@ function useConciergeSidePanelReportActions({
         return visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
     }, [isConciergeMainDM, isConciergeHiddenHistory, visibleReportActions, sessionStartTime]);
 
-    // Main DM only: a still-open task is pinned into the session view, so the welcome state must stand down —
-    // otherwise `filterActions` returns early with just the greeting and the pinned task never renders.
+    // Main DM only: the welcome state must stand down for a pinned task, or `filterActions` returns before it renders.
     const hasOpenChildTask = useMemo(() => {
         if (!isConciergeMainDM || !isConciergeHiddenHistory) {
             return false;
@@ -150,8 +141,7 @@ function useConciergeSidePanelReportActions({
         return visibleReportActions.some((action) => isOpenChildTaskAction(action, currentUserAccountID));
     }, [isConciergeMainDM, isConciergeHiddenHistory, visibleReportActions, currentUserAccountID]);
 
-    // `hasUserSentMessage` and `hasMessagesInSession` are both timestamp comparisons, so a server re-stamp flips them
-    // together — without the sticky set the welcome state would come back on top of a conversation already in progress.
+    // A re-stamp flips `hasUserSentMessage` too, so the sticky set is what keeps the welcome state from coming back.
     const hasSentInSession = hasUserSentMessage || sessionSentActionIDs.size > 0;
     const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasSentInSession && !showFullHistory && !hasMessagesInSession && !hasOpenChildTask;
     const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory && (!isConciergeMainDM || !hadMessagesAtSessionStart);
@@ -188,15 +178,12 @@ function useConciergeSidePanelReportActions({
             if (!sessionStartTime) {
                 return false;
             }
-            // Sent in this session and already shown once — keep it regardless of what the server stamped on it.
+            // Already shown this session — keep it whatever the server stamped on it.
             if (sessionSentActionIDs.has(action.reportActionID)) {
                 return true;
             }
             if (isConciergeMainDM) {
-                // A still-OPEN child task (e.g. an unfinished onboarding task) stays pinned even though it predates
-                // the session, so collapsing read history behind "Show history" never buries a task the user still
-                // has to act on. This replaces the blanket `hasOutstandingChildTask` bypass that used to force the
-                // entire history open, which is what suppressed the "Show history" button altogether.
+                // Pin a still-open task so collapsing read history never buries something the user has to act on.
                 return (
                     isCreatedAction(action) ||
                     isCurrentUserPendingAddAction(action, currentUserAccountID) ||
