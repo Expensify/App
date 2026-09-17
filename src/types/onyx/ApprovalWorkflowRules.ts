@@ -8,8 +8,8 @@ import type {ValueOf} from 'type-fest';
 type ApprovalWorkflowTrigger = ValueOf<typeof CONST.RULES.APPROVAL_WORKFLOW.TRIGGER>;
 
 /**
- * The triggers of a rule, keyed by a string index (e.g. `{"0": "ReportSubmit"}`). A rule fires when
- * any of its triggers matches the report event.
+ * The triggers of a rule, keyed by a string index starting at 1 (e.g. `{"1": "ReportSubmit"}`). A rule fires
+ * when any of its triggers matches the report event.
  */
 type ApprovalWorkflowTriggers = Record<string, ApprovalWorkflowTrigger>;
 
@@ -30,7 +30,7 @@ type ApprovalWorkflowAction = {
 };
 
 /**
- * The actions of a rule, keyed by a string index (e.g. `{"0": {"name": "ForwardTo", "approver": "..."}}`).
+ * The actions of a rule, keyed by a string index starting at 1 (e.g. `{"1": {"name": "ForwardTo", "approver": "..."}}`).
  */
 type ApprovalWorkflowActions = Record<string, ApprovalWorkflowAction>;
 
