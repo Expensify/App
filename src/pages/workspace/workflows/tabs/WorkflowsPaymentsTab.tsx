@@ -160,7 +160,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     ) : undefined;
     const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
     const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
-    const canInteractWithBankAccountRow = canWritePayments && !isOffline && !isBankAccountPendingDelete;
+    const canInteractWithBankAccountRow = canWritePayments && !isBankAccountPendingDelete;
     // Only the reimburser can send the unlock request, so a locked account offers no action to anyone else rather than
     // an Unlock button that would instead start connecting a different bank account.
     const canPerformBankAccountAction = !isBusinessBankAccountLocked || isUserReimburser;
@@ -209,7 +209,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         descriptionTextStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT,
         shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
-        disabled: isOffline || !canWritePayments || isBankAccountPendingDelete,
+        disabled: !canWritePayments || isBankAccountPendingDelete,
         shouldShowRightIcon: canWritePayments && !isBankAccountPendingDelete,
         interactive: canWritePayments && !isBankAccountPendingDelete,
         descriptionAddon: bankConnectionStatusAddon,
