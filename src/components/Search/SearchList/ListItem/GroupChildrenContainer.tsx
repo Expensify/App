@@ -1,5 +1,5 @@
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -43,10 +43,9 @@ function GroupChildrenContainer({
     // Only the rows this container holds decide its background, so a group still waiting for its first page is not painted as selected.
     const isSelected = !!item.isSelected || (item.transactions.length > 0 && isSelectAllChecked);
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected,
         shouldApplyOtherStyles: false,
     });
 

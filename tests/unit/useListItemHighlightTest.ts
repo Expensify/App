@@ -27,8 +27,11 @@ describe('useListItemHighlight', () => {
         mockUseAnimatedHighlightStyle.mockClear();
     });
 
-    it('configures the animation with the selection list border radius and full style application', () => {
-        const {styles, theme} = renderHighlightHook({shouldHighlight: true});
+    it.each<[string, HookParams]>([
+        ['unselected', {shouldHighlight: true}],
+        ['selected', {shouldHighlight: true, isSelected: true}],
+    ])('configures the animation with the selection list border radius, the resting background and full style application when %s', (_name, params) => {
+        const {styles, theme} = renderHighlightHook(params);
 
         expect(mockUseAnimatedHighlightStyle).toHaveBeenCalledWith({
             borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
