@@ -879,6 +879,7 @@ type ChangeTransactionsReportProps = {
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -901,6 +902,7 @@ function getChangeTransactionsReportOnyxData({
     delegateAccountID,
     getCurrencyDecimals,
     getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1392,6 +1394,7 @@ function getChangeTransactionsReportOnyxData({
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
+                isVendorMatchingBetaEnabled,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1896,6 +1899,7 @@ function getChangeTransactionsReportOnyxData({
             hasDependentTags: policyHasDependentTags,
             isInvoiceTransaction: false,
             ownerLogin: undefined,
+            isVendorMatchingBetaEnabled,
         });
         if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;

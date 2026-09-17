@@ -200,6 +200,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
@@ -226,6 +227,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             startAnimation();
             payMoneyRequest({
                 getCurrencyDecimals,
+                isASAPSubmitBetaEnabled,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
@@ -446,7 +448,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 confirmApproval: () => confirmApproval(),
                 iouReport: moneyRequestReport,
                 rules,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,

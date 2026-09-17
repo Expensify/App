@@ -188,6 +188,7 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
@@ -213,6 +214,7 @@ function useSelectionModePayment({
         } else {
             payMoneyRequest({
                 getCurrencyDecimals,
+                isASAPSubmitBetaEnabled,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
@@ -319,7 +321,6 @@ function useSelectionModePayment({
             confirmApproval,
             iouReport: moneyRequestReport,
             rules,
-            betas,
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,

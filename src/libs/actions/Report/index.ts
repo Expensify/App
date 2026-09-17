@@ -477,6 +477,7 @@ type MergeReportsProps = {
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -4605,7 +4606,6 @@ type BuildNewReportOptimisticDataParams = {
     reportPreviewReportActionID: string;
     hasViolationsParam: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<Beta[]>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
@@ -4620,7 +4620,6 @@ function buildNewReportOptimisticData({
     reportPreviewReportActionID,
     hasViolationsParam,
     isASAPSubmitBetaEnabled,
-    betas,
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
@@ -4629,7 +4628,18 @@ function buildNewReportOptimisticData({
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas, getCurrencyDecimals, rules);
+    const optimisticReportData = buildOptimisticEmptyReport(
+        reportID,
+        accountID,
+        login,
+        parentReport,
+        reportPreviewReportActionID,
+        policy,
+        timeOfCreation,
+        isASAPSubmitBetaEnabled,
+        getCurrencyDecimals,
+        rules,
+    );
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -4850,13 +4860,11 @@ function buildNewReportOptimisticData({
 }
 
 // Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
 function createNewReport(
     ownerPersonalDetails: CurrentUserPersonalDetails,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
-    betas: OnyxEntry<Beta[]>,
     isTrackIntentUser: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
@@ -4877,7 +4885,6 @@ function createNewReport(
         reportPreviewReportActionID,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
-        betas,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
@@ -8786,6 +8793,7 @@ function mergeReports({
     delegateAccountID,
     getCurrencyDecimals,
     getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -8799,6 +8807,7 @@ function mergeReports({
     }
 
     const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData({
+        isVendorMatchingBetaEnabled,
         transactionIDs: transactionIDsToMove,
         isASAPSubmitBetaEnabled,
         accountID,
