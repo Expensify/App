@@ -3867,8 +3867,15 @@ ${amount} για ${merchant} - ${date}`,
         vacationDelegateError: 'Παρουσιάστηκε σφάλμα κατά την ενημέρωση του αναπληρωτή σας για την άδεια.',
         asVacationDelegate: (nameOrEmail: string) => `ως εκπρόσωπος αδειών του/της ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `στον/στη ${submittedToName} ως αναπληρωτής/τρια αδειούχου για τον/τη ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Ορίζετε τον/την ${nameOrEmail} ως αναπληρωτή/τριά σας κατά τις διακοπές. Δεν συμμετέχει ακόμη σε όλους τους χώρους εργασίας σας. Αν επιλέξετε να συνεχίσετε, θα σταλεί email σε όλους τους διαχειριστές των χώρων εργασίας σας για να τον/την προσθέσουν.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θα ζητηθεί από τους διαχειριστές των χώρων εργασίας που δεν διαχειρίζεστε να τον/την προσθέσουν.`,
+            notAMemberInviteThemNow: (delegate: string) => `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θέλετε να τον/την προσκαλέσετε τώρα;`,
+            notAMemberMixed: (delegate: string) =>
+                `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θα ζητηθεί από τους διαχειριστές των χώρων εργασίας που δεν διαχειρίζεστε να τον/την προσθέσουν. Θέλετε να τον/την προσκαλέσετε τώρα σε αυτούς που διαχειρίζεστε ως διαχειριστής;`,
+            youAreAMemberOf: 'Είστε μέλος αυτών των χώρων εργασίας:',
+            youAreAnAdminOf: 'Είστε διαχειριστής αυτών των χώρων εργασίας:',
+        },
     },
     stepCounter: (step, total, text) => {
         let result = `Βήμα ${step}`;
@@ -4818,6 +4825,7 @@ ${amount} για ${merchant} - ${date}`,
             defaultDescription: 'Ένα μέρος για όλες τις αποδείξεις και τα έξοδά σας.',
             descriptionHint: 'Κοινοποιήστε πληροφορίες σχετικά με αυτόν τον χώρο εργασίας σε όλα τα μέλη.',
             welcomeNote: 'Παρακαλούμε χρησιμοποιήστε το Expensify για να υποβάλετε τις αποδείξεις σας για αποζημίωση, ευχαριστούμε!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# Ο/Η ${inviterName} σας προσκάλεσε στο ${workspaceName}`,
             subscription: 'Συνδρομή',
             markAsEntered: 'Σήμανση ως καταχωρισμένο χειροκίνητα',
             markAsExported: 'Επισήμανση ως εξαχθέν',

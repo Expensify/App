@@ -3824,8 +3824,15 @@ ${amount} dla ${merchant} - ${date}`,
         vacationDelegateError: 'Wystąpił błąd podczas aktualizowania Twojego zastępcy urlopowego.',
         asVacationDelegate: (nameOrEmail: string) => `jako osoba zastępująca ${nameOrEmail} podczas urlopu`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `do ${submittedToName} jako zastępca urlopowy dla ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Przydzielasz ${nameOrEmail} jako osobę zastępującą Cię podczas urlopu. Nie jest ona jeszcze we wszystkich Twoich przestrzeniach roboczych. Jeśli zdecydujesz się kontynuować, do wszystkich administratorów Twoich przestrzeni roboczych zostanie wysłany e-mail z prośbą o dodanie jej.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> nie jest członkiem poniższych przestrzeni roboczych. Administratorzy przestrzeni roboczych, którymi nie zarządzasz, zostaną poproszeni o dodanie tej osoby.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> nie jest członkiem poniższych przestrzeni roboczych. Czy chcesz zaprosić tę osobę teraz?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> nie jest członkiem poniższych przestrzeni roboczych. Administratorzy przestrzeni roboczych, którymi nie zarządzasz, zostaną poproszeni o dodanie tej osoby. Czy chcesz zaprosić tę osobę do przestrzeni, w których jesteś administratorem?`,
+            youAreAMemberOf: 'Jesteś członkiem tych przestrzeni roboczych:',
+            youAreAnAdminOf: 'Jesteś administratorem tych przestrzeni roboczych:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Krok ${step}`;
@@ -4743,6 +4750,7 @@ ${amount} dla ${merchant} - ${date}`,
             defaultDescription: 'Jedno miejsce na wszystkie Twoje paragony i wydatki.',
             descriptionHint: 'Udostępnij informacje o tym obszarze roboczym wszystkim członkom.',
             welcomeNote: 'Prosimy o przesyłanie paragonów do zwrotu kosztów za pomocą Expensify, dziękujemy!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} zaprosił(a) Cię do ${workspaceName}`,
             subscription: 'Subskrypcja',
             markAsEntered: 'Oznacz jako wprowadzone ręcznie',
             markAsExported: 'Oznacz jako wyeksportowane',

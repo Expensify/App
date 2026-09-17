@@ -3819,8 +3819,15 @@ ${amount} pour ${merchant} - ${date}`,
         vacationDelegateError: 'Une erreur s’est produite lors de la mise à jour de votre remplaçant de congés.',
         asVacationDelegate: (nameOrEmail: string) => `en tant que délégué de vacances de ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `à ${submittedToName} en tant que délégué de congés pour ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Vous assignez ${nameOrEmail} comme remplaçant pendant vos congés. Cette personne n’est pas encore présente dans tous vos espaces de travail. Si vous choisissez de continuer, un e-mail sera envoyé aux administrateurs de tous vos espaces de travail pour l’ajouter.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> n'est pas membre des espaces de travail ci-dessous. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> n'est pas membre des espaces de travail ci-dessous. Voulez-vous l'inviter maintenant ?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> n'est pas membre des espaces de travail ci-dessous. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter. Voulez-vous l'inviter dès maintenant à ceux dont vous êtes administrateur ?`,
+            youAreAMemberOf: 'Vous êtes membre de ces espaces de travail :',
+            youAreAnAdminOf: 'Vous êtes administrateur de ces espaces de travail :',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Étape ${step}`;
@@ -4750,6 +4757,7 @@ ${amount} pour ${merchant} - ${date}`,
             defaultDescription: 'Un seul endroit pour tous vos reçus et dépenses.',
             descriptionHint: 'Partager des informations sur cet espace de travail avec tous les membres.',
             welcomeNote: 'Veuillez utiliser Expensify pour soumettre vos reçus en vue de leur remboursement, merci !',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} vous a invité à ${workspaceName}`,
             subscription: 'Abonnement',
             markAsEntered: 'Marquer comme saisi manuellement',
             markAsExported: 'Marquer comme exporté',

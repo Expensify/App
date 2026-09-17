@@ -3673,8 +3673,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         vacationDelegateError: '更新你的休假代理时出错。',
         asVacationDelegate: (nameOrEmail: string) => `作为 ${nameOrEmail} 的休假代理`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `作为 ${vacationDelegateName} 的休假代理人提交给 ${submittedToName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `您正在将 ${nameOrEmail} 设为您的休假代理人。TA 还未加入您所有的工作区。如果继续操作，将会向您所有工作区的管理员发送一封邮件，请他们将 TA 添加进来。`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) => `<strong>${delegate}</strong> 不是以下工作区的成员。系统会请求你未管理的工作区的管理员将其添加进来。`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> 不是以下工作区的成员。你要现在邀请他们吗？`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> 不是以下工作区的成员。系统会请求你未管理的工作区的管理员将其添加进来。你要现在邀请他们加入你管理的工作区吗？`,
+            youAreAMemberOf: '你是这些工作区的成员：',
+            youAreAnAdminOf: '你是这些工作区的管理员：',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `步骤 ${step}`;
@@ -4564,6 +4570,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             defaultDescription: '一个集中管理所有收据和报销费用的地方。',
             descriptionHint: '与所有成员共享此工作区的信息。',
             welcomeNote: '请使用 Expensify 提交报销收据，谢谢！',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} 邀请你加入 ${workspaceName}`,
             subscription: '订阅',
             markAsEntered: '标记为手动输入',
             markAsExported: '标记为已导出',

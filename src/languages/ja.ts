@@ -3764,8 +3764,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         vacationDelegateError: '休暇の代理人を更新中にエラーが発生しました。',
         asVacationDelegate: (nameOrEmail: string) => `${nameOrEmail} さんの休暇代理として`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `${nameOrEmail} さんをあなたの休暇代理人に指定しようとしています。この人は、まだすべてのワークスペースに参加していません。続行すると、すべてのワークスペース管理者に、この人を追加するようメールが送信されます。`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。今すぐ招待しますか？`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。あなたが管理者になっているワークスペースには今すぐ招待しますか？`,
+            youAreAMemberOf: 'あなたはこれらのワークスペースのメンバーです：',
+            youAreAnAdminOf: 'あなたはこれらのワークスペースの管理者です：',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `ステップ ${step}`;
@@ -4677,6 +4684,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             defaultDescription: 'すべての領収書と経費を一か所で管理。',
             descriptionHint: 'このワークスペースに関する情報をすべてのメンバーと共有します。',
             welcomeNote: '精算のための領収書提出には Expensify をご利用ください。ありがとうございます！',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName}さんがあなたを${workspaceName}に招待しました`,
             subscription: 'サブスクリプション',
             markAsEntered: '手入力としてマーク',
             markAsExported: 'エクスポート済みにする',
