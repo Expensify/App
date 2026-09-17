@@ -26,7 +26,7 @@ function InsightsPage({route}: InsightsPageProps) {
     const {isBetaEnabled} = usePermissions();
     useDocumentTitle(translate('common.insights'));
 
-    const isKnownDashboard = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND;
+    const isKnownDashboard = route.params?.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND;
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !isKnownDashboard) {
         return <NotFoundPage />;

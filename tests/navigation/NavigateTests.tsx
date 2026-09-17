@@ -26,9 +26,13 @@ jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
+/**
+ * Looks the Tab and Workspace navigators up by name rather than by hardcoded indexes, so adding or reordering routes
+ * doesn't silently shift an index and make these assertions read `undefined`.
+ */
 function getWorkspaceNavigatorState() {
     const tabNavigatorState = navigationRef.current?.getRootState().routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)?.state;
-    return tabNavigatorState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+    return tabNavigatorState?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
 }
 
 describe('Navigate', () => {
