@@ -20,7 +20,10 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const candidate = !Array.isArray(reportAction?.message) ? (reportAction?.message ?? reportAction?.originalMessage) : reportAction?.originalMessage;
 
-    // OldDot actions sometimes store a plain notification string here where OriginalMessage<T> declares an object, and callers use `in` on the result.
+    // Some legacy/OldDot report actions (e.g. card-imported expense updates) store a plain notification
+    // string in `message`/`originalMessage` instead of the object shape declared by `OriginalMessage<T>`.
+    // Downstream callers use the JS `in` operator on the result, which throws a TypeError on non-objects.
+    // Normalize non-object values to undefined so the runtime matches the declared TypeScript contract.
     if (candidate === null || typeof candidate !== 'object') {
         return undefined;
     }
