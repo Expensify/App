@@ -1726,6 +1726,7 @@ function getChangeTransactionsReportOnyxData({
             transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const searchTransaction = {
             ...transactionForViolations,
             reportID,
