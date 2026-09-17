@@ -104,6 +104,10 @@ function ShareRootPage() {
 
     const handleProcessFiles = useCallback(() => {
         ShareActionHandler.processFiles((processedFiles: unknown) => {
+            if (errorTitle) {
+                return;
+            }
+
             let tempFile: ShareTempFile | undefined;
             if (Array.isArray(processedFiles)) {
                 const first: unknown = (processedFiles as unknown[]).at(0);
@@ -121,9 +125,6 @@ function ShareRootPage() {
                 } catch (error) {
                     Log.warn('[ShareRootPage] Failed to parse processedFiles', {error, processedFiles});
                 }
-            }
-            if (errorTitle) {
-                return;
             }
             if (!tempFile) {
                 setErrorTitle(translate('attachmentPicker.attachmentError'));
