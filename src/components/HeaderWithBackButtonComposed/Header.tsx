@@ -13,10 +13,7 @@ function Header({children, style}: HeaderProps) {
     const styles = useThemeStyles();
 
     return (
-        // NIE MA JESZCZE
-        // shouldShowBorderBottom && styles.borderBottom,
-        // shouldShowBackButton && [styles.pl2],
-        // shouldOverlay && StyleSheet.absoluteFill,
+        // styles.borderBottom should be applied inline through styles instead of using shouldShowBorderBottom
         <View
             style={[styles.headerBar, contentHeaderHeightStyle, style]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
