@@ -5,6 +5,7 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 
 import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {createTaskFromMarkdown} from '@libs/actions/Task';
@@ -33,6 +34,7 @@ function useComposerSubmit(reportID: string) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
+    const {openSidePanel} = useSidePanelActions();
     const route = useRoute();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -78,12 +80,17 @@ function useComposerSubmit(reportID: string) {
             clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
         }
 
+        const shouldRespondInThread = reportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+
         if (attachmentFileRef.current) {
+            const attachments = attachmentFileRef.current;
+            const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
+            const conciergeThreadReportID = willOpenThread ? generateReportID() : undefined;
             addAttachmentWithComment({
                 report: targetReport,
                 notifyReportID: reportID,
                 ancestors: targetReportAncestors,
-                attachments: attachmentFileRef.current,
+                attachments,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 text: draftMessageTrimmed,
                 timezone: currentUserPersonalDetails.timezone,
@@ -92,7 +99,12 @@ function useComposerSubmit(reportID: string) {
                 delegateAccountID,
                 sidePanelContext,
                 conciergeReportID,
+                conciergeThreadReportID,
+                shouldNavigateToConciergeThread: !isInSidePanel,
             });
+            if (conciergeThreadReportID && isInSidePanel) {
+                openSidePanel({reportID: conciergeThreadReportID});
+            }
             attachmentFileRef.current = null;
             return;
         }
@@ -118,6 +130,7 @@ function useComposerSubmit(reportID: string) {
                 attributes,
             });
         }
+        const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
         addComment({
             report: targetReport,
             notifyReportID: reportID,
@@ -131,11 +144,12 @@ function useComposerSubmit(reportID: string) {
             reportActionID: optimisticReportActionID,
             delegateAccountID,
             conciergeReportID,
-
-            // Concierge answers each question in its own thread. The side panel renders its own pinned report,
-            // so it stays in the DM rather than being sent to a thread it cannot show.
-            conciergeThreadReportID: reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) ? generateReportID() : undefined,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: !isInSidePanel,
         });
+        if (conciergeThreadReportID && isInSidePanel) {
+            openSidePanel({reportID: conciergeThreadReportID});
+        }
     };
 
     const submitDraftAndClearComposer = () => {
