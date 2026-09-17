@@ -61,6 +61,7 @@ function DraggableList<T>({
             if (!isDraggingRef.current) {
                 return;
             }
+
             // No drag end event fires for a list that unmounts mid-drag, which would strand the grabbing cursor.
             DragCursor.hide();
             cancelDndKeyboardDrag();
