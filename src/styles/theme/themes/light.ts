@@ -39,7 +39,7 @@ const lightTheme = {
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
     warning: colors.yellow400,
-    success: colors.pink400,
+    success: colors.purple,
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
