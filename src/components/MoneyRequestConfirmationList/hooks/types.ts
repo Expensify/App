@@ -11,19 +11,15 @@ import type useConfirmationPolicyData from './useConfirmationPolicyData';
 import type useDistanceRequestState from './useDistanceRequestState';
 
 /**
- * The slice of the distance state the shared data hook reads: whether the route or the commuter-exclusion preview
- * is still pending, whether the calculated distance amount should overwrite the stored one, that amount, and the
- * rate's currency with its previous value.
- *
- * A distance variant computes the full state with {@link useDistanceRequestState} and passes it down. Every other
- * variant passes nothing, and the distance branches of the amount, CTA and validation hooks go inert.
+ * The slice of the distance state the shared data hook reads. Only `useDistanceConfirmationListData` passes it;
+ * without it the distance branches of the amount, CTA and validation hooks are skipped.
  */
 type ConfirmationDistanceState = Pick<
     ReturnType<typeof useDistanceRequestState>,
     'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency' | 'prevCurrency'
 >;
 
-/** Everything the confirmation reads from the workspace, resolved once per list by {@link useConfirmationPolicyData}. */
+/** Everything the confirmation reads from the workspace */
 type ConfirmationPolicyData = ReturnType<typeof useConfirmationPolicyData>;
 
 type UseConfirmationListDataParams = MoneyRequestConfirmationListProps & {
