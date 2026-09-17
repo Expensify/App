@@ -31,7 +31,16 @@ type HeaderTitleProps = {
     shouldUseHeadlineHeader?: boolean;
 };
 
-function HeaderTitle({title, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
+function HeaderTitle({
+    title,
+    subtitle = '',
+    titleColor,
+    titleStyles,
+    stepCounter,
+    subTitleLink = '',
+    shouldSkipFocusAfterTransition = false,
+    shouldUseHeadlineHeader = false,
+}: HeaderTitleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();

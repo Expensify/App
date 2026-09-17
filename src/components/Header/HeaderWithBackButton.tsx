@@ -6,8 +6,6 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import CONST from '@src/CONST';
 
 import type {SvgProps} from 'react-native-svg';
@@ -21,7 +19,7 @@ import HeaderCloseButton from './primitives/HeaderCloseButton';
 import HeaderDownloadButton from './primitives/HeaderDownloadButton';
 import HeaderIcon from './primitives/HeaderIcon';
 import HeaderIconButton from './primitives/HeaderIconButton';
-import HeaderThreeDotsMenu, {DEFAULT_ANCHOR_ALIGNMENT} from './primitives/HeaderThreeDotsMenu';
+import HeaderThreeDotsMenu from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
 
 type HeaderProps = Omit<
@@ -56,10 +54,10 @@ function HeaderWithBackButton({
     iconWidth,
     iconHeight,
     iconStyles,
-    onBackButtonPress = () => Navigation.goBack(),
-    onCloseButtonPress = () => Navigation.dismissModal(),
+    onBackButtonPress,
+    onCloseButtonPress,
     onDownloadButtonPress = () => {},
-    onThreeDotsButtonPress = () => {},
+    onThreeDotsButtonPress,
     report,
     policyAvatar,
     policyAvatarSize = CONST.AVATAR_SIZE.DEFAULT,
@@ -69,27 +67,27 @@ function HeaderWithBackButton({
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
-    isDownloading = false,
-    shouldSetModalVisibility = true,
+    isDownloading,
+    shouldSetModalVisibility,
     shouldShowThreeDotsButton = false,
-    shouldUseHeadlineHeader = false,
+    shouldUseHeadlineHeader,
     stepCounter,
-    subtitle = '',
+    subtitle,
     title = '',
     titleColor,
     titleStyles,
-    threeDotsAnchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
+    threeDotsAnchorAlignment,
     threeDotsMenuItems = [],
-    shouldEnableDetailPageNavigation = false,
-    children = null,
-    shouldOverlayDots = false,
+    shouldEnableDetailPageNavigation,
+    children,
+    shouldOverlayDots,
     shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
     style,
-    subTitleLink = '',
+    subTitleLink,
     shouldMinimizeMenuButton = false,
-    openParentReportInCurrentTab = false,
-    shouldSkipFocusAfterTransition = false,
+    openParentReportInCurrentTab,
+    shouldSkipFocusAfterTransition,
 }: HeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
