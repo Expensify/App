@@ -1649,10 +1649,10 @@ describe('WorkflowUtils', () => {
     });
 
     describe('rule-based approval workflows', () => {
-        const submitTriggers = {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT};
-        const approveTriggers = {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE};
-        const forwardActions = (approver: string) => ({'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}});
-        const approveActions = {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}};
+        const submitTriggers = {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT};
+        const approveTriggers = {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE};
+        const forwardActions = (approver: string) => ({'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}});
+        const approveActions = {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}};
         const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
         const buildToFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: email});
         const and = (left: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, right: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter => ({
@@ -2113,9 +2113,9 @@ describe('WorkflowUtils', () => {
         const ruleForPolicy = (scopeID: string, extra: Partial<Rule> = {}): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID,
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
             filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
             ...extra,
         });
 
