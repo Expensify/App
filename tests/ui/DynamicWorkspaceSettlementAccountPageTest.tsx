@@ -31,10 +31,18 @@ let settlementAccountOptions: BankAccountListItem[];
 
 jest.mock('@components/SettlementAccountSelector', () => ({
     __esModule: true,
-    default: ({listOptions, onSelectAccount}: {listOptions: BankAccountListItem[]; onSelectAccount: (value: number) => void}) => {
+    default: ({
+        customHeaderContent,
+        listOptions,
+        onSelectAccount,
+    }: {
+        customHeaderContent?: React.ReactElement;
+        listOptions: BankAccountListItem[];
+        onSelectAccount: (value: number) => void;
+    }) => {
         settlementAccountOptions = listOptions;
         selectAccount = onSelectAccount;
-        return null;
+        return customHeaderContent ?? null;
     },
     BankAccountListItemLeftElement: () => null,
 }));

@@ -1,5 +1,5 @@
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@components/SettlementAccountSelector';
@@ -166,6 +166,11 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
                         />
                     </View>
                 )}
+                <ErrorMessageRow
+                    errors={settlementAccountErrors}
+                    errorRowStyles={[styles.mh5, styles.mb3]}
+                    onDismiss={() => clearSettlementAccountError(defaultFundID)}
+                />
             </>
         );
     };
@@ -189,22 +194,12 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
                         Navigation.goBack(backPath);
                     }}
                 />
-                <OfflineWithFeedback
-                    pendingAction={settlementAccountPendingAction}
-                    errors={settlementAccountErrors}
-                    onClose={() => clearSettlementAccountError(defaultFundID)}
-                    shouldDisplayErrorAbove
-                    style={styles.flex1}
-                    contentContainerStyle={styles.flex1}
-                    errorRowStyles={styles.mh5}
-                >
-                    <SettlementAccountSelector
-                        listOptions={listOptions}
-                        onSelectAccount={handleSelectAccount}
-                        customHeaderContent={getCustomListHeaderContent()}
-                        initiallyFocusedItemKey={paymentBankAccountID?.toString()}
-                    />
-                </OfflineWithFeedback>
+                <SettlementAccountSelector
+                    listOptions={listOptions}
+                    onSelectAccount={handleSelectAccount}
+                    customHeaderContent={getCustomListHeaderContent()}
+                    initiallyFocusedItemKey={paymentBankAccountID?.toString()}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
