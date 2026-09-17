@@ -1890,9 +1890,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions, rules]);
 
-    const headerButtonsOptions = useMemo(() => {
+    const {headerButtonsOptions, dropdownButtonsOptions} = useMemo(() => {
         if ((selectedTransactionsKeys.length === 0 && !(isExpenseType && areAllMatchingItemsSelected)) || !hash) {
-            return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
+            const noOptions = CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
+            return {headerButtonsOptions: noOptions, dropdownButtonsOptions: noOptions};
         }
 
         const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
@@ -2262,15 +2263,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         /**
-         * Export is sometimes the only bulk action available (most commonly under "select all"). There is no main menu
-         * to go back to then, so the dropdown opens directly onto the export options rather than nesting them behind
+         * Export is sometimes the only bulk action available (most commonly under "select all"). The dropdown has no
+         * main menu to go back to then, so it opens directly onto the export options rather than nesting them behind
          * an "Export" row whose submenu would render a back arrow leading nowhere. The "Export" label is not lost:
          * `bulkActionsMenuHeaderText` below puts it back as a plain (non-interactive) header above the options.
+         *
+         * This only suits the dropdown. The bulk action bar renders each action as its own button, so flattening
+         * there would spread the export options across the bar under a heading instead of keeping them under one
+         * "Export" button. It takes the nested options, where "Export" opens its menu directly and has no back arrow.
          */
         const openExportOptionsDirectlyIfSoleAction = (builtOptions: Array<DropdownOption<SearchHeaderOptionValue>>): Array<DropdownOption<SearchHeaderOptionValue>> => {
             const isExportTheOnlyAction = builtOptions.length === 1 && builtOptions.at(0)?.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT;
             return isExportTheOnlyAction && subMenuItems.length > 0 ? subMenuItems : builtOptions;
         };
+
+        const buildResult = (builtOptions: Array<DropdownOption<SearchHeaderOptionValue>>) => ({
+            headerButtonsOptions: builtOptions,
+            dropdownButtonsOptions: openExportOptionsDirectlyIfSoleAction(builtOptions),
+        });
 
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
@@ -2289,7 +2299,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            return openExportOptionsDirectlyIfSoleAction(shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption]);
+            return buildResult(shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption]);
         }
 
         if (allSelectedAreDeleted) {
@@ -2324,7 +2334,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 });
             }
 
-            return deletedTransactionOptions;
+            return buildResult(deletedTransactionOptions);
         }
 
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -2944,7 +2954,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        return openExportOptionsDirectlyIfSoleAction(options);
+        return buildResult(options);
     }, [
         selectedTransactionsKeys,
         hash,
@@ -3038,11 +3048,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         rules,
     ]);
 
-    // When the export options are surfaced directly there is no "Export" row above them, so on its own the list gives
-    // no clue what the options refer to. Put "Export" back as a plain header — it reads the same as the label the back
-    // button normally carries, minus the caret, since there is no menu to go back to.
+    // When the dropdown surfaces the export options directly there is no "Export" row above them, so on its own the
+    // list gives no clue what the options refer to. Put "Export" back as a plain header. It reads the same as the
+    // label the back button normally carries, minus the caret, since there is no menu to go back to.
     const isShowingExportOptionsDirectly =
-        headerButtonsOptions.length > 0 && headerButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT && !option.subMenuItems);
+        dropdownButtonsOptions.length > 0 && dropdownButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT && !option.subMenuItems);
     const bulkActionsMenuHeaderText = isShowingExportOptionsDirectly ? translate('common.export') : undefined;
 
     const handleOfflineModalClose = useCallback(() => {
@@ -3093,6 +3103,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     return {
         headerButtonsOptions,
+        dropdownButtonsOptions,
         bulkActionsMenuHeaderText,
         selectedPolicyIDs,
         selectedTransactionReportIDs,
