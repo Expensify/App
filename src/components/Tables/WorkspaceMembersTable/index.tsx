@@ -1,6 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
-import MEMBER_CELL_AVATAR_WIDTH from '@components/Tables/memberCellAvatarWidth';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -92,7 +91,7 @@ export default function WorkspaceMembersTable({
                     {text: item.name, fontSize: fontScale.text},
                     {text: item.email, fontSize: fontScale.label},
                 ],
-                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+                extraWidth: variables.tableMemberCellAvatarWidth,
             },
         },
 

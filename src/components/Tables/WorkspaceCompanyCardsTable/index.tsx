@@ -5,8 +5,6 @@ import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import getExportAccountColumn from '@components/Tables/getExportAccountColumn';
-import MEMBER_CELL_AVATAR_WIDTH from '@components/Tables/memberCellAvatarWidth';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -25,7 +23,7 @@ import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
-import {getCardExportAccountTitle, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
+import {getCardExportAccountTitle, getExportAccountColumn, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
@@ -221,7 +219,7 @@ function WorkspaceCompanyCardsTable({
                     },
                     {text: item.isAssigned ? Str.removeSMSDomain(item.cardholder?.login ?? '') : '', fontSize: fontScale.label},
                 ],
-                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+                extraWidth: variables.tableMemberCellAvatarWidth,
             },
         },
         {
@@ -232,8 +230,10 @@ function WorkspaceCompanyCardsTable({
                 containerStyles: [styles.mnw0],
             },
             dynamicSizing: {
+                // formatMaskedCardName returns the feed's name unchanged unless it is all digits, so this column can
+                // hold long free text. Fitting it to its content would pin the column's minimum to that width and force
+                // the whole table to scroll.
                 getContentToMeasure: (item) => [{text: formatMaskedCardName(item.cardName), fontSize: fontScale.text}],
-                shouldFitContent: true,
             },
         },
         {

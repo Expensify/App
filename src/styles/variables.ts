@@ -152,6 +152,7 @@ export default {
     tableRequireFieldsTypeColumnWidth: 112,
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
+    tableMemberCellAvatarWidth: avatarSizes.avatarSizeSmall + 12,
     workspaceTagsTableCountColumnWidth: 100,
     domainTableActionColumnWidth: 64,
     domainAdminsTableActionColumnWidth: 220,

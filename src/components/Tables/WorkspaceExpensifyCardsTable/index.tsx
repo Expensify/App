@@ -1,8 +1,6 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import getExportAccountColumn from '@components/Tables/getExportAccountColumn';
-import MEMBER_CELL_AVATAR_WIDTH from '@components/Tables/memberCellAvatarWidth';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -13,6 +11,7 @@ import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
+import {getExportAccountColumn} from '@pages/workspace/companyCards/utils';
 import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCardListLabels';
 
 import {fontScale} from '@styles/typography';
@@ -129,7 +128,7 @@ export default function WorkspaceExpensifyCardsTable({
                     {text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate, formatPhoneNumber}), fontSize: fontScale.text},
                     {text: item.name, fontSize: fontScale.label},
                 ],
-                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+                extraWidth: variables.tableMemberCellAvatarWidth,
             },
         },
         {

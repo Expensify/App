@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+import type {TableColumn, TableData} from '@components/Table';
 
 import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -10,6 +11,7 @@ import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtil
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import type {ThemeStyles} from '@styles/index';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -30,6 +32,11 @@ type ExportIntegration = {
     shouldHideMenuItemDescription?: boolean;
     shouldShowMenuItemIcon?: boolean;
     shouldShowMenuItem?: boolean;
+};
+
+type ExportAccountRowData = TableData & {
+    /** The account the row's card exports to, as shown in the card details page's Accounting section */
+    exportAccountTitle?: string;
 };
 
 /** An export account candidate, normalized so every integration shares one resolution path. */
@@ -552,6 +559,25 @@ function getCardExportAccountTitle(settings: CardExportSettings | undefined, com
     return getCardExportAccountSelection(settings, companyCard).title;
 }
 
+/**
+ * Builds the Export account column shared by the company cards and Expensify Card tables.
+ */
+function getExportAccountColumn<DataType extends ExportAccountRowData>(label: string, styles: ThemeStyles): TableColumn<'exportAccount', DataType> {
+    return {
+        key: 'exportAccount',
+        label,
+        sortable: true,
+        styling: {
+            // Cell text never wraps, so without minWidth: 0 the grid track sizes from the full account name instead of
+            // its share and the row overflows the table.
+            containerStyles: [styles.mnw0],
+        },
+        dynamicSizing: {
+            getContentToMeasure: (item) => (item.exportAccountTitle ? [{text: item.exportAccountTitle, fontSize: fontScale.text}] : []),
+        },
+    };
+}
+
 function getExportMenuItem(
     connectionName: PolicyConnectionName | undefined,
     policyID: string,
@@ -617,4 +643,5 @@ function getCompanyCardDetailsBackPath(
     return createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feed, cardID), detailsBasePath);
 }
 
-export {getCardExportAccountTitle, getCompanyCardDetailsBackPath, getExportMenuItem, getPolicyCardExportSettings};
+export {getCardExportAccountTitle, getCompanyCardDetailsBackPath, getExportAccountColumn, getExportMenuItem, getPolicyCardExportSettings};
+export type {ExportAccountRowData};
