@@ -10,17 +10,7 @@ import CONST from '@src/CONST';
 
 import type {SvgProps} from 'react-native-svg';
 
-import Header from './Header';
-import HeaderActions from './layout/HeaderActions';
-import HeaderRight from './layout/HeaderRight';
-import HeaderAvatarWithDisplayName from './primitives/HeaderAvatarWithDisplayName';
-import HeaderBackButton from './primitives/HeaderBackButton';
-import HeaderCloseButton from './primitives/HeaderCloseButton';
-import HeaderDownloadButton from './primitives/HeaderDownloadButton';
-import HeaderIcon from './primitives/HeaderIcon';
-import HeaderIconButton from './primitives/HeaderIconButton';
-import HeaderThreeDotsMenu from './primitives/HeaderThreeDotsMenu';
-import HeaderTitle from './primitives/HeaderTitle';
+import Header from '.';
 
 type HeaderProps = Omit<
     HeaderWithBackButtonProps,
@@ -97,14 +87,14 @@ function HeaderWithBackButton({
     return (
         <Header style={[shouldShowBorderBottom && styles.borderBottom, style]}>
             {shouldShowBackButton && (
-                <HeaderBackButton
+                <Header.BackButton
                     onPress={onBackButtonPress}
                     iconFill={iconFill}
                     shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                 />
             )}
             {!!icon && (
-                <HeaderIcon
+                <Header.Icon
                     src={icon}
                     width={iconWidth}
                     height={iconHeight}
@@ -120,14 +110,14 @@ function HeaderWithBackButton({
                 />
             )}
             {shouldShowReportAvatarWithDisplay ? (
-                <HeaderAvatarWithDisplayName
+                <Header.AvatarWithDisplayName
                     report={report}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
             ) : (
-                <HeaderTitle
+                <Header.Title
                     title={title}
                     subtitle={subtitle}
                     stepCounter={stepCounter}
@@ -138,19 +128,19 @@ function HeaderWithBackButton({
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                 />
             )}
-            <HeaderRight>
-                <HeaderActions>
+            <Header.Right>
+                <Header.Actions>
                     {children}
                     {shouldShowDownloadButton && (
-                        <HeaderDownloadButton
+                        <Header.DownloadButton
                             onPress={onDownloadButtonPress}
                             isLoading={isDownloading}
                             iconFill={iconFill}
                         />
                     )}
-                </HeaderActions>
+                </Header.Actions>
                 {shouldShowThreeDotsButton && threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton && !!threeDotsMenuFirstItem && (
-                    <HeaderIconButton
+                    <Header.IconButton
                         tooltipText={threeDotsMenuFirstItem.text}
                         onPress={threeDotsMenuFirstItem.onSelected}
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- PopoverMenuItem.icon is typed as a generic component; header menu items always pass an SVG icon component.
@@ -159,7 +149,7 @@ function HeaderWithBackButton({
                     />
                 )}
                 {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
-                    <HeaderThreeDotsMenu
+                    <Header.ThreeDotsMenu
                         items={threeDotsMenuItems}
                         onIconPress={onThreeDotsButtonPress}
                         shouldOverlay={shouldOverlayDots}
@@ -168,14 +158,14 @@ function HeaderWithBackButton({
                     />
                 )}
                 {shouldShowCloseButton && (
-                    <HeaderCloseButton
+                    <Header.CloseButton
                         iconFill={iconFill}
                         onPress={onCloseButtonPress}
                     />
                 )}
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
-            </HeaderRight>
+            </Header.Right>
         </Header>
     );
 }
