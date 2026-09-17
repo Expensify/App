@@ -884,14 +884,20 @@ describe('createOrUpdateDeployChecklist', () => {
                 ],
             });
 
-            const result = await run();
+            await run();
+
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const createPayload = createCall[0];
 
             // Only the genuinely new PRs should appear — not the stale cherry-picked one.
-            expect(result?.body).toContain('https://github.com/Expensify/App/pull/10');
-            expect(result?.body).toContain('https://github.com/Expensify/App/pull/11');
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/10');
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/11');
 
             // PR #50 was already deployed to production via cherry-pick; it must not appear.
-            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/50');
+            expect(createPayload.body).not.toContain('https://github.com/Expensify/App/pull/50');
 
             mockGetDeployChecklistData.mockRestore();
         });
@@ -968,14 +974,20 @@ describe('createOrUpdateDeployChecklist', () => {
                 ],
             });
 
-            const result = await run();
+            await run();
+
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const createPayload = createCall[0];
 
             // The genuinely new PR and the fresh submodule bump must appear.
-            expect(result?.body).toContain('https://github.com/Expensify/App/pull/10');
-            expect(result?.body).toContain('9.3.21-0');
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/10');
+            expect(createPayload.body).toContain('9.3.21-0');
 
             // The stale submodule bump was already deployed to production — must not appear.
-            expect(result?.body).not.toContain('9.3.20-0');
+            expect(createPayload.body).not.toContain('9.3.20-0');
 
             mockGetDeployChecklistData.mockRestore();
         });
