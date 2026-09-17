@@ -3,7 +3,11 @@
  * Used for dependent tag navigation where the filter disambiguates same-named tags.
  */
 function appendParentTagsFilter(route: string, parentTagsFilter?: string): string {
-    return parentTagsFilter ? `${route}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}` : route;
+    if (!parentTagsFilter) {
+        return route;
+    }
+    const separator = route.includes('?') ? '&' : '?';
+    return `${route}${separator}parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`;
 }
 
 export default appendParentTagsFilter;
