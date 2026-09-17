@@ -1235,6 +1235,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeNotMet: 'O tamanho do arquivo deve ser maior que 0 bytes',
         invalidFileMessage:
             'O arquivo que você enviou está vazio ou contém dados inválidos. Verifique se o arquivo está formatado corretamente e contém as informações necessárias antes de enviá-lo novamente.',
+        invalidApprovalLimit: 'Os limites de aprovação devem ser valores válidos e não negativos na moeda do espaço de trabalho.',
         importSpreadsheetLibraryError: 'Falha ao carregar o módulo de planilha. Verifique sua conexão com a internet e tente novamente.',
         importSpreadsheet: 'Importar planilha',
         importWorkflows: 'Importar fluxos de trabalho',

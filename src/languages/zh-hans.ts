@@ -1186,6 +1186,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importDescription: '通过点击下方每个导入列旁边的下拉菜单，选择要从电子表格中映射的字段。',
         sizeNotMet: '文件大小必须大于 0 字节',
         invalidFileMessage: '您上传的文件为空或包含无效数据。请确保文件格式正确且包含所需信息，然后再重新上传。',
+        invalidApprovalLimit: '审批限额必须是工作区货币中的有效非负金额。',
         importSpreadsheetLibraryError: '加载电子表格模块失败。请检查您的互联网连接，然后重试。',
         importSpreadsheet: '导入电子表格',
         importWorkflows: '导入工作流程',

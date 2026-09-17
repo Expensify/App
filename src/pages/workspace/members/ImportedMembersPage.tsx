@@ -4,6 +4,7 @@ import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -16,6 +17,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {parseApprovalLimit} from '@libs/PolicyMemberUtils';
 import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -39,6 +41,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
 
@@ -81,12 +84,17 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             if (duplicate) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
-                errors = {};
+                const approvalLimitColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD);
+                const decimals = getCurrencyDecimals(policy?.outputCurrency);
+                const hasInvalidApprovalLimit =
+                    approvalLimitColumn !== -1 &&
+                    spreadsheet?.data?.[approvalLimitColumn]?.some((value, index) => (containsHeader && index === 0 ? false : parseApprovalLimit(value, decimals) === null));
+                errors = hasInvalidApprovalLimit ? {approvalLimit: translate('spreadsheet.invalidApprovalLimit')} : {};
             }
         }
 
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate]);
+    }, [containsHeader, getCurrencyDecimals, policy?.outputCurrency, requiredColumns, spreadsheet?.columns, spreadsheet?.data, translate]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -195,7 +203,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             }
             const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
-            const approvalLimit = membersApprovalLimitColumn !== -1 ? (membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '') : undefined;
+            const approvalLimit =
+                membersApprovalLimitColumn !== -1
+                    ? (parseApprovalLimit(membersApprovalLimit?.[containsHeader ? index + 1 : index], getCurrencyDecimals(policy?.outputCurrency)) ?? undefined)
+                    : undefined;
             const overLimitForwardsTo = membersOverLimitForwardsToColumn !== -1 ? (membersOverLimitForwardsTo?.[containsHeader ? index + 1 : index] ?? '') : undefined;
 
             return {

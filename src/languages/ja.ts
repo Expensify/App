@@ -1221,6 +1221,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeNotMet: 'ファイルサイズは0バイトより大きくする必要があります',
         invalidFileMessage:
             'アップロードしたファイルは空であるか、無効なデータが含まれています。再度アップロードする前に、ファイルの形式が正しく、必要な情報が含まれていることを確認してください。',
+        invalidApprovalLimit: '承認限度額は、ワークスペースの通貨で有効な0以上の金額である必要があります。',
         importSpreadsheetLibraryError: 'スプレッドシートモジュールの読み込みに失敗しました。インターネット接続を確認して、もう一度お試しください。',
         importSpreadsheet: 'スプレッドシートをインポート',
         importWorkflows: 'ワークフローをインポート',

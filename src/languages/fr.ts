@@ -1240,6 +1240,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeNotMet: 'La taille du fichier doit être supérieure à 0 octet',
         invalidFileMessage:
             'Le fichier que vous avez téléchargé est soit vide, soit contient des données non valides. Veuillez vous assurer que le fichier est correctement formaté et contient les informations nécessaires avant de le télécharger à nouveau.',
+        invalidApprovalLimit: 'Les limites d’approbation doivent être des montants valides et non négatifs dans la devise de l’espace de travail.',
         importSpreadsheetLibraryError: 'Échec du chargement du module de feuille de calcul. Veuillez vérifier votre connexion Internet et réessayer.',
         importSpreadsheet: 'Importer un tableau',
         importWorkflows: 'Importer les workflows',

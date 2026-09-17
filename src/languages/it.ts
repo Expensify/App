@@ -1235,6 +1235,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeNotMet: 'La dimensione del file deve essere maggiore di 0 byte',
         invalidFileMessage:
             'Il file che hai caricato è vuoto oppure contiene dati non validi. Assicurati che il file sia formattato correttamente e contenga le informazioni necessarie prima di caricarlo di nuovo.',
+        invalidApprovalLimit: 'I limiti di approvazione devono essere importi validi e non negativi nella valuta del workspace.',
         importSpreadsheetLibraryError: 'Caricamento del modulo foglio di calcolo non riuscito. Controlla la connessione a Internet e riprova.',
         importSpreadsheet: 'Importa foglio di calcolo',
         importWorkflows: 'Importa flussi di lavoro',

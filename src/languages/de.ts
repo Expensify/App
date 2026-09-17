@@ -1236,6 +1236,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeNotMet: 'Dateigröße muss größer als 0 Bytes sein',
         invalidFileMessage:
             'Die hochgeladene Datei ist entweder leer oder enthält ungültige Daten. Bitte stelle sicher, dass die Datei korrekt formatiert ist und alle erforderlichen Informationen enthält, bevor du sie erneut hochlädst.',
+        invalidApprovalLimit: 'Genehmigungsgrenzen müssen gültige, nicht negative Beträge für die Workspace-Währung sein.',
         importSpreadsheetLibraryError: 'Laden des Tabellenmoduls fehlgeschlagen. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
         importSpreadsheet: 'Tabellenkalkulation importieren',
         importWorkflows: 'Workflows importieren',

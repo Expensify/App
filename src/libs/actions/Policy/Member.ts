@@ -19,6 +19,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import {isApprovalLimitChanged} from '@libs/PolicyMemberUtils';
 import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -1050,7 +1051,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
                     (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '') ||
                     (curr.customField1 !== undefined && curr.customField1 !== (existingCustomField1 ?? '')) ||
                     (curr.customField2 !== undefined && curr.customField2 !== (existingCustomField2 ?? '')) ||
-                    (curr.approvalLimit !== undefined && curr.approvalLimit !== String(employee.approvalLimit ?? '')) ||
+                    (curr.approvalLimit !== undefined && isApprovalLimitChanged(curr.approvalLimit, employee.approvalLimit)) ||
                     (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? ''))
                 ) {
                     acc.updated++;

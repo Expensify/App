@@ -1267,6 +1267,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeNotMet: 'Rozmiar pliku musi być większy niż 0 bajtów',
         invalidFileMessage:
             'Przesłany plik jest pusty lub zawiera nieprawidłowe dane. Upewnij się, że plik ma prawidłowy format i zawiera wszystkie wymagane informacje, zanim prześlesz go ponownie.',
+        invalidApprovalLimit: 'Limity zatwierdzania muszą być prawidłowymi, nieujemnymi kwotami w walucie obszaru roboczego.',
         importSpreadsheetLibraryError: 'Nie udało się załadować modułu arkusza kalkulacyjnego. Sprawdź połączenie z internetem i spróbuj ponownie.',
         importSpreadsheet: 'Importuj arkusz kalkulacyjny',
         importWorkflows: 'Importuj przepływy pracy',
