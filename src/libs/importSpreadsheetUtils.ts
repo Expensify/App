@@ -1,5 +1,8 @@
 import CONST from '@src/CONST';
 
+import {stripCommaFromAmount, stripSpacesFromAmount} from './MoneyRequestUtils';
+import StringUtils from './StringUtils';
+
 function findDuplicate(array: string[]): string | null {
     const frequencyCounter: Record<string, number> = {};
 
@@ -39,4 +42,13 @@ function generateColumnNames(length: number) {
     return Array.from({length}, (_, i) => numberToColumn(i));
 }
 
-export {findDuplicate, generateColumnNames};
+/**
+ * Normalizes an amount cell from an imported spreadsheet by removing its currency marker, grouping separators, and whitespace.
+ */
+function normalizeImportedAmount(value: string, currencySymbol?: string, currencyCode?: string): string {
+    const tokens = [currencySymbol, currencyCode].filter((token): token is string => !!token).map((token) => StringUtils.escapeRegExp(token));
+    const withoutCurrency = tokens.length > 0 ? value.trim().replace(new RegExp(`^(?:${tokens.join('|')})\\s*|\\s*(?:${tokens.join('|')})$`, 'i'), '') : value;
+    return stripCommaFromAmount(stripSpacesFromAmount(withoutCurrency.replaceAll(/\p{Sc}/gu, '')));
+}
+
+export {findDuplicate, generateColumnNames, normalizeImportedAmount};

@@ -13,8 +13,9 @@ import usePolicy from '@hooks/usePolicy';
 
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import Tab from '@libs/actions/Tab';
-import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
-import {stripCommaFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import {findDuplicate, generateColumnNames, normalizeImportedAmount} from '@libs/importSpreadsheetUtils';
+import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -41,7 +42,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
 
@@ -86,12 +87,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             } else {
                 const approvalLimitColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD);
                 if (approvalLimitColumn !== -1) {
-                    const decimals = getCurrencyDecimals(policy?.outputCurrency);
+                    const currency = policy?.outputCurrency;
+                    const decimals = getCurrencyDecimals(currency);
                     const hasInvalidApprovalLimit = spreadsheet?.data?.[approvalLimitColumn]?.some((value, index) => {
                         if (containsHeader && index === 0) {
                             return false;
                         }
-                        const normalizedValue = stripCommaFromAmount(stripSpacesFromAmount(String(value)).replaceAll(CONST.REGEX.CURRENCY_SYMBOLS, ''));
+                        const normalizedValue = normalizeImportedAmount(String(value), getCurrencySymbol(currency ?? ''), currency);
                         return !validateAmount(normalizedValue, decimals);
                     });
                     errors = hasInvalidApprovalLimit ? {approvalLimit: translate('spreadsheet.invalidApprovalLimit')} : {};
@@ -102,7 +104,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         return errors;
-    }, [containsHeader, getCurrencyDecimals, policy?.outputCurrency, requiredColumns, spreadsheet?.columns, spreadsheet?.data, translate]);
+    }, [containsHeader, getCurrencyDecimals, getCurrencySymbol, policy?.outputCurrency, requiredColumns, spreadsheet?.columns, spreadsheet?.data, translate]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -212,12 +214,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const approvalLimitValue = membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '';
-            const normalizedApprovalLimit = stripCommaFromAmount(stripSpacesFromAmount(approvalLimitValue).replaceAll(CONST.REGEX.CURRENCY_SYMBOLS, ''));
+            const currency = policy?.outputCurrency;
+            const normalizedApprovalLimit = normalizeImportedAmount(approvalLimitValue, getCurrencySymbol(currency ?? ''), currency);
             let approvalLimit: string | undefined;
             if (membersApprovalLimitColumn !== -1) {
                 approvalLimit = normalizedApprovalLimit;
                 if (normalizedApprovalLimit !== '') {
-                    approvalLimit = String(Math.round(Number.parseFloat(normalizedApprovalLimit) * 10 ** getCurrencyDecimals(policy?.outputCurrency)));
+                    approvalLimit = String(convertToBackendAmount(Number.parseFloat(normalizedApprovalLimit)));
                 }
             }
             const overLimitForwardsTo = membersOverLimitForwardsToColumn !== -1 ? (membersOverLimitForwardsTo?.[containsHeader ? index + 1 : index] ?? '') : undefined;

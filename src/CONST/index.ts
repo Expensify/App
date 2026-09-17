@@ -5535,7 +5535,6 @@ const CONST = {
         };
     },
     REGEX: {
-        CURRENCY_SYMBOLS: /[$€£¥]/g,
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
