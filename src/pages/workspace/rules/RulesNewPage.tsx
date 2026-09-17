@@ -9,7 +9,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -61,13 +60,11 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const {policyID, categoryName} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt', 'AiBot']);
     const isCategoryScopedCreate = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW || !!categoryName;
 
     // The category-scoped flow already knows the category and offers fewer types, so it opens on the list.
-    const canDescribeRule = isRulesRevampEnabled && !isCategoryScopedCreate;
+    const canDescribeRule = !isCategoryScopedCreate;
     const [shouldShowRuleTypes, setShouldShowRuleTypes] = useState(!canDescribeRule);
     const [generationID, setGenerationID] = useState<string>();
 
@@ -254,7 +251,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 testID="RulesNewPage"

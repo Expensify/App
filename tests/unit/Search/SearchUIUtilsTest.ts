@@ -53,6 +53,11 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+declare global {
+    var createTransactionThreadReportMock: jest.Mock;
+    var setOptimisticDataForTransactionThreadPreviewMock: jest.Mock;
+}
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -60,12 +65,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
-    createTransactionThreadReport: jest.fn(),
+    createTransactionThreadReport: globalThis.createTransactionThreadReportMock ?? (globalThis.createTransactionThreadReportMock = jest.fn()),
 }));
-jest.mock('@userActions/Search', () => ({
-    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    setOptimisticDataForTransactionThreadPreview: jest.fn(),
-}));
+jest.mock('@userActions/Search', () => ({setOptimisticDataForTransactionThreadPreview: jest.fn()}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
@@ -5883,6 +5885,233 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.reportName).toBe('Task without concierge');
         });
 
+        describe('task status filter uses the live report instead of the stale snapshot', () => {
+            const staleTaskReportID = 'task_report_700';
+            const staleCreatorID = 121212;
+            const staleAssigneeID = 131313;
+
+            // The snapshot still says the task is open — this is exactly what `completeTask` leaves behind,
+            // because it only writes to `report_<taskID>` and never patches `snapshot_<hash>`.
+            const snapshotTask = createMock<SearchTask>({
+                type: CONST.REPORT.TYPE.TASK,
+                accountID: staleCreatorID,
+                reportID: staleTaskReportID,
+                reportName: 'Stale outstanding task',
+                description: 'Completed but still in the snapshot as open',
+                managerID: staleAssigneeID,
+                parentReportID: 'parent_stale',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                created: '2025-02-05 10:00:00',
+            });
+
+            const staleTaskData = createMock<OnyxTypes.SearchResults['data']>({
+                personalDetailsList: {
+                    [staleCreatorID]: {
+                        accountID: staleCreatorID,
+                        avatar: '',
+                        displayName: 'Stale Creator',
+                        login: 'creator@test.com',
+                    },
+                    [staleAssigneeID]: {
+                        accountID: staleAssigneeID,
+                        avatar: '',
+                        displayName: 'Stale Assignee',
+                        login: 'assignee@test.com',
+                    },
+                },
+                [`report_${staleTaskReportID}`]: snapshotTask,
+            });
+
+            const getStaleTaskSections = (query: string) =>
+                getSectionsByType(
+                    SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
+                        type: CONST.SEARCH.DATA_TYPES.TASK,
+                        data: staleTaskData,
+                        currentAccountID: staleCreatorID,
+                        currentUserEmail: 'creator@test.com',
+                        translate: translateLocal,
+                        formatPhoneNumber,
+                        bankAccountList: {},
+                        rules: undefined,
+                        conciergeReportID: '999',
+                        convertToDisplayString,
+                        reportAttributesDerivedValue: {},
+                        queryJSON: buildSearchQueryJSON(query),
+                    }),
+                    SearchUIUtils.isTaskListItemType,
+                );
+
+            beforeEach(async () => {
+                // The live report has been completed, mirroring what `completeTask` merges into Onyx.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, {
+                    ...snapshotTask,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('drops a completed task from the outstanding filter', () => {
+                const [result, count] = getStaleTaskSections('type:task status:outstanding');
+
+                expect(result).toHaveLength(0);
+                expect(count).toBe(0);
+            });
+
+            it('keeps a completed task in the completed filter and reports its live status', () => {
+                const [result, count] = getStaleTaskSections('type:task status:completed');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+                expect(result.at(0)?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            });
+
+            it('keeps a still-open task in the outstanding filter', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+                await waitForBatchedUpdates();
+
+                const [result, count] = getStaleTaskSections('type:task status:outstanding');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.reportName).toBe('Stale outstanding task');
+            });
+
+            // A negated filter (`-status:completed`) keeps every status *except* the excluded ones, so it has to be
+            // judged against the live report too. `-` is the negation prefix and `status` is negatable, so these
+            // queries are reachable by typing them into the search router.
+            it('drops a completed task from a negated completed filter', () => {
+                const [result, count] = getStaleTaskSections('type:task -status:completed');
+
+                expect(result).toHaveLength(0);
+                expect(count).toBe(0);
+            });
+
+            it('keeps a completed task in a negated outstanding filter', () => {
+                const [result, count] = getStaleTaskSections('type:task -status:outstanding');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            });
+
+            it('keeps a still-open task in a negated completed filter', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+                await waitForBatchedUpdates();
+
+                const [result, count] = getStaleTaskSections('type:task -status:completed');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+            });
+        });
+
+        describe('reopening a task re-filters against the live report', () => {
+            const reopenedTaskReportID = 'task_report_701';
+            const reopenedCreatorID = 141414;
+            const reopenedAssigneeID = 151515;
+
+            // Mirror image of the complete case: `reopenTask` writes only to `report_<taskID>`, so the snapshot is
+            // left claiming the task is still completed.
+            const completedSnapshotTask = createMock<SearchTask>({
+                type: CONST.REPORT.TYPE.TASK,
+                accountID: reopenedCreatorID,
+                reportID: reopenedTaskReportID,
+                reportName: 'Stale completed task',
+                description: 'Reopened but still in the snapshot as completed',
+                managerID: reopenedAssigneeID,
+                parentReportID: 'parent_reopened',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                created: '2025-02-06 10:00:00',
+            });
+
+            const reopenedTaskData = createMock<OnyxTypes.SearchResults['data']>({
+                personalDetailsList: {
+                    [reopenedCreatorID]: {
+                        accountID: reopenedCreatorID,
+                        avatar: '',
+                        displayName: 'Reopened Creator',
+                        login: 'reopencreator@test.com',
+                    },
+                    [reopenedAssigneeID]: {
+                        accountID: reopenedAssigneeID,
+                        avatar: '',
+                        displayName: 'Reopened Assignee',
+                        login: 'reopenassignee@test.com',
+                    },
+                },
+                [`report_${reopenedTaskReportID}`]: completedSnapshotTask,
+            });
+
+            const getReopenedTaskSections = (query: string) =>
+                getSectionsByType(
+                    SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
+                        type: CONST.SEARCH.DATA_TYPES.TASK,
+                        data: reopenedTaskData,
+                        currentAccountID: reopenedCreatorID,
+                        currentUserEmail: 'reopencreator@test.com',
+                        translate: translateLocal,
+                        formatPhoneNumber,
+                        bankAccountList: {},
+                        rules: undefined,
+                        conciergeReportID: '999',
+                        convertToDisplayString,
+                        reportAttributesDerivedValue: {},
+                        queryJSON: buildSearchQueryJSON(query),
+                    }),
+                    SearchUIUtils.isTaskListItemType,
+                );
+
+            beforeEach(async () => {
+                // The live report has been reopened, mirroring what `reopenTask` merges into Onyx.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reopenedTaskReportID}`, {
+                    ...completedSnapshotTask,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reopenedTaskReportID}`, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('drops a reopened task from the completed filter', () => {
+                const [result, count] = getReopenedTaskSections('type:task status:completed');
+
+                expect(result).toHaveLength(0);
+                expect(count).toBe(0);
+            });
+
+            it('shows a reopened task under the outstanding filter with its live status', () => {
+                const [result, count] = getReopenedTaskSections('type:task status:outstanding');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.reportName).toBe('Stale completed task');
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+                expect(result.at(0)?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            });
+        });
+
         describe('getReportSections computed fields (totalDisplaySpend, nonReimbursableSpend, reimbursableSpend, isAllScanning)', () => {
             const testReportID = 'spend-test-report';
             const testTxID1 = 'spend-tx-1';
@@ -11107,6 +11336,43 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('Should not show Violations when FORWARDED snapshot data is present without a violation has-filter', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'forwarded-without-filter',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID}`]: {
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                        created: '2025-01-01 00:00:00',
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {
+                                transactions: {
+                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                                },
+                            },
+                        },
+                    },
+                },
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
@@ -11144,7 +11410,7 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
@@ -11189,7 +11455,12 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data,
+                visibleColumns: customVisibleColumns,
+                shouldShowViolationsColumn: true,
+            });
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
         });
@@ -11229,8 +11500,41 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data,
+                visibleColumns: customVisibleColumns,
+                shouldShowViolationsColumn: true,
+            });
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('Should strip Violations from custom column layouts without a violation has-filter', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'custom-columns-strip-violations',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+            const customVisibleColumns = [
+                CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ];
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
         test('Should only show Category GL Code when that column is selected', () => {
@@ -12253,6 +12557,7 @@ describe('SearchUIUtils', () => {
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
             expect(createTransactionThreadReport).toHaveBeenCalledWith({
                 introSelected: introSelectedData,
+                conciergeChat: undefined,
                 currentUserLogin,
                 currentUserAccountID,
                 betas: undefined,
@@ -13006,16 +13311,205 @@ describe('SearchUIUtils', () => {
     });
 
     describe('getHasOptions', () => {
-        test('returns expense has options including submitted and approved violation', () => {
+        const getExpenseHasOptions = () => ({
+            receipt: {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+            attachment: {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+            tag: {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+            category: {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+            submittedViolation: {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+            approvedViolation: {text: translateLocal('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
+        });
+
+        test('returns all expense has options when shouldShowAllOptions is set (display/validation path)', () => {
+            const {receipt, attachment, tag, category, submittedViolation, approvedViolation} = getExpenseHasOptions();
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {shouldShowAllOptions: true});
+
+            expect(result).toEqual([receipt, attachment, tag, category, submittedViolation, approvedViolation]);
+        });
+
+        test('hides Tag, Category, Submitted violation, and Approved violation when the user has no workspaces', () => {
+            const {receipt, attachment} = getExpenseHasOptions();
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies: {}});
+
+            expect(result).toEqual([receipt, attachment]);
+        });
+
+        test('shows Tag only when at least one accessible workspace has tags enabled', () => {
+            const {receipt, attachment, tag} = getExpenseHasOptions();
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    areTagsEnabled: true,
+                    areCategoriesEnabled: false,
+                    areRulesEnabled: false,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result).toEqual([receipt, attachment, tag]);
+        });
+
+        test('hides Tag when no accessible workspace has tags enabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    areTagsEnabled: false,
+                    areCategoriesEnabled: true,
+                    areRulesEnabled: true,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.TAG);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.CATEGORY);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+        });
+
+        test('shows Category only when at least one accessible workspace has categories enabled', () => {
+            const {receipt, attachment, category} = getExpenseHasOptions();
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    areTagsEnabled: false,
+                    areCategoriesEnabled: true,
+                    areRulesEnabled: false,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result).toEqual([receipt, attachment, category]);
+        });
+
+        test('hides Category when no accessible workspace has categories enabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    areTagsEnabled: true,
+                    areCategoriesEnabled: false,
+                    areRulesEnabled: true,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.CATEGORY);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.TAG);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+        });
+
+        test('shows Submitted and Approved violation when at least one accessible workspace has Rules enabled', () => {
+            const {receipt, attachment, submittedViolation, approvedViolation} = getExpenseHasOptions();
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    areTagsEnabled: false,
+                    areCategoriesEnabled: false,
+                    areRulesEnabled: true,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
+        });
+
+        test('hides Submitted and Approved violation when no accessible workspace has Rules enabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    areTagsEnabled: true,
+                    areCategoriesEnabled: true,
+                    areRulesEnabled: false,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.TAG);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.CATEGORY);
+        });
+
+        test('ignores personal policies when deciding which has options to show', () => {
+            const {receipt, attachment} = getExpenseHasOptions();
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
+                    areTagsEnabled: true,
+                    areCategoriesEnabled: true,
+                    areRulesEnabled: true,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result).toEqual([receipt, attachment]);
+        });
+
+        test('ignores pending workspace joins when deciding which has options to show', () => {
+            const {receipt, attachment} = getExpenseHasOptions();
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    areTagsEnabled: true,
+                    areCategoriesEnabled: true,
+                    areRulesEnabled: true,
+                    isJoinRequestPending: true,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result).toEqual([receipt, attachment]);
+        });
+
+        test('shows Submitted and Approved violation for Collect workspaces with Rules enabled', () => {
+            const {receipt, attachment, submittedViolation, approvedViolation} = getExpenseHasOptions();
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    areTagsEnabled: false,
+                    areCategoriesEnabled: false,
+                    areRulesEnabled: true,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
+
+            expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
+        });
+
+        test('keeps already-selected Tag/Category/Submitted/Approved violation when those workspace features are off', () => {
+            const {receipt, attachment, tag, category, submittedViolation, approvedViolation} = getExpenseHasOptions();
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    areTagsEnabled: false,
+                    areCategoriesEnabled: false,
+                    areRulesEnabled: false,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {
+                policies,
+                selectedValues: [CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.CATEGORY, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+            });
+
+            expect(result).toEqual([receipt, attachment, tag, category, submittedViolation, approvedViolation]);
+        });
+
+        test('hides Tag, Category, Submitted violation, and Approved violation when no policies are provided', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
             expect(result).toEqual([
                 {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
                 {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
-                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
-                {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
-                {text: translateLocal('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
             ]);
         });
 
@@ -13721,6 +14215,43 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('isExistingSearchKey', () => {
+        const suggestedSearchKeys = [CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS];
+        const savedSearchIDs = ['12345'];
+
+        it('accepts a suggested search key that is currently visible', () => {
+            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SEARCH_KEYS.EXPENSES, suggestedSearchKeys, savedSearchIDs)).toBe(true);
+        });
+
+        it('rejects a valid search key that is not among the visible suggested searches', () => {
+            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SEARCH_KEYS.STATEMENTS, suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+
+        it('accepts a saved search key whose ID exists', () => {
+            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`, suggestedSearchKeys, savedSearchIDs)).toBe(true);
+        });
+
+        it('rejects a saved search key whose ID no longer exists', () => {
+            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}99999`, suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+
+        it('rejects a saved search key when the user has no saved searches', () => {
+            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`, suggestedSearchKeys, [])).toBe(false);
+        });
+
+        it('rejects the bare saved search prefix', () => {
+            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SAVED_SEARCH_PREFIX, suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+
+        it.each([undefined, ''])('rejects %p', (value) => {
+            expect(SearchUIUtils.isExistingSearchKey(value, suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+
+        it('rejects an unknown string', () => {
+            expect(SearchUIUtils.isExistingSearchKey('someUnknownKey', suggestedSearchKeys, savedSearchIDs)).toBe(false);
+        });
+    });
+
     describe('searchKeyToSavedSearchID', () => {
         it('strips the prefix to recover the saved search ID', () => {
             expect(SearchUIUtils.searchKeyToSavedSearchID(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`)).toBe('12345');
@@ -13738,6 +14269,27 @@ describe('SearchUIUtils', () => {
     describe('savedSearchIDToSearchKey', () => {
         it('prefixes a saved search ID to build a search key', () => {
             expect(SearchUIUtils.savedSearchIDToSearchKey('12345')).toBe(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`);
+        });
+    });
+
+    describe('getSearchKeyForDataType', () => {
+        it('maps the expense type to the Expenses search', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE)).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+
+        it('maps the expense report type to the Reports search', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it.each([CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TASK, CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.DATA_TYPES.CHAT])(
+            'returns undefined for the "%s" type',
+            (type) => {
+                expect(SearchUIUtils.getSearchKeyForDataType(type)).toBeUndefined();
+            },
+        );
+
+        it('returns undefined when the type is undefined', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(undefined)).toBeUndefined();
         });
     });
 

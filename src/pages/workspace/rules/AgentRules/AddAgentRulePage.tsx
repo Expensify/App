@@ -14,7 +14,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -66,8 +65,6 @@ function AddAgentRulePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policy = usePolicy(policyID);
     const linkPressedRef = useRef(false);
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -145,13 +142,8 @@ function AddAgentRulePage({
     };
 
     const navigateBackToAgentsTab = () => {
-        if (isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
-            return;
-        }
-
-        Navigation.goBack();
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+        Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
@@ -171,9 +163,7 @@ function AddAgentRulePage({
             closeModal();
         };
 
-        if (isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-        }
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
 
         Navigation.dismissModal({
             afterTransition: () => {
@@ -188,7 +178,7 @@ function AddAgentRulePage({
                             />
                         </View>
                     ),
-                    confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
+                    confirmText: translate('workspace.rules.agentRules.gotIt'),
                     shouldShowCancelButton: false,
                     shouldUseSuccessStyleForConfirm: true,
                     iconSource: BotAvatarBlue,
@@ -225,7 +215,7 @@ function AddAgentRulePage({
             >
                 <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
                     <HeaderWithBackButton
-                        title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')}
+                        title={translate('workspace.rules.agentRules.newRuleTitle')}
                         shouldDisplayHelpButton
                         onBackButtonPress={handleBackButtonPress}
                     />
