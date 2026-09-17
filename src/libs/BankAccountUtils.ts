@@ -47,7 +47,12 @@ function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>
 }
 
 function isBankAccountPartiallySetup(state: string | undefined) {
-    return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
+    return (
+        state === CONST.BANK_ACCOUNT.STATE.SETUP ||
+        state === CONST.BANK_ACCOUNT.STATE.VERIFYING ||
+        state === CONST.BANK_ACCOUNT.STATE.PENDING ||
+        state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED
+    );
 }
 
 function getBankAccountState(accountData: AccountData | undefined): string | undefined {
