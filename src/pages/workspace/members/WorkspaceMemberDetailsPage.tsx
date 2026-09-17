@@ -24,6 +24,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -47,6 +48,7 @@ import {
     PAYER_ROLES,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
+import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
@@ -73,6 +75,7 @@ import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, P
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -122,6 +125,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
@@ -174,7 +179,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
 
-    const isApprover = isPolicyApprover(policy, memberLogin);
+    const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
     const isTechnicalContact = policy?.technicalContact === details?.login;
     const exporters = [
         policy?.connections?.intacct?.config?.export?.exporter,

@@ -33,6 +33,7 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -43,6 +44,7 @@ import {
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
@@ -70,6 +72,7 @@ import {
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -1168,6 +1171,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getSubmitsToUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
                     Clipboard.setString(getForwardsToUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO) {
+                    Clipboard.setString(getOverLimitForwardsToUpdateMessage(translate, reportAction, convertToDisplayString));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT) {
+                    Clipboard.setString(getApprovalLimitUpdateMessage(translate, reportAction, convertToDisplayString));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
                     Clipboard.setString(getAutoPayApprovedReportsEnabledMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
@@ -1379,6 +1386,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedCardFeedStatementPeriodMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
                     setClipboardMessage(getTravelUpdateMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+                    // setClipboardMessage treats its argument as HTML, and the helper returns plain text, so encode it to copy a workspace name containing an entity literally.
+                    setClipboardMessage(Str.htmlEncode(getConciergeAutoSelectDistanceRateMessage(translate, reportAction)));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
                     setClipboardMessage(getUpdatedAuditRateMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE)) {
