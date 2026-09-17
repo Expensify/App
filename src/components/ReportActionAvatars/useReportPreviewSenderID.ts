@@ -321,7 +321,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const attendeeLogins = transactions?.flatMap((transaction) => transaction.comment?.attendees?.map((att) => att.email)) ?? [];
+    const attendeeLogins = transactions?.flatMap((transaction) => convertAttendeesToArray(transaction.comment?.attendees).map((att) => att.email)) ?? [];
     const attendeesPersonalDetails = usePersonalDetailsByLogins(attendeeLogins);
 
     return getReportPreviewSenderID({
