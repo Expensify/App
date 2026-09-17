@@ -71,7 +71,6 @@ import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
-
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
