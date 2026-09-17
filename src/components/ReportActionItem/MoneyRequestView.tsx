@@ -424,6 +424,7 @@ function MoneyRequestView({
         isEditable &&
         (canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT,
             isChatReportArchived,
             reportNameValuePairs,
@@ -435,6 +436,7 @@ function MoneyRequestView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT,
             isChatReportArchived,
             reportNameValuePairs,
@@ -448,6 +450,7 @@ function MoneyRequestView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE,
             isChatReportArchived,
             reportNameValuePairs,
@@ -464,6 +467,7 @@ function MoneyRequestView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.DISTANCE,
             isChatReportArchived,
             reportNameValuePairs,
@@ -478,6 +482,7 @@ function MoneyRequestView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
             isChatReportArchived,
             reportNameValuePairs,
@@ -492,6 +497,7 @@ function MoneyRequestView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
             isChatReportArchived,
             outstandingReportsByPolicyID,
@@ -534,6 +540,7 @@ function MoneyRequestView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
             isChatReportArchived,
             reportNameValuePairs,
