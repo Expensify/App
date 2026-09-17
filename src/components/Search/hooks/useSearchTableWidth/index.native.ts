@@ -8,7 +8,7 @@ import {useCallback, useRef, useState} from 'react';
  * web, where it is attached to the container to take the synchronous first measurement.
  */
 function useSearchTableWidth() {
-    const tableWidthRef = useRef<View>(null);
+    const tableWidthRef = useRef<View | null>(null);
     const [tableWidth, setTableWidth] = useState(0);
 
     const onTableLayout = useCallback((event: LayoutChangeEvent) => {

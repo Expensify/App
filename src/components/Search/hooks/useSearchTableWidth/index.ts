@@ -14,28 +14,28 @@ import {useCallback, useLayoutEffect, useRef, useState} from 'react';
  * `onLayout` keeps the width current afterwards (window resize, sidebar collapse), which is also native's only source.
  */
 function useSearchTableWidth() {
-    const tableWidthRef = useRef<View>(null);
+    const tableWidthRef = useRef<View | null>(null);
     const [tableWidth, setTableWidth] = useState(0);
 
     useLayoutEffect(() => {
         // Only the initial measurement has to beat the first paint; onLayout owns every change after that, so this
-        // avoids forcing a reflow on renders where the width is already known.
+        // returns once the width is known rather than re-measuring on later renders.
         if (tableWidth > 0) {
             return;
         }
 
-        const element = tableWidthRef.current as unknown as Element | null;
+        const node = tableWidthRef.current;
 
-        if (!element) {
+        if (!node) {
             return;
         }
 
-        const width = element.getBoundingClientRect().width;
+        const width = node.getBoundingClientRect().width;
 
         if (width > 0) {
             setTableWidth(width);
         }
-    });
+    }, [tableWidth]);
 
     const onTableLayout = useCallback((event: LayoutChangeEvent) => {
         setTableWidth(event.nativeEvent.layout.width);
