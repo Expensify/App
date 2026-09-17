@@ -1,6 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 import TextInput from '@components/TextInput';
 
 import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
@@ -78,9 +79,7 @@ function DynamicIOURequestStepDescription({
     // While creating an expense the route report isn't the workspace chat (it can be a seeded report ID or the self-DM),
     // so resolve the policy from the transaction the same way the category step does before reading its categories.
     const categoriesPolicyID = getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(report, transactionReport, participantReport));
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${categoriesPolicyID}`);
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${categoriesPolicyID}`);
-    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const policyCategories = usePolicyCategoriesForConfirmation(categoriesPolicyID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
