@@ -185,4 +185,20 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
         // Keeps '' so apply time genuinely trims the child. This preserves the behavior PR #97951 added.
         expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[1, '']]));
     });
+
+    it('dependent multi-level: undoing the parent pick drops the intent even though it auto-selected a child', async () => {
+        const payload = await renderAndTap({
+            policy: makePolicy(true),
+            policyTags: DEPENDENT_TAGS,
+            // The parent CostCenterA was picked and auto-selected its only child IndicationX; only the
+            // parent intent is recorded. Tapping the parent again undoes that own pick.
+            draft: {selectedTransactionIDs: ['t1'], tag: 'CostCenterA:IndicationX', bulkEditTagChanges: seedChanges([[0, 'CostCenterA']])},
+            tagListIndex: 0,
+            tappedTag: 'CostCenterA',
+        });
+
+        // isUndoingOwnPick matches at the parent, so the intent is deleted and the whole subtree nets to
+        // nothing: apply time writes no tag and each expense keeps the value it already had.
+        expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[0, null]]));
+    });
 });
