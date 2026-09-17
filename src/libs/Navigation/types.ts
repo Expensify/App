@@ -2,8 +2,8 @@ import type {MultifactorAuthenticationPromptType} from '@components/MultifactorA
 import type {SearchQueryString} from '@components/Search/types';
 
 import type {ReplacementReason} from '@libs/actions/Card';
-import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
@@ -164,6 +164,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: {
+        /** cardID of the card waiting to be added to a digital wallet */
+        cardID: string;
+    };
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
         cardID: string;
 
@@ -203,12 +207,35 @@ type SettingsNavigatorParamList = {
         bankAccountID: string;
         subPage: string;
         action?: 'edit';
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: {
         bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
         bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
+        bankAccountID: string;
+        subPage: string;
+        action?: 'edit';
+        bankCountry?: string;
+        bankCurrency?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: {
+        bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
+        bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
@@ -307,6 +334,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
     };
@@ -990,6 +1018,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_FX_EXPENSE_ACCOUNT_SELECTOR]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_PREREQUISITES]: {
         policyID: string;
     };
@@ -1120,6 +1151,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_APPROVAL_ACCOUNT_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_FX_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_CUSTOM_FORM_ID]: {
@@ -1363,6 +1397,18 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
@@ -1415,6 +1461,7 @@ type SettingsNavigatorParamList = {
         isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: undefined;
     [SCREENS.WORKSPACE.TAX_CREATE]: {
         policyID: string;
     };
@@ -1688,6 +1735,57 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
         categoryName?: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW]: {
+        policyID: string;
+        categoryName?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MATCH_TYPE]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_CATEGORY]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAG]: {
+        policyID: string;
+        orderWeight: number | string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX]: {
+        policyID: string;
+        ruleID?: undefined;
+        /** The callout flow only ever creates merchant rules, never a category tax default */
+        categoryName?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_VENDOR]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_DESCRIPTION]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_REIMBURSABLE]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_BILLABLE]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: {
+        policyID: string;
+        ruleID?: undefined;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
         policyID: string;
@@ -2886,6 +2984,13 @@ type ReportsSplitNavigatorParamList = {
         referrer?: string;
         /** Submit-via-PDF secure access link key. When present, the viewer is validated and joined to the report. */
         secureKey?: string;
+        /**
+         * Set when reportID is a client-generated optimistic ID for a chat that doesn't exist on the server yet
+         * Suppresses openReport until the report exists locally.
+         */
+        isPendingCreation?: string;
+        /** The report the user was viewing when they opened Concierge from the side-pane button (native), so Concierge can act on it. */
+        sourceReportID?: string;
         /** When 'true', a money-request report opens scrolled to its latest message instead of the top (used by the "X Replies" link). */
         shouldScrollToLatest?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -2931,6 +3036,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MCP]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
@@ -3189,6 +3297,11 @@ type TabNavigatorParamList = {
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
+    [SCREENS.INSIGHTS]:
+        | {
+              dashboardID: string;
+          }
+        | undefined;
 };
 
 type SharedScreensParamList = {
@@ -3346,6 +3459,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
         [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
+        [SCREENS.PRE_MOUNT_BUFFER]: undefined;
     };
 
 type SearchReportActionsParamList = {
@@ -3382,6 +3496,7 @@ type SearchFullscreenNavigatorParamList = {
         rawQuery?: SearchQueryString;
         name?: string;
         groupBy?: string;
+        searchKey?: SearchKey;
     };
 };
 
@@ -3393,7 +3508,9 @@ type SearchAdvancedFiltersParamList = {
 };
 
 type SearchSavedSearchParamList = {
-    [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
+    [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: {
+        id: string;
+    };
 };
 
 type SearchColumnsParamList = {
@@ -3506,7 +3623,13 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof NAVIGATORS.TAB_NAVIGATOR | typeof SCREENS.HOME | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
+type FullScreenName =
+    | SplitNavigatorName
+    | SearchFullscreenNavigatorName
+    | typeof NAVIGATORS.TAB_NAVIGATOR
+    | typeof SCREENS.HOME
+    | typeof SCREENS.INSIGHTS
+    | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
 
 type WorkspaceNavigatorRouteName = keyof WorkspaceNavigatorParamList;
 

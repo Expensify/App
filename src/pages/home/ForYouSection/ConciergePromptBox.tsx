@@ -1,6 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import Composer from '@components/Composer';
-import type {ComposerRef} from '@components/Composer/types';
+import type {ComposerRef, TextSelection} from '@components/Composer/types';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
@@ -29,6 +29,8 @@ import getButtonState from '@libs/getButtonState';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 
 import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDraftButton';
+import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
+import useComposerSuggestions from '@pages/inbox/report/ReportActionCompose/useComposerSuggestions';
 import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 
@@ -44,6 +46,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {NativeMethods, TextInputKeyPressEvent} from 'react-native';
 
+import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useAnimatedRef} from 'react-native-reanimated';
@@ -94,12 +97,13 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
     const {calculatePopoverPosition} = usePopoverPosition();
     const [draft] = useOnyx(ONYXKEYS.CONCIERGE_PROMPT_DRAFT);
     const [value, setValue] = useState(draft ?? '');
+    const isScreenFocused = useIsFocused();
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID});
 
     // Composer is a controlled input: the caret position must be tracked and fed back in (with
     // shouldCalculateCaretPosition), otherwise every value update re-renders it with the caret at the start.
-    const [selection, setSelection] = useState({start: value.length, end: value.length});
+    const [selection, setSelection] = useState<TextSelection>({start: value.length, end: value.length});
     const [lastSyncedDraft, setLastSyncedDraft] = useState(draft);
 
     const {saveDraft: debouncedSaveDraft, cancelSaveDraft} = useDebouncedSaveDraft(
@@ -127,12 +131,27 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const animatedRef = useAnimatedRef<NativeMethods>();
 
+    const containerRef = useRef<View>(null);
+
     // The native Composer only forwards its underlying input to a callback ref, so an object ref would never be populated.
     const composerRef = useRef<ComposerRef | null>(null);
+
+    const {suggestionsRef, measureParentContainerAndReportCursor, hideSuggestionMenu, onSaveScrollAndHideSuggestionMenu, raiseIsScrollLayoutTriggered} = useComposerSuggestions({
+        composerRef,
+        selection,
+        measureParentContainer: (callback) => containerRef.current?.measureInWindow(callback),
+    });
 
     const setComposerRef = (element: ComposerRef) => {
         animatedRef(element);
         composerRef.current = element;
+    };
+
+    // Shared by typing and by inserting a mention, so a mention takes the same validation and draft-save path as typed text.
+    const updateComment = (text: string) => {
+        setValue(text);
+        debouncedCommentMaxLengthValidation(text);
+        debouncedSaveDraft(text);
     };
 
     const clearInput = () => {
@@ -202,6 +221,11 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
         if (canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
             return;
         }
+
+        if (suggestionsRef.current?.triggerHotkeyActions(event as unknown as KeyboardEvent)) {
+            return;
+        }
+
         const {nativeEvent} = event;
         const hasShiftModifier = 'shiftKey' in nativeEvent && !!nativeEvent.shiftKey;
         if (nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || hasShiftModifier) {
@@ -210,6 +234,14 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
         event.preventDefault();
         submit();
     };
+
+    useEffect(() => {
+        if (isScreenFocused) {
+            return;
+        }
+
+        hideSuggestionMenu();
+    }, [isScreenFocused, hideSuggestionMenu]);
 
     return (
         <View style={styles.gap6}>
@@ -241,6 +273,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
             </View>
             <View style={styles.pRelative}>
                 <View
+                    ref={containerRef}
                     testID="ConciergePromptBox"
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -334,15 +367,18 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                             style={[styles.textInputCompose, styles.textInputCollapseCompose]}
                             value={value}
                             onChangeText={(text) => {
-                                setValue(text);
-                                debouncedCommentMaxLengthValidation(text);
-                                debouncedSaveDraft(text);
+                                raiseIsScrollLayoutTriggered();
+                                updateComment(text);
                             }}
+                            onScroll={onSaveScrollAndHideSuggestionMenu}
                             selection={selection}
                             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
                             shouldCalculateCaretPosition
                             onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
+                            onBlur={() => {
+                                setIsFocused(false);
+                                hideSuggestionMenu();
+                            }}
                             onKeyPress={handleKeyPress}
                             onPasteFile={(files) => {
                                 // Concierge isn't reachable yet, so there is nowhere to send the paste. Mirrors the disabled "+" button.
@@ -390,6 +426,16 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                             </View>
                         )}
                     </View>
+                    <Suggestions
+                        ref={suggestionsRef}
+                        value={value}
+                        selection={selection}
+                        setSelection={setSelection}
+                        updateComment={updateComment}
+                        isComposerFocused={isFocused}
+                        measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                        isGroupPolicyReport={false}
+                    />
                     {/* Mirror ComposerSendButton: the justifyContentEnd wrapper stretches to the row height and anchors the send button to the bottom. */}
                     <View style={styles.justifyContentEnd}>
                         <SubmitDraftButton

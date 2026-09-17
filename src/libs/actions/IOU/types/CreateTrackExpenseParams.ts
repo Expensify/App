@@ -52,6 +52,7 @@ type CreateTrackExpenseParams = {
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
     isDraftChatReport: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

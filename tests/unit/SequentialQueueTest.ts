@@ -2,6 +2,7 @@ import {resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConf
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import {SUPPORTAL_DENIAL_MESSAGE} from '@libs/Network/isUnauthorizedSupportalResponse';
 import * as NetworkState from '@libs/NetworkState';
 
@@ -417,6 +418,45 @@ describe('SequentialQueue', () => {
         } finally {
             processSpy.mockRestore();
             onyxUpdateSpy.mockRestore();
+        }
+    });
+
+    it('should log a [Receipt] gaveUp line when a receipt-bearing request is abandoned after exhausting its retries', async () => {
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+        await clearPersistedRequests();
+        await waitForBatchedUpdates();
+
+        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        const sleepSpy = jest.spyOn(SequentialQueue.sequentialQueueRequestThrottle, 'sleep').mockRejectedValue(undefined);
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+
+        try {
+            const receiptRequest: Request<never> = {
+                command: WRITE_COMMANDS.REQUEST_MONEY,
+                data: {transactionID: '5678', receipt: {source: 'file:///Receipts-Upload/receipt.jpg', receiptTraceId: 'trace-abandoned'}},
+            };
+            SequentialQueue.push(receiptRequest);
+            await waitForBatchedUpdates();
+
+            expect(logAlertSpy).toHaveBeenCalledWith(
+                expect.stringContaining('gaveUp'),
+                expect.objectContaining({
+                    event: 'gaveUp',
+                    receiptTraceId: 'trace-abandoned',
+                    transactionID: '5678',
+                    command: WRITE_COMMANDS.REQUEST_MONEY,
+                }),
+            );
+
+            expect(sleepSpy).toHaveBeenCalled();
+
+            expect(getAll().length).toBe(0);
+        } finally {
+            offlineSpy.mockRestore();
+            sleepSpy.mockRestore();
+            processSpy.mockRestore();
+            logAlertSpy.mockRestore();
         }
     });
 

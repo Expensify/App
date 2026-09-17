@@ -132,7 +132,21 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to S3
-        run: aws s3 cp --recursive --acl public-read dist s3://ad-hoc-expensify-cash/web/${{ inputs.APP_PR_NUMBER }}
+        run: |
+          BUCKET="s3://ad-hoc-expensify-cash/web/${{ inputs.APP_PR_NUMBER }}"
+
+          aws s3 sync dist "$BUCKET" --delete --acl public-read \
+            --exclude "index.html" \
+            --exclude "service-worker.js" \
+            --exclude "workbox-*.js" \
+            --cache-control "public,max-age=31536000,immutable"
+
+          aws s3 sync dist "$BUCKET" --acl public-read \
+            --exclude "*" \
+            --include "index.html" \
+            --include "service-worker.js" \
+            --include "workbox-*.js" \
+            --cache-control "no-cache,no-store,must-revalidate"
 
   postGithubComment:
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -141,7 +155,7 @@ jobs:
     needs: [buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ inputs.APP_REF }}
 
@@ -181,7 +195,7 @@ jobs:
     needs: [buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ inputs.APP_REF }}
 

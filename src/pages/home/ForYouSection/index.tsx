@@ -10,6 +10,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 
 import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
@@ -72,7 +73,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     );
 
     const createNavigationHandler = useCallback(
-        (action: string, queryParams: Record<string, unknown>, reportID?: string) => () => {
+        (action: string, queryParams: Record<string, unknown>, searchKey: SearchKey, reportID?: string) => () => {
             if (reportID) {
                 navigateToReport(reportID);
                 return;
@@ -85,6 +86,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
                         action,
                         ...queryParams,
                     }),
+                    searchKey,
                 }),
             );
         },
@@ -107,14 +109,24 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
                     count: submitCount,
                     icon: icons.Send,
                     translationKey: 'homePage.forYouSection.submit' as const,
-                    handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT]),
+                    handler: createNavigationHandler(
+                        CONST.SEARCH.ACTION_FILTERS.SUBMIT,
+                        {from: [`${accountID}`]},
+                        CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+                        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
+                    ),
                 },
                 {
                     key: 'approve',
                     count: approveCount,
                     icon: icons.ThumbsUp,
                     translationKey: 'homePage.forYouSection.approve' as const,
-                    handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {to: [`${accountID}`]}, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE]),
+                    handler: createNavigationHandler(
+                        CONST.SEARCH.ACTION_FILTERS.APPROVE,
+                        {to: [`${accountID}`]},
+                        CONST.SEARCH.SEARCH_KEYS.APPROVE,
+                        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE],
+                    ),
                 },
                 {
                     key: 'pay',
@@ -124,6 +136,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
                     handler: createNavigationHandler(
                         CONST.SEARCH.ACTION_FILTERS.PAY,
                         {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()},
+                        CONST.SEARCH.SEARCH_KEYS.PAY,
                         singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY],
                     ),
                 },
@@ -135,6 +148,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
                     handler: createNavigationHandler(
                         CONST.SEARCH.ACTION_FILTERS.EXPORT,
                         {exporter: [`${accountID}`], exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER},
+                        CONST.SEARCH.SEARCH_KEYS.EXPORT,
                         singleReportIDs[CONST.SEARCH.SEARCH_KEYS.EXPORT],
                     ),
                 },

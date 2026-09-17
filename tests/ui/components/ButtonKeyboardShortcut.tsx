@@ -1,8 +1,8 @@
 import {render} from '@testing-library/react-native';
 
-import Button from '@src/components/ButtonComposed/Button';
-import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
-import type {ButtonKeyboardShortcutProps, ButtonProps} from '@src/components/ButtonComposed/types';
+import Button from '@src/components/Button/Button';
+import ButtonKeyboardShortcut from '@src/components/Button/primitives/ButtonKeyboardShortcut';
+import type {ButtonKeyboardShortcutProps, ButtonProps} from '@src/components/Button/types';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -13,7 +13,7 @@ import React from 'react';
 // events does not reach registered handlers. Instead the mock below captures
 // the callback and config that ButtonKeyboardShortcut passes to
 // useKeyboardShortcut, letting tests invoke the callback directly — the same
-// pattern used across the ButtonComposed test suite.
+// pattern used across the Button test suite.
 let enterKeyCallback: ((event?: KeyboardEvent) => void) | undefined;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let capturedShortcutConfig: Record<string, any> | undefined;

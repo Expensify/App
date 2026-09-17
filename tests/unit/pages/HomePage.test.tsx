@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx';
 
+import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -73,9 +74,20 @@ jest.mock('@components/Navigation/TopBar', () => {
     }
     return MockTopBar;
 });
+
+jest.mock('@gorhom/portal', () => {
+    const ReactModule = require('react');
+    const {View: RNView} = require('react-native');
+    return {
+        ...jest.requireActual('@gorhom/portal'),
+        PortalHost: ({name}: {name: string}) => ReactModule.createElement(RNView, {testID: `portal-host-${name}`}),
+    };
+});
+
 jest.mock('@components/ReceiptScanDropZone', () => {
-    function MockReceiptScanDropZone() {
-        return null;
+    // The drop zone wraps the page content, so the mock has to keep rendering its children.
+    function MockReceiptScanDropZone({children}: {children: React.ReactNode}) {
+        return children;
     }
     return MockReceiptScanDropZone;
 });
@@ -186,9 +198,11 @@ async function resetAppLoadLatch() {
 
 const renderHomePage = () =>
     render(
-        <OnyxListItemProvider>
-            <HomePage />
-        </OnyxListItemProvider>,
+        <PortalProvider>
+            <OnyxListItemProvider>
+                <HomePage />
+            </OnyxListItemProvider>
+        </PortalProvider>,
     );
 
 // Either skeleton group answers "is the wall up": both render in every state the gate covers.
@@ -247,6 +261,23 @@ describe('HomePage', () => {
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await waitForBatchedUpdates();
         await resetAppLoadLatch();
+    });
+
+    describe('suggestion portal host', () => {
+        it.each([
+            ['narrow', setNarrowLayout],
+            ['wide', setWideLayout],
+        ])('renders the suggestions host on %s layout', async (_label, setLayout) => {
+            // Given a layout
+            setLayout();
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the suggestions portal host is on the page
+            expect(screen.getByTestId('portal-host-suggestions')).toBeOnTheScreen();
+        });
     });
 
     // Offline, OpenApp/OpenReport never send, so IS_LOADING_APP / IS_LOADING_REPORT_DATA can stay true forever and the
