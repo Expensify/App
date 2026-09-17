@@ -70,6 +70,7 @@ import {
     hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
+    isBusinessCentralVendorMatchingActive,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
     isMatchingVendorListLoaded,
@@ -4158,6 +4159,54 @@ describe('PolicyUtils', () => {
                     },
                 },
             });
+
+        const BUSINESS_CENTRAL_VENDORS_UNSYNCED = Symbol('BUSINESS_CENTRAL_VENDORS_UNSYNCED');
+        const businessCentralVendor = (id: string, name: string, email = '') => ({id, number: '', name, email, blocked: '', expensifyVendorId: '', lastModifiedDateTime: ''});
+        const buildBusinessCentralPolicy = (
+            vendors: Array<ReturnType<typeof businessCentralVendor>> | typeof BUSINESS_CENTRAL_VENDORS_UNSYNCED = [businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com')],
+            {isConfigured = true}: {isConfigured?: boolean} = {},
+        ): Policy =>
+            createMock<Policy>({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {isConfigured},
+                        data: vendors === BUSINESS_CENTRAL_VENDORS_UNSYNCED ? {} : {vendors},
+                    },
+                },
+            });
+
+        describe('Business Central vendors', () => {
+            it('requires a configured connection and the matching beta', () => {
+                const policy = buildBusinessCentralPolicy();
+                expect(isBusinessCentralVendorMatchingActive(policy)).toBe(true);
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(buildBusinessCentralPolicy(undefined, {isConfigured: false}), true)).toBe(false);
+                expect(isBusinessCentralVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it('normalizes the synced vendors for matching', () => {
+                const policy = buildBusinessCentralPolicy();
+                expect(getMatchingVendors(policy)).toEqual([{id: 'bc-1', name: 'Contoso Supplies', currency: '', email: 'ap@contoso.com'}]);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL);
+            });
+
+            // A company switch removes data.vendors while the connection stays configured, so the
+            // unloaded state has to stay distinguishable from a company that has no vendors.
+            it('distinguishes an unloaded list from a loaded empty list', () => {
+                expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toBe(false);
+                expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy([]))).toBe(true);
+                expect(getMatchingVendors(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toEqual([]);
+            });
+
+            it('yields to Rillet, which precedes it in the matching order', () => {
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = {...policy.connections, ...buildRilletPolicy().connections};
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.RILLET);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['rv-1']);
+            });
+        });
 
         describe('DualEntry vendors', () => {
             const vendors: DualEntryVendor[] = [
