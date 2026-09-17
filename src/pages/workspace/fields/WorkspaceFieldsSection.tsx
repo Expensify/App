@@ -116,7 +116,10 @@ function WorkspaceFieldsSection({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const fieldList = policy?.fieldList;
-    const hasImportedField = useMemo(() => Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field)), [fieldFilter, fieldList]);
+    const hasImportedField = useMemo(
+        () => Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy)),
+        [fieldFilter, fieldList, policy],
+    );
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const fetchFields = useCallback(() => {

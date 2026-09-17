@@ -239,6 +239,7 @@ function MoneyRequestReceiptView({
     const canInteractWithReport = !!canUserInteractWithReport(report, isReportArchived);
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction, currentUserAccountID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -247,12 +248,14 @@ function MoneyRequestReceiptView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
             isChatReportArchived,
             reportNameValuePairs,
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         });
 
     const onAttachmentFilesValidated = (files: FileObject[]) => {
@@ -545,7 +548,7 @@ function MoneyRequestReceiptView({
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
     // Adding a receipt changes the expense, so it takes the same expense-level permission the rest of the edit flow uses.
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && canCurrentUserEditExpense(parentReportAction, moneyRequestReport, policy) && !mergeTransactionID;
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && canCurrentUserEditExpense(parentReportAction, moneyRequestReport, policy, rules) && !mergeTransactionID;
 
     // Expanding only opens the receipt to look at, so it asks for none of the permission above
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;

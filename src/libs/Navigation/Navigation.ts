@@ -347,6 +347,7 @@ function startOpenReportSpan(route: Route) {
  * @param route - The route to navigate to.
  * @param options - Optional navigation options.
  * @param options.forceReplace - If true, the navigation action will replace the current route instead of pushing a new one.
+ * @param options.shouldSkipInitialSplitNavigatorSidebar - If true, a direct split destination will not add its sidebar as an intermediate Back destination.
  */
 function navigate(route: Route, options?: LinkToOptions) {
     clearSelectedText();
@@ -836,18 +837,20 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
 function waitForProtectedRoutes() {
     return new Promise<void>((resolve) => {
         isNavigationReady().then(() => {
-            const currentState = navigationRef.current?.getState();
-            if (navContainsProtectedRoutes(currentState)) {
+            // `getState()` and the `state` event expose the container's own copy of the state, which has
+            // `routeNames` stripped until a navigator pushes its state up after mounting. Use `getRootState()`,
+            // which reads the hydrated state from the navigator and always carries `routeNames`.
+            if (navContainsProtectedRoutes(navigationRef.getRootState())) {
                 resolve();
                 return;
             }
 
-            const unsubscribe = navigationRef.current?.addListener('state', ({data}) => {
-                const state = data?.state;
-                if (navContainsProtectedRoutes(state)) {
-                    unsubscribe?.();
-                    resolve();
+            const unsubscribe = navigationRef.addListener('state', () => {
+                if (!navContainsProtectedRoutes(navigationRef.getRootState())) {
+                    return;
                 }
+                unsubscribe();
+                resolve();
             });
         });
     });

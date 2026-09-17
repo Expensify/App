@@ -27,6 +27,7 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
+    getNewestOutstandingReportForUser,
     getReimbursableTotal,
     getReportOrDraftReport,
     getUnheldReimbursableTotal,
@@ -51,7 +52,7 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -60,7 +61,7 @@ import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 
-import {getAllPersonalDetails, getAllReports} from '.';
+import {getAllPersonalDetails, getAllReportNameValuePairs, getAllReports} from '.';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -241,6 +242,10 @@ type PerDiemExpenseInformation = {
     policyParams?: BasePolicyParams;
     recentlyUsedParams?: RecentlyUsedParams;
     transactionParams: PerDiemExpenseTransactionParams;
+    newReportTotal?: number;
+    newReimbursableTotal?: number;
+    newNonReimbursableTotal?: number;
+    newUnheldReimbursableTotal?: number;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     /** The policy's tags for this expense's policyID, i.e. `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}` from the POLICY_TAGS collection. */
     policyTags: OnyxTypes.PolicyTagLists;
@@ -263,6 +268,7 @@ type PerDiemExpenseInformation = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -273,6 +279,10 @@ type PerDiemExpenseInformationParams = {
     policyParams?: BasePolicyParams;
     recentlyUsedParams?: RecentlyUsedParams;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    newReportTotal?: number;
+    newReimbursableTotal?: number;
+    newNonReimbursableTotal?: number;
+    newUnheldReimbursableTotal?: number;
     moneyRequestReportID?: string;
     /** The policy's tags for this expense's policyID, i.e. `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}` from the POLICY_TAGS collection. */
     policyTags: OnyxTypes.PolicyTagLists;
@@ -291,6 +301,7 @@ type PerDiemExpenseInformationParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -328,6 +339,7 @@ type GetPerDiemExpensePolicyIDParams = {
     participantParams: RequestMoneyParticipantParams;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
 };
 
@@ -337,7 +349,7 @@ type GetPerDiemExpensePolicyIDParams = {
  * transaction. Keep in sync with STEP 1/STEP 2 in `getPerDiemExpenseInformation` (and the chat report/moneyRequestReportID
  * resolution in `submitPerDiemExpense`) if their resolution order changes.
  */
-function getPerDiemExpensePolicyID({report, participantParams, existingIOUReport, betas, currentUserAccountIDParam}: GetPerDiemExpensePolicyIDParams): string | undefined {
+function getPerDiemExpensePolicyID({report, participantParams, existingIOUReport, betas, rules, currentUserAccountIDParam}: GetPerDiemExpensePolicyIDParams): string | undefined {
     const {payeeAccountID = currentUserAccountIDParam, participant} = participantParams;
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -359,7 +371,7 @@ function getPerDiemExpensePolicyID({report, participantParams, existingIOUReport
     } else if (chatReport) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
-    const shouldCreateNew = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas);
+    const shouldCreateNew = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas, rules);
 
     if (iouReport && !shouldCreateNew) {
         return iouReport.policyID;
@@ -380,6 +392,10 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         policyParams = {},
         recentlyUsedParams = {},
         existingIOUReport: existingIOUReportParam,
+        newReportTotal,
+        newReimbursableTotal,
+        newNonReimbursableTotal,
+        newUnheldReimbursableTotal,
         moneyRequestReportID = '',
         policyTags,
         isASAPSubmitBetaEnabled,
@@ -397,6 +413,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -448,9 +465,13 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+
+        if (!iouReport && isPolicyExpenseChat) {
+            iouReport = getNewestOutstandingReportForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports);
+        }
     }
 
-    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas);
+    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas, rules);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = uiProvidedOptimisticTransactionID ?? NumberUtils.rand64();
@@ -470,6 +491,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   reportTransactions,
                   betas,
                   getCurrencyDecimals,
+                  rules,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, getCurrencyDecimals);
     } else if (isPolicyExpenseChat) {
@@ -478,17 +500,44 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         const previousReimbursableTotal = getReimbursableTotal(iouReport);
         const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         iouReport = {...iouReport};
+        const isCurrencyMatching = iouReport?.currency === currency;
+        // A `new*Total` override is already expressed in the report's currency, so unlike the raw per-transaction
+        // arithmetic below, it does not need this expense's own currency to match the report's. A per diem rate can
+        // carry its own currency, so without this a duplicated per diem in another currency never reaches the total.
+        // Compared with `!== undefined` so a legitimate total of 0 is applied instead of being read as "no override".
+        const hasReportTotalOverride = newReportTotal !== undefined;
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-        if (iouReport?.currency === currency) {
+        if (isCurrencyMatching || hasReportTotalOverride) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
-                iouReport.total -= amount;
-                // Per diems are reimbursable, so mirror the change on the freshly tracked reimbursable total.
-                iouReport.reimbursableTotal = previousReimbursableTotal - amount;
+                if (hasReportTotalOverride) {
+                    iouReport.total = newReportTotal;
+                } else {
+                    iouReport.total -= amount;
+                }
+
+                if (newReimbursableTotal !== undefined) {
+                    iouReport.reimbursableTotal = newReimbursableTotal;
+                } else if (isCurrencyMatching) {
+                    // Per diems are reimbursable, so mirror the change on the freshly tracked reimbursable total.
+                    iouReport.reimbursableTotal = previousReimbursableTotal - amount;
+                }
+                if (newNonReimbursableTotal !== undefined) {
+                    iouReport.nonReimbursableTotal = newNonReimbursableTotal;
+                }
+                if (newUnheldReimbursableTotal !== undefined) {
+                    iouReport.unheldReimbursableTotal = newUnheldReimbursableTotal;
+                }
             }
 
             if (typeof iouReport.unheldTotal === 'number') {
-                iouReport.unheldTotal -= amount;
-                iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
+                if (hasReportTotalOverride) {
+                    iouReport.unheldTotal = newReportTotal;
+                } else {
+                    iouReport.unheldTotal -= amount;
+                }
+                if (newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
+                }
             }
         }
     } else {
@@ -601,6 +650,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isASAPSubmitBetaEnabled,
         policy,
         isTrackIntentUser,
+        rules,
     });
 
     // STEP 5: Build Onyx Data
@@ -648,6 +698,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     });
 
     return {
@@ -1003,6 +1054,10 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         recentlyUsedParams = {},
         transactionParams,
         existingIOUReport,
+        newReportTotal,
+        newReimbursableTotal,
+        newNonReimbursableTotal,
+        newUnheldReimbursableTotal,
         policyTags,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
@@ -1024,6 +1079,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         isTrackIntentUser,
         dateFnsLocale,
         getCurrencyDecimals,
+        rules,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -1057,6 +1113,10 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         recentlyUsedParams,
         transactionParams,
         existingIOUReport,
+        newReportTotal,
+        newReimbursableTotal,
+        newNonReimbursableTotal,
+        newUnheldReimbursableTotal,
         moneyRequestReportID,
         policyTags,
         isASAPSubmitBetaEnabled,
@@ -1074,6 +1134,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     });
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);
