@@ -98,6 +98,7 @@ function RecentlyAddedSection() {
         Navigation.navigate(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: buildQueryStringFromFilterFormValues({type: CONST.SEARCH.DATA_TYPES.EXPENSE}),
+                searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             }),
         );
     };
