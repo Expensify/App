@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -16,8 +17,6 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,6 +86,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                     <Text>{translate('workspace.common.descriptionHint')}</Text>
                 </View>
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
@@ -97,28 +97,30 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID="description"
-                            label={translate('workspace.editor.descriptionInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            value={description}
-                            spellCheck={false}
-                            autoFocus
-                            onChangeText={setDescription}
-                            autoGrowHeight
-                            type="markdown"
-                            ref={(el: BaseTextInputRef | null): void => {
-                                if (!isInputInitializedRef.current) {
-                                    updateMultilineInputRange(el);
-                                }
-                                isInputInitializedRef.current = true;
-                            }}
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID="description"
+                                label={translate('workspace.editor.descriptionInputLabel')}
+                                accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                value={description}
+                                spellCheck={false}
+                                autoFocus
+                                onChangeText={setDescription}
+                                autoGrowHeight
+                                type="markdown"
+                                ref={(el: BaseTextInputRef | null): void => {
+                                    if (!isInputInitializedRef.current) {
+                                        updateMultilineInputRange(el);
+                                    }
+                                    isInputInitializedRef.current = true;
+                                }}
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

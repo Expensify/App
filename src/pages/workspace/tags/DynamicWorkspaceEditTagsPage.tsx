@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListName} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -28,7 +30,6 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type DynamicWorkspaceEditTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_EDIT>
@@ -40,7 +41,7 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
     const {translate} = useLocalize();
     const orderWeight = Number(route.params.orderWeight);
     const tagListName = getTagListName(policyTags, orderWeight);
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.path);
 
@@ -85,27 +86,32 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
                     onBackButtonPress={goBackToTagsSettings}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
-                    onSubmit={updateTagListName}
-                    validate={validateTagName}
+                    onSubmit={(values) => updateTagListName({...values, [INPUT_IDS.POLICY_TAGS_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.POLICY_TAGS_NAME])})}
+                    validate={(values) => validateTagName({...values, [INPUT_IDS.POLICY_TAGS_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.POLICY_TAGS_NAME])})}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     shouldUseStrictHtmlTagValidation
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.POLICY_TAGS_NAME}
-                            label={translate(`workspace.tags.customTagName`)}
-                            accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                            defaultValue={getCleanedTagName(tagListName)}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.POLICY_TAGS_NAME}
+                                label={translate(`workspace.tags.customTagName`)}
+                                accessibilityLabel={translate(`workspace.tags.customTagName`)}
+                                defaultValue={getCleanedTagName(tagListName)}
+                                role={CONST.ROLE.PRESENTATION}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

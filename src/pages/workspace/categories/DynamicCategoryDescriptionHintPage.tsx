@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,8 +21,6 @@ import {getParsedComment} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-
-import variables from '@styles/variables';
 
 import {setWorkspaceCategoryDescriptionHint} from '@userActions/Policy/Category';
 
@@ -68,6 +67,7 @@ function DynamicCategoryDescriptionHintPage({
                     onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM}
                     onSubmit={({commentHint}) => {
@@ -79,20 +79,24 @@ function DynamicCategoryDescriptionHintPage({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
+                    <View style={[styles.flex1, styles.mb4]}>
                         <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', decodedCategoryName)}</Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.COMMENT_HINT}
-                            defaultValue={commentHintDefaultValue}
-                            label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
-                            aria-label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
-                            ref={inputCallbackRef}
-                            type="markdown"
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            excludedMarkdownStyles={['mentionReport']}
-                        />
+                        <AutoGrowHeightInputContainer>
+                            {(maxAutoGrowHeight) => (
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.COMMENT_HINT}
+                                    defaultValue={commentHintDefaultValue}
+                                    label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
+                                    aria-label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
+                                    ref={inputCallbackRef}
+                                    type="markdown"
+                                    autoGrowHeight
+                                    maxAutoGrowHeight={maxAutoGrowHeight}
+                                    excludedMarkdownStyles={['mentionReport']}
+                                />
+                            )}
+                        </AutoGrowHeightInputContainer>
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.descriptionHintSubtitle')}</Text>
                     </View>
                 </FormProvider>

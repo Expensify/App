@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {escapeTagName, getCleanedTagName, getTagListByOrderWeight} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -42,7 +44,7 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     const {tags: policyTags} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const currentTagName = getCleanedTagName(route.params.tagName);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path);
@@ -99,25 +101,32 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
-                    onSubmit={editTag}
+                    onSubmit={(values) => editTag({...values, [INPUT_IDS.TAG_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.TAG_NAME])})}
                     submitButtonText={translate('common.save')}
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.TAG_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.TAG_NAME])})}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     shouldUseStrictHtmlTagValidation
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        defaultValue={currentTagName}
-                        label={translate('common.name')}
-                        accessibilityLabel={translate('common.name')}
-                        inputID={INPUT_IDS.TAG_NAME}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                defaultValue={currentTagName}
+                                label={translate('common.name')}
+                                accessibilityLabel={translate('common.name')}
+                                inputID={INPUT_IDS.TAG_NAME}
+                                role={CONST.ROLE.PRESENTATION}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

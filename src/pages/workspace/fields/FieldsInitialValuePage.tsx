@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportFieldKey} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {getReportFieldInitialValue, getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
@@ -45,7 +47,7 @@ type FieldsInitialValuePageProps = {
 function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, expectedTarget, testID}: FieldsInitialValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
     const isInvoiceField = reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
@@ -110,6 +112,22 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
     const isFormulaFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
 
+    const renderInput = (maxAutoGrowHeight?: number) => (
+        <InputWrapper
+            containerStyles={styles.mh5}
+            InputComponent={TextInput}
+            inputID={INPUT_IDS.INITIAL_VALUE}
+            label={translate('common.initialValue')}
+            accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
+            autoGrowSingleLine={isTextFieldType}
+            value={initialValue}
+            role={CONST.ROLE.PRESENTATION}
+            ref={inputCallbackRef}
+            onChangeText={setInitialValue}
+            maxAutoGrowHeight={maxAutoGrowHeight}
+        />
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -136,29 +154,19 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
 
                 {(isTextFieldType || isFormulaFieldType) && (
                     <FormProvider
+                        submitFlexEnabled={!isTextFieldType}
                         addBottomSafeAreaPadding
                         formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
-                        onSubmit={submitForm}
+                        onSubmit={(values) => submitForm({...values, initialValue: isTextFieldType ? StringUtils.lineBreaksToSpaces(values.initialValue) : values.initialValue})}
                         submitButtonText={translate('common.save')}
-                        validate={validateForm}
+                        validate={(values) => validateForm({...values, initialValue: isTextFieldType ? StringUtils.lineBreaksToSpaces(values.initialValue) : values.initialValue})}
                         style={styles.flex1}
                         enabledWhenOffline
                         isSubmitButtonVisible
                         submitButtonStyles={styles.mh5}
                         shouldHideFixErrorsAlert
                     >
-                        <InputWrapper
-                            containerStyles={styles.mh5}
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.INITIAL_VALUE}
-                            label={translate('common.initialValue')}
-                            accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
-                            multiline={false}
-                            value={initialValue}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={inputCallbackRef}
-                            onChangeText={setInitialValue}
-                        />
+                        {isTextFieldType ? <AutoGrowHeightInputContainer>{renderInput}</AutoGrowHeightInputContainer> : renderInput()}
                     </FormProvider>
                 )}
                 {isListFieldType && (
