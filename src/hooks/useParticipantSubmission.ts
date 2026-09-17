@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+import {getCreated, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
 import {
     resetDraftTransactionsCustomUnit,
@@ -244,7 +244,7 @@ function useParticipantSubmission({
             return;
         }
 
-        const {allPolicies: policies, lastSelectedDistanceRates: distanceRates, draftTransactions: drafts} = dataRef.current;
+        const {allPolicies: policies, lastSelectedDistanceRates: distanceRates, draftTransactions: drafts, policyForMovingExpenses: movingPolicy} = dataRef.current;
         const firstParticipantReportID = val.at(0)?.reportID;
         const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
         const policy = isPolicyExpenseChat && firstParticipant?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
@@ -269,7 +269,7 @@ function useParticipantSubmission({
                 return true;
             }
             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || (!!currentRateID && !!destinationRates?.[currentRateID]);
+            return !!currentRateID && !!destinationRates?.[currentRateID];
         };
 
         if (drafts.length > 0) {
@@ -277,14 +277,26 @@ function useParticipantSubmission({
                 if (isMovingToPolicyExpenseChat && shouldKeepTrackExpenseRate(transaction)) {
                     continue;
                 }
-                const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                    reportID: firstParticipantReportID,
-                    isPolicyExpenseChat,
-                    policy,
-                    lastSelectedDistanceRates: distanceRates,
-                    expenseDate: transaction.created,
-                });
-                if (isMovingToPolicyExpenseChat && rateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+                let rateID;
+                if (isMovingToPolicyExpenseChat) {
+                    rateID = DistanceRequestUtils.getRateIDForMovedTrackExpense({
+                        transaction,
+                        policy,
+                        policyForMovingExpenses: movingPolicy,
+                        policies,
+                        expenseDate: getCreated(transaction),
+                        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    });
+                } else {
+                    rateID = DistanceRequestUtils.getCustomUnitRateID({
+                        reportID: firstParticipantReportID,
+                        isPolicyExpenseChat,
+                        policy,
+                        lastSelectedDistanceRates: distanceRates,
+                        expenseDate: transaction.created,
+                    });
+                }
+                if (!rateID || (isMovingToPolicyExpenseChat && rateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID)) {
                     continue;
                 }
                 setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
