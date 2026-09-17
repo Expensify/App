@@ -21,6 +21,7 @@ import type {TextInputKeyPressEvent} from 'react-native';
 
 import {format, setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
+import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
@@ -235,6 +236,25 @@ function DatePicker({
         return () => debouncedCalculatePopoverPosition.cancel();
     }, [calculatePopoverPosition, windowWidth]);
 
+    useEffect(() => {
+        // Only the typing calendar stays open while the page scrolls. Every other one is dismissed by PopoverProvider,
+        // so it never needs to follow the field.
+        if (!shouldAllowTyping || !isModalVisible) {
+            return;
+        }
+
+        // The calendar is positioned from coordinates measured when it opened, so scrolling the form would leave it
+        // behind. Following the field keeps it attached rather than interrupting an edit in progress.
+        // Wrapped so the scroll event is not passed through as the measurement callback
+        const handleScroll = throttle(() => calculatePopoverPosition(), CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE);
+        document.addEventListener('scroll', handleScroll, true);
+
+        return () => {
+            document.removeEventListener('scroll', handleScroll, true);
+            handleScroll.cancel();
+        };
+    }, [shouldAllowTyping, isModalVisible, calculatePopoverPosition]);
+
     // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects
     // autoFocusCallbackRef only when autoFocus=true so useAutoFocusInput's useFocusEffect cleanup
     // can cancel any pending focus task when the screen starts closing.
@@ -313,6 +333,7 @@ function DatePicker({
                 anchorRef={anchorRef}
                 withoutOverlay={shouldAllowTyping}
                 shouldAllowWithoutOverlayInNarrowPane={shouldAllowTyping}
+                shouldCloseOnWheel={!shouldAllowTyping}
                 viewDate={segmentInput.viewDate}
             />
         </>

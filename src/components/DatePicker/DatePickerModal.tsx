@@ -49,6 +49,7 @@ function DatePickerModal({
     anchorRef: anchorRefProp,
     withoutOverlay = false,
     shouldAllowWithoutOverlayInNarrowPane = false,
+    shouldCloseOnWheel = true,
     viewDate,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
@@ -104,6 +105,7 @@ function DatePickerModal({
             enableEdgeToEdgeBottomSafeAreaPadding
             withoutOverlay={withoutOverlay}
             shouldAllowWithoutOverlayInNarrowPane={shouldAllowWithoutOverlayInNarrowPane}
+            shouldCloseOnWheel={shouldCloseOnWheel}
         >
             <CalendarPicker
                 minDate={minDate}

@@ -26,6 +26,13 @@ type PopoverProps = BaseModalProps &
          */
         shouldAllowWithoutOverlayInNarrowPane?: boolean;
 
+        /**
+         * Whether scrolling the page dismisses the popover. Only reaches an overlay-free popover, since the others
+         * cover the page and cannot be scrolled past in the first place.
+         * @default true
+         */
+        shouldCloseOnWheel?: boolean;
+
         popoverDimensions?: Dimensions;
         withoutOverlayRef?: RefObject<View | HTMLDivElement>;
 
