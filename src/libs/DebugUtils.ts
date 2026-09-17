@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -456,6 +456,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
+        case 'manuallyMarkedUnreadReportActionID':
         case 'lastMentionedTime':
         case 'policyAvatar':
         case 'policyName':
@@ -639,6 +640,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 lastMessageText: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastReadTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                manuallyMarkedUnreadReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastReadSequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMentionedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyAvatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -856,6 +858,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
                 hotelReservationStartDate: 'string',
                 hotelReservationEndDate: 'string',
                 pageCount: 'number',
@@ -1008,6 +1011,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     switch (key) {
         case 'reportID':
+        case 'rejectFailedFromReportID':
         case 'reportName':
         case 'currency':
         case 'tag':
@@ -1166,6 +1170,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionPreview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1213,7 +1218,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    rejectFailedFromReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1231,6 +1238,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
                 hotelReservationStartDate: 'string',
                 hotelReservationEndDate: 'string',
                 pageCount: 'number',
@@ -1311,6 +1319,13 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'string',
             );
+        case 'commuterExclusionPreview':
+            return validateObject<ObjectElement<Transaction, 'commuterExclusionPreview'>>(value, {
+                policyID: 'string',
+                hasExclusion: 'boolean',
+                isWholeTripExcluded: 'boolean',
+                commuteDistanceMeters: 'number',
+            });
         case 'mccGroup':
             return validateConstantEnum(value, CONST.MCC_GROUPS);
         case 'modifiedMCCGroup':
@@ -1380,6 +1395,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             });
         case 'isAmountSet':
         case 'isMerchantSet':
+        case 'isCreatedSet':
             return validateBoolean(value);
     }
 }
@@ -1504,7 +1520,7 @@ function getReasonForShowingRowInLHN({
     hasRBR = false,
     isReportArchived,
     isInFocusMode = false,
-    betas = undefined,
+    isDefaultRoomsBetaEnabled = false,
     draftComment,
     currentUserLogin,
     currentUserAccountID,
@@ -1517,7 +1533,7 @@ function getReasonForShowingRowInLHN({
     hasRBR?: boolean;
     isReportArchived: boolean | undefined;
     isInFocusMode?: boolean;
-    betas?: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled?: boolean;
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
@@ -1534,7 +1550,7 @@ function getReasonForShowingRowInLHN({
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
         isInFocusMode,
-        betas,
+        isDefaultRoomsBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,
