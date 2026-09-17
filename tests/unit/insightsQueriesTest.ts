@@ -35,12 +35,7 @@ function parsePayload(request: InsightsQuery | undefined): InsightsPayload | und
 /** The snapshot hash expected of every chart on the spend dashboard, taken from what the chart declares. */
 function buildExpectedHashes(filters: InsightsFilters) {
     return Object.fromEntries(
-        [SPEND_SPEC.headlineChart, ...SPEND_SPEC.supportingCharts].map((chart) => {
-            const isHeadline = chart.graphKey === SPEND_SPEC.headlineChart.graphKey;
-            const chartQuery = applyInsightsFilters(chart, filters, isHeadline ? filters.groupBy : undefined);
-
-            return [chart.graphKey, {snapshotHash: buildSearchQueryJSON(chartQuery)?.hash}];
-        }),
+        [SPEND_SPEC.headlineChart, ...SPEND_SPEC.supportingCharts].map((chart) => [chart.graphKey, {snapshotHash: buildSearchQueryJSON(applyInsightsFilters(chart, filters))?.hash}]),
     );
 }
 
@@ -137,13 +132,13 @@ describe('insightsQueries', () => {
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
         });
 
-        it('replaces the declared group-by when one is passed', () => {
-            // Given the headline chart, which declares a group-by of its own
+        it('groups a chart that declares no group-by the way the page filters do', () => {
+            // Given the headline chart, which declares no group-by of its own
             const {headlineChart} = SPEND_SPEC;
-            expect(headlineChart.groupBy).not.toBe(CONST.SEARCH.GROUP_BY.QUARTER);
+            expect(headlineChart.groupBy).toBeUndefined();
 
-            // When the filters group by quarter instead
-            const chartQuery = applyInsightsFilters(headlineChart, FILTERS, CONST.SEARCH.GROUP_BY.QUARTER);
+            // When the page filters group by quarter
+            const chartQuery = applyInsightsFilters(headlineChart, {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.QUARTER});
 
             // Then the chart is grouped by quarter
             expect(buildSearchQueryJSON(chartQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);

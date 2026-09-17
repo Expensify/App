@@ -978,7 +978,7 @@ const ONYXKEYS = {
         // Search Page related
         SNAPSHOT: 'snapshot_',
 
-        /** One entry per Insights dashboard, keyed by dashboard ID, holding everything the backend returns for it and the state of the request that asked for it */
+        /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
         INSIGHTS: 'insights_',
 
         // Shared NVPs

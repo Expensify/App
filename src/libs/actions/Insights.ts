@@ -42,9 +42,8 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
     waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.GET_INSIGHTS)
         .then(() => makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData}))
         .catch(async (error: unknown) => {
-            // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
-            // SaveResponseInOnyx, so nothing else applies failureData for it, leaving a first load with no data
-            // and no error to show for it.
+            // SaveResponseInOnyx applies failureData only when the request resolves, and unlike a write no
+            // queue picks up one that rejects, so the dashboard would show neither data nor an error.
             await Onyx.update(failureData);
             Log.hmmm('[Insights] GetInsights request failed', {error: String(error)});
         })

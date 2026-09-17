@@ -5,13 +5,13 @@ import type {InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
-
 type InsightsChartSpec = {
-    /** Slot the chart finds its snapshot hashes under in the stored dashboard's `graphs` */
+    /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
     graphKey: InsightsGraphKey;
     view: SearchView;
-    groupBy: SearchGroupBy;
+
+    /** What the chart aggregates by, left out by charts that follow the page's group-by filter */
+    groupBy?: SearchGroupBy;
     sortBy?: string;
     sortOrder?: string;
     limit?: number;
@@ -34,7 +34,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             view: CONST.SEARCH.VIEW.LINE,
-            groupBy: DEFAULT_INSIGHTS_FILTERS.groupBy,
         },
         supportingCharts: [
             {

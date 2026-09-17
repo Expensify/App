@@ -16,7 +16,7 @@ type InsightsGraph = {
     snapshotHash?: number;
 };
 
-/** Backend response and request state for a dashboard */
+/** What the backend returns for one dashboard and set of filters */
 type InsightsDashboard = {
     /** Where each chart finds its data, keyed by the graph slot its spec declares */
     graphs?: Partial<Record<InsightsGraphKey, InsightsGraph>>;
