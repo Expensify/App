@@ -5,7 +5,6 @@
 import {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
-    clearSegment,
     getAdjacentSegmentName,
     getDateDisplay,
     getISODateFromSegments,
@@ -13,8 +12,8 @@ import {
     getSegmentsFromISODate,
     getSegmentsFromText,
     hasAnySegment,
-    stepSegment,
-    typeDigitIntoSegment,
+    removeLastDigit,
+    typeDigitIntoSegments,
 } from '@libs/DateInputMaskUtils';
 import type {DateSegmentName, DateSegmentRange, DateSegments} from '@libs/DateInputMaskUtils';
 import {isNumeric} from '@libs/ValidationUtils';
@@ -24,11 +23,14 @@ import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-
 import {useRef, useState} from 'react';
 
 const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
+const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 
 const BACKSPACE_KEY = 'Backspace';
 const DELETE_KEY = 'Delete';
-const STEP_KEYS = {ArrowUp: 1, ArrowDown: -1} as const;
 const MOVE_KEYS = {ArrowLeft: -1, ArrowRight: 1} as const;
+
+/** The characters a locale uses between segments, any of which means the user is finished with the one they are on */
+const SEPARATOR_KEYS = new Set(['-', '/', '.', ' ']);
 
 type UseDateSegmentInputParams = {
     /** The committed date in the format the app stores, shown whenever the field is not being edited */
@@ -58,17 +60,8 @@ type UseDateSegmentInputResult = {
     onBlur: () => void;
 };
 
-function isStepKey(key: string): key is keyof typeof STEP_KEYS {
-    return key in STEP_KEYS;
-}
-
 function isMoveKey(key: string): key is keyof typeof MOVE_KEYS {
     return key in MOVE_KEYS;
-}
-
-/** Whether the key is a single character that is not a digit, such as a dash the user types to leave a segment */
-function isSeparatorKey(key: string): boolean {
-    return key.length === 1 && !isNumeric(key);
 }
 
 export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: UseDateSegmentInputParams): UseDateSegmentInputResult {
@@ -80,6 +73,8 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
     // Re-rendering with a new value makes the browser report a caret of its own choosing. Honouring that would drag
     // the active segment around, so the first report after a keystroke is discarded as an echo of our own update.
     const hasPendingCaretEchoRef = useRef(false);
+    // Whether the next digit replaces the active segment instead of extending it, set on arriving at a segment
+    const shouldOverwriteRef = useRef(false);
 
     const {value: editingValue, ranges} = getDateDisplay(segments, mask);
     const activeRange = ranges[activeSegmentName];
@@ -97,6 +92,16 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         hasPendingCaretEchoRef.current = true;
         setActiveSegmentName(name);
         setCaretOffset(Math.min(Math.max(offset, 0), getFurthestOffset(name, nextSegments)));
+    };
+
+    /**
+     * Landing on a segment always rests the caret after whatever it already holds, so an empty one reads from its
+     * start and a filled one is ready to be typed over. `shouldOverwriteRef` is what makes that typing replace the
+     * segment rather than extend it.
+     */
+    const enterSegment = (name: DateSegmentName, nextSegments: DateSegments = segments) => {
+        shouldOverwriteRef.current = true;
+        moveCaret(name, getFurthestOffset(name, nextSegments), nextSegments);
     };
 
     const commitIfComplete = (newSegments: DateSegments) => {
@@ -118,60 +123,52 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
 
         if (isNumeric(key)) {
             event.preventDefault();
-            const result = typeDigitIntoSegment(segments, activeSegmentName, key);
+            const result = typeDigitIntoSegments(segments, activeSegmentName, key, shouldOverwriteRef.current);
+            shouldOverwriteRef.current = false;
             applySegments(result.segments);
 
-            // A completed segment hands over to its neighbour. The last one has nowhere to hand over to, so the caret
-            // rests after the digit just typed and the next digit overwrites the segment.
-            const nextSegmentName = result.isSegmentComplete ? getAdjacentSegmentName(activeSegmentName, 1) : activeSegmentName;
-            const nextOffset = nextSegmentName === activeSegmentName ? result.segments[activeSegmentName].length : 0;
+            if (result.nextSegmentName) {
+                enterSegment(result.nextSegmentName, result.segments);
+                return;
+            }
 
-            moveCaret(nextSegmentName, nextOffset, result.segments);
-            return;
-        }
-
-        if (isStepKey(key)) {
-            event.preventDefault();
-            const steppedSegments = stepSegment(segments, activeSegmentName, STEP_KEYS[key]);
-            applySegments(steppedSegments);
-            moveCaret(activeSegmentName, caretOffset, steppedSegments);
+            moveCaret(activeSegmentName, result.segments[activeSegmentName].length, result.segments);
             return;
         }
 
         if (isMoveKey(key)) {
             event.preventDefault();
-            const step = MOVE_KEYS[key];
-            const nextOffset = caretOffset + step;
-
-            // Stepping past either end of what has been typed carries on into the neighbouring segment.
-            if (nextOffset >= 0 && nextOffset <= getFurthestOffset(activeSegmentName, segments)) {
-                moveCaret(activeSegmentName, nextOffset);
-                return;
-            }
-
-            const adjacentSegmentName = getAdjacentSegmentName(activeSegmentName, step);
-            if (adjacentSegmentName === activeSegmentName) {
-                return;
-            }
-
-            moveCaret(adjacentSegmentName, step > 0 ? 0 : getFurthestOffset(adjacentSegmentName, segments));
+            enterSegment(getAdjacentSegmentName(activeSegmentName, MOVE_KEYS[key]));
             return;
         }
 
         if (key === BACKSPACE_KEY || key === DELETE_KEY) {
             event.preventDefault();
-            setSegments(clearSegment(segments, activeSegmentName));
-            moveCaret(activeSegmentName, 0);
+            const trimmedSegments = removeLastDigit(segments, activeSegmentName);
+
+            // An empty segment has nothing to delete, so the keystroke falls back to leaving it
+            if (!trimmedSegments) {
+                enterSegment(getAdjacentSegmentName(activeSegmentName, -1));
+                return;
+            }
+
+            setSegments(trimmedSegments);
+            shouldOverwriteRef.current = false;
+            moveCaret(activeSegmentName, trimmedSegments[activeSegmentName].length, trimmedSegments);
             return;
         }
 
-        if (!isSeparatorKey(key)) {
+        if (!SEPARATOR_KEYS.has(key)) {
+            // Nothing else may reach the input, or the browser would write characters the mask cannot represent
+            if (key.length === 1) {
+                event.preventDefault();
+            }
             return;
         }
 
         // A separator means the user is finished with this segment even if they only typed one digit into it
         event.preventDefault();
-        moveCaret(getAdjacentSegmentName(activeSegmentName, 1), 0);
+        enterSegment(getAdjacentSegmentName(activeSegmentName, 1));
     };
 
     // Clicking into the text lands the caret anywhere, so snap it onto the digit place that was clicked
@@ -185,6 +182,9 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         const clickedSegmentName = getSegmentNameAtPosition(position, ranges);
         const clickedOffset = position - ranges[clickedSegmentName].start;
 
+        // Clicking is aiming at a digit place rather than arriving at a segment, so the next digit extends what is
+        // there instead of replacing it
+        shouldOverwriteRef.current = false;
         moveCaret(clickedSegmentName, clickedOffset);
     };
 
@@ -196,12 +196,15 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         }
 
         applySegments(pastedSegments);
-        moveCaret(FIRST_SEGMENT_NAME, 0);
+        enterSegment(LAST_SEGMENT_NAME, pastedSegments);
     };
 
     const handleFocus = () => {
-        setSegments(getSegmentsFromISODate(value));
-        moveCaret(FIRST_SEGMENT_NAME, 0);
+        const seededSegments = getSegmentsFromISODate(value);
+
+        setSegments(seededSegments);
+        shouldOverwriteRef.current = false;
+        moveCaret(FIRST_SEGMENT_NAME, getFurthestOffset(FIRST_SEGMENT_NAME, seededSegments), seededSegments);
         setIsEditing(true);
     };
 
@@ -210,6 +213,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, onCommit}: 
         setIsEditing(false);
         setSegments(EMPTY_SEGMENTS);
         setCaretOffset(0);
+        shouldOverwriteRef.current = false;
     };
 
     if (!isEnabled) {

@@ -1,5 +1,4 @@
 import {
-    clearSegment,
     getAdjacentSegmentName,
     getDateDisplay,
     getISODateFromSegments,
@@ -7,8 +6,8 @@ import {
     getSegmentsFromISODate,
     getSegmentsFromText,
     hasAnySegment,
-    stepSegment,
-    typeDigitIntoSegment,
+    removeLastDigit,
+    typeDigitIntoSegments,
 } from '@libs/DateInputMaskUtils';
 import type {DateSegments} from '@libs/DateInputMaskUtils';
 
@@ -20,75 +19,65 @@ function segments(year: string, month: string, day: string): DateSegments {
 }
 
 describe('DateInputMaskUtils', () => {
-    describe('typeDigitIntoSegment', () => {
-        it('rejects a leading zero in the year', () => {
-            expect(typeDigitIntoSegment(EMPTY, 'year', '0')).toEqual({segments: EMPTY, isSegmentComplete: false});
+    describe('typeDigitIntoSegments', () => {
+        it('completes the year on the fourth digit', () => {
+            expect(typeDigitIntoSegments(segments('202', '', ''), 'year', '6')).toEqual({segments: segments('2026', '', ''), nextSegmentName: 'month'});
+            expect(typeDigitIntoSegments(segments('20', '', ''), 'year', '2')).toEqual({segments: segments('202', '', ''), nextSegmentName: undefined});
         });
 
-        it('completes the year on the fourth digit', () => {
-            expect(typeDigitIntoSegment(segments('202', '', ''), 'year', '6')).toEqual({segments: segments('2026', '', ''), isSegmentComplete: true});
-            expect(typeDigitIntoSegment(segments('20', '', ''), 'year', '2')).toEqual({segments: segments('202', '', ''), isSegmentComplete: false});
+        it('takes a leading zero in the year, which only validation can reject', () => {
+            expect(typeDigitIntoSegments(EMPTY, 'year', '0')).toEqual({segments: segments('0', '', ''), nextSegmentName: undefined});
         });
 
         it('starts the year over when it is already full', () => {
-            expect(typeDigitIntoSegment(segments('2026', '', ''), 'year', '1')).toEqual({segments: segments('1', '', ''), isSegmentComplete: false});
+            expect(typeDigitIntoSegments(segments('2026', '', ''), 'year', '1')).toEqual({segments: segments('1', '', ''), nextSegmentName: undefined});
+        });
+
+        it('replaces the segment rather than extending it when told to overwrite', () => {
+            expect(typeDigitIntoSegments(segments('202', '', ''), 'year', '9', true)).toEqual({segments: segments('9', '', ''), nextSegmentName: undefined});
         });
 
         it('zero pads a month that cannot start a two digit month', () => {
-            expect(typeDigitIntoSegment(segments('2026', '', ''), 'month', '9')).toEqual({segments: segments('2026', '09', ''), isSegmentComplete: true});
+            expect(typeDigitIntoSegments(segments('2026', '', ''), 'month', '9')).toEqual({segments: segments('2026', '09', ''), nextSegmentName: 'day'});
         });
 
         it('waits for a second digit when the month could still be a teen month', () => {
-            expect(typeDigitIntoSegment(segments('2026', '', ''), 'month', '1')).toEqual({segments: segments('2026', '1', ''), isSegmentComplete: false});
-            expect(typeDigitIntoSegment(segments('2026', '1', ''), 'month', '2')).toEqual({segments: segments('2026', '12', ''), isSegmentComplete: true});
+            expect(typeDigitIntoSegments(segments('2026', '', ''), 'month', '1')).toEqual({segments: segments('2026', '1', ''), nextSegmentName: undefined});
+            expect(typeDigitIntoSegments(segments('2026', '1', ''), 'month', '2')).toEqual({segments: segments('2026', '12', ''), nextSegmentName: 'day'});
         });
 
-        it('restarts the month when the two digit number is out of range', () => {
-            expect(typeDigitIntoSegment(segments('2026', '1', ''), 'month', '3')).toEqual({segments: segments('2026', '03', ''), isSegmentComplete: true});
-            expect(typeDigitIntoSegment(segments('2026', '0', ''), 'month', '0')).toEqual({segments: segments('2026', '0', ''), isSegmentComplete: false});
+        it('carries a digit the month cannot take into the day', () => {
+            expect(typeDigitIntoSegments(segments('2026', '1', ''), 'month', '3')).toEqual({segments: segments('2026', '01', '3'), nextSegmentName: 'day'});
         });
 
-        it('limits the day to the typed month', () => {
-            expect(typeDigitIntoSegment(segments('2026', '01', '3'), 'day', '1')).toEqual({segments: segments('2026', '01', '31'), isSegmentComplete: true});
-
-            // February has no 31st, so the keystroke starts the day over instead
-            expect(typeDigitIntoSegment(segments('2026', '02', '3'), 'day', '1')).toEqual({segments: segments('2026', '02', '1'), isSegmentComplete: false});
+        it('waits on a zero rather than padding it, since 0 is not a month', () => {
+            expect(typeDigitIntoSegments(segments('2026', '0', ''), 'month', '0')).toEqual({segments: segments('2026', '0', ''), nextSegmentName: undefined});
         });
 
-        it('allows February 29 in a leap year only', () => {
-            expect(typeDigitIntoSegment(segments('2024', '02', '2'), 'day', '9')).toEqual({segments: segments('2024', '02', '29'), isSegmentComplete: true});
-            expect(typeDigitIntoSegment(segments('2026', '02', '2'), 'day', '9')).toEqual({segments: segments('2026', '02', '09'), isSegmentComplete: true});
+        it('caps the day at the longest month rather than the one that was typed', () => {
+            expect(typeDigitIntoSegments(segments('2026', '01', '3'), 'day', '1')).toEqual({segments: segments('2026', '01', '31'), nextSegmentName: undefined});
+
+            // February has no 31st, but the field takes it and validation is what rejects the date
+            expect(typeDigitIntoSegments(segments('2026', '02', '3'), 'day', '1')).toEqual({segments: segments('2026', '02', '31'), nextSegmentName: undefined});
         });
 
-        it('allows any day up to 31 before the month is known', () => {
-            expect(typeDigitIntoSegment(segments('', '', '3'), 'day', '1')).toEqual({segments: segments('', '', '31'), isSegmentComplete: true});
+        it('keeps a day the newly typed month cannot have, leaving it to validation', () => {
+            expect(typeDigitIntoSegments(segments('2026', '1', '31'), 'month', '1').segments).toEqual(segments('2026', '11', '31'));
         });
 
-        it('trims a day the newly typed month cannot have', () => {
-            expect(typeDigitIntoSegment(segments('2026', '1', '31'), 'month', '1').segments).toEqual(segments('2026', '11', '30'));
-        });
-
-        it('trims a day the newly typed year cannot have', () => {
-            expect(typeDigitIntoSegment(segments('202', '02', '29'), 'year', '6').segments).toEqual(segments('2026', '02', '28'));
+        it('has nothing to carry into past the day, so a rejected pair restarts it', () => {
+            expect(typeDigitIntoSegments(segments('2026', '09', '3'), 'day', '9')).toEqual({segments: segments('2026', '09', '03'), nextSegmentName: undefined});
         });
     });
 
-    describe('stepSegment', () => {
-        it('wraps the month at both ends', () => {
-            expect(stepSegment(segments('2026', '12', ''), 'month', 1)).toEqual(segments('2026', '01', ''));
-            expect(stepSegment(segments('2026', '01', ''), 'month', -1)).toEqual(segments('2026', '12', ''));
+    describe('removeLastDigit', () => {
+        it('drops one digit at a time', () => {
+            expect(removeLastDigit(segments('2026', '', ''), 'year')).toEqual(segments('202', '', ''));
+            expect(removeLastDigit(segments('2', '', ''), 'year')).toEqual(EMPTY);
         });
 
-        it('wraps the day within the typed month', () => {
-            expect(stepSegment(segments('2026', '02', '28'), 'day', 1)).toEqual(segments('2026', '02', '01'));
-        });
-
-        it('steps the year without wrapping', () => {
-            expect(stepSegment(segments('2026', '', ''), 'year', 1)).toEqual(segments('2027', '', ''));
-        });
-
-        it('trims the day when stepping into a shorter month', () => {
-            expect(stepSegment(segments('2026', '01', '31'), 'month', 1)).toEqual(segments('2026', '02', '28'));
+        it('reports that an empty segment had nothing to drop', () => {
+            expect(removeLastDigit(EMPTY, 'year')).toBeUndefined();
         });
     });
 
@@ -193,12 +182,6 @@ describe('DateInputMaskUtils', () => {
             expect(getSegmentsFromISODate('')).toEqual(EMPTY);
             expect(getSegmentsFromISODate(undefined)).toEqual(EMPTY);
             expect(getSegmentsFromISODate('not a date')).toEqual(EMPTY);
-        });
-    });
-
-    describe('clearSegment', () => {
-        it('empties only the named segment', () => {
-            expect(clearSegment(segments('2026', '09', '18'), 'month')).toEqual(segments('2026', '', '18'));
         });
     });
 

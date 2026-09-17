@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {getDaysInMonth, isValid, parse} from 'date-fns';
+import {isValid, parse} from 'date-fns';
 
 const DATE_SEGMENT_NAMES = ['year', 'month', 'day'] as const;
 
@@ -15,17 +15,16 @@ const YEAR_LENGTH = 4;
 const SEGMENT_LENGTH = 2;
 
 const FIRST_MONTH = 1;
-const LAST_MONTH = 12;
-const FIRST_DAY = 1;
 
-/** The longest month, used as the day limit until the typed month says otherwise */
-const MAX_DAYS_IN_MONTH = 31;
-
-/** A leading month digit above this cannot start a two digit month, so the segment is zero padded and completed early */
-const MAX_LEADING_MONTH_DIGIT = 1;
-
-/** A leading day digit above this cannot start a two digit day, so the segment is zero padded and completed early */
-const MAX_LEADING_DAY_DIGIT = 3;
+/**
+ * The highest a segment may read, and the highest its leading digit may be while still allowing a second one. The day
+ * is capped at the longest month rather than the one that has been typed, so an impossible date such as the 31st of
+ * February can be entered and is then rejected by validation, rather than being silently corrected mid-keystroke.
+ */
+const SEGMENT_LIMITS = {
+    month: {max: 12, maxLeadingDigit: 1},
+    day: {max: 31, maxLeadingDigit: 3},
+} as const;
 
 /** Mask characters standing in for a digit are letters, so anything else is a separator to copy through verbatim */
 const MASK_LETTER_REGEX = /\p{L}/u;
@@ -101,24 +100,6 @@ function getSegmentLength(name: DateSegmentName): number {
     return name === 'year' ? YEAR_LENGTH : SEGMENT_LENGTH;
 }
 
-function getDaysInTypedMonth(segments: DateSegments): number {
-    if (segments.month.length !== SEGMENT_LENGTH || segments.year.length !== YEAR_LENGTH) {
-        return MAX_DAYS_IN_MONTH;
-    }
-
-    return getDaysInMonth(new Date(Number(segments.year), Number(segments.month) - 1));
-}
-
-/** Trims a day the newly typed year or month cannot have, so February never keeps a 30th from the month before */
-function withDayInMonth(segments: DateSegments): DateSegments {
-    if (segments.day.length !== SEGMENT_LENGTH) {
-        return segments;
-    }
-
-    const daysInMonth = getDaysInTypedMonth(segments);
-    return Number(segments.day) > daysInMonth ? {...segments, day: String(daysInMonth).padStart(SEGMENT_LENGTH, '0')} : segments;
-}
-
 function getDateDisplay(segments: DateSegments, mask: string): DateDisplay {
     let value = '';
     const ranges: Record<DateSegmentName, DateSegmentRange> = {year: {start: 0, end: 0}, month: {start: 0, end: 0}, day: {start: 0, end: 0}};
@@ -143,6 +124,11 @@ function getSegmentNameAtPosition(position: number, ranges: Record<DateSegmentNa
     return name ?? DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 }
 
+/** The segment that follows this one, or undefined for the last one, which has nowhere to hand a finished value on to */
+function getFollowingSegmentName(name: DateSegmentName): DateSegmentName | undefined {
+    return DATE_SEGMENT_NAMES.at(DATE_SEGMENT_NAMES.indexOf(name) + 1);
+}
+
 /** The segment `offset` places away, clamped so moving past either end keeps the outermost segment selected */
 function getAdjacentSegmentName(name: DateSegmentName, offset: number): DateSegmentName {
     const nextIndex = DATE_SEGMENT_NAMES.indexOf(name) + offset;
@@ -151,68 +137,97 @@ function getAdjacentSegmentName(name: DateSegmentName, offset: number): DateSegm
     return DATE_SEGMENT_NAMES[clampedIndex];
 }
 
+type SegmentDigitResult = {
+    /** What the segment now reads */
+    value: string;
+
+    /** Whether the segment is finished with, so the caret belongs in the next one */
+    shouldAdvance: boolean;
+
+    /** A digit this segment could not take, which the next one receives instead */
+    carry?: string;
+};
+
 /**
- * Adds one typed digit to a segment. A digit that cannot extend what is already there starts the segment over, which
- * is what makes typing over a filled in date feel like overwriting it.
+ * Adds one typed digit to a single segment, without knowing about the others. A digit that cannot extend what is
+ * already there is handed on rather than dropped, so typing 1 then 3 into the month reads as January and starts the
+ * day off with the 3.
  */
-function typeDigitIntoSegment(segments: DateSegments, name: DateSegmentName, digit: string): {segments: DateSegments; isSegmentComplete: boolean} {
-    const current = segments[name].length >= getSegmentLength(name) ? '' : segments[name];
+function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digit: string): SegmentDigitResult {
+    const current = typedSoFar.length >= getSegmentLength(name) ? '' : typedSoFar;
 
     if (name === 'year') {
-        // No year we support starts with a zero, so swallow the keystroke rather than start a year that cannot resolve
-        if (!current && digit === '0') {
-            return {segments, isSegmentComplete: false};
+        const year = `${current}${digit}`.slice(0, YEAR_LENGTH);
+
+        return {value: year, shouldAdvance: year.length === YEAR_LENGTH};
+    }
+
+    const limits = SEGMENT_LIMITS[name];
+
+    if (current.length === 1) {
+        const combined = `${current}${digit}`;
+        const combinedNumber = Number(combined);
+
+        if (combinedNumber >= FIRST_MONTH && combinedNumber <= limits.max) {
+            return {value: combined, shouldAdvance: true};
         }
 
-        const year = `${current}${digit}`;
-        return {segments: withDayInMonth({...segments, year}), isSegmentComplete: year.length === YEAR_LENGTH};
+        return {value: current.padStart(SEGMENT_LENGTH, '0'), shouldAdvance: true, carry: digit};
     }
 
-    const isMonth = name === 'month';
-    const maxLeadingDigit = isMonth ? MAX_LEADING_MONTH_DIGIT : MAX_LEADING_DAY_DIGIT;
-    const lowest = isMonth ? FIRST_MONTH : FIRST_DAY;
-    const highest = isMonth ? LAST_MONTH : getDaysInTypedMonth(segments);
+    // A leading digit this high cannot start a two digit number, so the segment is zero padded and finished early
+    if (digit !== '0' && Number(digit) > limits.maxLeadingDigit) {
+        return {value: digit.padStart(SEGMENT_LENGTH, '0'), shouldAdvance: true};
+    }
 
-    if (!current) {
-        if (Number(digit) > maxLeadingDigit) {
-            const padded = `0${digit}`;
-            return {segments: withDayInMonth({...segments, [name]: padded}), isSegmentComplete: true};
+    return {value: digit, shouldAdvance: false};
+}
+
+/**
+ * Adds one typed digit, following a carried digit into the following segments for as long as they keep handing one on.
+ * `nextSegmentName` is where the caret belongs afterwards, and is undefined while the segment is unfinished.
+ */
+function typeDigitIntoSegments(
+    segments: DateSegments,
+    name: DateSegmentName,
+    digit: string,
+    shouldOverwrite = false,
+): {segments: DateSegments; nextSegmentName: DateSegmentName | undefined} {
+    const filled = {...segments};
+    let currentName = name;
+    let typedSoFar = shouldOverwrite ? '' : segments[name];
+    let currentDigit = digit;
+    let nextSegmentName: DateSegmentName | undefined;
+
+    for (;;) {
+        const result = typeDigitIntoOneSegment(currentName, typedSoFar, currentDigit);
+        filled[currentName] = result.value;
+
+        const followingName = getFollowingSegmentName(currentName);
+        if (!result.shouldAdvance || !followingName) {
+            break;
         }
 
-        return {segments: {...segments, [name]: digit}, isSegmentComplete: false};
+        nextSegmentName = followingName;
+        if (!result.carry) {
+            break;
+        }
+
+        currentName = followingName;
+        typedSoFar = '';
+        currentDigit = result.carry;
     }
 
-    const candidate = Number(`${current}${digit}`);
-    if (candidate >= lowest && candidate <= highest) {
-        return {segments: withDayInMonth({...segments, [name]: `${current}${digit}`}), isSegmentComplete: true};
-    }
-
-    // The two digit number is out of range, so treat the keystroke as the start of a new segment instead
-    return typeDigitIntoSegment({...segments, [name]: ''}, name, digit);
+    return {segments: filled, nextSegmentName};
 }
 
-/** Moves a segment up or down by `offset`, wrapping months and days and starting from today when the segment is empty */
-function stepSegment(segments: DateSegments, name: DateSegmentName, offset: number): DateSegments {
-    const today = new Date();
-
-    if (name === 'year') {
-        const current = segments.year.length === YEAR_LENGTH ? Number(segments.year) : today.getFullYear();
-        const year = Math.min(Math.max(current + offset, CONST.CALENDAR_PICKER.MIN_YEAR), CONST.CALENDAR_PICKER.MAX_YEAR);
-
-        return withDayInMonth({...segments, year: String(year)});
+/** Drops the last digit of a segment. Returns undefined when there was nothing left to drop */
+function removeLastDigit(segments: DateSegments, name: DateSegmentName): DateSegments | undefined {
+    if (!segments[name]) {
+        return undefined;
     }
 
-    const isMonth = name === 'month';
-    const highest = isMonth ? LAST_MONTH : getDaysInTypedMonth(segments);
-    const fallback = isMonth ? today.getMonth() + FIRST_MONTH : today.getDate();
-    const current = segments[name].length === SEGMENT_LENGTH ? Number(segments[name]) : fallback;
-    const stepped = ((current - 1 + offset + highest) % highest) + 1;
-
-    return withDayInMonth({...segments, [name]: String(stepped).padStart(SEGMENT_LENGTH, '0')});
-}
-
-function clearSegment(segments: DateSegments, name: DateSegmentName): DateSegments {
-    return {...segments, [name]: ''};
+    return {...segments, [name]: segments[name].slice(0, -1)};
 }
 
 function getSegmentsFromISODate(value: string | undefined): DateSegments {
@@ -244,7 +259,7 @@ function getSegmentsFromText(text: string): DateSegments {
             break;
         }
 
-        filled = typeDigitIntoSegment(filled, name, digit).segments;
+        filled = typeDigitIntoSegments(filled, name, digit).segments;
     }
 
     return filled;
@@ -268,7 +283,6 @@ function hasAnySegment(segments: DateSegments): boolean {
 export {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
-    clearSegment,
     getAdjacentSegmentName,
     getDateDisplay,
     getISODateFromSegments,
@@ -276,7 +290,7 @@ export {
     getSegmentsFromISODate,
     getSegmentsFromText,
     hasAnySegment,
-    stepSegment,
-    typeDigitIntoSegment,
+    removeLastDigit,
+    typeDigitIntoSegments,
 };
 export type {DateSegmentName, DateSegmentRange, DateSegments};
