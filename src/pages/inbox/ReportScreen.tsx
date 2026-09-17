@@ -35,6 +35,7 @@ import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBac
 import useDeferNonEssentials from './hooks/useDeferNonEssentials';
 import useFlushDeferredWriteOnFocus from './hooks/useFlushDeferredWriteOnFocus';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
+import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
@@ -56,9 +57,7 @@ type ReportScreenProps = ReportScreenNavigationProps & {
 };
 
 type ReportScreenEditMessageProviderProps = {
-    /** The report ID */
     reportID: string | undefined;
-    /** The children */
     children: React.ReactNode;
 };
 
@@ -125,6 +124,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                 <>
                                     <DeleteTransactionNavigateBackHandler />
                                     <ReportRouteParamHandler />
+                                    <OneTransactionThreadRedirectHandler />
                                     <ReportFetchHandler />
                                     <ReportNavigateAwayHandler />
                                 </>
