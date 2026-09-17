@@ -188,6 +188,7 @@ function SearchAutocompleteList({
     });
 
     const {isBetaEnabled} = usePermissions();
+    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -261,7 +262,7 @@ function SearchAutocompleteList({
             convertToDisplayString,
             options: listOptions,
             draftComments,
-            isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            isDefaultRoomsBetaEnabled,
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
@@ -287,7 +288,7 @@ function SearchAutocompleteList({
     }, [
         listOptions,
         draftComments,
-        isBetaEnabled,
+        isDefaultRoomsBetaEnabled,
         autocompleteQueryValue,
         countryCode,
         loginList,
@@ -351,7 +352,7 @@ function SearchAutocompleteList({
         allFeeds,
         options: listOptions ?? emptyOptionList,
         draftComments,
-        isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+        isDefaultRoomsBetaEnabled,
         countryCode,
         loginList,
         policies,
