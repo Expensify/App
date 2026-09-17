@@ -34,6 +34,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -50,7 +51,6 @@ import {
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
     isTransactionSearchType,
-    searchKeyToSavedSearchID,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -69,6 +69,9 @@ import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 
 import EmptySearchView from '@pages/Search/EmptySearchView';
+
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -100,6 +103,7 @@ import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
@@ -156,6 +160,8 @@ function Search({
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    // Wide layout floats the bulk action bar over the end of the list, so the list has to leave room for it.
+    const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON);
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -276,6 +282,8 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     } = useSearchSnapshot({
         queryJSON,
         searchResults,
@@ -811,6 +819,7 @@ function Search({
                 Navigation.setParams({
                     q: buildCannedSearchQuery(),
                     rawQuery: undefined,
+                    searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 });
             });
             if (shouldResetSearchQuery) {
@@ -1107,13 +1116,21 @@ function Search({
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {
-                        isBreakLine: shouldUseNarrowLayout,
-                    })}
-                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
-                    // Retrying an invalid query won't help, so the retry button is only offered for other errors.
+                    title={
+                        isInvalidQuery
+                            ? translate('errorPage.title', {
+                                  isBreakLine: shouldUseNarrowLayout,
+                              })
+                            : translate('search.searchResults.staleResults.title')
+                    }
+                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'search.searchResults.staleResults.subtitle')}
+                    // A failed request leaves results that are out of date rather than broken, so that case gets the
+                    // refresh copy and illustration. An invalid query keeps the error copy, since it really did fail.
                     {...(!isInvalidQuery && {
-                        buttonTranslationKey: 'common.tryAgain',
+                        illustration: 'FolderSync',
+                        illustrationWidth: variables.iconSizeUltraLarge,
+                        illustrationHeight: variables.iconSizeUltraLarge,
+                        buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
                         onButtonPress: () => {
                             // A response replaces the snapshot's results rather than appending to them, so retrying at
                             // the paginated offset would leave only that later page behind. Retry from the first page.
@@ -1258,6 +1275,20 @@ function Search({
             />
         ) : undefined;
 
+    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    const columnSizeOptions: GetReportTableColumnStylesParams = {
+        isActionColumnWide: isTask || hasDeletedTransaction,
+        isDateColumnWide: shouldShowYearCreated,
+        isSubmittedColumnWide: shouldShowYearSubmitted,
+        isApprovedColumnWide: shouldShowYearApproved,
+        isPostedColumnWide: shouldShowYearPosted,
+        isExportedColumnWide: shouldShowYearExported,
+        isWithdrawnColumnWide: shouldShowYearWithdrawn,
+        isAmountColumnWide: shouldShowAmountInWideColumn,
+        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+    };
+
     const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,
         queryJSON,
@@ -1267,7 +1298,7 @@ function Search({
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,
         tableHeaderVisible,
-        contentContainerStyle: [styles.pb3, contentContainerStyle],
+        contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
         onScroll: onSearchListScroll,
         onEndReached: fetchMoreResults,
@@ -1277,6 +1308,7 @@ function Search({
         newTransactions,
         hasLoadedAllTransactions,
         isActionColumnWide: isTask || hasDeletedTransaction,
+        columnSizeOptions,
     };
 
     let searchListContent: React.JSX.Element;
@@ -1286,6 +1318,8 @@ function Search({
                 {...commonViewProps}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                policyCategories={policyCategories}
+                policyTags={policyTags}
             />
         );
     } else if (isTransactionListView) {

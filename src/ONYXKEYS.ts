@@ -510,6 +510,12 @@ const ONYXKEYS = {
     /** Whether we're checking if the room is public or not */
     RAM_ONLY_IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 
+    /**
+     * Whether we're checking if any Expensify Card has a digital wallet addition waiting to be confirmed. RAM only, so
+     * undefined means nothing has asked yet this launch.
+     */
+    RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL: 'isCheckingPendingWalletApproval',
+
     /** The report ID of the public room that the user is currently viewing */
     VIEWING_PUBLIC_ROOM_REPORT_ID: 'ViewingPublicRoomReportID',
 
@@ -1337,6 +1343,8 @@ const ONYXKEYS = {
         DUALENTRY_CREDENTIALS_FORM_DRAFT: 'dualEntryCredentialsFormDraft',
         CAMPFIRE_CREDENTIALS_FORM: 'campfireCredentialsForm',
         CAMPFIRE_CREDENTIALS_FORM_DRAFT: 'campfireCredentialsFormDraft',
+        BUSINESS_CENTRAL_CREDENTIALS_FORM: 'businessCentralCredentialsForm',
+        BUSINESS_CENTRAL_CREDENTIALS_FORM_DRAFT: 'businessCentralCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1491,6 +1499,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
     [ONYXKEYS.FORMS.CAMPFIRE_CREDENTIALS_FORM]: FormTypes.CampfireCredentialsForm;
+    [ONYXKEYS.FORMS.BUSINESS_CENTRAL_CREDENTIALS_FORM]: FormTypes.BusinessCentralCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1747,6 +1756,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];

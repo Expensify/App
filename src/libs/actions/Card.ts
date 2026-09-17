@@ -3,6 +3,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
+    ApproveDigitalWalletCardAdditionParams,
     CardDeactivateParams,
     CreateExpensifyCardParams,
     DeletePersonalCardParams,
@@ -73,6 +74,26 @@ type CardOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
 type CardListUpdateData = Omit<PartialDeep<Card>, 'errors'> & {
     errors?: Card['errors'] | null;
 };
+
+/**
+ * Shared isLoading updates so both card writes show and hide the same spinner. The generic failure error is a
+ * fallback for responses that carry no message of their own; a backend error keyed by a later timestamp wins.
+ */
+function buildCardLoadingOnyxData(cardID: number) {
+    const mergeCard = (value: CardListUpdateData): Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {[cardID]: value},
+        },
+    ];
+
+    return {
+        optimisticData: mergeCard({errors: null, isLoading: true}),
+        successData: mergeCard({isLoading: false}),
+        failureData: mergeCard({errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'), isLoading: false}),
+    };
+}
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
@@ -199,53 +220,25 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
  * Activates the physical Expensify card based on the last four digits of the card number
  */
 function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    errors: null,
-                    isLoading: true,
-                },
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoading: false,
-                },
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoading: false,
-                },
-            },
-        },
-    ];
-
     const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, buildCardLoadingOnyxData(cardID));
+}
+
+/**
+ * Confirms or denies adding the card to a digital wallet. Confirming needs a magic code. Denying does not.
+ */
+function approveDigitalWalletCardAddition(cardID: number, isApproved: boolean, validateCode?: string) {
+    const parameters: ApproveDigitalWalletCardAdditionParams = {
+        cardID,
+        isApproved,
+        validateCode,
+    };
+
+    API.write(WRITE_COMMANDS.APPROVE_DIGITAL_WALLET_CARD_ADDITION, parameters, buildCardLoadingOnyxData(cardID));
 }
 
 /**
@@ -661,12 +654,12 @@ function updateSettlementFrequency(
     workspaceAccountID: number,
     programKey: CardProgramKey,
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
-    currentFrequency?: Date,
+    currentMonthlySettlementDate?: number,
 ) {
-    const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date();
+    const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date().getDate();
 
     const settlementValue = {[programKey]: {monthlySettlementDate}};
-    const failureValue = {[programKey]: {monthlySettlementDate: currentFrequency}};
+    const failureValue = {[programKey]: {monthlySettlementDate: currentMonthlySettlementDate}};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -1420,14 +1413,7 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(
-    domainAccountID: number,
-    policyID: string | undefined,
-    feedCountry: string,
-    validateCode: string,
-    timeZone: SelectedTimezone | undefined,
-    data?: IssueNewCardData,
-) {
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, validateCode: string, timeZone: SelectedTimezone | undefined, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -1532,7 +1518,7 @@ function issueExpensifyCard(
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
-            {...parameters, feedCountry, policyID},
+            {...parameters, policyID},
             {
                 optimisticData,
                 successData,
@@ -1557,6 +1543,21 @@ function issueExpensifyCard(
             failureData,
         },
     );
+}
+
+/**
+ * Asks if any Expensify Card has a wallet addition waiting to be confirmed.
+ */
+function getExpensifyCardPendingWalletApproval() {
+    const setIsChecking = (value: boolean): Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL,
+            value,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL, null, {optimisticData: setIsChecking(true), finallyData: setIsChecking(false)});
 }
 
 function openCardDetailsPage(cardID: number) {
@@ -2017,6 +2018,8 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
+    getExpensifyCardPendingWalletApproval,
+    approveDigitalWalletCardAddition,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,
