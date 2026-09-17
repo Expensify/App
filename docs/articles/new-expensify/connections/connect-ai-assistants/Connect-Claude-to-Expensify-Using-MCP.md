@@ -54,7 +54,7 @@ When prompted for the server URL, enter `https://www.expensify.com/mcp/`, then c
 
 Yes. Expensify is included as a connector in Anthropic’s Claude for Small Business plugin, which provides a collection of connectors for business tools.
 
-Add the Claude for Small Business plugin, then use the included Expensify connector and follow Claude’s instructions to connect your Expensify account.
+Add the Claude for Small Business plugin, then use the included Expensify connector and follow Claude’s instructions to connect your Expensify account. [Learn more about Claude for Small Business](https://www.anthropic.com/news/claude-for-small-business).
 
 ## How do I remove the Expensify connector from Claude?
 
