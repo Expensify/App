@@ -58,11 +58,11 @@ function DraggableList<T>({
     // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
     useEffect(() => {
         return () => {
-            // Unmounting mid-drag means no drag end event ever fires, which would strand the grabbing cursor.
-            DragCursor.hide();
             if (!isDraggingRef.current) {
                 return;
             }
+            // No drag end event fires for a list that unmounts mid-drag, which would strand the grabbing cursor.
+            DragCursor.hide();
             cancelDndKeyboardDrag();
         };
     }, []);
