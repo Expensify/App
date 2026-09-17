@@ -891,7 +891,9 @@ function ComposerWithSuggestions({
             return;
         }
 
-        // Reads shouldHideSidePanel rather than isSidePanelHiddenOrLargeScreen because the latter is true on extra-large screens even while the panel is on screen.
+        // The Side Panel composer only wins this race because it renders outside <StackView> and its effect flushes last, so the fire-time
+        // re-check would otherwise turn https://github.com/Expensify/App/pull/86658 into a regression. Reads shouldHideSidePanel rather than
+        // isSidePanelHiddenOrLargeScreen because the latter is true on extra-large screens even while the panel is on screen.
         if (
             shouldYieldFocusToSidePanelComposer({
                 isInSidePanel,

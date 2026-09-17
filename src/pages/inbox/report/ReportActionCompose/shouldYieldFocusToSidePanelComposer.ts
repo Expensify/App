@@ -2,7 +2,7 @@ type ShouldYieldFocusToSidePanelComposerParams = {
     /** Whether the composer asking is the one rendered inside the Side Panel */
     isInSidePanel: boolean;
 
-    /** Stays false for the length of the Side Panel's exit animation, while its composer is still mounted */
+    /** True as soon as the Side Panel starts closing, while its composer is still mounted for the exit animation */
     shouldHideSidePanel: boolean;
 
     /** Whether a modal was visible on the previous render, i.e. the refocus is running because one just closed */
