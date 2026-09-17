@@ -1,3 +1,5 @@
+import type {AvatarIcon} from '@components/Avatar/types';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
@@ -23,6 +25,7 @@ import {
     createWorkspaceTaskReport,
     createWorkspaceThread,
 } from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -46,7 +49,6 @@ const TEST_POLICY: Policy = {
     role: CONST.POLICY.ROLE.ADMIN,
     owner: 'user1@test.com',
     ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-    isPolicyExpenseChatEnabled: true,
     outputCurrency: 'USD',
 } as Policy;
 
@@ -57,8 +59,10 @@ const PARENT_PEC_REPORT_ID = 'parentPEC';
 const PARENT_DM_REPORT_ID = 'parentDM';
 const PARENT_EXPENSE_REPORT_ID = 'parentExpense';
 const B2B_INVOICE_ROOM_ID = 'b2bInvoiceRoom';
+const CONCIERGE_REPORT_ID = 'conciergeDM';
 const ACTION_PEC_ID = 'actionPEC';
 const ACTION_EXPENSE_REQ_ID = 'actionExpReq';
+const ACTION_CONCIERGE_ID = 'actionConcierge';
 
 // ─── Pipeline Helper ─────────────────────────────────────────────────────────
 
@@ -68,13 +72,13 @@ type ComputeParams = {
     isReportArchived?: boolean;
     iouSenderID?: number;
     delegateAccountID?: number;
+    conciergeReportID?: string;
 };
 
 type AvatarResult = {
-    icons: Icon[];
+    icons: AvatarIcon[];
     shouldShowSubscript: boolean;
     avatarType: 'single' | 'subscript' | 'diagonal';
-    delegateTooltipAccountID: number | undefined;
 };
 
 /**
@@ -85,7 +89,7 @@ type AvatarResult = {
  * Stage 3 (OptionRowLHN): Delegate icon replacement
  * Stage 4 (LHNAvatar): Avatar type decision
  */
-function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = false, iouSenderID, delegateAccountID}: ComputeParams): AvatarResult {
+function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = false, iouSenderID, delegateAccountID, conciergeReportID}: ComputeParams): AvatarResult {
     // Stage 1: SidebarUtils subscript + icon logic
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const isWorkspaceExpenseRequest = isExpenseRequest(report) && !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
@@ -97,7 +101,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
 
     const formatPhoneNumber = (s: string) => s;
-    let icons = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived);
+    let icons: AvatarIcon[] = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
 
     if (!shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && report.type !== CONST.REPORT.TYPE.INVOICE && icons.length > 1) {
         const firstIcon = icons.at(0);
@@ -111,14 +115,25 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     }
 
     // Stage 3: OptionRowLHN — Delegate icon replacement
-    const skipDelegate = report.type === CONST.REPORT.TYPE.INVOICE || (isTaskReport(report) && !report.chatReportID);
-    let delegateTooltipAccountID: number | undefined;
+    const isConciergeThread = isChatThread(report) && !!conciergeReportID && report.parentReportID === conciergeReportID;
+    const skipDelegate = isConciergeThread || report.type === CONST.REPORT.TYPE.INVOICE || (isTaskReport(report) && !report.chatReportID);
     if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegate) {
-        delegateTooltipAccountID = Number(icons.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID);
         const delegateDetails = PERSONAL_DETAILS[delegateAccountID];
         const firstIcon = icons.at(0);
         if (firstIcon && delegateDetails) {
-            icons = [{...firstIcon, source: delegateDetails.avatar ?? '', name: delegateDetails.displayName ?? '', id: delegateAccountID}, ...icons.slice(1)];
+            icons = [
+                {
+                    ...firstIcon,
+                    source: delegateDetails.avatar ?? '',
+                    name: delegateDetails.displayName ?? '',
+                    id: delegateAccountID,
+                    copilot: {
+                        accountID: delegateAccountID,
+                        actedForAccountID: Number(firstIcon.id ?? CONST.DEFAULT_NUMBER_ID),
+                    },
+                },
+                ...icons.slice(1),
+            ];
         }
     }
 
@@ -132,7 +147,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
         avatarType = 'diagonal';
     }
 
-    return {icons, shouldShowSubscript, avatarType, delegateTooltipAccountID};
+    return {icons, shouldShowSubscript, avatarType};
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -184,15 +199,18 @@ describe('LHN Avatar Pipeline', () => {
         } as Report);
 
         // Receiver policy (for B2B invoice cases)
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`, {
-            id: RECEIVER_POLICY_ID,
-            name: 'Receiver Workspace',
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            owner: 'user2@test.com',
-            ownerAccountID: 2,
-            outputCurrency: 'USD',
-        } as Policy);
+        await Onyx.set(
+            `${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`,
+            createMock<Policy>({
+                id: RECEIVER_POLICY_ID,
+                name: 'Receiver Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: 'user2@test.com',
+                ownerAccountID: 2,
+                outputCurrency: 'USD',
+            }),
+        );
 
         // B2B invoice room (for B2B invoice report cases)
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${B2B_INVOICE_ROOM_ID}`, {
@@ -202,6 +220,22 @@ describe('LHN Avatar Pipeline', () => {
             policyID: POLICY_ID,
             invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: RECEIVER_POLICY_ID},
         } as Report);
+
+        // Concierge DM (parent of a Concierge thread)
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
+            ...createRegularChat(140, [CURRENT_USER_ACCOUNT_ID, CONST.ACCOUNT_ID.CONCIERGE]),
+            reportID: CONCIERGE_REPORT_ID,
+        });
+
+        // The question the Concierge thread hangs off, written by the copiloted user
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {
+            [ACTION_CONCIERGE_ID]: {
+                reportActionID: ACTION_CONCIERGE_ID,
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-01-01',
+            },
+        });
 
         // Report actions for parent PEC (actor = account 2)
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_PEC_REPORT_ID}`, {
@@ -538,11 +572,11 @@ describe('LHN Avatar Pipeline', () => {
 
     // ── Case 12c: Personal task (parent is DM) → SINGLE ──────────────
     it('Task Report (personal, parent is DM) → single', () => {
-        const report = {
+        const report = createMock<Report>({
             ...createWorkspaceTaskReport(123, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_DM_REPORT_ID),
             policyID: undefined,
             ownerAccountID: 2,
-        } as unknown as Report;
+        });
         const result = computeAvatarResult({report, policy: null});
 
         expect(result.shouldShowSubscript).toBe(false);
@@ -614,8 +648,21 @@ describe('LHN Avatar Pipeline', () => {
         expect(result.icons.at(0)?.source).toBe('https://avatar/5');
     });
 
-    // ── Case 25: delegateTooltipAccountID preserves original actor ──
-    it('delegateTooltipAccountID returns original actor ID when delegate is active', () => {
+    // ── Case 24b: Delegate skipped for a Concierge thread ────────────
+    it('Delegate skipped for a Concierge thread so the row keeps the Concierge avatar', () => {
+        const report = {
+            ...createRegularChat(132, [CURRENT_USER_ACCOUNT_ID, CONST.ACCOUNT_ID.CONCIERGE]),
+            parentReportID: CONCIERGE_REPORT_ID,
+            parentReportActionID: ACTION_CONCIERGE_ID,
+        };
+        const result = computeAvatarResult({report, delegateAccountID: 5, conciergeReportID: CONCIERGE_REPORT_ID});
+
+        expect(result.icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        expect(result.icons.at(0)?.copilot).toBeUndefined();
+    });
+
+    // ── Case 25: copilot preserves original actor on icon ──
+    it('copilot.actedForAccountID preserves original actor ID when delegate is active', () => {
         const report = {
             ...createExpenseReport(129),
             policyID: POLICY_ID,
@@ -623,12 +670,13 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report, delegateAccountID: 5});
 
-        expect(result.delegateTooltipAccountID).toBe(2);
+        expect(result.icons.at(0)?.copilot?.actedForAccountID).toBe(2);
+        expect(result.icons.at(0)?.copilot?.accountID).toBe(5);
         expect(result.icons.at(0)?.id).toBe(5);
     });
 
-    // ── Case 26: delegateTooltipAccountID undefined without delegate ─
-    it('delegateTooltipAccountID is undefined when no delegate', () => {
+    // ── Case 26: copilot undefined without delegate ─
+    it('copilot is undefined when no delegate', () => {
         const report = {
             ...createExpenseReport(130),
             policyID: POLICY_ID,
@@ -636,11 +684,11 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report});
 
-        expect(result.delegateTooltipAccountID).toBeUndefined();
+        expect(result.icons.at(0)?.copilot).toBeUndefined();
     });
 
-    // ── Case 27: delegateTooltipAccountID undefined when skipDelegate ─
-    it('delegateTooltipAccountID is undefined when skipDelegate is true', () => {
+    // ── Case 27: copilot undefined when skipDelegate ─
+    it('copilot is undefined when skipDelegate is true', () => {
         const report = {
             ...createInvoiceReport(131),
             policyID: POLICY_ID,
@@ -649,7 +697,7 @@ describe('LHN Avatar Pipeline', () => {
         } as Report;
         const result = computeAvatarResult({report, delegateAccountID: 5});
 
-        expect(result.delegateTooltipAccountID).toBeUndefined();
+        expect(result.icons.at(0)?.copilot).toBeUndefined();
         expect(result.icons.at(0)?.id).not.toBe(5);
     });
 });

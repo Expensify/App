@@ -17,7 +17,7 @@ import type * as ReportType from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {KeyValueMapping} from 'react-native-onyx';
 
@@ -25,6 +25,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {createRandomReport, createRegularChat} from '../../utils/collections/reports';
+import createMock from '../../utils/createMock';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -43,7 +44,7 @@ jest.mock('@userActions/Report', () => ({
     joinRoom: jest.fn(),
 }));
 
-const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
+const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const currentUserAccountID = 1;
 
 describe('HeaderView', () => {
@@ -70,7 +71,8 @@ describe('HeaderView', () => {
         const chatReportID = '1';
         const accountID = 2;
         let displayName = 'test';
-        const report = {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
+        const report: Report = {
             ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.INVOICE),
             invoiceReceiver: {
                 accountID,
@@ -78,14 +80,17 @@ describe('HeaderView', () => {
             },
         };
         await act(async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: report,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [accountID]: {
-                        displayName,
+            await Onyx.multiSet(
+                createMock<KeyValueMapping>({
+                    [reportKey]: report,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [accountID]: {
+                            accountID,
+                            displayName,
+                        },
                     },
-                },
-            } as unknown as KeyValueMapping);
+                }),
+            );
         });
 
         render(
@@ -178,11 +183,16 @@ describe('HeaderView', () => {
         });
         await waitForBatchedUpdates();
 
-        await Onyx.multiSet({
-            [`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]: originalReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]: parentReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport,
-        } as unknown as KeyValueMapping);
+        const originalReportKey = `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}` as const;
+        const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}` as const;
+        const threadReportKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}` as const;
+        await Onyx.multiSet(
+            createMock<KeyValueMapping>({
+                [originalReportKey]: originalReport,
+                [parentReportKey]: parentReport,
+                [threadReportKey]: threadReport,
+            }),
+        );
 
         render(
             <LocaleContextProvider>
@@ -222,6 +232,62 @@ describe('HeaderView', () => {
         );
     }
 
+    it('should display the localized category update message for a thread on a category update action', async () => {
+        // Given an #admins room with a report action that made attendees required on a category
+        const policyID = '400';
+        const adminsReportID = '401';
+        const threadReportID = '402';
+        const rawServerMessage = 'updated the category "Advertising" by changing the Attendees from Not Required to Required';
+
+        const parentReportAction: ReportAction = {
+            reportActionID: '4001',
+            actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+            created: '2026-01-01 00:00:00.000',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: rawServerMessage, text: rawServerMessage}],
+            originalMessage: {
+                categoryName: 'Advertising',
+                updatedField: 'areAttendeesRequired',
+                oldValue: '',
+                newValue: true,
+            },
+        };
+
+        const adminsReport = {
+            ...createRandomReport(Number(adminsReportID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+        };
+
+        // And a chat thread opened on that action
+        const threadReport = {
+            ...createRandomReport(Number(threadReportID), undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            parentReportID: adminsReportID,
+            parentReportActionID: parentReportAction.reportActionID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsReportID}`, {
+            [parentReportAction.reportActionID]: parentReportAction,
+        });
+        await waitForBatchedUpdates();
+
+        const adminsReportKey = `${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}` as const;
+        const threadReportKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}` as const;
+        await Onyx.multiSet(
+            createMock<KeyValueMapping>({
+                [adminsReportKey]: adminsReport,
+                [threadReportKey]: threadReport,
+            }),
+        );
+
+        renderHeader(threadReport.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the thread header should show the same copy as the system message in the chat
+        await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(translateLocal('workspaceActions.updateAreAttendeesRequired', 'Advertising', true)));
+    });
+
     it('should display the Book a call button in the 1:1 DM with the account manager', async () => {
         // Given a 1:1 DM with the assigned account manager who has a calendar link
         const report = createRegularChat(500, [currentUserAccountID, accountManagerAccountID]);
@@ -229,7 +295,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);
@@ -246,7 +312,7 @@ describe('HeaderView', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);
@@ -263,7 +329,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID)});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID});
         });
 
         renderHeader(report.reportID);
@@ -280,7 +346,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);

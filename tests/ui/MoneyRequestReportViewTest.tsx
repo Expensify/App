@@ -117,6 +117,7 @@ const renderMoneyRequestReportView = (onLayout: (event: LayoutChangeEvent) => vo
     render(
         <MoneyRequestReportView
             report={mockReport}
+            reportIDFromRoute={mockReport.reportID}
             reportLoadingState={mockReportLoadingState}
             shouldDisplayReportFooter={false}
             backToRoute={undefined}

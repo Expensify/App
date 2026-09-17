@@ -4,6 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -23,14 +24,10 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getReimbursable, getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
+import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
-}
-
-function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
-    return transactions.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
@@ -96,6 +93,11 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
 
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
+        // A reject the server refused leaves the expense on the report with an error the user has to dismiss.
+        if (!isEmptyObject(transaction.errorFields?.reject ?? {})) {
             return true;
         }
 
@@ -184,7 +186,7 @@ const getTotalAmountForIOUReportPreviewButton = (
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
-    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions);
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions, convertToDisplayString);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
@@ -225,5 +227,4 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
-    hasNonReimbursableTransactions,
 };

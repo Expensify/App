@@ -11,8 +11,12 @@ import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 
+import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
+import type * as ReportActionIndexContexts from '@pages/inbox/report/ReportActionIndexContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import type * as CoreNavigation from '@react-navigation/core';
@@ -21,6 +25,7 @@ import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -29,16 +34,25 @@ const FAKE_POLICY_ID = 'FAKE_POLICY_001';
 const FAKE_ACCOUNT_ID = 15593135;
 const FAKE_TRANSACTION_ID = 'FAKE_TXN_001';
 const FAKE_EMAIL = 'testuser@example.com';
+const MOCK_UNIFIED_LAST_ITEM_INDEX = 37;
+const mockScrollToIndex = jest.fn();
+const mockScrollToEnd = jest.fn();
+const mockScrollToOffset = jest.fn();
+let mockIsNewestReportAction: boolean | undefined;
+let mockScrollToNewestAction: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useNavigationState: () => true,
     usePreventRemove: jest.fn(),
-    useRoute: () => ({
-        key: 'test-key',
-        name: 'Report' as never,
-        params: {reportID: FAKE_REPORT_ID},
-    }),
+    useRoute: () => {
+        const SCREENS_MOCK = jest.requireActual<{default: typeof SCREENS}>('@src/SCREENS').default;
+        return {
+            key: 'test-key',
+            name: SCREENS_MOCK.REPORT,
+            params: {reportID: FAKE_REPORT_ID},
+        };
+    },
 }));
 
 jest.mock('@react-navigation/core', () => ({
@@ -70,17 +84,44 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getDeepestFocusedScreen: jest.fn(() => undefined),
+    setParams: jest.fn(),
 }));
 
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return ({listFooterComponent, isLoadingInitialActions}: {listFooterComponent?: React.ReactElement; isLoadingInitialActions: boolean}) => (
-        <View testID="MockMoneyRequestReportTransactionList">
-            {isLoadingInitialActions ? <View testID="MockInitialReportActionsSkeleton" /> : null}
-            {listFooterComponent}
-        </View>
-    );
+    const ReactActual = jest.requireActual<typeof React>('react');
+    return ({
+        listFooterComponent,
+        isLoadingInitialActions,
+        listRef,
+        onLastItemIndexChange,
+        visibleReportActions,
+        renderReportAction,
+    }: {
+        listFooterComponent?: React.ReactElement;
+        isLoadingInitialActions: boolean;
+        listRef: React.Ref<{
+            scrollToIndex: typeof mockScrollToIndex;
+            scrollToEnd: typeof mockScrollToEnd;
+            scrollToOffset: typeof mockScrollToOffset;
+        }>;
+        onLastItemIndexChange?: (index: number) => void;
+        visibleReportActions: ReportAction[];
+        renderReportAction: (reportAction: ReportAction, index: number) => React.ReactElement;
+    }) => {
+        ReactActual.useImperativeHandle(listRef, () => ({scrollToIndex: mockScrollToIndex, scrollToEnd: mockScrollToEnd, scrollToOffset: mockScrollToOffset}));
+        ReactActual.useLayoutEffect(() => onLastItemIndexChange?.(MOCK_UNIFIED_LAST_ITEM_INDEX), [onLastItemIndexChange]);
+        const newestAction = visibleReportActions.at(-1);
+
+        return (
+            <View testID="MockMoneyRequestReportTransactionList">
+                {isLoadingInitialActions ? <View testID="MockInitialReportActionsSkeleton" /> : null}
+                {newestAction ? renderReportAction(newestAction, visibleReportActions.length - 1) : null}
+                {listFooterComponent}
+            </View>
+        );
+    };
 });
 
 jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState', () => {
@@ -154,7 +195,17 @@ jest.mock('@hooks/useMobileSelectionMode', () => jest.fn(() => true));
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => jest.fn(() => ({shouldUseNarrowLayout: true})));
 jest.mock('@hooks/useFilterSelectedTransactions', () => jest.fn());
 jest.mock('@hooks/useLoadReportActions', () => jest.fn(() => ({loadOlderChats: jest.fn(), loadNewerChats: jest.fn()})));
-jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const {default: ReportActionIndexContextActual, ReportActionScrollToNewestContext: ReportActionScrollToNewestContextActual} =
+        jest.requireActual<typeof ReportActionIndexContexts>('@pages/inbox/report/ReportActionIndexContext');
+
+    return jest.fn(() => {
+        mockIsNewestReportAction = ReactActual.useContext(ReportActionIndexContextActual).isNewest;
+        mockScrollToNewestAction = ReactActual.useContext(ReportActionScrollToNewestContextActual);
+        return null;
+    });
+});
 jest.mock('@hooks/useParentReportAction', () => jest.fn(() => undefined));
 jest.mock('@navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
 
@@ -190,7 +241,6 @@ const mockPolicy: Policy = {
             role: CONST.POLICY.ROLE.ADMIN,
         },
     },
-    isPolicyExpenseChatEnabled: true,
 } as Policy;
 
 const mockTransaction: Transaction = {
@@ -203,7 +253,7 @@ const mockTransaction: Transaction = {
     status: CONST.TRANSACTION.STATUS.POSTED,
 } as Transaction;
 
-const mockReportAction: ReportAction = {
+const mockReportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
     reportActionID: 'ACTION_001',
     reportID: FAKE_REPORT_ID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -217,11 +267,25 @@ const mockReportAction: ReportAction = {
         currency: CONST.CURRENCY.USD,
     },
     childReportID: 'CHILD_001',
-} as unknown as ReportAction;
+});
+
+const mockCommentReportAction: ReportAction = {
+    reportActionID: 'ACTION_002',
+    reportID: FAKE_REPORT_ID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+    created: '2025-01-02 00:00:00',
+    actorAccountID: FAKE_ACCOUNT_ID,
+    message: [{type: 'COMMENT', html: 'comment', text: 'comment'}],
+    originalMessage: {},
+    shouldShow: true,
+    person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+    pendingAction: null,
+    errors: {},
+};
 
 const renderComponent = () => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[ActionListContextProvider, OnyxListItemProvider, LocaleContextProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
                     <MoneyRequestReportActionsList />
@@ -246,6 +310,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsNewestReportAction = undefined;
+        mockScrollToNewestAction = undefined;
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         mockUseIsReportLoadPending.mockReturnValue(false);
         mockUseNetwork.mockReturnValue({isOffline: false});
@@ -253,6 +319,30 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
+    });
+
+    it('should use the unified list index when the newest action requests a bottom scroll', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {
+                    [mockReportAction.reportActionID]: mockReportAction,
+                    [mockCommentReportAction.reportActionID]: mockCommentReportAction,
+                },
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockIsNewestReportAction).toBe(true);
+        act(() => mockScrollToNewestAction?.());
+        expect(mockScrollToIndex).toHaveBeenCalledWith({index: MOCK_UNIFIED_LAST_ITEM_INDEX, animated: false, viewPosition: 1});
+        expect(mockScrollToEnd).not.toHaveBeenCalled();
     });
 
     it('should show reject educational modal when reject option is selected and explanation has NOT been dismissed', async () => {

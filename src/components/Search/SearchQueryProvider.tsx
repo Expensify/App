@@ -12,14 +12,16 @@ import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/Search
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import {defaultExpensifyCardSelector} from '@src/selectors/Card';
 
 import type {NavigationState} from '@react-navigation/routers';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
+import useSearchKeyParam from './hooks/useSearchKeyParam';
 import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
 
 type SearchQueryProviderProps = {
@@ -47,17 +49,19 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
-    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const {defaultCardFeed, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
+    const [defaultExpensifyCardID] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (card) => defaultExpensifyCardSelector(card)?.id});
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const defaultCardFeedID = defaultCardFeed?.id;
-    // Only policy IDs are needed so Top Spenders matches the type menu hash; card feeds aren't used for that eligibility.
-    const topSpendersPolicyIDs = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined).topSpendersPolicyIDs, [email, policies]);
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, topSpendersPolicyIDs);
+    const {shouldShowExpensifyCard} = getSuggestedSearchesVisibility(email, {}, policies, undefined);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID ?? defaultExpensifyCardID, shouldShowExpensifyCard, activeExpensifyCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
-    const currentSearchKey = Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
+
+    const {currentSearchKey, currentDefaultSearchQueryJSON, getSearchKeyForQuery} = useSearchKeyParam(currentSearchQueryJSON, suggestedSearches);
+    const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
@@ -66,12 +70,15 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         currentSimilarSearchHash,
         currentSearchKey,
         currentSearchQueryJSON,
+        currentDefaultSearchQueryJSON,
+        currentDefaultSearchQueryFilterKeys,
         suggestedSearches,
         shouldResetSearchQuery,
     };
 
     const queryActionsValue: SearchQueryActionsValue = {
         setShouldResetSearchQuery,
+        getSearchKeyForQuery,
     };
 
     return (

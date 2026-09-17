@@ -17,7 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportAttributes from '@hooks/useReportAttributes';
+import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,18 +26,20 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {moveFullContextMenuFocusWithArrowKey} from '@libs/moveContextMenuFocusWithArrowKey';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {
     getLinkedTransactionID,
+    getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportAction,
+    getTransactionThreadReportIDFromAction,
     isActionOfType,
-    isDeletedAction,
     isMemberChangeAction,
     withDEWRoutedActionsObject,
 } from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     chatIncludesChronosWithID,
     getHarvestOriginalReportID,
@@ -108,16 +110,9 @@ type BaseReportActionContextMenuProps = {
      */
     isThreadReportParentAction?: boolean;
 
-    /** Content Ref */
     contentRef?: RefObject<View | null>;
-
-    /** Function to check if context menu is active */
     checkIfContextMenuActive?: () => void;
-
-    /** List of disabled actions */
     disabledActions?: ContextMenuAction[];
-
-    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 
     /** Whether to add bottom safe area padding for edge-to-edge modal content */
@@ -164,8 +159,8 @@ function BaseReportActionContextMenu({
         'Trashcan',
     ]);
     const StyleUtils = useStyleUtils();
-    const {translate, getLocalDateFromDatetime, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, getLocalDateFromDatetime, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
@@ -223,30 +218,16 @@ function BaseReportActionContextMenu({
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
+    const transactionThreadReportAction = useMemo(
+        () => getOneTransactionThreadReportAction(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
     );
-
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const transactionThreadReportID = getTransactionThreadReportIDFromAction(transactionThreadReportAction);
 
     const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
     const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
 
-    const requestParentReportAction = useMemo(() => {
-        if (isMoneyRequestReport || isInvoiceReport) {
-            if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
-                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
-            }
-            if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
-                return undefined;
-            }
-            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
-        }
-        return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID, transactionThreadReportID, childReportActions]);
-
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+    const moneyRequestAction = transactionThreadReportAction ?? parentReportAction;
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
     const isParentReportArchived = useReportIsArchived(childReport?.parentReportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
@@ -262,6 +243,8 @@ function BaseReportActionContextMenu({
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
     const delegateAccountID = useDelegateAccountID();
@@ -289,7 +272,8 @@ function BaseReportActionContextMenu({
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const memberChangeLogReportActionMessage = isMemberChangeAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
     const [memberChangeLogRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(`${memberChangeLogReportActionMessage?.reportID}`)}`);
-    const memberChangeLogRoomReportName = deprecatedGetReportName(memberChangeLogRoomReport, reportAttributes) || memberChangeLogReportActionMessage?.roomName;
+    const derivedMemberChangeLogRoomReportName = useDerivedReportNameByReportID(memberChangeLogRoomReport?.reportID);
+    const memberChangeLogRoomReportName = getReportName(memberChangeLogRoomReport, derivedMemberChangeLogRoomReportName) || memberChangeLogReportActionMessage?.roomName;
 
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
@@ -320,6 +304,7 @@ function BaseReportActionContextMenu({
                 transactions,
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
+                rules,
             }),
     );
 
@@ -400,12 +385,14 @@ function BaseReportActionContextMenu({
                     <View
                         ref={contentRef}
                         style={bottomSafeAreaPaddingStyle}
+                        onKeyDown={!isMini ? moveFullContextMenuFocusWithArrowKey : undefined}
                     >
                         {filteredContextMenuActions.map((contextAction, index) => {
                             const closePopup = !isMini;
                             const payload: ContextMenuActionPayload = {
                                 reportActions,
                                 childReportActions,
+                                originalReportActions,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -432,7 +419,9 @@ function BaseReportActionContextMenu({
                                 policy,
                                 policyTags,
                                 translate,
+                                dateFnsLocale,
                                 convertToDisplayString,
+                                convertToDisplayStringWithoutCurrency,
                                 formatPhoneNumber,
                                 harvestReport,
                                 harvestReportOriginalID,
@@ -450,10 +439,12 @@ function BaseReportActionContextMenu({
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,
+                                conciergeChat,
                                 delegateAccountID,
                                 reportAttributes,
                                 originalReportOfUnapprovedTransaction,
                                 memberChangeLogRoomReportName,
+                                rules,
                             };
 
                             if ('renderContent' in contextAction) {
@@ -462,8 +453,7 @@ function BaseReportActionContextMenu({
 
                             const {textTranslateKey} = contextAction;
                             const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
-                            const text =
-                                textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
+                            const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, moneyRequestAction ?? reportAction) : translate(textTranslateKey));
                             const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                             const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
                             const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;

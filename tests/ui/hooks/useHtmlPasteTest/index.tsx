@@ -3,8 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 
 import type {RefObject} from 'react';
-import type {TextInput} from 'react-native';
 
+import createMock from '../../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 type UseHtmlPasteReturn = {
@@ -16,24 +16,24 @@ jest.mock('@src/hooks/useHtmlPaste', (): typeof useHtmlPaste => {
 });
 
 describe('useHtmlPaste - handlePastePlainText', () => {
-    let textInputRef: RefObject<(HTMLDivElement & Partial<TextInput>) | null>;
+    let textInputRef: RefObject<HTMLDivElement | null>;
+    let textInputElement: HTMLDivElement;
 
     const createMockClipboardEvent = (text: string): ClipboardEvent => {
-        const clipboardData = {
-            getData: (type: string) => (type === 'text/plain' ? text : ''),
-            files: [] as unknown as FileList,
-            items: [] as unknown as DataTransferItemList,
-            types: ['text/plain'],
-        };
-        return {
-            clipboardData,
+        return createMock<ClipboardEvent>({
+            clipboardData: {
+                getData: (type: string) => (type === 'text/plain' ? text : ''),
+                files: [],
+                items: [],
+                types: ['text/plain'],
+            },
             preventDefault: jest.fn(),
-        } as unknown as ClipboardEvent;
+        });
     };
 
     const mockWindowSelection = (selectedText: string) => {
         const range = document.createRange();
-        range.selectNodeContents(textInputRef.current as Node);
+        range.selectNodeContents(textInputElement);
         range.deleteContents();
         const textNode = document.createTextNode(selectedText);
         range.insertNode(textNode);
@@ -46,11 +46,11 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        const div = document.createElement('div');
-        div.setAttribute('contenteditable', 'true');
-        div.textContent = '';
-        document.body.appendChild(div);
-        textInputRef = {current: div} as RefObject<HTMLDivElement & Partial<TextInput>>;
+        textInputElement = document.createElement('div');
+        textInputElement.setAttribute('contenteditable', 'true');
+        textInputElement.textContent = '';
+        document.body.appendChild(textInputElement);
+        textInputRef = {current: textInputElement};
 
         if (!Range.prototype.getBoundingClientRect) {
             Range.prototype.getBoundingClientRect = () =>
@@ -69,7 +69,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     });
 
     afterEach(() => {
-        document.body.removeChild(textInputRef.current as Node);
+        document.body.removeChild(textInputElement);
     });
 
     it('Paste URL with selection → produces Markdown link', async () => {
@@ -80,7 +80,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection(selectedText);
         const event = createMockClipboardEvent(url);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef));
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -90,7 +91,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(markdownLink);
+            expect(textInputElement.textContent).toBe(markdownLink);
         }
     });
 
@@ -99,7 +100,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('');
         const event = createMockClipboardEvent(url);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef));
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -109,7 +111,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(url);
+            expect(textInputElement.textContent).toBe(url);
         }
     });
 
@@ -118,7 +120,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('what up');
         const event = createMockClipboardEvent(plainText);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef));
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -128,7 +131,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(plainText);
+            expect(textInputElement.textContent).toBe(plainText);
         }
     });
 
@@ -137,7 +140,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('');
         const event = createMockClipboardEvent(textWithTrailingWhitespace);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef));
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -147,8 +151,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(textWithTrailingWhitespace);
-            expect(textInputRef.current?.textContent?.endsWith('   ')).toBe(true);
+            expect(textInputElement.textContent).toBe(textWithTrailingWhitespace);
+            expect(textInputElement.textContent?.endsWith('   ')).toBe(true);
         }
     });
 });

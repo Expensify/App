@@ -6,7 +6,7 @@ import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
-import {isDefaultAvatar} from '@libs/UserAvatarUtils';
+import {getAccountIDFromAvatarID, isDefaultAvatar} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
@@ -20,7 +20,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 
-import Avatar from './Avatar';
+import AvatarFromIcon from './Avatar/AvatarFromIcon';
+import UserAvatar from './Avatar/UserAvatar';
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
@@ -62,13 +64,30 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
         }
 
         if (canEditRoomAvatar) {
+            const avatarSource = icon.source || report.avatarUrl;
+            const avatarForIconType =
+                icon.type === CONST.ICON_TYPE_WORKSPACE ? (
+                    <WorkspaceAvatar
+                        source={avatarSource}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                        name={icon.name ?? ''}
+                        avatarID={icon.id ?? CONST.DEFAULT_NUMBER_ID}
+                    />
+                ) : (
+                    <UserAvatar
+                        source={avatarSource}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                        accountID={getAccountIDFromAvatarID(icon.id)}
+                        fallbackIcon={icon.fallbackIcon}
+                    />
+                );
+            const roomAvatar = avatarSource ? avatarForIconType : null;
+
             return (
                 <AvatarWithImagePicker
-                    source={icon.source || report.avatarUrl}
-                    avatarID={icon.id}
+                    source={avatarSource}
+                    avatar={roomAvatar}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
-                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    avatarStyle={styles.alignSelfCenter}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl)}
                     onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl, file)}
@@ -79,9 +98,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                     errorRowStyles={styles.mt6}
                     onErrorClose={() => clearAvatarErrors(report.reportID)}
                     style={[styles.mb3, styles.w100, styles.alignItemsCenter]}
-                    type={icon.type}
                     editorMaskImage={expensifyIcons.ImageCropSquareMask}
-                    name={icon.name}
                 />
             );
         }
@@ -94,13 +111,9 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                 accessibilityLabel={icon.name ?? ''}
                 disabled={icon.source === expensifyIcons.FallbackAvatar}
             >
-                <Avatar
-                    source={icon.source}
+                <AvatarFromIcon
+                    icon={icon}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    name={icon.name}
-                    avatarID={icon.id}
-                    type={icon.type}
-                    fallbackIcon={icon.fallbackIcon}
                 />
             </PressableWithoutFocus>
         );
@@ -118,7 +131,9 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
 
     // Bordered workspace avatars here are 88px (avatar + border), so they keep the larger rounded radius instead of the 16px radius mapped to a plain xxx-large avatar.
     const getRoomHeaderAvatarBorderRadius = (type?: string) =>
-        type === CONST.ICON_TYPE_WORKSPACE ? {borderRadius: variables.componentBorderRadiusRounded} : StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, type);
+        type === CONST.ICON_TYPE_WORKSPACE
+            ? {borderRadius: variables.componentBorderRadiusRounded}
+            : StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, StyleUtils.getShapeFromIconType(type));
     return (
         <View style={styles.pointerEventsBoxNone}>
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
@@ -135,14 +150,10 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                             accessibilityLabel={icon.name ?? ''}
                             disabled={icon.source === expensifyIcons.FallbackAvatar}
                         >
-                            <Avatar
-                                source={icon.source}
+                            <AvatarFromIcon
+                                icon={icon}
                                 size={CONST.AVATAR_SIZE.XXX_LARGE}
                                 containerStyles={[...iconStyle, getRoomHeaderAvatarBorderRadius(icon.type)]}
-                                name={icon.name}
-                                avatarID={icon.id}
-                                type={icon.type}
-                                fallbackIcon={icon.fallbackIcon}
                             />
                         </PressableWithoutFocus>
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (

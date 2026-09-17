@@ -10,6 +10,7 @@ import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
 import {endSpan, startSpan} from './libs/telemetry/activeSpans';
 import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
+import {scheduleInitialDatabaseSizeMeasurement} from './libs/telemetry/databaseSizeTracker';
 import ONYXKEYS from './ONYXKEYS';
 import {useSplashScreenActions} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
@@ -17,16 +18,19 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 function HybridAppHandler() {
     const {setSplashScreenState} = useSplashScreenActions();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isLoadingCredentials = isLoadingOnyxValue(credentialsMetadata);
 
     const finalizeTransitionFromOldDot = (hybridAppSettings: HybridAppSettings) => {
         const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
 
-        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
+        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials).then(() => {
             if (loggedOutFromOldDot) {
                 endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
                 endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
                 endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT);
+                scheduleInitialDatabaseSizeMeasurement();
             } else {
                 setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             }
@@ -34,7 +38,7 @@ function HybridAppHandler() {
     };
 
     useEffect(() => {
-        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot) {
+        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials) {
             return;
         }
 
@@ -73,7 +77,7 @@ function HybridAppHandler() {
 
             finalizeTransitionFromOldDot(hybridAppSettings);
         });
-    }, [finalizeTransitionFromOldDot, isLoadingTryNewDot, setSplashScreenState]);
+    }, [finalizeTransitionFromOldDot, isLoadingTryNewDot, isLoadingCredentials, setSplashScreenState]);
 
     return null;
 }

@@ -41,7 +41,6 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
             onModalHide={onModalHide}
             hasFinishedPDFDownload={hasFinishedPDFDownload}
             message={message}
-            loadingReasonContext="SearchBulkActions.ExpensifyCardStatementPDFModal"
             shouldCloseOnDownload
             shouldUseSuccessButton
             onDownloadPDF={() => {

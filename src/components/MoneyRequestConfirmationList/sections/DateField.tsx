@@ -2,6 +2,7 @@ import DatePicker from '@components/DatePicker';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -9,23 +10,26 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestCreated, setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
+import {hasAnyManuallyEnteredScanField, isPartiallyEnteredScanExpense} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
 
 import {format} from 'date-fns';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import AutomaticFieldHint from './AutomaticFieldHint';
 import {dateStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -33,9 +37,7 @@ type DateFieldProps = {
     shouldDisplayFieldError: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
     formError: string;
-    clearFormErrors: (errors: string[]) => void;
     transactionID: string | undefined;
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -43,20 +45,9 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({
-    shouldDisplayFieldError,
-    didConfirm,
-    isReadOnly,
-    isNewManualExpenseFlowEnabled,
-    formError,
-    clearFormErrors,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: DateFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -76,25 +67,41 @@ function DateField({
     const createdMissing = dateState?.isMissing ?? true;
     const transactionHasReceipt = dateState?.hasReceipt ?? false;
 
+    // A draft is seeded with today's date, but in the Scan flow the date belongs to the receipt, not to today, so the
+    // picker stays empty until the user picks one, the same way the amount field starts empty.
+    const shouldShowEmptyDate = canEnterScanFieldsManually && !dateState?.isCreatedSet;
+
+    // Opening the calendar blurs the input, so the open picker stands in for focus here. The hint goes once the user
+    // takes the field over, by opening the picker or by entering any of the three fields.
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasAnyManuallyEnteredScanField(dateState);
+
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
-    const inlineDateErrorText = formError === 'common.error.fieldRequired' && createdMissing ? translate('common.error.fieldRequired') : '';
+    // A draft always carries a date, so on a partially filled Scan the all-or-nothing rule stands in for `createdMissing`.
+    const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually) ? !dateState?.isCreatedSet : createdMissing;
+    const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
 
     const handleDateChange = (newDate: string) => {
         if (!transactionID) {
             return;
         }
 
-        if (newDate === iouCreated) {
+        // While the picker renders empty the persisted date is only a default, so a pick that matches it still has to
+        // be written. That write is what marks the date as chosen by the user.
+        if (newDate === iouCreated && !shouldShowEmptyDate) {
             return;
         }
 
-        if (newDate) {
-            clearFormErrors(['common.error.fieldRequired']);
+        if (isEditingSplitBill) {
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
+            return;
         }
 
-        if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate});
+        // Clearing the date on a scan hands the field back to SmartScan rather than emptying it, the same way clearing
+        // the amount or the merchant does.
+        if (!newDate && canEnterScanFieldsManually) {
+            clearMoneyRequestCreated(transactionID, shouldUseTransactionDraft(action));
             return;
         }
 
@@ -113,16 +120,17 @@ function DateField({
                 lastSelectedDistanceRates,
                 isDraft: shouldUseTransactionDraft(action),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
             });
         }
     };
 
-    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
+    if (!isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mb2]}>
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
-                    value={iouCreated}
+                    value={shouldShowEmptyDate ? '' : iouCreated}
                     defaultValue={format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                     label={translate('common.date')}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
@@ -130,6 +138,14 @@ function DateField({
                     disabled={didConfirm}
                     errorText={inlineDateErrorText || dateErrorText}
                     shouldDeferShowUntilPositioned
+                    // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
+                    // component whenever the clear button can appear, which it can't without a value to clear.
+                    shouldHideClearButton={shouldShowEmptyDate}
+                    rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
+                    // The calendar icon and the hint share the right-hand side, so the field shows one or the other.
+                    // The icon comes back once the user opens the picker, the same way the amount field's buttons do.
+                    shouldHideCalendarIcon={shouldShowAutomaticHint}
+                    onPickerVisibilityChange={setIsDatePickerOpen}
                 />
             </View>
         );
@@ -147,7 +163,7 @@ function DateField({
                     return;
                 }
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
             }}
             disabled={didConfirm}
             interactive={!isReadOnly}

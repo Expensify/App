@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
     hasEReceipt,
@@ -56,10 +57,9 @@ type ReportActionItemImageProps = {
     /** URI for the image or local numeric reference for the image  */
     image?: string | number;
 
-    /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
 
-    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
+    /** The transaction associated with this image, if any. Passed for handling eReceipts */
     transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
@@ -170,7 +170,7 @@ function ReportActionItemImage({
         );
     }
 
-    const localSource = transaction?.receipt?.localSource;
+    const localSource = ReceiptStorage.resolve(transaction?.receipt?.localSource);
     const effectiveIsLocalFile = isLocalFile || !!localSource;
     const effectiveThumbnail = localSource ?? thumbnail;
     const receiptURIs = transaction ? getThumbnailAndImageURIs(transaction, null, null) : undefined;
@@ -191,7 +191,7 @@ function ReportActionItemImage({
         propsObj = {
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
 
-            source: thumbnailSource,
+            source: isPDF || shouldUseThumbnailImage !== false ? thumbnailSource : originalImageSource,
             fallbackIcon: icons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,

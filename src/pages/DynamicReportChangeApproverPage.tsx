@@ -48,7 +48,6 @@ type ApproverType = ValueOf<typeof APPROVER_TYPE>;
 type DynamicReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 
 function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: DynamicReportChangeApproverPageProps) {
-    const reportID = report?.reportID;
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -59,8 +58,8 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const hasAutoAppliedRef = useRef(false);
     const hasNavigatedToAddApproverRef = useRef(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
@@ -89,30 +88,9 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        assignReportToMe(
-            report,
-            currentUserDetails.accountID,
-            currentUserDetails.email ?? '',
-            policy,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            reportNextStep,
-            isTrackIntentUser,
-            formatPhoneNumber,
-        );
+        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules);
         Navigation.dismissToPreviousRHP();
-    }, [
-        selectedApproverType,
-        report,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        policy,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        reportNextStep,
-        isTrackIntentUser,
-        formatPhoneNumber,
-    ]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
@@ -163,7 +141,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const listHeader = useMemo(
         () => (
             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`)} />
+                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id, CONST.TAB.WORKFLOWS.APPROVALS)}`)} />
             </View>
         ),
         [environmentURL, policy?.id, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],

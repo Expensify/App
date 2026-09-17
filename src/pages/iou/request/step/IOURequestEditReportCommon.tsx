@@ -1,4 +1,3 @@
-import ConfirmModal from '@components/ConfirmModal';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
@@ -7,6 +6,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -32,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -44,6 +45,9 @@ type TransactionGroupListItem = ListItem & {
 type Props = {
     backTo: Route | undefined;
     transactionIDs?: string[];
+    isManualDistanceRequest: boolean;
+    isOdometerDistanceRequest: boolean;
+    isDistanceRequest: boolean;
     selectedReportID?: string;
     selectedPolicyID?: string;
     transactionPolicyID?: string;
@@ -62,6 +66,9 @@ type Props = {
 function IOURequestEditReportCommon({
     backTo,
     transactionIDs,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
+    isDistanceRequest,
     selectReport,
     selectedReportID,
     selectedPolicyID,
@@ -78,9 +85,10 @@ function IOURequestEditReportCommon({
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
     const {inputCallbackRef} = useAutoFocusInput();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -104,7 +112,12 @@ function IOURequestEditReportCommon({
     // When no transactionPolicyID is provided (e.g., from IOURequestEditReport), the hook falls back to the user's default workspace.
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
-    const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isDistanceRequest,
+    });
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
@@ -155,7 +168,7 @@ function IOURequestEditReportCommon({
                     return false;
                 }
 
-                if (canAddTransaction(report, undefined, true)) {
+                if (canAddTransaction(report, rules, undefined, true)) {
                     return true;
                 }
 
@@ -174,7 +187,7 @@ function IOURequestEditReportCommon({
                     isSelected: report.reportID === selectedReportID,
                     policyID: report.policyID,
                     reportID: report.reportID,
-                    icons: getIconsForExpenseReport(report, personalDetails, policy, translate),
+                    icons: getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate),
                 };
             });
     }, [
@@ -188,6 +201,8 @@ function IOURequestEditReportCommon({
         isPerDiemRequest,
         isTimeRequest,
         translate,
+        formatPhoneNumber,
+        rules,
     ]);
 
     const navigateBack = () => {
@@ -233,17 +248,26 @@ function IOURequestEditReportCommon({
                 if (checkIfPerDiemTransactionsCanBeMoved(policyID)) {
                     return true;
                 }
-                setPerDiemWarningModalVisible(true);
+                showConfirmModal({
+                    title: translate('iou.moveExpenses'),
+                    prompt: translate('iou.moveExpensesError'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
                 return false;
             }
             return true;
         },
-        [transactionIDs?.length, isPerDiemRequest, checkIfPerDiemTransactionsCanBeMoved],
+        // `showConfirmModal` is recreated on every render, so it has to stay in the dep array to keep this callback correct.
+        [transactionIDs?.length, isPerDiemRequest, checkIfPerDiemTransactionsCanBeMoved, showConfirmModal, translate],
     );
 
     const handleSelectReport = (item: TransactionGroupListItem) => {
         if (item.value === selectedReportID) {
             navigateBack();
+            return;
+        }
+        if (blockDistanceRequestIfNeeded(item.policyID)) {
             return;
         }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
@@ -256,6 +280,25 @@ function IOURequestEditReportCommon({
             return;
         }
 
+        // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move that would push
+        // the destination past the limit, so prevent it up front with an explanatory warning instead of failing silently.
+        // Only count expenses that will actually be added to the destination: the move action skips transactions that are
+        // already in the destination report (see changeTransactionsReport in Transaction.ts), so a bulk selection that
+        // includes expenses already in that report must not inflate the projected count (e.g. moving 5 new expenses into a
+        // report that already holds 490 lands at 495, even if 15 of the selected expenses are already there).
+        const destinationReport = outstandingReports.find((report) => report?.reportID === item.value);
+        const numberOfTransactionsToMove =
+            transactionIDs?.filter((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID !== item.value).length ?? 1;
+        if ((destinationReport?.transactionCount ?? 0) + numberOfTransactionsToMove > CONST.REPORT.MAX_TRANSACTIONS) {
+            showConfirmModal({
+                title: translate('iou.moveExpenses'),
+                prompt: translate('iou.moveExpensesMaxTransactionsError'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
         if (!validatePerDiemMove(item.policyID)) {
             return;
         }
@@ -264,28 +307,37 @@ function IOURequestEditReportCommon({
     };
 
     const handleCreateReport = useCallback(() => {
+        if (blockDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
+            return;
+        }
         if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
             return;
         }
         createReport?.();
-    }, [validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
+    }, [blockDistanceRequestIfNeeded, validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
+    const policyForMovingExpensesName = policyForMovingExpenses?.name;
     const createReportOption = useMemo(() => {
         if (!createReport || (isEditing && !isOwner && !isAdmin)) {
             return undefined;
         }
 
         return (
-            <MenuItem
-                onPress={handleCreateReport}
-                title={translate('report.newReport.createReport')}
-                description={policyForMovingExpenses?.name}
-                icon={icons.Document}
-            />
+            <MenuItem.Root onPress={handleCreateReport}>
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <MenuItem.Icon src={icons.Document} />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('report.newReport.createReport')}</MenuItem.Title>
+                        {!!policyForMovingExpensesName && <MenuItem.Description>{policyForMovingExpensesName}</MenuItem.Description>}
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
         );
-    }, [icons.Document, createReport, translate, policyForMovingExpenses?.name, handleCreateReport, isEditing, isOwner, isAdmin]);
+    }, [icons.Document, createReport, translate, policyForMovingExpensesName, handleCreateReport, isEditing, isOwner, isAdmin]);
 
     const shouldShowNotFoundPage = useMemo(() => {
         if (createReportOption) {
@@ -305,8 +357,6 @@ function IOURequestEditReportCommon({
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
     }, [createReportOption, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
-
-    const hidePerDiemWarningModal = () => setPerDiemWarningModalVisible(false);
 
     return (
         <StepScreenWrapper
@@ -337,24 +387,20 @@ function IOURequestEditReportCommon({
                 customListHeaderContent={createReportOption}
                 listFooterContent={
                     shouldShowRemoveFromReport ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={icons.Close}
-                        />
+                        <MenuItem.Root onPress={removeFromReport}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Close} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
+                                    <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     ) : undefined
                 }
                 listEmptyContent={createReportOption}
-            />
-            <ConfirmModal
-                isVisible={perDiemWarningModalVisible}
-                onConfirm={hidePerDiemWarningModal}
-                onCancel={hidePerDiemWarningModal}
-                title={translate('iou.moveExpenses')}
-                prompt={translate('iou.moveExpensesError')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
             />
         </StepScreenWrapper>
     );

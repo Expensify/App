@@ -12,7 +12,7 @@ import type Report from '@src/types/onyx/Report';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
-import {getReportChatType} from '@selectors/Report';
+import {getReportChatType, getReportParentReportID} from '@selectors/Report';
 import {getNewestReportActionSelector} from '@selectors/ReportAction';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
@@ -36,6 +36,7 @@ type AgentZeroStatusActions = {
 type ReportMeta = {
     chatType: Report['chatType'];
     isDM: boolean;
+    parentReportID: Report['parentReportID'];
     participantAccountIDs: number[];
 };
 
@@ -43,6 +44,7 @@ function reportMetaSelector(report: OnyxEntry<Report>): ReportMeta {
     return {
         chatType: getReportChatType(report),
         isDM: isDM(report),
+        parentReportID: getReportParentReportID(report),
         participantAccountIDs: getReportParticipantAccountIDs(report),
     };
 }
@@ -79,7 +81,7 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [reportMeta] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportMetaSelector});
-    const {chatType, isDM: isDMReport = false, participantAccountIDs} = reportMeta ?? {};
+    const {chatType, isDM: isDMReport = false, parentReportID, participantAccountIDs} = reportMeta ?? {};
     const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -89,7 +91,8 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     // actively-processing agents changes.
     const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
 
-    const isConciergeChat = reportID === conciergeReportID;
+    // Concierge answers each question in a thread off the Concierge DM, so those threads carry its indicator too.
+    const isConciergeChat = !!conciergeReportID && (reportID === conciergeReportID || parentReportID === conciergeReportID);
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
     const otherParticipantCount = currentUserAccountID === undefined ? 0 : (participantAccountIDs ?? []).filter((accountID) => accountID !== currentUserAccountID).length;

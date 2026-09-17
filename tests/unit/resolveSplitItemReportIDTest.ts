@@ -7,6 +7,8 @@ import type {Report, Transaction} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import createMock from '../utils/createMock';
+
 const SELF_DM_CONTEXT_REPORT_ID = 'selfDM-1';
 const SELF_DM_FALLBACK_REPORT_ID = 'selfDM-fallback';
 const WORKSPACE_REPORT_ID = 'workspace-1';
@@ -20,9 +22,9 @@ const buildAllReports = (reports: Report[]): OnyxCollection<Report> =>
         return acc;
     }, {});
 
-const makeReport = (reportID: string, chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>): Report => ({reportID, chatType}) as unknown as Report;
+const makeReport = (reportID: string, chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>): Report => createMock<Report>({reportID, chatType});
 
-const makeTransaction = (reportID: string | undefined): Transaction => ({reportID}) as unknown as Transaction;
+const makeTransaction = (reportID: string | undefined): Transaction => createMock<Transaction>({reportID});
 
 describe('resolveSplitItemReportID', () => {
     describe('workspace (non-selfDM) context', () => {

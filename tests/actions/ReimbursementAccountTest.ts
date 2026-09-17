@@ -38,8 +38,8 @@ describe('ReimbursementAccount', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
         IntlStore.load(CONST.LOCALES.EN);
         return Onyx.clear().then(waitForBatchedUpdates);
     });

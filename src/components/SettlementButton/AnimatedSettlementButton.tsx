@@ -31,10 +31,9 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
 
-    // Whether this is a DEW approval that needs backend validation before showing "Approved"
+    /** Whether this is a DEW approval that needs backend validation before showing "Approved" */
     isDEWApproval?: boolean;
 
-    // The report id for which the button is displayed
     reportID?: string;
 };
 
@@ -173,18 +172,19 @@ function AnimatedSettlementButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        text={isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         isLoading={isDEWApprovalLoading}
-                        success
-                        icon={icon}
-                    />
+                    >
+                        {!!icon && <Button.Icon src={icon} />}
+                        <Button.Text>{isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}</Button.Text>
+                    </Button>
                 </Animated.View>
             )}
             {!isAnimationRunning && (
                 <SettlementButton
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
-                    isDisabled={isAnimationRunning || isDisabled}
+                    isDisabled={isDisabled}
                     sentryLabel={sentryLabel}
                 />
             )}

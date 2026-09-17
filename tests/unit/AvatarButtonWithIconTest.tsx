@@ -1,24 +1,20 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
 import CONST from '@src/CONST';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React, {createRef} from 'react';
 import {View} from 'react-native';
 
-const DEFAULT_AVATAR_ID = 'default-avatar';
 const ICON_TEST_ID = 'avatar-button-edit-icon';
 const MOCK_TEST_ID = 'mock-edit-icon';
 const AVATAR_ID = 'Avatar';
 
-function DefaultAvatar() {
-    return <View testID={DEFAULT_AVATAR_ID} />;
-}
 function MockIcon() {
     return <View testID={MOCK_TEST_ID} />;
 }
@@ -28,6 +24,7 @@ const defaultProps = {
     anchorRef: createRef<View>(),
     avatarStyle: {width: 80, height: 80},
     onPress: jest.fn(),
+    avatar: null,
 };
 
 describe('AvatarButtonWithIcon', () => {
@@ -40,39 +37,25 @@ describe('AvatarButtonWithIcon', () => {
     });
 
     describe('rendering', () => {
-        it('should render DefaultAvatar when source is not provided', () => {
-            renderWithProvider(
-                <AvatarButtonWithIcon
-                    {...defaultProps}
-                    DefaultAvatar={DefaultAvatar}
-                />,
-            );
+        it('should render no avatar when the avatar slot is empty', () => {
+            renderWithProvider(<AvatarButtonWithIcon {...defaultProps} />);
             expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
-            expect(screen.getByTestId(DEFAULT_AVATAR_ID)).toBeTruthy();
-        });
-
-        it('should render DefaultAvatar when source is empty string', () => {
-            renderWithProvider(
-                <AvatarButtonWithIcon
-                    {...defaultProps}
-                    source=""
-                    DefaultAvatar={DefaultAvatar}
-                />,
-            );
             expect(screen.queryByTestId(AVATAR_ID)).toBeNull();
-            expect(screen.getByTestId(DEFAULT_AVATAR_ID)).toBeTruthy();
         });
 
-        it('should render Avatar when source is provided', () => {
+        it('should render the avatar slot when provided', () => {
             renderWithProvider(
                 <AvatarButtonWithIcon
                     {...defaultProps}
-                    source="https://example.com/avatar.jpg"
-                    DefaultAvatar={DefaultAvatar}
+                    avatar={
+                        <UserAvatar
+                            source="https://example.com/avatar.jpg"
+                            accountID={1}
+                        />
+                    }
                 />,
             );
             expect(screen.getByTestId(AVATAR_ID)).toBeTruthy();
-            expect(screen.queryByTestId(DEFAULT_AVATAR_ID)).toBeNull();
         });
 
         it('should render edit icon when not disabled', () => {
@@ -104,34 +87,18 @@ describe('AvatarButtonWithIcon', () => {
             expect(screen.getByTestId(MOCK_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
         });
 
-        it.each([CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SIZE.XXX_LARGE, CONST.AVATAR_SIZE.XXXX_LARGE])('should render with size: %s', (size) => {
-            renderWithProvider(
-                <AvatarButtonWithIcon
-                    {...defaultProps}
-                    size={size}
-                />,
-            );
-            expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
-        });
-        it.each(['add', 'pending', 'delete'])('should render with pendingAction: %s', (action) => {
-            renderWithProvider(
-                <AvatarButtonWithIcon
-                    {...defaultProps}
-                    pendingAction={action as PendingAction}
-                />,
-            );
-            expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
-        });
-
-        it.each([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE])('should render with type: %s', (type) => {
-            renderWithProvider(
-                <AvatarButtonWithIcon
-                    {...defaultProps}
-                    type={type}
-                />,
-            );
-            expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
-        });
+        it.each([CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE])(
+            'should render with pendingAction: %s',
+            (action) => {
+                renderWithProvider(
+                    <AvatarButtonWithIcon
+                        {...defaultProps}
+                        pendingAction={action}
+                    />,
+                );
+                expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
+            },
+        );
 
         it('should render with all props provided', () => {
             const onPressMock = jest.fn();
@@ -144,14 +111,15 @@ describe('AvatarButtonWithIcon', () => {
                     anchorRef={anchorRef}
                     avatarStyle={{width: 120, height: 120}}
                     onPress={onPressMock}
-                    avatarID={99999}
-                    source="https://example.com/workspace.jpg"
+                    avatar={
+                        <UserAvatar
+                            source="https://example.com/workspace.jpg"
+                            accountID={99999}
+                            fallbackIcon={icons.current.Building}
+                        />
+                    }
                     disabledStyle={{opacity: 0.3}}
                     editIconStyle={{backgroundColor: 'blue'}}
-                    DefaultAvatar={DefaultAvatar}
-                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    fallbackIcon={icons.current.Building}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                     pendingAction="update"
                     disabled={false}
                     editIcon={icons.current.Camera}

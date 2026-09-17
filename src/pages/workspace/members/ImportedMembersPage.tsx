@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
+import Tab from '@libs/actions/Tab';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -92,8 +93,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         setIsImporting(false);
     };
 
+    // Only runs once the import succeeded (it is the confirm modal's onModalHide). Workflows returns to a tabbed page that
+    // reopens on the tab the user left, so point it at Approvals — otherwise the imported workflows are hidden behind it.
     const navigateBackToMembers = () => {
         const returnRoute = isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID);
+        if (isWorkflowsImport) {
+            Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, CONST.TAB.WORKFLOWS.APPROVALS);
+        }
         Navigation.goBack(returnRoute, {waitForTransition: true});
     };
 

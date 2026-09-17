@@ -11,14 +11,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 /**
- * Shared magic-code handling for the wallet KYC personal-details flows. Setting a phone number, whether for the first
+ * Shared validateCode handling for the wallet KYC personal-details flows. Setting a phone number, whether for the first
  * time or changing an existing one, is protected by a validateCode because it is used for card 3DS verification, so
  * both flows send the user to a dedicated confirmation screen to enter the code before the change is submitted.
  */
 function useWalletPhoneValidateCode() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
-    // Submits the personal details, first routing to the magic-code screen when a phone number is being set to a new
+    // Submits the personal details, first routing to the validateCode screen when a phone number is being set to a new
     // value. Setting a phone for the first time must be protected too: it is used for card 3DS verification, so an
     // attacker who gains account access before any phone is on file could otherwise set one without a code.
     const submitPersonalDetails = (personalDetails: UpdatePersonalDetailsForWalletParams) => {
