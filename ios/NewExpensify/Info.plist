@@ -95,6 +95,8 @@
 	</array>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>RNNitroSQLite_DatabaseLocation</key>
+	<string>ApplicationSupport</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ExpensifyNewKansas-Medium.otf</string>
