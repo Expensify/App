@@ -2685,10 +2685,14 @@ function isDualEntryVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config?.isConfigured;
 }
 
+function isBusinessCentralVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.config?.isConfigured;
+}
+
 /**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
@@ -2704,12 +2708,13 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, Rillet, and DualEntry branches but not on QBO:
+ * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
  *   - Rillet (R4) configured connection. Beta required
  *   - DualEntry configured connection. Beta required
+ *   - Business Central configured connection. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -2720,13 +2725,17 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     }
     return (
         isVendorMatchingBetaEnabled &&
-        (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy))
+        (isIntacctVendorMatchingActive(policy) ||
+            isXeroVendorMatchingActive(policy) ||
+            isRilletVendorMatchingActive(policy) ||
+            isDualEntryVendorMatchingActive(policy) ||
+            isBusinessCentralVendorMatchingActive(policy))
     );
 }
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, Rillet, or DualEntry) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, DualEntry, or Business Central) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2766,6 +2775,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isDualEntryVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
+    }
+    if (isBusinessCentralVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
     }
     return undefined;
 }
@@ -2811,12 +2823,24 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     if (isDualEntryVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.data?.vendors === undefined ? undefined : getDualEntryVendors(policy);
     }
+    if (isBusinessCentralVendorMatchingActive(policy)) {
+        const businessCentralVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.data?.vendors;
+        if (businessCentralVendors === undefined) {
+            return undefined;
+        }
+        return businessCentralVendors.map((vendor) => ({
+            id: vendor.id,
+            name: vendor.name,
+            currency: '',
+            email: vendor.email,
+        }));
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, or DualEntry). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, or Business Central). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
@@ -3468,6 +3492,7 @@ export {
     getXeroSuppliers,
     getDualEntryVendors,
     isRilletVendorMatchingActive,
+    isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
