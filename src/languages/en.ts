@@ -5729,6 +5729,7 @@ const translations = {
             noSubsidiariesFoundDescription: 'Please add a subsidiary in NetSuite and sync the connection again',
             tokenInput: {
                 title: 'NetSuite setup',
+                connectWithTokenAuthentication: 'Connect with token-based authentication (SOAP) instead',
                 formSteps: {
                     installBundle: {
                         title: 'Install the Expensify bundle',

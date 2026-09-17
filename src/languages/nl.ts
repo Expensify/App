@@ -5573,6 +5573,7 @@ ${amount} voor ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Voeg een dochteronderneming toe in NetSuite en synchroniseer de verbinding opnieuw',
             tokenInput: {
                 title: 'NetSuite-configuratie',
+                connectWithTokenAuthentication: 'In plaats daarvan verbinding maken met token-gebaseerde authenticatie (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Installeer de Expensify-bundel',

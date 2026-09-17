@@ -5566,6 +5566,7 @@ ${amount} para ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Adicione uma subsidiária no NetSuite e sincronize a conexão novamente',
             tokenInput: {
                 title: 'Configuração do NetSuite',
+                connectWithTokenAuthentication: 'Conectar com autenticação baseada em token (SOAP) em vez disso',
                 formSteps: {
                     installBundle: {
                         title: 'Instale o pacote do Expensify',
