@@ -975,6 +975,51 @@ describe('ReportUtils', () => {
             );
         });
 
+        it('persists and rolls back only incremental join-workspace task IDs', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE, createWorkspace: 'existing-task'},
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: '',
+                    tasks: [
+                        {type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL, title: 'Add work email', description: '', autoCompleted: false},
+                        {type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: 'Validate email', description: '', autoCompleted: false},
+                        {type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE, title: 'Join workspace', description: '', autoCompleted: false},
+                    ],
+                },
+                companySize: undefined,
+                conciergeChat: conciergeChatReport,
+                isIncremental: true,
+            });
+
+            const optimisticTaskIDs = result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(optimisticTaskIDs).toEqual(
+                expect.objectContaining({
+                    value: expect.objectContaining({
+                        choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                        addWorkEmail: expect.any(String),
+                        validateEmail: expect.any(String),
+                        joinWorkspace: expect.any(String),
+                    }),
+                }),
+            );
+            expect(optimisticTaskIDs).not.toEqual(expect.objectContaining({value: expect.objectContaining({createWorkspace: expect.anything()})}));
+
+            const rollbackTaskIDs = result?.failureData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(rollbackTaskIDs).toEqual(
+                expect.objectContaining({
+                    value: {
+                        addWorkEmail: null,
+                        validateEmail: null,
+                        joinWorkspace: null,
+                    },
+                }),
+            );
+            expect(result?.failureData).not.toEqual(
+                expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.NVP_ONBOARDING, value: expect.objectContaining({hasCompletedGuidedSetupFlow: false})})]),
+            );
+        });
+
         it('should send tasks to server but not add them to optimisticData for MANAGE_TEAM', async () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
