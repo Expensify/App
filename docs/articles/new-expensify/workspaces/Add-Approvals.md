@@ -171,6 +171,7 @@ Outstanding reports are automatically reassigned to the new approver, with no pr
 
 - **You change an approver in a workflow:** reports pending with the previous approver move to the new approver.
 - **You remove an approver from the workspace:** if you remove a member who is an approver on pending reports, those reports are reassigned to the **workspace owner**.
+- **An approver leaves the workspace:** when a member removes themselves, reports pending with them are reassigned to the **workspace owner**. Expensify warns them before they leave, including when the reports were routed to them with **Change approver** rather than through the workspace's approval workflow. Learn how to [leave a workspace](/articles/new-expensify/workspaces/Leave-a-Workspace).
 - **You shorten an approval chain:** if you remove a downstream approver from a chain, reports already partway through move to the appropriate remaining approver. For example, in an Alice → Bob → Claire chain where Bob has already approved and you remove Claire, the report returns to Bob for final approval.
 - **The workflow changes through an integration:** the same reassignment happens when the workflow changes through an HR integration such as Gusto or TriNet, or through a bulk member update. In that case, the report's system message indicates the change came from the integration rather than from a specific person.
 
