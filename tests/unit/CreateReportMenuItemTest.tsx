@@ -101,21 +101,21 @@ function makePolicy(id: string, type: Policy['type']): Policy {
     } as Policy;
 }
 
-function setupUseOnyx() {
+function setupUseOnyx(activePolicyID = 'personal-1') {
     const personalPolicy = makePolicy('personal-1', CONST.POLICY.TYPE.PERSONAL);
     const groupPolicy = makePolicy('team-1', CONST.POLICY.TYPE.TEAM);
     const submitPolicy = makePolicy('submit-1', CONST.POLICY.TYPE.SUBMIT);
+    const corporatePolicy = makePolicy('corporate-1', CONST.POLICY.TYPE.CORPORATE);
+    const policies = {
+        [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
+        [`${ONYXKEYS.COLLECTION.POLICY}${groupPolicy.id}`]: groupPolicy,
+        [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy,
+        [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
+    };
     const values = new Map<string, unknown>([
-        [ONYXKEYS.NVP_ACTIVE_POLICY_ID, personalPolicy.id],
-        [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy],
-        [
-            ONYXKEYS.COLLECTION.POLICY,
-            {
-                [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${groupPolicy.id}`]: groupPolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy,
-            },
-        ],
+        [ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicyID],
+        [`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, policies[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]],
+        [ONYXKEYS.COLLECTION.POLICY, policies],
         [ONYXKEYS.SESSION, {accountID: 1, email: 'user@test.com'}],
         [ONYXKEYS.BETAS, []],
         [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {}],
@@ -142,6 +142,19 @@ describe('CreateReportMenuItem', () => {
         expect(params?.groupPoliciesWithChatEnabled).toEqual([
             expect.objectContaining({id: 'team-1', type: CONST.POLICY.TYPE.TEAM}),
             expect.objectContaining({id: 'submit-1', type: CONST.POLICY.TYPE.SUBMIT}),
+        ]);
+    });
+
+    it('keeps the active workspace in the sliced list when it is not among the first two eligible policies', () => {
+        setupUseOnyx('corporate-1');
+
+        render(<CreateReportMenuItem />);
+
+        const params = mockUseCreateReport.mock.calls.at(0)?.at(0);
+        expect(params?.groupPoliciesWithChatEnabled).toHaveLength(2);
+        expect(params?.groupPoliciesWithChatEnabled).toEqual([
+            expect.objectContaining({id: 'corporate-1', type: CONST.POLICY.TYPE.CORPORATE}),
+            expect.objectContaining({id: 'team-1', type: CONST.POLICY.TYPE.TEAM}),
         ]);
     });
 });

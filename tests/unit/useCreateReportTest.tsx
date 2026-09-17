@@ -75,6 +75,13 @@ jest.mock('@libs/SubscriptionUtils', () => ({
     shouldRestrictUserBillableActions: (...args: Parameters<typeof mockShouldRestrictUserBillableActions>) => mockShouldRestrictUserBillableActions(...args),
 }));
 
+const mockIsRestrictedToPreferredPolicy = jest.fn(() => false);
+jest.mock('@hooks/usePreferredPolicy', () => () => ({
+    isRestrictedToPreferredPolicy: mockIsRestrictedToPreferredPolicy(),
+    preferredPolicyID: undefined,
+    isRestrictedPolicyCreation: false,
+}));
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const POLICY_ID = 'policy-123';
@@ -119,8 +126,49 @@ describe('useCreateReport', () => {
         jest.clearAllMocks();
         reportIDCounter.value = 100;
         mockShouldRestrictUserBillableActions.mockReturnValue(false);
+        mockIsRestrictedToPreferredPolicy.mockReturnValue(false);
         mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
         setupUseCreateReportOnyx();
+    });
+
+    describe('domain preferred workspace restriction', () => {
+        const personalPolicy: OnyxEntry<Policy> = {...makePaidPolicy('personal-1'), type: CONST.POLICY.TYPE.PERSONAL};
+
+        it.each([
+            ['creates directly on an unrestricted default with multiple workspaces', makePaidPolicy('p1'), false, 'create'],
+            ['shows the billing restriction page instead of the selector when the default is billing-restricted with multiple workspaces', makePaidPolicy('p1'), true, 'restricted'],
+            ['still shows the selector when no default workspace could be resolved', personalPolicy, false, 'selector'],
+        ])('%s', (_description, activePolicy, isBillingRestricted, expected) => {
+            setupUseCreateReportOnyx({activePolicy});
+            mockIsRestrictedToPreferredPolicy.mockReturnValue(true);
+            mockShouldRestrictUserBillableActions.mockReturnValue(isBillingRestricted);
+            const onCreateReport = jest.fn();
+            const policies = [makePaidPolicy('p1'), makePaidPolicy('p2'), makePaidPolicy('p3')];
+
+            const {result} = renderHook(() =>
+                useCreateReport({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: policies,
+                }),
+            );
+
+            act(() => {
+                result.current.createReport();
+            });
+
+            const selectorRoute = DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute();
+            if (expected === 'create') {
+                expect(onCreateReport).toHaveBeenCalledWith(false);
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            } else if (expected === 'restricted') {
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute('p1'));
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(selectorRoute);
+                expect(onCreateReport).not.toHaveBeenCalled();
+            } else {
+                expect(Navigation.navigate).toHaveBeenCalledWith(selectorRoute);
+                expect(onCreateReport).not.toHaveBeenCalled();
+            }
+        });
     });
 
     describe('upgrade path (no policies)', () => {
