@@ -51,18 +51,11 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const domainErrorsCount = getDomainsWithErrors(allDomainErrors, allDomains).length;
 
-    // Domains tab badge: domain errors (red) take priority over pending admin requests (green).
+    // Domains tab badge: shows the total count of items needing attention (pending admin requests + domains with errors).
+    // The count is colored red when any of them is an error, otherwise green.
     const hasDomainErrors = domainErrorsCount > 0;
-    const getDomainsBadgeText = () => {
-        if (hasDomainErrors) {
-            return domainErrorsCount.toString();
-        }
-        if (pendingDomainAdminRequestsCount > 0) {
-            return pendingDomainAdminRequestsCount.toString();
-        }
-        return undefined;
-    };
-    const domainsBadgeText = getDomainsBadgeText();
+    const domainsBadgeCount = pendingDomainAdminRequestsCount + domainErrorsCount;
+    const domainsBadgeText = domainsBadgeCount > 0 ? domainsBadgeCount.toString() : undefined;
     const navigationOptions = [
         {
             key: 'workspaces',
