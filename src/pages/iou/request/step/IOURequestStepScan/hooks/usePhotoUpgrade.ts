@@ -163,7 +163,7 @@ function usePhotoUpgrade() {
         }
 
         // The denominator for every outcome below. It rides on the capture span rather than the upgrade span
-        // because backgrounding the app cancels every open span, and the upgrade's own span is open for
+        // because sending the app to the background cancels every open span, and the upgrade's own span is open for
         // seconds while this one has already ended. Without it, a lost outcome is indistinguishable from a
         // capture that never tried, and the success rate reads high.
         getSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE)?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_ATTEMPTED]: true});
