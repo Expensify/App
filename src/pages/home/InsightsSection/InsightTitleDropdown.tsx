@@ -11,7 +11,8 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';

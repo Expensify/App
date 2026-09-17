@@ -7,7 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
-import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +26,6 @@ import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
@@ -73,6 +72,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
+    isPartiallyEnteredScanExpense,
     isScanRequest,
 } from '@libs/TransactionUtils';
 
@@ -147,7 +147,6 @@ function IOURequestStepConfirmationContent({
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const personalDetails = usePersonalDetails();
-    const allPolicyCategories = usePolicyCategories();
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
@@ -182,6 +181,7 @@ function IOURequestStepConfirmationContent({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -201,8 +201,9 @@ function IOURequestStepConfirmationContent({
                 transactionReport,
                 routeReport: reportWithDraftFallback,
                 reportNameValuePair,
+                rules,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair],
+        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair, rules],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
@@ -221,6 +222,7 @@ function IOURequestStepConfirmationContent({
     const isDraftPolicy = policy === policyDraft;
 
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
@@ -228,23 +230,11 @@ function IOURequestStepConfirmationContent({
 
     const reportAttributesDerived = useReportAttributes();
 
-    const policyCategories = useMemo(() => {
-        if (isDraftPolicy && draftPolicyID) {
-            return policyCategoriesDraft;
-        }
-
-        if (policyID) {
-            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-        }
-
-        return undefined;
-    }, [isDraftPolicy, draftPolicyID, policyID, policyCategoriesDraft, allPolicyCategories]);
+    const policyCategories = isDraftPolicy && draftPolicyID ? policyCategoriesDraft : policyCategoriesReal;
 
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
@@ -274,6 +264,21 @@ function IOURequestStepConfirmationContent({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    // The user can fill in the amount, merchant and date on the Scan tab instead of waiting for SmartScan, so the Scan
+    // confirmation reveals those fields behind "Show more" as well. This only applies to a scan being created: a
+    // tracked expense being moved already carries real values, and its emptiness
+    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Splits are
+    // excluded too because StartSplitBill takes no amount/merchant/date (the details are filled in once the receipt
+    // has been scanned), and so are test receipts, whose values are fixed.
+    const canEnterScanFieldsManually =
+        requestType === CONST.IOU.REQUEST_TYPE.SCAN &&
+        !isMovingTransactionFromTrackExpense &&
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        !transaction?.receipt?.isTestReceipt &&
+        !transaction?.receipt?.isTestDriveReceipt;
+
+    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
+    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     const headerTitle = useMemo(() => {
@@ -314,17 +319,18 @@ function IOURequestStepConfirmationContent({
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(
+                    : getReportOption({
                           participant,
                           privateIsArchived,
-                          participantPolicy,
+                          policy: participantPolicy,
                           personalDetails,
                           conciergeReportID,
                           reportAttributesDerived,
-                          participantReportDraft,
-                          currentUserPersonalDetails.accountID,
-                          {translate, dateFnsLocale, convertToDisplayString},
-                      );
+                          reportDraft: participantReportDraft,
+                          currentUserAccountID: currentUserPersonalDetails.accountID,
+                          localize: {translate, dateFnsLocale, convertToDisplayString},
+                          rules,
+                      });
             }) ?? [],
         [
             dateFnsLocale,
@@ -340,6 +346,7 @@ function IOURequestStepConfirmationContent({
             translate,
             convertToDisplayString,
             currentUserPersonalDetails.accountID,
+            rules,
         ],
     );
 
@@ -362,8 +369,8 @@ function IOURequestStepConfirmationContent({
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
-        return !hasTransactionParticipants && !hasDefaultParticipants && !isLoadingDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isLoadingDefaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest]);
+        return !hasTransactionParticipants && !hasDefaultParticipants && !isLoadingDefaultParticipants && isManualRequest;
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isLoadingDefaultParticipants, isManualRequest]);
     const activeTransactionID = transaction?.transactionID;
     const [manuallyOpenedParticipantPickerForTransactionID, setManuallyOpenedParticipantPickerForTransactionID] = useState<string | undefined>();
     const [dismissedAutoOpenParticipantPickerForTransactionID, setDismissedAutoOpenParticipantPickerForTransactionID] = useState<string | undefined>();
@@ -544,7 +551,7 @@ function IOURequestStepConfirmationContent({
         } else if (firstDefault?.reportID) {
             setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isManualRequest, navigation]);
 
     const isPolicyExpenseChat = useMemo(() => {
         const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
@@ -570,7 +577,7 @@ function IOURequestStepConfirmationContent({
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT, policy);
 
     const policyExpenseChatPolicyID =
         transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID ??
@@ -605,6 +612,7 @@ function IOURequestStepConfirmationContent({
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
         report,
         reportID,
         policy,
@@ -997,7 +1005,8 @@ function IOURequestStepConfirmationContent({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN || canEnterScanFieldsManually;
     return (
         <>
             <TelemetrySpanManager
@@ -1055,6 +1064,7 @@ function IOURequestStepConfirmationContent({
                 participants={participants}
                 draftTransactionIDs={draftTransactionIDs}
                 isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
+                canEnterScanFieldsManually={canEnterScanFieldsManually}
                 onReceiptFilesChange={setReceiptFiles}
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
@@ -1146,6 +1156,9 @@ function IOURequestStepConfirmationContent({
                                     receiptStitchError={stitchError}
                                     isPerDiemRequest={isPerDiemRequest}
                                     shouldShowSmartScanFields={shouldShowSmartScanFields}
+                                    canEnterScanFieldsManually={canEnterScanFieldsManually}
+                                    partiallyManuallyFilledScanID={partiallyManuallyFilledScanID}
+                                    onSwitchToTransaction={setCurrentTransactionID}
                                     action={action}
                                     isConfirmed={isConfirmed}
                                     isConfirming={isConfirming}
@@ -1157,26 +1170,24 @@ function IOURequestStepConfirmationContent({
                                 />
                             )}
                         </SubmitExpenseOrchestrator>
-                        {isNewManualExpenseFlowEnabled && (
-                            <ParticipantPicker
-                                participants={participants}
-                                iouType={participantPickerIOUType}
-                                action={action}
-                                isPerDiemRequest={isPerDiemRequest}
-                                isTimeRequest={isTimeRequest}
-                                isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                                shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
-                                onParticipantsAdded={handleParticipantsAdded}
-                                onFinish={closeParticipantPicker}
-                                isVisible={isParticipantPickerVisible}
-                                onClose={closeParticipantPicker}
-                                onCloseForReferralNavigation={closeParticipantPickerForReferralNavigation}
-                                // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
-                                // matching standard RHP behavior, not just close the stacked participant picker.
-                                onBackdropPress={() => Navigation.dismissModal()}
-                                shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
-                            />
-                        )}
+                        <ParticipantPicker
+                            participants={participants}
+                            iouType={participantPickerIOUType}
+                            action={action}
+                            isPerDiemRequest={isPerDiemRequest}
+                            isTimeRequest={isTimeRequest}
+                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
+                            onParticipantsAdded={handleParticipantsAdded}
+                            onFinish={closeParticipantPicker}
+                            isVisible={isParticipantPickerVisible}
+                            onClose={closeParticipantPicker}
+                            onCloseForReferralNavigation={closeParticipantPickerForReferralNavigation}
+                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
+                            // matching standard RHP behavior, not just close the stacked participant picker.
+                            onBackdropPress={() => Navigation.dismissModal()}
+                            shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
+                        />
                     </View>
                 </View>
             </DragAndDropProvider>

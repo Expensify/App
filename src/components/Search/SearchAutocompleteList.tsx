@@ -19,7 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -183,7 +183,7 @@ function SearchAutocompleteList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb2,
+        style: [styles.pb2, styles.ph2],
     });
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -195,7 +195,8 @@ function SearchAutocompleteList({
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -203,6 +204,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
@@ -279,6 +281,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            rules,
         }).options;
     }, [
         listOptions,
@@ -298,6 +301,7 @@ function SearchAutocompleteList({
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        rules,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -468,13 +472,17 @@ function SearchAutocompleteList({
     // debounce below so they don't fire a server request on every keystroke.
     const hasUpstreamDebounce = inputQueryValue !== undefined;
 
-    const debounceHandleSearch = useDebounce(() => {
-        if (!handleSearch || !autocompleteQueryWithoutFilters) {
-            return;
-        }
+    const debounceHandleSearch = useDebounce(
+        () => {
+            if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                return;
+            }
 
-        handleSearch(autocompleteQueryWithoutFilters);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+            handleSearch(autocompleteQueryWithoutFilters);
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     useEffect(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
@@ -785,7 +793,7 @@ function SearchAutocompleteList({
             ListItem={SearchRouterItem}
             style={{
                 containerStyle: [styles.mh100],
-                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
+                listStyle: styles.overscrollBehaviorContain,
                 contentContainerStyle,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,

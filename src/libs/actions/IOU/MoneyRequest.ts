@@ -52,6 +52,7 @@ import type {
     QuickAction,
     RecentWaypoint,
     Report,
+    Rule,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -106,6 +107,7 @@ type CreateTransactionParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<Report>;
+    rules: OnyxCollection<Rule>;
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
@@ -156,6 +158,7 @@ function createTransaction({
     formatPhoneNumber,
     getCurrencyDecimals,
     conciergeChat,
+    rules,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -219,6 +222,7 @@ function createTransaction({
                 delegateAccountID,
                 reportActionsList: undefined,
                 getCurrencyDecimals,
+                rules,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -266,6 +270,7 @@ function createTransaction({
                 delegateAccountID,
                 formatPhoneNumber,
                 getCurrencyDecimals,
+                rules,
             });
         }
     }
@@ -278,6 +283,7 @@ type GetMoneyRequestParticipantOptionsParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     conciergeReportID: string | undefined;
     privateIsArchived: boolean | undefined;
+    rules: OnyxCollection<Rule>;
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
     translate: LocalizedTranslate;
@@ -292,6 +298,7 @@ function getMoneyRequestParticipantOptions({
     personalDetails,
     conciergeReportID,
     privateIsArchived,
+    rules,
     reportAttributesDerived,
     reportDraft,
     translate,
@@ -303,10 +310,21 @@ function getMoneyRequestParticipantOptions({
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, {
-                  translate,
-                  dateFnsLocale,
-                  convertToDisplayString,
+            : getReportOption({
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived,
+                  reportDraft,
+                  currentUserAccountID,
+                  localize: {
+                      translate,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                  },
+                  rules,
               });
     });
 }
@@ -969,8 +987,19 @@ function clearMoneyRequestMerchant(transactionID: string, isDraft = true) {
 }
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+    // Mark that the user has explicitly picked the date. A draft is seeded with today's date, so this is the only way
+    // the Scan flow can tell a user-picked date apart from the default one.
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created, isCreatedSet: !!created});
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
+}
+
+/**
+ * Returns the date to the state it starts the Scan confirmation in: the field renders empty again (SmartScan is back
+ * to being the one that fills it), while the seeded `created` stays on the transaction as the fallback date, so a
+ * cleared field can never submit an expense with no date at all.
+ */
+function clearMoneyRequestCreated(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isCreatedSet: false});
 }
 
 function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
@@ -1136,6 +1165,7 @@ export {
     setMoneyRequestDistanceRate,
     setMoneyRequestAmount,
     clearMoneyRequestAmount,
+    clearMoneyRequestCreated,
     clearMoneyRequestMerchant,
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,
