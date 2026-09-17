@@ -3264,12 +3264,15 @@ function canDeleteMoneyRequestReport(
     }
 
     if (isExpenseReport(report)) {
+        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules))) {
+            return false;
+        }
+
         if (isSingleTransaction && isManagedCardTransaction(transaction)) {
             return canCardTransactionBeDeleted;
         }
 
-        const isReportSubmitter = isCurrentUserSubmitter(report, currentUserAccountID);
-        return isReportSubmitter && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules)));
+        return isCurrentUserSubmitter(report, currentUserAccountID);
     }
 
     return false;
