@@ -1,3 +1,5 @@
+/** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
+
 import type {ChartView, SearchGroupBy} from '@components/Search/types';
 
 import {isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
@@ -10,15 +12,15 @@ import type {InsightsDashboardID, InsightsGraphKey, Policy} from '@src/types/ony
 
 import type {ValueOf} from 'type-fest';
 
-import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
-
 type InsightsChartSpec = {
-    /** Slot the chart finds its snapshot hashes under in the stored dashboard's `graphs` */
+    /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
     graphKey: InsightsGraphKey;
 
     titleKey: TranslationPaths;
     view: ChartView;
-    groupBy: SearchGroupBy;
+
+    /** What the chart aggregates by, left out by charts that follow the page's group-by filter */
+    groupBy?: SearchGroupBy;
     sortBy?: string;
     sortOrder?: string;
     limit?: number;
@@ -48,7 +50,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
             view: CONST.SEARCH.VIEW.LINE,
-            groupBy: DEFAULT_INSIGHTS_FILTERS.groupBy,
         },
         supportingCharts: [
             {

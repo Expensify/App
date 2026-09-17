@@ -16,6 +16,7 @@ import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQuer
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import SearchBarChart from './SearchBarChart';
+import {useSearchQueryContext} from './SearchContext';
 import SearchLineChart from './SearchLineChart';
 import SearchPieChart from './SearchPieChart';
 
@@ -53,6 +54,7 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
 function SearchChartView({queryJSON, view, groupBy, data, isLoading, color}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
@@ -63,7 +65,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color}: Sea
         if (!query) {
             return;
         }
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: currentSearchKey}));
     };
 
     const firstItem = data.at(0);

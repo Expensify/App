@@ -510,6 +510,12 @@ const ONYXKEYS = {
     /** Whether we're checking if the room is public or not */
     RAM_ONLY_IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 
+    /**
+     * Whether we're checking if any Expensify Card has a digital wallet addition waiting to be confirmed. RAM only, so
+     * undefined means nothing has asked yet this launch.
+     */
+    RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL: 'isCheckingPendingWalletApproval',
+
     /** The report ID of the public room that the user is currently viewing */
     VIEWING_PUBLIC_ROOM_REPORT_ID: 'ViewingPublicRoomReportID',
 
@@ -972,7 +978,7 @@ const ONYXKEYS = {
         // Search Page related
         SNAPSHOT: 'snapshot_',
 
-        /** One entry per Insights dashboard, keyed by dashboard ID, holding everything the backend returns for it and the state of the request that asked for it */
+        /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
         INSIGHTS: 'insights_',
 
         // Shared NVPs
@@ -1751,6 +1757,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];

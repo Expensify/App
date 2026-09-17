@@ -68,7 +68,7 @@ function DynamicIOURequestStepUpgrade({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
-    const [activePolicy] = useActivePolicy();
+    const activePolicy = useActivePolicy();
     const personalPolicy = usePersonalPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
@@ -339,6 +339,7 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            delegateAccountID,
             hasOwnedPaidPolicy,
         });
         setIsUpgraded(true);
@@ -363,6 +364,7 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            delegateAccountID,
             hasOwnedPaidPolicy,
         });
         policyDataRef.current = policyData;
