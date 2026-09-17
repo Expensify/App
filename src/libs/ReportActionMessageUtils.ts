@@ -1,3 +1,6 @@
+/**
+ * Readers for a report action's message: pull the message entry, its html/text, and the normalized original message.
+ */
 import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
@@ -13,6 +16,7 @@ function getReportActionMessage(reportAction: PartialReportAction) {
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
+    // Reading the deprecated message/originalMessage fields is intentional because OldDot actions still populate them
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const candidate = !Array.isArray(reportAction?.message) ? (reportAction?.message ?? reportAction?.originalMessage) : reportAction?.originalMessage;
 
@@ -29,6 +33,7 @@ function getReportActionHtml(reportAction: PartialReportAction): string {
 
 function getReportActionText(reportAction: PartialReportAction): string {
     const message = getReportActionMessage(reportAction);
+    // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
     return text ? Parser.htmlToText(text) : '';
