@@ -1766,7 +1766,9 @@ function openBankAccountSharePage() {
 function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: string | undefined, optimisticReportActionID: string | null | undefined) {
     const authToken = NetworkStore.getAuthToken();
 
-    const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
+    const nvpUnlockRequestedKey = `${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1775,6 +1777,11 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
                     isLoading: true,
                     isSuccess: false,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: nvpUnlockRequestedKey,
+                value: new Date().toISOString(),
             },
         ],
         successData: [
@@ -1808,6 +1815,11 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
                     isSuccess: false,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: nvpUnlockRequestedKey,
+                value: null,
             },
             ...(optimisticReportActionID && conciergeReportID
                 ? [
