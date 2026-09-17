@@ -10,6 +10,7 @@ Updated rules for managing members across all types of chats in New Expensify.
 - Admins MUST NOT be able to leave or be removed from expense chats
 - Members MUST NOT be able to leave or be removed from the #announce room
 - Admins MUST NOT be able to leave or be removed from #admins
+- Auditors MUST NOT be able to leave or be removed from #admins
 - Domain members MUST NOT be able to leave or be removed from their domain chat
 - Report submitters MUST NOT be able to leave or be removed from their reports
 - Report managers MUST NOT be able to leave or be removed from their reports
@@ -64,13 +65,13 @@ Updated rules for managing members across all types of chats in New Expensify.
 |     **Invite**     |   ❌   |    ❌    |
 |     **Remove**     |   ❌   |    ❌    |
 |     **Leave**      |   ❌   |    ❌    |
-| **Can be removed** |   ❌   |    ✅    |
+| **Can be removed** |   ❌   |    ❌    |
 
 - Admins can't leave or be removed from #admins
 - Auditors are added to #admins when they are given the Auditor role, and membership follows the role rather than manual invites
 - Auditors can read and comment in #admins. Unlike #announce, the room has no admins-only write capability
 - No one can leave #admins, auditors included
-- Auditors can be removed from #admins, and they lose the room when their role changes to one without #admins access
+- Auditors lose #admins when their role changes to one that has no #admins access. That is a role change, not a removal from the room
 
 #### Workspace rooms
 |                    | Creator | Member | Auditor | Guest(outside of the workspace) |
