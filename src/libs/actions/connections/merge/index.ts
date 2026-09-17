@@ -134,9 +134,6 @@ function updateMergeApprovalMode({
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS) {
         updatedConfig.approverField = approverField ?? null;
         rolledBackConfig.approverField = currentApproverField ?? null;
-    }
-
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS) {
         updatedConfig.finalApprover = finalApprover ?? null;
         rolledBackConfig.finalApprover = currentFinalApprover ?? null;
     }
