@@ -1,11 +1,15 @@
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
+
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+
 import type {CompassProps} from './MapViewTypes';
 
 function Compass({interactive, shouldDisplayCompass, cameraRef, mapHeading}: CompassProps) {

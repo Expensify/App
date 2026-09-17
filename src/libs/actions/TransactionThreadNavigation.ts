@@ -1,6 +1,8 @@
-import Onyx from 'react-native-onyx';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * When a single transaction report is displayed in RHP it may need extra context in case user navigated to it from MoneyRequestReportView or Reports
@@ -30,10 +32,15 @@ function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDes
         return false;
     }
     // Compare the identity-bearing fields only; the transaction object is keyed by transactionID, so two
-    // descriptors with the same reportID/threadReportID/transactionID describe the same sibling.
+    // descriptors with the same reportID/childReportID/transactionID describe the same sibling.
     return aKeys.every((key) => {
         const next = b[key];
-        return !!next && a[key].reportID === next.reportID && a[key].threadReportID === next.threadReportID && a[key].transaction?.transactionID === next.transaction?.transactionID;
+        return (
+            !!next &&
+            a[key].reportID === next.reportID &&
+            a[key].reportAction?.childReportID === next.reportAction?.childReportID &&
+            a[key].transaction?.transactionID === next.transaction?.transactionID
+        );
     });
 }
 
@@ -45,11 +52,14 @@ function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDes
 function setActiveTransactionIDs(ids: string[], siblingDescriptorsByTransactionID?: Record<string, TransactionThreadNavigationDescriptor>) {
     const nextDescriptors = siblingDescriptorsByTransactionID ?? null;
     const sameIDs = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
-    if (sameIDs && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors)) {
-        return Promise.resolve();
-    }
+    const isUnchanged = sameIDs && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors);
+    // Track the newest array even when the write is skipped: callers compare this reference by identity to tell
+    // "my seed is still active" from "someone re-seeded after me", and a stale one makes a newer seed look older.
     lastSetIDs = ids;
     lastSetDescriptors = nextDescriptors;
+    if (isUnchanged) {
+        return Promise.resolve();
+    }
     return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextDescriptors)]);
 }
 

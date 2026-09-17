@@ -1,7 +1,3 @@
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer} from '@react-navigation/native';
-import type {InitialState, NavigatorScreenParams} from '@react-navigation/native';
-import React from 'react';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -15,10 +11,18 @@ import type {
     WorkspaceNavigatorParamList,
     WorkspaceSplitNavigatorParamList,
 } from '@libs/Navigation/types';
+
 import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/createPlatformStackNavigator';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {InitialState, NavigatorScreenParams} from '@react-navigation/native';
+
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
 
 /** Test-specific param list with split navigators at root level for simplified test setup */
 type TestRootParamList = AuthScreensParamList & {
@@ -181,6 +185,10 @@ function TestTabNavigator() {
             <TabNav.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={TestSearchFullscreenNavigator}
+            />
+            <TabNav.Screen
+                name={SCREENS.INSIGHTS}
+                component={getEmptyComponent()}
             />
             <TabNav.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}

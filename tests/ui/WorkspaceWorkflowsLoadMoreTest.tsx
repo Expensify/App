@@ -1,24 +1,32 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+
+import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWorkflowsPageRevamp';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -103,8 +111,9 @@ const renderPage = () =>
                         <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.WORKFLOWS}>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
-                                component={WorkspaceWorkflowsPage}
-                                initialParams={{policyID: POLICY_ID}}
+                                component={WorkspaceWorkflowsPageRevamp}
+                                // Approval workflow cards live on the Approvals tab, so deep-link straight to it.
+                                initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.APPROVALS}}
                             />
                         </Stack.Navigator>
                     </NavigationContainer>
@@ -116,7 +125,7 @@ const renderPage = () =>
 const loadMoreLabel = (count: number) => TestHelper.translateLocal('workflowsPage.loadMoreWorkflows', {count});
 const countWorkflowCards = () => screen.queryAllByText(TestHelper.translateLocal('workflowsExpensesFromPage.title')).length;
 
-describe('WorkspaceWorkflowsPage - Approvals Load more', () => {
+describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });

@@ -1,8 +1,9 @@
+import type {Report} from '@src/types/onyx';
+
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Report} from '@src/types/onyx';
 
 /**
  * Callback type for reporting the current playback status.
@@ -25,9 +26,6 @@ type OriginalParent = View | HTMLDivElement | null;
  * Metadata describing a video element instance.
  */
 type VideoElementData = {
-    /**
-     * Whether the video player should use a shared video element.
-     */
     shouldUseSharedVideoElement: boolean;
 
     /**
@@ -67,9 +65,6 @@ type PlaybackStateContextValues = {
      */
     mountedVideoPlayersRef: RefObject<string[]>;
 
-    /**
-     * Status of the currently used Video Player
-     */
     playerStatus: RefObject<VideoPlayerStatus>;
 
     /**
@@ -112,9 +107,6 @@ type PlaybackActionsContextValues = {
         videoElementData: VideoElementData,
     ) => void;
 
-    /**
-     * Sets the URL of the currently playing video.
-     */
     setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
 
     /**
@@ -135,9 +127,6 @@ type PlaybackActionsContextValues = {
  * References and helper methods for managing video playback.
  */
 type PlaybackContextVideoRefs = {
-    /**
-     * Resets the player data in the context.
-     */
     resetPlayerData: () => void;
 
     /**

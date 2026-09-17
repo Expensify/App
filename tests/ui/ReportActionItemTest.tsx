@@ -1,32 +1,39 @@
-import {PortalProvider} from '@gorhom/portal';
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import {openLink} from '@libs/actions/Link';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type * as UrlType from '@libs/Url';
+
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
+
 import colors from '@styles/theme/colors';
+
 import type CONFIGType from '@src/CONFIG';
 import type CONSTType from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {BankAccountList, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+
+import {PortalProvider} from '@gorhom/portal';
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -57,6 +64,7 @@ jest.mock('@libs/actions/Link', () => {
             const attrPath = Url.getPathFromURL(href);
             return (Url.hasSameExpensifyOrigin(href, CONSTreal.NEW_EXPENSIFY_URL) ||
                 Url.hasSameExpensifyOrigin(href, CONSTreal.STAGING_NEW_EXPENSIFY_URL) ||
+                Url.hasSameExpensifyOrigin(href, CONSTreal.QA_NEW_EXPENSIFY_URL) ||
                 href.startsWith(CONSTreal.DEV_NEW_EXPENSIFY_URL)) &&
                 !CONSTreal.PATHS_TO_TREAT_AS_EXTERNAL.find((p) => attrPath.startsWith(p))
                 ? attrPath
@@ -82,7 +90,7 @@ const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
 
 const createReportAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
-    ({
+    createMock<ReportAction>({
         reportActionID: '12345',
         actorAccountID: ACTOR_ACCOUNT_ID,
         created: '2025-07-12 09:03:17.653',
@@ -96,7 +104,7 @@ const createReportAction = (actionName: ReportActionName, originalMessageExtras:
         originalMessage: {
             ...originalMessageExtras,
         },
-    }) as ReportAction;
+    });
 
 describe('ReportActionItem', () => {
     beforeAll(() => {
@@ -133,23 +141,21 @@ describe('ReportActionItem', () => {
 
     function renderItemWithAction(action: ReportAction) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                <OptionsListContextProvider>
-                    <ScreenWrapper testID="test">
-                        <PortalProvider>
-                            <ReportActionItem
-                                chatReport={undefined}
-                                report={undefined}
-                                transactionThreadReport={undefined}
-                                parentReportAction={undefined}
-                                action={action}
-                                displayAsGroup={false}
-                                shouldDisplayNewMarker={false}
-                                isFirstVisibleReportAction={false}
-                            />
-                        </PortalProvider>
-                    </ScreenWrapper>
-                </OptionsListContextProvider>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                <ScreenWrapper testID="test">
+                    <PortalProvider>
+                        <ReportActionItem
+                            chatReport={undefined}
+                            report={undefined}
+                            transactionThreadReport={undefined}
+                            parentReportAction={undefined}
+                            action={action}
+                            displayAsGroup={false}
+                            shouldDisplayNewMarker={false}
+                            isFirstVisibleReportAction={false}
+                        />
+                    </PortalProvider>
+                </ScreenWrapper>
             </ComposeProviders>,
         );
     }
@@ -180,7 +186,12 @@ describe('ReportActionItem', () => {
                 originalMessageExtras: {harvesting: true},
                 translationKey: 'iou.automaticallySubmitted',
             },
-        ];
+        ] satisfies Array<{
+            testTitle: string;
+            actionName: ReportActionName;
+            originalMessageExtras: Partial<OriginalMessage<ReportActionName>>;
+            translationKey: TranslationPaths;
+        }>;
 
         const parseTextWithTrailingLink = (translatedText: string) => {
             const match = translatedText.match(/^(.*?)(<a[^>]*>)(.*?)(<\/a>)$/);
@@ -197,7 +208,7 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(CONST.CONCIERGE_DISPLAY_NAME)).toBeOnTheScreen();
-            const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
+            const parsedText = parseTextWithTrailingLink(translateLocal(translationKey));
             if (!parsedText) {
                 throw new Error('Text cannot be parsed, translation failed');
             }
@@ -414,7 +425,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -431,22 +441,20 @@ describe('ReportActionItem', () => {
             // When the ReportActionItem is rendered with the pending SUBMITTED action while offline
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -468,7 +476,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             } as const;
 
@@ -480,22 +487,20 @@ describe('ReportActionItem', () => {
             // When the ReportActionItem is rendered with the pending SUBMITTED action
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -517,7 +522,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -533,22 +537,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -567,7 +569,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -578,22 +579,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -653,22 +652,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -715,22 +712,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -770,7 +765,7 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the action message should be displayed
-            expect(screen.getByText(translateLocal('iou.paidElsewhere', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.paidElsewhere'))).toBeOnTheScreen();
         });
     });
 
@@ -799,22 +794,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -979,22 +972,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1027,22 +1018,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1076,22 +1065,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1129,22 +1116,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1179,22 +1164,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1230,22 +1213,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1283,22 +1264,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1439,23 +1418,21 @@ describe('ReportActionItem', () => {
             };
 
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={report}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1594,6 +1571,15 @@ describe('ReportActionItem', () => {
 
     describe('System notification actions', () => {
         it('MOVED action renders moved message', async () => {
+            // Seed the destination policy locally so the message is computed live (the member scenario).
+            // Without a local policy, getMovedActionMessage falls back to the stored action HTML.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+                    id: 'policy1',
+                    name: 'Test Workspace',
+                });
+            });
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED, {
                 toPolicyID: 'policy1',
                 newParentReportID: 'report2',
@@ -1620,27 +1606,69 @@ describe('ReportActionItem', () => {
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', policyID: 'pol123'}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID: 'pol123'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
+        });
+
+        it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
+            const policyID = 'iesPolicy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    connections: {
+                        quickbooksOnline: {
+                            config: {
+                                credentials: {
+                                    scope: 'com.intuit.quickbooks.accounting',
+                                },
+                            },
+                        },
+                    },
+                });
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
+                label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
+                errorMessage: 'Token expired',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Intuit Enterprise Suite/)).toBeOnTheScreen();
+            expect(screen.queryByText(/QuickBooks Online/)).not.toBeOnTheScreen();
         });
 
         it('COMPANY_CARD_CONNECTION_BROKEN action', async () => {
@@ -1654,6 +1682,17 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/Chase Visa/)).toBeOnTheScreen();
         });
 
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: 'Chase Visa',
+                policyID: 'pol123',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
+        });
+
         it('PLAID_BALANCE_FAILURE action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE, {
                 maskedAccountNumber: '***1234',
@@ -1662,6 +1701,64 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/1234/)).toBeOnTheScreen();
+        });
+
+        describe('COMMUTER_EXCLUSION action', () => {
+            const COMMUTER_EXCLUSION_POLICY_ID = 'commuterPolicy';
+
+            function renderCommuterExclusionAction() {
+                const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION, {
+                    distance: '1.00',
+                    unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                });
+                return render(
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={{reportID: 'testReport', policyID: COMMUTER_EXCLUSION_POLICY_ID}}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </ComposeProviders>,
+                );
+            }
+
+            it('renders the workspace distance settings as a link for an admin', async () => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${COMMUTER_EXCLUSION_POLICY_ID}`, {
+                        id: COMMUTER_EXCLUSION_POLICY_ID,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    });
+                });
+                renderCommuterExclusionAction();
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByText(/Removed 1.00 commuter/)).toBeOnTheScreen();
+                // The anchor renders a nested pressable, so more than one node carries the link role
+                expect(screen.getAllByRole(CONST.ROLE.LINK, {name: 'workspace distance settings'}).length).toBeGreaterThan(0);
+            });
+
+            it('renders the workspace distance settings as plain text for a member', async () => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${COMMUTER_EXCLUSION_POLICY_ID}`, {
+                        id: COMMUTER_EXCLUSION_POLICY_ID,
+                        role: CONST.POLICY.ROLE.USER,
+                    });
+                });
+                renderCommuterExclusionAction();
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByText(/Removed 1.00 commuter/)).toBeOnTheScreen();
+                expect(screen.queryByRole(CONST.ROLE.LINK, {name: 'workspace distance settings'})).not.toBeOnTheScreen();
+            });
         });
 
         it('TAKE_CONTROL action renders changed approver message', async () => {
@@ -1722,22 +1819,20 @@ describe('ReportActionItem', () => {
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport'}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1758,22 +1853,20 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {paymentType: ''});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1796,22 +1889,20 @@ describe('ReportActionItem', () => {
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1839,28 +1930,26 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {paymentType: ''});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{
-                                        reportID: 'threadReport',
-                                        type: CONST.REPORT.TYPE.CHAT,
-                                        parentReportID: 'parentReport',
-                                        parentReportActionID: 'parentAction',
-                                        ownerAccountID: 0,
-                                    }}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{
+                                    reportID: 'threadReport',
+                                    type: CONST.REPORT.TYPE.CHAT,
+                                    parentReportID: 'parentReport',
+                                    parentReportActionID: 'parentAction',
+                                    ownerAccountID: 0,
+                                }}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1875,29 +1964,27 @@ describe('ReportActionItem', () => {
                     reportID: 'testReport',
                     ownerAccountID: ACTOR_ACCOUNT_ID,
                 });
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {acc1: {accountData: {defaultCredit: true}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({acc1: {accountData: {defaultCredit: true}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {paymentType: ''});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1923,22 +2010,20 @@ describe('ReportActionItem', () => {
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1950,7 +2035,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {12345: {accountData: {accountNumber: '000098765'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({12345: {accountData: {accountNumber: '000098765'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1962,22 +2047,20 @@ describe('ReportActionItem', () => {
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={undefined}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -1985,10 +2068,58 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/paid with bank account/i)).toBeOnTheScreen();
         });
 
+        it('IOU PAY VBBA manual prefers originalMessage accountNumber over current policy account', async () => {
+            const policyID = 'snapshot-policy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    achAccount: {
+                        accountNumber: 'XXXX2222',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+            });
+            const report = {
+                reportID: 'testReport',
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                policyID,
+            } as Report;
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/1111/)).toBeOnTheScreen();
+            expect(screen.queryByText(/2222/)).toBeNull();
+        });
+
         it('IOU PAY VBBA automatic renders auto-paid message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {12345: {accountData: {accountNumber: '000098765'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({12345: {accountData: {accountNumber: '000098765'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -2000,22 +2131,20 @@ describe('ReportActionItem', () => {
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={undefined}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -2026,7 +2155,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY with bankAccountID and payAsBusiness renders settleInvoiceBusiness message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {55555: {accountData: {accountNumber: '000012345'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({55555: {accountData: {accountNumber: '000012345'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -2041,22 +2170,20 @@ describe('ReportActionItem', () => {
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrencyListContextProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={undefined}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -2068,7 +2195,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY with bankAccountID and no payAsBusiness renders settleInvoicePersonal message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {77777: {accountData: {accountNumber: '000067890'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({77777: {accountData: {accountNumber: '000067890'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -2083,22 +2210,20 @@ describe('ReportActionItem', () => {
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrencyListContextProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={undefined}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -2209,22 +2334,20 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -2247,22 +2370,20 @@ describe('ReportActionItem', () => {
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -2326,7 +2447,7 @@ describe('ReportActionItem', () => {
                 testTitle: 'UPDATE_AUTO_HARVESTING',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
                 originalMessage: {value: true},
-                assertion: /enabled scheduled submit/i,
+                assertion: /enabled submissions/i,
             },
             {testTitle: 'SET_AUTO_JOIN', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN, originalMessage: {enabled: true}, assertion: /enabled pre-approval/i},
             {testTitle: 'UPDATE_TIME_ENABLED', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED, originalMessage: {enabled: true}, assertion: /time tracking/i},
@@ -2478,6 +2599,23 @@ describe('ReportActionItem', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO,
                 originalMessage: {approvers: [{email: 'approver@test.com', name: 'Approver', accountID: 123}], forwardsTo: {email: 'fwd@test.com', name: 'Fwd', accountID: 456}},
                 assertion: /fwd@test\.com/,
+            },
+            {
+                testTitle: 'UPDATE_OVER_LIMIT_FORWARDS_TO',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                originalMessage: {
+                    member: {email: 'member@test.com', name: 'Member', accountID: 789},
+                    overLimitForwardsTo: {email: 'overlimit@test.com', name: 'Over Limit Approver', accountID: 456},
+                    limit: 10000,
+                    currency: 'USD',
+                },
+                assertion: /overlimit@test\.com/,
+            },
+            {
+                testTitle: 'UPDATE_APPROVAL_LIMIT',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                originalMessage: {member: {email: 'member@test.com', name: 'Member', accountID: 789}, limit: 20000, previousLimit: 10000, currency: 'USD'},
+                assertion: /member@test\.com/,
             },
             {
                 testTitle: 'UPDATE_AUTO_REIMBURSEMENT',
@@ -2653,6 +2791,12 @@ describe('ReportActionItem', () => {
                 assertion: /My Card/,
             },
             {
+                testTitle: 'isCardBrokenConnectionAction 30 days',
+                actionName: CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS,
+                originalMessage: {cardID: 100, cardName: 'My Card'},
+                assertion: /My Card connection has been broken for 30 days/,
+            },
+            {
                 testTitle: 'INDIVIDUAL_BUDGET_NOTIFICATION',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION,
                 originalMessage: {
@@ -2715,7 +2859,7 @@ describe('ReportActionItem', () => {
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection', async () => {
             const CARD_ID_KEY = '100';
 
-            (openLink as jest.Mock).mockClear();
+            jest.mocked(openLink).mockClear();
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.CARD_LIST, {
                     [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
@@ -2734,10 +2878,34 @@ describe('ReportActionItem', () => {
             expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
         });
 
+        it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
+            const CARD_ID_KEY = '100';
+
+            jest.mocked(openLink).mockClear();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                    [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS, {cardID: 100, cardName: 'Broken Card'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Broken Card connection has been broken for 30 days/)).toBeOnTheScreen();
+
+            const bankLoginLink = screen.getByText('Log into your bank');
+            fireEvent.press(bankLoginLink);
+
+            expect(openLink).toHaveBeenCalledTimes(1);
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+        });
+
         it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {
             const CARD_ID_KEY = '100';
 
-            (openLink as jest.Mock).mockClear();
+            jest.mocked(openLink).mockClear();
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.CARD_LIST, {
                     [CARD_ID_KEY]: {cardID: 100, cardName: 'Healthy Card', lastScrapeResult: 200},
@@ -2829,22 +2997,20 @@ describe('ReportActionItem', () => {
             } as ReportAction;
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'chatReport1', chatReportID: 'chatReport1', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'chatReport1', chatReportID: 'chatReport1', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -2884,22 +3050,20 @@ describe('ReportActionItem', () => {
             } as ReportAction;
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: 'expenseReport1', chatReportID: 'workspaceChat1', type: CONST.REPORT.TYPE.EXPENSE}}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'expenseReport1', chatReportID: 'workspaceChat1', type: CONST.REPORT.TYPE.EXPENSE}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -2930,6 +3094,30 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('Paris Trip 2026')).toBeOnTheScreen();
+        });
+
+        it('isTripPreview renders trip dates from report name-value-pair tripData', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}tripReportDates`, {
+                    reportID: 'tripReportDates',
+                    reportName: 'Paris Trip',
+                    currency: 'USD',
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}tripReportDates`, {
+                    tripData: {
+                        tripID: 'trip-1',
+                        startDate: '2026-01-01T12:00:00Z',
+                        endDate: '2026-01-03T12:00:00Z',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW, {linkedReportID: 'tripReportDates'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Jan 1-3/)).toBeOnTheScreen();
         });
 
         it('isCreatedTaskReportAction renders TaskPreview', async () => {
@@ -2984,23 +3172,21 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    transactionThreadReport={undefined}
-                                    report={{reportID: HARVEST_REPORT_ID}}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                    isHarvestCreatedExpenseReport
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                transactionThreadReport={undefined}
+                                report={{reportID: HARVEST_REPORT_ID}}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                                isHarvestCreatedExpenseReport
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -3026,23 +3212,21 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={{reportID: HARVEST_REPORT_ID}}
-                                    parentReportAction={undefined}
-                                    transactionThreadReport={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                    isHarvestCreatedExpenseReport
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: HARVEST_REPORT_ID}}
+                                parentReportAction={undefined}
+                                transactionThreadReport={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                                isHarvestCreatedExpenseReport
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -3076,23 +3260,21 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW, {linkedReportID: 'tripReport1'});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItem
-                                    chatReport={undefined}
-                                    report={undefined}
-                                    transactionThreadReport={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    shouldDisplayNewMarker={false}
-                                    isFirstVisibleReportAction={false}
-                                    isThreadReportParentAction
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                                isThreadReportParentAction
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -3131,7 +3313,7 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submit' as TranslationPaths))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submitToEmployer' as TranslationPaths))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('actionableMentionTrackExpense.nothing' as TranslationPaths))).toBeOnTheScreen();
         });
     });
@@ -3188,19 +3370,17 @@ describe('ReportActionItem', () => {
             action.reportID = TEST_REPORT_ID;
 
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <ReportActionItemMessage
-                                    action={action}
-                                    displayAsGroup={false}
-                                    reportID={TEST_REPORT_ID}
-                                    isHidden
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItemMessage
+                                action={action}
+                                displayAsGroup={false}
+                                reportID={TEST_REPORT_ID}
+                                isHidden
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
                 </ComposeProviders>,
             );
             await waitForBatchedUpdatesWithAct();

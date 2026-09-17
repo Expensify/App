@@ -1,14 +1,19 @@
-import React from 'react';
-import {PolarChart} from 'victory-native';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
+import getStaticChartCanvasProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getStaticChartCanvasProps';
+
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useTheme from '@hooks/useTheme';
+
 import ThemeContext from '@styles/theme/context/ThemeContext';
+
+import React from 'react';
+import {PolarChart} from 'victory-native';
+
 import VictoryChartCategories from './VictoryChartCategories';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
@@ -16,12 +21,15 @@ import VictoryChartLegend from './VictoryChartLegend';
 type VictoryChartPolarProps = {
     explicitSize?: {width: number; height: number};
     headless?: boolean;
+
+    /** Render into a static bitmap canvas instead of a live WebGL canvas (web) */
+    shouldUseStaticCanvas?: boolean;
 };
 
 /**
  * Renders the PolarChart with data drawn from context.
  */
-function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
+function VictoryChartPolar({explicitSize, headless, shouldUseStaticCanvas}: VictoryChartPolarProps) {
     const {tnode, data, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
@@ -59,6 +67,7 @@ function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
             valueKey={VALUE_KEY}
             colorKey={COLOR_KEY}
             {...getChartLayoutModeProps(explicitSize, headless)}
+            canvasProps={shouldUseStaticCanvas ? getStaticChartCanvasProps() : undefined}
         >
             {headless ? (
                 <ThemeContext.Provider value={theme}>{chartContent}</ThemeContext.Provider>

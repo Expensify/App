@@ -1,25 +1,34 @@
-import type {ParamListBase} from '@react-navigation/native';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
 import SidebarRightIcon from '@assets/images/sidebar-right.svg';
+
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
 import Tooltip from '@components/Tooltip';
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+
+import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+
+import type {ParamListBase} from '@react-navigation/native';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import {
     useSearchSidebarCollapse,
     useSearchSidebarCollapseFadeStyle,
@@ -48,7 +57,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchQueryJSON} = useSearchQueryContext();
     const {setLastSearchType} = useSearchResultsActions();
 
     const searchType = currentSearchResults?.search?.type;
@@ -113,7 +121,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                         </TopBar>
                         <Hoverable onHoverIn={startPeek}>
                             <View style={styles.flex1}>
-                                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                                <SearchTypeMenuWide />
                             </View>
                         </Hoverable>
                     </View>

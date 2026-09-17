@@ -1,6 +1,8 @@
 import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
+
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';

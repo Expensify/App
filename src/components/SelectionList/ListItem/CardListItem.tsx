@@ -1,22 +1,28 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
-import TextWithTooltip from '@components/TextWithTooltip';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
-import SelectableListItem from './SelectableListItem';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, SelectableListItemProps} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 type AdditionalCardProps = {
     shouldShowOwnersAvatar?: boolean;
@@ -50,7 +56,7 @@ function CardListItem<TItem extends ListItem>({
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
 
     const ownersAvatar = {
@@ -66,10 +72,13 @@ function CardListItem<TItem extends ListItem>({
         `${item.cardName ? ` ${CONST.DOT_SEPARATOR} ${item.cardName}` : ''}` +
         `${item.isVirtual ? ` ${CONST.DOT_SEPARATOR} ${translate('workspace.expensifyCard.virtual')}` : ''}`;
 
+    // The bold heading style is the primitive's default; non-bold items reset the weight and color.
+    const titleStyle = [item.alternateText ? styles.mb1 : null, item.isBold === false && [styles.fontWeightNormal, styles.textSupporting]];
+
     return (
         <SelectableListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
+            wrapperStyle={styles.listItemRow}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
@@ -79,9 +88,6 @@ function CardListItem<TItem extends ListItem>({
             onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
-            errors={item.errors}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >
@@ -92,19 +98,16 @@ function CardListItem<TItem extends ListItem>({
                             <View>
                                 <UserDetailsTooltip
                                     shouldRender={showTooltip}
-                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
+                                    accountID={ownersAvatar.id}
                                     icon={ownersAvatar}
                                     fallbackUserDetails={{
                                         displayName: item.cardOwnerPersonalDetails?.displayName,
                                     }}
                                 >
                                     <View>
-                                        <Avatar
-                                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT))}
+                                        <UserAvatar
                                             source={ownersAvatar.source}
-                                            name={ownersAvatar.name}
-                                            avatarID={ownersAvatar.id}
-                                            type={CONST.ICON_TYPE_AVATAR}
+                                            accountID={ownersAvatar.id}
                                             fallbackIcon={ownersAvatar.fallbackIcon}
                                         />
                                     </View>
@@ -141,28 +144,13 @@ function CardListItem<TItem extends ListItem>({
                         )}
                     </View>
                 )}
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text ?? '')}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isBold !== false && styles.sidebarLinkTextBold,
-                                styles.pre,
-                                item.alternateText ? styles.mb1 : null,
-                            ]}
-                        />
-                        {!!subtitleText && (
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={subtitleText}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
-                        )}
-                    </View>
-                </View>
+                <ListItemComposed.TextColumn style={styles.optionRow}>
+                    <ListItemComposed.Title
+                        text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
+                        style={titleStyle}
+                    />
+                    {!!subtitleText && <ListItemComposed.Subtitle text={subtitleText} />}
+                </ListItemComposed.TextColumn>
             </>
         </SelectableListItem>
     );

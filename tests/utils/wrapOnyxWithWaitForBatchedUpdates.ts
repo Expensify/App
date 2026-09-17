@@ -1,5 +1,6 @@
 import type Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
+
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 /**

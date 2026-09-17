@@ -1,19 +1,32 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isTravelCard} from '@libs/CardUtils';
-import {getExpenseTypeTranslationKey, getTransactionType, isExpensifyCardTransaction, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+
+import {isTravelCardTransaction} from '@libs/CardUtils';
+import {
+    getDetailedExpenseTypeTranslationKey,
+    getExpenseTypeTranslationKey,
+    getTransactionType,
+    isExpensifyCardTransaction,
+    isManagedCardTransaction,
+    isPending,
+} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 const getTypeIcon = (
@@ -21,12 +34,12 @@ const getTypeIcon = (
     type?: string,
     isExpensifyCard?: boolean,
     isManagedCard?: boolean,
-    isTravelInvoicingCard?: boolean,
+    isTravelBillingCard?: boolean,
 ) => {
     switch (type) {
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            // Travel invoicing cards are technically Expensify-issued (bank === EXPENSIFY_CARD.BANK), so this branch must come before the isExpensifyCard branch.
-            if (isTravelInvoicingCard) {
+            // Travel billing cards are technically Expensify-issued (bank === EXPENSIFY_CARD.BANK), so this branch must come before the isExpensifyCard branch.
+            if (isTravelBillingCard) {
                 return icons.CreditCardWithPlane;
             }
             if (isExpensifyCard) {
@@ -55,6 +68,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Car',
         'CreditCard',
+        'CreditCardHourglass',
         'CreditCardLock',
         'CreditCardWithPlane',
         'CreditCardWithPlaneHourglass',
@@ -67,31 +81,21 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const type = getTransactionType(transactionItem, card);
     const isExpensifyCard = isExpensifyCardTransaction(transactionItem);
     const isManagedCard = isManagedCardTransaction(transactionItem);
-    const isTravelInvoicingCard = isTravelCard(card);
-    const isPendingExpensifyCardTransaction = isExpensifyCard && isPending(transactionItem);
-    const pendingIcon = isTravelInvoicingCard ? expensifyIcons.CreditCardWithPlaneHourglass : expensifyIcons.ExpensifyCardHourglass;
-    const typeIcon = isPendingExpensifyCardTransaction ? pendingIcon : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard, isTravelInvoicingCard);
-    const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
-    const styles = useThemeStyles();
-
-    const getTooltipText = () => {
-        if (isPendingExpensifyCardTransaction) {
-            return translate('iou.pending');
-        }
-        if (isTravelInvoicingCard) {
-            return translate('cardTransactions.travelCard');
+    const isTravelBillingCard = isTravelCardTransaction(transactionItem.feedCountry, card);
+    const isPendingCardTransaction = isPending(transactionItem);
+    const getPendingIcon = () => {
+        if (isTravelBillingCard) {
+            return expensifyIcons.CreditCardWithPlaneHourglass;
         }
         if (isExpensifyCard) {
-            return translate('cardTransactions.expensifyCard');
+            return expensifyIcons.ExpensifyCardHourglass;
         }
-        if (isManagedCard) {
-            return translate('cardTransactions.companyCard');
-        }
-        if (type === CONST.SEARCH.TRANSACTION_TYPE.CARD) {
-            return translate('cardTransactions.personalCard');
-        }
-        return translate(typeText);
+        return expensifyIcons.CreditCardHourglass;
     };
+    const pendingIcon = getPendingIcon();
+    const typeIcon = isPendingCardTransaction ? pendingIcon : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard, isTravelBillingCard);
+    const typeText = isPendingCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
+    const styles = useThemeStyles();
 
     return shouldUseNarrowLayout ? (
         <TextWithTooltip
@@ -100,7 +104,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
             style={[styles.mutedNormalTextLabel, styles.pre, styles.justifyContentCenter, styles.flexShrink0]}
         />
     ) : (
-        <Tooltip text={getTooltipText()}>
+        <Tooltip text={translate(getDetailedExpenseTypeTranslationKey(transactionItem, card))}>
             <View>
                 <Icon
                     src={typeIcon}

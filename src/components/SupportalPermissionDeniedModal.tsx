@@ -1,9 +1,12 @@
-import {useEffect, useEffectEvent, useRef} from 'react';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {clearSupportalPermissionDenied} from '@userActions/App';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 function SupportalPermissionDeniedModal() {
     const {translate} = useLocalize();

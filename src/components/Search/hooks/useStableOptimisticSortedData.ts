@@ -1,10 +1,14 @@
-import {useEffect, useState} from 'react';
-import type {OnyxKey} from 'react-native-onyx';
 import type {SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import {getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import {useEffect, useState} from 'react';
 
 /**
  * Resolves the optimistic watch key from the deferred write channel and

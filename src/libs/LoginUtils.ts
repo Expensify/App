@@ -1,9 +1,8 @@
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import {clearSignInData, setAccountError} from './actions/Session';
-import Navigation from './Navigation/Navigation';
+
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+
 import {parsePhoneNumber} from './PhoneNumber';
 
 /**
@@ -99,15 +98,6 @@ function postSAMLLogin(body: FormData): Promise<Response | void> {
     });
 }
 
-function handleSAMLLoginError(errorMessage: string, shouldClearSignInData: boolean) {
-    if (shouldClearSignInData) {
-        clearSignInData();
-    }
-
-    setAccountError(errorMessage);
-    Navigation.goBack(ROUTES.INBOX);
-}
-
 function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
     const phoneNumberWithCountryCode = appendCountryCode(phoneNumber, countryCode);
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
@@ -139,7 +129,6 @@ export {
     getPhoneLogin,
     areEmailsFromSamePrivateDomain,
     postSAMLLogin,
-    handleSAMLLoginError,
     formatE164PhoneNumber,
     getEmailDomain,
     isDomainPublic,

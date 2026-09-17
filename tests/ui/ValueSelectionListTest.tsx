@@ -1,9 +1,13 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import SelectionList from '@components/SelectionList';
 import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
+
 import CONST from '@src/CONST';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');

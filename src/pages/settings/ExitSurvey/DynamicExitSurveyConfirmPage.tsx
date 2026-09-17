@@ -1,22 +1,25 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Icon from '@components//Icon';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {switchToOldDot} from '@userActions/ExitSurvey';
 import {openOldDotLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -24,6 +27,12 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import RESPONSE_INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 const exitResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[RESPONSE_INPUT_IDS.RESPONSE];
@@ -54,6 +63,12 @@ function DynamicExitSurveyConfirmPage() {
         return `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
     }, [isOffline, exitSurveyResponse, parentBackPath]);
 
+    const goToExpensifyClassic = () => {
+        switchToOldDot(exitSurveyResponse);
+        Navigation.dismissModal();
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+    };
+
     return (
         <ScreenWrapper
             testID="DynamicExitSurveyConfirmPage"
@@ -80,19 +95,15 @@ function DynamicExitSurveyConfirmPage() {
                 )}
             </View>
             <FixedFooter>
-                <Button
-                    success
-                    large
-                    text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
-                    pressOnEnter
+                <ButtonDisabledWhenOffline
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
-                    onPress={() => {
-                        switchToOldDot(exitSurveyResponse);
-                        Navigation.dismissModal();
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-                    }}
-                    isDisabled={isOffline}
-                />
+                    onPress={goToExpensifyClassic}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}</Button.Text>
+                </ButtonDisabledWhenOffline>
             </FixedFooter>
         </ScreenWrapper>
     );

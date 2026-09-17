@@ -1,8 +1,3 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
@@ -16,6 +11,8 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -26,35 +23,39 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTaskCheckboxAccessibility from '@hooks/useTaskCheckboxAccessibility';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 type TaskViewProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
-
-    /** The parent report */
     parentReport: OnyxEntry<Report>;
-
-    /** The task report action */
     action: OnyxEntry<ReportAction>;
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -84,12 +85,8 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         updateTaskCheckboxStateForAccessibility,
     } = useTaskCheckboxAccessibility(isCompletedFromOnyx, taskTitlePlainText);
 
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
-        getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails),
-        false,
-        localeCompare,
-        formatPhoneNumber,
-    );
+    const assigneePersonalDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
+    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate}) : '';
 
     const isOpen = isOpenTaskReport(report);
 
@@ -163,7 +160,10 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                     style={({pressed}) => [
                                         styles.ph5,
                                         styles.pv2,
-                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                        StyleUtils.getButtonBackgroundColorStyle(
+                                            getButtonState({isActive: hovered, isPressed: pressed, isDisabled: disableState, isInteractive: !isDisableInteractive}),
+                                            true,
+                                        ),
                                         isDisableInteractive && styles.cursorDefault,
                                     ]}
                                     accessibilityLabel={taskAccessibilityLabel}
@@ -181,7 +181,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         <Icon
                                                             additionalStyles={[styles.alignItemsCenter]}
                                                             src={icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                            fill={StyleUtils.getIconFillColor({
+                                                                buttonState: getButtonState({isActive: hovered, isPressed: pressed, isDisabled: disableState}),
+                                                            })}
                                                         />
                                                     </View>
                                                 )}
@@ -266,19 +268,22 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             {report?.managerID ? (
                                 <MenuItem
                                     label={translate('task.assignee')}
-                                    title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber})}
-                                    iconAccountID={report.managerID}
-                                    iconType={CONST.ICON_TYPE_AVATAR}
-                                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
-                                    titleStyle={styles.assigneeTextStyle}
+                                    accessibilityLabel={`${translate('task.assignee')}, ${assigneeDisplayName}`}
+                                    titleComponent={
+                                        <UserPill
+                                            avatar={assigneePersonalDetails?.avatar}
+                                            displayName={assigneeDisplayName}
+                                            accountID={report.managerID}
+                                            email={assigneePersonalDetails?.login}
+                                            style={styles.userPillStandalone}
+                                        />
+                                    }
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
                                     shouldShowRightIcon={!isDisableInteractive}
                                     disabled={disableState}
                                     wrapperStyle={[styles.pv2]}
-                                    isSmallAvatarSubscriptMenu
                                     shouldGreyOutWhenDisabled={false}
                                     interactive={!isDisableInteractive}
-                                    titleWithTooltips={assigneeTooltipDetails}
                                     shouldUseDefaultCursorWhenDisabled
                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
                                 />

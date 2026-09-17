@@ -5,8 +5,10 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -114,7 +116,8 @@ function dismissRHPToReport(reportID: string, runAfterDismiss: () => void) {
 // modal slides away, so the user never sees the wrong tab underneath.
 function dismissWideToNewSearchType(searchType: SearchDataTypes, runAfterDismiss: () => void) {
     const queryString = buildCannedSearchQuery({type: searchType});
-    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {
+    const searchKey = getSearchKeyForDataType(searchType);
+    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey}), {
         afterTransition: runAfterDismiss,
     });
 }

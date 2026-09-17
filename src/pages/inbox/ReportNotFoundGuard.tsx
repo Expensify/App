@@ -1,20 +1,26 @@
-import {useRoute} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useEffect, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
+
+import type {ReactNode} from 'react';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 
 type ReportNotFoundGuardProps = {
     children: ReactNode;
@@ -30,7 +36,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const route = useRoute();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const routeParams = route.params as {reportID?: string} | undefined;
+    const routeParams = route.params as {reportID?: string; isPendingCreation?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
     const {isOffline} = useNetwork();
@@ -49,6 +55,10 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isInvalidReportPath = !!routeParams?.reportID && !isValidReportIDFromPath(routeParams.reportID);
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
+    // A pre-mounted destination for a report the submit has not created yet: offline drops the actions-loading
+    // term above, so the guard would otherwise flash not-found until the optimistic report row lands. Only
+    // SCREENS.REPORT sets and clears this flag, so ignore it on the RHP report screen where it could never expire.
+    const isPendingCreation = route.name === SCREENS.REPORT && routeParams?.isPendingCreation === 'true';
 
     // `isLoadingInitialReportActions` lives in a memory-only key that is not reset between navigations.
     // Returning to a previously visited report (e.g. via direct URL) can leave a stale `false` here, so we
@@ -65,7 +75,8 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         setHasSeenLoadingForCurrentReportID(true);
     }
 
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
+    const isReportMissingAfterLoad = !isLoading && hasSeenLoadingForCurrentReportID && !reportExists && !isPendingCreation;
+    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || isReportMissingAfterLoad);
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
@@ -80,10 +91,12 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             isOptimisticDelete,
             userLeavingStatus,
             reportIDFromPath: routeParams?.reportID,
+            isPendingCreation,
             deleteTransactionNavigateBackUrl,
         });
     }, [
         shouldShowNotFoundPage,
+        isPendingCreation,
         isLoadingApp,
         isLoadingReportData,
         isOffline,

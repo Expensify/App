@@ -1,11 +1,14 @@
-import {deepEqual} from 'fast-equals';
-import type {OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type {AnyRequest} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import {deepEqual} from 'fast-equals';
+import Onyx from 'react-native-onyx';
 
 let persistedRequests: AnyRequest[] = [];
 let ongoingRequest: AnyRequest | null = null;

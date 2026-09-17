@@ -1,10 +1,9 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -14,33 +13,47 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/HRUtils';
+import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isZenefitsConnected} from '@libs/merge/HRUtils';
+import {isMergeConnected} from '@libs/merge/MergeUtils';
+import {getConnectedATSProvider, isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     arePolicyRulesEnabled,
     canPolicyAccessFeature,
+    getActiveVendorMatchingIntegration,
+    getConnectedIntegration,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
+    hasVendorFeature,
     isControlPolicy,
+    isMCPEnabled,
+    isPerDiemEnabled,
+    isPolicyFeatureEnabled,
+    isPolicyTaxEnabled,
     isTimeTrackingEnabled,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -51,6 +64,8 @@ import {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyInvoicing,
+    enablePolicyRecruiting,
+    enablePolicyMCP,
     enablePolicyReceiptPartners,
     enablePolicyRules,
     enablePolicyTaxes,
@@ -60,11 +75,16 @@ import {
 } from '@userActions/Policy/Policy';
 import {enablePolicyTags} from '@userActions/Policy/Tag';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect} from 'react';
+
 import MoreFeaturesSection from './MoreFeaturesSection';
 import MoreFeatureToggle from './MoreFeatureToggle';
 
@@ -75,35 +95,37 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
+    const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isRecruitingBetaEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
         'Accounting',
         'CompanyCard',
         'Workflows',
         'InvoiceBlue',
-        'Rules',
+        'Flash',
         'Tag',
         'PerDiem',
         'HandCard',
         'Coins',
+        'Briefcase',
         'Luggage',
         'Car',
         'Gears',
         'ReceiptPartners',
         'Clock',
         'Members',
+        'AiAutomation',
+        'NewUser',
     ]);
 
     const policyID = policy?.id;
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAccountingConnection = hasAccountingConnections(policy);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
-    const isSyncTaxEnabled =
-        !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
-        !!policy?.connections?.xero?.config?.importTaxRates ||
-        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
 
@@ -124,14 +146,44 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
-    const [travelCardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [travelCardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
 
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const settings = getCardSettings(cardSettings);
     const paymentBankAccountID = settings?.paymentBankAccountID;
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+
+    // The Vendors toggle reads policy.connections (via hasVendorFeature), which is empty on a
+    // non-active workspace until a connections-aware read runs. OpenPolicyMoreFeaturesPage doesn't
+    // hydrate the detailed connection config, so prefetch it here to keep the toggle from showing
+    // off and non-navigable when the workspace actually supports vendors. It can't be narrowed to
+    // vendor-capable workspaces because that answer lives in the very data being fetched. The hook
+    // already skips the fetch when the app is offline, when the workspace has no accounting
+    // connection, and when the data has already been fetched.
+    usePolicyConnectionsPrefetch(policy, true);
+
+    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct) being connected,
+    // not on the export config actually scoping vendors. That way members on a supported workspace
+    // still see the row so they can discover the feature even when the row is locked OFF (export
+    // config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
+    // `hasVendorFeature` stays as the narrower `isActive` predicate (is the export config scoping
+    // vendors right now), so it can't double as the visibility gate.
+    //
+    // Use the active vendor source so a stale QBO connection cannot bypass the beta for another
+    // integration. When no source is active, keep the connected integration's discovery row.
+    // QBO (R1) is GA. Sage Intacct, Xero, Rillet, and DualEntry require the vendorMatching beta.
+    const vendorMatchingConnection =
+        getActiveVendorMatchingIntegration(policy) ??
+        getConnectedIntegration(policy, [
+            CONST.POLICY.CONNECTIONS.NAME.QBO,
+            CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+            CONST.POLICY.CONNECTIONS.NAME.XERO,
+            CONST.POLICY.CONNECTIONS.NAME.RILLET,
+            CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
+        ]);
+    const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (isVendorMatchingEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -147,6 +199,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+    };
+
+    const warnVendorsManagedByAccounting = async () => {
+        await showConfirmModal({
+            title: translate('workspace.moreFeatures.vendors.disabledTitle'),
+            prompt: translate('workspace.moreFeatures.vendors.disabledMessage'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     };
 
     const warnDisconnectAccountingFirst = async () => {
@@ -186,12 +247,24 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             integration = translate('workspace.hr.zenefits.title');
         } else if (isGustoConnected(policy)) {
             integration = translate('workspace.hr.gusto.title');
-        } else if (isMergeHRConnected(policy)) {
+        } else if (isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)) {
             integration = getConnectedHRProvider(policy)?.displayName ?? '';
         }
         await showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),
             prompt: translate('workspace.moreFeatures.hrWarningModal.disconnectText', {integration}),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
+    const warnDisconnectRecruitingFirst = async () => {
+        if (!isAnyRecruitingConnected(policy)) {
+            return;
+        }
+        await showConfirmModal({
+            title: translate('workspace.distanceRates.oopsNotSoFast'),
+            prompt: translate('workspace.moreFeatures.recruitingWarningModal.disconnectText', {integration: getConnectedATSProvider(policy)?.displayName ?? ''}),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
@@ -207,7 +280,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
     };
 
     const promptDisableTravelViaInvoicing = async () => {
@@ -233,7 +306,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
     };
 
     const promptDisableSmartLimitForWorkflows = async () => {
@@ -271,7 +344,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={illustrations.Gears}
                     shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -315,10 +387,37 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
+                            icon={illustrations.Members}
+                            title={translate('workspace.hr.title')}
+                            subtitle={translate('workspace.hr.subtitle')}
+                            isActive={isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)}
+                            pendingAction={policy?.pendingFields?.isHREnabled}
+                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
+                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                if (isEnabled && !isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                                    );
+                                    return;
+                                }
+                                enablePolicyHR(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
+                            }}
+                        />
+                        <MoreFeatureToggle
                             icon={illustrations.ReceiptPartners}
                             title={translate('workspace.moreFeatures.receiptPartners.title')}
                             subtitle={translate('workspace.moreFeatures.receiptPartners.subtitle')}
-                            isActive={policy?.receiptPartners?.enabled ?? false}
+                            isActive={isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
                             pendingAction={policy?.pendingFields?.receiptPartners}
                             disabled={!canWriteMoreFeatures || isUberConnected}
                             disabledAction={withReadOnlyFallback(warnReceiptPartnersStillConnected)}
@@ -342,31 +441,61 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
+                        {isRecruitingBetaEnabled && (
+                            <MoreFeatureToggle
+                                icon={illustrations.NewUser}
+                                title={translate('workspace.recruiting.title')}
+                                subtitle={translate('workspace.recruiting.subtitle')}
+                                isActive={
+                                    isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED) &&
+                                    canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED)
+                                }
+                                pendingAction={policy?.pendingFields?.isRecruitingEnabled}
+                                disabled={!canWriteMoreFeatures || isAnyRecruitingConnected(policy)}
+                                disabledAction={withReadOnlyFallback(warnDisconnectRecruitingFirst)}
+                                onToggle={(isEnabled) => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    if (isEnabled && !isControlPolicy(policy)) {
+                                        Navigation.navigate(
+                                            ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                policyID,
+                                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.alias,
+                                                ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID),
+                                            ),
+                                        );
+                                        return;
+                                    }
+                                    enablePolicyRecruiting(policyID, isEnabled);
+                                }}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_RECRUITING.getRoute(policyID));
+                                }}
+                            />
+                        )}
                         <MoreFeatureToggle
-                            icon={illustrations.Members}
-                            title={translate('workspace.hr.title')}
-                            subtitle={translate('workspace.hr.subtitle')}
-                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
-                            pendingAction={policy?.pendingFields?.isHREnabled}
-                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
-                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
+                            icon={illustrations.AiAutomation}
+                            title={translate('workspace.moreFeatures.mcp.title')}
+                            subtitle={translate('workspace.moreFeatures.mcp.subtitle')}
+                            isActive={isMCPEnabled(policy)}
+                            pendingAction={policy?.pendingFields?.isMCPEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
-                                if (isEnabled && !isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                    );
-                                    return;
-                                }
-                                enablePolicyHR(policyID, isEnabled);
+                                enablePolicyMCP(policyID, isEnabled);
                             }}
                             onPress={() => {
                                 if (!policyID) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
+                                Navigation.navigate(ROUTES.WORKSPACE_MCP.getRoute(policyID));
                             }}
                         />
                     </MoreFeaturesSection>
@@ -415,7 +544,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Coins}
                             title={translate('workspace.moreFeatures.taxes.title')}
                             subtitle={translate('workspace.moreFeatures.taxes.subtitle')}
-                            isActive={(policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled}
+                            isActive={isPolicyTaxEnabled(policy)}
                             pendingAction={policy?.pendingFields?.tax}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
                             disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
@@ -436,6 +565,28 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID));
                             }}
                         />
+                        {shouldShowVendorsFeature && (
+                            <MoreFeatureToggle
+                                icon={illustrations.Briefcase}
+                                title={translate('workspace.moreFeatures.vendors.title')}
+                                subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
+                                isActive={hasVendorFeature(policy, isVendorMatchingEnabled)}
+                                // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
+                                // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
+                                // to toggle yet; locking it avoids shipping a switch that silently no-ops. Read-only users still
+                                // get the read-only modal via withReadOnlyFallback(). Row-body navigation stays active when the
+                                // feature is available. This will be unlocked in the follow-up PR that wires up the toggle.
+                                disabled
+                                disabledAction={withReadOnlyFallback(warnVendorsManagedByAccounting)}
+                                onToggle={() => {}}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_VENDORS.getRoute(policyID));
+                                }}
+                            />
+                        )}
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.manageSection.title')}>
@@ -461,7 +612,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
-                            icon={illustrations.Rules}
+                            icon={illustrations.Flash}
                             title={translate('workspace.moreFeatures.rules.title')}
                             subtitle={translate('workspace.moreFeatures.rules.subtitle')}
                             isActive={arePolicyRulesEnabled(policy, policyCategories)}
@@ -472,7 +623,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (isEnabled && !isControlPolicy(policy)) {
+                                // Submit workspaces can't hold Rules at all — arePolicyRulesEnabled would keep reading
+                                // false — so they have to keep going to the upgrade page rather than writing a flag that
+                                // never takes effect.
+                                if (isEnabled && !canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED)) {
                                     Navigation.navigate(
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
                                     );
@@ -517,7 +671,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.travel.subtitle')}
                             isActive={policy?.isTravelEnabled ?? false}
                             pendingAction={policy?.pendingFields?.isTravelEnabled}
-                            disabled={!canWriteMoreFeatures || isTravelInvoicingEnabled}
+                            disabled={!canWriteMoreFeatures || isTravelBillingEnabled}
                             disabledAction={withReadOnlyFallback(promptDisableTravelViaInvoicing)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
@@ -587,7 +741,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.PerDiem}
                             title={translate('workspace.moreFeatures.perDiem.title')}
                             subtitle={translate('workspace.moreFeatures.perDiem.subtitle')}
-                            isActive={(policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED)) ?? false}
+                            isActive={isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED)}
                             pendingAction={policy?.pendingFields?.arePerDiemRatesEnabled}
                             disabled={!canWriteMoreFeatures}
                             disabledAction={withReadOnlyFallback()}

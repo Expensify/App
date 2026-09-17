@@ -1,6 +1,8 @@
-import RNFetchBlob from 'react-native-blob-util';
 import {appendTimeToFileName, getMimeType, showGeneralErrorAlert, showSuccessAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import localFileCreate from '@libs/localFileCreate';
+
+import RNFetchBlob from 'react-native-blob-util';
+
 import type LocalFileDownload from './types';
 
 /**

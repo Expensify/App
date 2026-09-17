@@ -1,16 +1,21 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import type {Transaction} from '@src/types/onyx';
+
+import type {LayoutChangeEvent} from 'react-native';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import type {Transaction} from '@src/types/onyx';
-import EReceipt from './EReceipt';
+
 import type {OverrideThemeProps} from './EReceipt';
-import PerDiemEReceipt from './PerDiemEReceipt';
 import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 
+import EReceipt from './EReceipt';
+import PerDiemEReceipt from './PerDiemEReceipt';
+
 type EReceiptWithSizeCalculationProps = {
-    /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string | undefined;
 
     /** The transaction data in search */
@@ -22,7 +27,6 @@ type EReceiptWithSizeCalculationProps = {
     /** Callback to be called when the image loads */
     onLoad?: () => void;
 
-    /** Determines which receipt component to render */
     receiptType?: 'default' | 'perDiem';
 
     /** Overrides theme props set by default by useReceipt */

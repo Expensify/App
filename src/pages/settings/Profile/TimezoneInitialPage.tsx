@@ -1,20 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {updateAutomaticTimezone} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TimezoneInitialPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -60,12 +65,11 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                         />
                     </View>
                 </View>
-                <MenuItemWithTopDescription
-                    title={timezone.selected}
-                    description={translate('timezonePage.timezone')}
-                    shouldShowRightIcon
-                    disabled={!!timezone.automatic}
+                <MenuItemField
+                    name={translate('timezonePage.timezone')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
+                    isDisabled={!!timezone.automatic}
+                    value={timezone.selected}
                 />
             </View>
         </ScreenWrapper>

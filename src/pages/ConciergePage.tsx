@@ -1,18 +1,22 @@
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {navigateToConciergeChat} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
-import ScreenWrapper from '@components/ScreenWrapper';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateToConciergeChat} from '@libs/actions/Report';
-import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 /*
  * This is a "utility page", that does this:
@@ -21,6 +25,7 @@ import ROUTES from '@src/ROUTES';
  */
 function ConciergePage() {
     const styles = useThemeStyles();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const isUnmounted = useRef(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
@@ -37,7 +42,15 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(conciergeReportID, introSelected, session.accountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas, true, () => !isUnmounted.current);
+                    navigateToConciergeChat({
+                        conciergeReportID,
+                        introSelected,
+                        currentUserAccountID: session.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        isSelfTourViewed,
+                        betas,
+                        shouldDismissModal: true,
+                        checkIfCurrentPageActive: () => !isUnmounted.current,
+                    });
                 });
             } else {
                 Navigation.navigate(ROUTES.INBOX);
@@ -52,19 +65,10 @@ function ConciergePage() {
         };
     }, []);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ConciergePage',
-        isLoadingReportData,
-        hasConciergeReportID: !!conciergeReportID,
-    };
-
     return (
         <ScreenWrapper testID="ConciergePage">
-            <View style={[styles.borderBottom, styles.appContentHeader]}>
-                <ReportHeaderSkeletonView
-                    onBackButtonPress={Navigation.goBack}
-                    reasonAttributes={reasonAttributes}
-                />
+            <View style={[styles.borderBottom, styles.appContentHeader, contentHeaderHeightStyle]}>
+                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>

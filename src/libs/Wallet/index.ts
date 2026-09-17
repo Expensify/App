@@ -1,5 +1,6 @@
-import type {TokenizationStatus} from '@expensify/react-native-wallet';
 import type {Card} from '@src/types/onyx';
+
+import type {TokenizationStatus} from '@expensify/react-native-wallet';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return Promise.resolve(false);

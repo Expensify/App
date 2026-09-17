@@ -1,6 +1,6 @@
 ---
 title: Adding Attendees
-description: Learn how to add attendees to your expenses, view attendee columns, and sort by attendees in search results.
+description: Learn how to add attendees to your expenses, view attendee columns, and sort by attendees in a report or in search results.
 keywords: [New Expensify, add attendees, expense attendees, split expense, category limit, attendee allocation, sort attendees, per attendee]
 internalScope: Audience is all members. Covers adding attendees to an expense and viewing attendee columns. Does not cover category limit policies member management.
 ---
@@ -29,6 +29,20 @@ The selected attendees are added to the expense.
 
 ---
 
+## How to add attendees to several expenses at once
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Spend > Expenses**.
+2. Select 2 or more expenses.
+3. Choose **Selected**, then select **Edit multiple**.
+4. Select **Attendees**, choose the attendees, and select **Save**.
+5. Select **Save** again to apply your changes to every selected expense.
+
+The attendees you select are added to every selected expense.
+
+Select 2 or more expenses, click **Selected**, and choose **Edit multiple** to set the same attendees on all of them in one step. Learn how to [edit multiple expenses at once](/articles/new-expensify/reports-and-expenses/Edit-Expenses).
+
+---
+
 ## What happens after you add attendees to an expense
 
  - The total expense is automatically split evenly across all attendees
@@ -45,6 +59,8 @@ When any expense in a report has attendees, the report shows two additional colu
 
 - **Attendees:** displays the attendees added to each expense.
 - **Per attendee:** shows the total amount divided equally among all attendees.
+
+To show these columns in a report, click **Columns** above the expenses table and select **Attendees** and **Per attendee**. Once they're shown, click the **Attendees** or **Per attendee** column header to sort the report's expenses by that column.
 
 In search results (**Reports > Expenses**), these columns are not shown by default. To enable them:
 

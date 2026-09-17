@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+
 import type UseScrollEnabled from './types';
 
 const useScrollEnabled: UseScrollEnabled = () => {

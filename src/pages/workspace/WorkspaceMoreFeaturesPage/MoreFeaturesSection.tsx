@@ -1,11 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type MoreFeaturesSectionProps = {
     /** Section heading rendered above the toggles (e.g. "Spend", "Manage"). */
@@ -27,7 +30,7 @@ function MoreFeaturesSection({title, children}: MoreFeaturesSectionProps) {
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : {}]}>
             <Section
-                containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent, styles.noBorderRadius]}
+                containerStyles={[styles.ph0, styles.pv0, styles.bgTransparent, styles.noBorderRadius]}
                 childrenStyles={[styles.flexRow, styles.flexWrap, styles.columnGap3]}
                 renderTitle={() => (
                     <Text

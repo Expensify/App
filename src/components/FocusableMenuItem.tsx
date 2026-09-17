@@ -1,7 +1,11 @@
-import React, {useRef} from 'react';
-import type {View} from 'react-native';
 import useSyncFocus from '@hooks/useSyncFocus';
+
+import type {View} from 'react-native';
+
+import React, {useRef} from 'react';
+
 import type {MenuItemProps} from './MenuItem';
+
 import MenuItem from './MenuItem';
 
 function FocusableMenuItem(props: MenuItemProps) {

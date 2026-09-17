@@ -1,6 +1,3 @@
-import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import type BaseModalProps from '@components/Modal/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -8,6 +5,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,12 +13,19 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isMobile} from '@libs/Browser';
+
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
@@ -28,6 +33,11 @@ function ThreeDotsMenu({
     icon,
     iconFill,
     iconStyles,
+    iconHoverStyle,
+    iconWidth,
+    iconHeight,
+    shouldChangeFillOnOpen = true,
+    testID,
     onIconPress = () => {},
     menuItems,
     anchorPosition,
@@ -134,6 +144,13 @@ function ThreeDotsMenu({
         });
     }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
 
+    const getIconFill = () => {
+        if (!shouldChangeFillOnOpen) {
+            return iconFill ?? theme.icon;
+        }
+        return (iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon;
+    };
+
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
         ? {
@@ -166,14 +183,18 @@ function ThreeDotsMenu({
                         }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, iconStyles]}
-                        role={getButtonRole(isNested)}
+                        hoverStyle={iconHoverStyle}
+                        role={CONST.ROLE.BUTTON}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
                         sentryLabel={sentryLabel}
+                        testID={testID}
                     >
                         <Icon
                             src={icon ?? expensifyIcons.ThreeDots}
-                            fill={(iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon}
+                            fill={getIconFill()}
+                            width={iconWidth}
+                            height={iconHeight}
                         />
                     </PressableWithoutFeedback>
                 </TooltipToRender>
@@ -193,6 +214,8 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                // The button blurs itself before opening and is not a text input, so ComposerFocusManager has nothing to restore — the trap has to return focus.
+                shouldReturnFocus
                 restoreFocusType={restoreFocusType}
                 enableEdgeToEdgeBottomSafeAreaPadding
             />

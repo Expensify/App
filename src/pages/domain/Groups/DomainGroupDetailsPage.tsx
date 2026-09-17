@@ -1,23 +1,30 @@
-import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import {clearDomainSecurityGroupSettingError} from '@userActions/Domain';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
+import React from 'react';
+import {View} from 'react-native';
+
 import DefaultGroupToggle from './DefaultGroupToggle';
 import DeleteGroupRow from './DeleteGroupRow';
 import ExpensifyCardPreferredWorkspaceToggle from './ExpensifyCardPreferredWorkspaceToggle';
@@ -68,11 +75,10 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'nameErrors')}
                         errorRowStyles={[styles.mh5]}
                     >
-                        <MenuItemWithTopDescription
-                            description={translate('common.name')}
-                            title={group?.name}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            name={translate('common.name')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
+                            value={group?.name}
                         />
                     </OfflineWithFeedback>
                     <DefaultGroupToggle

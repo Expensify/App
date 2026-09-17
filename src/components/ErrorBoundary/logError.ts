@@ -1,5 +1,7 @@
-import * as Sentry from '@sentry/react-native';
 import Log from '@libs/Log';
+
+import * as Sentry from '@sentry/react-native';
+
 import type {LogError} from './types';
 
 const logError: LogError = (errorMessage, error, errorInfo) => {

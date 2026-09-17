@@ -1,5 +1,3 @@
-import type {Meta} from '@storybook/react-webpack5';
-import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -7,7 +5,14 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import type {Meta} from 'storybook-react-rsbuild';
+
+import React, {useMemo, useState} from 'react';
 
 const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 
@@ -338,10 +343,11 @@ function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
             onSelectRow={onSelectRow}
             footerContent={
                 <Button
-                    success
-                    text="Confirm"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {}}
-                />
+                >
+                    <Button.Text>Confirm</Button.Text>
+                </Button>
             }
         />
     );

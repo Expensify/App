@@ -1,4 +1,6 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
+
+import colors from '@styles/theme/colors';
 
 /**
  * Seatbelt baseline dashboard — parses eslint.seatbelt.tsv and emits an HTML report
@@ -10,12 +12,13 @@
  * When the history chart is included, Chart.js is downloaded next to the HTML so file:// opens work;
  * tables work offline without Chart.js.
  */
+import CLI from 'expensify-common/CLI';
 import {execSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import colors from '@styles/theme/colors';
-import CLI from './utils/CLI';
+
 import Git from './utils/Git';
+import TSVUtils from './utils/TSVUtils';
 
 const SEATBELT_REL = 'config/eslint/eslint.seatbelt.tsv';
 
@@ -134,37 +137,26 @@ type HistorySnapshot = {
     aggregates: Aggregates;
 };
 
-const stripQuotes = (field: string): string => {
-    const t = field.trim();
-    if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
-        return t.slice(1, -1);
-    }
-    return t;
-};
-
 const parseSeatbeltTsv = (content: string): SeatbeltRow[] => {
-    const rows: SeatbeltRow[] = [];
-    for (const line of content.split(/\r?\n/)) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) {
+    const {rows} = TSVUtils.parse(content, {
+        onInvalidRow: (error, line) => {
+            console.warn(`eslint-report: skipping malformed line: ${error.message}: ${line.slice(0, 120)}`);
+        },
+    });
+    const parsed: SeatbeltRow[] = [];
+    for (const row of rows) {
+        if (row.cells.length !== 3) {
+            console.warn(`eslint-report: skipping malformed line (${row.cells.length} columns)`);
             continue;
         }
-        const parts = trimmed.split('\t');
-        if (parts.length !== 3) {
-            console.warn(`eslint-report: skipping malformed line (${parts.length} columns): ${trimmed.slice(0, 120)}`);
+        const [rawPath, rule, count] = row.cells;
+        if (typeof rawPath !== 'string' || typeof rule !== 'string' || typeof count !== 'number' || !Number.isFinite(count) || count < 0) {
+            console.warn(`eslint-report: skipping bad row for ${String(rawPath)}`);
             continue;
         }
-        const rawPath = stripQuotes(parts.at(0) ?? '');
-        const rule = stripQuotes(parts.at(1) ?? '');
-        const countStr = parts.at(2) ?? '';
-        const count = Number.parseInt(countStr.trim(), 10);
-        if (!Number.isFinite(count) || count < 0) {
-            console.warn(`eslint-report: skipping bad count for ${rawPath}: ${countStr}`);
-            continue;
-        }
-        rows.push({rawPath, rule, count});
+        parsed.push({rawPath, rule, count});
     }
-    return rows;
+    return parsed;
 };
 
 const normalizeFilePath = (projectRoot: string, seatbeltDir: string, rawPath: string): string => path.relative(projectRoot, path.resolve(seatbeltDir, rawPath)).split(path.sep).join('/');
@@ -596,7 +588,10 @@ const openHtmlReport = (absPath: string): void => {
         spawnSync('open', [absolute], {stdio: 'ignore'});
     } else if (process.platform === 'win32') {
         // `start "" <path>` uses the empty window title so paths with spaces work.
-        spawnSync('cmd', ['/c', 'start', '', absolute], {stdio: 'ignore', windowsHide: true});
+        spawnSync('cmd', ['/c', 'start', '', absolute], {
+            stdio: 'ignore',
+            windowsHide: true,
+        });
     } else {
         spawnSync('xdg-open', [absolute], {stdio: 'ignore'});
     }

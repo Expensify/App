@@ -129,4 +129,71 @@ second
             expect(StringUtils.startsWithVowel('@example')).toBe(false);
         });
     });
+
+    describe('normalization fast path', () => {
+        // unguarded originals, so this fails if the fast path ever drifts
+        const referenceNormalizeAccents = (text: string) => text.normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '');
+        const referenceRemoveZeroWidth = (text: string) => text.replaceAll(/[\u200b\u2060\ufeff]/g, '');
+
+        it('leaves ASCII-only strings untouched', () => {
+            for (const text of ['', ' ', 'John Smith', "O'Brien-Smith", 'john.smith@expensify.com', 'category:', '~!@#$%^&*()_+`={}|[]:";<>?,./']) {
+                expect(StringUtils.normalizeForMatch(text)).toBe(text);
+            }
+        });
+
+        it('still strips accents and zero-width layout characters', () => {
+            expect(StringUtils.normalizeForMatch('naïve café')).toBe('naive cafe');
+            expect(StringUtils.normalizeForMatch('ca\u0301fe')).toBe('cafe');
+            expect(StringUtils.normalizeForMatch('a\u200bb\u2060c\ufeffd')).toBe('abcd');
+        });
+
+        it('keeps zero-width joiner and non-joiner', () => {
+            expect(StringUtils.normalizeForMatch('a\u200db')).toBe('a\u200db');
+            expect(StringUtils.normalizeForMatch('a\u200cb')).toBe('a\u200cb');
+        });
+
+        it('matches the unguarded implementations for every BMP code point', () => {
+            const mismatches: string[] = [];
+            for (let codePoint = 0; codePoint <= 0xffff; codePoint++) {
+                const char = String.fromCharCode(codePoint);
+                for (const text of [char, `a${char}b`]) {
+                    if (StringUtils.normalizeAccents(text) !== referenceNormalizeAccents(text)) {
+                        mismatches.push(`normalizeAccents U+${codePoint.toString(16)}`);
+                    }
+                    if (StringUtils.removeZeroWidthCharacters(text) !== referenceRemoveZeroWidth(text)) {
+                        mismatches.push(`removeZeroWidthCharacters U+${codePoint.toString(16)}`);
+                    }
+                }
+            }
+            expect(mismatches).toEqual([]);
+        });
+    });
+
+    describe('lineBreaksToSpaces', () => {
+        it('replaces every kind of line break with a space', () => {
+            expect(StringUtils.lineBreaksToSpaces('line1\nline2')).toBe('line1 line2');
+            expect(StringUtils.lineBreaksToSpaces('line1\rline2')).toBe('line1 line2');
+            expect(StringUtils.lineBreaksToSpaces('line1\r\nline2')).toBe('line1 line2');
+            expect(StringUtils.lineBreaksToSpaces('line1 line2')).toBe('line1 line2');
+        });
+
+        it('flattens multiple line breaks in a single string', () => {
+            expect(StringUtils.lineBreaksToSpaces('a\nb\nc')).toBe('a b c');
+        });
+
+        it('leaves strings without line breaks untouched', () => {
+            expect(StringUtils.lineBreaksToSpaces('no line breaks here')).toBe('no line breaks here');
+        });
+
+        it('returns an empty string for empty or missing input', () => {
+            expect(StringUtils.lineBreaksToSpaces('')).toBe('');
+            expect(StringUtils.lineBreaksToSpaces()).toBe('');
+        });
+
+        it('uses a non-breaking space when requested', () => {
+            const result = StringUtils.lineBreaksToSpaces('line1\nline2', true);
+            expect(result).not.toContain('\n');
+            expect(result.charCodeAt(5)).toBe(0xa0);
+        });
+    });
 });

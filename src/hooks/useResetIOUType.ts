@@ -1,18 +1,22 @@
+import {resolveEarlyReportID} from '@libs/IOUUtils';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
+
+import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {setTransactionReport} from '@userActions/Transaction';
+
+import type {IOURequestType, IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {hasOnlyPersonalPoliciesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {resolveEarlyReportID} from '@libs/IOUUtils';
-import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
-import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
-import {setTransactionReport} from '@userActions/Transaction';
-import type {IOURequestType, IOUType} from '@src/CONST';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+
 import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
 import useOnyx from './useOnyx';
@@ -49,10 +53,6 @@ type UseResetIOUTypeParams = {
 
     /** Whether to skip keyboard dismiss for per diem tab */
     skipKeyboardDismissForPerDiem?: boolean;
-
-    /** Whether the new manual expense flow beta is enabled. When true, the fresh transaction is seeded with
-     * participants from the current report so the embedded confirmation's auto-assign useEffect short-circuits. */
-    isNewManualExpenseFlowEnabled?: boolean;
 };
 
 /**
@@ -70,7 +70,6 @@ function useResetIOUType({
     policy,
     isTrackDistanceExpense = false,
     skipKeyboardDismissForPerDiem = false,
-    isNewManualExpenseFlowEnabled = false,
 }: UseResetIOUTypeParams): (newIOUType: IOURequestType) => void {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [hasOnlyPersonalPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesSelector});
@@ -79,7 +78,6 @@ function useResetIOUType({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const personalPolicy = usePersonalPolicy();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const hydrateOdometerOnLanding = useOdometerDraftHydrator({
         transaction,
@@ -88,14 +86,13 @@ function useResetIOUType({
         isLoadingSelectedTab,
     });
 
-    // For the new manual flow, derive participants from the current report (or the global-create fallback) so the
-    // freshly-rebuilt transaction already includes them. This prevents the embedded confirmation's auto-assign
-    // useEffect from re-firing on every cleanup and dragging back unrelated draft state (receipt, billable, etc.).
-    const resolvedDefaultParticipants = useDefaultParticipants({
+    // Derive participants from the current report (or the global-create fallback) so the freshly-rebuilt transaction
+    // already includes them. This prevents the embedded confirmation's auto-assign useEffect from re-firing on every
+    // cleanup and dragging back unrelated draft state (receipt, billable, etc.).
+    const {participants: resolvedDefaultParticipants} = useDefaultParticipants({
         sourceReport: report,
         transaction,
         iouType,
-        isNewManualExpenseFlowEnabled,
     });
     const defaultParticipants = resolvedDefaultParticipants.length > 0 ? resolvedDefaultParticipants : undefined;
 
@@ -130,7 +127,6 @@ function useResetIOUType({
             parentReport,
             currentDate,
             lastSelectedDistanceRates,
-            currentUserPersonalDetails,
             hasOnlyPersonalPolicies: hasOnlyPersonalPolicies ?? true,
             draftTransactionIDs,
             defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,

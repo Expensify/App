@@ -1,10 +1,13 @@
-import type {SeverityLevel} from '@sentry/react-native';
-import * as Sentry from '@sentry/react-native';
-import type React from 'react';
-import {AppState} from 'react-native';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
+
+import type {SeverityLevel} from '@sentry/react-native';
+import type React from 'react';
+
+import * as Sentry from '@sentry/react-native';
+import {AppState} from 'react-native';
 
 function addBootsplashBreadcrumb(message: string, data?: Record<string, string>, level: SeverityLevel = 'info'): void {
     Sentry.addBreadcrumb({
@@ -40,11 +43,7 @@ function startBootsplashMonitor(gateStatusRef: React.RefObject<BootsplashGateSta
             return;
         }
 
-        Sentry.captureMessage('[BootSplash] splash screen is still visible', {
-            level: 'warning',
-            extra: {...currentGateStatus, appState},
-            fingerprint: ['bootsplash-stuck'],
-        });
+        Sentry.logger.warn('[BootSplash] splash screen is still visible', {...currentGateStatus, appState});
     }, 10_000);
 
     return () => clearInterval(intervalId);

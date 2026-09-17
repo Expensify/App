@@ -1,17 +1,24 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
+
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding, extractRHPVariantFromResponse} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback, useMemo} from 'react';
+
+import useDelegateAccountID from './useDelegateAccountID';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -37,6 +44,7 @@ function useAutoCreateTrackWorkspace() {
         formatPhoneNumber,
         isRestrictedPolicyCreation,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
         shouldUseNarrowLayout,
@@ -56,6 +64,7 @@ function useAutoCreateTrackWorkspace() {
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const {isBetaEnabled} = usePermissions();
+    const delegateAccountID = useDelegateAccountID();
 
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
 
@@ -71,7 +80,7 @@ function useAutoCreateTrackWorkspace() {
 
             const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
                 ? createWorkspace({
-                      policyOwnerEmail: undefined,
+                      policyOwner: undefined,
                       makeMeAdmin: true,
                       policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
                       policyID: generatePolicyID(),
@@ -81,6 +90,7 @@ function useAutoCreateTrackWorkspace() {
                       shouldAddOnboardingTasks: false,
                       introSelected,
                       activePolicy,
+                      conciergeChat,
                       currentUserAccountIDParam: currentUserAccountID,
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
@@ -88,7 +98,9 @@ function useAutoCreateTrackWorkspace() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                       personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -109,6 +121,7 @@ function useAutoCreateTrackWorkspace() {
                     isSelfTourViewed,
                     conciergeChat,
                     selfDMReport,
+                    delegateAccountID,
                 });
 
                 if (isSidePanelReportSupported) {
@@ -134,7 +147,7 @@ function useAutoCreateTrackWorkspace() {
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
-                    rhpVariant,
+                    {variantOverride: rhpVariant},
                 );
             }
         },
@@ -156,6 +169,7 @@ function useAutoCreateTrackWorkspace() {
             onboardingMessages,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             shouldUseNarrowLayout,
             isBetaEnabled,
             conciergeChatReportID,
@@ -163,6 +177,7 @@ function useAutoCreateTrackWorkspace() {
             mergedAccountConciergeReportID,
             conciergeChat,
             selfDMReport,
+            delegateAccountID,
         ],
     );
 

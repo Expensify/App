@@ -1,12 +1,17 @@
-import {useCallback} from 'react';
-import {Keyboard} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
+
 import useLocalize from '@hooks/useLocalize';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import {getFileName} from '@libs/fileDownload/FileUtils';
+
 import type {DownloadAttachmentCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+
 import CONST from '@src/CONST';
+
+import {useCallback} from 'react';
+import {Keyboard} from 'react-native';
 
 type UseDownloadAttachmentProps = {
     isAuthTokenRequired?: boolean;

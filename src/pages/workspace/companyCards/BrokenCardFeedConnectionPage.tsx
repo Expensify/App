@@ -1,16 +1,24 @@
-import React, {useEffect} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useOnyx from '@hooks/useOnyx';
+
+import {isDirectFeed} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import LoadingPage from '@pages/LoadingPage';
+
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
+
 import PlaidConnectionStep from './addNew/PlaidConnectionStep';
 import BankConnection from './BankConnection';
 
@@ -21,16 +29,20 @@ function BrokenCardFeedConnectionPage({route, policy}: BrokenCardFeedConnectionP
     const feed = route.params?.feed;
     const policyID = policy?.id;
 
-    const {translate} = useLocalize();
-
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
+
+    const [cardFeeds] = useCardFeeds(policyID);
 
     useEffect(() => {
         return () => {
             clearAssignCardStepAndData();
         };
     }, []);
+
+    if (!isDirectFeed(feed) || !cardFeeds?.[feed] || !currentStep) {
+        return <NotFoundPage />;
+    }
 
     let content: React.ReactNode;
     switch (currentStep) {
@@ -51,7 +63,7 @@ function BrokenCardFeedConnectionPage({route, policy}: BrokenCardFeedConnectionP
             );
             break;
         default:
-            content = <LoadingPage title={translate('workspace.companyCards.assignCard')} />;
+            content = <NotFoundPage />;
     }
 
     return (

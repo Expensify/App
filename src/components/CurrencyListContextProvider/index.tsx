@@ -1,14 +1,19 @@
-import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import {format, formatToParts} from '@libs/NumberFormatUtils';
+
+import {convertToDisplayStringWithoutCurrencyForLocale, convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {format} from '@libs/NumberFormatUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import {defaultCurrencyListActionsContextValue, defaultCurrencyListStateContextValue} from './default';
+
+import React, {createContext, useCallback, useMemo} from 'react';
+
 import type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';
+
+import {defaultCurrencyListActionsContextValue, defaultCurrencyListStateContextValue} from './default';
 
 const CurrencyListStateContext = createContext<CurrencyListStateContextType>(defaultCurrencyListStateContextValue);
 const CurrencyListActionsContext = createContext<CurrencyListActionsContextType>(defaultCurrencyListActionsContextValue);
@@ -52,25 +57,8 @@ function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     );
 
     const convertToDisplayStringWithoutCurrency = useCallback(
-        (amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string => {
-            const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
-            const decimals = getCurrencyDecimals(sanitizedCurrency);
-            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
-            return formatToParts(preferredLocale, convertedAmount, {
-                style: 'currency',
-                currency: sanitizedCurrency,
-
-                // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
-                // See: https://github.com/Expensify/PHP-Libs/pull/834
-                minimumFractionDigits: decimals,
-                // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-                maximumFractionDigits: 2,
-            })
-                .filter((x) => x.type !== 'currency')
-                .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
-                .map((x) => x.value)
-                .join('');
-        },
+        (amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string =>
+            convertToDisplayStringWithoutCurrencyForLocale(preferredLocale, amountInCents, currencyCode, getCurrencyDecimals),
         [getCurrencyDecimals, preferredLocale],
     );
 
@@ -98,13 +86,5 @@ function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     );
 }
 
-function useCurrencyListState(): CurrencyListStateContextType {
-    return useContext(CurrencyListStateContext);
-}
-
-function useCurrencyListActions(): CurrencyListActionsContextType {
-    return useContext(CurrencyListActionsContext);
-}
-
-export {CurrencyListContextProvider, useCurrencyListState, useCurrencyListActions};
-export type {CurrencyListActionsContextType} from './types';
+export {CurrencyListContextProvider, CurrencyListStateContext, CurrencyListActionsContext};
+export type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';

@@ -1,9 +1,13 @@
-import React, {useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import FormHelpMessage from './FormHelpMessage';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
@@ -17,7 +21,6 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** List of choices to display via radio buttons */
     items: Choice[];
 
-    /** Default checked value */
     defaultCheckedValue?: string;
 
     /** Callback to fire when selecting a radio button */
@@ -32,7 +35,6 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** The checked value, if you're using this component as a controlled input. */
     value?: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 

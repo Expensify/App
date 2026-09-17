@@ -1,20 +1,25 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {ReactElement} from 'react';
+
+import type * as SearchContextModule from '@components/Search/SearchContext';
+
 import useExportActions from '@hooks/useExportActions';
-import {clearExportDownload} from '@libs/actions/Export';
+
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
+
+import createRandomTransaction from '../../utils/collections/transaction';
+
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
-const mockClearExportDownload = jest.mocked(clearExportDownload);
+const mockClearSelectedTransactions = jest.fn();
 
 const REPORT_ID = 'report1';
 const POLICY_ID = 'policy1';
 const EXPORT_NAME = 'Test Template';
 
-type ExportDownloadStatusModalProps = {exportID: string; onClose: () => void};
-
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     queueExportSearchWithTemplate: jest.fn(() => 'mock-export-id'),
 }));
 
@@ -25,12 +30,13 @@ jest.mock('@libs/actions/Report', () => ({
     markAsManuallyExported: jest.fn(),
 }));
 
-jest.mock('@libs/actions/Export', () => ({
-    clearExportDownload: jest.fn(),
-}));
-
 jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
+}));
+
+jest.mock('@components/Search/SearchContext', () => ({
+    ...jest.requireActual<typeof SearchContextModule>('@components/Search/SearchContext'),
+    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
 }));
 
 let mockIsOffline = false;
@@ -52,7 +58,8 @@ jest.mock('@hooks/useExportAgainModal', () => ({
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({translate: (key: string) => key}),
+    // Echo the plural count so tests can assert which form a label asks for.
+    default: () => ({translate: (key: string, params?: {count?: number}) => (params?.count === undefined ? key : `${key}:${params.count}`)}),
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
@@ -69,14 +76,10 @@ jest.mock('@hooks/usePaginatedReportActions', () => ({
     default: () => ({reportActions: []}),
 }));
 
+let mockReportTransactions: Record<string, Transaction> = {};
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({
     __esModule: true,
-    default: () => ({transactions: {}}),
-}));
-
-const mockClearSelectedTransactions = jest.fn();
-jest.mock('@components/Search/SearchContext', () => ({
-    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
+    default: () => ({transactions: mockReportTransactions}),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -101,7 +104,7 @@ describe('useExportActions - template export status modal', () => {
         mockIsOffline = false;
     });
 
-    it('queues the export with progress tracking and renders the status modal', () => {
+    it('queues the export with progress tracking', () => {
         const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
         act(() => {
@@ -120,8 +123,7 @@ describe('useExportActions - template export status modal', () => {
             },
             true,
         );
-        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
-        expect(modal?.props.exportID).toBe('mock-export-id');
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
     it('does not queue the export and shows the offline modal when offline', () => {
@@ -134,23 +136,34 @@ describe('useExportActions - template export status modal', () => {
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
         expect(mockShowDecisionModal).toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).toBeNull();
+    });
+});
+
+describe('useExportActions - download labels', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockReportTransactions = {};
     });
 
-    it('clears the export download and hides the modal on close', () => {
+    it('labels the PDF download with the singular "Download report" since the page acts on one report', () => {
         const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
-        act(() => {
-            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], EXPORT_NAME, POLICY_ID);
-        });
-        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
-        expect(modal?.props.exportID).toBe('mock-export-id');
+        expect(result.current.exportActionEntries[CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF].text).toBe('common.downloadReport:1');
+    });
 
-        act(() => {
-            modal?.props.onClose();
-        });
+    it('labels the receipts download by how many of the report expenses carry a receipt', () => {
+        const withReceipt = {...createRandomTransaction(1), reportID: REPORT_ID, hasEReceipt: false, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
+        const withoutReceipt = {...createRandomTransaction(2), reportID: REPORT_ID, hasEReceipt: false, receipt: undefined};
+        mockReportTransactions = {tx1: withReceipt, tx2: withoutReceipt};
+        const {result, rerender} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
-        expect(mockClearExportDownload).toHaveBeenCalledWith('mock-export-id', undefined);
-        expect(result.current.exportDownloadStatusModal).toBeNull();
+        // One of the two expenses has a receipt, so the label is singular.
+        expect(result.current.exportActionEntries[CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS].text).toBe('common.downloadReceipt:1');
+
+        mockReportTransactions = {tx1: withReceipt, tx2: {...withoutReceipt, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}}};
+        rerender({});
+
+        expect(result.current.exportActionEntries[CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS].text).toBe('common.downloadReceipt:2');
     });
 });

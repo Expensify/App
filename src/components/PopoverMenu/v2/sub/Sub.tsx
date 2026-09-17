@@ -1,8 +1,12 @@
-import React, {useLayoutEffect} from 'react';
-import type {ReactNode} from 'react';
 import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
-import {SubContext, useSubContextOptional} from './SubContext';
+
+import type {ReactNode} from 'react';
+
+import React, {useLayoutEffect} from 'react';
+
 import type {SubContextValue} from './SubContext';
+
+import {SubContext, useSubContextOptional} from './SubContext';
 
 type SubProps = {
     children: ReactNode;

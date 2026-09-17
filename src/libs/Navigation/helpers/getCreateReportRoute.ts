@@ -1,11 +1,14 @@
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {LinkToOptions} from './linkTo/types';
+
 import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
-import type {LinkToOptions} from './linkTo/types';
 
 type GetCreateReportRouteParams = {
     reportID: string;
@@ -14,6 +17,7 @@ type GetCreateReportRouteParams = {
 function getReportsRootRoute() {
     return ROUTES.SEARCH_ROOT.getRoute({
         query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
+        searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
     });
 }
 

@@ -1,13 +1,13 @@
 import React, {useEffect, useRef} from 'react';
-import BaseOnfidoWeb from './BaseOnfidoWeb';
+
 import type {OnfidoElement, OnfidoProps} from './types';
+
+import BaseOnfidoWeb from './BaseOnfidoWeb';
 
 function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
     const baseOnfidoRef = useRef<OnfidoElement>(null);
 
     useEffect(() => {
-        const onfidoOut = baseOnfidoRef.current?.onfidoOut;
-
         const observer = new MutationObserver(() => {
             const fidoRef = baseOnfidoRef.current;
             /** This condition is needed because we are using external embedded content and they are
@@ -29,19 +29,11 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
             observer.observe(baseOnfidoRef.current, {attributes: false, childList: true, subtree: true});
         }
 
-        if (!onfidoOut) {
-            return;
-        }
-
-        onfidoOut.tearDown();
-
         // Clean up function to remove the observer when component unmounts
         return () => {
             observer.disconnect();
         };
     }, []);
-
-    useEffect(() => {}, []);
 
     return (
         <BaseOnfidoWeb

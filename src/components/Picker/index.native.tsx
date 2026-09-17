@@ -1,6 +1,8 @@
 import React from 'react';
-import BasePicker from './BasePicker';
+
 import type {BasePickerProps} from './types';
+
+import BasePicker from './BasePicker';
 
 function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
     return (

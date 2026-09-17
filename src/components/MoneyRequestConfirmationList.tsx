@@ -1,27 +1,25 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useAttendees from '@hooks/useAttendees';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getCategory,
+    getCreated,
     getCurrency,
     getMerchant,
     getRateID,
@@ -30,13 +28,24 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
 } from '@libs/TransactionUtils';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
+
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
+import ConfirmationFieldsProvider from './MoneyRequestConfirmationFields/Provider';
 import buildConfirmAction from './MoneyRequestConfirmationList/confirmAction';
 import ConfirmationFooterContent from './MoneyRequestConfirmationList/ConfirmationFooterContent';
 import ConfirmationTelemetry from './MoneyRequestConfirmationList/ConfirmationTelemetry';
@@ -59,14 +68,13 @@ import TaxController from './MoneyRequestConfirmationList/TaxController';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import BareUserListItem from './SelectionList/ListItem/BareUserListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
-import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants?: Participant[]) => void;
+    onConfirm?: () => void;
 
-    /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
-    onOpenParticipantPicker?: () => void;
+    /** Opens the participant picker owned by the page hosting this list. Pages that cannot show an editable participant row pass a no-op. */
+    onOpenParticipantPicker: () => void;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible?: boolean;
@@ -74,10 +82,7 @@ type MoneyRequestConfirmationListProps = {
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
-    /** IOU type */
     iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** Callback to toggle the billable state */
     onToggleBillable?: (isOn: boolean) => void;
 
     /** Selected participants from MoneyRequestModal with login / accountID */
@@ -89,19 +94,13 @@ type MoneyRequestConfirmationListProps = {
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
 
-    /** Number of expenses to be created */
     expensesNumber?: number;
-
-    /** The policyID of the request */
     policyID?: string;
-
-    /** The reportID of the request */
     reportID?: string;
 
     /** File path of the receipt */
     receiptPath?: string | number;
 
-    /** File name of the receipt */
     receiptFilename?: string;
 
     /** Transaction that represents the expense */
@@ -131,16 +130,20 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually?: boolean;
+
+    /** ID of a partially filled Scan among the transactions being confirmed. Can be a receipt other than the one on screen. */
+    partiallyManuallyFilledScanID?: string;
+
+    /** Brings another of the confirmed transactions on screen, so its inline errors are the ones the user sees */
+    onSwitchToTransaction?: (transactionID: string) => void;
+
     /** A flag for verifying that the current report is a sub-report of a expense chat */
     isPolicyExpenseChat?: boolean;
 
-    /** Whether smart scan failed */
     hasSmartScanFailed?: boolean;
-
-    /** The ID of the report action */
     reportActionID?: string;
-
-    /** The action to take */
     action?: IOUAction;
 
     /** Whether the expense is confirmed or not */
@@ -152,16 +155,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the receipt can be replaced */
     isReceiptEditable?: boolean;
 
-    /** The PDF load error callback */
     onPDFLoadError?: () => void;
-
-    /** The PDF password callback */
     onPDFPassword?: () => void;
-
-    /** Function to toggle reimbursable */
     onToggleReimbursable?: (isOn: boolean) => void;
-
-    /** Show remove expense confirmation modal */
     showRemoveExpenseConfirmModal?: () => void;
 
     /** When true, hide the "To:" section (e.g. when adding an expense directly to the current report) */
@@ -169,6 +165,12 @@ type MoneyRequestConfirmationListProps = {
 };
 
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
+
+/**
+ * The errors the amount / merchant / date fields render inline rather than in the footer. Raising one of these is
+ * only visible if those fields are on screen, so the confirmation has to reveal them when it does.
+ */
+const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
 
 function MoneyRequestConfirmationList({
     transaction,
@@ -183,6 +185,9 @@ function MoneyRequestConfirmationList({
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
+    canEnterScanFieldsManually = false,
+    partiallyManuallyFilledScanID,
+    onSwitchToTransaction,
     isEditingSplitBill,
     isReceiptEditable,
     selectedParticipants: selectedParticipantsProp,
@@ -212,8 +217,6 @@ function MoneyRequestConfirmationList({
     const transactionReport = useTransactionReportForConfirmation(transaction?.reportID);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -246,6 +249,11 @@ function MoneyRequestConfirmationList({
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: isPolicyExpenseChat ? policy?.id : undefined,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
@@ -255,7 +263,6 @@ function MoneyRequestConfirmationList({
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
-    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
@@ -274,6 +281,7 @@ function MoneyRequestConfirmationList({
             policyForMovingExpenses,
             isMovingTransactionFromTrackExpense,
             isDistanceRequest,
+            isPolicyExpenseChat,
             iouAmount,
             iouCurrencyCode,
         });
@@ -297,6 +305,7 @@ function MoneyRequestConfirmationList({
         isMovingTransactionFromTrackExpense,
         customUnitRateID,
         distance,
+        distanceUnit: unit,
         previousTransactionCurrency,
     });
 
@@ -317,21 +326,26 @@ function MoneyRequestConfirmationList({
     });
 
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-    const shouldForceTopEmptySections = isNewManualExpenseFlowEnabled && (iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest);
+    const shouldForceTopEmptySections = iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest;
 
     const isFocused = useIsFocused();
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
+    const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
 
     useEffect(() => {
         setShowMoreFields(false);
+        setIsTaxAmountEmpty(false);
     }, [transactionID]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
+    // Both the validation gate and the clear gate below key off this, so it is computed once here rather than
+    // being re-derived per hook, where the two could be updated independently.
+    const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
     const {formError, setFormError, clearFormErrors, shouldDisplayFieldError, isMerchantEmpty, isMerchantFieldValid, isMerchantRequired, errorMessage} = useFormErrorManagement({
         transaction,
@@ -346,14 +360,17 @@ function MoneyRequestConfirmationList({
         isEditingSplitBill,
         isPolicyExpenseChat,
         isScanRequest,
+        canEnterScanFieldsManually,
+        partiallyManuallyFilledScanID,
         shouldShowMerchant,
         hasSmartScanFailed,
         didConfirmSplit,
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
-        isNewManualExpenseFlowEnabled,
         isDistanceRequest,
+        isReadOnly,
+        shouldShowDate,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -372,7 +389,6 @@ function MoneyRequestConfirmationList({
     const splitOrRequestOptions = useConfirmationCtaText({
         expensesNumber,
         isTypeInvoice,
-        isTypeTrackExpense,
         isTypeSplit,
         isTypeRequest,
         iouAmount,
@@ -382,7 +398,6 @@ function MoneyRequestConfirmationList({
         receiptPath,
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
-        isNewManualExpenseFlowEnabled,
     });
 
     const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
@@ -421,6 +436,7 @@ function MoneyRequestConfirmationList({
 
     const sections = useConfirmationSections({
         isTypeSplit,
+        isTypeInvoice,
         shouldHideToSection,
         shouldForceTopEmptySections,
         participantRowErrors,
@@ -439,13 +455,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        if (isNewManualExpenseFlowEnabled) {
-            onOpenParticipantPicker?.();
-            return;
-        }
-
-        const newIOUType = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(newIOUType, transactionID, transaction?.reportID, Navigation.getActiveRoute(), action));
+        onOpenParticipantPicker();
     };
 
     const {validate} = useConfirmationValidation({
@@ -473,33 +483,56 @@ function MoneyRequestConfirmationList({
         isDistanceRequest,
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
+        isMovingTransactionFromTrackExpense,
         isTimeRequest,
         routeError,
-        isNewManualExpenseFlowEnabled,
+        canEnterScanFieldsManually,
+        partiallyManuallyFilledScanID,
+        isReadOnly,
+        shouldShowDate,
+        isTaxAmountEmpty,
     });
+
+    // The partially filled receipt may not be the one on screen, so bring it into view to show its inline errors.
+    const validateAndRevealFields: typeof validate = (paymentType) => {
+        const result = validate(paymentType);
+        if (result?.errorKey && INLINE_FIELD_ERROR_KEYS.has(result.errorKey) && partiallyManuallyFilledScanID && partiallyManuallyFilledScanID !== transactionID) {
+            onSwitchToTransaction?.(partiallyManuallyFilledScanID);
+        }
+        return result;
+    };
 
     const confirm = buildConfirmAction({
         iouType,
         policy,
         transactionID,
-        reportID,
         routeError,
         formError,
-        selectedParticipants,
         isDelegateAccessRestricted,
-        validate,
+        validate: validateAndRevealFields,
         setFormError,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
-        onConfirm,
+        onConfirm: () => {
+            if (blockDistanceRequestIfNeeded()) {
+                return;
+            }
+            onConfirm?.();
+        },
         onSendMoney,
     });
+
+    // These errors render inline on fields that compact mode keeps behind "Show more", so open the section or pressing
+    // Create looks like it did nothing. Done during render so it survives the remount a multi-scan switch causes.
+    if (INLINE_FIELD_ERROR_KEYS.has(formError) && !showMoreFields) {
+        setShowMoreFields(true);
+    }
 
     const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],
         contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
-        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mv3] : [styles.mv3],
+        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mb3] : [styles.mb3],
     };
 
     const footerContent = isReadOnly ? undefined : (
@@ -521,53 +554,79 @@ function MoneyRequestConfirmationList({
         />
     );
 
+    // The expense-type flags below (`isDistanceRequest`, `isTimeRequest`, ...) are temporary: once this component
+    // forks per expense type, each variant knows its own type and they leave both the provider and the context.
     const listFooterContent = (
-        <View style={isCompactMode ? styles.flex1 : undefined}>
-            <MoneyRequestConfirmationListFooter
-                receiptStitchError={receiptStitchError}
-                action={action}
-                iouType={iouType}
-                transactionID={transactionID}
-                reportID={reportID}
-                reportActionID={reportActionID}
-                isScanRequest={isScanRequest}
-                policyID={policyID}
-                policy={policy}
-                policyTags={policyTags}
-                selectedParticipants={selectedParticipantsProp}
-                isReadOnly={isReadOnly}
-                didConfirm={!!didConfirm}
-                isEditingSplitBill={isEditingSplitBill}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
-                distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
-                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency, shouldShowRateAutoUpdatedTooltip}}
-                amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
-                requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
-                visibilityFlags={{
-                    shouldShowSmartScanFields,
-                    shouldShowAmountField: !isPerDiemRequest,
-                    shouldShowMerchant,
-                    shouldShowCategories,
-                    shouldShowTax,
-                    isParticipantPickerVisible,
-                }}
-                errorState={{shouldDisplayFieldError, formError, clearFormErrors, setFormError}}
-                toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                receiptOptions={{
-                    receiptFilename,
-                    receiptPath,
-                    isLoadingReceipt,
-                    isReceiptEditable,
-                    shouldDisplayReceipt,
-                    onPDFLoadError,
-                    onPDFPassword,
-                }}
-                compactControls={{showMoreFields, setShowMoreFields}}
-                scrollFocusedInputIntoView={scrollFocusedInputIntoView}
-                onSubmitForm={confirm}
-            />
-        </View>
+        <ConfirmationFieldsProvider
+            transactionID={transactionID}
+            reportID={reportID}
+            reportActionID={reportActionID}
+            action={action}
+            iouType={iouType}
+            policyID={policyID}
+            isReadOnly={isReadOnly}
+            didConfirm={!!didConfirm}
+            isEditingSplitBill={isEditingSplitBill}
+            canEnterScanFieldsManually={canEnterScanFieldsManually}
+            isPolicyExpenseChat={isPolicyExpenseChat}
+            isScanRequest={isScanRequest}
+            isDistanceRequest={isDistanceRequest}
+            isPerDiemRequest={isPerDiemRequest}
+            isTimeRequest={isTimeRequest}
+            isTypeInvoice={isTypeInvoice}
+            isManualDistanceRequest={isManualDistanceRequest}
+            isOdometerDistanceRequest={isOdometerDistanceRequest}
+            isGPSDistanceRequest={isGPSDistanceRequest}
+            scrollFocusedInputIntoView={scrollFocusedInputIntoView}
+            onSubmitForm={confirm}
+            onTaxAmountEmptyChange={setIsTaxAmountEmpty}
+        >
+            <View style={isCompactMode ? styles.flex1 : undefined}>
+                <MoneyRequestConfirmationListFooter
+                    receiptStitchError={receiptStitchError}
+                    isCompactMode={isCompactMode}
+                    policy={policy}
+                    policyTags={policyTags}
+                    selectedParticipants={selectedParticipantsProp}
+                    distanceData={{
+                        distance,
+                        // The distance field reads this to decide whether it has a figure worth showing, so a
+                        // pending route (or a commuter exclusion still being decided) reads as not having one.
+                        hasRoute: hasRoute && !isDistanceRequestWithPendingRoute,
+                        unit,
+                        distanceRateName: mileageRate.name,
+                        distanceRateCurrency: currency,
+                        mileageRate,
+                        expenseDate: getCreated(transaction),
+                        customUnitRateID,
+                        shouldShowRateAutoUpdatedTooltip,
+                        customUnit: transaction?.comment?.customUnit,
+                    }}
+                    amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
+                    requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
+                    visibilityFlags={{
+                        shouldShowSmartScanFields,
+                        shouldShowAmountField: !isPerDiemRequest,
+                        shouldShowMerchant,
+                        shouldShowCategories,
+                        shouldShowTax,
+                        isParticipantPickerVisible,
+                    }}
+                    errorState={{shouldDisplayFieldError, formError, clearFormErrors, setFormError}}
+                    toggleHandlers={{onToggleReimbursable, onToggleBillable}}
+                    receiptOptions={{
+                        receiptFilename,
+                        receiptPath,
+                        isLoadingReceipt,
+                        isReceiptEditable,
+                        shouldDisplayReceipt,
+                        onPDFLoadError,
+                        onPDFPassword,
+                    }}
+                    compactControls={{showMoreFields, setShowMoreFields}}
+                />
+            </View>
+        </ConfirmationFieldsProvider>
     );
 
     return (

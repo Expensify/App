@@ -1,6 +1,8 @@
-import {shouldFailAllRequestsSelector} from '@selectors/Network';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Network} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {shouldFailAllRequestsSelector} from '@selectors/Network';
 
 describe('shouldFailAllRequestsSelector', () => {
     it('returns true when shouldFailAllRequests is true', () => {

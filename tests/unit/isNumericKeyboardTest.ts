@@ -1,5 +1,6 @@
 import isNumericKeyboard from '@components/Form/isNumericKeyboard';
 import type {NumericKeyboardProps} from '@components/Form/isNumericKeyboard';
+
 import CONST from '@src/CONST';
 
 describe('isNumericKeyboard', () => {

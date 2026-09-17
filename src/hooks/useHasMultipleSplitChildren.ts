@@ -1,7 +1,9 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 type ChildTransactionInfo = {

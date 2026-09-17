@@ -1,12 +1,17 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
+
 import {getActions, getPrimaryAction} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -16,6 +21,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: jest.fn(() => ({currentSearchKey: undefined})),
+    useSearchResultsContext: jest.fn(() => ({currentSearchTransactionsByReportID: new Map(), currentSearchViolations: {}})),
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
@@ -24,8 +30,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getViolationsFromSearchData: jest.fn(() => ({})),
 }));
 
-const mockedGetActions = getActions as jest.MockedFunction<typeof getActions>;
-const mockedGetPrimaryAction = getPrimaryAction as jest.MockedFunction<typeof getPrimaryAction>;
+const mockedGetActions = jest.mocked(getActions);
+const mockedGetPrimaryAction = jest.mocked(getPrimaryAction);
 
 const SNAPSHOT_DATA = {} as SearchResults['data'];
 const SNAPSHOT_ACTIONS: ReportAction[] = [];

@@ -1,5 +1,7 @@
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+
 import type NavBarManager from './types';
 
 const navBarManager: NavBarManager = {

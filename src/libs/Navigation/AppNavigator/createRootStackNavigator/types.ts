@@ -1,6 +1,7 @@
-import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
+
+import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
 
 type RootStackNavigatorActionType =
     | {
@@ -27,7 +28,7 @@ type RootStackNavigatorActionType =
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-          payload: {route: Route};
+          payload: {route: Route; shouldInsertPreMountBuffer?: boolean};
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
@@ -68,7 +69,7 @@ type DismissModalActionType = RootStackNavigatorActionType & {
 
 type ReplaceFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-    payload: {route: Route};
+    payload: {route: Route; shouldInsertPreMountBuffer?: boolean};
 };
 
 type RemoveFullscreenUnderRHPActionType = RootStackNavigatorActionType & {

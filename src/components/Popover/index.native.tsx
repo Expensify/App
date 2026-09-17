@@ -1,6 +1,9 @@
-import React from 'react';
 import Modal from '@components/Modal';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type PopoverProps from './types';
 
 /*

@@ -1,9 +1,13 @@
-import {AuthType} from '@sbaiahmed1/react-native-biometrics';
 import {act, renderHook} from '@testing-library/react-native';
+
 import useNativeBiometricsHSM from '@components/MultifactorAuthentication/biometrics/useNativeBiometricsHSM';
+
 import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
+
 import CONST from '@src/CONST';
+
+import {AuthType} from '@sbaiahmed1/react-native-biometrics';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,

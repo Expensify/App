@@ -1,15 +1,15 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -23,13 +23,19 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isSelfDM,
 } from '@libs/ReportUtils';
+
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
+
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type DynamicReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT>;
 
@@ -67,47 +73,49 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={notificationPreference}
-                            description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path))}
+                        <MenuItemField
+                            name={translate('notificationPreferencesPage.label')}
+                            onPress={() => {
+                                if (!reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
+                            }}
+                            value={notificationPreference}
                         />
                     )}
-                    {shouldShowWriteCapability &&
-                        (shouldAllowWriteCapabilityEditing ? (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={writeCapabilityText}
-                                description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
-                            />
-                        ) : (
-                            <View style={[styles.ph5, styles.pv3]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('writeCapabilityPage.label')}
-                                </Text>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.optionAlternateText, styles.pre]}
-                                >
-                                    {writeCapabilityText}
-                                </Text>
-                            </View>
-                        ))}
+                    {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
+                        <MenuItemField
+                            name={translate('writeCapabilityPage.label')}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
+                            value={writeCapabilityText}
+                        />
+                    )}
+                    {shouldShowWriteCapability && !shouldAllowWriteCapabilityEditing && (
+                        <View style={[styles.ph5, styles.pv3]}>
+                            <Text
+                                style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                numberOfLines={1}
+                            >
+                                {translate('writeCapabilityPage.label')}
+                            </Text>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.optionAlternateText, styles.pre]}
+                            >
+                                {writeCapabilityText}
+                            </Text>
+                        </View>
+                    )}
                     {!!report?.visibility &&
                         report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
-                                description={translate('newRoomPage.visibility')}
+                            <MenuItemField
+                                name={translate('newRoomPage.visibility')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));
                                 }}
+                                value={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                             />
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>

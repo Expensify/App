@@ -1,7 +1,10 @@
-import type {TupleToUnion} from 'type-fest';
 import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type TIMEZONES from '@src/TIMEZONES';
+
+import type {TupleToUnion} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Selectable timezones */
@@ -9,7 +12,6 @@ type SelectedTimezone = TupleToUnion<typeof TIMEZONES>;
 
 /** Model of timezone */
 type Timezone = {
-    /** Value of selected timezone */
     selected?: SelectedTimezone;
 
     /** Whether timezone is automatically set */
@@ -18,7 +20,6 @@ type Timezone = {
 
 /** Model of user status */
 type Status = {
-    /** The emoji code of the status */
     emojiCode: string;
 
     /** The text of the draft status */
@@ -42,8 +43,14 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Display name of the current user from their personal details */
     displayName?: string;
 
-    /** Is current user validated */
     validated?: boolean;
+
+    /**
+     * True when this account was merged away. A merged-away account is served with the `MERGED_`
+     * prefix stripped from its login, so it can collide with the live account's login — use this
+     * flag to prefer the live entry.
+     */
+    isClosed?: boolean;
 
     /** Phone number of the current user from their personal details   */
     phoneNumber?: string;
@@ -63,7 +70,6 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
         color: LetterAvatarSchemeKey;
     };
 
-    /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;
 
     /** Login of the current user from their personal details */
@@ -72,13 +78,11 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Pronouns of the current user from their personal details */
     pronouns?: string;
 
-    /** Local currency for the user */
     localCurrencyCode?: string;
 
     /** Timezone of the current user from their personal details */
     timezone?: Timezone;
 
-    /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
     /**

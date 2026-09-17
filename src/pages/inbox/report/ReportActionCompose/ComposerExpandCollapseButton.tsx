@@ -1,14 +1,18 @@
-import React from 'react';
-import type {ViewProps} from 'react-native';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useOnyx from '@hooks/useOnyx';
+
 import {setIsComposerFullSize} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ViewProps} from 'react-native';
+
+import React from 'react';
+
 import {useComposerSendState, useComposerState} from './ComposerContext';
 import ExpandCollapseButton from './ExpandCollapseButton';
 
 type ComposerExpandCollapseButtonProps = ViewProps & {
-    /** The report ID */
     reportID: string;
 };
 

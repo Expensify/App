@@ -1,17 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {beginSignIn} from '@userActions/Session';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function ExpiredValidateCodeModal() {
     const theme = useTheme();
@@ -30,7 +36,7 @@ function ExpiredValidateCodeModal() {
                         src={illustrations.ToddBehindCloud}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
                 <View style={[styles.mt2, styles.mb2]}>
                     {credentials?.login ? (
                         <Text style={styles.textAlignCenter}>
@@ -39,7 +45,11 @@ function ExpiredValidateCodeModal() {
                             <TextLink
                                 onPress={() => {
                                     beginSignIn(credentials?.login ?? '');
-                                    Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                                    // navigate/goBack no-op from the public /v/ route when it's the stack root (security link opened
+                                    // in a fresh tab), so reset the stack to TAB_NAVIGATOR (which hosts the public SignInPage).
+                                    Navigation.isNavigationReady().then(() => {
+                                        Navigation.resetToAppRoot();
+                                    });
                                 }}
                             >
                                 {translate('validateCodeModal.requestOneHere')}

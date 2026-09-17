@@ -1,6 +1,8 @@
-import isEmpty from 'lodash/isEmpty';
 import {isWaypointNullIsland} from '@libs/TransactionUtils';
+
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+
+import isEmpty from 'lodash/isEmpty';
 
 const isWaypointEmpty = (waypoint?: Waypoint): boolean => {
     if (!waypoint) {

@@ -1,17 +1,27 @@
-import React, {useRef, useState} from 'react';
-import type {View} from 'react-native';
-import {scheduleOnUI} from 'react-native-worklets';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
+
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {View} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {scheduleOnUI} from 'react-native-worklets';
+
+import type {SuggestionsRef} from './ComposerContext';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
+
 import {
     ComposerActionsContext,
     ComposerEditActionsContext,
@@ -21,8 +31,6 @@ import {
     ComposerStateContext,
     ComposerTextContext,
 } from './ComposerContext';
-import type {SuggestionsRef} from './ComposerContext';
-import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import useComposerFocus from './useComposerFocus';
 import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './useEditMessage';

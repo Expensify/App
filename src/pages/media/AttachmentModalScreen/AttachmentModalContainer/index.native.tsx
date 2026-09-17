@@ -1,16 +1,20 @@
-import React, {memo, useCallback, useContext, useEffect} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
+
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React, {memo, useCallback, useContext, useEffect} from 'react';
+
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose, ExtraContent}: AttachmentModalContainerProps<Screen>) {
+function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose}: AttachmentModalContainerProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : SafeString(contentProps.source);
 
@@ -51,21 +55,18 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     }, [resetAttachmentModalAndClose, onShow]);
 
     return (
-        <>
-            <ScreenWrapper
-                navigation={navigation}
-                testID={`attachment-modal-${testID}`}
-                enableEdgeToEdgeBottomSafeAreaPadding
-            >
-                <AttachmentStateContextProvider>
-                    <AttachmentModalBaseContent
-                        {...contentProps}
-                        onClose={closeScreen}
-                    />
-                </AttachmentStateContextProvider>
-            </ScreenWrapper>
-            {ExtraContent}
-        </>
+        <ScreenWrapper
+            navigation={navigation}
+            testID={`attachment-modal-${testID}`}
+            enableEdgeToEdgeBottomSafeAreaPadding
+        >
+            <AttachmentStateContextProvider>
+                <AttachmentModalBaseContent
+                    {...contentProps}
+                    onClose={closeScreen}
+                />
+            </AttachmentStateContextProvider>
+        </ScreenWrapper>
     );
 }
 

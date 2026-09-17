@@ -1,13 +1,17 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
@@ -77,7 +81,7 @@ export default function useCreateEmptyReportConfirmation({
 
         const handleLinkPress = () => {
             closeModal();
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}), searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS}));
         };
 
         showConfirmModal({

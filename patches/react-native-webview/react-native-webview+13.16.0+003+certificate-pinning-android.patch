@@ -1,0 +1,23 @@
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
+index 0287e1c..e849278 100644
+--- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
+@@ -67,7 +67,18 @@
+             reactWebView.callInjectedJavaScript();
+ 
+             emitFinishEvent(webView, url);
+         }
++
++        // Expensify: validate WebView SSL certificate against pinned SPKI hashes (via reflection
++        // into the app module since the library cannot directly depend on it).
++        try {
++            Class.forName("com.expensify.chat.WebViewCertificateMonitor")
++                .getMethod("validateCertificate", WebView.class, String.class)
++                .invoke(null, webView, url);
++        } catch (ClassNotFoundException ignored) {
++        } catch (Exception e) {
++            Log.w(TAG, "WebView certificate monitor error", e);
++        }
+     }
+ 
+     @Override

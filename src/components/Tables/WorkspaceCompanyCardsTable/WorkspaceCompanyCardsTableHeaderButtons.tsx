@@ -1,12 +1,9 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import Button from '@components/Button';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
-import Table from '@components/Table';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
@@ -17,40 +14,41 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
-import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed, isDirectFeed} from '@libs/CardUtils';
+
 import Navigation from '@navigation/Navigation';
-import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+
+import {startCardFeedRefresh} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import getShouldShowBrokenConnectionError from './getShouldShowBrokenConnectionError';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
-    /** Current policy id */
     policyID: string;
-
-    /** Currently selected feed */
     feedName: CompanyCardFeedWithDomainID;
 
     /** Whether the feed is loading */
     isLoading: boolean;
 
-    /** Whether to show the table controls */
-    showTableControls: boolean;
-
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
-    /** Card feed icon */
     CardFeedIcon: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, showTableControls, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -75,40 +73,19 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
     const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
     const shouldShowBrokenConnectionError = getShouldShowBrokenConnectionError(feedName, feedErrors);
+    // Only direct feeds can be reconnected in-app, so other feeds get the message without the bank login link.
+    const brokenConnectionMessage = isDirectFeed(feedName) ? translate('workspace.companyCards.brokenConnectionError') : `<rbr>${translate('personalCard.brokenConnection')}</rbr>`;
 
     const openBankConnection = () => {
         if (!feedName) {
             return;
         }
 
-        const institutionId = getPlaidInstitutionId(feedName);
-        const initialStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
-
-        // For Plaid feeds, seed selectedCountry so PlaidConnectionStep can start the login flow
-        if (institutionId) {
-            const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-            setAddNewCompanyCardStepAndData({
-                data: {
-                    selectedCountry: country,
-                },
-            });
-        }
-
-        setAssignCardStepAndData({currentStep: initialStep});
-
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID), feedName));
-        });
+        // The refresh flow keeps the bank login open until the reconnect completes: expiration change for OAuth,
+        // import finishing for Plaid. The broken-connection page would treat a feed that only has feed-level errors
+        // as already reconnected and close at once.
+        startCardFeedRefresh(policyID, feedName, policy?.outputCurrency, currencyList, countryByIp);
     };
-
-    const secondaryActions = [
-        {
-            icon: icons.Gear,
-            text: translate('common.settings'),
-            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID))),
-            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-        },
-    ];
 
     const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
@@ -118,11 +95,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const supportingText = isCsvFeed ? translate('cardPage.csvCardDescription') : `${firstPart}${secondPart}`;
 
     const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceCompanyCardsTableHeaderButtons',
-        isLoading,
-    };
 
     return (
         <View>
@@ -140,7 +112,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
                         width={FEED_SELECTOR_SKELETON_WIDTH}
                         style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : [styles.mb11, styles.mt2], styles.mw100]}
-                        reasonAttributes={skeletonReasonAttributes}
                     />
                 ) : (
                     <FeedSelector
@@ -152,39 +123,19 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                 )}
 
-                <View
-                    style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
-                >
-                    {!isLoading && showTableControls && (
-                        <View style={[styles.mnw200]}>
-                            <Table.SearchBar
-                                style={[styles.mh0, styles.mb0]}
-                                label={translate('workspace.companyCards.findCard')}
-                            />
-                        </View>
-                    )}
-
-                    <View style={[styles.flexRow, styles.gap3]}>
-                        {!isLoading && (
-                            <>
-                                {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
-                                {canWriteCompanyCards && (
-                                    <ButtonWithDropdownMenu
-                                        success={false}
-                                        onPress={() => {}}
-                                        shouldUseOptionIcon
-                                        customText={translate('common.more')}
-                                        options={secondaryActions}
-                                        isSplitButton={false}
-                                        wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </View>
-                </View>
+                {!isLoading && canWriteCompanyCards && (
+                    <Button
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
+                        accessibilityLabel={translate('common.settings')}
+                        style={shouldShowNarrowLayout ? styles.w100 : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_BUTTON}
+                    >
+                        <Button.Icon src={icons.Gear} />
+                        <Button.Text>{translate('common.settings')}</Button.Text>
+                    </Button>
+                )}
             </View>
+
             {!isLoading && canWriteCompanyCards && shouldShowBrokenConnectionError && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
@@ -194,7 +145,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                     <View style={[styles.offlineFeedbackText, styles.pr5, styles.flexRow, styles.w100]}>
                         <RenderHTML
-                            html={translate('workspace.companyCards.brokenConnectionError')}
+                            html={brokenConnectionMessage}
                             onLinkPress={openBankConnection}
                         />
                     </View>

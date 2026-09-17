@@ -1,7 +1,11 @@
-import React from 'react';
-import type {ReactNode} from 'react';
 import {PressResponder} from '@components/Pressable/PressResponder';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 import {useRootMeta, useRootVisibility} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
 

@@ -1,7 +1,10 @@
-import React from 'react';
 import NoEligibleMethodsDescription from '@components/MultifactorAuthentication/components/NoEligibleMethodsDescription';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+
 import FailureScreenBase from './FailureScreenBase';
 
 const DefaultClientFailureScreen = createScreenWithDefaults(

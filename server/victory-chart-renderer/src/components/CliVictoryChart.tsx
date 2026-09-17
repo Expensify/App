@@ -1,6 +1,3 @@
-import React from 'react';
-import type {TNode} from 'react-native-render-html';
-import {TRenderEngineProvider} from 'react-native-render-html';
 import {ChartFontsContext} from '@components/Charts/context/ChartFontsContext';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import VictoryChartContainerFixed from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContainer/VictoryChartContainerFixed';
@@ -8,8 +5,14 @@ import VictoryChartContent from '@components/HTMLEngineProvider/HTMLRenderers/Vi
 import {VictoryChartProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import VICTORY_HTML_ELEMENT_MODELS from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
+
 import themes from '@styles/theme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
+
+import type {TNode} from 'react-native-render-html';
+
+import React from 'react';
+import {TRenderEngineProvider} from 'react-native-render-html';
 
 // react-native-render-html/lib/commonjs/TRenderEngineProvider.js references
 // `defaultSystemFonts` in a default parameter, but only imports `_defaultSystemFonts`.

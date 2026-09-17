@@ -1,7 +1,3 @@
-import type {ReactNode} from 'react';
-import React, {useEffect, useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,14 +6,24 @@ import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Parser from '@libs/Parser';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
@@ -26,16 +32,9 @@ type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option row */
     rowIcon?: IconAsset;
 
-    /** Title of the option */
     title?: string;
-
-    /** Custom title for the option */
     customTitle?: React.ReactNode;
-
-    /** Subtitle of the option */
     subtitle?: string | ReactNode;
-
-    /** Accessibility label for the switch */
     switchAccessibilityLabel: string;
 
     /** subtitle should show below switch and title */
@@ -44,7 +43,12 @@ type ToggleSettingOptionRowProps = {
     /** When true with shouldPlaceSubtitleBelowSwitch, uses tighter title/subtitle spacing to match MenuItem rows */
     shouldUseCompactSubtitleSpacing?: boolean;
 
-    /** Whether or not the text should be escaped */
+    /**
+     * Pins the switch near the top of the row instead of centering it against the whole title+subtitle block. Use this
+     * where rows of differing subtitle heights swap in and out of the same spot (e.g. tabs), so the switch stays put.
+     */
+    shouldAnchorSwitchToTop?: boolean;
+
     shouldEscapeText?: boolean;
 
     /** Whether should render subtitle as HTML or as Text */
@@ -53,19 +57,13 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Used to apply styles to the Title */
     titleStyle?: StyleProp<TextStyle>;
 
     /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular rows. */
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
-    /** Used to apply styles to the Subtitle */
     subtitleStyle?: StyleProp<TextStyle>;
-
-    /** Used to apply styles to the Accordion */
     accordionStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the option is enabled or not */
     isActive: boolean;
 
     /** Callback to be called when the switch is toggled */
@@ -83,7 +81,6 @@ type ToggleSettingOptionRowProps = {
     /** Callback to close the error messages */
     onCloseError?: () => void;
 
-    /** Whether the toggle should be disabled */
     disabled?: boolean;
 
     /** Whether to show the lock icon even if the switch is enabled */
@@ -111,6 +108,7 @@ function ToggleSettingOptionRow({
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldUseCompactSubtitleSpacing = false,
+    shouldAnchorSwitchToTop = false,
     shouldEscapeText = undefined,
     shouldParseSubtitle = false,
     wrapperStyle,
@@ -229,6 +227,9 @@ function ToggleSettingOptionRow({
     const shouldMakeContentPressable = isActive && onPress;
     const shouldShowTooltip = disabled && !!disabledText;
 
+    // Keeps a top-anchored switch level with where it sits today on a single-line subtitle, so only multi-line rows shift.
+    const anchoredSwitchStyle = shouldAnchorSwitchToTop ? styles.mt2 : undefined;
+
     const switchComponent = (
         <Switch
             disabledAction={disabledAction}
@@ -264,7 +265,14 @@ function ToggleSettingOptionRow({
                     />
                 )}
                 <View style={[styles.pRelative, styles.flex1]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10]}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            shouldAnchorSwitchToTop ? styles.alignItemsStart : styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
+                        ]}
+                    >
                         <PressableWithoutFeedback
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             onPress={shouldMakeContentPressable ? onPress : undefined}
@@ -277,10 +285,10 @@ function ToggleSettingOptionRow({
                         </PressableWithoutFeedback>
                         {shouldShowTooltip ? (
                             <Tooltip text={disabledText}>
-                                <View>{switchComponent}</View>
+                                <View style={anchoredSwitchStyle}>{switchComponent}</View>
                             </Tooltip>
                         ) : (
-                            switchComponent
+                            <View style={anchoredSwitchStyle}>{switchComponent}</View>
                         )}
                     </View>
                     {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}

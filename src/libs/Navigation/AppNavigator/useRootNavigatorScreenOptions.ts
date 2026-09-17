@@ -1,17 +1,23 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import type {EnterAnimation} from './useModalCardStyleInterpolator';
+
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
-import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
@@ -68,6 +74,8 @@ const useRootNavigatorScreenOptions = () => {
                     top: 0,
                     left: 0,
                     position: 'fixed',
+                    paddingLeft: 'env(safe-area-inset-left)',
+                    paddingRight: 'env(safe-area-inset-right)',
                 },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: onboardingEnter}),
             },
@@ -107,7 +115,7 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'none'}, applySidePanelOffset: true}),
-                cardStyle: shouldUseNarrowLayout ? {...StyleUtils.getNavigationModalCardStyle(), paddingLeft: 0} : {...themeStyles.h100, width: '100%'},
+                cardStyle: shouldUseNarrowLayout ? StyleUtils.getStyleWithEnvSafeAreaPadding(StyleUtils.getNavigationModalCardStyle()) : {...themeStyles.h100, width: '100%'},
             },
         },
     } satisfies RootNavigatorScreenOptions;

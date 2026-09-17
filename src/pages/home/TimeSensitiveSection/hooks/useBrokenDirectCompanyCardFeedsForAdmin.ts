@@ -1,7 +1,10 @@
-import {useMemo} from 'react';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import {getCardFeedWithDomainID, isDirectFeed} from '@libs/CardUtils';
-import type {Policy} from '@src/types/onyx';
+
+import {getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isDirectFeed} from '@libs/CardUtils';
+
+import type {TimeSensitiveAdminPolicy} from '@selectors/Policy';
+
+import {useMemo} from 'react';
 
 type BrokenCompanyCardConnection = {
     /** The policy ID associated with this connection */
@@ -22,7 +25,7 @@ type BrokenCompanyCardConnection = {
  * where the current user is an admin. Commercial feeds (vcf/cdf/etc.) are excluded because they
  * are file-based and not user-fixable via bank login.
  */
-function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: Policy[] | undefined): BrokenCompanyCardConnection[] {
+function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: TimeSensitiveAdminPolicy[] | undefined): BrokenCompanyCardConnection[] {
     const {cardsWithBrokenFeedConnection} = useCardFeedErrors();
 
     return useMemo(() => {
@@ -39,6 +42,12 @@ function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: Policy[] | undef
 
             // Only direct OAuth/Plaid feeds are user-fixable; commercial feeds (vcf/cdf/etc.) are file-based
             if (!isDirectFeed(card.bank)) {
+                continue;
+            }
+
+            // Stop offering the task once the connection has been unresolved past the grace period. The card stays in
+            // `cardsWithBrokenFeedConnection` so the Company cards page can still fix it. We just stop prompting here.
+            if (isBrokenConnectionPastDismissThreshold(card)) {
                 continue;
             }
 

@@ -1,16 +1,31 @@
-import {useSyncExternalStore} from 'react';
 import addViewportResizeListener from '@libs/VisualViewport';
 
-/**
- * A hook that returns the offset of the top edge of the visual viewport
- */
+import {useSyncExternalStore} from 'react';
+
+function getVisualViewportOffsetTop() {
+    return window.visualViewport?.offsetTop ?? 0;
+}
+
+let offsetTop = getVisualViewportOffsetTop();
+
 function subscribe(callback: () => void) {
-    const unsubscribe = addViewportResizeListener(callback);
-    window.visualViewport?.addEventListener('scroll', callback);
+    offsetTop = getVisualViewportOffsetTop();
+
+    const handleViewportChange = () => {
+        offsetTop = getVisualViewportOffsetTop();
+        callback();
+    };
+
+    const unsubscribe = addViewportResizeListener(handleViewportChange);
+    window.visualViewport?.addEventListener('scroll', handleViewportChange);
     return () => {
-        window.visualViewport?.removeEventListener('scroll', callback);
+        window.visualViewport?.removeEventListener('scroll', handleViewportChange);
         unsubscribe();
     };
 }
 
-export default () => useSyncExternalStore(subscribe, () => window.visualViewport?.offsetTop ?? 0);
+function getSnapshot() {
+    return offsetTop;
+}
+
+export default () => useSyncExternalStore(subscribe, getSnapshot);

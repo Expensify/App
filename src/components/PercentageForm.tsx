@@ -1,11 +1,17 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+
 import CONST from '@src/CONST';
-import TextInput from './TextInput';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
+import TextInput from './TextInput';
 
 type PercentageFormProps = BaseTextInputProps & {
     /** Amount supplied by the FormProvider */
@@ -29,7 +35,6 @@ type PercentageFormProps = BaseTextInputProps & {
     /** Whether to allow negative percentages (e.g. for split expenses with negative amounts). */
     allowNegative?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 

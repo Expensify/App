@@ -1,9 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {LoginToAccountIDMapDerivedValue, PersonalDetailsList, PolicyCategories} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {sortAlphabetically} from './OptionsListUtils';
 
 function getNormalizedString(value?: string): string | undefined {
@@ -16,44 +19,19 @@ function getNormalizedString(value?: string): string | undefined {
 }
 
 function normalizeAttendee(attendee: Attendee): Attendee {
-    const {email, displayName: attendeeDisplayName, login: attendeeLogin, ...rest} = attendee;
+    const {email, displayName: attendeeDisplayName, ...rest} = attendee;
     const normalizedEmail = getNormalizedString(email);
-    const normalizedLogin = getNormalizedString(attendeeLogin);
-    const displayName = getNormalizedString(attendeeDisplayName) ?? normalizedEmail ?? normalizedLogin ?? '';
+    const displayName = getNormalizedString(attendeeDisplayName) ?? normalizedEmail ?? '';
 
     return {
         ...rest,
         displayName,
-        login: normalizedLogin,
         ...(normalizedEmail ? {email: normalizedEmail} : {}),
     };
 }
 
 function normalizeAttendees(attendees: Attendee[] | undefined): Attendee[] {
     return (attendees ?? []).map(normalizeAttendee);
-}
-
-/** Formats the title for requiredFields menu item based on which fields are enabled in the policy category */
-function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], policyCategory: PolicyCategory, isAttendeeTrackingEnabled = false): string {
-    const enabledFields: string[] = [];
-
-    // Attendees field should show first when both are selected and attendee tracking is enabled
-    if (isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
-        enabledFields.push(translate('iou.attendees'));
-    }
-
-    if (policyCategory.areCommentsRequired) {
-        enabledFields.push(translate('common.description'));
-    }
-
-    if (enabledFields.length === 0) {
-        return '';
-    }
-
-    const [first, ...rest] = enabledFields;
-    const capitalizedFirst = first.charAt(0).toUpperCase() + first.slice(1);
-    const lowercasedRest = rest.map((field) => field.charAt(0).toLowerCase() + field.slice(1));
-    return [capitalizedFirst, ...lowercasedRest].join(', ');
 }
 
 /**
@@ -95,7 +73,7 @@ function getIsMissingAttendeesViolation(
     const attendees = convertAttendeesToArray(iouAttendees);
     // Check both login and email since attendee objects may have identifier in either property
     const attendeesMinusCreatorCount = attendees.filter((a) => {
-        const attendeeIdentifier = a?.login ?? a?.email;
+        const attendeeIdentifier = a?.email;
         return attendeeIdentifier !== creatorLogin && attendeeIdentifier !== creatorEmail;
     }).length;
 
@@ -149,29 +127,28 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     return violations;
 }
 
+type AttendeeWithAccountID = Attendee & {accountID?: number};
+
 /**
  * Enrich each attendee with live `personalDetails` and return them sorted alphabetically by displayName.
  */
-function enrichAndSortAttendees(attendees: Attendee[], personalDetailsList: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Attendee[];
 function enrichAndSortAttendees(
-    attendees: Attendee[] | string | undefined,
+    attendees: Attendee[] | undefined,
+    loginToAccountIDMap: OnyxEntry<LoginToAccountIDMapDerivedValue>,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
-): Attendee[] | string | undefined;
-function enrichAndSortAttendees(
-    attendees: Attendee[] | string | undefined,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    localeCompare: LocaleContextProps['localeCompare'],
-): Attendee[] | string | undefined {
+): AttendeeWithAccountID[] | undefined {
     if (!Array.isArray(attendees)) {
         return attendees;
     }
     return sortAlphabetically(
         attendees.map((a) => {
-            const pd = a?.accountID ? personalDetailsList?.[a.accountID] : undefined;
+            const accountID = loginToAccountIDMap?.[a.email ?? ''] ?? CONST.DEFAULT_NUMBER_ID;
+            const pd = personalDetailsList?.[accountID];
             const freshAvatar = typeof pd?.avatar === 'string' ? pd.avatar : undefined;
             return {
                 ...a,
+                accountID,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
                 displayName: pd?.displayName || a?.displayName,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
@@ -183,4 +160,4 @@ function enrichAndSortAttendees(
     );
 }
 
-export {enrichAndSortAttendees, formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};
+export {enrichAndSortAttendees, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};

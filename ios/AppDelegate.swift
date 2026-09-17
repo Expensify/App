@@ -47,6 +47,11 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var reactNativeFactory: RCTReactNativeFactory?
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
+    SentryNativeSDKManager.shared.initialize()
+
+    // Initialize certificate pinning before any networking starts (Iteration 1 - NewDot).
+    CertificatePinning.initialize()
     BackupExclusionHelper.excludeAllAppDataFromBackup()
 
     let appStartTimePreferencesKey = "AppStartTime"

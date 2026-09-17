@@ -1,4 +1,5 @@
 import {RESULTS} from 'react-native-permissions';
+
 import type {ContactImportResult} from './types';
 
 const contactImport = (): Promise<ContactImportResult> => {

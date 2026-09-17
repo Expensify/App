@@ -1,23 +1,29 @@
-import React, {useRef, useState} from 'react';
-import {PanResponder, PixelRatio, Platform, View} from 'react-native';
-import RNFetchBlob from 'react-native-blob-util';
-import type {TupleToUnion} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useRef, useState} from 'react';
+import {PanResponder, PixelRatio, Platform, View} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
+
 import Button from './Button';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
@@ -29,20 +35,25 @@ import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
 type ImportSpreadsheetProps = {
-    // The route to navigate to when the back button is pressed.
+    /** The route to navigate to when the back button is pressed */
     backTo?: Routes;
 
-    // The route to navigate to after the file import is completed.
+    /** The route to navigate to after the file import is completed */
     goTo: Routes;
 
-    // If true, replace the current route after import instead of pushing on top.
+    /** If true, replace the current route after import instead of pushing on top */
     shouldForceReplaceNavigation?: boolean;
 
-    /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags?: boolean;
+
+    /** Whether an OFX/QFX bank statement can be picked alongside a spreadsheet */
+    shouldAllowBankStatements?: boolean;
+
+    /** Uploads a picked OFX/QFX bank statement */
+    onStatementPicked?: (file: FileObject) => Promise<void>;
 };
 
-function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, shouldAllowBankStatements, onStatementPicked}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
@@ -71,9 +82,19 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         });
     };
 
+    const getAllowedExtensions = (): readonly string[] => {
+        if (isImportingMultiLevelTags) {
+            return CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS;
+        }
+        if (shouldAllowBankStatements) {
+            return [...CONST.ALLOWED_SPREADSHEET_EXTENSIONS, ...CONST.OFX_STATEMENT_EXTENSIONS];
+        }
+        return CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
+    };
+
     const validateFile = (file: FileObject) => {
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-        const allowedExtensions: readonly string[] = isImportingMultiLevelTags ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS : CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
+        const allowedExtensions = getAllowedExtensions();
 
         if (!allowedExtensions.includes(fileExtension.toLowerCase())) {
             showUploadFileError('attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
@@ -92,6 +113,22 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             return;
         }
 
+        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+        const statementExtensions: readonly string[] = CONST.OFX_STATEMENT_EXTENSIONS;
+
+        // A statement carries its own columns, so the backend parses it and the column mapping step is skipped.
+        if (shouldAllowBankStatements && onStatementPicked && statementExtensions.includes(fileExtension.toLowerCase())) {
+            setIsReadingFile(true);
+            onStatementPicked(file)
+                .catch((error: Error) => {
+                    Log.warn('[ImportSpreadsheet] Failed to upload the statement', {message: String(error)});
+                })
+                .finally(() => {
+                    setIsReadingFile(false);
+                });
+            return;
+        }
+
         let fileURI = file.uri ?? URL.createObjectURL(file);
         if (!fileURI) {
             return;
@@ -99,7 +136,6 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         if (Platform.OS === 'ios') {
             fileURI = fileURI.replaceAll(/^.*\/Documents\//g, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
-        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);
 
         setIsReadingFile(true);
@@ -168,15 +204,17 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         let text = '';
         if (isImportingMultiLevelTags) {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetMultiLevelTag') : translate('spreadsheet.dragAndDropMultiLevelTag');
+        } else if (shouldAllowBankStatements) {
+            text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetTransactions') : translate('spreadsheet.dragAndDropTransactions');
         } else {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
         }
         return text;
     };
 
-    const acceptableFileTypes = isImportingMultiLevelTags
-        ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')
-        : CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',');
+    const acceptableFileTypes = getAllowedExtensions()
+        .map((extension) => `.${extension}`)
+        .join(',');
 
     const desktopView = (
         <>
@@ -201,8 +239,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
                     <Button
-                        success
-                        text={translate('common.chooseFile')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.pt9]}
                         isLoading={isReadingFile}
@@ -213,7 +250,9 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                                 },
                             });
                         }}
-                    />
+                    >
+                        <Button.Text>{translate('common.chooseFile')}</Button.Text>
+                    </Button>
                 )}
             </FilePicker>
         </>
@@ -245,9 +284,10 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             <DragAndDropConsumer
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];
-                                    if (file) {
-                                        readFile(file);
+                                    if (!file || isReadingFile) {
+                                        return;
                                     }
+                                    readFile(file);
                                 }}
                             >
                                 <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>

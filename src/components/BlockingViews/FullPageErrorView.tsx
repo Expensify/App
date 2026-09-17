@@ -1,17 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
-type FullPageErrorViewProps = {
-    /** TestID for test */
-    testID?: string;
+/**
+ * Illustrations this view can show. Both are requested up front, because the lazy illustrations hook
+ * only seeds its asset map once per mount, so a name it wasn't given at mount resolves to PlaceholderIcon.
+ */
+type FullPageErrorViewIllustration = 'BrokenMagnifyingGlass' | 'FolderSync';
 
-    /** Child elements */
+type FullPageErrorViewProps = {
+    testID?: string;
     children?: React.ReactNode;
 
     /** If true, child components are replaced with a blocking "error page" view */
@@ -23,18 +32,46 @@ type FullPageErrorViewProps = {
     /** The subtitle text to be displayed */
     subtitle?: string;
 
-    /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
 
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
 
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Translation key for an optional CTA button rendered below the subtitle */
+    buttonTranslationKey?: TranslationPaths;
+
+    /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
+    onButtonPress?: () => void;
+
+    /** Illustration shown above the title */
+    illustration?: FullPageErrorViewIllustration;
+
+    /** Width of the illustration */
+    illustrationWidth?: number;
+
+    /** Height of the illustration */
+    illustrationHeight?: number;
 };
 
-function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle, containerStyle}: FullPageErrorViewProps) {
+function FullPageErrorView({
+    testID,
+    children = null,
+    shouldShow = false,
+    title = '',
+    subtitle = '',
+    shouldForceFullScreen = false,
+    subtitleStyle,
+    containerStyle,
+    buttonTranslationKey,
+    onButtonPress,
+    illustration = 'BrokenMagnifyingGlass',
+    illustrationWidth = variables.errorPageIconWidth,
+    illustrationHeight = variables.errorPageIconHeight,
+}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'FolderSync']);
 
     if (shouldShow) {
         return (
@@ -44,13 +81,16 @@ function FullPageErrorView({testID, children = null, shouldShow = false, title =
                     testID={testID}
                 >
                     <BlockingView
-                        icon={illustrations.BrokenMagnifyingGlass}
-                        iconWidth={variables.errorPageIconWidth}
-                        iconHeight={variables.errorPageIconHeight}
+                        icon={illustrations[illustration]}
+                        iconWidth={illustrationWidth}
+                        iconHeight={illustrationHeight}
                         title={title}
+                        titleStyles={[styles.mt0, styles.mb2]}
                         subtitle={subtitle}
                         subtitleStyle={subtitleStyle}
-                        containerStyle={containerStyle}
+                        containerStyle={[styles.gap5, containerStyle]}
+                        buttonTranslationKey={buttonTranslationKey}
+                        onButtonPress={onButtonPress}
                     />
                 </View>
             </ForceFullScreenView>

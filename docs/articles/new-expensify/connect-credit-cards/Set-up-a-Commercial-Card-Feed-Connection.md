@@ -22,7 +22,7 @@ Any Workspace Admin can set up a commercial card feed connection.
  - On the **Collect** plan, you can add one company card feed. 
  - On the **Control** plan, you can add unlimited company card feeds. 
 
-[Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)
+[Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans)
 
 ---
 
@@ -76,7 +76,7 @@ Expensify will notify you when the feed is connected.
 To set up an Amex Corporate Feed, you’ll need to complete and email their required forms.
 
 1. Download the forms:  
-   [Amex Feed Setup Forms (Google Drive)](https://drive.google.com/file/d/1zqDA_MCk06jk_fWjzx2y0r4gOyAMqKJe/view?usp=sharing)
+   [Amex Feed Setup Forms (Google Drive)](https://drive.google.com/file/d/1pIqIroMizJfflGryTshupLAXGa5nff4u)
 2. Complete the form as follows:
    - **Page 1:** Fill in legal company details, requestor name/email, feed start date, and **Control Account Number** (not a credit card number).
    - **Page 2:** Leave blank.

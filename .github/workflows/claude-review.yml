@@ -22,7 +22,7 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Check contributor authorization
         id: gate
@@ -45,7 +45,7 @@ jobs:
 
       - name: Checkout repository
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           fetch-depth: 1
 
@@ -68,7 +68,9 @@ jobs:
       - name: Setup Claude review toolkit
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: toolkit
-        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@2b751e9a86d8690f53443cce0ce886079eccea76
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@54bfb8923d4f94c3cb209bfbad362fca9f0816f5
+        with:
+          rules_directory: .claude/skills/app-coding-standards/rules
 
       - name: Mark review as in progress
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
@@ -82,11 +84,11 @@ jobs:
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.code == 'true'
         uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
-          display_report: "true"
+          display_report: 'true'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          allowed_non_write_users: "*"
-          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          allowed_non_write_users: '*'
+          prompt: '/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}'
           claude_args: |
             --model claude-opus-4-8
             --effort xhigh
@@ -106,11 +108,11 @@ jobs:
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true'
         uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
-          display_report: "true"
+          display_report: 'true'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          allowed_non_write_users: "*"
-          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          allowed_non_write_users: '*'
+          prompt: '/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}'
           claude_args: |
             --model claude-opus-4-8
             --effort high

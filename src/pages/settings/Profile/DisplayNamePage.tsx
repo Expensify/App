@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,17 +9,24 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+import {doesContainReservedWord, isRequiredFulfilled, isValidDisplayName} from '@libs/ValidationUtils';
+
 import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -31,10 +36,9 @@ type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 const updateDisplayName = (
     values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserAccountID: number,
-    currentUserEmail: string,
+    currentUserPersonalDetails: CurrentUserPersonalDetails,
 ) => {
-    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, currentUserAccountID, currentUserEmail);
+    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, currentUserPersonalDetails);
     Navigation.goBack();
 };
 
@@ -53,7 +57,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
             addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
-        } else if (values.firstName.length === 0) {
+        } else if (!isRequiredFulfilled(values.firstName)) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
         }
         if (doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
@@ -83,17 +87,14 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
             />
             {isLoadingApp ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'DisplayNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
-                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber, currentUserDetails?.accountID, currentUserDetails?.email ?? '')}
+                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber, currentUserPersonalDetails)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur

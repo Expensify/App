@@ -1,5 +1,9 @@
-import React from 'react';
 import CONST from '@src/CONST';
+
+import React from 'react';
+
+import type {MoneyReportHeaderPrimaryActionProps} from './types';
+
 import ApprovePrimaryAction from './ApprovePrimaryAction';
 import ExportPrimaryAction from './ExportPrimaryAction';
 import MarkAsCashPrimaryAction from './MarkAsCashPrimaryAction';
@@ -8,7 +12,6 @@ import PayPrimaryAction from './PayPrimaryAction';
 import RemoveHoldPrimaryAction from './RemoveHoldPrimaryAction';
 import ReviewDuplicatesPrimaryAction from './ReviewDuplicatesPrimaryAction';
 import SubmitPrimaryAction from './SubmitPrimaryAction';
-import type {MoneyReportHeaderPrimaryActionProps} from './types';
 
 function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, onExportModalOpen}: MoneyReportHeaderPrimaryActionProps) {
     if (!primaryAction) {
@@ -20,7 +23,12 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE) {
-        return <ApprovePrimaryAction reportID={reportID} />;
+        return (
+            <ApprovePrimaryAction
+                reportID={reportID}
+                chatReportID={chatReportID}
+            />
+        );
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY) {

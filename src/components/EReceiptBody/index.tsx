@@ -1,6 +1,8 @@
-import React from 'react';
 import ImageSVG from '@components/ImageSVG';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
+import React from 'react';
 
 // The fill color is applied directly to the SVG file because using expo-image's
 // tintColor on iOS causes the image to render at 3x resolution.

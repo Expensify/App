@@ -1,27 +1,37 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
+
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isGroupPolicy} from '@libs/PolicyUtils';
+
 import type {MoneyRequestNavigatorParamList} from '@navigation/types';
+
 import {setNameValuePair} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type SetDefaultWorkspacePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE>;
 
@@ -33,11 +43,17 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const {translate, localeCompare} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const session = useSession();
+
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
 
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
@@ -65,11 +81,20 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: undefined,
+        selectedPolicyIDs: draftPolicyID ? [draftPolicyID] : undefined,
+        // This page never pinned a workspace to the top, so don't start now that checking a row sets selectedPolicyIDs.
+        shouldSortSelectedToTop: false,
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => isGroupPolicy(newPolicy),
     });
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => selectPolicy(draftPolicyID),
+        isDisabled: !draftPolicyID,
+    };
 
     const textInputOptions = useMemo(
         () => ({
@@ -84,30 +109,32 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     return (
         <ScreenWrapper
             testID="SetDefaultWorkspacePage"
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('workspace.common.setAsDefault')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                        <HeaderWithBackButton
+                            title={translate('workspace.common.setAsDefault')}
+                            onBackButtonPress={Navigation.goBack}
+                        />
+                    </CollapsibleHeaderOnKeyboard>
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'SetDefaultWorkspacePage', isLoadingApp: !!isLoadingApp}}
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             data={data}
                             ListItem={UserListItem}
                             textInputOptions={textInputOptions}
-                            onSelectRow={(option) => selectPolicy(option.policyID)}
+                            onSelectRow={(option) => setDraftPolicyID(option.policyID)}
+                            confirmButtonOptions={confirmButtonOptions}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
+                            addBottomSafeAreaPadding
+                            shouldFooterBeInsideList={shouldFooterBeInsideList}
                         />
                     )}
                 </>

@@ -1,7 +1,10 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingPurpose from './BaseOnboardingPurpose';
+
+import React from 'react';
+
 import type {OnboardingPurposeProps} from './types';
+
+import BaseOnboardingPurpose from './BaseOnboardingPurpose';
 
 function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     return (

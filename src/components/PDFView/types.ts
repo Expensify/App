@@ -8,7 +8,6 @@ type PDFViewProps = {
     /** PDF file name */
     fileName?: string;
 
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 
     /** Notify parent that the keyboard has opened or closed */
@@ -31,6 +30,9 @@ type PDFViewProps = {
 
     /** Whether the PDF is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
+
+    /** Whether the PDF is displayed inside the full attachment modal */
+    isUsedInAttachmentModal?: boolean;
 
     /** Controlled rotation angle for the PDF */
     rotation?: RotationDegrees;

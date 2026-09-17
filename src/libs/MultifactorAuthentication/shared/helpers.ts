@@ -2,8 +2,10 @@
  * Shared helper utilities for multifactor authentication operations.
  */
 import type {ValueOf} from 'type-fest';
+
 import type {AuthenticationChallenge, RegistrationChallenge} from './challengeTypes';
 import type {MultifactorAuthenticationReason, MultifactorAuthenticationResponseMap} from './types';
+
 import VALUES from './VALUES';
 
 type ResponseToReasonMap = ValueOf<MultifactorAuthenticationResponseMap>;

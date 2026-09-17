@@ -1,6 +1,8 @@
 import {translateLocal} from '@libs/Localize';
+
 import CONST from '@src/CONST';
-import type {SearchOptionData} from './types';
+
+import type {PersonalDetailFilterRankFields} from './types';
 
 type SearchMatchConfig = {
     /** Whether to use toLocaleLowerCase() instead of toLowerCase(), defaults to false */
@@ -20,7 +22,7 @@ type SearchMatchConfig = {
  * @returns Raw (not lowercased) terms: display text, login,
  * login with dots stripped before @, and translated "You"/"Me".
  */
-function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {
+function getCurrentUserSearchTerms(item: PersonalDetailFilterRankFields) {
     return [item.text ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 
@@ -31,7 +33,7 @@ function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {
  *
  * @returns Raw (not lowercased) terms the person is searchable by.
  */
-function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUserAccountID: number) {
+function getPersonalDetailSearchTerms(item: PersonalDetailFilterRankFields, currentUserAccountID: number) {
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
     }
@@ -45,7 +47,7 @@ function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUs
  * Expects `searchTerm` to already be lowercased and trimmed.
  */
 function doesPersonalDetailMatchSearchTerm(
-    item: Partial<SearchOptionData>,
+    item: PersonalDetailFilterRankFields,
     currentUserAccountID: number,
     searchTerm: string,
     {useLocaleLowerCase = false, transformSearchText}: SearchMatchConfig = {},

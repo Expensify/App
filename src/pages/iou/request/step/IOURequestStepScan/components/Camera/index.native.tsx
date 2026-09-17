@@ -1,22 +1,19 @@
-import React, {useRef} from 'react';
-import {Alert, Platform, View} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
-import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
-import type {PhotoFile} from 'react-native-vision-camera';
-import {useCameraFormat} from 'react-native-vision-camera';
 import ActivityIndicator from '@components/ActivityIndicator';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getPhotoSource from '@libs/fileDownload/getPhotoSource';
+
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
+import ReceiptStorage from '@libs/ReceiptStorage';
+import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
+import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
@@ -25,8 +22,19 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {PhotoFile} from 'react-native-vision-camera';
+
+import React, {useRef} from 'react';
+import {Alert, Platform, View} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
+import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
+import {useCameraFormat} from 'react-native-vision-camera';
+
 import type {CameraProps} from './types';
 
 const BLINK_DURATION_MS = 80;
@@ -54,6 +62,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     const onFocusCleanup = () => {
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     };
 
@@ -72,8 +81,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         askForPermissions,
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
-        cameraLoadingReasonAttributes,
-    } = useNativeCamera({context: 'Camera', onFocusStart, onFocusCleanup});
+    } = useNativeCamera({onFocusStart, onFocusCleanup});
 
     // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
     // format. videoResolution is platform-specific:
@@ -111,6 +119,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         }
 
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     };
 
@@ -119,7 +128,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE},
             });
         }
 
@@ -148,7 +157,13 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
+                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: shouldTakePhoto({flash, hasFlash, isInLandscapeMode})
+                    ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO
+                    : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
+                [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+            },
         });
 
         isCapturingPhoto.current = true;
@@ -158,18 +173,26 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
             .then((photo: PhotoFile) => {
-                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-
+                endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+                    [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
+                    [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
+                });
+                if (!isMultiScanEnabled) {
+                    startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.NATIVE);
+                }
+                return ReceiptStorage.adopt(photo.path);
+            })
+            .then((durableName) => {
                 if (isMultiScanEnabled) {
                     isCapturingPhoto.current = false;
                 } else {
                     setDidCapturePhoto(true);
                 }
 
-                const source = getPhotoSource(photo.path);
+                const source = ReceiptStorage.toLocalUri(durableName);
                 const cameraFile: FileObject = {
                     uri: source,
-                    name: photo.path,
+                    name: durableName,
                     type: 'image/jpeg',
                 };
 
@@ -207,7 +230,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={[styles.flex1]}
                                 color={theme.textSupporting}
-                                reasonAttributes={cameraLoadingReasonAttributes}
                             />
                         </View>
                     )}

@@ -1,15 +1,19 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainSettingsPageProps = {
-    /** The ID of the domain used for the not found wrapper */
     domainAccountID: number;
 
     /** Settings page content */

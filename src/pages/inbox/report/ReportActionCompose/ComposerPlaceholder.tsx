@@ -1,14 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PulsingView from '@components/PulsingView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 /**
  * Lightweight visual replica of ReportActionCompose used as a placeholder
@@ -18,7 +22,7 @@ import CONST from '@src/CONST';
  *
  * Source of truth: ReportActionCompose (same directory).
  * Mirrors: chatFooter, chatItemComposeBox, composerSizeButton (width/marginHorizontal),
- * textInputComposeSpacing, textInputComposeBorder, chatItemEmojiButton, chatItemSubmitButton,
+ * textInputComposeSpacing, chatItemEmojiButton, chatItemSubmitButton,
  * chatItemComposeSecondaryRow, and icons [Plus, Emoji, Send].
  * If the real composer changes its layout or icon set, update this placeholder to match.
  */
@@ -38,14 +42,15 @@ function ComposerPlaceholder() {
         styles.alignItemsCenter,
     ];
 
-    const textInputStyle = [styles.textInputComposeSpacing, styles.textInputComposeBorder, {paddingVertical: 0}];
+    const textInputStyle = [styles.textInputComposeSpacing, {paddingVertical: 0}];
 
     const placeholderTextStyle = [
         styles.textNormal,
         {
             color: theme.placeholderText,
             lineHeight: styles.textInputCompose.lineHeight,
-            paddingHorizontal: variables.avatarChatSpacing,
+            paddingRight: variables.avatarChatSpacing,
+            paddingLeft: variables.composerTextInputPaddingLeft,
             alignSelf: 'center' as const,
         },
     ];

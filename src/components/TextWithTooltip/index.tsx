@@ -1,6 +1,8 @@
-import React, {useState} from 'react';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
+import React, {useState} from 'react';
+
 import type TextWithTooltipProps from './types';
 
 type LayoutChangeEvent = {

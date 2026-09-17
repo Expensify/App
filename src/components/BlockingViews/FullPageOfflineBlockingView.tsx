@@ -1,16 +1,16 @@
-import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React from 'react';
+
 import BlockingView from './BlockingView';
 
 type FullPageOfflineBlockingViewProps = ChildrenProps & {
-    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 

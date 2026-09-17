@@ -1,7 +1,7 @@
-import {useMemo} from 'react';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
+
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -11,15 +11,22 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
-import {selectFilteredReportActions} from '@libs/ReportUtils';
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
+
+import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
+import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {ReportAction} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
+import useLiveFilteredReportActions from './useLiveFilteredReportActions';
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
@@ -56,6 +63,10 @@ type SearchSnapshotResult = {
     hasLoadedAllTransactions: boolean;
     /** True while the cached optimistic row is being re-injected across a snapshot-replacement gap. */
     hasCachedOptimisticItem: boolean;
+    /** Every policy's categories, already read here for sorting and reused to size the category GL code column. */
+    policyCategories: OnyxCollection<PolicyCategories>;
+    /** Every policy's tag lists, already read here for sorting and reused to size the tag GL code column. */
+    policyTags: OnyxCollection<PolicyTagLists>;
 } & Pick<
     OptimisticTrackingReturn,
     'showPendingExpensePlaceholder' | 'shouldDeferHeavySearchWork' | 'setShouldDeferHeavySearchWork' | 'hasPendingWriteOnMountRef' | 'skipDeferralOnFocusRef' | 'rearmTracking'
@@ -90,10 +101,10 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
  */
 function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -103,9 +114,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
-    const [exportReportActions] = useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: selectFilteredReportActions,
-    });
+    const exportReportActions = useLiveFilteredReportActions();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -114,8 +123,10 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
     // immediately.
@@ -140,6 +151,12 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    // Only CHAT/TASK sections read reportAttributesDerivedValue. It's a derived value that gets a new
+    // reference whenever any report changes (e.g. on every step of a PAY), so keeping it in the deps for
+    // other types forces needless full getSections recomputes. Gate it to undefined elsewhere so the dep
+    // stays stable.
+    const reportAttributesForSections = isChat || isTask ? reportAttributesDerivedValue : undefined;
 
     const isLoading = !!searchResults?.search?.isLoading;
     const hasMore = !!searchResults?.search?.hasMoreResults;
@@ -176,6 +193,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         }
 
         const [filtered, allLength, hasDeletedTransactionFromSections] = getSections({
+            dateFnsLocale,
             type,
             data: searchDataWithOptimisticTransaction,
             currentAccountID: accountID,
@@ -183,6 +201,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             translate,
             formatPhoneNumber,
             bankAccountList,
+            rules,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
@@ -198,7 +217,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             onyxPersonalDetailsList,
             isAttendeesEnabledForMovingPolicy,
             convertToDisplayString,
-            reportAttributesDerivedValue,
+            reportAttributesDerivedValue: reportAttributesForSections,
             optimisticTransactionID,
         });
         return {
@@ -216,6 +235,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         translate,
         formatPhoneNumber,
         bankAccountList,
+        rules,
         validGroupBy,
         exportReportActions,
         currentSearchKey,
@@ -231,8 +251,9 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         onyxPersonalDetailsList,
         isAttendeesEnabledForMovingPolicy,
         convertToDisplayString,
-        reportAttributesDerivedValue,
+        reportAttributesForSections,
         optimisticTransactionID,
+        dateFnsLocale,
     ]);
 
     // Stage 2: for grouped views, fetch each group's sub-snapshot and enrich it with its transactions.
@@ -256,22 +277,27 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 return item;
             }
             const [groupTransactions] = getSections({
+                dateFnsLocale,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: subSnapshot.data,
                 currentAccountID: accountID,
                 currentUserEmail: email ?? '',
                 bankAccountList,
+                rules,
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
                 cardFeeds,
                 conciergeReportID,
                 convertToDisplayString,
+                reportActions: exportReportActions,
+                reportAttributesDerivedValue: undefined,
             });
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
+            const typedGroupTransactions = groupTransactions as TransactionListItemType[];
             return {
                 ...item,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-                transactions: groupTransactions as TransactionListItemType[],
+                transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
             };
         });
     }, [
@@ -283,12 +309,16 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         accountID,
         email,
         bankAccountList,
+        rules,
         translate,
+        localeCompare,
         formatPhoneNumber,
         isActionLoadingSet,
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
+        dateFnsLocale,
+        exportReportActions,
     ]);
 
     // Stage 3: sort the (enriched) data, then stamp the post-create highlight on each row. getSortedSections
@@ -297,9 +327,10 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        return getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
+            policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
         }).map((item) => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- chat variant rows are report actions
@@ -330,7 +361,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     }, [
         shouldComputeSections,
         type,
-        status,
         filteredData,
         localeCompare,
         translate,
@@ -338,6 +368,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         sortOrder,
         validGroupBy,
         policyCategories,
+        policyTags,
         policyForMovingExpensesID,
         isChat,
         newSearchResultKeys,
@@ -362,8 +393,9 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             type: searchDataType,
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            policyCategories,
             fallbackPolicyID: policyForMovingExpensesID,
+            sortBy: queryJSON.sortBy,
+            shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
         });
     })();
 
@@ -395,6 +427,8 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     };
 }
 

@@ -1,13 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
@@ -28,12 +27,18 @@ import {
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
-import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+import {buildUserIcon} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
+import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
 function useReportActionAvatars({
@@ -46,7 +51,6 @@ function useReportActionAvatars({
     policy: policyProp,
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
-    shouldUseCustomFallbackAvatar = false,
     chatReportID: passedChatReportID,
     shouldUseRealActor = false,
 }: {
@@ -59,7 +63,6 @@ function useReportActionAvatars({
     policy?: OnyxInputOrEntry<Policy>;
     fallbackDisplayName?: string;
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
-    shouldUseCustomFallbackAvatar?: boolean;
     chatReportID?: string;
     /** When true, returns the action's real author instead of the Concierge display override used in inbox timelines. */
     shouldUseRealActor?: boolean;
@@ -68,6 +71,7 @@ function useReportActionAvatars({
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
@@ -80,6 +84,10 @@ function useReportActionAvatars({
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
+
+    const [chatReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(chatReport?.reportID)}`, {
+        selector: pendingDeleteMemberAccountIDsSelector,
+    });
 
     const derivedActionReportID = iouReport?.parentReportActionID ? (chatReport?.reportID ?? iouReport?.chatReportID) : reportChatReport?.reportID;
     const derivedActionID = iouReport?.parentReportActionID ?? (!iouReport ? chatReport?.parentReportActionID : undefined);
@@ -132,14 +140,17 @@ function useReportActionAvatars({
 
     const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => {
         const invitedEmail = invitedEmailsToAccountIDs ? Object.keys(invitedEmailsToAccountIDs).find((email) => invitedEmailsToAccountIDs[email] === id) : undefined;
-        return {
-            id,
-            type: CONST.ICON_TYPE_AVATAR,
-            source: personalDetails?.[id]?.avatar ?? defaultAvatars.FallbackAvatar,
-            name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
-            fallbackIcon: shouldUseCustomFallbackAvatar ? getDefaultAvatar({accountID: id, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail ?? ''), defaultAvatars}) : undefined,
-        };
+        return buildUserIcon({
+            accountID: id,
+            personalDetails,
+            defaultAvatars,
+            invitedEmail,
+            // Invoice actors are named after their display name; every other icon falls back to the login inside `buildUserIcon`.
+            name: shouldUseActorAccountID ? (personalDetails?.[id]?.displayName ?? invitedEmail ?? '') : undefined,
+        });
     });
+
+    const shouldUseConciergeAvatar = !passedAction && !!conciergeReportID && isChatThread(chatReport) && chatReport?.parentReportID === conciergeReportID;
 
     const fallbackWorkspaceAvatar: IconType = {
         id: policyID,
@@ -150,7 +161,7 @@ function useReportActionAvatars({
 
     if (passedPolicyID) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const workspaceAvatar = policyChatReport ? getWorkspaceIcon(policyChatReport, policy) : {source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name)};
+        const workspaceAvatar = policyChatReport ? getWorkspaceIcon(policyChatReport, translate, policy) : {source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name)};
         const policyChatReportAvatar = policy ? {...workspaceAvatar, id: policyID, name: policy.name, type: CONST.ICON_TYPE_WORKSPACE} : fallbackWorkspaceAvatar;
         const firstAccountAvatar = avatarsForAccountIDs.at(0);
 
@@ -161,6 +172,7 @@ function useReportActionAvatars({
                 ...(personalDetails?.[policyAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
+                shouldUseConciergeAvatar,
 
                 actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
                 accountID: policyAccountID,
@@ -215,7 +227,7 @@ function useReportActionAvatars({
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
 
-    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber}) ?? '';
+    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, translate}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
     const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isInvoiceReportActor = isAInvoiceReport && (!actorAccountID || displayAllActors || isAReportPreviewAction);
@@ -229,7 +241,21 @@ function useReportActionAvatars({
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(onyxReport, formatPhoneNumber, personalDetails, avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
+        getIcons(
+            onyxReport,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar,
+            defaultDisplayName,
+            accountID,
+            policy,
+            invoiceReceiverPolicy,
+            false,
+            // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
+            onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
+            conciergeReportID,
+        );
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
@@ -239,7 +265,6 @@ function useReportActionAvatars({
               name: delegatePersonalDetails.displayName,
               id: delegatePersonalDetails.accountID,
               type: CONST.ICON_TYPE_AVATAR,
-              fill: undefined,
               fallbackIcon,
           }
         : undefined;
@@ -250,7 +275,6 @@ function useReportActionAvatars({
         id: policy?.id,
         name: policy?.name,
         type: CONST.ICON_TYPE_WORKSPACE,
-        fill: undefined,
         fallbackIcon,
     };
 
@@ -259,7 +283,6 @@ function useReportActionAvatars({
         id: accountID,
         name: defaultDisplayName ?? fallbackDisplayName,
         type: CONST.ICON_TYPE_AVATAR,
-        fill: undefined,
         fallbackIcon,
     };
 
@@ -268,7 +291,6 @@ function useReportActionAvatars({
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
         id: 0,
-        fill: undefined,
         fallbackIcon,
     };
 
@@ -276,7 +298,7 @@ function useReportActionAvatars({
 
     if (useNearestReportAvatars) {
         primaryAvatar = getIconsWithDefaults(iouReport ?? chatReport).at(0);
-    } else if (isWorkspaceActor || usePersonalDetailsAvatars) {
+    } else if (shouldUseConciergeAvatar || isWorkspaceActor || usePersonalDetailsAvatars) {
         primaryAvatar = reportIcons.at(0);
     } else if (delegateAvatar) {
         primaryAvatar = delegateAvatar;
@@ -337,7 +359,7 @@ function useReportActionAvatars({
             avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
         }
     } else if (isUserWithWorkspaceAvatar && wasReportPreviewMovedToDifferentPolicy) {
-        const policyChatReportIcon = {...getWorkspaceIcon(policyChatReport, policy), id: policyID, name: policy?.name};
+        const policyChatReportIcon = {...getWorkspaceIcon(policyChatReport, translate, policy), id: policyID, name: policy?.name};
         const [firstAvatar] = avatars;
         avatars = [firstAvatar, policyChatReportIcon];
     }
@@ -367,6 +389,7 @@ function useReportActionAvatars({
             ...(personalDetails?.[accountID] ?? {}),
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
+            shouldUseConciergeAvatar,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,

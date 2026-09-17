@@ -1,18 +1,24 @@
-import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import FailedKYC from '@pages/EnablePayments/shared/FailedKYC';
+
 import {openEnablePaymentsPage} from '@userActions/Wallet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect} from 'react';
+
 import ActivateStep from './Activate/ActivateStep';
 import AdditionalDetailsStep from './AdditionalDetails/AdditionalDetailsStep';
 // Steps
@@ -58,11 +64,7 @@ function EnablePaymentsPage() {
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
     if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'EnablePaymentsPage',
-            isUserWalletEmpty,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

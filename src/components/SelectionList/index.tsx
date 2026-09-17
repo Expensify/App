@@ -1,8 +1,11 @@
-import React from 'react';
 import Accessibility from '@libs/Accessibility';
+
+import React from 'react';
+
+import type {ListItem, SelectionListProps} from './types';
+
 import BaseSelectionList from './BaseSelectionList';
 import useWebSelectionListBehavior from './hooks/useWebSelectionListBehavior';
-import type {ListItem, SelectionListProps} from './types';
 
 function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListProps<TItem>) {
     const {shouldIgnoreFocus, shouldDebounceScrolling, shouldDisableHoverStyle, setShouldDisableHoverStyle} = useWebSelectionListBehavior({

@@ -1,10 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {CardID} from '@src/types/onyx/Card';
 import type ReportAction from '@src/types/onyx/ReportAction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {convertAmountToDisplayString} from './CurrencyUtils';
 import {formatList} from './Localize';
 import Parser from './Parser';
@@ -46,6 +49,20 @@ function getSpendRuleAmountString(translate: LocalizedTranslate, amount: {operat
     }
     const operatorWord = getSpendRuleAmountOperatorWord(translate, amount.operator);
     return translate('workspaceActions.expensifyCardRule.amountFilter', {operator: operatorWord, amount: formatSpendRuleAmount(amount.value, currency)});
+}
+
+function getSpendRuleCurrencyString(translate: LocalizedTranslate, currency: {operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>; value: string[]}): string {
+    if (currency.value.length === 0) {
+        return '';
+    }
+
+    const currencyValues = currency.value.map((value) => `'${value}'`).join(', ');
+
+    if (currency.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+        return translate('workspaceActions.expensifyCardRule.blockedCurrencyFilters', {currencies: currencyValues});
+    }
+
+    return translate('workspaceActions.expensifyCardRule.allowedCurrencyFilters', {currencies: currencyValues});
 }
 
 function getSpendRuleCardsSummary(translate: LocalizedTranslate, cards: ReadonlyArray<{displayName?: string}> | undefined): string {
@@ -124,6 +141,12 @@ function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: S
     };
 }
 
+type SpendRuleCurrency = {operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>; value: string[]};
+
+function getSpendRuleCurrencyValues(currencies: SpendRuleCurrency[]): string[] {
+    return currencies.flatMap((currency) => currency.value);
+}
+
 type SpendRuleCard = {cardID?: CardID; displayName?: string};
 type SpendRuleCardDiff = {added: SpendRuleCard[]; removed: SpendRuleCard[]};
 
@@ -170,7 +193,7 @@ function computeSpendRuleCardDiff(oldCards: SpendRuleCard[], newCards: SpendRule
 
 type SpendRulePhraseVerb = 'added' | 'removed' | 'changed' | 'set' | 'applied';
 type SpendRulePhraseAdjective = '' | typeof CONST.SPEND_RULES.ACTION.BLOCK | typeof CONST.SPEND_RULES.ACTION.ALLOW;
-type SpendRulePhraseNoun = typeof CONST.SPEND_RULES.NOUN.MERCHANT | typeof CONST.SPEND_RULES.NOUN.SPEND_CATEGORY;
+type SpendRulePhraseNoun = typeof CONST.SPEND_RULES.NOUN.MERCHANT | typeof CONST.SPEND_RULES.NOUN.SPEND_CATEGORY | typeof CONST.SPEND_RULES.NOUN.CURRENCY;
 
 type SpendRulePhrase = {
     verb: SpendRulePhraseVerb;
@@ -241,6 +264,7 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
     const categories = message.categories ?? [];
     const amounts = message.amounts ?? [];
     const cards = message.cards ?? [];
+    const currencies = message.currencies ?? [];
 
     const items: string[] = [];
     for (const merchant of merchants) {
@@ -253,6 +277,13 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
         const formattedAmount = getSpendRuleAmountString(translate, amount, currency);
         if (formattedAmount !== '') {
             items.push(formattedAmount);
+        }
+    }
+
+    for (const allowedCurrency of currencies) {
+        const formattedCurrency = getSpendRuleCurrencyString(translate, allowedCurrency);
+        if (formattedCurrency !== '') {
+            items.push(formattedCurrency);
         }
     }
 
@@ -335,17 +366,24 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     const newAmounts = message.amounts ?? [];
     const oldCards = message.oldCards ?? [];
     const newCards = message.cards ?? [];
+    const newCurrencies = message.currencies ?? [];
+    const oldCurrencies = message.oldCurrencies ?? [];
 
     const merchantDiff = computeSpendRuleStringDiff(oldMerchants, newMerchants);
     const categoryDiff = computeSpendRuleStringDiff(oldCategories, newCategories);
     const amountDiff = computeSpendRuleAmountDiff(oldAmounts, newAmounts);
     const cardDiff = computeSpendRuleCardDiff(oldCards, newCards);
+    const oldCurrencyValues = getSpendRuleCurrencyValues(oldCurrencies);
+    const newCurrencyValues = getSpendRuleCurrencyValues(newCurrencies);
+    const wasCurrencyRestrictionRemoved = oldCurrencyValues.length > 0 && newCurrencyValues.length === 0;
+    const currencyDiff = wasCurrencyRestrictionRemoved ? {added: [], removed: []} : computeSpendRuleStringDiff(oldCurrencyValues, newCurrencyValues);
 
     const merchantsChanged = merchantDiff.added.length > 0 || merchantDiff.removed.length > 0;
     const categoriesChanged = categoryDiff.added.length > 0 || categoryDiff.removed.length > 0;
     const amountsChanged = amountDiff.added.length > 0 || amountDiff.removed.length > 0;
     const cardsChanged = cardDiff.added.length > 0 || cardDiff.removed.length > 0;
-    const filtersAndCardsUnchanged = !merchantsChanged && !categoriesChanged && !amountsChanged && !cardsChanged;
+    const currenciesChanged = wasCurrencyRestrictionRemoved || currencyDiff.added.length > 0 || currencyDiff.removed.length > 0;
+    const filtersAndCardsUnchanged = !merchantsChanged && !categoriesChanged && !amountsChanged && !cardsChanged && !currenciesChanged;
 
     const newCardsSummary = getSpendRuleCardsSummary(translate, newCards);
 
@@ -357,7 +395,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
         });
     }
 
-    if (cardsChanged && !merchantsChanged && !categoriesChanged && !amountsChanged && !actionChanged) {
+    if (cardsChanged && !merchantsChanged && !categoriesChanged && !amountsChanged && !actionChanged && !currenciesChanged) {
         if (cardDiff.added.length > 0 && cardDiff.removed.length === 0) {
             return translate('workspaceActions.expensifyCardRule.update.appliedToAdditionalCards', {count: cardDiff.added.length});
         }
@@ -389,7 +427,22 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
             (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryValueOnly', params),
             (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', params),
         ),
+        ...getDiffPhrases(
+            currencyDiff,
+            CONST.SPEND_RULES.ACTION.ALLOW,
+            getSpendRuleActionVerb(translate, CONST.SPEND_RULES.ACTION.ALLOW),
+            'currency',
+            (value) => value,
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodyCurrency', params),
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodyCurrencyValueOnly', params),
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodyCurrencyChange', params),
+        ),
     ];
+
+    if (wasCurrencyRestrictionRemoved) {
+        const body = translate('workspaceActions.expensifyCardRule.update.bodyCurrencyRestriction');
+        phrases.push({verb: 'removed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
+    }
 
     if (amountDiff.added.length === 1 && amountDiff.removed.length === 1) {
         const oldValue = formatSpendRuleAmount(amountDiff.removed.at(0)?.value ?? [], currency);

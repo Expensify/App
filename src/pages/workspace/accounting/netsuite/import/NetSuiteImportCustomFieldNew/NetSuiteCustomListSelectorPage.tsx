@@ -1,24 +1,31 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
 
 type NetSuiteCustomListSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR>;
 
@@ -32,6 +39,8 @@ function NetSuiteCustomListSelectorPage({
     const policy = usePolicy(policyID);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM_DRAFT);
     const currentCustomListValue = formDraft?.[INPUT_IDS.LIST_NAME] ?? '';
+    // Freeze the pre-selected custom list when the page opened so it stays pinned to the top for the whole open/focus cycle.
+    const initialCustomListValue = useInitialSelection(currentCustomListValue, {resetOnFocus: true});
 
     const rawCustomLists = policy?.connections?.netsuite?.options?.data?.customLists;
 
@@ -45,15 +54,18 @@ function NetSuiteCustomListSelectorPage({
             id: customListRecord.id,
         }));
 
+        // Pin the frozen pre-selected list to the top of the full list before search filtering, so it stays pinned while searching.
+        const orderedCustomListData = moveInitialSelectionToTop(customListData, initialCustomListValue ? [initialCustomListValue] : []);
+
         const searchRegex = new RegExp(Str.escapeForRegExp(debouncedSearchValue.trim()), 'i');
-        const filteredCustomLists = customListData.filter((customListRecord) => searchRegex.test(customListRecord.text ?? ''));
+        const filteredCustomLists = orderedCustomListData.filter((customListRecord) => searchRegex.test(customListRecord.text ?? ''));
         const isEmpty = debouncedSearchValue.trim() && !filteredCustomLists.length;
 
         return {
             options: isEmpty ? [] : filteredCustomLists,
             showTextInput: customListData.length >= CONST.STANDARD_LIST_ITEM_LIMIT,
         };
-    }, [debouncedSearchValue, rawCustomLists, currentCustomListValue]);
+    }, [debouncedSearchValue, rawCustomLists, currentCustomListValue, initialCustomListValue]);
 
     const textInputOptions = useMemo(
         () => ({
@@ -99,9 +111,11 @@ function NetSuiteCustomListSelectorPage({
                     textInputOptions={textInputOptions}
                     onSelectRow={onSelectRow}
                     ListItem={SingleSelectListItem}
-                    initiallyFocusedItemKey={currentCustomListValue}
+                    initiallyFocusedItemKey={initialCustomListValue}
+                    shouldScrollToFocusedIndexOnMount={false}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
+                    shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>

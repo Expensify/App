@@ -1,13 +1,19 @@
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+
+import variables from '@styles/variables';
+
+import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React, {useEffect, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import variables from '@styles/variables';
-import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type ReceiptPDFOverlayProps from './types';
 
 const oversamplePercent = `${CONST.RECEIPT.HOVER_ZOOM_SCALE * 100}%`;

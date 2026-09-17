@@ -1,22 +1,26 @@
-import React, {useRef, useState} from 'react';
-import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import DeferredImageWithLoading from '@components/DeferredImageWithLoading';
 import EReceiptStaticThumbnail from '@components/EReceiptStaticThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
-import ImageWithLoading from '@components/ImageWithLoading';
-import PDFThumbnail from '@components/PDFThumbnail';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import ThumbnailImage from '@components/ThumbnailImage';
+
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts';
 
 // It is used to avoid updating the image width in a loop.
@@ -27,7 +31,6 @@ type ReceiptImageProps = (
           /** Transaction ID of the transaction the receipt belongs to */
           transactionID: string;
 
-          /** Whether it is EReceipt */
           isEReceipt: boolean;
 
           /** Whether it is receipt preview thumbnail we are displaying */
@@ -36,7 +39,6 @@ type ReceiptImageProps = (
           /** Url of the receipt image */
           source?: ReceiptSource;
 
-          /** Whether it is a pdf thumbnail we are displaying */
           isPDFThumbnail?: false;
       }
     | {
@@ -77,28 +79,19 @@ type ReceiptImageProps = (
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
 
-    /** The file extension of the receipt file */
     fileExtension?: string;
 
     /** number of images displayed in the same parent container */
     iconSize?: IconSize;
 
-    /** The size of the loading indicator */
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
-    /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
-
-    /** Styles applied to the thumbnail container */
     thumbnailContainerStyles?: StyleProp<ViewStyle>;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
-    /** The size of the fallback icon */
     fallbackIconSize?: number;
-
-    /** The color of the fallback icon */
     fallbackIconColor?: string;
 
     /** The background color of fallback icon */
@@ -106,13 +99,9 @@ type ReceiptImageProps = (
 
     isEmptyReceipt?: boolean;
 
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
-
     /** Callback to be called on pressing the image */
     onPress?: () => void;
 
-    /** Whether the receipt is a per diem request */
     isPerDiemRequest?: boolean;
 
     /** The transaction data in search */
@@ -127,10 +116,7 @@ type ReceiptImageProps = (
     /** Callback to be called when the image fails to load */
     onLoadFailure?: () => void;
 
-    /** The resize mode of the image */
     resizeMode?: ImageResizeMode;
-
-    /** Any additional styles to apply */
     style?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
@@ -154,7 +140,6 @@ function ReceiptImage({
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
-    reasonAttributes,
     onPress,
     transactionItem,
     isPerDiemRequest,
@@ -185,10 +170,11 @@ function ReceiptImage({
 
     if (isPDFThumbnail) {
         return (
-            <PDFThumbnail
-                previewSourceURL={source ?? ''}
-                style={[styles.w100, styles.h100]}
+            <LocalPDFReceiptPreview
+                sourceURL={source ?? ''}
+                shouldUseFullHeight={shouldUseFullHeight}
                 onLoadSuccess={onLoad}
+                onLoadFailure={onLoadFailure}
             />
         );
     }
@@ -243,13 +229,12 @@ function ReceiptImage({
                 onLoad={onLoad}
                 onLoadFailure={onLoadFailure}
                 resizeMode={resizeMode}
-                reasonAttributes={reasonAttributes}
             />
         );
     }
 
     return (
-        <ImageWithLoading
+        <DeferredImageWithLoading
             onLayout={(e) => {
                 if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
                     setReceiptImageWidth(e.nativeEvent.layout.width);
@@ -268,7 +253,6 @@ function ReceiptImage({
             imageWidthToCalculateHeight={receiptImageWidth}
             onError={onLoadFailure}
             resizeMode={resizeMode}
-            reasonAttributes={reasonAttributes}
             previewUri={previewUri}
         />
     );

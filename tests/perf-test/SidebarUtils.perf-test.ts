@@ -1,18 +1,22 @@
-import {rand} from '@ngneat/falso';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {rand} from '@ngneat/falso';
+import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
+
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
@@ -71,6 +75,7 @@ describe('SidebarUtils', () => {
 
         await measureFunction(() =>
             SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs,
@@ -83,11 +88,15 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 lastAction: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 1,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                rules: undefined,
             }),
         );
     });
@@ -107,6 +116,8 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
+                guideAccountIDs: [],
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -126,6 +137,8 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
+                guideAccountIDs: [],
+                conciergeReportID: undefined,
             }),
         );
     });

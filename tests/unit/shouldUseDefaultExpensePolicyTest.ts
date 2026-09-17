@@ -1,9 +1,12 @@
-import {getUnixTime, subDays} from 'date-fns';
-import Onyx from 'react-native-onyx';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, Policy} from '@src/types/onyx';
+
+import {getUnixTime, subDays} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -15,7 +18,6 @@ function makePaidGroupPolicy(overrides?: Partial<Policy>): Policy {
         ...createRandomPolicy(Number(TEAM_POLICY_ID), CONST.POLICY.TYPE.TEAM),
         id: TEAM_POLICY_ID,
         ownerAccountID: OWNER_ACCOUNT_ID,
-        isPolicyExpenseChatEnabled: true,
         ...overrides,
     };
 }
@@ -46,8 +48,8 @@ describe('shouldUseDefaultExpensePolicy', () => {
         expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
     });
 
-    it('returns false when isPolicyExpenseChatEnabled is false', () => {
-        const policy = makePaidGroupPolicy({isPolicyExpenseChatEnabled: false});
+    it('returns false when defaultExpensePolicy is not a group policy', () => {
+        const policy = makePaidGroupPolicy({type: CONST.POLICY.TYPE.PERSONAL});
         expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
     });
 

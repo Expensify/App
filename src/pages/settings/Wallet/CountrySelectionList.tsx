@@ -1,22 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
+
 import Text from '@src/components/Text';
 import type {TranslationPaths} from '@src/languages/types';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type CountrySelectionListProps = {
-    /** The currently selected country */
     selectedCountry: string;
 
     /** List of available countries in country code format */
@@ -31,7 +34,6 @@ type CountrySelectionListProps = {
     /** Whether the user is editing an existing account */
     isEditing?: boolean;
 
-    /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
 };
 

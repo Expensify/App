@@ -1,7 +1,11 @@
-import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import type {MultifactorAuthenticationCancelConfirm} from '@components/MultifactorAuthentication/config/types';
+
 import useLocalize from '@hooks/useLocalize';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
 
 type BaseProps = Required<MultifactorAuthenticationCancelConfirm>;
 
@@ -18,7 +22,7 @@ function CancelConfirmModalBase({isVisible, onConfirm, onCancel, title, descript
 
     return (
         <ConfirmModal
-            danger
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             title={translate(title)}
             onConfirm={onConfirm}
             onCancel={onCancel}

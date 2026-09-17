@@ -1,6 +1,8 @@
-import React from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
+
+import React from 'react';
+
 import PersonalInfo from './PersonalInfo/PersonalInfo';
 
 type RequestorStepProps = {
@@ -10,7 +12,6 @@ type RequestorStepProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 
     /** Back to URL for preserving navigation context */

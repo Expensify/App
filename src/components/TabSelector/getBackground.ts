@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
+
 import type {BackgroundColor, GetBackgroundColorConfig} from './types';
 
 function getBackgroundColor({routesLength, tabIndex, affectedTabs, theme, position, isActive}: GetBackgroundColorConfig): BackgroundColor {

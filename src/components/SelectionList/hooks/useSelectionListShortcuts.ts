@@ -1,6 +1,8 @@
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
+
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+
 import CONST from '@src/CONST';
 
 type UseSelectionListShortcutsParams<TItem extends ListItem> = {

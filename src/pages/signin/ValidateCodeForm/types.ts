@@ -1,4 +1,5 @@
 import type {ForwardedRef} from 'react';
+
 import type {BaseValidateCodeFormRef} from './BaseValidateCodeForm';
 
 type ValidateCodeFormProps = {
@@ -9,8 +10,6 @@ type ValidateCodeFormProps = {
     setIsUsingRecoveryCode: (value: boolean) => void;
 
     isVisible: boolean;
-
-    /** Reference to the outer element */
     ref: ForwardedRef<BaseValidateCodeFormRef>;
 };
 

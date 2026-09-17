@@ -1,6 +1,5 @@
-import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,7 +8,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -20,20 +21,30 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {switchToOldDot} from '@libs/actions/ExitSurvey';
 import {setErrorFields} from '@libs/actions/FormActions';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {openOldDotLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback} from 'react';
+
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[INPUT_IDS.RESPONSE];
@@ -47,6 +58,7 @@ function DynamicExitSurveyReasonPage() {
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const {inputCallbackRef} = useAutoFocusInput(true);
 
     // Device safe area top and bottom insets.
@@ -89,7 +101,7 @@ function DynamicExitSurveyReasonPage() {
             keyboardHeight -
             safeAreaInsetsTop -
             // Minus the height of HeaderWithBackButton
-            variables.contentHeaderHeight -
+            contentHeaderHeight -
             // Minus the top margins on the form
             formTopMarginsStyle.marginTop,
     );
@@ -141,21 +153,21 @@ function DynamicExitSurveyReasonPage() {
                 )}
             </FormProvider>
             <FixedFooter>
-                <Button
-                    large
-                    text={translate('exitSurvey.goToExpensifyClassic')}
+                <ButtonDisabledWhenOffline
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={switchToClassic}
-                    isDisabled={isOffline}
-                />
-                <Button
-                    success
-                    large
-                    pressOnEnter
-                    text={translate('exitSurvey.goBackJustOnce')}
+                >
+                    <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
+                </ButtonDisabledWhenOffline>
+                <ButtonDisabledWhenOffline
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={goBackJustOnce}
-                    isDisabled={isOffline}
                     style={styles.mt3}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('exitSurvey.goBackJustOnce')}</Button.Text>
+                </ButtonDisabledWhenOffline>
             </FixedFooter>
         </ScreenWrapper>
     );

@@ -1,6 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Account} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const isValidateCodeFormSubmitting = (account: OnyxEntry<Account>) =>
     !!account?.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
@@ -10,6 +11,28 @@ function isDelegateOnlySubmitter(account: OnyxEntry<Account>): boolean {
     const delegateRole = account?.delegatedAccess?.delegates?.find((delegate) => delegate.email === delegateEmail)?.role;
 
     return delegateRole === CONST.DELEGATE_ROLE.SUBMITTER;
+}
+
+/**
+ * Whether the required-2FA overlay should be shown for the current account state.
+ * Once 2FA is enabled (`requiresTwoFactorAuth`), never show the overlay just because
+ * `twoFactorAuthSetupInProgress` is still set (post-complete handoff window).
+ */
+function shouldShowRequire2FAPage(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
+    return (
+        (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) ||
+        (!!account?.twoFactorAuthSetupInProgress && !account?.requiresTwoFactorAuth && !hasCompletedGuidedSetupFlow)
+    );
+}
+
+/**
+ * Whether the user is in the forced 2FA setup flow during incomplete onboarding
+ * (domain-migration / required-2FA-before-onboarding scenario).
+ * Detected via setup-in-progress alone so verify-submit can keep the RHP open before
+ * `requiresTwoFactorAuth` becomes true.
+ */
+function isForced2FAOnboardingSetup(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
+    return !!account?.twoFactorAuthSetupInProgress && hasCompletedGuidedSetupFlow === false;
 }
 
 /**
@@ -34,4 +57,4 @@ function hasValidateCodeExtendedAccess(account: OnyxEntry<Account>): boolean {
     return false;
 }
 
-export default {isValidateCodeFormSubmitting, isDelegateOnlySubmitter, hasValidateCodeExtendedAccess};
+export default {isValidateCodeFormSubmitting, isDelegateOnlySubmitter, shouldShowRequire2FAPage, isForced2FAOnboardingSetup, hasValidateCodeExtendedAccess};

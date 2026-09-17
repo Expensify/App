@@ -1,11 +1,7 @@
-import type {ForwardedRef, ReactNode} from 'react';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, PanResponder, View} from 'react-native';
-import {PickerAvoidingView} from 'react-native-picker-select';
 import {useInputBlurActions, useInputBlurState} from '@components/InputBlurContext';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -13,24 +9,30 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import addViewportResizeListener from '@libs/VisualViewport';
+
 import toggleTestToolsModal from '@userActions/TestTool';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef, ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {Keyboard, PanResponder, View} from 'react-native';
+import {PickerAvoidingView} from 'react-native-picker-select';
 
 type ScreenWrapperContainerProps = ForwardedFSClassProps &
     React.PropsWithChildren<{
-        /** A unique ID to find the screen wrapper in tests */
         testID: string;
-
-        /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
 
         /** Content to display under the offline indicator */
         bottomContent?: ReactNode;
 
-        /** Additional styles for bottom content */
         bottomContentStyle?: StyleProp<ViewStyle>;
 
         /** Whether the screen wrapper has finished the transition */
@@ -40,7 +42,6 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
          *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
         keyboardAvoidingViewBehavior?: 'padding' | 'height' | 'position';
 
-        /** The vertical offset to pass to the KeyboardAvoidingView */
         keyboardVerticalOffset?: number;
 
         /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
@@ -65,19 +66,13 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
         shouldEnableMinHeight?: boolean;
 
-        /** Whether to avoid scroll on virtual viewport */
         shouldAvoidScrollOnVirtualViewport?: boolean;
 
         /** Whether to use cached virtual viewport height  */
         shouldUseCachedViewportHeight?: boolean;
 
-        /** Whether to include padding bottom */
         includeSafeAreaPaddingBottom?: boolean;
-
-        /** Whether to include padding top */
         includePaddingTop?: boolean;
-
-        /** Whether to enable edge to edge bottom safe area padding */
         enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
         /**
@@ -88,7 +83,6 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether this screen should be hidden from accessibility tree */
         shouldHideFromAccessibility?: boolean;
 
-        /** Reference to the outer element */
         ref?: ForwardedRef<View>;
     }>;
 

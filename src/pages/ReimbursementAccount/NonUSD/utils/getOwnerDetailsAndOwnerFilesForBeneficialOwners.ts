@@ -1,15 +1,17 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {BeneficialOwnerDataKey, ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
-import SafeString from '@src/utils/SafeString';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {SafeString} from 'expensify-common';
 
 const {
     FIRST_NAME,
     LAST_NAME,
     OWNERSHIP_PERCENTAGE,
     DOB,
-    SSN_LAST_4,
+    SSN,
     STREET,
     CITY,
     COUNTRY,
@@ -25,7 +27,7 @@ const {
     PREFIX,
 } = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-const ownerDetailsFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY, NATIONALITY];
+const ownerDetailsFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN, STREET, CITY, STATE, ZIP_CODE, COUNTRY, NATIONALITY];
 const ownerFilesFields = [PROOF_OF_OWNERSHIP, COPY_OF_ID, ADDRESS_PROOF, CODICE_FISCALE];
 
 function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>) {
@@ -44,7 +46,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
                 continue;
             }
 
-            if (fieldName === SSN_LAST_4 && SafeString(reimbursementAccountDraft?.[ownerDetailsNationalityKey]) !== CONST.COUNTRY.US) {
+            if (fieldName === SSN && SafeString(reimbursementAccountDraft?.[ownerDetailsNationalityKey]) !== CONST.COUNTRY.US) {
                 continue;
             }
 

@@ -1,16 +1,22 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Role, Text as TextType, View as ViewType} from 'react-native';
-import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import Svg, {Path} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Role, Text as TextType, View as ViewType} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Svg, {Path} from 'react-native-svg';
+
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
@@ -21,22 +27,13 @@ const SMALL_FAB_PATH =
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 type FloatingActionButtonProps = WithSentryLabel & {
-    /* Callback to fire on request to toggle the FloatingActionButton */
+    /** Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
-    /* Callback to fire on long press of the FloatingActionButton */
     onLongPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
-    /* Current state (active or not active) of the component */
     isActive: boolean;
-
-    /* An accessibility label for the button */
     accessibilityLabel: string;
-
-    /* An accessibility role for the button */
     role: Role;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
 };
 

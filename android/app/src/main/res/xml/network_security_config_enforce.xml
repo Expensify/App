@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Certificate pinning - ENFORCE mode template (Iteration 1 - NewDot, release builds).
+
+    Copy this file over network_security_config.xml when flipping from monitor-only to enforce mode
+    (after setting enforcePinning=true in config/certificatePinning/pins.json, CertificatePinning.kt,
+    and CertificatePinning.swift).
+
+    This <pin-set> enforces SSL public-key pinning for Expensify-controlled hosts across all
+    platform TLS stacks that honor network security config: HttpURLConnection, WebView, and Glide.
+    OkHttp traffic (fetch(), react-native-blob-util, etc.) is pinned separately in CertificatePinning.kt.
+
+    Keep the hashes here in sync with config/certificatePinning/pins.json and CertificatePinning.kt /
+    CertificatePinning.swift (regenerate via scripts/generateCertificatePins.sh).
+
+    Each domain pins the leaf SPKI hash (primary) plus its issuing intermediate CA SPKI hash
+    (durable backup that survives leaf rotation). Do NOT add an `expiration` attribute - an expired
+    pin-set silently disables pinning; rotation is managed through app updates instead.
+-->
+<network-security-config>
+    <!-- Groups A & B: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge cert
+         between Let's Encrypt, Google Trust Services and SSL.com without notice (the 2026-07-07
+         Let's Encrypt -> GTS rotation broke us; www has since reverted to Let's Encrypt). To survive
+         leaf rotation, intermediate rotation AND a CA switch without an emergency release, we pin the
+         SPKI of the ROOT of all three CAs plus the live issuing intermediate of each. Regenerate via
+         scripts/generateCertificatePins.sh. -->
+    <domain-config>
+        <domain includeSubdomains="false">www.expensify.com</domain>
+        <domain includeSubdomains="false">secure.expensify.com</domain>
+        <domain includeSubdomains="false">staging.expensify.com</domain>
+        <domain includeSubdomains="false">staging-secure.expensify.com</domain>
+        <domain includeSubdomains="false">new.expensify.com</domain>
+        <domain includeSubdomains="false">staging.new.expensify.com</domain>
+        <pin-set>
+            <!-- Let's Encrypt (live CA for these hosts) -->
+            <pin digest="SHA-256">C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=</pin> <!-- ISRG Root X1 -->
+            <pin digest="SHA-256">diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=</pin> <!-- ISRG Root X2 -->
+            <pin digest="SHA-256">brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=</pin> <!-- Let's Encrypt YE1 intermediate -->
+            <!-- Google Trust Services (backup) -->
+            <pin digest="SHA-256">hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=</pin> <!-- GTS Root R1 -->
+            <pin digest="SHA-256">Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=</pin> <!-- GTS Root R2 -->
+            <pin digest="SHA-256">QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=</pin> <!-- GTS Root R3 -->
+            <pin digest="SHA-256">mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=</pin> <!-- GTS Root R4 -->
+            <pin digest="SHA-256">kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=</pin> <!-- Google Trust Services WE1 intermediate -->
+            <!-- SSL.com (backup) -->
+            <pin digest="SHA-256">G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=</pin> <!-- SSL.com TLS ECC Root CA 2022 -->
+            <pin digest="SHA-256">K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=</pin> <!-- SSL.com TLS RSA Root CA 2022 -->
+        </pin-set>
+    </domain-config>
+
+    <!-- Group C: integrations leaf + Let's Encrypt R13 intermediate -->
+    <domain-config>
+        <domain includeSubdomains="false">integrations.expensify.com</domain>
+        <pin-set>
+            <pin digest="SHA-256">7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=</pin>
+            <pin digest="SHA-256">AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- Group D: travel leaf + Google Trust Services WE1 intermediate -->
+    <domain-config>
+        <domain includeSubdomains="false">travel.expensify.com</domain>
+        <domain includeSubdomains="false">staging.travel.expensify.com</domain>
+        <pin-set>
+            <pin digest="SHA-256">Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=</pin>
+            <pin digest="SHA-256">kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- Group E: CloudFront CDN leaf + Amazon RSA 2048 M01 intermediate -->
+    <domain-config>
+        <domain includeSubdomains="false">d2k5nsl2zxldvw.cloudfront.net</domain>
+        <pin-set>
+            <pin digest="SHA-256">P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=</pin>
+            <pin digest="SHA-256">DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw=</pin>
+        </pin-set>
+    </domain-config>
+</network-security-config>

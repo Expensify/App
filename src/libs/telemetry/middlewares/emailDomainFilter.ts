@@ -1,5 +1,7 @@
-import type {TransactionEvent} from '@sentry/core';
 import CONST from '@src/CONST';
+
+import type {TransactionEvent} from '@sentry/core';
+
 import type {TelemetryBeforeSend} from './index';
 
 const emailDomainFilter: TelemetryBeforeSend = (event: TransactionEvent): TransactionEvent | null => {

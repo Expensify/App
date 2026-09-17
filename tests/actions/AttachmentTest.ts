@@ -1,20 +1,29 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {rand64} from '@libs/NumberUtils';
+
 import {clearCachedAttachments, getCachedAttachment} from '@userActions/Attachment';
 import {addAttachmentWithComment, addComment, deleteReportComment} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type {Attachment, ReportAction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
+    CachesDirectoryPath: '/mock/caches',
     copyFile: jest.fn(() => Promise.resolve()),
     exists: jest.fn(() => Promise.resolve(true)),
     unlink: jest.fn(() => Promise.resolve()),
+    mkdir: jest.fn(() => Promise.resolve()),
 }));
+
+const mockRNFS: {exists: jest.Mock} = jest.requireMock('react-native-fs');
 
 jest.mock('react-native-blob-util', () => ({
     config: jest.fn((data: {path?: string} | undefined) => {
@@ -69,14 +78,21 @@ describe('AttachmentStorage', () => {
         };
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
         const attachments = await new Promise<OnyxCollection<Attachment>>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -92,8 +108,35 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
         });
+    });
+    it('should fall back to the current source when the cached file was purged from disk', async () => {
+        // Given a cached attachment whose file no longer exists (the OS can purge Caches)
+        const attachmentID = 'purged-attachment';
+        const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
+        const attachment = {attachmentID, source: `/mock/caches/attachments/${attachmentID}.jpg`, remoteSource: sourceURL};
+        mockRNFS.exists.mockResolvedValueOnce(false);
+
+        // When reading it from the cache
+        const resolvedSource = await getCachedAttachment({attachmentID, attachment, currentSource: sourceURL});
+
+        // Then the dead local path is not returned
+        expect(resolvedSource).toBe(sourceURL);
+    });
+    it('should return the cached local source with a file:// scheme so the native Image can load it', async () => {
+        // Given a cached attachment whose stored file path (no scheme) still exists on disk
+        const attachmentID = 'cached-attachment';
+        const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
+        const localSource = `/mock/caches/attachments/${attachmentID}.jpg`;
+        const attachment = {attachmentID, source: localSource, remoteSource: sourceURL};
+        mockRNFS.exists.mockResolvedValueOnce(true);
+
+        // When reading it from the cache
+        const resolvedSource = await getCachedAttachment({attachmentID, attachment, currentSource: sourceURL});
+
+        // Then the path is returned prefixed with file:// (Android's <Image> can't load a local path without a scheme)
+        expect(resolvedSource).toBe(`file://${localSource}`);
     });
     it('should cache markdown attachment', async () => {
         // Given the attachment data consisting of sourceURL and markdown comment text
@@ -109,6 +152,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -116,7 +160,6 @@ describe('AttachmentStorage', () => {
         const attachments = await new Promise<OnyxCollection<Attachment>>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -132,7 +175,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
     });
@@ -145,7 +188,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -165,6 +207,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -176,7 +219,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
 
@@ -195,7 +238,7 @@ describe('AttachmentStorage', () => {
         // Then the attachment should be updated with new attachment link
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: newSourceURL,
         });
     });
@@ -217,7 +260,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -229,7 +271,15 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -241,7 +291,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: fileData.uri,
         });
 
@@ -250,7 +300,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
         await waitForBatchedUpdates();
 
         // Then the attachment should be removed
@@ -272,7 +322,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -292,6 +341,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -304,7 +354,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
 
@@ -313,7 +363,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
         await waitForBatchedUpdates();
 
         const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
@@ -342,7 +392,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -362,8 +411,17 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: attachmentFiles, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: attachmentFiles,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -382,14 +440,14 @@ describe('AttachmentStorage', () => {
                 expect(remoteSourceIndex).toBeDefined();
                 expect(attachment).toEqual({
                     attachmentID,
-                    source: `/mock/documents/attachments/${attachmentID}.jpg`,
+                    source: `/mock/caches/attachments/${attachmentID}.jpg`,
                     remoteSource: markdownAttachments.at(remoteSourceIndex),
                 });
                 continue;
             }
             expect(attachment).toEqual({
                 attachmentID,
-                source: `/mock/documents/attachments/${attachmentID}.jpg`,
+                source: `/mock/caches/attachments/${attachmentID}.jpg`,
             });
         }
 

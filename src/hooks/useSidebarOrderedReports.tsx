@@ -1,27 +1,26 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {setInboxTab} from '@libs/actions/User';
 import Log from '@libs/Log';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+
+import useCollectionDelta from './useCollectionDelta';
 import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
-import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
-
-const componentsUsingHook = new Map<string, {renderDuration: number}>();
-
-type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
 type SidebarOrderedReportsContextProviderProps = {
     children: React.ReactNode;
@@ -37,15 +36,26 @@ type SidebarOrderedReportsStateContextValue = {
     chatTabBrickRoad: BrickRoad;
     activeTab: ValueOf<typeof CONST.INBOX_TAB>;
     inboxTabCounts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>;
+    /** Whether the Unread tab holds a report whose newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS. */
+    hasStaleUnreadReport: boolean;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
     setActiveTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => void;
     setStickyReportID: (reportID: string) => void;
+    /** The report IDs listed under the given Inbox tab, read on demand by bulk tab actions (e.g. "Mark all as read"). */
+    getReportIDsForTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => string[];
 };
 
-type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean; isUnreadReport?: boolean}>;
+type ReportsToDisplayInLHN = Record<
+    string,
+    OnyxTypes.Report & {
+        hasErrorsOtherThanFailedReceipt?: boolean;
+        requiresAttention?: boolean;
+        isUnreadReport?: boolean;
+    }
+>;
 
 const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
     filteredReports: [],
@@ -57,22 +67,18 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
         [CONST.INBOX_TAB.TODO]: 0,
         [CONST.INBOX_TAB.UNREAD]: 0,
     },
+    hasStaleUnreadReport: false,
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
     setActiveTab: () => {},
     setStickyReportID: () => {},
+    getReportIDsForTab: () => [],
 });
 
-const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
-    (policy && {
-        type: policy.type,
-        name: policy.name,
-        avatarURL: policy.avatarURL,
-        employeeList: policy.employeeList,
-    }) as PartialPolicyForSidebar;
-
+// This file does not compile with React Compiler (render-time ref cache below keeps referential
+// stability), so the manual useMemo/useCallback in this provider are load-bearing and must stay.
 function SidebarOrderedReportsContextProvider({
     children,
     /**
@@ -89,13 +95,24 @@ function SidebarOrderedReportsContextProvider({
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [inboxTab = CONST.INBOX_TAB.ALL] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
     const activeTab = inboxTab ?? CONST.INBOX_TAB.ALL;
-    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
-    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const reportUpdates = useCollectionDelta(chatReports);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const policiesUpdates = useCollectionDelta(allPolicies);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const transactionsUpdates = useCollectionDelta(transactions);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolationsUpdates = useCollectionDelta(transactionViolations);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs);
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    // useOnyx only gives us a new reference when the guide set actually differs, so comparing references
+    // below is enough to detect late guide hydration.
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+    const prevGuideAccountIDs = usePrevious(guideAccountIDs);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -112,11 +129,7 @@ function SidebarOrderedReportsContextProvider({
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
-
-    const perfRef = useRef<{hookDuration: number}>({
-        hookDuration: 0,
-    });
-    const hookStartTime = useRef<number>(performance.now());
+    const prevConciergeReportID = usePrevious(conciergeReportID);
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -124,7 +137,7 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
-        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline) {
+        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline || conciergeReportID !== prevConciergeReportID) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
             }
@@ -193,6 +206,8 @@ function SidebarOrderedReportsContextProvider({
         prevPriorityMode,
         isOffline,
         prevIsOffline,
+        conciergeReportID,
+        prevConciergeReportID,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
@@ -204,9 +219,16 @@ function SidebarOrderedReportsContextProvider({
         // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
         // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
         // reports, recheck only the already-displayed reports with the new reportAttributes.
-        const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+
+        // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
+        // getUpdatedReports() returns no report keys. Re-evaluate all reports so domain rooms previously
+        // filtered out can appear in the LHN.
+        if (hasCachedReports && prevGuideAccountIDs !== undefined && guideAccountIDs !== prevGuideAccountIDs) {
+            effectiveUpdatedReports = Object.keys(chatReports ?? {});
+        }
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
-        let reportsToDisplay = {};
+        let reportsToDisplay: ReportsToDisplayInLHN = {};
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
@@ -223,6 +245,8 @@ function SidebarOrderedReportsContextProvider({
                 isOffline,
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
+                conciergeReportID,
+                guideAccountIDs,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -239,6 +263,8 @@ function SidebarOrderedReportsContextProvider({
                 currentUserAccountID: accountID,
                 reportNameValuePairs,
                 reportAttributes,
+                conciergeReportID,
+                guideAccountIDs,
             });
         }
 
@@ -259,6 +285,9 @@ function SidebarOrderedReportsContextProvider({
         clearCacheDummyCounter,
         currentUserLogin,
         accountID,
+        conciergeReportID,
+        guideAccountIDs,
+        prevGuideAccountIDs,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.
@@ -317,8 +346,19 @@ function SidebarOrderedReportsContextProvider({
         return orderedReportIDs.filter((reportID) => baseSet.has(reportID) || reportID === stickyReportID);
     }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID]);
 
-    // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
-    const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+    // Derived from the full "All" set (not the currently filtered view).
+    const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(() => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+
+    // Held in a ref so getReportIDsForTab stays referentially stable (keeping the actions context stable) and only
+    // filters when a bulk tab action actually asks for a tab's reports, rather than on every LHN update.
+    const inboxTabSourcesRef = useRef({orderedReportIDs, reportsToDisplayInLHN});
+    useEffect(() => {
+        inboxTabSourcesRef.current = {orderedReportIDs, reportsToDisplayInLHN};
+    }, [orderedReportIDs, reportsToDisplayInLHN]);
+    const getReportIDsForTab = useCallback(
+        (tab: ValueOf<typeof CONST.INBOX_TAB>) => SidebarUtils.filterReportsForInboxTab(inboxTabSourcesRef.current.orderedReportIDs, inboxTabSourcesRef.current.reportsToDisplayInLHN, tab),
+        [],
+    );
 
     // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(
@@ -389,6 +429,7 @@ function SidebarOrderedReportsContextProvider({
                 chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
                 activeTab,
                 inboxTabCounts,
+                hasStaleUnreadReport,
             };
         }
 
@@ -399,6 +440,7 @@ function SidebarOrderedReportsContextProvider({
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
             activeTab,
             inboxTabCounts,
+            hasStaleUnreadReport,
         };
     }, [
         getOrderedReportIDs,
@@ -411,15 +453,14 @@ function SidebarOrderedReportsContextProvider({
         reportAttributes,
         activeTab,
         inboxTabCounts,
+        hasStaleUnreadReport,
         reportsToDisplayInLHN,
     ]);
 
-    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab, setStickyReportID}), [clearLHNCache, setActiveTab, setStickyReportID]);
-
-    useEffect(() => {
-        const hookExecutionDuration = performance.now() - hookStartTime.current;
-        perfRef.current.hookDuration = hookExecutionDuration;
-    }, [stateValue]);
+    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(
+        () => ({clearLHNCache, setActiveTab, setStickyReportID, getReportIDsForTab}),
+        [clearLHNCache, setActiveTab, setStickyReportID, getReportIDsForTab],
+    );
 
     return (
         <SidebarOrderedReportsStateContext.Provider value={stateValue}>
@@ -428,8 +469,7 @@ function SidebarOrderedReportsContextProvider({
     );
 }
 
-function useSidebarOrderedReportsState(componentName?: string) {
-    useSidebarOrderedReportsPerformance(componentName);
+function useSidebarOrderedReportsState() {
     return useContext(SidebarOrderedReportsStateContext);
 }
 
@@ -437,44 +477,12 @@ function useSidebarOrderedReportsActions() {
     return useContext(SidebarOrderedReportsActionsContext);
 }
 
-function useSidebarOrderedReports(componentName?: string) {
-    const state = useSidebarOrderedReportsState(componentName);
+function useSidebarOrderedReports() {
+    const state = useSidebarOrderedReportsState();
     const actions = useSidebarOrderedReportsActions();
-    return {...state, ...actions};
-}
-
-function useSidebarOrderedReportsPerformance(componentName?: string) {
-    const renderStartTime = useRef<number>(0);
-
-    useEffect(() => {
-        if (!componentName) {
-            return;
-        }
-
-        componentsUsingHook.set(componentName, {renderDuration: 0});
-
-        return () => {
-            componentsUsingHook.delete(componentName);
-        };
-    }, [componentName]);
-
-    useEffect(() => {
-        if (!componentName) {
-            return;
-        }
-
-        renderStartTime.current = performance.now();
-
-        return () => {
-            const renderDuration = performance.now() - renderStartTime.current;
-            const currentData = componentsUsingHook.get(componentName);
-            if (currentData) {
-                componentsUsingHook.set(componentName, {
-                    renderDuration,
-                });
-            }
-        };
-    }, [componentName]);
+    // Memoize the merged result: OXC's React Compiler bails on this file, so without this the returned
+    // object would be a fresh reference every render on web.
+    return useMemo(() => ({...state, ...actions}), [state, actions]);
 }
 
 export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};

@@ -1,5 +1,6 @@
-import type {Ref, RefCallback, RefObject} from 'react';
 import mergeRefs from '@libs/mergeRefs';
+
+import type {Ref, RefCallback, RefObject} from 'react';
 
 type Node = {id: string};
 const NODE: Node = {id: 'n1'};
