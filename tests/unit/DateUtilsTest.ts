@@ -12,7 +12,9 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {de} from 'date-fns/locale/de';
 import {el} from 'date-fns/locale/el';
+import {ja} from 'date-fns/locale/ja';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -71,6 +73,14 @@ describe('DateUtils', () => {
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
+    it('formatToLongDateWithWeekday should translate the weekday and month names', () => {
+        // Only the words follow the locale here. `LONG_DATE_FORMAT_WITH_WEEKDAY` is still the hand-written
+        // `eeee, MMMM d, yyyy`, so the component order stays US — German would otherwise read `Montag, 7. November
+        // 2022` and Japanese `2022年11月7日月曜日`. Localizing that ordering is a separate change to `CONST.DATE`.
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, de)).toBe('Montag, November 7, 2022');
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, ja)).toBe('月曜日, 11月 7, 2022');
+    });
+
     it('formatToDayOfWeek should return a weekday', () => {
         const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime), undefined);
         expect(weekDay).toBe('Monday');
@@ -78,6 +88,13 @@ describe('DateUtils', () => {
     it('formatToLocalTime should return a date in a local format', () => {
         const localTime = DateUtils.formatToLocalTime(datetime, undefined);
         expect(localTime).toBe('12:00 AM');
+    });
+
+    it('formatToLocalTime should follow the given locale clock convention', () => {
+        // `LOCAL_TIME_FORMAT` is now `p`, so the clock comes from the locale rather than a fixed 12-hour pattern.
+        expect(DateUtils.formatToLocalTime(datetime, de)).toBe('00:00');
+        expect(DateUtils.formatToLocalTime(datetime, ja)).toBe('0:00');
+        expect(DateUtils.formatToLocalTime(datetime, el)).toBe('12:00 π.μ.');
     });
 
     it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
@@ -321,6 +338,40 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('travel date formatters', () => {
+        // Current year and a past year, to exercise both branches. `translate` stays English throughout, so the
+        // assertions isolate `dateFnsLocale`: it drives the weekday, the month and the clock convention.
+        const thisYear = new Date(2026, 2, 17, 8, 0);
+        const pastYear = new Date(2023, 2, 17, 20, 30);
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(2026, 5, 1));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('getFormattedTransportDate uses the locale weekday, month and clock', () => {
+            expect(DateUtils.getFormattedTransportDate(translateLocal, undefined, thisYear)).toBe('Departs Tuesday, Mar 17 at 8:00 AM');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, de, thisYear)).toBe('Departs Dienstag, März 17 at 08:00');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, ja, thisYear)).toBe('Departs 火曜日, 3月 17 at 8:00');
+            // Greek is the one shipped locale that keeps a 12-hour clock.
+            expect(DateUtils.getFormattedTransportDate(translateLocal, el, thisYear)).toBe('Departs Τρίτη, Μαρ 17 at 8:00 π.μ.');
+        });
+
+        it('getFormattedTransportDate adds the year outside the current year', () => {
+            expect(DateUtils.getFormattedTransportDate(translateLocal, de, pastYear)).toBe('Departs Freitag, März 17, 2023 at 20:30');
+        });
+
+        it('getFormattedTransportDateAndHour returns the date and hour separately, both localized', () => {
+            expect(DateUtils.getFormattedTransportDateAndHour(thisYear, undefined)).toEqual({date: 'Tuesday, Mar 17', hour: '8:00 AM'});
+            expect(DateUtils.getFormattedTransportDateAndHour(thisYear, de)).toEqual({date: 'Dienstag, März 17', hour: '08:00'});
+            expect(DateUtils.getFormattedTransportDateAndHour(pastYear, de)).toEqual({date: 'Freitag, März 17, 2023', hour: '20:30'});
+        });
+    });
+
     describe('getStatusUntilDate', () => {
         const currentTimeZone = 'America/Los_Angeles' as SelectedTimezone;
         const inputTimeZoneNY = 'America/New_York' as SelectedTimezone;
@@ -334,6 +385,19 @@ describe('DateUtils', () => {
 
         afterEach(() => {
             jest.useRealTimers();
+        });
+
+        it('formats every branch with the given locale clock', () => {
+            // `translate` stays English so the assertion isolates what `dateFnsLocale` controls: German uses a
+            // 24-hour clock, so each branch loses its meridiem while the surrounding copy is untouched.
+            const sameDay = tzFormat(toZonedTime(new Date('2025-10-19T22:34:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameDay, currentTimeZone, currentTimeZone)).toBe('Until 15:34');
+
+            const sameYear = tzFormat(toZonedTime(new Date('2025-12-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameYear, currentTimeZone, currentTimeZone)).toBe('Until 12-02 12:15');
+
+            const otherYear = tzFormat(toZonedTime(new Date('2026-03-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, otherYear, currentTimeZone, currentTimeZone)).toBe('Until 2026-03-02 12:15');
         });
 
         it('returns empty string when input date is empty', () => {
@@ -702,6 +766,16 @@ describe('DateUtils', () => {
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
             const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00', undefined);
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
+        });
+
+        it('should use the given locale for the weekday, the month and the clock', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            // German and Japanese use a 24-hour clock, so the time loses its meridiem entirely.
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', de)).toBe('Sonntag, Apr. 19, 2026 15:00, GMT+7');
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', ja)).toBe('日曜日, 4月 19, 2026 15:00, GMT+7');
+            // Greek is the one shipped locale that keeps a 12-hour clock, with its own marker.
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', el)).toBe('Κυριακή, Απρ 19, 2026 3:00 μ.μ., GMT+7');
         });
     });
 
