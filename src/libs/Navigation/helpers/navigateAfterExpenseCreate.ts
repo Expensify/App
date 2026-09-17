@@ -3,8 +3,8 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSearchKeyForDataType} from '@libs/SearchUIUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';

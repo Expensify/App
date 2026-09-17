@@ -4,8 +4,8 @@ import {SearchQueryActionsContext, SearchQueryContext} from '@components/Search/
 import SearchQueryProvider from '@components/Search/SearchQueryProvider';
 
 import type * as SearchActions from '@libs/actions/Search';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

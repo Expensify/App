@@ -12,7 +12,7 @@ import type CONST from './CONST';
 import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
-import type {SearchKey} from './libs/SearchUIUtils';
+import type {SearchKey} from './libs/SearchKeyUtils';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
