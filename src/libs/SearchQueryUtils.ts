@@ -68,7 +68,7 @@ import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
 import {isRecord} from './ObjectUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {deprecatedGetReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
@@ -521,21 +521,6 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
             const backendAmount = convertToBackendAmount(Number(amount));
             return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
         });
-    }
-
-    if (
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
-    ) {
-        if (typeof filterValue === 'string') {
-            return getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
-        }
-
-        return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
