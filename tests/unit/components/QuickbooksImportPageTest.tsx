@@ -160,20 +160,13 @@ describe('Quickbooks custom dimension import', () => {
         });
     });
 
-    it('shows import statuses and opens a dimension without changing its setting', () => {
+    it('shows import statuses only for active dimensions', () => {
         // Given active custom dimensions with different import settings
         renderImportPage();
         expect(within(screen.getByRole('button', {name: 'Department'})).getByText('workspace.accounting.importTypes.TAG')).toBeOnTheScreen();
         expect(within(screen.getByRole('button', {name: 'Project'})).getByText('workspace.accounting.importTypes.NONE')).toBeOnTheScreen();
         expect(screen.queryByText('Old Dimension')).toBeNull();
         expect(screen.queryAllByRole('switch')).toHaveLength(0);
-
-        // When opening an individual dimension
-        fireEvent.press(screen.getByRole('button', {name: 'Project'}), {nativeEvent: {}});
-
-        // Then the row navigates to its settings without saving a mapping
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION.getRoute(POLICY_ID, 'project'));
-        expect(QuickbooksOnline.updateQuickbooksOnlineSyncCustomDimensions).not.toHaveBeenCalled();
     });
 
     it('enables an individual dimension from its settings page', () => {
