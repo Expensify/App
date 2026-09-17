@@ -1,6 +1,6 @@
 import type {LayoutChangeEvent, View} from 'react-native';
 
-import {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import {useLayoutEffect, useRef, useState} from 'react';
 
 /**
  * Measures the width of the Search table's container so the free-text columns can be sized from it.
@@ -37,9 +37,9 @@ function useSearchTableWidth() {
         }
     }, [tableWidth]);
 
-    const onTableLayout = useCallback((event: LayoutChangeEvent) => {
+    const onTableLayout = (event: LayoutChangeEvent) => {
         setTableWidth(event.nativeEvent.layout.width);
-    }, []);
+    };
 
     return {tableWidthRef, tableWidth, onTableLayout};
 }

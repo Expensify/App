@@ -1,6 +1,6 @@
 import type {LayoutChangeEvent, View} from 'react-native';
 
-import {useCallback, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 
 /**
  * Native measures the table width from `onLayout` alone: text can't be measured on native, so the columns are never
@@ -11,9 +11,9 @@ function useSearchTableWidth() {
     const tableWidthRef = useRef<View | null>(null);
     const [tableWidth, setTableWidth] = useState(0);
 
-    const onTableLayout = useCallback((event: LayoutChangeEvent) => {
+    const onTableLayout = (event: LayoutChangeEvent) => {
         setTableWidth(event.nativeEvent.layout.width);
-    }, []);
+    };
 
     return {tableWidthRef, tableWidth, onTableLayout};
 }
