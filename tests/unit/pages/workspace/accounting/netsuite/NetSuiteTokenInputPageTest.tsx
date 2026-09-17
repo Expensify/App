@@ -99,7 +99,8 @@ function setEnvironment({environment, isOAuthBetaEnabled}: {environment: ValueOf
     });
     mockedUsePermissions.mockReturnValue({
         isBetaEnabled: (beta) => beta === CONST.BETAS.NETSUITE_OAUTH && isOAuthBetaEnabled,
-    } as ReturnType<typeof usePermissions>);
+        isBetaEnabledOrUnknown: (beta) => beta === CONST.BETAS.NETSUITE_OAUTH && isOAuthBetaEnabled,
+    });
 }
 
 function renderPage(subPage: string, authType?: string) {
