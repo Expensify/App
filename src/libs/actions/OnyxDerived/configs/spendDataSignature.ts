@@ -11,12 +11,24 @@ const EMPTY_SIGNATURE = {expenses: 0, cardExpenses: 0};
 // entry per transaction for a collection that holds tens of thousands of them.
 let lastSeenFingerprints: Record<string, string> = {};
 
-/** The fields the Home cards count or total. A write that leaves these alone cannot move a card. */
+/**
+ * The fields the Home cards count or total. A write that leaves these alone cannot move a card.
+ * Edits land in the `modified` fields rather than the originals, so both are read (see `getAmount`).
+ */
 function getFingerprint(transaction: Transaction | undefined): string {
     if (!transaction) {
         return '';
     }
-    return [transaction.amount, transaction.created, transaction.currency, transaction.cardID, transaction.reportID].join('|');
+    return [
+        transaction.amount,
+        transaction.modifiedAmount,
+        transaction.created,
+        transaction.modifiedCreated,
+        transaction.currency,
+        transaction.modifiedCurrency,
+        transaction.cardID,
+        transaction.reportID,
+    ].join('|');
 }
 
 function rebuildFingerprints(transactions: OnyxCollection<Transaction> | undefined) {

@@ -142,4 +142,20 @@ describe('spendDataSignature', () => {
         // Then both counters move, because the card total and the chart both change
         expect(result).toEqual({expenses: 1, cardExpenses: 1});
     });
+
+    it('moves the counters when an expense is edited, which lands in the modified fields', () => {
+        // Given a stored expense the derived value has already seen
+        const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
+        spendDataSignatureConfig.compute([stored, cardList], {currentValue: {expenses: 0, cardExpenses: 0}});
+
+        // When the user edits the amount, which Onyx records as `modifiedAmount` rather than `amount`
+        const edited: OnyxCollection<Transaction> = {[transactionKey('1')]: {...makeTransaction('1', CARD_ID), modifiedAmount: 7777}};
+        const result = spendDataSignatureConfig.compute([edited, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: edited},
+        });
+
+        // Then the cards know they are stale, even though `amount` never changed
+        expect(result).toEqual({expenses: 1, cardExpenses: 1});
+    });
 });
