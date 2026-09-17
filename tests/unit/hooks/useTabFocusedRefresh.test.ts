@@ -1,7 +1,9 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useIsTabFocused from '@hooks/useIsTabFocused';
 import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
+
+import Visibility from '@libs/Visibility';
 
 import SCREENS from '@src/SCREENS';
 
@@ -16,8 +18,24 @@ jest.mock('@react-navigation/native', () => ({
     useIsFocused: jest.fn(() => true),
 }));
 
+jest.mock('@libs/Visibility', () => ({
+    __esModule: true,
+    default: {
+        isVisible: jest.fn(() => true),
+        hasFocus: jest.fn(() => true),
+        onVisibilityChange: jest.fn(() => () => {}),
+    },
+}));
+
 const mockedUseIsTabFocused = jest.mocked(useIsTabFocused);
 const mockedUseIsFocused = jest.mocked(useIsFocused);
+const mockedVisibility = jest.mocked(Visibility);
+
+/** Runs the callback the hook registered for visibility changes. */
+function emitVisibilityChange() {
+    const callback = mockedVisibility.onVisibilityChange.mock.calls.at(-1)?.at(0);
+    act(() => callback?.());
+}
 
 /** Renders the hook with a controllable refresh key and returns the refresh spy. */
 function renderRefresh(refreshKey = 'key-1') {
@@ -31,6 +49,8 @@ describe('useTabFocusedRefresh', () => {
         jest.clearAllMocks();
         mockedUseIsTabFocused.mockReturnValue(true);
         mockedUseIsFocused.mockReturnValue(true);
+        mockedVisibility.isVisible.mockReturnValue(true);
+        mockedVisibility.onVisibilityChange.mockReturnValue(() => {});
     });
 
     it('refreshes once when the tab is active and the screen is visible', () => {
@@ -129,6 +149,46 @@ describe('useTabFocusedRefresh', () => {
         rerender({refreshKey: 'key-1'});
 
         // Then the arrival refresh is not lost, it fires when the screen becomes visible
+        expect(refresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('refreshes when the app becomes visible again', () => {
+        // Given a visible screen that has refreshed once
+        const {refresh} = renderRefresh();
+        expect(refresh).toHaveBeenCalledTimes(1);
+
+        // When the user comes back to the app, with nothing else changed
+        emitVisibilityChange();
+
+        // Then the values the screen cannot derive locally are re-read
+        expect(refresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not refresh when the app goes to the background', () => {
+        // Given a visible screen that has refreshed once
+        const {refresh} = renderRefresh();
+
+        // When the app is hidden
+        mockedVisibility.isVisible.mockReturnValue(false);
+        emitVisibilityChange();
+
+        // Then leaving costs nothing
+        expect(refresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('holds the return refresh until the screen is visible again', () => {
+        // Given an RHP covering the screen
+        const {refresh, rerender} = renderRefresh();
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender({refreshKey: 'key-1'});
+
+        // When the user leaves the app and comes back while the RHP is still open, then closes it
+        emitVisibilityChange();
+        expect(refresh).toHaveBeenCalledTimes(1);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender({refreshKey: 'key-1'});
+
+        // Then the refresh lands once, after the screen is visible
         expect(refresh).toHaveBeenCalledTimes(2);
     });
 });
