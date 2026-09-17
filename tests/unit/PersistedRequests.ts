@@ -126,19 +126,48 @@ describe('PersistedRequests', () => {
         }
     });
 
+    it('refuse the update and alert when two queued requests carry the same requestIndex', () => {
+        // Given two live requests that share requestIndex 12, the unrelated OpenReport first, which is what a cross-tab merge produces
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+        PersistedRequests.save({...request, data: {reportID: 'VICTIM'}, requestIndex: 12});
+        PersistedRequests.save({...request, command: 'AddComment', data: {reportActionID: 'A1', reportComment: 'v1'}, requestIndex: 12});
+
+        try {
+            // When an edit is applied against that identity from a stale positional index
+            PersistedRequests.update(1, {...request, command: 'AddComment', data: {reportActionID: 'A1', reportComment: 'v3'}, requestIndex: 13}, 12);
+
+            // Then neither request is overwritten: the OpenReport survives and the AddComment keeps its old text instead of the edit landing on the first carrier
+            expect(PersistedRequests.getAll().map((r) => r.command)).toEqual(['OpenReport', 'OpenReport', 'AddComment']);
+            expect(PersistedRequests.getAll().at(1)?.data?.reportID).toBe('VICTIM');
+            expect(PersistedRequests.getAll().at(2)?.data?.reportComment).toBe('v1');
+            expect(PersistedRequests.getAll().map((r) => r.data?.reportComment)).toEqual([undefined, undefined, 'v1']);
+            // And the ambiguity is alerted rather than resolved by guessing
+            expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('more than one queued request'), expect.objectContaining({requestIndexToReplace: 12, staleIndex: 1}));
+        } finally {
+            logAlertSpy.mockRestore();
+        }
+    });
+
     it.each([
         ['a positional index that is out of range', -1, undefined],
+        ['a positional index past the end of the queue', 5, undefined],
         ['a requestIndex that is no longer queued', 0, 99],
-    ] as const)('do nothing when asked to replace %s', (_description, oldRequestIndex, requestIndexToReplace) => {
-        // Given two queued requests
+    ] as const)('do nothing and alert when asked to replace %s', (_description, oldRequestIndex, requestIndexToReplace) => {
+        // Given two queued requests and no ongoing request, so the target can be in neither place
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
         PersistedRequests.save({...request, requestIndex: 11});
 
-        // When an update cannot resolve the request it is asked to replace
-        PersistedRequests.update(oldRequestIndex, {...request, requestIndex: 12}, requestIndexToReplace);
+        try {
+            // When an update cannot resolve the request it is asked to replace
+            PersistedRequests.update(oldRequestIndex, {...request, requestIndex: 12}, requestIndexToReplace);
 
-        // Then the queue is left untouched
-        expect(PersistedRequests.getLength()).toBe(2);
-        expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 11]);
+            // Then the queue is left untouched and the dropped update is alerted, never appended
+            expect(PersistedRequests.getLength()).toBe(2);
+            expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 11]);
+            expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('neither the queue nor the ongoing request'), expect.objectContaining({staleIndex: oldRequestIndex}));
+        } finally {
+            logAlertSpy.mockRestore();
+        }
     });
 
     it('update the ongoing request with new data', () => {

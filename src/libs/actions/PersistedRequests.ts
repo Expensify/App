@@ -356,20 +356,33 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
 /**
  * Replace one queued request with newRequest. With requestIndexToReplace the target is that identity, looked up in the
  * live queue, and oldRequestIndex is only the caller's now-stale guess (logged as staleIndex); without it, the target
- * is oldRequestIndex itself. A target that is not queued is skipped, never appended.
+ * is oldRequestIndex itself, which must be in range. A target that cannot be resolved — absent, out of range, or carried
+ * by more than one request — is skipped, never appended.
  */
 function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>, requestIndexToReplace?: number): Promise<void> {
     const requests = [...persistedRequests];
-    const indexToReplace =
-        requestIndexToReplace === undefined ? oldRequestIndex : requests.findIndex((persistedRequest) => getClientRequestIndex(persistedRequest) === requestIndexToReplace);
+    const carriesTargetIdentity = (persistedRequest: AnyRequest) => requestIndexToReplace !== undefined && getClientRequestIndex(persistedRequest) === requestIndexToReplace;
+    const indexToReplace = requestIndexToReplace === undefined ? oldRequestIndex : requests.findIndex(carriesTargetIdentity);
+    const identityCarrierCount = requests.reduce((count, persistedRequest) => (carriesTargetIdentity(persistedRequest) ? count + 1 : count), 0);
+    const skippedLogParams = {command: newRequest.command, requestIndexToReplace, staleIndex: oldRequestIndex, queueLength: requests.length};
 
-    if (indexToReplace === -1) {
-        Log.info('[PersistedRequests] Update target is not in the queue, skipping the update', false, {
-            command: newRequest.command,
-            requestIndexToReplace,
-            staleIndex: oldRequestIndex,
-            queueLength: requests.length,
-        });
+    if (identityCarrierCount > 1) {
+        // The identity is a per-tab counter and a cross-tab merge can land two live requests under one of them, so taking the
+        // first carrier would splice over an innocent write. Refuse, the way the follow-up guard refuses a replace it cannot address.
+        Log.alert('[PersistedRequests] Refusing to update a request whose requestIndex is carried by more than one queued request', skippedLogParams);
+        return Promise.resolve();
+    }
+
+    if (indexToReplace === -1 || indexToReplace >= requests.length) {
+        // Two opposite outcomes share this skip. Benign: the target was promoted to the ongoing request, which is the very object
+        // the resolver mutated in place, so the edit rides along with it. Loss: it already left the queue and nothing persists the
+        // new text. The ongoing request is what tells them apart, and only the second outcome is an emergency. Never append here.
+        const ongoing = getOngoingRequest();
+        if (requestIndexToReplace !== undefined && ongoing !== null && getClientRequestIndex(ongoing) === requestIndexToReplace) {
+            Log.info('[PersistedRequests] Update target has been promoted to the ongoing request, skipping the update', false, skippedLogParams);
+        } else {
+            Log.alert('[PersistedRequests] Update target is in neither the queue nor the ongoing request, dropping the update', skippedLogParams);
+        }
         return Promise.resolve();
     }
 
