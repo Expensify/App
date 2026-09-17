@@ -604,6 +604,7 @@ const CONST = {
         ZENEFITS: 'Zenefits',
         DUALENTRY: 'DualEntry',
         CAMPFIRE: 'Campfire',
+        BUSINESS_CENTRAL: 'Dynamics 365 Business Central',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
@@ -1093,14 +1094,12 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        DUALENTRY: 'dualEntry',
         CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
@@ -1460,6 +1459,7 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
+    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-mastercard-commercial-feed',
@@ -1759,6 +1759,7 @@ const CONST = {
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
+                CONCIERGE_AUTO_SELECT_DISTANCE_RATE: 'CONCIERGEAUTOSELECTDISTANCERATE',
                 MOVED: 'MOVED',
                 MOVED_TRANSACTION: 'MOVEDTRANSACTION',
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
@@ -3911,6 +3912,16 @@ const CONST = {
         EMPLOYEE: 'employee',
     },
 
+    BUSINESS_CENTRAL_CONFIG: {
+        COMPANY_ID: 'companyID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+    },
+
+    BUSINESS_CENTRAL_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
@@ -4680,6 +4691,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualEntry',
                 CAMPFIRE: 'campfire',
+                BUSINESS_CENTRAL: 'businessCentral',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4699,6 +4711,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualentry',
                 CAMPFIRE: 'campfire',
+                BUSINESS_CENTRAL: 'business-central',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4714,6 +4727,7 @@ const CONST = {
                 rillet: 'Rillet',
                 dualEntry: 'DualEntry',
                 campfire: 'Campfire',
+                businessCentral: 'Dynamics 365 Business Central',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4739,6 +4753,7 @@ const CONST = {
                     this.NAME.RILLET,
                     this.NAME.DUALENTRY,
                     this.NAME.CAMPFIRE,
+                    this.NAME.BUSINESS_CENTRAL,
                 ] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
@@ -4754,6 +4769,7 @@ const CONST = {
                     [this.NAME.RILLET]: 'rillet',
                     [this.NAME.DUALENTRY]: 'dualentry',
                     [this.NAME.CAMPFIRE]: 'campfire',
+                    [this.NAME.BUSINESS_CENTRAL]: 'businessCentral',
                 } as const;
             },
             get HR_CONNECTION_NAMES() {
@@ -4771,6 +4787,7 @@ const CONST = {
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
+                businessCentral: 'https://help.expensify.com/new-expensify/hubs/connections/',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -4872,6 +4889,9 @@ const CONST = {
                 CAMPFIRE_SYNC_PAYMENTS: 'campfireSyncPayments',
                 CAMPFIRE_SYNC_CARD_SETTLEMENTS: 'campfireSyncCardSettlements',
                 CAMPFIRE_SYNC_TRAVEL_SETTLEMENTS: 'campfireSyncTravelSettlements',
+                BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
+                BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
+                BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -5182,6 +5202,8 @@ const CONST = {
         },
     },
     PERSONAL_CARDS: {
+        // Account-not-found is ignored for company feed health, but a personal cardholder can reconnect this card.
+        ACCOUNT_NOT_FOUND_SCRAPE_STATUS: 434,
         STEP: {
             SELECT_BANK: 'SelectBank',
             BANK_CONNECTION: 'BankConnection',
@@ -5669,7 +5691,9 @@ const CONST = {
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
         REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
-        DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
+        // The distance and the rate can carry a group separator (the backend formats them with one, e.g. "1,234.56 mi")
+        // or a locale decimal separator (e.g. "€0,67"), so both numbers accept "," as well as ".".
+        DISTANCE_MERCHANT: /^[0-9.,]+ \w+ @ (-|-\()?[^0-9.,\s]{1,3} ?[0-9.,]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
 
         get EXPENSIFY_POLICY_DOMAIN_NAME() {
@@ -6653,6 +6677,35 @@ const CONST = {
     BUTTON_VARIANT: {
         SUCCESS: 'success',
         DANGER: 'danger',
+    },
+
+    BULK_ACTION_BAR: {
+        /** How many of a selection's actions get a button of their own in the bar before the rest move behind "More". */
+        MAX_INLINE_ACTIONS: 3,
+
+        /** The same at the in-between widths, which do not have the room for a third button. */
+        MAX_INLINE_ACTIONS_MEDIUM_SCREEN: 2,
+
+        /**
+         * Room left between the bar and the edges of the container it floats in. The bar sheds an action before it gets
+         * this close to an edge, rather than only once it has already touched one.
+         */
+        EDGE_MARGIN: 24,
+
+        /** How far the bar floats above the bottom of the container it is rendered in. */
+        BOTTOM_OFFSET: 20,
+
+        /** Breathing room left between the bar and the last row of the list it floats over. */
+        LIST_GAP: 12,
+
+        /** How far below its resting place the bar starts before it springs up into view. */
+        SLIDE_IN_DISTANCE: 24,
+
+        /**
+         * Spring the bar settles into place with. Overdamped, matching the canvas gestures, so it arrives quickly and
+         * without a bounce. The default spring wobbles noticeably over this short a travel.
+         */
+        SLIDE_IN_SPRING: {mass: 1, stiffness: 1000, damping: 500},
     },
 
     BUTTON_REMOVE_BORDER_RADIUS: {
@@ -8287,6 +8340,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.description` as const,
                 icon: 'CampfireSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                id: this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
+                alias: 'businessCentral',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.businessCentral,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL}.description` as const,
+                icon: 'BusinessCentralSquare',
+            },
             approvals: {
                 id: 'approvals' as const,
                 alias: 'approvals' as const,
@@ -8953,6 +9014,10 @@ const CONST = {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
         },
+        BULK_ACTION_BAR: {
+            CLEAR_SELECTION: 'BulkActionBar-ClearSelection',
+            MORE: 'BulkActionBar-More',
+        },
         ACCOUNT_MANAGER_BOOK_CALL: {
             BUTTON: 'AccountManagerBookCallButton-Button',
         },
@@ -9047,6 +9112,7 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
             VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
+            VICTORY_CHART_ZOOM: 'HTMLRenderer-VictoryChartZoom',
             TABLE_ROW: 'HTMLRenderer-TableRow',
         },
         RECEIPT: {
@@ -9084,7 +9150,6 @@ const CONST = {
             FILTER_LIMIT: 'Search-FilterLimit',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
-            BULK_ACTIONS_DROPDOWN: 'Search-BulkActionsDropdown',
             SELECT_ALL_CHECKBOX: 'Search-SelectAllCheckbox',
             SELECTION_MODE_MENU_ITEM: 'Search-SelectionModeMenuItem',
             FILTER_RESET_BUTTON: 'Search-FilterResetButton',

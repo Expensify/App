@@ -3,6 +3,7 @@ import type {SearchQueryString} from '@components/Search/types';
 
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
@@ -333,6 +334,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
     };
@@ -1405,6 +1407,18 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
@@ -3295,9 +3309,11 @@ type TabNavigatorParamList = {
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
-    [SCREENS.INSIGHTS]: {
-        dashboardID: string;
-    };
+    [SCREENS.INSIGHTS]:
+        | {
+              dashboardID: string;
+          }
+        | undefined;
 };
 
 type SharedScreensParamList = {
@@ -3492,6 +3508,7 @@ type SearchFullscreenNavigatorParamList = {
         rawQuery?: SearchQueryString;
         name?: string;
         groupBy?: string;
+        searchKey?: SearchKey;
     };
 };
 

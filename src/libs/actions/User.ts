@@ -12,6 +12,7 @@ import type {
     RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
+    SetPersonalExpenseRulesParams,
     TogglePlatformMuteParams,
     UpdateChatPriorityModeParams,
     UpdateNewsletterSubscriptionParams,
@@ -81,6 +82,15 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         sessionAccountID = value?.accountID;
+    },
+});
+
+// This value is used in the handler for a RECONNECT_APP Pusher event (anonymous users), so it's not possible to use useOnyx().
+let lastUpdateIDAppliedToClient: OnyxEntry<number>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value) => {
+        lastUpdateIDAppliedToClient = value;
     },
 });
 
@@ -839,7 +849,13 @@ function subscribeToUserEvents(
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         Log.info('[subscribeToUserEvents] Applying Onyx updates');
-        applyOnyxUpdatesReliably(updates);
+        applyOnyxUpdatesReliably(updates).catch((error: unknown) => {
+            Log.alert('[subscribeToUserEvents] Applying the updates failed, the watermark is held so the next update recovers the range', {
+                lastUpdateID: updates.lastUpdateID,
+                previousUpdateID: updates.previousUpdateID,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        });
     });
 
     // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and a lot of messages come in
@@ -880,7 +896,14 @@ function subscribeToUserEvents(
     // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
     // is not in the DB
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
-        reconnectApp();
+        // Anonymous public-room sessions already have report actions from OpenReport. A full ReconnectApp
+        // uses setCollection and clears them, which flashes the loading skeleton until GetNewerActions
+        // refills. Pass lastUpdateID so reconnect stays incremental for anonymous users (#97847).
+        if (isAnonymousUser()) {
+            reconnectApp(lastUpdateIDAppliedToClient);
+        } else {
+            reconnectApp();
+        }
         return Promise.resolve();
     });
 }
@@ -1689,9 +1712,10 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         return rule;
     });
 
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_EXPENSE_RULES,
+    const parameters: SetPersonalExpenseRulesParams = {
         value: JSON.stringify(rulesForAPI),
+        shouldUpdateMatchingTransactions: false,
+        ruleToApply: '',
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
@@ -1718,7 +1742,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         },
     ];
 
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+    API.write(WRITE_COMMANDS.SET_PERSONAL_EXPENSE_RULES, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -1748,7 +1772,13 @@ function clearExpenseRuleErrors(expenseRules: ExpenseRule[], selectedRuleKey: st
     Onyx.set(ONYXKEYS.NVP_EXPENSE_RULES, updatedExpenseRules);
 }
 
-function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
+function saveExpenseRule(
+    expenseRules: ExpenseRule[],
+    newRule: ExpenseRule,
+    existingRuleKey: string | undefined,
+    getKeyForRule: (rule: ExpenseRule) => string,
+    shouldUpdateMatchingTransactions = false,
+) {
     const isEditing = !!existingRuleKey;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
@@ -1802,9 +1832,10 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .map(({pendingAction: _pendingAction, errors: _errors, ...rule}) => rule);
 
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_EXPENSE_RULES,
+    const parameters: SetPersonalExpenseRulesParams = {
         value: JSON.stringify(rulesForAPI),
+        shouldUpdateMatchingTransactions,
+        ruleToApply: shouldUpdateMatchingTransactions ? JSON.stringify(newRule) : '',
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
@@ -1831,7 +1862,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         },
     ];
 
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+    API.write(WRITE_COMMANDS.SET_PERSONAL_EXPENSE_RULES, parameters, {
         optimisticData,
         successData,
         failureData,
