@@ -2915,6 +2915,15 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             email: rilletVendor.email ?? '',
         };
     }
+    const businessCentralVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (businessCentralVendor) {
+        return {
+            id: businessCentralVendor.id,
+            name: businessCentralVendor.name,
+            currency: '',
+            email: businessCentralVendor.email ?? '',
+        };
+    }
     return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
@@ -2964,6 +2973,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             return {
                 title: translate('workspace.dualEntry.noVendorsFound'),
                 subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+            return {
+                title: translate('workspace.businessCentral.noVendorsFound'),
+                subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {

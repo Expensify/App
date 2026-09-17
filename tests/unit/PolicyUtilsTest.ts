@@ -4200,6 +4200,14 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toEqual([]);
             });
 
+            it('uses the Business Central empty state when the synced list has no vendors', () => {
+                const translate = TestHelper.translateLocal;
+                expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
+                    title: translate('workspace.businessCentral.noVendorsFound'),
+                    subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
+                });
+            });
+
             it('yields to Rillet, which precedes it in the matching order', () => {
                 const policy = buildBusinessCentralPolicy();
                 policy.connections = {...policy.connections, ...buildRilletPolicy().connections};
@@ -4574,6 +4582,11 @@ describe('PolicyUtils', () => {
             it('resolves a Rillet vendor (normalized) from connections.rillet.data.vendors', () => {
                 const policy = buildRilletPolicy([{id: 'rv-1', name: 'Acme Rillet', email: 'acme@rillet.com'}]);
                 expect(findVendorByID(policy, 'rv-1')).toEqual({id: 'rv-1', name: 'Acme Rillet', currency: '', email: 'acme@rillet.com'});
+            });
+
+            it('resolves a Business Central vendor (normalized) from connections.businessCentral.data.vendors', () => {
+                const policy = buildBusinessCentralPolicy([businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com')]);
+                expect(findVendorByID(policy, 'bc-1')).toEqual({id: 'bc-1', name: 'Contoso Supplies', currency: '', email: 'ap@contoso.com'});
             });
 
             it('prefers the active Xero integration over stale Rillet data when both hold the same vendor ID', () => {
