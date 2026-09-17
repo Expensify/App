@@ -284,8 +284,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
     const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
-    // A table whose owner passes the mode in keeps it to itself. The app wide mode is shared with every other screen,
-    // so an unrelated one can turn it off while this table is still using it.
+    // The app wide selection mode is shared with every other screen, so an unrelated screen can turn it off while this
+    // table is still using it. A table that passes its own mode in keeps it to itself instead.
     const isMobileSelectionModeControlled = !!onMobileSelectionModeChange;
     const isMobileSelectionEnabled = isMobileSelectionModeControlled ? !!isMobileSelectionModeEnabled : isGlobalMobileSelectionEnabled;
 
@@ -469,6 +469,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         setMobileSelectionModeEnabled(true);
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
+        // setMobileSelectionModeEnabled is omitted from the dependencies below because it closes over the caller's
+        // onMobileSelectionModeChange, which a caller is free to pass inline. This effect must only run when the user
+        // confirms the selection.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
 

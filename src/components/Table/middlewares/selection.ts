@@ -129,6 +129,8 @@ export default function useSelection<DataType extends TableData>({
         } else if (isDesktopWithoutSelectableKeys || isSelectionModeEnabledWithoutSelectableKeys) {
             setSelectionModeEnabled(false);
         }
+        // setSelectionModeEnabled is omitted from the dependencies below because a caller is free to pass an inline
+        // callback, and re-running this effect on every render would fight the selection mode it just set.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionUsesNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
 
