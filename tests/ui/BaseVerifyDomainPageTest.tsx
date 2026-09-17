@@ -40,6 +40,8 @@ const DOMAIN_ADMIN_ACCESS = {
 
 const apiReadSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+// Runs the follow-up right away so the redirect target can be asserted without a real dismiss transition
+const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 
@@ -70,6 +72,15 @@ describe('BaseVerifyDomainPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    beforeEach(async () => {
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID);
+        // The sign-in helper goes through the mocked API.read, so the session has to be set directly
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID, email: 'test@user.com'});
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
     afterEach(async () => {
         // Unmount first, otherwise clearing the domain looks like losing access to it and schedules a redirect into the next test
         cleanup();
@@ -84,7 +95,6 @@ describe('BaseVerifyDomainPage', () => {
 
     it('renders the DNS verification screen for a non-admin on an already-validated domain instead of NotFoundPage', async () => {
         // Given an already-validated domain the current user is not an admin of
-        await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
                 accountID: DOMAIN_ACCOUNT_ID,
@@ -107,7 +117,6 @@ describe('BaseVerifyDomainPage', () => {
 
     it('renders NotFoundPage for an admin on an already-validated domain and skips the code fetch', async () => {
         // Given an already-validated domain the current user is an admin of
-        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID);
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
                 accountID: DOMAIN_ACCOUNT_ID,
@@ -129,7 +138,6 @@ describe('BaseVerifyDomainPage', () => {
 
     it('renders the DNS verification screen for an admin on a not-yet-validated domain', async () => {
         // Given a domain the current user is an admin of but that is NOT yet validated
-        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID);
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
                 accountID: DOMAIN_ACCOUNT_ID,
@@ -150,7 +158,6 @@ describe('BaseVerifyDomainPage', () => {
     });
     it('sends the requester to the domain exists page when the domain is taken away mid-verification', async () => {
         // Given a domain the requester can see while their adminship request is open
-        await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
                 accountID: DOMAIN_ACCOUNT_ID,
@@ -170,14 +177,46 @@ describe('BaseVerifyDomainPage', () => {
         });
 
         // Then there is nothing left to verify, so the requester is sent to the domain exists page instead of a not found page
-        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(DOMAIN_ACCOUNT_ID), {forceReplace: true}));
+        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(DOMAIN_ACCOUNT_ID)));
+        expect(dismissModalSpy).toHaveBeenCalled();
+        expect(screen.queryByTestId('BaseVerifyDomainPage')).toBeNull();
+        expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).toBeNull();
+    });
+
+    it('sends the requester to the domain page when their adminship request is approved mid-verification', async () => {
+        // Given a validated domain the requester can see while their adminship request is open
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
+                accountID: DOMAIN_ACCOUNT_ID,
+                email: DOMAIN_EMAIL,
+                validated: true,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[TEST_USER_ACCOUNT_ID]: 'read'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderVerifyDomainPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('BaseVerifyDomainPage')).toBeTruthy();
+
+        // When an admin approves the request, which makes the requester an admin
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[TEST_USER_ACCOUNT_ID]: null},
+                ...DOMAIN_ADMIN_ACCESS,
+            });
+        });
+
+        // Then the new admin is taken to the domain page instead of being left on a not found page
+        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.DOMAIN_INITIAL.getRoute(DOMAIN_ACCOUNT_ID)));
+        expect(dismissModalSpy).toHaveBeenCalled();
         expect(screen.queryByTestId('BaseVerifyDomainPage')).toBeNull();
         expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).toBeNull();
     });
 
     it('renders NotFoundPage for a domain that was never there and does not redirect', async () => {
         // Given no domain entry at all, as when the verify page is deep-linked for a domain the user cannot see
-        await TestHelper.signInWithTestUser();
 
         // When the verify-domain page is opened
         renderVerifyDomainPage();

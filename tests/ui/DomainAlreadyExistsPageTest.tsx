@@ -35,6 +35,8 @@ const DOMAIN_ADMIN_ACCESS = {
 const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+// Runs the follow-up right away so the redirect target can be asserted without a real dismiss transition
+const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 
@@ -185,6 +187,7 @@ describe('DomainAlreadyExistsPage', () => {
 
         // Then the admin is taken to the domain page and never sees the request access button
         await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.DOMAIN_INITIAL.getRoute(DOMAIN_ACCOUNT_ID)));
+        expect(dismissModalSpy).toHaveBeenCalled();
         expect(screen.queryByRole('button', {name: TestHelper.translateLocal('domain.domainAlreadyExists.requestAccess')})).toBeNull();
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, expect.anything(), expect.anything());
     });

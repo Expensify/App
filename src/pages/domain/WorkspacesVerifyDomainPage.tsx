@@ -18,6 +18,7 @@ function WorkspacesVerifyDomainPage({route}: WorkspacesVerifyDomainPageProps) {
             domainAccountID={domainAccountID}
             forwardTo={ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(domainAccountID)}
             fallbackTo={ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID)}
+            adminForwardTo={ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID)}
         />
     );
 }

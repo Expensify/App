@@ -48,6 +48,8 @@ const DOMAIN_ADMIN_ACCESS = {
 
 const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+// Runs the follow-up right away so the redirect target can be asserted without a real dismiss transition
+const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 
@@ -216,7 +218,7 @@ describe('DomainAccessRestrictedPage', () => {
         });
 
         // Then the requester is taken to the domain exists page instead of a not found page
-        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(DOMAIN_ACCOUNT_ID), {forceReplace: true}));
+        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(DOMAIN_ACCOUNT_ID)));
         expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).toBeNull();
     });
 
@@ -241,6 +243,7 @@ describe('DomainAccessRestrictedPage', () => {
 
         // Then the new admin is taken to the domain page and the access restricted screen is gone
         await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.DOMAIN_INITIAL.getRoute(DOMAIN_ACCOUNT_ID)));
+        expect(dismissModalSpy).toHaveBeenCalled();
         expect(screen.queryByTestId('DomainAccessRestrictedPage')).toBeNull();
     });
 

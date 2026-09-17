@@ -55,9 +55,12 @@ type BaseVerifyDomainPageProps = {
 
     /** Route to replace this page with when the domain is taken away mid-visit, instead of dead-ending on the not found page */
     fallbackTo?: Route;
+
+    /** Route to send a verified domain admin to instead of the not found page, e.g. a requester approved while verifying themselves */
+    adminForwardTo?: Route;
 };
 
-function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo}: BaseVerifyDomainPageProps) {
+function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, adminForwardTo}: BaseVerifyDomainPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -67,10 +70,12 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo}: BaseVeri
     const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : '';
     const doesDomainExist = !!domain;
-    const hasLostDomainAccess = useRedirectOnDomainAccessChange(domainAccountID, {whenAccessLost: fallbackTo});
 
     // A domain admin has nothing to verify once the domain is validated, so keep them out of the flow if they deep-link; non-admins still land here to re-verify
     const isVerifiedDomainAdmin = !!domain?.validated && isAdminSelector(currentUserAccountID)(domain);
+
+    // Admins of a not-yet-validated domain belong here, so only a verified admin is forwarded
+    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {whenAccessLost: fallbackTo, whenAdmin: isVerifiedDomainAdmin ? adminForwardTo : undefined});
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
@@ -95,7 +100,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo}: BaseVeri
         resetDomainValidationError(domainAccountID);
     }, [domainAccountID, doesDomainExist]);
 
-    if (isLoadingDomain || hasLostDomainAccess) {
+    if (isLoadingDomain || isRedirecting) {
         return <FullScreenLoadingIndicator />;
     }
 
