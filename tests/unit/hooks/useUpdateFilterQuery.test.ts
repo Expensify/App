@@ -3,6 +3,8 @@ import {renderHook} from '@testing-library/react-native';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -16,12 +18,10 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (key: string) => mockUseOnyx(key),
 }));
 
-const mockResetSearchKey = jest.fn();
-const mockUseSearchQueryContext = jest.fn<{currentSearchHash: number}, []>();
+const mockGetSearchKeyForQuery = jest.fn();
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchQueryActions: () => ({resetSearchKey: mockResetSearchKey}),
-    useSearchQueryContext: () => mockUseSearchQueryContext(),
+    useSearchQueryActions: () => ({getSearchKeyForQuery: mockGetSearchKeyForQuery}),
 }));
 
 jest.mock('@libs/Navigation/Navigation');
@@ -43,46 +43,62 @@ const queryJSON: SearchQueryJSON = {
     rawFilterList: undefined,
 };
 
+/** The params of the single `Navigation.setParams` call made by `setFilterQueryParams`. */
+function getSetParamsCall() {
+    expect(Navigation.setParams).toHaveBeenCalledTimes(1);
+    const [params] = jest.mocked(Navigation.setParams).mock.calls.at(0) ?? [];
+    return params ?? {};
+}
+
 describe('useUpdateFilterQuery', () => {
     beforeEach(() => {
         onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = {type: CONST.SEARCH.DATA_TYPES.EXPENSE} satisfies Partial<SearchAdvancedFiltersForm>;
-        mockResetSearchKey.mockClear();
-        mockUseSearchQueryContext.mockReturnValue({currentSearchHash: -1});
+        mockGetSearchKeyForQuery.mockReset();
+        mockGetSearchKeyForQuery.mockReturnValue(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        jest.mocked(Navigation.setParams).mockClear();
     });
 
     describe('setFilterQueryParams', () => {
-        it('resets the search key when the type changes', () => {
+        it('writes the re-derived search key to the route when the type changes', () => {
             const {result} = renderHook(() => useUpdateFilterQuery(queryJSON));
 
             result.current.setFilterQueryParams({type: CONST.SEARCH.DATA_TYPES.INVOICE});
 
-            expect(mockResetSearchKey).toHaveBeenCalledTimes(1);
-            expect(mockResetSearchKey).toHaveBeenCalledWith(expect.objectContaining({type: CONST.SEARCH.DATA_TYPES.INVOICE}));
+            expect(mockGetSearchKeyForQuery).toHaveBeenCalledWith(expect.objectContaining({type: CONST.SEARCH.DATA_TYPES.INVOICE}));
+            expect(getSetParamsCall()).toEqual(expect.objectContaining({searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS}));
         });
 
-        it('does not reset the search key when the new query is the current query', () => {
-            mockUseSearchQueryContext.mockReturnValue({currentSearchHash: queryJSON.hash});
+        it('clears the search key when the new query matches no search', () => {
+            mockGetSearchKeyForQuery.mockReturnValue(undefined);
+            const {result} = renderHook(() => useUpdateFilterQuery(queryJSON));
+
+            result.current.setFilterQueryParams({type: CONST.SEARCH.DATA_TYPES.INVOICE});
+
+            expect(getSetParamsCall()).toHaveProperty('searchKey', undefined);
+        });
+
+        it('leaves the search key param alone when the type is set to the one the form already holds', () => {
             const {result} = renderHook(() => useUpdateFilterQuery(queryJSON));
 
             result.current.setFilterQueryParams({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
 
-            expect(mockResetSearchKey).not.toHaveBeenCalled();
+            expect(getSetParamsCall()).not.toHaveProperty('searchKey');
         });
 
-        it('does not reset the search key when the type is unchanged', () => {
+        it('leaves the search key param alone when the type is unchanged', () => {
             const {result} = renderHook(() => useUpdateFilterQuery(queryJSON));
 
             result.current.setFilterQueryParams({type: CONST.SEARCH.DATA_TYPES.EXPENSE, merchant: 'Amazon'});
 
-            expect(mockResetSearchKey).not.toHaveBeenCalled();
+            expect(getSetParamsCall()).not.toHaveProperty('searchKey');
         });
 
-        it('does not reset the search key when no type is provided', () => {
+        it('leaves the search key param alone when no type is provided', () => {
             const {result} = renderHook(() => useUpdateFilterQuery(queryJSON));
 
             result.current.setFilterQueryParams({merchant: 'Amazon'});
 
-            expect(mockResetSearchKey).not.toHaveBeenCalled();
+            expect(getSetParamsCall()).not.toHaveProperty('searchKey');
         });
     });
 });
