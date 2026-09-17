@@ -732,7 +732,7 @@ describe('OnboardingWorkEmail Page', () => {
         const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {isJoinWorkspaceTask: 'true'});
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true, true), {forceReplace: true});
         });
 
         unmount();
@@ -742,7 +742,7 @@ describe('OnboardingWorkEmail Page', () => {
     it('should show merge guidance when a validated public-domain user submits the Concierge task', async () => {
         const taskReportID = '123';
         const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
-        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
         // The primary login must be on a public domain, otherwise the task sends a validated user straight to the workspace list.
         await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
@@ -773,11 +773,11 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.buttonConfirm')));
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(taskReportID));
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: taskReportID});
         });
 
         getTopmostReportId.mockRestore();
-        dismissModal.mockRestore();
+        dismissModalWithReport.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
 
@@ -1053,7 +1053,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {isJoinWorkspaceTask: 'true'});
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true, true), {forceReplace: true});
         });
 
         unmount();

@@ -188,7 +188,8 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
  */
 function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
     if (action.type === CONST.NAVIGATION_ACTIONS.RESET && isObjectPayload(action.payload)) {
-        return isOnboardingFlowName(getActionPayloadScreenName(action));
+        const targetScreenName = getActionPayloadScreenName(action);
+        return targetScreenName === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR || isOnboardingFlowName(targetScreenName);
     }
 
     if (
