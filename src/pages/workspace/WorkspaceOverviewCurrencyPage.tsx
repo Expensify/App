@@ -5,7 +5,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
@@ -48,7 +47,6 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const {isBetaEnabled} = usePermissions();
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
@@ -60,7 +58,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode, getReviewWorkspaceSettingsTaskCompletion());
         clearCorpayBankAccountFields();
 
-        const isUkEuCurrencySupported = isCurrencySupportedForECards(item.currencyCode) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
+        const isUkEuCurrencySupported = isCurrencySupportedForECards(item.currencyCode);
         const canEnrollNewCardProgram = item.currencyCode === CONST.CURRENCY.USD || isUkEuCurrencySupported;
         if (shouldStartExpensifyCardEnrollment && canEnrollNewCardProgram) {
             Navigation.navigate(
