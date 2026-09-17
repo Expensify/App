@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import {usePopoverActions} from '@components/PopoverProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -9,7 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import type {View} from 'react-native';
+
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 import type CalendarPickerListItem from './types';
@@ -30,7 +33,19 @@ type YearPickerModalProps = {
 function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose, shouldEnableBackdropInNarrowPane = false}: YearPickerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {setActivePopoverExtraAnchorRef} = usePopoverActions();
+    const contentRef = useRef<View>(null);
     const [searchText, setSearchText] = useState('');
+
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+
+        // This modal is rendered above the calendar rather than inside it, so a press on a year counts as a press
+        // outside the calendar popover and would dismiss it. Registering the content keeps the calendar open.
+        setActivePopoverExtraAnchorRef(contentRef);
+    }, [isVisible, setActivePopoverExtraAnchorRef]);
     const {data, headerMessage} = useMemo(() => {
         const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
         return {
@@ -71,6 +86,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
+                ref={contentRef}
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
