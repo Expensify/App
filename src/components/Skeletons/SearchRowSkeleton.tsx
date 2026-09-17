@@ -1,5 +1,6 @@
 import SkeletonRect from '@components/SkeletonRect';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -57,6 +58,7 @@ function SearchRowSkeleton({
     shouldUseNarrowLayout: shouldUseNarrowLayoutProp,
 }: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
+    const {values, pageGutterMargin} = useLayoutSpacing();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
     // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
@@ -65,14 +67,14 @@ function SearchRowSkeleton({
     const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutResponsive;
 
     if (shouldUseNarrowLayout) {
-        const containerWidth = windowWidth - 40;
+        const containerWidth = windowWidth - values.pageGutter * 2;
         return (
             <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
                     itemViewHeight={100}
                     itemViewStyle={[styles.highlightBG, styles.mr0]}
                     itemContainerStyle={styles.borderBottom}
-                    style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
+                    style={[pageGutterMargin, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
                     onLayout={onLayout}
@@ -138,7 +140,7 @@ function SearchRowSkeleton({
                 itemViewStyle={[styles.highlightBG, styles.mr0]}
                 itemViewHeight={variables.tableRowHeight}
                 itemContainerStyle={styles.borderBottom}
-                style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
+                style={[pageGutterMargin, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                 renderSkeletonItem={() => (
                     <>
                         <SkeletonRect

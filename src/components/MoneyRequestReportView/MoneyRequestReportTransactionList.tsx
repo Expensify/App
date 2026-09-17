@@ -16,6 +16,7 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -280,6 +281,7 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Columns', 'Plus']);
@@ -730,7 +732,7 @@ function MoneyRequestReportTransactionList({
         [navigateToTransaction],
     );
 
-    const listHorizontalPadding = styles.ph5;
+    const listHorizontalPadding = pageGutter;
 
     const groupByItems = useMemo(
         () => [
@@ -844,7 +846,7 @@ function MoneyRequestReportTransactionList({
                 pendingAction: undefined,
             };
             return (
-                <View style={styles.ph5}>
+                <View style={pageGutter}>
                     <View style={narrowSectionWrapperStyle}>
                         <MoneyRequestReportGroupHeader
                             group={item.group}
@@ -865,7 +867,7 @@ function MoneyRequestReportTransactionList({
         }
         const transaction = item.transaction;
         return (
-            <View style={styles.ph5}>
+            <View style={pageGutter}>
                 <View style={narrowSectionWrapperStyle}>
                     <MoneyRequestReportTransactionItem
                         transaction={transaction}
@@ -977,7 +979,7 @@ function MoneyRequestReportTransactionList({
         </>
     ) : (
         <View onLayout={onLayout}>
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.pb3 : styles.pb2]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, pageGutter, shouldUseNarrowLayout ? styles.pb3 : styles.pb2]}>
                 {shouldShowGroupedTransactions && (
                     <DropdownButton
                         label={translate('search.display.groupBy')}

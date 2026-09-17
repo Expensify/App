@@ -6,6 +6,7 @@ import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -69,6 +70,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     useDomainDocumentTitle(domainName, 'domain.domainAdmins');
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
@@ -210,7 +212,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerContent}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={pageGutter}>{headerContent}</View>}
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}
                     admins={admins}
