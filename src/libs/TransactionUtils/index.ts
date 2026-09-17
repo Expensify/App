@@ -2191,10 +2191,12 @@ function getSubmitViolationsSummary(
 }
 
 /**
- * Whether a summary contains any violation that blocks submitting until the user acknowledges it.
+ * Whether a summary contains any of the #101213 submit-blocking violations that require the user to acknowledge
+ * them via the pre-submit modal. A generic (non-seven-day) pending RTER violation predates #101213 and keeps its
+ * own standalone "mark as cash?" prompt (see useConfirmViolationsAndProceed), so it is intentionally excluded here.
  */
 function hasAnySubmitViolation(summary: SubmitViolationsSummary): boolean {
-    return summary.hasSevenDayHoldViolation || summary.hasGenericPendingRTERViolation || summary.hasRejectedViolation || summary.hasReportBeenRejected || summary.otherViolations.length > 0;
+    return summary.hasSevenDayHoldViolation || summary.hasRejectedViolation || summary.hasReportBeenRejected || summary.otherViolations.length > 0;
 }
 
 /**

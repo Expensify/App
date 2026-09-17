@@ -70,9 +70,9 @@ describe('useConfirmViolationsAndProceed', () => {
         expect(onProceed).toHaveBeenCalledTimes(1);
     });
 
-    it('shows the modal and runs the mark-as-cash side effect when confirmed for a generic (non-seven-day) pending RTER violation', async () => {
-        // This case predates #101213 (the pre-existing "receipt pending match with card" flow) and must keep its
-        // existing mark-as-cash resolution on confirm, same as the seven-day-hold case above.
+    it('shows its own standalone plain-text modal and runs the mark-as-cash side effect when confirmed for a generic (non-seven-day) pending RTER violation', async () => {
+        // This case predates #101213 (the pre-existing "receipt pending match with card" flow) and keeps its own
+        // original standalone prompt (plain text, Yes/No), separate from the #101213 bulleted modal.
         const onProceed = jest.fn();
         const onMarkPendingRTERTransactionsAsCash = jest.fn();
         const onMarkRejectedTransactionsAsResolved = jest.fn();
@@ -81,13 +81,55 @@ describe('useConfirmViolationsAndProceed', () => {
 
         result.current(onProceed);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(getShowConfirmModalOption('prompt')).toMatchObject({props: {items: expect.arrayContaining([expect.stringContaining('iou.pendingMatchSubmitDescription')])}});
+        expect(getShowConfirmModalOption('prompt')).toBe('iou.pendingMatchSubmitDescription');
+        expect(getShowConfirmModalOption('confirmText')).toBe('common.yes');
+        expect(getShowConfirmModalOption('cancelText')).toBe('common.no');
 
         resolveShowConfirmModal({action: MockModalActions.CONFIRM});
         await Promise.resolve();
 
         expect(onMarkPendingRTERTransactionsAsCash).toHaveBeenCalledTimes(1);
         expect(onMarkRejectedTransactionsAsResolved).not.toHaveBeenCalled();
+        expect(onProceed).toHaveBeenCalledTimes(1);
+    });
+
+    it('still proceeds even when the generic pending RTER prompt is declined, matching the pre-#101213 behavior', async () => {
+        const onProceed = jest.fn();
+        const onMarkPendingRTERTransactionsAsCash = jest.fn();
+        const onMarkRejectedTransactionsAsResolved = jest.fn();
+        const summary: SubmitViolationsSummary = {...EMPTY_SUMMARY, hasGenericPendingRTERViolation: true};
+        const {result} = renderHook(() => useConfirmViolationsAndProceed(summary, onMarkPendingRTERTransactionsAsCash, onMarkRejectedTransactionsAsResolved));
+
+        result.current(onProceed);
+        resolveShowConfirmModal({action: MockModalActions.CLOSE});
+        await Promise.resolve();
+
+        expect(onMarkPendingRTERTransactionsAsCash).not.toHaveBeenCalled();
+        expect(onProceed).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the generic pending RTER modal first, then the #101213 bulleted modal, when both a generic pending RTER and a rejected violation are present', async () => {
+        const onProceed = jest.fn();
+        const onMarkPendingRTERTransactionsAsCash = jest.fn();
+        const onMarkRejectedTransactionsAsResolved = jest.fn();
+        const summary: SubmitViolationsSummary = {...EMPTY_SUMMARY, hasGenericPendingRTERViolation: true, hasRejectedViolation: true};
+        const {result} = renderHook(() => useConfirmViolationsAndProceed(summary, onMarkPendingRTERTransactionsAsCash, onMarkRejectedTransactionsAsResolved));
+
+        result.current(onProceed);
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(getShowConfirmModalOption('prompt')).toBe('iou.pendingMatchSubmitDescription');
+
+        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+        await Promise.resolve();
+
+        expect(onMarkPendingRTERTransactionsAsCash).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
+        expect(getShowConfirmModalOption('prompt')).toMatchObject({props: {items: expect.arrayContaining([expect.stringContaining('iou.rejectedExpenseSubmitDescription')])}});
+
+        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+        await Promise.resolve();
+
+        expect(onMarkRejectedTransactionsAsResolved).toHaveBeenCalledTimes(1);
         expect(onProceed).toHaveBeenCalledTimes(1);
     });
 

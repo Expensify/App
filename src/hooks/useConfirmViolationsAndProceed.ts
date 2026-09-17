@@ -8,14 +8,18 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import React from 'react';
 
 import useConfirmModal from './useConfirmModal';
+import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import {useCurrencyListActions} from './useCurrencyList';
 import useLocalize from './useLocalize';
 
 /**
  * Hook that returns a callback to confirm a report's submit-blocking violations before proceeding with submission.
- * If the report has any violation, a confirmation modal lists them (dedicated copy for seven-day-hold and rejected
- * expenses, the real violation text for everything else) and offers to resolve the ones that have a known
- * resolution before submitting anyway.
+ *
+ * A generic (non-seven-day) pending RTER violation predates #101213 and is unrelated to it, so it is delegated
+ * unchanged to the original standalone useConfirmPendingRTERAndProceed prompt. Everything #101213 added —
+ * seven-day-hold, rejected expenses, a whole-report rejection, and any other un-dismissed violation — is shown
+ * together afterward in a single bulleted modal that offers to resolve the ones with a known resolution before
+ * submitting anyway.
  */
 function useConfirmViolationsAndProceed(violationsSummary: SubmitViolationsSummary, onMarkPendingRTERTransactionsAsCash: () => void, onMarkRejectedTransactionsAsResolved: () => void) {
     const {showConfirmModal} = useConfirmModal();
@@ -24,8 +28,9 @@ function useConfirmViolationsAndProceed(violationsSummary: SubmitViolationsSumma
 
     const {hasSevenDayHoldViolation, hasGenericPendingRTERViolation, hasRejectedViolation, hasReportBeenRejected, otherViolations} = violationsSummary;
     const hasAnyViolation = hasAnySubmitViolation(violationsSummary);
+    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasGenericPendingRTERViolation, onMarkPendingRTERTransactionsAsCash);
 
-    return (onProceed: () => void) => {
+    const confirmNewViolationsAndProceed = (onProceed: () => void) => {
         if (!hasAnyViolation) {
             onProceed();
             return;
@@ -34,9 +39,6 @@ function useConfirmViolationsAndProceed(violationsSummary: SubmitViolationsSumma
         const promptLines: string[] = [];
         if (hasSevenDayHoldViolation) {
             promptLines.push(translate('iou.sevenDayHoldSubmitDescription'));
-        }
-        if (hasGenericPendingRTERViolation) {
-            promptLines.push(translate('iou.pendingMatchSubmitDescription'));
         }
         if (hasRejectedViolation || hasReportBeenRejected) {
             promptLines.push(translate('iou.rejectedExpenseSubmitDescription'));
@@ -50,7 +52,7 @@ function useConfirmViolationsAndProceed(violationsSummary: SubmitViolationsSumma
         }
 
         showConfirmModal({
-            title: translate('iou.pendingMatchSubmitTitle'),
+            title: translate('iou.submitReportPolicyViolationsTitle'),
             prompt: React.createElement(SubmitViolationsBulletList, {header: translate('iou.submitReportPolicyViolationsDescription'), items: promptLines}),
             confirmText: translate('iou.submitAnyway'),
             cancelText: translate('common.cancel'),
@@ -58,7 +60,7 @@ function useConfirmViolationsAndProceed(violationsSummary: SubmitViolationsSumma
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            if (hasSevenDayHoldViolation || hasGenericPendingRTERViolation) {
+            if (hasSevenDayHoldViolation) {
                 onMarkPendingRTERTransactionsAsCash();
             }
             if (hasRejectedViolation) {
@@ -67,6 +69,8 @@ function useConfirmViolationsAndProceed(violationsSummary: SubmitViolationsSumma
             onProceed();
         });
     };
+
+    return (onProceed: () => void) => confirmPendingRTERAndProceed(() => confirmNewViolationsAndProceed(onProceed));
 }
 
 export default useConfirmViolationsAndProceed;
