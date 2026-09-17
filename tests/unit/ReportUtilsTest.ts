@@ -990,6 +990,7 @@ describe('ReportUtils', () => {
                 },
                 companySize: undefined,
                 conciergeChat: conciergeChatReport,
+                delegateAccountID: undefined,
                 isIncremental: true,
             });
 

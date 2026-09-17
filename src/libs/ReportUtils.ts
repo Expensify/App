@@ -956,7 +956,7 @@ type GetTaskAssigneeChatOnyxDataParams = {
     assigneeChatReport: OnyxEntry<Report>;
     currentUserEmail: string;
     currentUserAccountID: number;
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
     isOptimisticAssigneeChatReport?: boolean;
 };
 
@@ -12328,7 +12328,7 @@ type PrepareOnboardingOnyxDataParams = {
     /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
     selfDMReport?: OnyxEntry<Report>;
     /** AccountID of the delegate acting on behalf of the current user */
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */

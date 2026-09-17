@@ -86,6 +86,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
             stateNum: action?.childStateNum,
             statusNum: action?.childStatusNum,
         } as Report);
+    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
@@ -93,8 +94,6 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const isTaskCompletedFromOnyx = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-
-    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     const taskTitlePlainText = Parser.htmlToText(taskTitle);
     const {
