@@ -258,7 +258,7 @@ describe('SequentialQueue', () => {
         }
     });
 
-    it('should replace the identified request in the queue while a similar one is ongoing', async () => {
+    it('should replace request in queue while a similar one is ongoing and keep the same index', async () => {
         mockFetch.pause();
         try {
             // Given one request is ongoing
@@ -684,17 +684,30 @@ describe('SequentialQueue - conflict replace addressing', () => {
         await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
 
         // When an edit of that comment is pushed while the queue drains far enough to promote the AddComment to ongoing
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
         const setSpy = drainWhileTheNextQueueCommitIsPending(processNextRequest);
         try {
             await SequentialQueue.push(editQueuedComment('v3', 5));
 
-            // Then the edit rides along with the promoted request and nothing is replaced in the queue
+            // Then nothing is replaced in the queue: the AddComment left it and the unrelated OpenReport is untouched
             expect(getOngoingRequest()?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-            expect(getOngoingRequest()?.data?.reportComment).toBe('v3');
             expect(getAll().map((r) => r.command)).toEqual(['OpenReport']);
             expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
+
+            // And the skip is reported as the benign promotion it is, so a lost edit stays the only alerted outcome
+            expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('promoted to the ongoing request'), false, expect.objectContaining({requestIndexToReplace: 2}));
+            expect(logAlertSpy).not.toHaveBeenCalled();
+
+            // And the edited text reaches the wire on that promoted request, not merely the in-memory copy of it
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            const sentBody = TestHelper.getFetchMockCalls(WRITE_COMMANDS.ADD_COMMENT).at(0)?.[1]?.body;
+            expect(sentBody instanceof FormData ? Object.fromEntries(sentBody) : undefined).toEqual(expect.objectContaining({reportActionID, reportComment: 'v3'}));
         } finally {
             setSpy.mockRestore();
+            logInfoSpy.mockRestore();
+            logAlertSpy.mockRestore();
             SequentialQueue.unpause();
             await mockFetch.resume();
         }

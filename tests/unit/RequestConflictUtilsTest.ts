@@ -137,15 +137,17 @@ describe('RequestConflictUtils', () => {
         });
     });
 
-    it('resolveEditCommentWithNewAddCommentRequest should not touch any queued request when the add comment is no longer queued', () => {
-        // Given a queued UpdateComment and AddComment for the edited action, with the add comment not identified by the caller
+    it('resolveEditCommentWithNewAddCommentRequest should not touch any queued request when the caller passes an unresolved addCommentIndex of -1', () => {
+        // Pins the resolver's own `-1` guard rather than a reachable flow: its one production caller (Report) checks the index
+        // first, so nothing reaches this today. Without the guard, at(-1) returns the last queued request and the edit lands there.
+        // Given a queued UpdateComment and AddComment for the edited action, with the add comment not located by the caller
         const reportActionID = '2';
         const persistedRequests = [
             {command: 'UpdateComment', data: {reportActionID, reportComment: 'test edit'}},
             {command: 'AddComment', data: {reportActionID, reportComment: 'queued untouched'}},
         ];
         const parameters = {reportID: '1', reportActionID, reportComment: 'new edit comment'};
-        // When the edit conflict is resolved without an identified add comment
+        // When the edit conflict is resolved with an add comment index that resolved to nothing
         const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, -1);
 
         // Then only the UpdateComment is deleted and the queued AddComment keeps its text
