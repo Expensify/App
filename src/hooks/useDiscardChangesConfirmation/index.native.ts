@@ -33,17 +33,16 @@ function useDiscardChangesConfirmation({
     const isDiscardModalOpen = useRef(false);
     const isReplayingBlockedNavigation = useRef(false);
 
-    // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
     });
-    const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
+    const hasUnsavedChanges = () => !isSavingRef.current && getHasUnsavedChanges();
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
     // The save suppression stays out of it because `isSavingRef` is a ref: the callback below applies that.
-    const shouldPreventRemove = isFocused && getHasUnsavedChanges();
+    const shouldPreventRemove = getHasUnsavedChanges();
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
@@ -94,7 +93,7 @@ function useDiscardChangesConfirmation({
             if (isDiscardModalOpen.current) {
                 return true;
             }
-            if (!hasUnsavedChanges()) {
+            if (!isFocused || !hasUnsavedChanges()) {
                 return false;
             }
             showDiscardModal();

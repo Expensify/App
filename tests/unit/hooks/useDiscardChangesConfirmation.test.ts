@@ -288,14 +288,14 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
-        it('allows navigation when the screen is not focused, even with a dirty predicate', () => {
+        it('prevents removal and prompts discard even when the screen is not currently focused (e.g. child screen was opened on top)', () => {
             mockIsFocused = false;
             renderDiscardHook(() => true);
 
             const event = invokeBeforeRemove('RESET');
 
-            expect(event.defaultPrevented).toBe(false);
-            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(event.defaultPrevented).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
         it('suppresses the prompt while a save is in progress, and re-arms when notified it ended', () => {

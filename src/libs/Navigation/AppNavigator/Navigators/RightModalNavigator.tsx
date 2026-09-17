@@ -248,14 +248,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         // We need to block overlay press function in such case because it would go back from the currently active full screen.
         // Without this, the bug described in https://github.com/Expensify/App/issues/78440 would occur.
         if (currentState.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-            navigation.goBack();
+            Navigation.dismissModal();
             setTimeout(() => {
                 isExecutingRef.current = false;
             }, CONST.ANIMATED_TRANSITION);
         } else {
             isExecutingRef.current = false;
         }
-    }, [navigation]);
+    }, []);
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
         const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);

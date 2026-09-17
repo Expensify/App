@@ -291,5 +291,16 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
         });
+
+        it('prevents removal and prompts discard even when the screen is not currently focused (e.g. child screen was opened on top)', () => {
+            mockIsFocused = false;
+            renderDiscardHook(() => true);
+
+            expect(mockPreventRemoveFlag).toBe(true);
+
+            invokeBeforeRemove('RESET');
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
     });
 });
