@@ -33,12 +33,12 @@ Updated rules for managing members across all types of chats in New Expensify.
 
 ### Workspace Rooms
 #### Workspace
-|                    | Creator | Member(Employee/User) | Admin | Auditor? |
-| :----------------: | :-----: | :-------------------: | :---: | :------: |
-|     **Invite**     |    ✅    |           ❌           |   ✅   |    ❌     |
-|     **Remove**     |    ✅    |           ❌           |   ✅   |    ❌     |
-|     **Leave**      |    ❌    |           ✅           |   ❌   |    ✅     |
-| **Can be removed** |    ❌    |           ✅           |   ✅   |    ✅     |
+|                    | Creator | Member(Employee/User) | Admin | Auditor |
+| :----------------: | :-----: | :-------------------: | :---: | :-----: |
+|     **Invite**     |    ✅    |           ❌           |   ✅   |    ❌    |
+|     **Remove**     |    ✅    |           ❌           |   ✅   |    ❌    |
+|     **Leave**      |    ❌    |           ✅           |   ❌   |    ✅    |
+| **Can be removed** |    ❌    |           ✅           |   ✅   |    ✅    |
 
 - Creator can't leave or be removed from their own workspace
 - Admins can't leave from the workspace
@@ -47,35 +47,40 @@ Updated rules for managing members across all types of chats in New Expensify.
 - Members and Auditors cannot invite or remove anyone from the workspace
 
 #### Workspace #announce room
-|                    | Member(Employee/User) | Admin | Auditor? |
-| :----------------: | :-------------------: | :---: | :------: |
-|     **Invite**     |           ❌           |   ❌   |    ❌     |
-|     **Remove**     |           ❌           |   ❌   |    ❌     |
-|     **Leave**      |           ❌           |   ❌   |    ❌     |
-| **Can be removed** |           ❌           |   ❌   |    ❌     |
+|                    | Member(Employee/User) | Admin | Auditor |
+| :----------------: | :-------------------: | :---: | :-----: |
+|     **Invite**     |           ❌           |   ❌   |    ❌    |
+|     **Remove**     |           ❌           |   ❌   |    ❌    |
+|     **Leave**      |           ❌           |   ❌   |    ❌    |
+| **Can be removed** |           ❌           |   ❌   |    ❌    |
 
 - No one can leave or be removed from the #announce room
+- Auditors are added to #announce when they join the workspace, so they can't leave or be removed from it either
+- Only workspace admins can post in #announce. Every other role, auditors included, sees the room as read-only
 
 #### Workspace #admin room
-|                    | Admin |
-| :----------------: | :---: |
-|     **Invite**     |   ❌   |
-|     **Remove**     |   ❌   |
-|     **Leave**      |   ❌   |
-| **Can be removed** |   ❌   |
+|                    | Admin | Auditor |
+| :----------------: | :---: | :-----: |
+|     **Invite**     |   ❌   |    ❌    |
+|     **Remove**     |   ❌   |    ❌    |
+|     **Leave**      |   ❌   |   N/A   |
+| **Can be removed** |   ❌   |   N/A   |
 
 - Admins can't leave or be removed from #admins
+- Auditors are not members of #admins, so leaving and being removed don't apply to them. Changing a member's role to Auditor removes them from the room
+- Only workspace admins can post in #admins
 
 #### Workspace rooms
-|                    | Creator | Member | Guest(outside of the workspace) |
-| :----------------: | :-----: | :----: | :-----------------------------: |
-|     **Invite**     |    ✅    |   ✅    |                ✅                |
-|     **Remove**     |    ✅    |   ✅    |                ❌                |
-|     **Leave**      |    ✅    |   ✅    |                ✅                |
-| **Can be removed** |    ✅    |   ✅    |                ✅                |
+|                    | Creator | Member | Auditor | Guest(outside of the workspace) |
+| :----------------: | :-----: | :----: | :-----: | :-----------------------------: |
+|     **Invite**     |    ✅    |   ✅    |    ✅    |                ✅                |
+|     **Remove**     |    ✅    |   ✅    |    ✅    |                ❌                |
+|     **Leave**      |    ✅    |   ✅    |    ✅    |                ✅                |
+| **Can be removed** |    ✅    |   ✅    |    ✅    |                ✅                |
 
 - Everyone can be removed/can leave from the room including creator
 - Guests are not able to remove anyone from the room
+- Auditors are not added to user-created rooms automatically. They can discover and join non-private workspace rooms, and they can leave freely, like any other workspace member
 
 #### Expense chats
 |                    | Admin | Member(default) | Member(invited) |
@@ -90,6 +95,8 @@ Updated rules for managing members across all types of chats in New Expensify.
 - Invited members(invited by members) are not able to invite or remove from the expense chat
 - Invited members(invited by members) are able to leave the expense chat
 - Default members and admins are able to remove invited members
+- Auditors are default members of their own expense chat, so they can't leave or be removed from it
+- Auditors added to another member's expense chat are able to leave it, because they are not workspace admins
 
 ### Domain chat
 |                    | Member |
