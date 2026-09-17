@@ -1,7 +1,6 @@
 import CompactMenuContext from '@components/CompactMenuContext';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -89,12 +88,11 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     value={`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
                 />
                 {(isExpenseType || isTripType) && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        description={translate('search.display.groupBy')}
-                        title={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
+                    <MenuItemField
+                        name={translate('search.display.groupBy')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY}
+                        value={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
                     />
                 )}
                 {!!groupBy && (
@@ -106,12 +104,11 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     />
                 )}
                 {isExpenseType && !!validGroupByValue && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        description={translate('search.view.label')}
-                        title={viewValue ? translate(`search.view.${viewValue}`) : undefined}
+                    <MenuItemField
+                        name={translate('search.view.label')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW}
+                        value={viewValue ? translate(`search.view.${viewValue}`) : undefined}
                     />
                 )}
                 {isExpenseType && (
