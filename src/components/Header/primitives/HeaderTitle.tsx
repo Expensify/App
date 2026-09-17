@@ -27,8 +27,8 @@ type HeaderTitleProps = {
     /** Whether to skip focus of the first interactive element after the RHP transition (screen reader). */
     shouldSkipFocusAfterTransition?: boolean;
 
-    /** Whether to use the taller headline style bar with the larger title font. */
-    shouldUseHeadlineHeader: boolean;
+    /** Whether to use the headline header style. */
+    shouldUseHeadlineHeader?: boolean;
 };
 
 function HeaderTitle({title, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
