@@ -1,5 +1,4 @@
 import HeaderTitleComponent from '@components/HeaderTitle';
-import {useHeaderContext} from '@components/HeaderWithBackButtonComposed/context';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -27,13 +26,15 @@ type HeaderTitleProps = {
 
     /** Whether to skip focus of the first interactive element after the RHP transition (screen reader). */
     shouldSkipFocusAfterTransition?: boolean;
+
+    /** Whether to use the headline header style. */
+    shouldUseHeadlineHeader?: boolean;
 };
 
-function HeaderTitle({title, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false}: HeaderTitleProps) {
+function HeaderTitle({title, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {shouldUseHeadlineHeader} = useHeaderContext();
 
     const resolvedSubtitle = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : subtitle;
 
