@@ -486,6 +486,7 @@ describe('actions/Domain', () => {
 
     describe('setDomainVacationDelegate', () => {
         it('sends SET_VACATION_DELEGATE request with ADD pending action when no existing delegate', () => {
+            // Given a domain member with no vacation delegate set yet
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
@@ -495,8 +496,12 @@ describe('actions/Domain', () => {
             const PRIVATE_VACATION_DELEGATE_KEY =
                 `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
 
+            // When a domain admin sets a delegate for that member
             setDomainVacationDelegate(domainAccountID, domainMemberAccountID, creator, vacationer, delegate);
 
+            // Then the request is a persisted write with overridePolicyDiffWarning always true, since a domain admin
+            // acting on someone else's behalf skips the per-workspace confirmation step entirely, and the pending
+            // action is ADD because no delegate existed before this pick
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_VACATION_DELEGATE,
                 {creator, vacationerEmail: vacationer, vacationDelegateEmail: delegate, overridePolicyDiffWarning: true, domainAccountID},
@@ -547,6 +552,7 @@ describe('actions/Domain', () => {
         });
 
         it('uses UPDATE pending action when existing delegate is present', () => {
+            // Given a domain member who already has a vacation delegate set
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
@@ -555,8 +561,10 @@ describe('actions/Domain', () => {
             const delegate = 'newdelegate@test.com';
             const existingVacationDelegate: BaseVacationDelegate = {delegate: 'olddelegate@test.com'};
 
+            // When a domain admin changes that member's delegate to someone new
             setDomainVacationDelegate(domainAccountID, domainMemberAccountID, creator, vacationer, delegate, existingVacationDelegate);
 
+            // Then the pending action is UPDATE rather than ADD, since a delegate was already in place before this pick
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_VACATION_DELEGATE,
                 expect.any(Object),
