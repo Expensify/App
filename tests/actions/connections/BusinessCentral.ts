@@ -53,7 +53,6 @@ describe('actions/connections/BusinessCentral', () => {
     describe('connectToBusinessCentral', () => {
         it('writes the connect command with the policyID and every credential', () => {
             // Given a policy that the admin wants to link to Business Central with an app registration
-
             // When the connection is initiated
             connectToBusinessCentral(MOCK_POLICY_ID, MOCK_CREDENTIALS);
 
@@ -67,7 +66,6 @@ describe('actions/connections/BusinessCentral', () => {
 
         it('optimistically marks the connection sync as in progress', () => {
             // Given a policy being linked to Business Central
-
             // When the connection is initiated
             connectToBusinessCentral(MOCK_POLICY_ID, MOCK_CREDENTIALS);
 
@@ -88,7 +86,6 @@ describe('actions/connections/BusinessCentral', () => {
 
         it('clears the sync progress when the request is rejected', () => {
             // Given a policy being linked to Business Central
-
             // When the connection is initiated
             connectToBusinessCentral(MOCK_POLICY_ID, MOCK_CREDENTIALS);
 
@@ -131,7 +128,6 @@ describe('actions/connections/BusinessCentral', () => {
     describe('updateBusinessCentralCompany', () => {
         it('writes the company command and optimistically updates the config', () => {
             // Given a policy whose Business Central company is being changed from an old value
-
             // When the company is updated to a new one
             updateBusinessCentralCompany(MOCK_POLICY_ID, 'company-1', 'old-company');
 
@@ -165,7 +161,6 @@ describe('actions/connections/BusinessCentral', () => {
 
         it('clears the pending field on success', () => {
             // Given a policy whose company is being updated
-
             // When the update is requested
             updateBusinessCentralCompany(MOCK_POLICY_ID, 'company-1', 'old-company');
 
@@ -177,7 +172,6 @@ describe('actions/connections/BusinessCentral', () => {
 
         it('rolls back to the old company and sets an error on failure', () => {
             // Given a policy whose company is being updated from a known old value
-
             // When the update is requested
             updateBusinessCentralCompany(MOCK_POLICY_ID, 'company-1', 'old-company');
 
