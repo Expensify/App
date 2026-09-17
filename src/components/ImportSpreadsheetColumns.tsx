@@ -37,8 +37,10 @@ type ImportSpreadsheetColumnsProps = {
     shouldShowColumnHeader?: boolean;
     shouldShowDropdownMenu?: boolean;
 
-    // Whether each column may auto-detect its role from its header. Flows that compute the whole mapping in one
-    // coordinated pass (e.g. company cards) set this to false to avoid duplicate pre-selections.
+    /**
+     * Whether each column may auto-detect its role from its header. Flows that compute the whole mapping in one
+     * coordinated pass (e.g. company cards) set this to false to avoid duplicate pre-selections.
+     */
     shouldAutoDetectColumns?: boolean;
 
     customHeaderText?: string;
