@@ -5118,12 +5118,20 @@ function canEditMoneyRequest(
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
-    const isAdmin = reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
+    const isManagerOfReport = deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
 
-    if (isInvoiceReport(moneyRequestReport) && (isManager || isChatReportArchived)) {
+    if (isInvoiceReport(moneyRequestReport) && (isManagerOfReport || isChatReportArchived)) {
         return false;
     }
+
+    // Admin/manager rights only apply when the expense actually sits on a workspace report. Without this guard an
+    // unreported expense (self-DM track expense) is weighed against the caller's policy, which is the viewer's own
+    // default workspace rather than the expense's, so anyone who admins any workspace could edit someone else's
+    // expense. A self-DM also has no managerID, so an unresolved account ID would otherwise match it. Invoice reports
+    // stay included so a policy admin keeps the rights they had before this guard existed.
+    const isReportOnAWorkspace = isFinancialReportsForBusinesses(moneyRequestReport);
+    const isAdmin = isReportOnAWorkspace && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isReportOnAWorkspace && isManagerOfReport;
 
     // Admin & managers can always edit coding fields such as tag, category, billable, etc.
     if (isAdmin || isManager) {
