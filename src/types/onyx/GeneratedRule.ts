@@ -3,36 +3,33 @@ import type {FlagForReviewRuleForm, MerchantRuleForm, RequireFieldsRuleForm, Spe
 
 import type {ValueOf} from 'type-fest';
 
-/** The rule that was built, or why no rule was built */
+/** The outcome of a generation attempt */
 type GeneratedRuleState = ValueOf<typeof CONST.GENERATED_RULE.STATE>;
 
 /** The rule type a description was mapped to */
 type GeneratedRuleType = ValueOf<typeof CONST.GENERATED_RULE.RULE_TYPE>;
 
-/**
- * The form values Concierge filled in. Every field is optional and the field names are unique across the four
- * rule forms, so this seeds whichever draft ruleType names.
- */
+/** The generated form values, seeding whichever draft ruleType names */
 type GeneratedRuleValues = Partial<RequireFieldsRuleForm> & Partial<FlagForReviewRuleForm> & Partial<SpendRuleForm> & Partial<MerchantRuleForm>;
 
-/** Model of the rule Concierge built from an admin's plain-English description */
+/** Model of a rule generated from an admin's description */
 type GeneratedRule = {
-    /** The attempt this answer belongs to, so an earlier one is not mistaken for it */
+    /** The generation attempt this answer belongs to */
     generationID: string;
 
-    /** The rule that was built, or why no rule was built */
+    /** The outcome of the generation attempt */
     state: GeneratedRuleState;
 
-    /** The rule type the description was mapped to, set when state is rule */
+    /** The rule type the description was mapped to */
     ruleType?: GeneratedRuleType;
 
-    /** The form values to seed the matching rule draft with, set when state is rule */
+    /** The form values to seed the rule draft with */
     rule?: GeneratedRuleValues;
 
-    /** Short plain-English description of the rule that was built */
+    /** Short description of the generated rule */
     summary?: string;
 
-    /** The area the deterministic rule types cannot express, set when state is unsupported */
+    /** The area no rule type supports */
     unsupportedArea?: string;
 };
 

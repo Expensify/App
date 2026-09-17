@@ -49,7 +49,7 @@ type FlagForReviewRulePageBaseProps = {
     isCategoryLocked?: boolean;
     /** When true, nested create pages use category dynamic routes (keeps Categories underlay). */
     isCategoryScopedFlow?: boolean;
-    /** When true, the draft was seeded before navigating here, so creating must not reset it. */
+    /** Whether the draft is already seeded */
     isPrefilled?: boolean;
     testID: string;
 };

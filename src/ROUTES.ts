@@ -4031,7 +4031,6 @@ const ROUTES = {
     },
     RULES_REQUIRE_FIELDS_RULE_NEW: {
         route: 'workspaces/:policyID/rules/require-fields-rules/new',
-        /** @param isPrefilled the draft is already seeded, so the page must not reset it on mount */
         getRoute: (policyID: string, categoryName?: string, isPrefilled?: boolean) =>
             `workspaces/${policyID}/rules/require-fields-rules/new${getRuleCreateQuery(categoryName, isPrefilled)}` as const,
     },
@@ -4050,7 +4049,6 @@ const ROUTES = {
     },
     RULES_FLAG_FOR_REVIEW_RULE_NEW: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
-        /** @param isPrefilled the draft is already seeded, so the page must not reset it on mount */
         getRoute: (policyID: string, categoryName?: string, isPrefilled?: boolean) =>
             `workspaces/${policyID}/rules/flag-for-review-rules/new${getRuleCreateQuery(categoryName, isPrefilled)}` as const,
     },

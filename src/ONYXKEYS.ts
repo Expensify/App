@@ -477,7 +477,7 @@ const ONYXKEYS = {
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
     IS_LOADING_AGENT_RULE_SUGGESTIONS: 'isLoadingAgentRuleSuggestions',
 
-    /** The rule Concierge built from an admin's description, tagged with the attempt it belongs to */
+    /** The rule generated from an admin's description */
     GENERATED_RULE: 'generatedRule',
 
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */

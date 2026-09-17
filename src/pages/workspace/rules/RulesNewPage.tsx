@@ -36,7 +36,7 @@ import type {GeneratedRule} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import RulesNewPromptForm from './RulesNewPromptForm';
@@ -63,20 +63,15 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt', 'AiBot']);
     const isCategoryScopedCreate = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW || !!categoryName;
 
-    // The category-scoped flow already knows the category and offers fewer types, so it opens on the list.
     const canDescribeRule = !isCategoryScopedCreate;
     const [shouldShowRuleTypes, setShouldShowRuleTypes] = useState(!canDescribeRule);
     const [generationID, setGenerationID] = useState<string>();
 
     const [submittedPrompt, setSubmittedPrompt] = useState<string>();
-
-    // Set when the deterministic rule types cannot express the prompt, which an agent rule still can.
-    const [canOfferAgentRule, setCanOfferAgentRule] = useState(false);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
 
-    // Fetch categories if they're not loaded (e.g. after cache clear), so a generated rule can name one.
     const fetchPolicyCategories = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
@@ -90,90 +85,92 @@ function RulesNewPage({route}: RulesNewPageProps) {
         fetchPolicyCategories();
     });
 
-    const seedDraftAndNavigate = (rule: GeneratedRule) => {
-        const {category, ...ruleValues} = rule.rule ?? {};
+    const appliedGenerationIDRef = useRef<string>(undefined);
+    const generatedRuleForCurrentPrompt = generationID && generatedRule?.generationID === generationID ? generatedRule : undefined;
+    const canOfferAgentRule = generatedRuleForCurrentPrompt?.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED;
 
-        // Concierge answers with the category name the admin typed, so it only seeds a draft once it matches a category they can pick.
-        const matchedCategory = category
-            ? Object.values(policyCategories ?? {}).find((policyCategory) => policyCategory.enabled && getDecodedCategoryName(policyCategory.name) === getDecodedCategoryName(category))
-            : undefined;
-        const draft: NonNullable<GeneratedRule['rule']> = matchedCategory ? {...ruleValues, category: matchedCategory.name} : ruleValues;
+    const seedDraftAndNavigate = useCallback(
+        (rule: GeneratedRule) => {
+            const {category, ...ruleValues} = rule.rule ?? {};
 
-        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS) {
-            setDraftRequireFieldsRule(draft);
-            Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
-            return;
-        }
+            const matchedCategory = category
+                ? Object.values(policyCategories ?? {}).find((policyCategory) => policyCategory.enabled && getDecodedCategoryName(policyCategory.name) === getDecodedCategoryName(category))
+                : undefined;
+            const draft: NonNullable<GeneratedRule['rule']> = matchedCategory ? {...ruleValues, category: matchedCategory.name} : ruleValues;
 
-        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
-            setDraftFlagForReviewRule(draft);
-            Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
-            return;
-        }
+            if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS) {
+                setDraftRequireFieldsRule(draft);
+                Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
+                return;
+            }
 
-        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
-            setDraftSpendRule(draft);
-            Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
-            return;
-        }
+            if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
+                setDraftFlagForReviewRule(draft);
+                Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
+                return;
+            }
 
-        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
-            setDraftMerchantRule({...draft, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
-            Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
-            return;
-        }
+            if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
+                setDraftSpendRule(draft);
+                Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+                return;
+            }
 
-        setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
-    };
+            if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
+                setDraftMerchantRule({...draft, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+                Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+                return;
+            }
 
-    const applyGeneratedRule = (rule: GeneratedRule) => {
-        setGenerationID(undefined);
-        clearGeneratedRule();
-
-        if (rule.state === CONST.GENERATED_RULE.STATE.RULE) {
-            clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
-            seedDraftAndNavigate(rule);
-            return;
-        }
-
-        if (rule.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED) {
-            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
-            setCanOfferAgentRule(true);
-            return;
-        }
-
-        if (rule.state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES) {
-            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.multipleRules'));
-            return;
-        }
-
-        if (rule.state === CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE) {
             setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
-            return;
-        }
+        },
+        [policyCategories, policyID, translate],
+    );
 
-        setNewRulePromptError(translate('common.genericErrorMessage'));
-    };
+    const applyGeneratedRule = useCallback(
+        (rule: GeneratedRule) => {
+            if (rule.state === CONST.GENERATED_RULE.STATE.RULE) {
+                clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
+                seedDraftAndNavigate(rule);
+                return;
+            }
+
+            if (rule.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED) {
+                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
+                return;
+            }
+
+            if (rule.state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES) {
+                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.multipleRules'));
+                return;
+            }
+
+            if (rule.state === CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE) {
+                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
+                return;
+            }
+
+            setNewRulePromptError(translate('common.genericErrorMessage'));
+        },
+        [seedDraftAndNavigate, translate],
+    );
 
     useEffect(() => {
-        if (!generationID || generatedRule?.generationID !== generationID) {
+        if (!generatedRuleForCurrentPrompt || appliedGenerationIDRef.current === generatedRuleForCurrentPrompt.generationID) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Concierge answers asynchronously on an Onyx key, so this effect is how that external update reaches local state
-        applyGeneratedRule(generatedRule);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- applyGeneratedRule reads only what it is given
-    }, [generationID, generatedRule]);
+        appliedGenerationIDRef.current = generatedRuleForCurrentPrompt.generationID;
+        applyGeneratedRule(generatedRuleForCurrentPrompt);
+    }, [generatedRuleForCurrentPrompt, applyGeneratedRule]);
 
     const describeRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM>) => {
         const prompt = values.prompt.trim();
         clearNewRulePromptError();
         clearGeneratedRule();
-        setCanOfferAgentRule(false);
         setSubmittedPrompt(prompt);
         setGenerationID(generateRule(policyID, prompt));
     };
 
-    // The prompt carries over so the admin does not retype it.
     const createAgentRuleFromPrompt = (prompt: string) => {
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[AGENT_RULE_INPUT_IDS.PROMPT]: prompt});
         Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
@@ -267,7 +264,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         onSubmit={describeRule}
                         onBuildManually={() => setShouldShowRuleTypes(true)}
                         onCreateAgentRule={canOfferAgentRule && submittedPrompt ? () => createAgentRuleFromPrompt(submittedPrompt) : undefined}
-                        isLoading={!!generationID}
+                        isLoading={!!generationID && !generatedRuleForCurrentPrompt}
                     />
                 ) : (
                     <ScrollView

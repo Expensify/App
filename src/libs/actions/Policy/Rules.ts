@@ -419,13 +419,7 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-/**
- * Asks Concierge to turn a plain-English rule description into a structured rule.
- *
- * The answer arrives asynchronously on the returned generationID's Onyx key, since a background job does the work.
- *
- * @returns the generationID to read the answer under
- */
+/** @returns the generationID the answer is written under in Onyx */
 function generateRule(policyID: string, prompt: string): string {
     const generationID = NumberUtils.rand64();
 
@@ -444,9 +438,6 @@ function generateRule(policyID: string, prompt: string): string {
     return generationID;
 }
 
-/**
- * Shows Concierge's answer as an inline error under the prompt.
- */
 function setNewRulePromptError(message: string) {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
         errorFields: {[NEW_RULE_PROMPT_INPUT_IDS.PROMPT]: ErrorUtils.getMicroSecondOnyxErrorWithMessage(message)},

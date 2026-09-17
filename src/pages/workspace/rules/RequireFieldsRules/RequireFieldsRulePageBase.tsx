@@ -63,7 +63,7 @@ type RequireFieldsRulePageBaseProps = {
     initialCategoryName?: string;
     /** When true, the category field is non-interactive (category-scoped create/edit). */
     isCategoryLocked?: boolean;
-    /** When true, the draft was seeded before navigating here, so creating must not reset it. */
+    /** Whether the draft is already seeded */
     isPrefilled?: boolean;
     testID: string;
 };
@@ -171,7 +171,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
                 if (isPrefilled) {
-                    // A seeded setting is a chosen one, and the receipt fields only save when they are touched.
                     // eslint-disable-next-line react-hooks/set-state-in-effect -- seeds local selection state from the seeded draft
                     setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => form?.[fieldKey] !== undefined)));
                 } else {

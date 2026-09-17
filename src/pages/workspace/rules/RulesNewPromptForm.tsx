@@ -23,16 +23,16 @@ import {View} from 'react-native';
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
 
 type RulesNewPromptFormProps = {
-    /** Called with the form values when the admin asks Concierge to build the rule */
+    /** Called with the form values on submit */
     onSubmit: (values: FormOnyxValues<NewRulePromptFormID>) => void;
 
-    /** Called when the admin chooses to pick a rule type themselves */
+    /** Called when the admin picks a rule type themselves */
     onBuildManually: () => void;
 
-    /** Whether Concierge is still building the rule */
+    /** Whether the rule is still being generated */
     isLoading: boolean;
 
-    /** Offers an agent rule instead, when the deterministic rule types cannot express the prompt */
+    /** Called when the admin creates an agent rule instead */
     onCreateAgentRule?: () => void;
 };
 
@@ -48,7 +48,6 @@ function RulesNewPromptForm({onSubmit, onBuildManually, isLoading, onCreateAgent
             return;
         }
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
             event.preventDefault();
             formRef.current?.submit();
         }
