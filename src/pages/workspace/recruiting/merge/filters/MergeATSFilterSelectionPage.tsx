@@ -120,6 +120,7 @@ function MergeATSFilterSelectionPage({
                         ]}
                         ListItem={MultiSelectListItem}
                         canSelectMultiple
+                        shouldPreventAutoScrollOnSelect
                         onSelectRow={toggleItem}
                         style={{listItemWrapperStyle: styles.pv4}}
                     />
