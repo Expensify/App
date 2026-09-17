@@ -9,6 +9,8 @@ internalScope: Audience is Workspace Admins on the Control plan. Covers enabling
 
 Report fields collect header-level information on a report, such as a project name, client code, or trip type. Each report gets one value per field, so report fields are useful when the information applies to the whole report instead of a single expense.
 
+Report fields apply to expense reports. They don't appear on invoices. To collect extra details on invoices, [learn how to enable Invoice fields](/articles/new-expensify/workspaces/Enable-Invoice-Fields).
+
 Report fields are available on the **Control** plan only. If your workspace is connected to an accounting integration, the fields that integration imports are managed in that system and can't be edited or deleted in Expensify while the connection is active, but you can still create and manage your own fields alongside them.
 
 ---

@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
@@ -1061,6 +1062,200 @@ describe('getViolationsOnyxData', () => {
             const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
+        });
+
+        describe('multi-day reservations are measured against the nightly rate', () => {
+            const getViolations = (): TransactionViolation[] => {
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                return Array.isArray(result.value) ? result.value : [];
+            };
+
+            const findOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+
+            it('should add overLimit violation when the total amount exceeds the workspace limit, regardless of nightly average', () => {
+                // 5 nights: nightly average equals the limit, but the total is 5x over it
+                transaction.amount = -1000000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+                policy.maxExpenseAmount = 200000;
+
+                expect(findOverLimit(getViolations())).toBeDefined();
+            });
+
+            it('should add overLimit violation for a one-night stay over the limit without a night count', () => {
+                transaction.amount = -200001;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-02',
+                };
+                policy.maxExpenseAmount = 200000;
+
+                const overLimit = findOverLimit(getViolations());
+                expect(overLimit).toBeDefined();
+                expect(overLimit?.data?.nights).toBeUndefined();
+            });
+
+            it('should flag the full amount and omit the night count when the receipt has no reservation dates', () => {
+                transaction.amount = -1000000;
+                policy.maxExpenseAmount = 200000;
+
+                const overLimit = findOverLimit(getViolations());
+                expect(overLimit).toBeDefined();
+                expect(overLimit?.data?.nights).toBeUndefined();
+            });
+
+            it('should flag the full amount when only one of the two reservation dates is present', () => {
+                transaction.amount = -1000000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                };
+                policy.maxExpenseAmount = 200000;
+
+                const overLimit = findOverLimit(getViolations());
+                expect(overLimit).toBeDefined();
+                expect(overLimit?.data?.nights).toBeUndefined();
+            });
+
+            it('should flag the full amount when the reservation ends on or before it starts', () => {
+                transaction.amount = -1000000;
+                policy.maxExpenseAmount = 200000;
+
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-06',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+                const sameDay = findOverLimit(getViolations());
+                expect(sameDay).toBeDefined();
+                expect(sameDay?.data?.nights).toBeUndefined();
+
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-06',
+                    hotelReservationEndDate: '2026-03-01',
+                };
+                const inverted = findOverLimit(getViolations());
+                expect(inverted).toBeDefined();
+                expect(inverted?.data?.nights).toBeUndefined();
+            });
+
+            it('should keep using the full amount for the receipt-required threshold', () => {
+                // 5 nights, so the nightly average (200000) is under the threshold while the total (1000000) is over it
+                transaction.amount = -1000000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+                policy.maxExpenseAmountNoReceipt = 500000;
+
+                expect(getViolations().find((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED)).toBeDefined();
+            });
+
+            it('should keep using the full amount for the itemized-receipt-required threshold', () => {
+                // Same 5-night stay: the nightly average is under the threshold, the total is over it
+                transaction.amount = -1000000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+                policy.maxExpenseAmountNoItemizedReceipt = 500000;
+
+                expect(getViolations().find((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)).toBeDefined();
+            });
+        });
+
+        describe('multi-day reservations are measured against the category nightly rate', () => {
+            const getViolations = (): TransactionViolation[] => {
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                return Array.isArray(result.value) ? result.value : [];
+            };
+
+            const findCategoryOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+
+            beforeEach(() => {
+                transaction.category = 'Hotel';
+                policyCategories = {
+                    Hotel: {
+                        name: 'Hotel',
+                        enabled: true,
+                        maxExpenseAmount: 150000,
+                    },
+                };
+            });
+
+            it('should add overCategoryLimit violation when the nightly rate exceeds the category limit', () => {
+                // 5 nights: nightly average (200000) exceeds category limit (150000)
+                transaction.amount = -1000000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+
+                const violation = findCategoryOverLimit(getViolations());
+                expect(violation).toBeDefined();
+                expect(violation?.data?.nights).toBe(5);
+            });
+
+            it('should not add overCategoryLimit violation when the nightly rate is within the category limit', () => {
+                // 5 nights: nightly average (120000) is under category limit (150000), even though total (600000) exceeds it
+                transaction.amount = -600000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+
+                expect(findCategoryOverLimit(getViolations())).toBeUndefined();
+            });
+
+            it('should flag the full amount and omit the night count when the receipt has no reservation dates', () => {
+                // No hotel dates: full amount (200000) is compared, exceeds category limit (150000)
+                transaction.amount = -200000;
+
+                const violation = findCategoryOverLimit(getViolations());
+                expect(violation).toBeDefined();
+                expect(violation?.data?.nights).toBeUndefined();
+            });
+
+            it('should replace a stale overCategoryLimit violation when the night count changes', () => {
+                // Existing violation recorded 3 nights; receipt now reflects a 5-night stay
+                transactionViolations = [
+                    {
+                        name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                        data: {amount: 150000, currency: CONST.CURRENCY.USD, nights: 3},
+                    },
+                ];
+                transaction.amount = -1000000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+
+                const violations = getViolations();
+                const violation = findCategoryOverLimit(violations);
+                expect(violation).toBeDefined();
+                expect(violation?.data?.nights).toBe(5);
+                expect(violations.filter((v) => v.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toHaveLength(1);
+            });
         });
     });
 
@@ -3005,6 +3200,94 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toContainEqual(inactiveVendorViolation);
         });
 
+        describe('Sage Intacct (R2)', () => {
+            // Pass a `vendors` array to control the synced list, or `null` to simulate the list still
+            // hydrating. Intacct vendors carry the display name in `value`.
+            const policyWithIntacctVendorFeature = (
+                nonReimbursable: SageIntacctExportConfig['nonReimbursable'] = CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
+                vendors: Array<{id: string; name: string; value: string}> | null = [{id: 'iv-active', name: 'V001', value: 'Acme Intacct'}],
+            ) =>
+                createMock<Policy>({
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable}},
+                            data: vendors ? {vendors} : {},
+                        },
+                    },
+                });
+
+            it('adds the violation when the vendorMatching beta is disabled but Intacct is configured, because Intacct (R2) is generally available', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithIntacctVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-missing', wasManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                // Intacct is not a supplier source, so the plain vendor violation (no isSupplierViolation flag) is expected.
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+            });
+
+            it('does not add the violation when the Intacct vendor is in the synced list', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithIntacctVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-active', wasManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('does not add the violation while the Intacct vendor list is still hydrating (vendors undefined)', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithIntacctVendorFeature(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, null);
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-anything', wasManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('removes an existing violation when the Intacct export switches to Vendor Bill with the beta disabled', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithIntacctVendorFeature(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL);
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-missing', wasManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveVendorViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+        });
+
         describe('Xero (R4)', () => {
             // Placeholder for "Xero connected, contacts not yet synced". Explicit symbol avoids the
             // default-parameter trap where `undefined` would fall back to the populated default.
@@ -3525,6 +3808,26 @@ describe('getViolationTranslation', () => {
         );
         expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionReauthViolation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnectionReauthViolationExpected,
+        );
+    });
+
+    describe('per-night over limit messages', () => {
+        const limit = {amount: 200000, currency: CONST.CURRENCY.USD};
+        const formattedLimit = convertToDisplayString(limit.amount, limit.currency);
+
+        it.each([[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, 'violations.overCategoryLimitPerNight', 'violations.overCategoryLimit'] as const])(
+            'should use the per-night copy for %s only when the violation carries a night count',
+            (name, perNightKey, defaultKey) => {
+                const withNights: TransactionViolation = {name, type: CONST.VIOLATION_TYPES.VIOLATION, data: {...limit, nights: 3}};
+                const withoutNights: TransactionViolation = {name, type: CONST.VIOLATION_TYPES.VIOLATION, data: limit};
+
+                expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: withNights, translate: translateLocal, convertToDisplayString})).toBe(
+                    translateLocal(perNightKey, formattedLimit),
+                );
+                expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: withoutNights, translate: translateLocal, convertToDisplayString})).toBe(
+                    translateLocal(defaultKey, formattedLimit),
+                );
+            },
         );
     });
 

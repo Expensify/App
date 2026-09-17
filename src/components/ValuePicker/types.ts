@@ -18,13 +18,11 @@ type ValuePickerItem = {
     /** Custom node rendered in place of the description (e.g. a description containing an inline link) */
     alternateTextComponent?: ReactNode;
 
-    /** Element to show on the right side of the item */
     rightElement?: ReactNode;
 
     /** Whether to hide the selection button (radio) entirely */
     shouldHideSelectionButton?: boolean;
 
-    /** Styles applied to the item title */
     titleStyles?: StyleProp<TextStyle>;
 };
 
@@ -32,16 +30,9 @@ type ValueSelectorModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
-    /** Items to pick from */
     items?: ValuePickerItem[];
-
-    /** The selected item */
     selectedItem?: ValuePickerItem;
-
-    /** Label for values */
     label?: string;
-
-    /** Function to call when the user selects a item */
     onItemSelected?: (item: ValuePickerListItem) => void;
 
     /** Function to call when the user closes the modal */
@@ -53,13 +44,8 @@ type ValueSelectorModalProps = {
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 
-    /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
-
-    /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to disable keyboard shortcuts */
     disableKeyboardShortcuts?: boolean;
 
     /** Number of lines to show for alternate text */
@@ -75,16 +61,9 @@ type ValueSelectionListProps = Pick<
 };
 
 type ValuePickerProps = ForwardedFSClassProps & {
-    /** Item to display */
     value?: string;
-
-    /** Label of picker */
     label?: string;
-
-    /** Items to pick from */
     items?: ValuePickerItem[];
-
-    /** A placeholder value to display */
     placeholder?: string;
 
     /** Form Error description */
@@ -105,13 +84,8 @@ type ValuePickerProps = ForwardedFSClassProps & {
     /** Whether to show the selector modal */
     shouldShowModal?: boolean;
 
-    /** Reference to the outer element */
     ref: ForwardedRef<View>;
-
-    /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to disable keyboard shortcuts */
     disableKeyboardShortcuts?: boolean;
 
     /** Number of lines to show for alternate text */

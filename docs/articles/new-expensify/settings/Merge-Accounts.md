@@ -48,3 +48,8 @@ The following items from the merged account will be transferred to your primary 
 - Co-pilots
 - Group workspace settings
 
+## Can a Copilot merge accounts on my behalf?
+
+Yes, a Copilot with Full Access can merge accounts while acting on your behalf.
+- When they do, Expensify sends the security code to you (the account owner), not the Copilot. You'll need to share that code with your Copilot so they can complete the merge.
+- This keeps you in control, since the merge can't be finalized without the code that only you receive.

@@ -7,8 +7,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
-
 import CONST from '@src/CONST';
 
 // eslint-disable-next-line no-restricted-imports -- type-only import from react-native
@@ -25,12 +23,11 @@ type UseScrollableWrapperOptions = {
 function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = false, width}: UseScrollableWrapperOptions) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const {isKeyboardActive} = useKeyboardState();
 
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
     const scrollViewRef = useRef<RNScrollView>(null);
