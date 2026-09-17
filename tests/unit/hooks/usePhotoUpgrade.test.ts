@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 
+import CONST from '@src/CONST';
+
 import type {Camera, Orientation, PhotoFile} from 'react-native-vision-camera';
 
 const mockReplace = jest.fn<Promise<string>, [string, string, (() => boolean) | undefined]>();
@@ -26,6 +28,17 @@ jest.mock('@libs/ReceiptStorage', () => ({
     },
 }));
 
+const mockStartSpan = jest.fn<void, [string, Record<string, unknown>]>();
+const mockEndSpanWithAttributes = jest.fn<void, [string, Record<string, unknown>]>();
+const mockSetAttributes = jest.fn<void, [Record<string, unknown>]>();
+const mockGetSpan = jest.fn<{setAttributes: (attributes: Record<string, unknown>) => void} | undefined, [string]>();
+
+jest.mock('@libs/telemetry/activeSpans', () => ({
+    startSpan: (spanId: string, options: Record<string, unknown>) => mockStartSpan(spanId, options),
+    endSpanWithAttributes: (spanId: string, attributes: Record<string, unknown>) => mockEndSpanWithAttributes(spanId, attributes),
+    getSpan: (spanId: string) => mockGetSpan(spanId),
+}));
+
 const mockRotate = jest.fn<Promise<string | undefined>, [string, Orientation | undefined]>();
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright', () => ({
@@ -35,6 +48,7 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright
 
 jest.mock('react-native-fs', () => ({TemporaryDirectoryPath: '/tmp'}));
 
+const UPGRADE_SPAN_ID = `${CONST.TELEMETRY.SPAN_RECEIPT_UPGRADE}_receipt_1234.jpg`;
 const DURABLE_NAME = 'receipt_1234.jpg';
 const PHOTO_PATH = '/tmp/still.jpg';
 const UPRIGHT_PATH = '/tmp/ImageManipulator/upright.jpg';
@@ -82,6 +96,7 @@ describe('usePhotoUpgrade', () => {
         mockDiscard.mockResolvedValue(undefined);
         mockRotate.mockResolvedValue(UPRIGHT_PATH);
         mockWasClaimed.mockReturnValue(false);
+        mockGetSpan.mockReturnValue({setAttributes: mockSetAttributes});
     });
 
     afterEach(() => {
@@ -420,5 +435,171 @@ describe('usePhotoUpgrade', () => {
             result.current.startPhotoCapture(camera);
         });
         expect(takePhoto).toHaveBeenCalledTimes(2);
+    });
+    describe('telemetry', () => {
+        /** The outcome of the last ended upgrade span, which is what a dashboard groups by. */
+        function readOutcome() {
+            const call = mockEndSpanWithAttributes.mock.calls.at(-1);
+            return {spanId: call?.[0], attributes: call?.[1]};
+        }
+
+        it('reports an upgrade that landed, with the resolution it won', async () => {
+            const {camera, landPhoto} = buildCamera();
+            const {result} = renderHook(() => usePhotoUpgrade());
+
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+            act(() => {
+                result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
+            });
+            // Named per receipt, so a later capture cannot end this one's span.
+            expect(mockStartSpan).toHaveBeenCalledWith(UPGRADE_SPAN_ID, expect.objectContaining({name: CONST.TELEMETRY.SPAN_RECEIPT_UPGRADE}));
+
+            await landPhoto();
+
+            expect(readOutcome()).toEqual({
+                spanId: UPGRADE_SPAN_ID,
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.UPGRADED,
+                    [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: 1920,
+                    [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: 1440,
+                },
+            });
+        });
+
+        it('separates a capture that missed its deadline from one that failed', async () => {
+            const {camera, failCapture} = buildCamera();
+            const {result} = renderHook(() => usePhotoUpgrade());
+
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+            act(() => {
+                result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(PHOTO_CAPTURE_TIMEOUT_MS);
+            });
+
+            expect(readOutcome().attributes).toEqual({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_TIMED_OUT});
+
+            mockEndSpanWithAttributes.mockClear();
+            const second = buildCamera();
+            const {result: secondResult} = renderHook(() => usePhotoUpgrade());
+            act(() => {
+                secondResult.current.startPhotoCapture(second.camera);
+            });
+            act(() => {
+                secondResult.current.upgradeReceiptWithPhoto(DURABLE_NAME);
+            });
+            await second.failCapture();
+            await failCapture();
+
+            expect(readOutcome().attributes).toEqual({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_FAILED});
+        });
+
+        it('reports a receipt an upload claimed, which is a backed-out swap rather than a failure', async () => {
+            const {camera, landPhoto} = buildCamera();
+            const {result} = renderHook(() => usePhotoUpgrade());
+
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+            act(() => {
+                result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
+            });
+            mockWasClaimed.mockReturnValue(true);
+            await landPhoto();
+
+            expect(readOutcome().attributes).toEqual({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.CLAIMED_FOR_UPLOAD});
+        });
+
+        it('reports a rotate that never settled, the one failure seen repeatedly on device', async () => {
+            const {camera, landPhoto} = buildCamera();
+            const {result} = renderHook(() => usePhotoUpgrade());
+            mockRotate.mockReturnValue(new Promise(() => {}));
+
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+            act(() => {
+                result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
+            });
+            await landPhoto();
+            await act(async () => {
+                jest.advanceTimersByTime(ROTATE_TIMEOUT_MS);
+            });
+
+            expect(readOutcome().attributes).toEqual({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.ROTATE_TIMED_OUT});
+        });
+
+        it('marks the attempt on the capture span, so a lost outcome is still countable', () => {
+            const {camera} = buildCamera();
+            const {result} = renderHook(() => usePhotoUpgrade());
+
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+
+            // The capture span ends in milliseconds, so it survives the background that would cancel the
+            // upgrade span. It carries the denominator the success rate is computed against.
+            expect(mockGetSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            expect(mockSetAttributes).toHaveBeenCalledWith({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_ATTEMPTED]: true});
+        });
+
+        it('reports one outcome per upgrade, even when the swap rejects after it already reported', async () => {
+            const {camera, landPhoto} = buildCamera();
+            const {result} = renderHook(() => usePhotoUpgrade());
+            // `recordUpgrade` runs in the same `then` as the reported outcome, so throwing there is what
+            // actually reaches the outer catch. A rejected `discard` would not: `discardPhoto` swallows it.
+            mockReplace.mockResolvedValue(DURABLE_NAME);
+            // `Once`, because `clearAllMocks` between tests clears calls but keeps implementations.
+            mockRecordUpgrade.mockImplementationOnce(() => {
+                throw new Error('bookkeeping failed after the bytes had already changed');
+            });
+
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+            act(() => {
+                result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
+            });
+            await landPhoto();
+
+            // The catch below runs and computes `swap_failed`, but the upgrade already reported and the
+            // receipt really was upgraded, so the first outcome has to stand.
+            expect(mockRecordUpgrade).toHaveBeenCalled();
+            expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(1);
+            expect(readOutcome().attributes).toEqual({
+                [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.UPGRADED,
+                [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: 1920,
+                [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: 1440,
+            });
+        });
+
+        it('records a shutter that skipped the upgrade on the capture span, since no receipt exists yet', () => {
+            const {camera} = buildCamera();
+            const {result} = renderHook(() => usePhotoUpgrade());
+
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+            act(() => {
+                result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
+            });
+            // The first capture is still running, so this shutter keeps its snapshot.
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+
+            expect(mockGetSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            expect(mockSetAttributes).toHaveBeenCalledWith({
+                [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_ATTEMPTED]: false,
+                [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.STACKED_CAPTURE_SKIPPED,
+            });
+            // A skipped shutter must never end the span of the upgrade already running.
+            expect(mockEndSpanWithAttributes).not.toHaveBeenCalled();
+        });
     });
 });

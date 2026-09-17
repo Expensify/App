@@ -281,6 +281,33 @@ describe('ReceiptStorage', () => {
             return storage;
         }
 
+        it('never waits on the swap that asked for it, since `overwrite` registers itself before awaiting the sweep', async () => {
+            const storage = loadFreshStorage();
+            const existing = new Set([`${FOLDER}/${RECEIPT}.backup`]);
+            mockReadDir.mockResolvedValue([{name: `${RECEIPT}.backup`}]);
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            mockMv.mockImplementation((from: string, to: string) => {
+                existing.delete(from);
+                existing.add(to);
+                return Promise.resolve();
+            });
+
+            // The receipt is missing under its own name, so the sweep has to restore it while a swap over
+            // that same path is already registered. If the sweep ever waits for a running swap, it waits on
+            // the caller waiting on it and neither ever finishes, so this asserts completion, not a result.
+            const swap = storage.overwrite(RECEIPT, '/var/mobile/tmp/still.jpg');
+            let stall: ReturnType<typeof setTimeout> | undefined;
+            const stalled = new Promise<string>((resolve) => {
+                stall = setTimeout(() => resolve('deadlocked'), 1000);
+            });
+
+            await expect(Promise.race([swap.then(() => 'settled'), stalled])).resolves.toBe('settled');
+            await expect(swap).resolves.toBe(RECEIPT);
+            if (stall) {
+                clearTimeout(stall);
+            }
+        });
+
         it('puts back a stranded backup and deletes the copies nothing owns before it renames anything', async () => {
             const storage = loadFreshStorage();
             const existing = new Set([`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/other.jpg`, `${FOLDER}/other.jpg.staged`]);

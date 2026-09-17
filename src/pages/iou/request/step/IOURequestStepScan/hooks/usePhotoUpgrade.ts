@@ -1,8 +1,11 @@
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {finish as finishUpgrade, isClaimedForRead as wasReceiptClaimed, recordUpgrade, start as startUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
+import {endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import rotatePhotoToUpright from '@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright';
+
+import CONST from '@src/CONST';
 
 import type {Camera, PhotoFile} from 'react-native-vision-camera';
 
@@ -75,7 +78,18 @@ type PendingPhoto = {
 
     /** Gives up on the photo, so whatever lands afterwards is deleted instead of kept. */
     discard: () => void;
+
+    /** Shutter time, so the span covers the capture rather than starting when the receipt is handed over. */
+    startedAt: number;
+
+    /** Why the capture produced nothing, read once the race has settled. */
+    getFailureOutcome: () => string;
 };
+
+/** Named per receipt: an upgrade outlives its capture, so a later one must not end this one's span. */
+function toUpgradeSpanId(durableName: string) {
+    return `${CONST.TELEMETRY.SPAN_RECEIPT_UPGRADE}_${durableName}`;
+}
 
 function abandonPending(pending: PendingPhoto) {
     pending.discard();
@@ -139,9 +153,23 @@ function usePhotoUpgrade() {
         // baseline. A receipt keeping its snapshot is the cheaper loss.
         if (photosInFlightRef.current > 0) {
             Log.info('[PhotoUpgrade] a full-resolution capture is still running, so this receipt keeps its snapshot');
+            // No receipt exists yet, so there is no upgrade span to end. The capture span is still open and
+            // is the only place this outcome can be recorded.
+            getSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE)?.setAttributes({
+                [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_ATTEMPTED]: false,
+                [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.STACKED_CAPTURE_SKIPPED,
+            });
             return;
         }
 
+        // The denominator for every outcome below. It rides on the capture span rather than the upgrade span
+        // because backgrounding the app cancels every open span, and the upgrade's own span is open for
+        // seconds while this one has already ended. Without it, a lost outcome is indistinguishable from a
+        // capture that never tried, and the success rate reads high.
+        getSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE)?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_ATTEMPTED]: true});
+
+        const startedAt = Date.now();
+        let failureOutcome: string = CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_FAILED;
         let isDiscarded = false;
 
         // Temp directory, not the receipts folder, so ReceiptStorage stays its only writer and a discarded
@@ -165,6 +193,7 @@ function usePhotoUpgrade() {
             },
             (error: unknown) => {
                 Log.warn('[PhotoUpgrade] full-resolution capture failed', {error: error instanceof Error ? error.message : String(error)});
+                failureOutcome = CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_FAILED;
                 return undefined;
             },
         );
@@ -175,6 +204,7 @@ function usePhotoUpgrade() {
         const deadline = new Promise<undefined>((resolve) => {
             deadlineTimeout = setTimeout(() => {
                 isDiscarded = true;
+                failureOutcome = CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_TIMED_OUT;
                 resolve(undefined);
             }, PHOTO_CAPTURE_TIMEOUT_MS);
         });
@@ -197,6 +227,8 @@ function usePhotoUpgrade() {
             discard: () => {
                 isDiscarded = true;
             },
+            startedAt,
+            getFailureOutcome: () => failureOutcome,
         };
         captureCountRef.current += 1;
         setHasPendingPhotoCapture(true);
@@ -205,9 +237,34 @@ function usePhotoUpgrade() {
     const upgradeReceiptWithPhoto = (durableName: string) => {
         const pending = pendingPhotoRef.current;
         if (!pending) {
+            // The only branch that would otherwise say nothing at all, which once left a capture with no
+            // `[PhotoUpgrade]` line and no way to tell what had happened to it.
+            Log.info('[PhotoUpgrade] no pending photo for this receipt, so it keeps its snapshot', false, {durableName});
             return;
         }
         pendingPhotoRef.current = undefined;
+
+        const spanId = toUpgradeSpanId(durableName);
+        // The branches below are not mutually exclusive: a swap that already reported an outcome can still
+        // reject afterwards. Reporting once is this hook's business rather than a detail of `endSpan`.
+        let hasReportedOutcome = false;
+        const reportOutcome = (outcome: string, attributes: Record<string, number> = {}) => {
+            if (hasReportedOutcome) {
+                return;
+            }
+            hasReportedOutcome = true;
+            endSpanWithAttributes(spanId, {[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: outcome, ...attributes});
+        };
+        // Started from the shutter, so the span covers the capture as well as the swap. It deliberately has
+        // no parent: the upgrade outlives the screen, and its shutter span has usually ended by now.
+        startSpan(spanId, {
+            name: CONST.TELEMETRY.SPAN_RECEIPT_UPGRADE,
+            op: CONST.TELEMETRY.SPAN_RECEIPT_UPGRADE,
+            startTime: pending.startedAt,
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
+            },
+        });
 
         // From here a reader can claim these bytes, and a view can refresh once they change.
         startUpgrade(durableName);
@@ -215,6 +272,7 @@ function usePhotoUpgrade() {
         pending.promise
             .then((photo) => {
                 if (!photo) {
+                    reportOutcome(pending.getFailureOutcome());
                     return undefined;
                 }
 
@@ -228,6 +286,10 @@ function usePhotoUpgrade() {
                     // An upload is sending the snapshot. Renaming now would hand it the old bytes, the
                     // new ones, or a missing file.
                     if (wasReceiptClaimed(durableName)) {
+                        // Logged like every other outcome: a background cancels the span above, and then the
+                        // log is the only record that this receipt was upgraded right up to the rename.
+                        Log.info('[PhotoUpgrade] keeping the snapshot, upgrade claimed for upload before the swap started', false, {durableName});
+                        reportOutcome(CONST.TELEMETRY.UPGRADE_OUTCOME.CLAIMED_FOR_UPLOAD);
                         discardPhoto(photo.path);
                         if (uprightPath) {
                             discardPhoto(uprightPath);
@@ -243,6 +305,11 @@ function usePhotoUpgrade() {
                                 width: photo.width,
                                 height: photo.height,
                                 wasRotated: !!uprightPath,
+                            });
+                            // Source dimensions, so the resolution the upgrade actually wins is queryable per device.
+                            reportOutcome(CONST.TELEMETRY.UPGRADE_OUTCOME.UPGRADED, {
+                                [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
+                                [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
                             });
                             // Only now have the bytes changed, which is what reloads the unchanged path.
                             recordUpgrade(durableName);
@@ -266,9 +333,15 @@ function usePhotoUpgrade() {
             .catch((error: unknown) => {
                 // A swap that backed out for an upload is not a failure, and gets its own outcome.
                 const wasClaimed = wasReceiptClaimed(durableName);
-                Log.warn(`[PhotoUpgrade] keeping the snapshot, upgrade ${wasClaimed ? 'claimed for upload' : 'failed'}`, {
-                    error: error instanceof Error ? error.message : String(error),
-                });
+                const reason = error instanceof Error ? error.message : String(error);
+                Log.warn(`[PhotoUpgrade] keeping the snapshot, upgrade ${wasClaimed ? 'claimed for upload' : 'failed'}`, {error: reason});
+                let outcome: string = CONST.TELEMETRY.UPGRADE_OUTCOME.SWAP_FAILED;
+                if (wasClaimed) {
+                    outcome = CONST.TELEMETRY.UPGRADE_OUTCOME.CLAIMED_FOR_UPLOAD;
+                } else if (reason.includes('rotate did not finish')) {
+                    outcome = CONST.TELEMETRY.UPGRADE_OUTCOME.ROTATE_TIMED_OUT;
+                }
+                reportOutcome(outcome);
                 pending.discard();
                 discardWhenItLands(pending);
             })
