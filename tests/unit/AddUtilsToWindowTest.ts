@@ -1,7 +1,6 @@
-import addUtilsToWindow from '@src/setup/addUtilsToWindow';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import addUtilsToWindow from '@src/setup/addUtilsToWindow';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';

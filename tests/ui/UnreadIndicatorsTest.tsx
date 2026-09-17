@@ -17,14 +17,13 @@ import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
-import lodashDeepClone from 'lodash/cloneDeep';
 import React from 'react';
 import {AppState, DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -257,12 +256,6 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
     setSidebarLoaded();
     await waitForBatchedUpdatesWithAct();
-}
-
-async function getReportForWrite(reportID: string): Promise<Report | undefined> {
-    const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lodashDeepClone loses the type
-    return report ? (lodashDeepClone(report) as Report) : undefined;
 }
 
 describe('Unread Indicators', () => {
@@ -599,7 +592,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Leave a comment as the current user and verify the indicator is removed
-                const report = await getReportForWrite(REPORT_ID);
+                const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                 addComment({
                     report,
                     notifyReportID: REPORT_ID,
@@ -680,7 +673,7 @@ describe('Unread Indicators', () => {
                 // Navigate to the chat and simulate leaving a comment from the current user
                 .then(() => navigateToSidebarOptionWithoutAct(0))
                 .then(async () => {
-                    const report = await getReportForWrite(REPORT_ID);
+                    const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     // Leave a comment as the current user
                     addComment({
                         report,
@@ -713,7 +706,7 @@ describe('Unread Indicators', () => {
                     // This message is visible on the sidebar and the report screen, so there are two occurrences.
                     expect(screen.getAllByText('Current User Comment 1').at(0)).toBeOnTheScreen();
 
-                    const report = await getReportForWrite(REPORT_ID);
+                    const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
                         deleteReportComment(report, lastReportAction, undefined, undefined, [], undefined, undefined, '');
                     }
@@ -737,7 +730,7 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOptionWithoutAct(0);
 
-        const report = await getReportForWrite(REPORT_ID);
+        const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
         addComment({
             report,
             notifyReportID: REPORT_ID,
@@ -962,7 +955,7 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOptionWithoutAct(0);
 
-        const report = await getReportForWrite(REPORT_ID);
+        const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
 
         // When USER_A add a comment
         addComment({

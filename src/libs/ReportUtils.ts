@@ -1270,7 +1270,7 @@ function getCurrentUserDisplayNameOrEmail(): string | undefined {
     return currentUserPersonalDetails?.displayName ?? deprecatedCurrentUserEmail;
 }
 
-function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
+function getChatType(report: ReadonlyOnyxInputOrEntry<Report> | Participant): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }
 
@@ -1644,7 +1644,7 @@ function isCurrentUserSubmitter(report: ReadonlyOnyxEntry<Report>, currentUserAc
 /**
  * Whether the provided report is an Admin room
  */
-function isAdminRoom(report: OnyxEntry<Report>): boolean {
+function isAdminRoom(report: ReadonlyOnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
 }
 
@@ -1658,7 +1658,7 @@ function isAdminsOnlyPostingRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Announce room
  */
-function isAnnounceRoom(report: OnyxEntry<Report>): boolean {
+function isAnnounceRoom(report: ReadonlyOnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
 }
 
@@ -1686,11 +1686,11 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Policy Expense chat.
  */
-function isPolicyExpenseChat(option: OnyxInputOrEntry<Report> | OptionData | Participant): boolean {
+function isPolicyExpenseChat(option: ReadonlyOnyxInputOrEntry<Report> | OptionData | Participant): boolean {
     return getChatType(option) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || !!(option && typeof option === 'object' && 'isPolicyExpenseChat' in option && option.isPolicyExpenseChat);
 }
 
-function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
+function isInvoiceRoom(report: ReadonlyOnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
 }
 
@@ -1784,7 +1784,7 @@ function isChatRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a public room
  */
-function isPublicRoom(report: OnyxEntry<Report>): boolean {
+function isPublicRoom(report: ReadonlyOnyxEntry<Report>): boolean {
     return report?.visibility === CONST.REPORT.VISIBILITY.PUBLIC || report?.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
 }
 
@@ -1869,11 +1869,11 @@ function isDM(report: OnyxEntry<Report>): boolean {
     return isChatReport(report) && !getChatType(report) && !isThread(report);
 }
 
-function isSelfDM(report: OnyxInputOrEntry<Report>): boolean {
+function isSelfDM(report: ReadonlyOnyxInputOrEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
 }
 
-function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
+function isGroupChat(report: ReadonlyOnyxEntry<Report> | Partial<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP;
 }
 
@@ -1905,7 +1905,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
 }
 
-function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+function getDefaultNotificationPreferenceForReport(report: ReadonlyOnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     if (isAnnounceRoom(report)) {
         return CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
@@ -1928,7 +1928,7 @@ function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): V
  * Get the notification preference given a report. This should ALWAYS default to 'hidden'. Do not change this!
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserAccountID?: number): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+function getReportNotificationPreference(report: ReadonlyOnyxEntry<Report>, currentUserAccountID?: number): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
     const participant = accountID ? report?.participants?.[accountID] : undefined;
 
@@ -1940,7 +1940,7 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
-function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
+function isConciergeChatReport(report: ReadonlyOnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
     return !!report && !!conciergeReportID && report.reportID === conciergeReportID;
 }
 
@@ -2475,8 +2475,8 @@ function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
  * We will remove the 'hidden' field entirely once the backend changes for https://github.com/Expensify/Expensify/issues/450891 are done.
  */
 function isHiddenForCurrentUser(notificationPreference: string | null | undefined): boolean;
-function isHiddenForCurrentUser(report: OnyxEntry<Report>): boolean;
-function isHiddenForCurrentUser(reportOrPreference: OnyxEntry<Report> | string | null | undefined): boolean {
+function isHiddenForCurrentUser(report: ReadonlyOnyxEntry<Report>): boolean;
+function isHiddenForCurrentUser(reportOrPreference: ReadonlyOnyxEntry<Report> | string | null | undefined): boolean {
     if (typeof reportOrPreference === 'object' && reportOrPreference !== null) {
         const notificationPreference = getReportNotificationPreference(reportOrPreference);
         return isHiddenForCurrentUser(notificationPreference);

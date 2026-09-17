@@ -242,6 +242,7 @@ import type {
     PolicyEmployeeList,
     PolicyReportField,
     PolicyTagLists,
+    ReadonlyOnyxEntry,
     RecentlyUsedReportFields,
     Report,
     ReportAction,
@@ -403,7 +404,7 @@ type PregeneratedResponseParams = {
 };
 
 type AddCommentParams = {
-    report: OnyxEntry<Report>;
+    report: ReadonlyOnyxEntry<Report>;
     notifyReportID: string;
     ancestors: Ancestor[];
     text: string;
@@ -421,7 +422,7 @@ type AddCommentParams = {
 };
 
 type AddActionsParams = {
-    report: OnyxEntry<Report>;
+    report: ReadonlyOnyxEntry<Report>;
     notifyReportID: string | string[];
     ancestors: Ancestor[];
     timezoneParam: Timezone;
