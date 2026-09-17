@@ -1,4 +1,4 @@
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {createTypeMenuSections, SPEND_INSIGHTS_SEARCH_KEYS} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
