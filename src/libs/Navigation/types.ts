@@ -1041,6 +1041,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT]: {
         policyID: string;
+        subPage?: string;
+        authType?: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SETUP]: {
         policyID: string;
@@ -1407,6 +1409,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {

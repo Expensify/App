@@ -214,6 +214,7 @@ const WRITE_COMMANDS = {
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_NAME_VALUE_PAIRS: 'SetNameValuePairs',
+    SET_PERSONAL_EXPENSE_RULES: 'SetPersonalExpenseRules',
     SET_REPORT_DETAILS_COLUMNS: 'SetReportDetailsColumns',
     SET_REPORT_FIELD: 'Report_SetFields',
     DELETE_REPORT_FIELD: 'RemoveReportField',
@@ -921,6 +922,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIRS]: Parameters.SetNameValuePairsParams;
+    [WRITE_COMMANDS.SET_PERSONAL_EXPENSE_RULES]: Parameters.SetPersonalExpenseRulesParams;
     [WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS]: Parameters.SetReportDetailsColumnsParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
@@ -1498,6 +1500,7 @@ const READ_COMMANDS = {
     OPEN_SEARCH_CARD_FILTERS_PAGE: 'OpenSearchCardFiltersPage',
     OPEN_SEARCH_CATEGORY_FILTERS_PAGE: 'OpenSearchCategoryFiltersPage',
     SEARCH: 'Search',
+    GET_INSIGHTS: 'GetInsights',
     GET_TRANSACTIONS_CONVERTED_AMOUNT: 'GetTransactionsConvertedAmount',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
@@ -1629,6 +1632,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_SEARCH_PAGE]: Parameters.OpenSearchPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
+    [READ_COMMANDS.GET_INSIGHTS]: Parameters.GetInsightsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT]: Parameters.GetTransactionsConvertedAmountParams;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;
