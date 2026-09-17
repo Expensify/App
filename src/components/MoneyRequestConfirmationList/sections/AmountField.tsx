@@ -281,7 +281,7 @@ function AmountField({
         if (isInlineAmountInvalid && shouldDisplayFieldError) {
             setFormError('common.error.invalidAmount');
         } else if (!isInlineAmountInvalid) {
-            clearFormErrors(['common.error.invalidAmount']);
+            clearFormErrors(isEditingSplitBill && parsedAmount !== 0 ? ['common.error.invalidAmount', 'iou.error.invalidAmount'] : ['common.error.invalidAmount']);
         }
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);
