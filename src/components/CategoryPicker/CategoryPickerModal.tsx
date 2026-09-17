@@ -14,11 +14,6 @@ import {View} from 'react-native';
 
 import CategoryPicker from '.';
 
-const popoverDimensions = {
-    width: CONST.POPOVER_DROPDOWN_WIDTH,
-    height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-};
-
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -34,6 +29,9 @@ type CategoryPickerModalProps = {
 
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
+
+    /** Height of the picker. Defaults to the full dropdown height, pass a smaller value to fit it into limited space. */
+    popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 function CategoryPickerModal({
@@ -45,6 +43,7 @@ function CategoryPickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
 }: CategoryPickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -52,6 +51,10 @@ function CategoryPickerModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive} = useKeyboardState();
     const anchorRef = useRef<View>(null);
+    const popoverDimensions = {
+        width: CONST.POPOVER_DROPDOWN_WIDTH,
+        height: popoverHeight,
+    };
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
