@@ -13,7 +13,6 @@ import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
-import HomeTaskGroup from '@pages/home/HomeTaskGroup';
 import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import CONST from '@src/CONST';
@@ -26,8 +25,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 
 import ConciergePromptBox from './ConciergePromptBox';
-import EmptyState from './EmptyState';
-import ForYouSkeleton from './ForYouSkeleton';
+import ForYouBody from './ForYouBody';
 import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
@@ -196,30 +194,6 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     // The empty state stands in for the to-dos only when both groups are empty.
     const showEmptyState = !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
 
-    // One shimmer block stands in for the whole body during app load, rather than each group deferring on its own,
-    // so no heading or row appears mid-load as its data lands.
-    const renderBody = () => {
-        if (isInitialLoad) {
-            return shouldShowSkeletonBody ? <ForYouSkeleton /> : null;
-        }
-
-        return (
-            <>
-                <HomeTaskGroup
-                    title={translate('homePage.timeSensitiveSection.title')}
-                    rows={timeSensitiveItems}
-                />
-                <HomeTaskGroup
-                    title={translate('homePage.toDos')}
-                    rows={visibleForYouRows}
-                    reducedTopGap={timeSensitiveItems.length > 0}
-                >
-                    {showEmptyState ? <EmptyState /> : null}
-                </HomeTaskGroup>
-            </>
-        );
-    };
-
     // Nothing but the Concierge box renders when the body is empty, which is the only case that needs the tighter
     // bottom padding.
     const hasBodyContent = isInitialLoad ? shouldShowSkeletonBody : timeSensitiveItems.length > 0 || visibleForYouRows.length > 0 || showEmptyState;
@@ -236,7 +210,13 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                 />
             }
         >
-            {renderBody()}
+            <ForYouBody
+                isInitialLoad={isInitialLoad}
+                shouldShowSkeleton={shouldShowSkeletonBody}
+                timeSensitiveRows={timeSensitiveItems}
+                todoRows={visibleForYouRows}
+                shouldShowEmptyState={showEmptyState}
+            />
         </WidgetContainer>
     );
 }
