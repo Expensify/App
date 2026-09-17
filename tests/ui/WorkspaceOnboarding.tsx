@@ -207,6 +207,30 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should not show the back button on join workspace after merging a work email', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                isMergeAccountStepCompleted: true,
+            });
+        });
+
+        // The merge flow replaces the screens before this one and passes no `backTo`, so there is nothing to go back to.
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should show the back button on join workspace for the standard personal details flow', async () => {
         await TestHelper.signInWithTestUser();
 

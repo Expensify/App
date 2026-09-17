@@ -80,6 +80,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, []);
 
     useEffect(() => {
+        // This screen can stay mounted below the rest of the onboarding stack, and its Onyx dependencies keep changing
+        // while it is backgrounded (e.g. OpenApp after a successful merge). Navigating from a backgrounded screen pushes
+        // duplicate routes onto the stack, so only act while focused.
+        if (!isFocused) {
+            return;
+        }
+
         const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
             if (isVsb || isSmb) {
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
@@ -106,7 +113,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         setOnboardingErrorMessage(null);
 
         if (onboardingValues?.shouldValidate) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            // Replace instead of push so this screen unmounts. Left mounted, its effect re-runs once the merge response
+            // updates the account and pushes a second copy of the remaining flow.
+            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
             return;
         }
 

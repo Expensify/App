@@ -45,6 +45,12 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const isFocused = useIsFocused();
 
     useEffect(() => {
+        // Same guard as the work email screen: never navigate while this screen is backgrounded, or it stacks a
+        // duplicate copy of the remaining onboarding flow.
+        if (!isFocused) {
+            return;
+        }
+
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
