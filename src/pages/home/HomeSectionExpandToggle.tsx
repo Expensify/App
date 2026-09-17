@@ -18,7 +18,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type HomeSectionExpandToggleProps = {
-    /** Whether the section is currently expanded */
     isExpanded: boolean;
 
     /** Callback to toggle the expanded state */

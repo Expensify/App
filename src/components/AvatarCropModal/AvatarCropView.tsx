@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -37,7 +37,6 @@ type AvatarCropViewProps = {
     /** Link to image for cropping */
     imageUri?: string;
 
-    /** Name of the image */
     imageName?: string;
 
     /** Type of the image file */

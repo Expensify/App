@@ -14,16 +14,16 @@ import React from 'react';
 import {Animated, View} from 'react-native';
 
 type BaseOverlayProps = {
-    /* Callback to close the modal */
+    /** Callback to close the modal */
     onPress?: () => void;
 
-    /* Override the progress from useCardAnimation. Necessary for the secondary overlay */
+    /** Override the progress from useCardAnimation. Necessary for the secondary overlay */
     progress?: OverlayStylesParams;
 
-    /* Overlay position from the left edge of the container */
+    /** Overlay position from the left edge of the container */
     positionLeftValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 
-    /* Overlay position from the right edge of the container */
+    /** Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 };
 
