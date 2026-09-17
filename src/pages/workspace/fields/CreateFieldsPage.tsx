@@ -17,7 +17,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import {getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import {getExistingReportFieldByName, getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue} from '@libs/WorkspaceReportFieldUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import InitialListValueSelector from '@pages/workspace/reports/InitialListValueSelector';
@@ -94,10 +94,16 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
             const {name, type, initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
+            const existingField = getExistingReportFieldByName(policy?.fieldList, name);
+
             if (!isRequiredFulfilled(name)) {
                 errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.invoiceFieldNameRequiredError' : 'workspace.reportFields.reportFieldNameRequiredError');
-            } else if (isReportFieldNameExisting(policy?.fieldList, name)) {
-                errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
+            } else if (existingField) {
+                errors[INPUT_IDS.NAME] = translate(
+                    existingField.target === CONST.REPORT_FIELD_TARGETS.INVOICE
+                        ? 'workspace.invoiceFields.existingInvoiceFieldNameError'
+                        : 'workspace.reportFields.existingReportFieldNameError',
+                );
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
             }
@@ -139,12 +145,17 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
         (values: Record<string, string>) => {
             const errors: Record<string, string> = {};
             const name = values[INPUT_IDS.NAME];
-            if (isReportFieldNameExisting(policy?.fieldList, name)) {
-                errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
+            const existingField = getExistingReportFieldByName(policy?.fieldList, name);
+            if (existingField) {
+                errors[INPUT_IDS.NAME] = translate(
+                    existingField.target === CONST.REPORT_FIELD_TARGETS.INVOICE
+                        ? 'workspace.invoiceFields.existingInvoiceFieldNameError'
+                        : 'workspace.reportFields.existingReportFieldNameError',
+                );
             }
             return errors;
         },
-        [isInvoiceField, policy?.fieldList, translate],
+        [policy?.fieldList, translate],
     );
 
     const handleOnValueCommitted = (initialValue: string) => {
