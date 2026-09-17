@@ -285,7 +285,16 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, reportNameValuePairs, rules});
+            return canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report: iouReport,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions: transactionReportActions,
+                rules,
+            });
         };
 
         let transactionChanges: TransactionChanges = {};
