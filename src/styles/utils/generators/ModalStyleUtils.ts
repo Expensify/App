@@ -54,6 +54,7 @@ type GetModalStylesOptions = {
     };
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
     shouldDisplayBelowModals?: boolean;
+    isStackedOnRHP?: boolean;
 };
 
 type GetModalStylesStyleUtil = {
@@ -71,6 +72,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
         enableEdgeToEdgeBottomSafeAreaPadding = false,
         shouldDisplayBelowModals = false,
+        isStackedOnRHP = false,
     }): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -313,7 +315,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                           borderRadius: variables.componentBorderRadiusLarge,
                           borderWidth: variables.rhpFloatingCardBorderWidth,
                           borderColor: theme.border,
-                          boxShadow: theme.shadow,
+                          // The RHP frame under a stacked modal already casts the shadow.
+                          boxShadow: isStackedOnRHP ? undefined : theme.shadow,
                           overflow: 'hidden',
                       };
 
