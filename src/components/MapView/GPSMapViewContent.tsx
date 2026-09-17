@@ -36,15 +36,8 @@ const LOCATION_PUCK_PULSING = {
 const CURRENT_LOCATION_PUCK_IMAGE = 'current-location-puck-image';
 
 /**
- * The native Mapbox map of the GPS distance screen, together with every piece of state that describes that specific
- * native map instance (the camera ref, whether the user has panned it, whether its follow mode still has to snap
- * immediately, and the last location its location puck reported).
- *
- * This lives in its own component on purpose. `GPSMapView` unmounts the map whenever the app goes offline, the Mapbox
- * token is cleared (expiry/refresh) or the location permission status becomes unknown, while `GPSMapView` itself stays
- * mounted. Keeping the state here means a rebuilt map gets a freshly seeded camera state instead of inheriting state
- * that described the map that was just destroyed — in particular `shouldUseImmediateFollowTransition`, which is spent
- * once per native camera, and `userInteractedWithMap`, which suppresses every way of aiming the camera at once.
+ * This lives in its own component, so that when `GPSMapView` unmounts the map whenever the app goes offline,
+ * and then mounts it back again the state here can reset to not use stale map state.
  */
 function GPSMapViewContent({
     style,
