@@ -111,7 +111,6 @@ type UpdateSplitTransactionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
     /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
     shouldSkipReportHighlightRail?: boolean;
@@ -200,7 +199,6 @@ function updateSplitTransactions({
     policyRecentlyUsedCurrencies,
     isFromSplitExpensesFlow,
     shouldSkipReportHighlightRail,
-    betas,
     personalDetails,
     transactionReport,
     expenseReport: expenseReportFromParams,
@@ -685,7 +683,6 @@ function updateSplitTransactions({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
-            betas,
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
