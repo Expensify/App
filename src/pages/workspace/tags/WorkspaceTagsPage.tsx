@@ -398,7 +398,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canEditName: canWriteTags && !isSelectionModeActive,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
-                onRenameName: (newName: string) => renameTagInline(policyData, tag.name, newName),
+                onRenameName: (newName: string) => renameTagInline(policyData, tag.name, newName, isVendorMatchingBetaEnabled),
                 onClose: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
             });
 
@@ -420,6 +420,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         tagApproverEmails,
         employeePersonalDetails,
         formatPhoneNumber,
+        isVendorMatchingBetaEnabled,
     ]);
 
     const tagRowsKeyedByName = useMemo(

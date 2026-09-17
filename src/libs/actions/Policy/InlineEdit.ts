@@ -32,17 +32,17 @@ import {updateWorkspaceMembersRole} from './Member';
 import {editPerDiemRateAmount, editPerDiemRateDestination, editPerDiemRateSubrate} from './PerDiem';
 import {renamePolicyTag} from './Tag';
 
-function renameCategoryInline(policyData: PolicyData, currentName: string, newName: string): void {
+function renameCategoryInline(policyData: PolicyData, currentName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): void {
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (sanitized === currentName || getCategoryNameError(policyData.categories, newName, currentName)) {
         return;
     }
 
-    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized});
+    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled);
 }
 
-function renameTagInline(policyData: PolicyData, oldName: string, newName: string): void {
+function renameTagInline(policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): void {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getCleanedTagName(oldName);
     const {tags} = getTagList(policyData.tags, 0);
@@ -51,7 +51,7 @@ function renameTagInline(policyData: PolicyData, oldName: string, newName: strin
         return;
     }
 
-    renamePolicyTag(policyData, {oldName, newName: sanitized}, 0);
+    renamePolicyTag(policyData, {oldName, newName: sanitized}, 0, isVendorMatchingBetaEnabled);
 }
 
 function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, currentName: string): void {

@@ -93,21 +93,21 @@ describe('PolicyInlineEdit', () => {
 
     describe('renameCategoryInline', () => {
         it('does not persist when the sanitized name is unchanged', () => {
-            renameCategoryInline(policyData, 'Food', '  Food  ');
+            renameCategoryInline(policyData, 'Food', '  Food  ', true);
 
             expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
         });
 
         it('does not persist an invalid name', () => {
-            renameCategoryInline(policyData, 'Food', 'Travel');
+            renameCategoryInline(policyData, 'Food', 'Travel', true);
 
             expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
         });
 
         it('delegates a valid rename to the canonical action', () => {
-            renameCategoryInline(policyData, 'Food', '  Meals  ');
+            renameCategoryInline(policyData, 'Food', '  Meals  ', true);
 
-            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'});
+            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'}, true);
         });
     });
 
