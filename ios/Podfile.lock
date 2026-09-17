@@ -405,7 +405,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroFetch (1.6.2):
+  - NitroFetch (1.5.4):
     - boost
     - DoubleConversion
     - fast_float
@@ -435,7 +435,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NitroModules (0.37.1):
+  - NitroModules (0.36.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -3935,7 +3935,7 @@ PODS:
     - SocketRocket
     - Turf
     - Yoga
-  - RNNitroSQLite (9.8.0):
+  - RNNitroSQLite (9.8.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -5002,8 +5002,8 @@ SPEC CHECKSUMS:
   MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
   MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroFetch: 0f353a00b92d23e8b32f5d91ca625e00d35762ff
-  NitroModules: f2a165630c12aed5793d6b42b9002c6a649ea04e
+  NitroFetch: 4941ca1e41fc72ebdad33c50c85fee59a3dd6871
+  NitroModules: 1961fff19baf1f4a5221dd2fea7d4de95941f9e4
   NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
@@ -5118,7 +5118,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 318b3defc20b75a21ca00d58342109230c044da5
   RNLocalize: 05e367a873223683f0e268d0af9a8a8e6aed3b26
   rnmapbox-maps: 8b7629ef3ae59dd96340470e568cbc7c08c54ff9
-  RNNitroSQLite: fa74329941aa2144b1f0397a8b4fd8e13ddd4fa9
+  RNNitroSQLite: 06ff2497ab8b6c75b780f080f23c99555e7bf4a5
   RNPermissions: 518f0a0c439acc74e2b9937e0e7d29e5031ae949
   RNReactNativeHapticFeedback: 5f1542065f0b24c9252bd8cf3e83bc9c548182e4
   RNReanimated: de3eaf0bd2aec5036554a125eb02c28b59de45ae
