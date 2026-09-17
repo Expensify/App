@@ -22,11 +22,6 @@ const OWNER_ACCOUNT_ID = 42;
 const OWNER_LOGIN = 'john@example.com';
 const OWNER_AVATAR_URL = 'https://example.com/owner-avatar.png';
 
-const DELEGATE_ACCOUNT_ID = 77;
-const DELEGATE_LOGIN = 'copilot@example.com';
-const DELEGATE_AVATAR_URL = 'https://example.com/delegate-avatar.png';
-const PARENT_REPORT_ACTION_ID = 'action789';
-
 // Stands in for the bundled fallback SVG so a resolved account icon can be asserted by identity.
 function MockFallbackAvatar() {
     return null;

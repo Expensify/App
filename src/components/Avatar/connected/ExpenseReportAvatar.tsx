@@ -2,10 +2,8 @@ import useOnyx from '@hooks/useOnyx';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
 
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {reportAvatarFieldsSelector} from '@selectors/Report';
