@@ -2,8 +2,6 @@ import {render} from '@testing-library/react-native';
 
 import SelectionScreen from '@components/SelectionScreen';
 
-import CertiniaFxExpenseAccountSelectPage from '@pages/workspace/accounting/certinia/advanced/CertiniaFxExpenseAccountSelectPage';
-
 import type {Policy} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
@@ -13,6 +11,9 @@ import React from 'react';
 import createMock from '../../../../../utils/createMock';
 
 jest.mock('@pages/workspace/withPolicyConnections', () => (Component: ComponentType) => Component);
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+const CertiniaFxExpenseAccountSelectPage = require('@pages/workspace/accounting/certinia/advanced/CertiniaFxExpenseAccountSelectPage').default;
 
 jest.mock('@components/SelectionScreen', () => jest.fn(() => null));
 
@@ -67,11 +68,8 @@ function buildPolicy(config: {hasPSAOnly?: boolean; hasPSA?: boolean}): Policy {
     });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- HOC is mocked as identity so the page accepts policy.
-const PickerPage = CertiniaFxExpenseAccountSelectPage as ComponentType<{policy: Policy}>;
-
 function renderPicker(config: {hasPSAOnly?: boolean; hasPSA?: boolean}) {
-    render(<PickerPage policy={buildPolicy(config)} />);
+    render(<CertiniaFxExpenseAccountSelectPage policy={buildPolicy(config)} />);
     const selectionScreenProps = jest.mocked(SelectionScreen).mock.calls.at(-1)?.[0];
     if (!selectionScreenProps) {
         throw new Error('Expected SelectionScreen to render');
