@@ -12,6 +12,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -764,6 +765,7 @@ describe('actions/IOU', () => {
             await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`, {
                 search: {hash: groupHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hasResults: true},
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture mixes transaction + group keys; TS widens computed keys into one signature
                 data: {
                     [transactionKey]: transaction,
                     [groupKey]: {
@@ -772,7 +774,7 @@ describe('actions/IOU', () => {
                         total: -15000,
                         currency: CONST.CURRENCY.USD,
                     },
-                },
+                } as unknown as SearchResultDataType,
             });
             await waitForBatchedUpdates();
 

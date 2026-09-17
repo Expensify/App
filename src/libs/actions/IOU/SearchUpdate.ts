@@ -83,7 +83,10 @@ function shouldOptimisticallyUpdateSearch(
         return false;
     }
 
-    const {submitQueryJSON, approveQueryJSON, unapprovedCashSimilarSearchHash} = getSuggestedSearches(currentUserAccountID);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID);
+    const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
+    const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
+    const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
