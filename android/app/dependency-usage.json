@@ -6,7 +6,7 @@
     },
     "androidx.lifecycle:lifecycle-viewmodel-ktx": {
         "usage": "exempt",
-        "reason": "Version pin for a transitive androidx.lifecycle; no Java or Kotlin source imports it. Consumer not identified — recheck when the androidx versions move.",
+        "reason": "Version pin for a transitive androidx.lifecycle; no Java or Kotlin source imports it. Consumer not identified \u2014 recheck when the androidx versions move.",
         "reviewed": "2026-08-28"
     },
     "androidx.multidex:multidex": {
@@ -17,7 +17,7 @@
     },
     "androidx.work:work-runtime-ktx": {
         "usage": "exempt",
-        "reason": "Version pin only. android/app/build.gradle:241 records it as the fix for a conflict between airship and react-native-plaid-link-sdk.",
+        "reason": "Version pin only. android/app/build.gradle:240-242 records it as the fix for a conflict between airship and react-native-plaid-link-sdk.",
         "reviewed": "2026-08-28"
     },
     "com.facebook.fresco:animated-gif": {
@@ -50,5 +50,10 @@
         "usage": "exempt",
         "reason": "Version pin only. android/app/build.gradle:244 records it as preventing a crash with react-native-plaid-link-sdk.",
         "reviewed": "2026-08-28"
+    },
+    "io.github.react-native-community:jsc-android": {
+        "usage": "exempt",
+        "reason": "JavaScriptCore, declared through the jscFlavor variable in the else branch of the hermesEnabled check at android/app/build.gradle:218-222. android/gradle.properties sets hermesEnabled=true, so this branch is not taken today; the artifact is a native JS engine loaded by React Native rather than imported, so no source reference can prove or disprove it.",
+        "reviewed": "2026-09-17"
     }
 }

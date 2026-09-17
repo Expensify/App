@@ -31,12 +31,25 @@ import {MANIFEST_PATH, countReferences, findUnparsedPodDeclarations, readDeclare
 const RELATIVE_MANIFEST = path.relative(path.resolve(__dirname, '..'), MANIFEST_PATH);
 const USAGES = new Set(['module', 'headers', 'exempt']);
 
+/**
+ * Modules every iOS source imports anyway, so claiming one proves nothing about
+ * a pod.
+ */
+const SYSTEM_MODULES = new Set(['Foundation', 'UIKit', 'SwiftUI', 'Combine', 'CoreGraphics', 'CoreFoundation', 'Swift', 'React', 'ObjectiveC']);
+
 function validateEntry(pod: string, entry: PodUsageEntry): {error?: string; warning?: string} {
     if (!USAGES.has(entry.usage)) {
         return {error: `${pod}: "usage" must be one of ${[...USAGES].join(', ')}.`};
     }
-    if (entry.usage === 'module' && !entry.module.trim()) {
-        return {error: `${pod}: a "module" entry needs the module name the pod is imported under.`};
+    if (entry.usage === 'module') {
+        if (!entry.module.trim()) {
+            return {error: `${pod}: a "module" entry needs the module name the pod is imported under.`};
+        }
+        if (SYSTEM_MODULES.has(entry.module.trim())) {
+            return {
+                error: `${pod}: "${entry.module}" is a system module that the sources import regardless of this pod, so it cannot verify it. Use the pod's own module, or mark it "exempt" with a reason.`,
+            };
+        }
     }
     if (entry.usage === 'headers') {
         if (!entry.headers.length) {
@@ -56,11 +69,44 @@ function validateEntry(pod: string, entry: PodUsageEntry): {error?: string; warn
     return {};
 }
 
+/**
+ * Two pods claiming the same module or header cannot be told apart: whichever
+ * one still has a call site keeps the other green.
+ */
+function findOverlappingRoutes(manifest: Record<string, PodUsageEntry>): string[] {
+    const claims = Object.entries(manifest).flatMap(([pod, entry]) => {
+        if (entry.usage === 'module') {
+            return [{pod, route: `module ${entry.module}`}];
+        }
+        if (entry.usage === 'headers') {
+            return entry.headers.map((header) => ({pod, route: `header ${header}`}));
+        }
+        return [];
+    });
+    const problems: string[] = [];
+    for (const [index, claim] of claims.entries()) {
+        for (const other of claims.slice(index + 1)) {
+            if (other.pod !== claim.pod && other.route === claim.route) {
+                problems.push(`${claim.pod} and ${other.pod} both claim ${claim.route}, so a reference cannot tell them apart. Mark the one that does not own it "exempt" with a reason.`);
+            }
+        }
+    }
+    return problems;
+}
+
 function main() {
-    const manifest = readManifest();
+    let manifest;
+    try {
+        manifest = readManifest();
+    } catch (error) {
+        console.error(`Unused pod check failed:\n\n  - ${error instanceof Error ? error.message : String(error)}`);
+        process.exit(1);
+    }
     const declared = readDeclaredPods();
     const problems: string[] = [];
     const warnings: string[] = [];
+
+    problems.push(...findOverlappingRoutes(manifest));
 
     for (const unparsed of findUnparsedPodDeclarations()) {
         problems.push(`${unparsed}\n    This pod declaration is in a form the check cannot read, so it would be verified by nothing. Teach scripts/podUsageShared.ts to read it.`);
@@ -101,7 +147,7 @@ function main() {
         if (entry.usage === 'exempt') {
             continue;
         }
-        if (countReferences(sources, entry) === 0) {
+        if (countReferences(sources, entry, pod) === 0) {
             const route = entry.usage === 'module' ? `import ${entry.module}` : entry.headers.map((header) => `#import "${header}"`).join(' / ');
             problems.push(`${pod} is declared in ios/Podfile but nothing in ios/ reaches it (looked for ${route}). Delete the pod, or mark it "exempt" with a reason.`);
         }

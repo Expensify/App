@@ -9,25 +9,80 @@
  * Stripping comments first is what makes both answers honest.
  *
  * Newlines inside a stripped comment are preserved so that line-anchored
- * patterns keep matching the lines they were written for.
+ * patterns keep matching the lines they were written for, and string bodies are
+ * emitted verbatim so that this can never delete code.
  */
-
-type CommentFlavor = 'c' | 'ruby' | 'xml';
 
 /**
- * `//`, `/* *\/` (nested, as Swift allows), double-quoted strings including
- * Swift and Kotlin `"""` blocks, and single-quoted Java and Kotlin char literals.
+ * Swift and Kotlin nest block comments; C, C++, Objective-C, Java and Groovy do
+ * not. Treating a nested opener as nesting in the languages that do not would
+ * swallow every line between the comment's real end and the next closer, which
+ * silently shrinks the set of declarations and imports the checks can see.
  */
-function stripCFamilyComments(source: string): string {
+type CommentFlavor = 'c' | 'swift' | 'kotlin' | 'ruby' | 'xml';
+
+const NESTING_FLAVORS = new Set<CommentFlavor>(['swift', 'kotlin']);
+
+/**
+ * Swift has no char literal, so a lone apostrophe there is punctuation rather
+ * than the start of one. Everywhere else `'...'` is a char literal, or in Groovy
+ * a string, and has to be consumed as one.
+ */
+const CHAR_LITERAL_FLAVORS = new Set<CommentFlavor>(['c', 'kotlin']);
+
+/**
+ * The comment flavor a file extension implies. Anything unrecognised is treated
+ * as the non-nesting C family, which is the safe default: it can leave a comment
+ * standing, but it can never discard code.
+ */
+function flavorForExtension(extension: string): CommentFlavor {
+    if (extension === '.swift') {
+        return 'swift';
+    }
+    if (extension === '.kt' || extension === '.kts') {
+        return 'kotlin';
+    }
+    if (extension === '.xml') {
+        return 'xml';
+    }
+    return 'c';
+}
+
+/**
+ * The delimiter that closes a string starting at `index`, and its length, or
+ * undefined when no string starts there. Handles `"`, triple-quoted blocks, and
+ * Swift raw strings such as `#"..."#` and `##"..."##`.
+ */
+function stringOpener(source: string, index: number, flavor: CommentFlavor): {open: string; close: string} | undefined {
+    if (flavor === 'swift') {
+        const raw = /^(#+)"(#*)/.exec(source.slice(index, index + 16));
+        const hashes = raw?.at(1);
+        if (hashes) {
+            const isTriple = source.startsWith(`${hashes}"""`, index);
+            return {open: isTriple ? `${hashes}"""` : `${hashes}"`, close: isTriple ? `"""${hashes}` : `"${hashes}`};
+        }
+    }
+    if (source.startsWith('"""', index)) {
+        return {open: '"""', close: '"""'};
+    }
+    if (source[index] === '"') {
+        return {open: '"', close: '"'};
+    }
+    if (source[index] === "'" && CHAR_LITERAL_FLAVORS.has(flavor)) {
+        return {open: "'", close: "'"};
+    }
+    return undefined;
+}
+
+function stripCFamilyComments(source: string, flavor: CommentFlavor): string {
+    const nested = NESTING_FLAVORS.has(flavor);
     let output = '';
     let index = 0;
     let blockDepth = 0;
 
     while (index < source.length) {
-        const rest = source.startsWith('"""', index) ? '"""' : source[index];
-
         if (blockDepth > 0) {
-            if (source.startsWith('/*', index)) {
+            if (nested && source.startsWith('/*', index)) {
                 blockDepth++;
                 index += 2;
             } else if (source.startsWith('*/', index)) {
@@ -55,25 +110,31 @@ function stripCFamilyComments(source: string): string {
             continue;
         }
 
-        if (rest === '"""' || rest === '"' || rest === "'") {
-            const delimiter = rest;
-            output += delimiter;
-            index += delimiter.length;
+        const delimiter = stringOpener(source, index, flavor);
+        if (delimiter) {
+            output += delimiter.open;
+            index += delimiter.open.length;
             while (index < source.length) {
                 if (source[index] === '\\') {
                     output += source.slice(index, index + 2);
                     index += 2;
                     continue;
                 }
-                if (source.startsWith(delimiter, index)) {
-                    output += delimiter;
-                    index += delimiter.length;
+                if (source.startsWith(delimiter.close, index)) {
+                    // A triple-quoted body ending in a quote puts four or more
+                    // quotes in a row; the closer is the last three of the run.
+                    let run = index;
+                    while (delimiter.close.startsWith('"""') && source[run + delimiter.close.length] === '"') {
+                        output += source[run];
+                        run++;
+                    }
+                    output += source.slice(run, run + delimiter.close.length);
+                    index = run + delimiter.close.length;
                     break;
                 }
-                // An unterminated single-quote is far more likely to be an
-                // apostrophe than a char literal, so do not let it swallow the
-                // rest of the file.
-                if (source[index] === '\n' && delimiter === "'") {
+                // An unterminated char literal is far more likely to be an
+                // apostrophe than a literal, so do not let it swallow the file.
+                if (source[index] === '\n' && delimiter.close === "'") {
                     break;
                 }
                 output += source[index];
@@ -143,7 +204,10 @@ function stripRubyComments(source: string): string {
 }
 
 function stripXmlComments(source: string): string {
-    return source.replaceAll(/<!--[\s\S]*?-->/g, (comment) => comment.replaceAll(/[^\n]/g, ''));
+    // An unterminated opener runs to the end of the file; leaving it in place
+    // would keep whatever was commented out at the end of a layout counting as a
+    // live resource reference.
+    return source.replaceAll(/<!--(?:[\s\S]*?-->|[\s\S]*$)/g, (comment) => comment.replaceAll(/[^\n]/g, ''));
 }
 
 function stripComments(source: string, flavor: CommentFlavor): string {
@@ -153,8 +217,8 @@ function stripComments(source: string, flavor: CommentFlavor): string {
     if (flavor === 'xml') {
         return stripXmlComments(source);
     }
-    return stripCFamilyComments(source);
+    return stripCFamilyComments(source, flavor);
 }
 
 export type {CommentFlavor};
-export {stripComments};
+export {stripComments, flavorForExtension};

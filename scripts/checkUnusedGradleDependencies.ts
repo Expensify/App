@@ -30,7 +30,7 @@ import {findBlankEntry, validateReviewedDate} from './nativeUsageManifest';
 
 const RELATIVE_MANIFEST = path.relative(path.resolve(__dirname, '..'), MANIFEST_PATH);
 const USAGES = new Set(['packages', 'resources', 'exempt']);
-const MINIMUM_RESOURCE_NAME_LENGTH = 4;
+const MINIMUM_RESOURCE_NAME_LENGTH = 8;
 
 function validateEntry(coordinate: string, entry: GradleUsageEntry): {error?: string; warning?: string} {
     if (!USAGES.has(entry.usage)) {
@@ -53,10 +53,14 @@ function validateEntry(coordinate: string, entry: GradleUsageEntry): {error?: st
         if (blank) {
             return {error: blank};
         }
-        // A short name matches too much of the XML to prove anything.
-        const vague = entry.resources.find((name) => name.trim().length < MINIMUM_RESOURCE_NAME_LENGTH);
+        // An unqualified or short name matches too much of the XML to prove
+        // anything: `name` alone occurs in hundreds of places, so a dead
+        // coordinate could be made permanently green with it.
+        const vague = entry.resources.find((name) => name.trim().length < MINIMUM_RESOURCE_NAME_LENGTH || !name.includes('.'));
         if (vague) {
-            return {error: `${coordinate}: the "resources" name ${vague} is too short to identify the dependency. Use the fully qualified class or attr name.`};
+            return {
+                error: `${coordinate}: the "resources" name ${vague} is not specific enough to identify the dependency. Use the fully qualified class or attr name, at least ${MINIMUM_RESOURCE_NAME_LENGTH} characters and containing a dot.`,
+            };
         }
     }
     if (entry.usage === 'exempt') {
@@ -95,7 +99,13 @@ function findOverlappingPackages(manifest: Record<string, GradleUsageEntry>): st
 }
 
 function main() {
-    const manifest = readManifest();
+    let manifest;
+    try {
+        manifest = readManifest();
+    } catch (error) {
+        console.error(`Unused Gradle dependency check failed:\n\n  - ${error instanceof Error ? error.message : String(error)}`);
+        process.exit(1);
+    }
     const declared = readDeclaredDependencies();
     const problems: string[] = [];
     const warnings: string[] = [];

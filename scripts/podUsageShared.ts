@@ -14,7 +14,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import {stripComments} from './nativeSourceComments';
+import {flavorForExtension, stripComments} from './nativeSourceComments';
 
 type ModuleEntry = {usage: 'module'; module: string};
 type HeadersEntry = {usage: 'headers'; headers: string[]};
@@ -73,7 +73,8 @@ function readSources(): string {
                     walk(path.join(dir, entry.name));
                 }
             } else if (SOURCE_EXTENSIONS.has(path.extname(entry.name))) {
-                contents.push(stripComments(fs.readFileSync(path.join(dir, entry.name), 'utf8'), 'c'));
+                const extension = path.extname(entry.name);
+                contents.push(stripComments(fs.readFileSync(path.join(dir, entry.name), 'utf8'), flavorForExtension(extension)));
             }
         }
     };
@@ -89,16 +90,19 @@ const escapeForRegExp = (value: string) => value.replaceAll(/[.*+?^${}()|[\]\\]/
  * first thing on its line, and anchoring is what stops a mention inside a string
  * or a trailing note from counting as a reference.
  */
-function countReferences(sources: string, entry: PodUsageEntry): number {
+function countReferences(sources: string, entry: PodUsageEntry, pod?: string): number {
     const patterns: RegExp[] = [];
     if (entry.usage === 'module') {
         const module = escapeForRegExp(entry.module);
         patterns.push(new RegExp(`^\\s*import\\s+${module}\\b`, 'gm'), new RegExp(`^\\s*@import\\s+${module}\\b`, 'gm'), new RegExp(`^\\s*#import\\s*<${module}/`, 'gm'));
     } else if (entry.usage === 'headers') {
+        // Both `#import "Header.h"` and the canonical framework form
+        // `#import <Pod/Header.h>` reach the same header, but the framework
+        // prefix has to be this pod: a generically named header such as
+        // `Version.h` would otherwise be satisfied by any other pod shipping one.
+        const framework = pod ? `(?:${escapeForRegExp(pod)}/)?` : '';
         for (const header of entry.headers) {
-            // Both `#import "Header.h"` and the canonical framework form
-            // `#import <Pod/Header.h>` reach the same header.
-            patterns.push(new RegExp(`^\\s*#import\\s*["<](?:[\\w.+-]+/)?${escapeForRegExp(header)}[">]`, 'gm'));
+            patterns.push(new RegExp(`^\\s*#import\\s*["<]${framework}${escapeForRegExp(header)}[">]`, 'gm'));
         }
     }
     return patterns.reduce((total, pattern) => total + (sources.match(pattern)?.length ?? 0), 0);

@@ -20,7 +20,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import {stripComments} from './nativeSourceComments';
+import {flavorForExtension, stripComments} from './nativeSourceComments';
 
 type PackagesEntry = {usage: 'packages'; packages: string[]};
 type ResourcesEntry = {usage: 'resources'; resources: string[]};
@@ -35,7 +35,7 @@ const BUILD_GRADLE_PATH = path.join(ANDROID_APP_DIR, 'build.gradle');
 const RELATIVE_BUILD_GRADLE = 'android/app/build.gradle';
 
 const SOURCE_EXTENSIONS = new Set(['.java', '.kt']);
-const SKIPPED_DIRECTORIES = new Set(['build', '.gradle', '.git', 'node_modules']);
+const SKIPPED_DIRECTORIES = new Set(['build', '.gradle', '.git', '.cxx', 'node_modules']);
 
 /**
  * Gradle names a configuration either on its own (`implementation`), prefixed by
@@ -57,7 +57,21 @@ const BASE_CONFIGURATIONS = [
     'lintChecks',
     'lintPublish',
 ];
-const SUFFIX_CONFIGURATIONS = ['Implementation', 'Api', 'CompileOnlyApi', 'CompileOnly', 'RuntimeOnly', 'AnnotationProcessor', 'Kapt', 'Ksp', 'DetektPlugins'];
+const SUFFIX_CONFIGURATIONS = [
+    'Implementation',
+    'Api',
+    'CompileOnlyApi',
+    'CompileOnly',
+    'RuntimeOnly',
+    'AnnotationProcessor',
+    'CoreLibraryDesugaring',
+    'LintChecks',
+    'LintPublish',
+    'Kapt',
+    'Ksp',
+    'DetektPlugins',
+    'Util',
+];
 const CONFIGURATION = `(?:${BASE_CONFIGURATIONS.join('|')}|[a-zA-Z0-9]+(?:${SUFFIX_CONFIGURATIONS.join('|')})|(?:kapt|ksp)[A-Z][a-zA-Z0-9]*)`;
 const CONFIGURATION_NAME = new RegExp(`^${CONFIGURATION}$`);
 
@@ -80,6 +94,12 @@ const LOCAL_ARTIFACT = /^\(?\s*(?:project|files|fileTree|gradleApi|localGroovy)\
 const GRADLE_VARIABLE = /^\(?\s*[A-Za-z_][A-Za-z0-9_]*\s*\)?$/;
 
 /**
+ * `kapt { ... }`: a configuration block that happens to be named after a
+ * configuration, not a dependency declaration.
+ */
+const isDslBlock = (argument: string) => argument.startsWith('{');
+
+/**
  * `implementation "group:artifact:version"`, with the optional wrappers Gradle
  * accepts around it. `\s*` spans newlines, so the coordinate may sit on its own
  * line below the configuration.
@@ -90,6 +110,15 @@ const STRING_DECLARATION = new RegExp(`^[ \\t]*${CONFIGURATION}\\s*\\(?\\s*(?:(?
  * `implementation group: 'g', name: 'a', version: 'v'`.
  */
 const MAP_DECLARATION = new RegExp(`^[ \\t]*${CONFIGURATION}\\s*\\(?\\s*group\\s*:\\s*['"]([a-zA-Z0-9_.-]+)['"]\\s*,\\s*name\\s*:\\s*['"]([a-zA-Z0-9_.-]+)['"]`, 'gm');
+
+/**
+ * `implementation okhttp`, where `okhttp` was assigned a coordinate literal
+ * earlier in the file. Without resolving these, hoisting a coordinate into a
+ * variable while tidying up versions would take it out of the check's sight.
+ */
+const VARIABLE_DECLARATION = new RegExp(`^[ \\t]*${CONFIGURATION}\\s*\\(?\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*\\)?[ \\t]*$`, 'gm');
+const STRING_CONSTANT = /^[ \t]*(?:def|final\s+String|String)?\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*['"]([a-zA-Z0-9_.:+-]+)['"]/gm;
+const COORDINATE = /^([a-zA-Z0-9_.-]+):([a-zA-Z0-9_.-]+)/;
 
 const readBuildGradle = () => stripComments(fs.readFileSync(BUILD_GRADLE_PATH, 'utf8'), 'c');
 
@@ -106,14 +135,27 @@ function collectDeclarations(text: string): {coordinates: Set<string>; matchedOf
             matchedOffsets.add(match.index ?? 0);
         }
     }
+
+    const constants = new Map<string, string>();
+    for (const match of text.matchAll(STRING_CONSTANT)) {
+        constants.set(match.at(1) ?? '', match.at(2) ?? '');
+    }
+    for (const match of text.matchAll(VARIABLE_DECLARATION)) {
+        const coordinate = COORDINATE.exec(constants.get(match.at(1) ?? '') ?? '');
+        if (coordinate) {
+            coordinates.add(`${coordinate.at(1)}:${coordinate.at(2)}`);
+            matchedOffsets.add(match.index ?? 0);
+        }
+    }
+
     return {coordinates, matchedOffsets};
 }
 
 /**
  * Every `group:artifact` coordinate declared in android/app/build.gradle on a
- * dependency configuration. Local artifacts (`files(...)`, `project(...)`, and
- * Gradle variables such as `jscFlavor`) are skipped: there is no external
- * declaration to go stale.
+ * dependency configuration, including the ones named through a variable holding
+ * a coordinate literal. Local artifacts (`files(...)`, `project(...)`) are
+ * skipped: there is no external declaration to go stale.
  */
 function readDeclaredDependencies(): string[] {
     return [...collectDeclarations(readBuildGradle()).coordinates].sort();
@@ -130,17 +172,27 @@ function findUnparsedDeclarations(): string[] {
     const text = readBuildGradle();
     const {matchedOffsets} = collectDeclarations(text);
 
-    const matchedLines = new Set<number>();
+    const matchesPerLine = new Map<number, number>();
     for (const offset of matchedOffsets) {
-        matchedLines.add(text.slice(0, offset).split('\n').length - 1);
+        const line = text.slice(0, offset).split('\n').length - 1;
+        matchesPerLine.set(line, (matchesPerLine.get(line) ?? 0) + 1);
     }
 
     const unparsed: string[] = [];
     for (const [index, line] of text.split('\n').entries()) {
-        const match = /^[ \t]*([A-Za-z][A-Za-z0-9]*)\b(.*)$/.exec(line);
+        // The separator after the name has to be whitespace or an opening paren.
+        // `implementation.exclude group: ...` and `implementation.transitive =
+        // false` configure a configuration rather than declaring anything.
+        const match = /^[ \t]*([A-Za-z][A-Za-z0-9]*)(?=[\s(]|$)(.*)$/.exec(line);
         const configuration = match?.at(1);
         const argument = (match?.at(2) ?? '').trim();
-        const readable = matchedLines.has(index) || LOCAL_ARTIFACT.test(argument) || GRADLE_VARIABLE.test(argument);
+        // Every coordinate-shaped literal on the line has to have been parsed,
+        // not just the first: the patterns are anchored to the line start, so a
+        // second declaration after a semicolon or a comma would otherwise be
+        // covered by the first one having matched.
+        const literals = (line.match(/['"][a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+/g) ?? []).length;
+        const parsed = matchesPerLine.get(index) ?? 0;
+        const readable = (parsed > 0 || LOCAL_ARTIFACT.test(argument) || GRADLE_VARIABLE.test(argument) || isDslBlock(argument)) && literals <= parsed;
         if (configuration && !IGNORED_CONFIGURATIONS.has(configuration) && CONFIGURATION_NAME.test(configuration) && !readable) {
             unparsed.push(`${RELATIVE_BUILD_GRADLE}:${index + 1}: ${line.trim()}`);
         }
@@ -148,7 +200,7 @@ function findUnparsedDeclarations(): string[] {
     return unparsed;
 }
 
-function readFilesWithExtensions(extensions: Set<string>, flavor: 'c' | 'xml'): string {
+function readFilesWithExtensions(extensions: Set<string>): string {
     const contents: string[] = [];
     const walk = (dir: string) => {
         for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
@@ -157,7 +209,8 @@ function readFilesWithExtensions(extensions: Set<string>, flavor: 'c' | 'xml'): 
                     walk(path.join(dir, entry.name));
                 }
             } else if (extensions.has(path.extname(entry.name))) {
-                contents.push(stripComments(fs.readFileSync(path.join(dir, entry.name), 'utf8'), flavor));
+                const extension = path.extname(entry.name);
+                contents.push(stripComments(fs.readFileSync(path.join(dir, entry.name), 'utf8'), flavorForExtension(extension)));
             }
         }
     };
@@ -165,8 +218,8 @@ function readFilesWithExtensions(extensions: Set<string>, flavor: 'c' | 'xml'): 
     return contents.join('\n');
 }
 
-const readSources = () => readFilesWithExtensions(SOURCE_EXTENSIONS, 'c');
-const readResources = () => readFilesWithExtensions(new Set(['.xml']), 'xml');
+const readSources = () => readFilesWithExtensions(SOURCE_EXTENSIONS);
+const readResources = () => readFilesWithExtensions(new Set(['.xml']));
 
 const escapeForRegExp = (value: string) => value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

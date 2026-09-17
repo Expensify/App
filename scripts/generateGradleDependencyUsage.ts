@@ -10,13 +10,13 @@
  * empty reason, and the check rejects that until a human either fills in the
  * reason or replaces the entry with the right package.
  *
- * What it deliberately never guesses is the bare Maven group. Several artifacts
- * usually share one group, so a group-wide prefix is satisfied by any sibling's
- * imports: `com.facebook.react:hermes-android` would be "verified" by
- * `import com.facebook.react.*`, which belongs to `react-android`, and a BOM
- * would be verified by the artifacts it only aligns versions for. An entry like
- * that can never fail, so writing one is worse than writing none. A prefix that
- * two declared coordinates would both claim is dropped for the same reason.
+ * A group-wide prefix is only ever proposed when no other declared coordinate
+ * shares that group. Several artifacts usually do share one, and then the prefix
+ * is satisfied by any sibling's imports: `com.facebook.react:hermes-android`
+ * would be "verified" by `import com.facebook.react.*`, which belongs to
+ * `react-android`, and a BOM would be verified by the artifacts it only aligns
+ * versions for. An entry like that can never fail, so writing one is worse than
+ * writing none.
  *
  * Existing entries are preserved: run it after adding a dependency, then review.
  *
@@ -31,8 +31,10 @@ import type {GradleUsageManifest} from './gradleUsageShared';
 import {MANIFEST_PATH, countReferences, readDeclaredDependencies, readManifest, readResources, readSources, writeManifest} from './gradleUsageShared';
 
 /**
- * Package prefixes worth trying for a coordinate, most specific first. The bare
- * Maven group is never a candidate: see the note at the top of this file.
+ * Package prefixes worth trying for a coordinate, most specific first. A
+ * group-wide prefix is last because it is the weakest: it is right for a group
+ * with one artifact in it, and a free ride for a group with several, which is
+ * what `findAmbiguousPrefixes` then strips out.
  */
 function candidatePackages(coordinate: string): string[] {
     const [group, artifact] = coordinate.split(':');
@@ -53,6 +55,7 @@ function candidatePackages(coordinate: string): string[] {
         add(`com.${tail}`);
         add(tail);
     }
+    add(group);
     return [...candidates];
 }
 

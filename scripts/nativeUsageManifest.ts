@@ -33,8 +33,11 @@ function validateReviewedDate(reviewed: string | undefined, label: string): Revi
         return {error: `${label}: "reviewed" is ${reviewed ?? ''}, which is not a real date.`};
     }
 
+    // The date is compared against UTC midnight while a developer writes their
+    // own local date, so a day of slack keeps every timezone from UTC-12 to
+    // UTC+14 out of the future.
     const ageInDays = Math.floor((Date.now() - parsed.getTime()) / MILLISECONDS_PER_DAY);
-    if (ageInDays < 0) {
+    if (ageInDays < -1) {
         return {error: `${label}: "reviewed" is ${reviewed ?? ''}, which is in the future.`};
     }
     if (ageInDays > STALE_AFTER_DAYS) {

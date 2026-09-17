@@ -81,7 +81,7 @@ function main() {
         }
 
         const headers = readPublicHeaders(pod);
-        if (headers.length && countReferences(sources, {usage: 'headers', headers}) > 0) {
+        if (headers.length && countReferences(sources, {usage: 'headers', headers}, pod) > 0) {
             manifest[pod] = {usage: 'headers', headers};
             continue;
         }
