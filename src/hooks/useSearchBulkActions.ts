@@ -648,6 +648,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
 
+    // Reports with no expenses have nothing to export, so every export flow blocks them instead of producing an empty file.
+    const emptyReports = useMemo(
+        () =>
+            selectedReports.filter((selectedReport) => {
+                if (!selectedReport) {
+                    return false;
+                }
+                const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+                return !!fullReport && (fullReport.transactionCount ?? 0) === 0;
+            }),
+        [selectedReports, currentSearchResults?.data],
+    );
+    const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
+
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
     const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
@@ -916,16 +930,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, policyID: string | undefined, exportName: string) => {
-            const emptyReports =
-                selectedReports?.filter((selectedReport) => {
-                    if (!selectedReport) {
-                        return false;
-                    }
-                    const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-                    return !!fullReport && (fullReport.transactionCount ?? 0) === 0;
-                }) ?? [];
-            const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
-
             if (hasOnlyEmptyReports) {
                 setEmptyReportsCount(emptyReports.length);
                 setIsDownloadErrorModalVisible(true);
@@ -976,7 +980,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             clearSelectedTransactions(undefined, true);
         },
         [
-            selectedReports,
+            hasOnlyEmptyReports,
+            emptyReports.length,
             selectedTransactions,
             isOffline,
             areAllMatchingItemsSelected,
@@ -1056,6 +1061,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const handleCSVExport = useCallback(
         async (isBasicExport: boolean) => {
+            if (hasOnlyEmptyReports) {
+                setEmptyReportsCount(emptyReports.length);
+                setIsDownloadErrorModalVisible(true);
+                return;
+            }
             if (isOffline) {
                 setIsOfflineModalVisible(true);
                 return;
@@ -1119,6 +1129,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         },
         [
+            hasOnlyEmptyReports,
+            emptyReports.length,
             isOffline,
             areAllMatchingItemsSelected,
             queryJSON,
