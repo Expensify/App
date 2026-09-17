@@ -8,6 +8,12 @@ type ReceiptStorage = {
     /** Valid for this launch only, so never store the result. */
     toLocalUri: (durableName: string) => string;
 
+    /**
+     * Claims a local source that is about to be stored in Onyx so resolve() will accept it this session.
+     * No-op on native (files are durable). On web, object URLs die with the document.
+     */
+    retain: (source: string) => void;
+
     /** Re-roots a stored source onto the current folder. A remote source passes through unchanged. */
     resolve: (source: ReceiptSource | null | undefined) => string | undefined;
 };

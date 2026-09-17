@@ -20,6 +20,7 @@ jest.mock('@libs/getReceiptsUploadFolderPath', () => ({
 
 // Import the native implementation by path. Jest resolves the bare specifier to the web implementation.
 const {default: ReceiptStorage}: {default: ReceiptStorageType} = jest.requireActual('@libs/ReceiptStorage/index.native.ts');
+const {default: WebReceiptStorage}: {default: ReceiptStorageType} = jest.requireActual('@libs/ReceiptStorage/index.ts');
 
 describe('ReceiptStorage', () => {
     beforeEach(() => {
@@ -102,5 +103,41 @@ describe('ReceiptStorage', () => {
         it('passes a remote source through, so an uploaded receipt is not mistaken for a local one', () => {
             expect(ReceiptStorage.resolve('https://www.expensify.com/receipts/w_9.jpg')).toBe('https://www.expensify.com/receipts/w_9.jpg');
         });
+    });
+
+    describe('retain (native)', () => {
+        it('is a no-op that does not change resolve behaviour', () => {
+            const path = `file://${FOLDER}/receipt_9.jpg`;
+            ReceiptStorage.retain(path);
+            expect(ReceiptStorage.resolve(path)).toBe(path);
+        });
+    });
+});
+
+describe('ReceiptStorage (web)', () => {
+    it('returns a retained blob: URL from resolve for the rest of the session', () => {
+        const blobURL = `blob:https://new.expensify.com/${Math.random()}`;
+        WebReceiptStorage.retain(blobURL);
+
+        expect(WebReceiptStorage.resolve(blobURL)).toBe(blobURL);
+    });
+
+    it('returns undefined for a blob: URL that was never retained this session (e.g. restored from Onyx after reload)', () => {
+        expect(WebReceiptStorage.resolve('blob:https://new.expensify.com/stale-from-previous-document')).toBeUndefined();
+    });
+
+    it('returns undefined for a file: URL that was never retained this session', () => {
+        expect(WebReceiptStorage.resolve('file:///tmp/stale-receipt.jpg')).toBeUndefined();
+    });
+
+    it('passes remote and root-relative sources through without requiring retain', () => {
+        expect(WebReceiptStorage.resolve('https://www.expensify.com/receipts/w_9.jpg')).toBe('https://www.expensify.com/receipts/w_9.jpg');
+        expect(WebReceiptStorage.resolve('/staging/chat-attachments/abc.jpg')).toBe('/staging/chat-attachments/abc.jpg');
+    });
+
+    it('ignores retain for non-session-local URIs', () => {
+        const remote = 'https://www.expensify.com/receipts/w_9.jpg';
+        WebReceiptStorage.retain(remote);
+        expect(WebReceiptStorage.resolve(remote)).toBe(remote);
     });
 });
