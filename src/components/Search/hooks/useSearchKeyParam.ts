@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
-import type {NavigationState} from '@react-navigation/routers';
+import type {NavigationState} from '@react-navigation/native';
 
 import {useNavigation} from '@react-navigation/native';
 import {useEffect} from 'react';
