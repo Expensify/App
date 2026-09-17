@@ -43,8 +43,7 @@ You can select multiple reports and duplicate them all in one action from the Re
 
 1. In the navigation tabs on the left, click **Spend** > **Reports**.
 2. Select two or more expense reports that you submitted.
-3. Click **Selected**.
-4. Choose **Duplicate reports**.
+3. In the bulk action bar at the bottom of the list, click **Duplicate reports**. If you don't see it, click **More**, then **Duplicate reports**.
 
 **On mobile:**
 
@@ -59,9 +58,9 @@ Each selected report is duplicated individually. The same rules apply as for sin
 Reports are duplicated one at a time, so the new reports appear in the list gradually rather than all at once. You can keep scrolling and using the page while they are created.
 
 <!-- SCREENSHOT:
-Suggestion: Show the bulk actions dropdown with the "Duplicate reports" option visible after selecting multiple reports on the Reports search page.
+Suggestion: On web, show the bulk action bar at the bottom of the Reports search page after selecting multiple reports, with the More menu open and the "Duplicate reports" option visible.
 Location: After step 3 (web).
-Purpose: Helps the user identify the bulk duplicate option in the dropdown.
+Purpose: Helps the user find the bulk duplicate option, which sits behind More when the selection has more actions than the bar can show as buttons.
 -->
 
 ---
@@ -94,7 +93,7 @@ The following details are **not** copied:
 
 ## Can I duplicate multiple reports at once?
 
-Yes. On the Reports search page, select two or more reports that you submitted, click **Selected**, then choose **Duplicate reports**. A duplicate is created for each selected report.
+Yes. On the Reports search page, select two or more reports that you submitted, then choose **Duplicate reports**. On web the action sits in the bulk action bar at the bottom of the list, behind **More** if the bar has no room to show it as a button. On mobile, tap **Selected** to find it. A duplicate is created for each selected report.
 
 ## Are card expenses included in the duplicate?
 

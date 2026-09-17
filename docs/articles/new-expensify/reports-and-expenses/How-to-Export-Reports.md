@@ -29,9 +29,10 @@ You'll receive the exported CSV file in a message from Concierge.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
-3. Select **Selected** at the top.
-4. Select **Export**.
-5. Choose an export template from the menu that appears. 
+3. Open **Export**:
+   - **Web:** In the bulk action bar at the bottom of the list, select **Export**. If you don't see it, select **More**, then **Export**.
+   - **Mobile:** Tap **Selected**, then tap **Export**.
+4. Choose an export template from the menu that appears. 
 
 You'll receive the exported CSV file in a message from Concierge.
 
@@ -42,9 +43,10 @@ Use **Export current view** to download a CSV that matches the columns currently
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
 3. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
-4. Select **Selected** at the top.
-5. Select **Export**.
-6. Select **Export current view**.
+4. Open **Export**:
+   - **Web:** In the bulk action bar at the bottom of the list, select **Export**. If you don't see it, select **More**, then **Export**.
+   - **Mobile:** Tap **Selected**, then tap **Export**.
+5. Select **Export current view**.
 
 The CSV uses the same columns displayed on the page.
 
@@ -82,9 +84,10 @@ For reports on a Submit workspace, the PDF also includes an **Approve or Pay** b
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Select the checkbox next to each report you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
-4. Select **Download reports**.
-5. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
+3. Select **Download reports**:
+   - **Web:** In the bulk action bar at the bottom of the list, select **Download reports**. If you don't see it, select **More**, then **Download reports**.
+   - **Mobile:** Tap **Selected**, then tap **Download reports**.
+4. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
 
 Each report downloads as its own PDF, including all expenses, attached receipts, and report notes.
 
@@ -106,9 +109,10 @@ You can download the receipts on several reports at once in a single ZIP file.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select the checkbox next to each report whose receipts you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
-4. Select **Download receipts**.
-5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
+3. Select **Download receipts**:
+   - **Web:** In the bulk action bar at the bottom of the list, select **Download receipts**. If you don't see it, select **More**, then **Download receipts**.
+   - **Mobile:** Tap **Selected**, then tap **Download receipts**.
+4. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
 **Note:** **Download receipts** only appears when at least one selected report has an expense with a receipt.
 
@@ -138,7 +142,7 @@ It does not apply to:
 
 ## Why don't I see Download receipts on a report?
 
-**Download receipts** only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports and open **Selected**, it appears only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
+**Download receipts** only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports, it appears in the bulk actions only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
 
 ## What happens if some receipts fail to download?
 

@@ -47,7 +47,7 @@ You can select multiple eligible expenses and duplicate them all in one action.
 
 1. In the navigation tabs on the left, click **Spend > Expenses**.
 2. Select two or more cash, distance, or per diem expenses that you created.
-3. Click **Selected**, then **Duplicate expenses**.
+3. In the bulk action bar at the bottom of the list, click **Duplicate expenses**. If you don't see it, click **More**, then **Duplicate expenses**.
 
 **On mobile**
 
@@ -59,9 +59,9 @@ You can select multiple eligible expenses and duplicate them all in one action.
 Each selected expense is duplicated individually. The same rules apply as for single duplication — card expenses, scanning expenses, per diem expenses without dates, and expenses you did not submit are excluded from selection.
 
 <!-- SCREENSHOT:
-Suggestion: Show the bulk actions dropdown with the "Duplicate expenses" option visible after selecting multiple expenses.
+Suggestion: On web, show the bulk action bar at the bottom of the Expenses page after selecting multiple expenses, with the More menu open and the "Duplicate expenses" option visible.
 Location: After step 4.
-Purpose: Helps the user identify the bulk duplicate option in the dropdown.
+Purpose: Helps the user find the bulk duplicate option, which sits behind More when the selection has more actions than the bar can show as buttons.
 -->
 
 ---

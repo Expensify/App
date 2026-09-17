@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, bulk action bar, select multiple expenses, More menu, clear selection, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -121,6 +121,20 @@ The currency picker can't be opened in these cases:
 
 - You're offline, because converting the total requires a refresh from Expensify.
 - The totals are still loading.
+
+---
+
+## How to use the bulk action bar on the Expenses and Reports pages
+
+On web, selecting one or more rows on the **Expenses** or **Reports** page opens a bulk action bar that floats over the bottom of the list. The bar shows how many rows you selected, the actions available for that selection, and a close button.
+
+- The bar shows up to three actions as buttons, and fewer in a smaller window. Any remaining actions move behind **More**, so open **More** if you don't see the action you want.
+- An action with further choices behind it, such as **Export**, opens its own menu above the bar.
+- While Expensify is still counting a **Select all** selection, the bar shows a spinner in place of the count until the total arrives.
+- When a selection has no actions available, the bar explains why instead of showing buttons.
+- To clear the selection, click the close button at the right end of the bar or press **Esc**.
+
+The bulk action bar is only on web. On mobile, and in a browser window narrow enough to use the mobile layout, selecting rows shows the **Selected** dropdown instead. Selecting expenses inside a report also uses the **Selected** dropdown rather than the bar.
 
 ---
 
