@@ -4685,7 +4685,7 @@ describe('getExpensifyCardEnrollmentRoute', () => {
     });
 
     it('returns the add bank account route when setup is in progress', () => {
-        const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP});
+        const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP, policyID});
         expect(
             getExpensifyCardEnrollmentRoute({
                 policyID,
@@ -4696,6 +4696,20 @@ describe('getExpensifyCardEnrollmentRoute', () => {
                 achData,
             }),
         ).toBe(addBankAccountRoute);
+    });
+
+    it('returns the bank account selector route when another workspace has setup in progress', () => {
+        const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP, policyID: 'anotherPolicy'});
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData,
+            }),
+        ).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
     });
 });
 

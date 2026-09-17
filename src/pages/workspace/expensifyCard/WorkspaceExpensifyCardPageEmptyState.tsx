@@ -26,7 +26,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings} from '@libs/PolicyUtils';
-import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -66,7 +66,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
+    const isSetupUnfinished = !!policy?.id && hasInProgressVBBA(reimbursementAccount?.achData, policy.outputCurrency !== CONST.CURRENCY.USD, policy.id);
     const {canEnrollNewCardProgram, isUkEuCurrencySupported} = useCanEnrollNewExpensifyCardProgram(policy?.id);
     const {isBetaEnabled} = usePermissions();
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);

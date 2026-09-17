@@ -59,7 +59,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {hasInProgressUSDVBBA} from './ReimbursementAccountUtils';
+import {hasInProgressVBBA} from './ReimbursementAccountUtils';
 import StringUtils from './StringUtils';
 
 /**
@@ -608,7 +608,7 @@ function getExpensifyCardEnrollmentRoute({policyID, currencyCode, isUkEuCurrency
     const eligibleBankAccounts = isUkEuCurrencySupported
         ? getEligibleBankAccountsForUkEuCard(bankAccountsList, supportedCountriesByCurrency, currencyCode)
         : getEligibleBankAccountsForCard(bankAccountsList);
-    if (!eligibleBankAccounts.length || hasInProgressUSDVBBA(achData)) {
+    if (!eligibleBankAccounts.length || hasInProgressVBBA(achData, currencyCode !== CONST.CURRENCY.USD, policyID)) {
         return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)});
     }
     return ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID);
