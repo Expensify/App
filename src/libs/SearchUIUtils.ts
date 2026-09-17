@@ -194,7 +194,6 @@ import {
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
-import {expenseStatusActionMapping, isEligibleForStatus} from './SearchOptimisticUpdateUtils';
 import {
     buildSearchQueryJSON,
     buildSearchQueryString,
