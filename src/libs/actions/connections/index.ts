@@ -16,15 +16,9 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {syncMerge} from './merge';
+import {MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS, syncMerge} from './merge';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
-
-/** Client-side "initial sync modal shown" flag for each Merge connection, cleared when the connection is removed. */
-const MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS = {
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN,
-} as const;
 
 function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
