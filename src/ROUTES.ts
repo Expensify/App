@@ -12,7 +12,7 @@ import type CONST from './CONST';
 import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
-import type {SearchKey} from './libs/SearchUIUtils';
+import type {SearchKey} from './libs/SearchKeyUtils';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
@@ -5011,6 +5011,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/campfire/subsidiary-selector',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_IMPORT: {
+        route: 'workspaces/:policyID/accounting/campfire/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/import` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

@@ -172,9 +172,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // `hasVendorFeature` stays as the narrower `isActive` predicate (is the export config scoping
     // vendors right now), so it can't double as the visibility gate.
     //
-    // Use the active vendor source so a stale QBO connection cannot bypass the beta for another
+    // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1) is GA. Sage Intacct, Xero, Rillet, and DualEntry require the vendorMatching beta.
+    // QBO (R1) and Sage Intacct (R2) are GA. Xero, Rillet, and DualEntry require the vendorMatching beta.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -184,7 +184,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
         ]);
-    const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
+    const isGenerallyAvailableVendorConnection = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
+    const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {

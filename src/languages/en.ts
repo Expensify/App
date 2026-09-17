@@ -6184,6 +6184,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            importDescription: 'Choose which coding configurations to import from Campfire.',
+            accountTypesDescription: 'Your Campfire accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Campfire accounts will be available as categories.',
+            dimensionsImport: 'All Campfire dimensions import as tags',
         },
         type: {
             free: 'Free',
@@ -9682,6 +9687,11 @@ const translations = {
             emptyUnapprovedResults: {
                 title: 'No expenses to approve',
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
+            staleResults: {
+                title: 'Refresh needed',
+                subtitle: 'This page is out of date, refresh to see the latest',
+                buttonText: 'Refresh',
             },
         },
         columns: 'Columns',

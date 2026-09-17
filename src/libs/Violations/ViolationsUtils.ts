@@ -567,8 +567,9 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        // Inactive vendor violation, gated behind the `vendorMatching` beta. The transaction's
-        // vendor is never cleared here — admins need to see what was set so they can re-pick.
+        // Inactive vendor violation, gated on `hasVendorFeature`, which only consults the
+        // `vendorMatching` beta for integrations that haven't reached GA. The transaction's
+        // vendor is never cleared here because admins need to see what was set so they can re-pick.
         if (isVendorMatchingBetaEnabled !== undefined) {
             const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
             const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
