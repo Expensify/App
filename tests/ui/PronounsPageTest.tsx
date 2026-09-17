@@ -16,12 +16,15 @@ const SELECTED_VALUE = 'theyThemTheirs';
 const SELECTED_PRONOUN = `${CONST.PRONOUNS.PREFIX}${SELECTED_VALUE}`;
 const mockPersonalDetails = {accountID: 1, pronouns: SELECTED_PRONOUN};
 
+// Capture the latest focus-effect callback so a test can simulate the screen regaining focus (e.g. returning from an overlay).
+const mockFocus: {callback?: () => void} = {};
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
-        // No-op focus effect: useInitialSelection still freezes via its useState seed, which is what we assert on.
-        useFocusEffect: jest.fn(),
+        useFocusEffect: jest.fn((callback: () => void) => {
+            mockFocus.callback = callback;
+        }),
     };
 });
 
@@ -54,11 +57,14 @@ jest.mock('@hooks/useLocalize', () =>
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@userActions/PersonalDetails', () => ({updatePronouns: jest.fn()}));
 
+type MockPronounItem = {value?: string; keyForList?: string; isSelected?: boolean};
+
 type MockSelectionListProps = {
-    data: Array<{value?: string; keyForList?: string; isSelected?: boolean}>;
+    data: MockPronounItem[];
     shouldScrollToFocusedIndexOnMount?: boolean;
     shouldUpdateFocusedIndex?: boolean;
     textInputOptions?: {onChangeText?: (value: string) => void};
+    onSelectRow?: (item: MockPronounItem) => void;
 };
 
 describe('PronounsPage', () => {
@@ -84,5 +90,33 @@ describe('PronounsPage', () => {
         expect(props?.data.at(0)?.value).not.toBe(`${CONST.PRONOUNS.PREFIX}callMeByMyName`);
         expect(props?.shouldScrollToFocusedIndexOnMount).toBe(false);
         expect(props?.shouldUpdateFocusedIndex).toBe(true);
+    });
+
+    it('keeps the saved pronoun pinned (not the unsaved selection) when the screen regains focus', () => {
+        render(<PronounsPage />);
+
+        act(() => {
+            getSelectionListProps()?.textInputOptions?.onChangeText?.('pronouns.');
+        });
+
+        // Pick a different row in the middle of the results and select it (staged, not yet saved).
+        const middleItem = getSelectionListProps()?.data.find((item) => item.value !== SELECTED_PRONOUN);
+        act(() => {
+            if (middleItem) {
+                getSelectionListProps()?.onSelectRow?.(middleItem);
+            }
+        });
+
+        // Simulate returning to the page (e.g. after closing the Troubleshoot overlay), which fires the focus effect.
+        act(() => {
+            mockFocus.callback?.();
+        });
+
+        const props = getSelectionListProps();
+        // The saved pronoun stays pinned at the top; the unsaved selection must not jump there.
+        expect(props?.data.at(0)?.value).toBe(SELECTED_PRONOUN);
+        expect(props?.data.at(0)?.value).not.toBe(middleItem?.value);
+        // The checkmark still follows the live (unsaved) selection.
+        expect(props?.data.find((item) => item.value === middleItem?.value)?.isSelected).toBe(true);
     });
 });

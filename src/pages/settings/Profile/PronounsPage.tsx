@@ -38,8 +38,9 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
     const [searchValue, setSearchValue] = useState('');
     const [selectedPronouns, setSelectedPronouns] = useState(currentPronouns);
-    // Freeze the pronoun selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
-    const initialPronoun = useInitialSelection(selectedPronouns, {resetOnFocus: true});
+    // Freeze the saved pronoun (not the unsaved local selection) so it stays pinned to the top for the whole open/focus cycle.
+    // Anchoring on the saved value keeps a refocus (e.g. returning from the Troubleshoot overlay) from repinning the in-progress selection.
+    const initialPronoun = useInitialSelection(currentPronouns, {resetOnFocus: true});
     const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
