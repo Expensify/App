@@ -1,6 +1,6 @@
-import Header from '@components/HeaderWithBackButtonComposed/Header';
-import HeaderBackButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderBackButton';
-import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/HeaderTitle';
+import Header from '@components/Header/Header';
+import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
+import HeaderTitle from '@components/Header/primitives/HeaderTitle';
 
 import type {StepCounterParams} from '@src/languages/params';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
