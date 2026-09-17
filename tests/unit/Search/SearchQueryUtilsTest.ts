@@ -3878,6 +3878,45 @@ describe('SearchQueryUtils', () => {
         return null;
     }
 
+    describe('Spend footer selections and the filters Reset button', () => {
+        it('does not count a footer selection as a filter change, so Reset stays hidden', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const withFooterSelections = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
+
+            if (!defaultFooterQuery || !withFooterSelections) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(withFooterSelections, defaultFooterQuery)).toBe(false);
+        });
+
+        it('still counts a real filter as a change', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const withFilter = buildSearchQueryJSON('type:expense merchant:Amazon footerTotal:billable');
+
+            if (!defaultFooterQuery || !withFilter) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(withFilter, defaultFooterQuery)).toBe(true);
+        });
+
+        it('keeps the footer selections when the filters are reset', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const current = buildSearchQueryJSON('type:expense merchant:Amazon footerCount:reports footerTotal:billable');
+
+            if (!current || !defaultFooterQuery) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const reset = buildQueryStringWithResetFilters(current, defaultFooterQuery);
+
+            expect(reset).not.toContain('merchant');
+            expect(reset).toContain('footerCount:reports');
+            expect(reset).toContain('footerTotal:billable');
+        });
+    });
+
     describe('Spend footer selections sent to the backend', () => {
         it('serializes the footer selections inside the filters, which is where the backend reads them', () => {
             const queryJSON = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
