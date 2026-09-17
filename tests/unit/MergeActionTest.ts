@@ -1,4 +1,4 @@
-import {updateMergeApprovalMode} from '@libs/actions/connections/merge';
+import {setMergeInitialSyncModalShown, updateMergeApprovalMode} from '@libs/actions/connections/merge';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
@@ -179,7 +179,7 @@ describe('MergeActions', () => {
             );
         });
 
-        it('leaves the approver field out for Merge ATS basic mode', () => {
+        it('clears the approver field out for Merge ATS basic mode', () => {
             // Given a Merge ATS connection in basic mode, which reads the approver from a single member rather than an ATS field
             // When the approval mode is saved with only a final approver
             updateMergeApprovalMode({
@@ -204,6 +204,7 @@ describe('MergeActions', () => {
                                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
                                         config: {
                                             approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC,
+                                            approverField: null,
                                             finalApprover: 'new@example.com',
                                             pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                                             errorFields: {approvalMode: null},
@@ -233,6 +234,23 @@ describe('MergeActions', () => {
                 {policyID, connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS, approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM},
                 expect.anything(),
             );
+        });
+    });
+
+    describe('setMergeInitialSyncModalShown', () => {
+        it('flags the initial sync modal as shown for the policy', () => {
+            // Given the initial sync modal has just been shown to the admin
+            const setSpy = jest.spyOn(Onyx, 'set').mockResolvedValue(undefined);
+
+            // When the flag is set for the Merge ATS and HR connection
+            setMergeInitialSyncModalShown(policyID, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS);
+            setMergeInitialSyncModalShown(policyID, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
+
+            // Then it is stored locally for that policy, without calling the API
+            expect(setSpy).toHaveBeenCalledWith(`${ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
+            expect(setSpy).toHaveBeenCalledWith(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
+            expect(mockWrite).not.toHaveBeenCalled();
+            setSpy.mockRestore();
         });
     });
 });
