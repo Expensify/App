@@ -16,7 +16,7 @@ import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} 
 import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
-import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getTaxCode, getTaxValue, hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
@@ -33,6 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import AutomaticFieldHint from './AutomaticFieldHint';
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -65,8 +66,10 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const shouldAutoFocusOnMount = !canUseTouchScreen();
-    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
+    // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
+    const shouldAutoFocusOnMount = !canUseTouchScreen() && !canEnterScanFieldsManually;
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -82,14 +85,15 @@ function AmountField({
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
 
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
+    const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
 
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
-    // error from, so a scan expense (where the amount is populated programmatically and `isAmountSet` is never set)
-    // can't show a phantom required error under a perfectly good amount.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice);
+    // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
+    // blank) can't show a phantom required error under a field that is deliberately empty.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -103,10 +107,16 @@ function AmountField({
     const decimals = getCurrencyDecimals(effectiveCurrency);
     // In the manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
-    // real value. This avoids showing "$0.00" as a pre-filled default. Scan and other non-manual flows populate
-    // amount programmatically and never set isAmountSet.
-    const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    // real value. This avoids showing "$0.00" as a pre-filled default. The Scan flow behaves the same way: its amount
+    // belongs to the receipt, so the field is empty until the user chooses to enter one instead of waiting for
+    // SmartScan. Per diem, distance and time flows populate the amount programmatically and never set isAmountSet.
+    const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && (transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually);
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
+    // The hint says SmartScan will fill this in. It goes once the user takes the field over, by focusing it or by
+    // entering any of the three fields.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isAmountInputFocused && !hasAnyManuallyEnteredScanField(transactionSlice);
+    // The hint and the buttons share the right-hand side, so the field shows one or the other.
+    const shouldShowAmountButtons = !shouldShowAutomaticHint;
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
@@ -298,6 +308,7 @@ function AmountField({
             {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
+                        key={transactionID}
                         ref={amountInputRef}
                         displayAsTextInput
                         autoFocus={false}
@@ -309,10 +320,17 @@ function AmountField({
                         errorText={amountFieldErrorText}
                         onInputChange={handleAmountChange}
                         allowNegativeInput={allowNegative}
-                        shouldShowFlipButton
-                        shouldShowCurrencyButton
+                        shouldShowFlipButton={shouldShowAmountButtons}
+                        shouldShowCurrencyButton={shouldShowAmountButtons}
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
+                        onFocus={() => {
+                            setIsAmountInputFocused(true);
+                        }}
+                        onBlur={() => {
+                            setIsAmountInputFocused(false);
+                        }}
+                        leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                         disabled={isAmountFieldDisabled}
                     />
                 </View>
