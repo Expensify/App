@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- Jest factory mocks use CommonJS require() which returns untyped modules; typing each mock precisely is not practical here */
 import {act, render, renderHook, screen, within} from '@testing-library/react-native';
 
-import {useIsOnlineAppLoadPending} from '@hooks/useInFlightRequests';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -177,7 +177,7 @@ function setIsOffline(isOffline: boolean) {
 async function resetAppLoadLatch() {
     await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
     await waitForBatchedUpdates();
-    const {unmount} = renderHook(() => useIsOnlineAppLoadPending());
+    const {unmount} = renderHook(() => useIsAppLoadPending());
     await act(async () => {
         await waitForBatchedUpdates();
     });

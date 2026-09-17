@@ -56,6 +56,7 @@ function HomePage() {
     const forYouSection = (
         <ForYouSection
             key="forYouSection"
+            isInitialLoad={shouldShowHomeSkeleton}
             isConciergeMenuVisible={isConciergeMenuVisible}
             setIsConciergeMenuVisible={setIsConciergeMenuVisible}
         />

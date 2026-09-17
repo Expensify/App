@@ -44,10 +44,9 @@ For loading driven by a **WRITE** command, use a dedicated hook from `src/hooks/
 Each hook maps to a **group**, which means a set of API commands that count as pending for one use case. Every group reads the two queue keys, `ONYXKEYS.PERSISTED_REQUESTS` and `ONYXKEYS.PERSISTED_ONGOING_REQUESTS`, with selectors that return booleans. The public API is one hook per group:
 
 - `useIsAppLoadPending()`: an `OpenApp` request or its deferred updates are pending.
-- `useIsOnlineAppLoadPending()`: the same, except an `OpenApp` still queued from while the device was offline does not count.
 - `useIsReportLoadPending(reportID)`: an `OpenReport` or its deferred updates are pending for that report.
 - `useIsLoadingBarPending()` / `useLoadingBarVisibility()`: a command relevant to the top-of-screen loading bar is active. Persisted requests that started offline are excluded, and the visible bar also requires the app to be online.
-- `useAppLoadSkeletonState()` / `useAppLoadSkeletonVisibility()`: the cold-start skeleton state, and whether to actually show it. Visibility additionally requires `useShouldWaitForAppLoad()`, which is false once the device is offline and no `OpenApp` in the queue ever reached the network, because nothing can resolve the skeleton until the user reconnects.
+- `useAppLoadSkeletonState()` / `useAppLoadSkeletonVisibility()`: the cold-start skeleton state, and whether to actually show it. Visibility additionally requires that the app load can still resolve, which is false once the device is offline and no `OpenApp` in the queue ever reached the network, because nothing can resolve the skeleton until the user reconnects.
 
 The screen still decides what to render. It can combine the hook result with offline state, cached-data readiness, or first-load state. For example:
 
@@ -75,15 +74,17 @@ When several call sites want the same choice, name it once as a second hook besi
 
 The existing public hooks bridge this window:
 
-- `useIsAppLoadPending()` and `useIsOnlineAppLoadPending()` read the two queue keys and `ONYXKEYS.IS_LOADING_APP`. An in-memory latch starts only after this process observes `OpenApp` in the queue. It stays set until the deferred update clears `IS_LOADING_APP`.
+- `useIsAppLoadPending()` reads the two queue keys and `ONYXKEYS.IS_LOADING_APP`. An in-memory latch starts only after this process observes `OpenApp` in the queue. It stays set until the deferred update clears `IS_LOADING_APP`.
 - `useIsReportLoadPending(reportID)` reads the two queue keys and that report's `RAM_ONLY_REPORT_LOADING_STATE`. An in-memory set records report IDs observed with a matching `OpenReport`. It removes a report ID after `isLoadingInitialReportActions` clears.
 
 A fresh process does not inherit either latch. A stranded legacy loading value cannot make either hook pending by itself.
 
 Each hook creates exactly three Onyx subscriptions while this bridge exists:
 
-- `useIsAppLoadPending()` / `useIsOnlineAppLoadPending()` create two queue subscriptions and one `IS_LOADING_APP` subscription.
+- `useIsAppLoadPending()` creates two queue subscriptions and one `IS_LOADING_APP` subscription.
 - `useIsReportLoadPending()` creates two queue subscriptions and one report loading-state subscription.
+
+The skeleton hooks cost those same three plus their own `HAS_LOADED_APP` read.
 
 Do not call these hooks once per list row. Read the hook at screen or list level and pass the boolean down.
 
@@ -93,22 +94,20 @@ New groups are declared in the `PENDING_REQUEST_GROUPS` registry in `useInFlight
 
 ```ts
 const PENDING_REQUEST_GROUPS = {
-    // Unscoped: matches on command alone.
-    appLoad: {
-        commands: APP_LOAD_COMMANDS, // WRITE_COMMANDS.OPEN_APP
-    },
     // Scoped: only requests whose scope key equals the caller's scope key match.
     reportLoad: {
-        commands: new Set<string>(REPORT_LOAD_COMMANDS), // WRITE_COMMANDS.OPEN_REPORT
+        commands: REPORT_LOAD_COMMANDS, // WRITE_COMMANDS.OPEN_REPORT
         getScopeKey: (request) => (typeof request.data?.reportID === 'string' ? request.data.reportID : undefined),
     },
     // ignoreOfflineInitiatedPersisted: drop requests enqueued while offline.
     loadingBar: {
-        commands: new Set<string>(LOADING_BAR_COMMANDS),
+        commands: LOADING_BAR_COMMANDS,
         ignoreOfflineInitiatedPersisted: true,
     },
 } satisfies Record<string, PendingRequestGroupConfig>;
 ```
+
+App load is not in the registry: `useAppLoadPendingState` answers its two variants, which differ only in whether an `OpenApp` enqueued while offline counts, from one pass over the queue.
 
 - **`commands`** (required): the WRITE commands whose presence in the queue counts as "pending" for this group. The backing constants are typed `WriteCommand[]` (see the invariant below).
 - **`getScopeKey`** (optional): for scoped groups, extracts a scope key from a request so a caller sees only the requests it cares about (e.g. the `OpenReport` for one `reportID`). Omit it for groups that match on command alone. Callers should pass a defined scope key. An undefined request scope can only equal an undefined caller scope.
@@ -116,7 +115,7 @@ const PENDING_REQUEST_GROUPS = {
 
 Then add a dedicated hook that wraps the internal generic with the group name (and scope key, if any). The generic stays internal so a call site cannot pass the wrong scope key for a group.
 
-The `appLoad` group contains `OpenApp` only, **not** `ReconnectApp`. It models the `OpenApp` loading state that skeleton consumers historically read from `IS_LOADING_APP`. Including `ReconnectApp` would make full-page loaders appear during background reconnects, while coming back online or filling an update gap. The loading bar is a separate group that includes `ReconnectApp`. When you define a group, match the exact commands that the existing user interface treated as loading.
+App load covers `OpenApp` only, **not** `ReconnectApp`. It models the `OpenApp` loading state that skeleton consumers historically read from `IS_LOADING_APP`. Including `ReconnectApp` would make full-page loaders appear during background reconnects, while coming back online or filling an update gap. The loading bar is a separate group that includes `ReconnectApp`. When you define a group, match the exact commands that the existing user interface treated as loading.
 
 ## The invariant: only WRITE commands
 

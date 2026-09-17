@@ -1,7 +1,6 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 
-import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,17 +29,19 @@ import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
 type ForYouSectionProps = {
+    /** Whether the app load skeleton is showing. */
+    isInitialLoad: boolean;
+
     /** Concierge "+" menu visibility, owned by HomePage so it survives this section's remount on breakpoint change. */
     isConciergeMenuVisible: boolean;
     setIsConciergeMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForYouSectionProps) {
+function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMenuVisible}: ForYouSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const isInitialLoad = useAppLoadSkeletonVisibility();
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);

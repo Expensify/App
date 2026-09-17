@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import type useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTodoCounts from '@hooks/useTodoCounts';
@@ -212,8 +213,21 @@ function setTodoCounts(todos: TodoFixture) {
 // ConciergePromptBox is mocked, so these props are inert here. They only satisfy ForYouSection's required prop types.
 const conciergeMenuProps = {isConciergeMenuVisible: false, setIsConciergeMenuVisible: () => {}};
 
+// ForYouSection takes the app load gate as a prop, so the harness reads it the way HomePage does. That keeps the
+// cases below driving the gate through Onyx.
+function ForYouSectionHarness() {
+    const isInitialLoad = useAppLoadSkeletonVisibility();
+
+    return (
+        <ForYouSection
+            isInitialLoad={isInitialLoad}
+            {...conciergeMenuProps}
+        />
+    );
+}
+
 function renderForYouSection() {
-    return render(<ForYouSection {...conciergeMenuProps} />);
+    return render(<ForYouSectionHarness />);
 }
 
 function pressFirstBeginButton() {
@@ -519,7 +533,7 @@ describe('ForYouSection', () => {
 
             // Clearing the to-dos must not unmount the section. It should stay visible (now the empty state).
             setTodoCounts(BASE_TODOS);
-            rerender(<ForYouSection {...conciergeMenuProps} />);
+            rerender(<ForYouSectionHarness />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
@@ -711,7 +725,7 @@ describe('ForYouSection', () => {
             // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
             // in state, so the row keeps its count instead of flashing back to the empty state.
             mockIsFocused = false;
-            rerender(<ForYouSection {...conciergeMenuProps} />);
+            rerender(<ForYouSectionHarness />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();
