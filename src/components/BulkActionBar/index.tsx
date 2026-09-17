@@ -308,6 +308,4 @@ function BulkActionBar<TValueType>({
     );
 }
 
-BulkActionBar.displayName = 'BulkActionBar';
-
 export default BulkActionBar;

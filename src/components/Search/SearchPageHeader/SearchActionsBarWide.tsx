@@ -25,8 +25,6 @@ type SearchActionsBarWideProps = {
 function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsBarWideProps) {
     const styles = useThemeStyles();
 
-    // Selecting rows no longer swaps this bar out for the bulk actions: those moved to the floating BulkActionBar over
-    // the list, so the search input and filters stay available while a selection is being built up.
     return (
         <View style={[styles.searchActionsBarContainer]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.pRelative, styles.w100, styles.flexWrap, styles.flexShrink1, styles.gap2, styles.zIndex10]}>

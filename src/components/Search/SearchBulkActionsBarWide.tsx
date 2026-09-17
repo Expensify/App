@@ -24,6 +24,4 @@ function SearchBulkActionsBarWide({queryJSON}: SearchBulkActionsBarWideProps) {
     return <SearchBulkActionsButton queryJSON={queryJSON} />;
 }
 
-SearchBulkActionsBarWide.displayName = 'SearchBulkActionsBarWide';
-
 export default SearchBulkActionsBarWide;

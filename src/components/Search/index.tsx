@@ -160,7 +160,7 @@ function Search({
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     // Wide layout floats the bulk action bar over the end of the list, so the list has to leave room for it.
-    const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON) && !shouldUseNarrowLayout;
+    const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON);
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);

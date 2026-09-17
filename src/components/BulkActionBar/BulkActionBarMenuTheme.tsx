@@ -23,6 +23,4 @@ function BulkActionBarMenuTheme({children}: React.PropsWithChildren) {
     );
 }
 
-BulkActionBarMenuTheme.displayName = 'BulkActionBarMenuTheme';
-
 export default BulkActionBarMenuTheme;

@@ -107,6 +107,4 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
     );
 }
 
-BulkActionBarButton.displayName = 'BulkActionBarButton';
-
 export default BulkActionBarButton;
