@@ -4307,10 +4307,7 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-/**
- * Xero calls vendors suppliers, so the vendor column reads "Supplier" when every eligible workspace takes its vendors from Xero.
- */
-function getSearchColumnTranslationKey(column: SearchSortBy, shouldUseSupplierLabel = false): TranslationPaths {
+function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
             return 'common.avatar';
@@ -4333,7 +4330,7 @@ function getSearchColumnTranslationKey(column: SearchSortBy, shouldUseSupplierLa
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
         case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
-            return shouldUseSupplierLabel ? 'common.supplier' : 'common.vendor';
+            return 'common.vendor';
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:

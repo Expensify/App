@@ -16,7 +16,7 @@ import {
     evaluateApprovalWorkflowRule,
     findVendorByID,
     getVendorDisplayName,
-    getVendorSearchAvailability,
+    hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -4623,7 +4623,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('getVendorSearchAvailability', () => {
+        describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
@@ -4631,24 +4631,20 @@ describe('PolicyUtils', () => {
             const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
             const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
 
-            it('is unavailable when no workspace has the vendor feature', () => {
-                expect(getVendorSearchAvailability({[plainKey]: plainPolicy}, true)).toEqual({isAvailable: false, shouldUseSupplierLabel: false});
+            it('is false when no workspace has the vendor feature', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[plainKey]: plainPolicy}, true)).toBe(false);
             });
 
-            it('is available with the vendor label for a QBO workspace exporting card expenses as credit card transactions, without the beta', () => {
-                expect(getVendorSearchAvailability({[qboKey]: qboPolicy, [plainKey]: plainPolicy}, false)).toEqual({isAvailable: true, shouldUseSupplierLabel: false});
+            it('is true for a QBO workspace exporting card expenses as credit card transactions, without the beta', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[qboKey]: qboPolicy, [plainKey]: plainPolicy}, false)).toBe(true);
             });
 
-            it('uses the supplier label when every eligible workspace takes its vendors from Xero', () => {
-                expect(getVendorSearchAvailability({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, true)).toEqual({isAvailable: true, shouldUseSupplierLabel: true});
-            });
-
-            it('keeps the vendor label when Xero and QBO workspaces are both eligible', () => {
-                expect(getVendorSearchAvailability({[xeroKey]: xeroPolicy, [qboKey]: qboPolicy}, true)).toEqual({isAvailable: true, shouldUseSupplierLabel: false});
+            it('is true for a Xero workspace with the beta', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, true)).toBe(true);
             });
 
             it('ignores beta-gated integrations while the beta is off', () => {
-                expect(getVendorSearchAvailability({[xeroKey]: xeroPolicy}, false).isAvailable).toBe(false);
+                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy}, false)).toBe(false);
             });
         });
 

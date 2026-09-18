@@ -65,24 +65,11 @@ type ColumnsSettingsListProps = {
     /** The default columns for the active group-by mode when no customization has been applied */
     defaultGroupColumns?: SearchCustomColumnIds[];
 
-    /** Whether the vendor column is labelled "Supplier", which is what Xero calls vendors */
-    shouldUseSupplierLabel?: boolean;
-
     /** Callback fired with the updated column list when the user saves changes */
     onSave: (columns: SearchCustomColumnIds[]) => void;
 };
 
-function ColumnsSettingsList({
-    allColumns,
-    defaultSelectedColumns,
-    currentColumns,
-    requiredColumns,
-    groupBy,
-    groupColumns = [],
-    defaultGroupColumns = [],
-    shouldUseSupplierLabel = false,
-    onSave,
-}: ColumnsSettingsListProps) {
+function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns, requiredColumns, groupBy, groupColumns = [], defaultGroupColumns = [], onSave}: ColumnsSettingsListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
@@ -98,8 +85,8 @@ function ColumnsSettingsList({
         const unselected = columnsToSort
             .filter((col) => !col.isSelected)
             .sort((a, b) => {
-                const textA = translate(getSearchColumnTranslationKey(a.value, shouldUseSupplierLabel));
-                const textB = translate(getSearchColumnTranslationKey(b.value, shouldUseSupplierLabel));
+                const textA = translate(getSearchColumnTranslationKey(a.value));
+                const textB = translate(getSearchColumnTranslationKey(b.value));
                 return localeCompare(textA, textB);
             });
         return [...selected, ...unselected];
@@ -131,7 +118,7 @@ function ColumnsSettingsList({
             const isEffectivelySelected = isRequired || isSelected;
             const isDragDisabled = !isEffectivelySelected;
             return {
-                text: translate(getSearchColumnTranslationKey(columnId, shouldUseSupplierLabel)),
+                text: translate(getSearchColumnTranslationKey(columnId)),
                 value: columnId,
                 keyForList: columnId,
                 isSelected: isEffectivelySelected,
@@ -177,8 +164,8 @@ function ColumnsSettingsList({
                 const selectedCols = prevColumns.filter((col) => col.isSelected);
                 const unselected = prevColumns.filter((col) => !col.isSelected && col.columnId !== updatedColumnId);
                 const unselectedSorted = unselected.sort((a, b) => {
-                    const textA = translate(getSearchColumnTranslationKey(a.columnId, shouldUseSupplierLabel));
-                    const textB = translate(getSearchColumnTranslationKey(b.columnId, shouldUseSupplierLabel));
+                    const textA = translate(getSearchColumnTranslationKey(a.columnId));
+                    const textB = translate(getSearchColumnTranslationKey(b.columnId));
                     return localeCompare(textA, textB);
                 });
                 return [...selectedCols, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];

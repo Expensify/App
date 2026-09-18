@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getVendorSearchAvailability} from '@libs/PolicyUtils';
+import {hasVendorFeatureOnAnyPolicy} from '@libs/PolicyUtils';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getCustomColumns, insertColumnBeforeTotalAmount} from '@libs/SearchUIUtils';
 
@@ -25,10 +25,9 @@ function SearchColumnsPage() {
     const {currentSearchKey} = useSearchQueryContext();
     const {isBetaEnabled} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const [vendorSearchAvailability] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled),
+    const [isVendorColumnAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled),
     });
-    const isVendorColumnAvailable = vendorSearchAvailability?.isAvailable ?? false;
 
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -97,7 +96,6 @@ function SearchColumnsPage() {
             groupBy={groupBy}
             groupColumns={allGroupCustomColumns}
             defaultGroupColumns={defaultGroupCustomColumns}
-            shouldUseSupplierLabel={vendorSearchAvailability?.shouldUseSupplierLabel}
             onSave={applyChanges}
         />
     );

@@ -1,20 +1,12 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getVendorSearchAvailability} from '@libs/PolicyUtils';
-import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
-
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React, {useCallback, useMemo} from 'react';
@@ -585,11 +577,6 @@ function SearchTableHeader({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
-    const {isBetaEnabled} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const [shouldUseSupplierLabel = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled).shouldUseSupplierLabel,
-    });
 
     // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
     const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard'] : []) satisfies SearchHeaderIcons;
@@ -619,9 +606,7 @@ function SearchTableHeader({
         for (const col of columns) {
             const config = configMap.get(col);
             if (config) {
-                orderedConfig.push(
-                    config.columnName === CONST.SEARCH.TABLE_COLUMNS.VENDOR ? {...config, translationKey: getSearchColumnTranslationKey(config.columnName, shouldUseSupplierLabel)} : config,
-                );
+                orderedConfig.push(config);
                 addedColumns.add(col);
             }
         }
@@ -633,7 +618,7 @@ function SearchTableHeader({
         }
 
         return orderedConfig;
-    }, [columnConfig, columns, shouldUseSupplierLabel]);
+    }, [columnConfig, columns]);
 
     if (displayNarrowVersion) {
         return;

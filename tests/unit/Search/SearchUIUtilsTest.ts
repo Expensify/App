@@ -13988,13 +13988,8 @@ describe('SearchUIUtils', () => {
     });
 
     describe('vendor column label', () => {
-        test('Should label the vendor column as Vendor by default and as Supplier for Xero-only workspaces', () => {
+        test('Should label the vendor column as Vendor', () => {
             expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');
-            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR, true)).toBe('common.supplier');
-        });
-
-        test('Should leave other labels untouched when the supplier wording is on', () => {
-            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.CATEGORY, true)).toBe('common.category');
         });
     });
 

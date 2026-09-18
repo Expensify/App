@@ -34,9 +34,6 @@ type MoneyRequestReportTableHeaderRowProps = {
     /** The columns the table renders, in order */
     columns: SearchColumnType[];
 
-    /** Whether the vendor column is labelled "Supplier", which is what Xero calls vendors */
-    shouldUseSupplierLabel?: boolean;
-
     /** The column the table is currently sorted by */
     sortBy: SortableColumnName;
 
@@ -69,7 +66,6 @@ function MoneyRequestReportTableHeaderRow({
     transactions,
     pendingAction,
     columns,
-    shouldUseSupplierLabel = false,
     sortBy,
     sortOrder,
     onSortPress,
@@ -137,7 +133,6 @@ function MoneyRequestReportTableHeaderRow({
                         sortOrder={sortOrder}
                         shouldRemoveTotalColumnFlex={hasFlexColumn(columns)}
                         columns={columns}
-                        shouldUseSupplierLabel={shouldUseSupplierLabel}
                         dateColumnSize={dateColumnSize}
                         postedColumnSize={postedColumnSize}
                         amountColumnSize={amountColumnSize}

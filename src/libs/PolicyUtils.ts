@@ -108,14 +108,6 @@ type ApprovalWorkflowRuleMatch = {
     forwardsTo?: string;
 };
 
-type VendorSearchAvailability = {
-    /** Whether at least one workspace the user can see has the vendor feature, so Search can offer the vendor column. */
-    isAvailable: boolean;
-
-    /** Whether every eligible workspace takes its vendors from Xero, which calls them suppliers. */
-    shouldUseSupplierLabel: boolean;
-};
-
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
  */
@@ -2742,22 +2734,10 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
 }
 
 /**
- * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature,
- * and the "Supplier" wording is only used when no eligible workspace would call them vendors.
+ * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature.
  */
-function getVendorSearchAvailability(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): VendorSearchAvailability {
-    let isAvailable = false;
-    let areAllEligiblePoliciesXero = true;
-    for (const policy of Object.values(policies ?? {})) {
-        if (!hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
-            continue;
-        }
-        isAvailable = true;
-        if (!isXeroActiveMatchingSource(policy)) {
-            areAllEligiblePoliciesXero = false;
-        }
-    }
-    return {isAvailable, shouldUseSupplierLabel: isAvailable && areAllEligiblePoliciesXero};
+function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
 }
 
 /**
@@ -3537,7 +3517,7 @@ export {
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
-    getVendorSearchAvailability,
+    hasVendorFeatureOnAnyPolicy,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,

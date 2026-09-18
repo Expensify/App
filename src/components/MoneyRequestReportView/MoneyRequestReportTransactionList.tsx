@@ -24,7 +24,7 @@ import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransaction
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {hasVendorFeature, isPolicyTaxEnabled, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
@@ -818,7 +818,6 @@ function MoneyRequestReportTransactionList({
                 transactions={transactions}
                 pendingAction={reportPendingAction}
                 columns={columnsToShow}
-                shouldUseSupplierLabel={isXeroActiveMatchingSource(policy)}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSortPress={(selectedSortBy, selectedSortOrder) => {
