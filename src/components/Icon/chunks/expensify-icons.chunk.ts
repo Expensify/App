@@ -37,6 +37,7 @@ import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
+import CameraFlip from '@assets/images/camera-flip.svg';
 import Camera from '@assets/images/camera.svg';
 import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
@@ -135,6 +136,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import BusinessCentralSquare from '@assets/images/integrationicons/business-central-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.svg';
@@ -334,8 +336,10 @@ const Expensicons = {
     Bug,
     Building,
     Buildings,
+    BusinessCentralSquare,
     Calendar,
     Camera,
+    CameraFlip,
     Car,
     CarPlus,
     Cash,

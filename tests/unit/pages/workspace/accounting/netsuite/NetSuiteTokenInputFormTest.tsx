@@ -1,7 +1,5 @@
 import {act, render} from '@testing-library/react-native';
 
-import usePermissions from '@hooks/usePermissions';
-
 import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
 import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
 
@@ -59,7 +57,6 @@ jest.mock('@hooks/useAutoFocusInput', () => () => ({
     inputCallbackRef: jest.fn(),
 }));
 jest.mock('@hooks/usePolicy', () => () => undefined);
-jest.mock('@hooks/usePermissions');
 jest.mock('@libs/actions/connections', () => ({
     shouldUseUpdateNetSuiteTokens: jest.fn(() => false),
 }));
@@ -78,20 +75,13 @@ jest.mock('@components/Form/FormProvider', () => {
 });
 jest.mock('@components/Form/InputWrapper', () => () => null);
 
-const mockedUsePermissions = jest.mocked(usePermissions);
 const mockedShouldUseUpdateNetSuiteTokens = jest.mocked(shouldUseUpdateNetSuiteTokens);
 const mockedConnectPolicyToNetSuite = jest.mocked(connectPolicyToNetSuite);
 const mockedUpdateNetSuiteTokens = jest.mocked(updateNetSuiteTokens);
 const mockedConnectToNetSuiteOAuthSetup = jest.mocked(connectToNetSuiteOAuthSetup);
 const mockedOnNext = jest.fn();
 
-function setBetaEnabled(isOAuthBetaEnabled: boolean) {
-    mockedUsePermissions.mockReturnValue({
-        isBetaEnabled: (beta) => beta === CONST.BETAS.NETSUITE_OAUTH && isOAuthBetaEnabled,
-    } as ReturnType<typeof usePermissions>);
-}
-
-function renderForm() {
+function renderForm(isOAuthFlow: boolean) {
     render(
         <NetSuiteTokenInputForm
             policyID={POLICY_ID}
@@ -99,6 +89,8 @@ function renderForm() {
             isEditing={false}
             onMove={jest.fn()}
             currentPageName={CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS}
+            isOAuthFlow={isOAuthFlow}
+            shouldShowTokenAuthenticationLink={false}
         />,
     );
 }
@@ -114,20 +106,16 @@ describe('NetSuiteTokenInputForm', () => {
         mockedShouldUseUpdateNetSuiteTokens.mockReturnValue(false);
     });
 
-    describe('when the netSuiteOAuth beta is enabled', () => {
-        beforeEach(() => {
-            setBetaEnabled(true);
-        });
-
+    describe('in the OAuth flow', () => {
         it('hands off to the OAuth setup with the policy, account ID and environment URL', () => {
-            renderForm();
+            renderForm(true);
             submitForm();
 
             expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL);
         });
 
         it('does not write the token-based credentials', () => {
-            renderForm();
+            renderForm(true);
             submitForm();
 
             expect(mockedConnectPolicyToNetSuite).not.toHaveBeenCalled();
@@ -135,14 +123,14 @@ describe('NetSuiteTokenInputForm', () => {
         });
 
         it('does not advance the wizard, since the OAuth handoff dismisses the RHP itself', () => {
-            renderForm();
+            renderForm(true);
             submitForm();
 
             expect(mockedOnNext).not.toHaveBeenCalled();
         });
 
         it('submits synchronously so the setup link opens inside the tap gesture and is not popup-blocked', () => {
-            renderForm();
+            renderForm(true);
 
             // Both FormProvider defaults defer onSubmit off the gesture: DISMISS_THEN_SUBMIT awaits a promise, and
             // the press-loading spinner defers by a macrotask. Either one lets mobile Safari block the OAuth tab.
@@ -151,19 +139,15 @@ describe('NetSuiteTokenInputForm', () => {
         });
 
         it('labels the submit button "Connect" rather than "Confirm"', () => {
-            renderForm();
+            renderForm(true);
 
             expect(mockFormProps.current?.submitButtonText).toBe('workspace.accounting.setup');
         });
     });
 
-    describe('when the netSuiteOAuth beta is disabled', () => {
-        beforeEach(() => {
-            setBetaEnabled(false);
-        });
-
+    describe('in the token-based authentication flow', () => {
         it('writes the token-based credentials', () => {
-            renderForm();
+            renderForm(false);
             submitForm();
 
             expect(mockedConnectPolicyToNetSuite).toHaveBeenCalledWith(POLICY_ID, FORM_VALUES);
@@ -171,28 +155,28 @@ describe('NetSuiteTokenInputForm', () => {
         });
 
         it('advances the wizard so the RHP is dismissed', () => {
-            renderForm();
+            renderForm(false);
             submitForm();
 
             expect(mockedOnNext).toHaveBeenCalled();
         });
 
         it('keeps the default submit behaviour, since the token flow never opens a popup', () => {
-            renderForm();
+            renderForm(false);
 
             expect(mockFormProps.current?.keyboardSubmitBehavior).toBeUndefined();
             expect(mockFormProps.current?.shouldShowLoadingImmediatelyOnPress).toBe(true);
         });
 
         it('keeps the "Confirm" submit label, since the token flow has more steps after this one', () => {
-            renderForm();
+            renderForm(false);
 
             expect(mockFormProps.current?.submitButtonText).toBe('common.confirm');
         });
 
         it('updates the existing tokens when the connection is being re-authenticated', () => {
             mockedShouldUseUpdateNetSuiteTokens.mockReturnValue(true);
-            renderForm();
+            renderForm(false);
             submitForm();
 
             expect(mockedUpdateNetSuiteTokens).toHaveBeenCalledWith(POLICY_ID, FORM_VALUES);
