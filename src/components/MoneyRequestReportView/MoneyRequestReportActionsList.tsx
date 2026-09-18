@@ -117,7 +117,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
+    // Set when the report is opened from an "X Replies" link, which should land on the latest message
     const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
     const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
@@ -224,10 +224,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         completeSkippedMarkAsRead,
     });
 
-    // When the report is opened from the "X Replies" link, scroll to the latest message once the actions are
-    // available (this list otherwise opens at the top). scrollToLatestMessages pins to the bottom while the
-    // deferred content settles, mirroring the floating "new messages" button. We clear the route param afterwards
-    // so a later re-render or remount doesn't yank the user back down.
+    // Wait for the actions to arrive before jumping, and clear the route param afterwards so a later remount
+    // doesn't yank the user back down.
     useEffect(() => {
         if (!shouldScrollToLatestOnOpen || scrolledToLatestOnOpenForReportIDRef.current === reportIDFromRoute || visibleReportActions.length === 0) {
             return;

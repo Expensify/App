@@ -23,8 +23,11 @@ import {useEffect, useEffectEvent, useRef} from 'react';
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
 
+// How long to keep pinning the list to the bottom after "Latest messages", long enough for deferred content to
+// settle. Past that, an unrelated layout change shouldn't yank the user back down.
+const STICK_TO_BOTTOM_DURATION_MS = 2000;
+
 type UseMoneyRequestReportScrollParams = {
-    /** The report whose list is being scrolled */
     reportID: string | undefined;
 
     /** Key that resets the new-message autoscroll tracking, usually the reportID */
@@ -48,7 +51,7 @@ type UseMoneyRequestReportScrollParams = {
     /** Index of the unread marker within the rendered (oldest-first) actions, or -1 */
     unreadMarkerReportActionIndex: number;
 
-    /** Reports whether the list is scrolled further from the bottom than the action-visible threshold */
+    /** Tells the caller whether the list is scrolled further from the bottom than the action-visible threshold */
     onScrolledOverThresholdChange: (isScrolledOverThreshold: boolean) => void;
 
     /** Marks the newest action as read (from `useMarkAsRead`) */
@@ -68,33 +71,31 @@ type UseMoneyRequestReportScrollResult = {
     /** FlashList onViewableItemsChanged handler */
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
 
-    /** "Latest messages" pill click handler — scrolls to the bottom and marks the report as read once it lands */
+    /** "Latest messages" pill click handler. Scrolls to the bottom and marks the report as read once it lands */
     scrollToLatestMessages: () => void;
 
-    /** Jumps the list to its last item — the way action items reach the newest message (e.g. while editing) */
+    /** Jumps the list to its last item, the way action items reach the newest message */
     scrollToBottom: () => void;
 
-    /** FlashList onContentSizeChange handler — refreshes the bottom offset and keeps the list pinned while stick-to-bottom is active */
+    /** FlashList onContentSizeChange handler. Refreshes the bottom offset and keeps the list pinned while stick-to-bottom is active */
     onListContentSizeChange: (width: number, height: number) => void;
 
-    /** List onLayout handler — refreshes the bottom offset from the laid-out list height */
+    /** List onLayout handler. Refreshes the bottom offset from the laid-out list height */
     onListLayout: (event: LayoutChangeEvent) => void;
 
-    /** FlashList onScrollBeginDrag handler — cancels stick-to-bottom and any pending mark-as-read */
+    /** FlashList onScrollBeginDrag handler. Cancels stick-to-bottom and any pending mark-as-read */
     onListScrollBeginDrag: () => void;
 
-    /** Receives the unified list's last item index so scroll-to-bottom can target it via scrollToIndex */
+    /** Receives the unified list's last item index */
     updateLastItemIndex: (index: number) => void;
 };
 
 /**
- * Owns the scroll behavior of the money-request report view's unified list: bottom-offset tracking,
- * the "Latest messages" pill, scroll-to-bottom on own/new messages, stick-to-bottom while deferred
- * content settles, and the AgentZero thinking-indicator reveal.
+ * Owns the scroll behavior of the money-request report view's unified list: bottom-offset tracking, the "Latest
+ * messages" pill, scroll-to-bottom on own/new messages, stick-to-bottom while deferred content settles, and the
+ * AgentZero thinking-indicator reveal.
  *
- * Unlike the chat list this list is NOT inverted (data is oldest-first) — the scroll model is
- * bottom-offset math over a normal list, and jumping to the newest message goes through
- * scrollToIndex on the last item rather than scrollToEnd (see `scrollToBottom`).
+ * Unlike the chat list, this list is not inverted. Everything here is bottom-offset math over a normal list.
  */
 function useMoneyRequestReportScroll({
     reportID,
@@ -118,15 +119,14 @@ function useMoneyRequestReportScroll({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
-    // The unified list writes its last item index here (see updateLastItemIndex). We jump to the bottom via
-    // scrollToIndex rather than scrollToEnd: scrollToEnd targets an estimated content-end offset, which on a large
-    // list (hundreds of transactions + chat) leaves the bottom blank until it renders/corrects. scrollToIndex
-    // targets the last item directly and renders around it, so the landing is not blank.
+    // The unified list reports its last item index through updateLastItemIndex
     const lastItemIndexRef = useRef(0);
     const updateLastItemIndex = (index: number) => {
         lastItemIndexRef.current = index;
     };
 
+    // scrollToEnd targets an estimated content-end offset, which on a list this large leaves the bottom blank until
+    // it renders and corrects. scrollToIndex targets the last item and renders around it, so the landing is never blank.
     const scrollToBottom = () => {
         if (lastItemIndexRef.current < 0) {
             return;
@@ -149,7 +149,7 @@ function useMoneyRequestReportScroll({
 
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    // Set when the user taps "Latest messages"; the report is marked as read only once the scroll actually reaches the bottom.
+    // Set when the user taps "Latest messages", cleared once the scroll reaches the bottom or the user scrolls away
     const pendingMarkAsReadRef = useRef(false);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
@@ -166,8 +166,8 @@ function useMoneyRequestReportScroll({
             listScrollYRef.current = contentOffset.y;
             syncBottomOffset();
 
-            // Mark the report as read only once the scroll has actually reached the bottom. The jump fired by
-            // "Latest messages" settles over several frames as deferred items hydrate, so we wait for the real end.
+            // The jump fired by "Latest messages" settles over several frames as deferred items hydrate, so the
+            // report is marked as read only once the scroll really lands here.
             if (pendingMarkAsReadRef.current && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
                 pendingMarkAsReadRef.current = false;
                 markNewestActionAsRead();
@@ -187,12 +187,10 @@ function useMoneyRequestReportScroll({
         resetKey,
     });
 
-    // The indicator renders in the list footer, below the row scrollToBottom targets, so only
-    // scrollToEnd reveals it. This list is not inverted, so nothing sticks to the bottom for us.
+    // The indicator renders in the list footer, below the row scrollToBottom targets, so only scrollToEnd reveals it
     const {candidateAgentIDs} = useAgentZeroStatus();
     const isThinkingIndicatorVisible = candidateAgentIDs.length > 0;
-    // Scroll once per appearance: the label changes many times per run, and re-firing would yank
-    // the viewport away from a user who has since scrolled up.
+    // Scroll once per appearance, because the label changes many times per run and re-firing would yank the viewport
     const hasScrolledForThinkingIndicatorRef = useRef(false);
     useEffect(() => {
         if (!isThinkingIndicatorVisible) {
@@ -204,8 +202,7 @@ function useMoneyRequestReportScroll({
         }
         hasScrolledForThinkingIndicatorRef.current = true;
 
-        // Wait for the footer to lay out, otherwise the content hasn't grown yet and there is
-        // nothing to scroll to.
+        // Wait for the footer to lay out, otherwise there is nothing to scroll to yet
         const timeoutID = setTimeout(() => {
             reportScrollManager.scrollToEnd();
         }, DELAY_FOR_SCROLLING_TO_END);
@@ -213,11 +210,11 @@ function useMoneyRequestReportScroll({
         return () => clearTimeout(timeoutID);
     }, [isThinkingIndicatorVisible, reportScrollManager]);
 
-    // When the just-sent action hasn't landed in the visible data yet, remember it and scroll once it does.
+    // When the just-sent action hasn't landed in the visible data yet, remember it and scroll once it does
     const pendingScrollToActionIDRef = useRef<string | null>(null);
+    const ownActionScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Effect Event so the Pusher subscription below can stay subscribed once per report while still
-    // reading the latest visible actions.
+    // Effect Event so the Pusher subscription below can subscribe once per report and still read the latest actions
     const onNewActionEvent = useEffectEvent((isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
@@ -227,13 +224,14 @@ function useMoneyRequestReportScroll({
                     return;
                 }
 
-                // We want to scroll to the end of the list where the newest message is. We route through the indexed
-                // scrollToBottom (scrollToIndex) rather than scrollToEnd because scrollToEnd targets an estimated
-                // content-end offset that leaves the bottom blank on large transaction+chat lists. We still delay so
-                // the just-sent item has landed in the data before we jump.
+                // Delay so the just-sent item has landed in the data before we jump
                 const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
                 if (index !== -1) {
-                    setTimeout(() => {
+                    if (ownActionScrollTimeoutRef.current) {
+                        clearTimeout(ownActionScrollTimeoutRef.current);
+                    }
+                    ownActionScrollTimeoutRef.current = setTimeout(() => {
+                        ownActionScrollTimeoutRef.current = null;
                         scrollToBottom();
                     }, DELAY_FOR_SCROLLING_TO_END);
                 } else {
@@ -256,8 +254,8 @@ function useMoneyRequestReportScroll({
         };
     }, [reportID]);
 
-    // No per-run cleanup on purpose: actions keep landing within the delay, and cancelling the pending jump on
-    // each of those renders is what stops the list from ever reaching the newest message.
+    // No per-run cleanup on purpose. Cancelling the pending jump whenever another action lands is what stops the
+    // list from ever reaching the newest message.
     const pendingScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useEffect(() => {
         const pendingActionID = pendingScrollToActionIDRef.current;
@@ -285,11 +283,9 @@ function useMoneyRequestReportScroll({
         if (stickToBottomTimeoutRef.current) {
             clearTimeout(stickToBottomTimeoutRef.current);
         }
-        // Safety net: stop pinning after deferred content has had time to settle, so a much later
-        // unrelated layout change doesn't yank the user back down.
         stickToBottomTimeoutRef.current = setTimeout(() => {
             stickToBottomRef.current = false;
-        }, 2000);
+        }, STICK_TO_BOTTOM_DURATION_MS);
 
         if (!hasNewestReportAction) {
             openReport({
@@ -313,13 +309,11 @@ function useMoneyRequestReportScroll({
 
     useEffect(() => {
         return () => {
-            if (stickToBottomTimeoutRef.current) {
-                clearTimeout(stickToBottomTimeoutRef.current);
+            for (const timeoutRef of [stickToBottomTimeoutRef, pendingScrollTimeoutRef, ownActionScrollTimeoutRef]) {
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
             }
-            if (!pendingScrollTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(pendingScrollTimeoutRef.current);
         };
     }, []);
 
