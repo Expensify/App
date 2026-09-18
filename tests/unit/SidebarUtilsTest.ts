@@ -2,6 +2,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
@@ -30,6 +31,7 @@ import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/Trans
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {addMinutes, startOfDay, subMinutes, subMonths} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -1028,7 +1030,7 @@ describe('SidebarUtils', () => {
                         source: '',
                         filename: 'download.jpeg',
                         action: 'replaceReceipt',
-                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined, transactionPolicyTagList: undefined, isVendorMatchingBetaEnabled: false},
                     },
                 },
                 created: '2024-08-08 18:20:44.171',
@@ -1053,7 +1055,7 @@ describe('SidebarUtils', () => {
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
-                betas: undefined,
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: MOCK_TRANSACTIONS,
@@ -1130,7 +1132,7 @@ describe('SidebarUtils', () => {
                         source: '',
                         filename: 'download.jpeg',
                         action: 'replaceReceipt',
-                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined, transactionPolicyTagList: undefined, isVendorMatchingBetaEnabled: false},
                     },
                 },
                 created: '2024-08-08 18:20:44.171',
@@ -1167,7 +1169,7 @@ describe('SidebarUtils', () => {
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
-                betas: undefined,
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: MOCK_TRANSACTIONS,
@@ -1211,7 +1213,7 @@ describe('SidebarUtils', () => {
                 reports: {},
                 currentReportId: undefined,
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1236,7 +1238,7 @@ describe('SidebarUtils', () => {
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1262,7 +1264,7 @@ describe('SidebarUtils', () => {
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1310,7 +1312,7 @@ describe('SidebarUtils', () => {
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1350,7 +1352,7 @@ describe('SidebarUtils', () => {
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1400,7 +1402,7 @@ describe('SidebarUtils', () => {
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactionViolations: {},
                     draftComment: undefined,
                     transactions: {},
@@ -1432,7 +1434,7 @@ describe('SidebarUtils', () => {
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactionViolations: {},
                     draftComment: undefined,
                     transactions: {},
@@ -1464,7 +1466,7 @@ describe('SidebarUtils', () => {
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactionViolations: {},
                     draftComment: undefined,
                     transactions: {},
@@ -2188,6 +2190,143 @@ describe('SidebarUtils', () => {
             });
 
             expect(employeePaysResult?.alternateText).toBe('updated the currency conversion fee setting to "Employee pays"');
+        });
+
+        it('returns the correct alternate text for UPDATE_OVER_LIMIT_FORWARDS_TO action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const member = {email: 'member@example.com', name: 'Member', accountID: 100};
+            const approver = {email: 'approver@example.com', name: 'Approver', accountID: 200};
+            const setAction: ReportAction = {
+                ...createRandomReportAction(6),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 10000, currency: 'USD'},
+            };
+            const setReportActions: ReportActions = {[setAction.reportActionID]: setAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, setReportActions);
+            });
+
+            const setResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: setAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            expect(setResult?.alternateText).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+
+            const removedAction: ReportAction = {
+                ...createRandomReportAction(7),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                originalMessage: {member, previousOverLimitForwardsTo: approver, previousLimit: 10000, currency: 'USD'},
+            };
+            const removedReportActions: ReportActions = {[removedAction.reportActionID]: removedAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, removedReportActions);
+            });
+
+            const removedResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: removedAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            expect(removedResult?.alternateText).toBe(
+                'changed the approval workflow for member@example.com to stop forwarding reports over $100.00 (previously forwarded to approver@example.com)',
+            );
+        });
+
+        it('returns the correct alternate text for UPDATE_APPROVAL_LIMIT action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const action: ReportAction = {
+                ...createRandomReportAction(8),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    limit: 20000,
+                    previousLimit: 10000,
+                    currency: 'USD',
+                },
+            };
+            const reportActions: ReportActions = {[action.reportActionID]: action};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: action,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            expect(result?.alternateText).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
         });
 
         it('returns the correct alternate text for UPDATE_AUTO_HARVESTING action', async () => {
@@ -4339,7 +4478,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4365,7 +4504,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4388,7 +4527,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports: undefined,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4409,7 +4548,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports: {},
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4434,7 +4573,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4463,7 +4602,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4493,7 +4632,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4523,7 +4662,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4563,7 +4702,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: undefined,
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments,
                     transactionViolations: {},
@@ -4595,7 +4734,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4624,7 +4763,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4651,7 +4790,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4689,7 +4828,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}1`],
                     currentReportId: '1',
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4919,6 +5058,84 @@ describe('SidebarUtils', () => {
 
             expect(result?.alternateText).toBe('reopened');
             expect(result?.alternateText).not.toContain('AdminUser:');
+        });
+    });
+
+    describe('getInboxTabSummary', () => {
+        /** The cutoff getInboxTabSummary measures against: the start of today, CONST.INBOX_TAB_STALE_UNREAD_MONTHS ago. */
+        const staleCutoff = () => subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS);
+
+        type InboxTabReport = Pick<ReportsToDisplayInLHN[string], 'reportID' | 'isUnreadReport' | 'requiresAttention' | 'hasErrorsOtherThanFailedReceipt' | 'lastVisibleActionCreated'>;
+
+        function buildReportsToDisplay(reports: InboxTabReport[]): ReportsToDisplayInLHN {
+            return Object.fromEntries(reports.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {...createRandomReport(Number(report.reportID)), ...report}]));
+        }
+
+        it('returns zero counts and no stale report for an empty list', () => {
+            expect(SidebarUtils.getInboxTabSummary([], {})).toEqual({
+                counts: {[CONST.INBOX_TAB.TODO]: 0, [CONST.INBOX_TAB.UNREAD]: 0},
+                hasStaleUnreadReport: false,
+            });
+        });
+
+        it('counts To-do and Unread reports independently', () => {
+            const recently = DateUtils.getDBTime();
+            const reportsToDisplay = buildReportsToDisplay([
+                {reportID: '1', requiresAttention: true},
+                {reportID: '2', hasErrorsOtherThanFailedReceipt: true},
+                {reportID: '3', isUnreadReport: true, lastVisibleActionCreated: recently},
+                {reportID: '4', requiresAttention: true, isUnreadReport: true, lastVisibleActionCreated: recently},
+                {reportID: '5'},
+            ]);
+
+            expect(SidebarUtils.getInboxTabSummary(['1', '2', '3', '4', '5'], reportsToDisplay).counts).toEqual({
+                [CONST.INBOX_TAB.TODO]: 3,
+                [CONST.INBOX_TAB.UNREAD]: 2,
+            });
+        });
+
+        it('skips report IDs with no matching report', () => {
+            const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime()}]);
+
+            expect(SidebarUtils.getInboxTabSummary(['1', '404'], reportsToDisplay).counts[CONST.INBOX_TAB.UNREAD]).toBe(1);
+        });
+
+        it('flags a stale unread report when its newest message predates the cutoff', () => {
+            const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf())}]);
+
+            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay).hasStaleUnreadReport).toBe(true);
+        });
+
+        it('does not flag an unread report whose newest message is recent', () => {
+            const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 1).valueOf())}]);
+
+            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay).hasStaleUnreadReport).toBe(false);
+        });
+
+        it('ignores the age of reports that are not unread', () => {
+            const reportsToDisplay = buildReportsToDisplay([{reportID: '1', lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf())}]);
+
+            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay)).toEqual({
+                counts: {[CONST.INBOX_TAB.TODO]: 0, [CONST.INBOX_TAB.UNREAD]: 0},
+                hasStaleUnreadReport: false,
+            });
+        });
+
+        it('flags stale as soon as any one unread report is stale', () => {
+            const reportsToDisplay = buildReportsToDisplay([
+                {reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime()},
+                {reportID: '2', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf())},
+            ]);
+
+            expect(SidebarUtils.getInboxTabSummary(['1', '2'], reportsToDisplay).hasStaleUnreadReport).toBe(true);
+        });
+
+        it('treats a message just before the cutoff as stale and one just after it as fresh', () => {
+            const stale = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMinutes(staleCutoff(), 1).valueOf())}]);
+            const fresh = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(addMinutes(staleCutoff(), 1).valueOf())}]);
+
+            expect(SidebarUtils.getInboxTabSummary(['1'], stale).hasStaleUnreadReport).toBe(true);
+            expect(SidebarUtils.getInboxTabSummary(['1'], fresh).hasStaleUnreadReport).toBe(false);
         });
     });
 });

@@ -340,6 +340,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -367,6 +368,7 @@ describe('handleActionButtonPress', () => {
     test('Should approve the full report when the report has one transaction on hold and action is approve', () => {
         const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -396,6 +398,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -432,6 +435,7 @@ describe('handleActionButtonPress', () => {
 
         // When: the approve action button is pressed
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem: jest.fn(),
