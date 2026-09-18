@@ -18,6 +18,8 @@ import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
 import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
@@ -30,6 +32,11 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock('@components/Modal/ReanimatedModal', () => {
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
+});
 
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
