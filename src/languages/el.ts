@@ -3973,6 +3973,14 @@ ${amount} για ${merchant} - ${date}`,
             sameDepositAndWithdrawalAccount: 'Οι λογαριασμοί κατάθεσης και ανάληψης είναι οι ίδιοι.',
         },
     },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Πρέπει να έχει το πολύ ${maxLength} χαρακτήρες`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
+            invalidDate: 'Εισαγάγετε μια έγκυρη ημερομηνία',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Πού βρίσκεται ο τραπεζικός σας λογαριασμός;',
         accountDetailsStepHeader: 'Ποια είναι τα στοιχεία του λογαριασμού σας;',

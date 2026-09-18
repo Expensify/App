@@ -4030,6 +4030,14 @@ const translations = {
             sameDepositAndWithdrawalAccount: 'The deposit and withdrawal accounts are the same.',
         },
     },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Must be at least ${minLength} characters`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Must be at most ${maxLength} characters`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
+            invalidDate: 'Please enter a valid date',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: "Where's your bank account located?",
         accountDetailsStepHeader: 'What are your account details?',

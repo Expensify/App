@@ -3899,6 +3899,14 @@ ${amount} per ${merchant} - ${date}`,
             sameDepositAndWithdrawalAccount: 'I conti di deposito e prelievo sono gli stessi.',
         },
     },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Deve contenere almeno ${minLength} caratteri`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Deve contenere al massimo ${maxLength} caratteri`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Formato non valido. Esempio: ${example}` : 'Formato non valido'),
+            invalidDate: 'Inserisci una data valida',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Dove si trova il tuo conto bancario?',
         accountDetailsStepHeader: 'Quali sono i dettagli del tuo account?',

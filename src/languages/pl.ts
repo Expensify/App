@@ -3928,6 +3928,14 @@ ${amount} dla ${merchant} - ${date}`,
             sameDepositAndWithdrawalAccount: 'Konta wpłat i wypłat są takie same.',
         },
     },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Musi mieć co najmniej ${minLength} znaków`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Może mieć maksymalnie ${maxLength} znaków`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Nieprawidłowy format. Przykład: ${example}` : 'Nieprawidłowy format'),
+            invalidDate: 'Wprowadź prawidłową datę',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Gdzie znajduje się Twoje konto bankowe?',
         accountDetailsStepHeader: 'Jakie są szczegóły Twojego konta?',

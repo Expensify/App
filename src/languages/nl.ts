@@ -3900,6 +3900,14 @@ ${amount} voor ${merchant} - ${date}`,
             sameDepositAndWithdrawalAccount: 'De stortings- en opname­rekeningen zijn hetzelfde.',
         },
     },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Mag maximaal ${maxLength} tekens bevatten`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
+            invalidDate: 'Voer een geldige datum in',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Waar is je bankrekening gevestigd?',
         accountDetailsStepHeader: 'Wat zijn je accountgegevens?',

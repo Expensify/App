@@ -3841,6 +3841,14 @@ ${amount} para ${merchant} - ${date}`,
             sameDepositAndWithdrawalAccount: 'Las cuentas de depósito y retiro son las mismas.',
         },
     },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Debe tener al menos ${minLength} caracteres`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Debe tener como máximo ${maxLength} caracteres`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Ejemplo: ${example}` : 'Formato inválido'),
+            invalidDate: 'Introduce una fecha válida',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: '¿Dónde está ubicada tu cuenta bancaria?',
         accountDetailsStepHeader: '¿Cuáles son los detalles de tu cuenta?',

@@ -3867,6 +3867,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             sameDepositAndWithdrawalAccount: '入金口座と出金口座が同じです。',
         },
     },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
+            tooLong: ({maxLength}: {maxLength: number}) => `${maxLength}文字以内で入力してください`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
+            invalidDate: '有効な日付を入力してください',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: '銀行口座はどこにありますか？',
         accountDetailsStepHeader: 'あなたの口座情報は何ですか？',

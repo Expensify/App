@@ -3774,6 +3774,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             sameDepositAndWithdrawalAccount: '存款账户和取款账户相同。',
         },
     },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
+            tooLong: ({maxLength}: {maxLength: number}) => `最多 ${maxLength} 个字符`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
+            invalidDate: '请输入有效日期',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: '您的银行账户位于哪个国家/地区？',
         accountDetailsStepHeader: '你的账户详情是什么？',
