@@ -3,7 +3,10 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React from 'react';
+import {View} from 'react-native';
 
 type MultiSelectListAdapterProps = {
     items: Array<{value: string; label: string}>;
@@ -18,6 +21,7 @@ type MultiSelectListAdapterProps = {
 };
 
 function MultiSelectListAdapter({items, value, onInputChange = () => {}, errorText = ''}: MultiSelectListAdapterProps) {
+    const styles = useThemeStyles();
     const selected = Array.isArray(value) ? value : [];
     const data: ListItem[] = items.map((item) => ({keyForList: item.value, text: item.label, isSelected: selected.includes(item.value)}));
 
@@ -36,7 +40,11 @@ function MultiSelectListAdapter({items, value, onInputChange = () => {}, errorTe
                 shouldShowTextInput={false}
                 shouldScrollToFocusedIndexOnMount={false}
             />
-            {!!errorText && <FormHelpMessage message={errorText} />}
+            {!!errorText && (
+                <View style={styles.ph5}>
+                    <FormHelpMessage message={errorText} />
+                </View>
+            )}
         </>
     );
 }
