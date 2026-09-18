@@ -13,6 +13,7 @@ import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actio
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -64,6 +65,8 @@ import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
+jest.mock('@libs/ConciergeResponseIndicator', () => ({__esModule: true, default: jest.fn()}));
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildOptimisticNextStep: jest.fn(),
@@ -272,6 +275,45 @@ describe('actions/Report', () => {
         apiWriteSpy.mockRestore();
         jest.clearAllMocks();
         PusherHelper.teardown();
+    });
+
+    it.each<[string, string, string | undefined, OnyxTypes.Report['chatType'], boolean]>([
+        ['Concierge DM', '300', undefined, undefined, true],
+        ['Concierge thread', '400', '300', undefined, true],
+        ['admins room', '500', undefined, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, true],
+        ['ordinary chat', '600', undefined, undefined, false],
+    ])('correlates requested Concierge responses in a %s', async (_name, reportID, parentReportID, chatType, shouldTrack) => {
+        apiWriteSpy.mockResolvedValue(undefined);
+        Report.addComment({
+            report: {...createRandomReport(Number(reportID), undefined), reportID, parentReportID, chatType},
+            notifyReportID: reportID,
+            ancestors: [],
+            text: 'Please help me with expenses',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 10,
+            delegateAccountID: undefined,
+            conciergeReportID: '300',
+        });
+        const parameters = apiWriteSpy.mock.calls.at(-1)?.[1];
+        if (shouldTrack) {
+            const trackedRequest = jest.mocked(trackConciergeResponse).mock.calls.at(-1)?.[0];
+            expect(trackedRequest).toEqual({
+                accountID: 10,
+                reportID,
+                responseReportActionID: expect.any(String),
+                questionReportActionID: expect.any(String),
+            });
+            expect(parameters).toEqual(
+                expect.objectContaining({
+                    optimisticConciergeReportActionID: trackedRequest?.responseReportActionID,
+                    reportActionID: trackedRequest?.questionReportActionID,
+                }),
+            );
+        } else {
+            expect(parameters).not.toHaveProperty('optimisticConciergeReportActionID');
+            expect(trackConciergeResponse).not.toHaveBeenCalled();
+        }
+        await waitForBatchedUpdates();
     });
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
@@ -1031,7 +1073,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Ensure we show a notification for this new report action
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, undefined, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, undefined, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined, undefined);
             });
     });
 
@@ -2947,7 +2989,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -3013,7 +3055,7 @@ describe('actions/Report', () => {
             type: CONST.POLICY.TYPE.TEAM,
         };
 
-        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined, false, undefined, {
+        Report.createNewReport({accountID: 1234}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined, false, undefined, {
             managedCardTransactionID,
         });
 
@@ -3035,7 +3077,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -3072,7 +3114,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -3106,7 +3148,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -3147,7 +3189,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -10937,6 +10979,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
@@ -11005,6 +11048,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
@@ -11071,6 +11115,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
