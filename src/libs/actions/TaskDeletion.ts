@@ -15,7 +15,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -101,8 +100,7 @@ function deleteTask(
     };
     const optimisticReportActions = parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: optimisticReportAction} : {};
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const optimisticLastReportData = optimisticReportLastData(parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions as ReportActions, canUserPerformWriteAction);
+    const optimisticLastReportData = optimisticReportLastData(parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions, canUserPerformWriteAction);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -132,8 +130,7 @@ function deleteTask(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            value: optimisticReportActions as OnyxTypes.ReportActions,
+            value: optimisticReportActions,
         },
     ];
 
@@ -164,11 +161,10 @@ function deleteTask(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             value: {
-                stateNum: report.stateNum ?? '',
-                statusNum: report.statusNum ?? '',
-            } as OnyxTypes.Report,
+                stateNum: report.stateNum,
+                statusNum: report.statusNum,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
