@@ -44,6 +44,8 @@ Here are a few examples you can type:
 
 **Tip:** The more specific you are, the better the response.
 
+After Concierge responds, you can tell us whether the answer helped. [Learn how to rate a Concierge response](/articles/new-expensify/concierge-ai/Rate-a-Concierge-Response).
+
 # What can Concierge do?
 
 Concierge can help you:
