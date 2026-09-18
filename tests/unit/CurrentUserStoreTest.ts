@@ -5,10 +5,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
 
 describe('hasAuthToken', () => {
-    beforeEach(() => {
+    beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        return Onyx.clear();
     });
+
+    beforeEach(() => Onyx.clear());
 
     it('returns false while the session holds no auth token', () =>
         Onyx.merge(ONYXKEYS.SESSION, {email: 'user@test.com'}).then(() => {
