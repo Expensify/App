@@ -29,7 +29,7 @@ To share a company card connection, you must:
 - Have an email address on a private domain.
 - Be a workspace admin or card admin for two or more workspaces on the Collect or Control plan.
 - Have an existing company card connection on at least one of those workspaces.
-- Have **Company Cards** enabled on the workspace receiving the shared connection.
+- Have **Company cards** enabled on the workspace receiving the shared connection.
 
 **Note**: Workspaces on the Collect plan are limited to one company card connection. [Learn about the different plan types available in Expensify](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans).
 
