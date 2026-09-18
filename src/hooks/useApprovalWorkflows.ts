@@ -15,6 +15,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 type UseApprovalWorkflowsResult = {
     /** Every approval workflow the workspace's data describes, derived from the policy employees or the approval-workflow rules */
@@ -60,7 +61,7 @@ function useApprovalWorkflows(policy: OnyxEntry<Policy>, policyID: string | unde
     const {localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID)});
 
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);

@@ -106,7 +106,8 @@ function DynamicIOURequestStepDescription({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     /**
@@ -153,7 +154,9 @@ function DynamicIOURequestStepDescription({
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
+                isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
+                transaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
