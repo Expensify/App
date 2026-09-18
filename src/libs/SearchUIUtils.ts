@@ -119,6 +119,7 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import memoize from './memoize';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -214,7 +215,6 @@ import {
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
-import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getAmount,
     getAttendees,
@@ -5500,6 +5500,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'search.receiptType',
         icon: 'Receipt',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS]: {
+        labelKey: 'search.filters.transactionStatus.label',
+        icon: 'CreditCardHourglass',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: {
         labelKey: 'search.exportedTo',
         icon: 'Export',
@@ -5872,6 +5876,11 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
+    if (key === FILTER_KEYS.TRANSACTION_STATUS) {
+        const transactionStatus = form[key];
+        return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
+    }
+
     const formValue = form[key];
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
@@ -6081,6 +6090,13 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
 
     if (filterKey === FILTER_KEYS.WITHDRAWAL_TYPE) {
         return getWithdrawalTypeOptions(translate);
+    }
+
+    if (filterKey === FILTER_KEYS.TRANSACTION_STATUS || filterKey === FILTER_KEYS.TRANSACTION_STATUS_NOT) {
+        return Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((transactionStatus) => ({
+            text: translate(`search.filters.transactionStatus.${transactionStatus}`),
+            value: transactionStatus,
+        }));
     }
 
     return [];

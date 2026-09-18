@@ -113,8 +113,11 @@ Examples:
 - “Add this expense to my Chicago trip report”
 - “Is this report reimbursable?”
 - “Export this report”
+- “Update all of the expenses in this report to the Car category”
 
 Concierge can create expense reports, submit expense reports, and retract submitted expense reports when you have permission to perform those actions.
+
+To act on the report in front of you, open it and click or tap the **Help** icon in its header. Concierge opens with that report as context, so “this report” refers to the one you were viewing. This works the same way on web and mobile.
 
 ---
 

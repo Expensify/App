@@ -2677,6 +2677,8 @@ const CONST = {
         UTILITIES: 'Utilities',
     },
     JSON_CODE: {
+        // Client-side placeholder, never sent by the server: the request failed without a usable response code
+        NO_RESPONSE: 0,
         SUCCESS: 200,
         BAD_REQUEST: 400,
         INVALID_SEARCH_QUERY: 401,
@@ -7260,6 +7262,11 @@ const CONST = {
             LOADING: 'loading',
             LOADED: 'loaded',
         },
+        FAILURE_KIND: {
+            STALE: 'stale',
+            INVALID_QUERY: 'invalidQuery',
+            FAILED: 'failed',
+        },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -7320,6 +7327,10 @@ const CONST = {
             ERECEIPT: 'ereceipt',
             ITEMIZED: 'itemized',
             HOTEL: 'hotel',
+        },
+        TRANSACTION_STATUS: {
+            PENDING: 'pending',
+            POSTED: 'posted',
         },
         // Hotel needs historical receipts backfilled with isHotelReservation before it can return results
         SELECTABLE_RECEIPT_TYPES: ['ereceipt', 'itemized'],
@@ -7887,6 +7898,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             RECEIPT_TYPE: 'receiptType',
+            TRANSACTION_STATUS: 'transactionStatus',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
@@ -7973,6 +7985,7 @@ const CONST = {
             AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
+            TRANSACTION_STATUS: 'transaction-status',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
@@ -8232,6 +8245,7 @@ const CONST = {
                 title: 'workspace.upgrade.reportFields.title' as const,
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             invoiceFields: {
                 id: 'invoiceFields' as const,
@@ -8246,6 +8260,7 @@ const CONST = {
                 alias: 'policy-prevent-member-changing-title',
                 name: undefined,
                 icon: undefined,
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             preventSelfApproval: {
                 id: 'preventSelfApproval' as const,
@@ -8289,6 +8304,7 @@ const CONST = {
                 title: 'workspace.upgrade.multiLevelTags.title' as const,
                 description: 'workspace.upgrade.multiLevelTags.description' as const,
                 icon: 'Tag',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
 
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
@@ -8371,6 +8387,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             multiApprovalLevels: {
                 id: 'multiApprovalLevels' as const,
@@ -8379,6 +8396,7 @@ const CONST = {
                 title: `workspace.upgrade.multiApprovalLevels.title` as const,
                 description: `workspace.upgrade.multiApprovalLevels.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             glCodes: {
                 id: 'glCodes' as const,
@@ -8387,6 +8405,7 @@ const CONST = {
                 title: 'workspace.upgrade.glCodes.title' as const,
                 description: 'workspace.upgrade.glCodes.description' as const,
                 icon: 'Tag',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             glAndPayrollCodes: {
                 id: 'glAndPayrollCodes' as const,
@@ -8395,6 +8414,7 @@ const CONST = {
                 title: 'workspace.upgrade.glAndPayrollCodes.title' as const,
                 description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
                 icon: 'FolderOpen',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             taxCodes: {
                 id: 'taxCodes' as const,
@@ -8403,6 +8423,7 @@ const CONST = {
                 title: 'workspace.upgrade.taxCodes.title' as const,
                 description: 'workspace.upgrade.taxCodes.description' as const,
                 icon: 'Coins',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             companyCards: {
                 id: 'companyCards' as const,
@@ -8660,6 +8681,7 @@ const CONST = {
         UPDATED_MERCHANT: 'updatedMerchant',
         REIMBURSABLE: 'reimbursable',
         BILLABLE: 'billable',
+        VENDOR: 'vendor',
     },
 
     IMPORT_SPREADSHEET: {
@@ -9078,6 +9100,13 @@ const CONST = {
         },
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
+        },
+        ATTACHMENT_CAMERA: {
+            CLOSE: 'AttachmentCamera-Close',
+            FLASH: 'AttachmentCamera-Flash',
+            SHUTTER: 'AttachmentCamera-Shutter',
+            FLIP_CAMERA: 'AttachmentCamera-FlipCamera',
+            PERMISSION_PROMPT_BUTTON: 'AttachmentCamera-PermissionPromptButton',
         },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
