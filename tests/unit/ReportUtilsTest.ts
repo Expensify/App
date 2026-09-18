@@ -12057,14 +12057,7 @@ describe('ReportUtils', () => {
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
 
                 // When the reason is retrieved for the approver
-                const result = getReasonAndReportActionThatRequiresAttention(
-                    report,
-                    currentUserEmail,
-                    currentUserAccountID,
-                    undefined,
-                    isReportArchived.current,
-                    allReportActionsParam,
-                );
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
 
                 // Then no reason is returned
                 expect(result).toBe(null);
