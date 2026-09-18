@@ -23,22 +23,23 @@ You can send messages, attach files, and add emojis from the message bar at the 
 4. To add an emoji, click the **emoji icon**.
 5. Press **Enter** or click the **Send** icon.
 
-**On Mobile:**
+**On the Expensify mobile app (iOS and Android):**
 1. Tap any chat from your inbox.
 2. Tap the field labeled **Write something...**, then type your message.
 3. To add an attachment, tap the **plus icon**, select **Add attachment**, then choose **Take photo**, **Choose from gallery**, or **Choose file**.
 4. To add an emoji, tap the **emoji icon**.
 5. Tap the **Send** icon.
 
-## How to take a photo to attach to a chat message (Mobile only)
+✏️ **Note:** The **Take photo**, **Choose from gallery**, and **Choose file** options are available on the iOS and Android apps only. On mobile web, **Add attachment** opens your device’s file picker instead.
+
+## How to take a photo to attach to a chat message (iOS and Android only)
 
 1. Open any chat from your inbox.
 2. Tap the **plus icon**, then select **Add attachment**.
 3. Tap **Take photo**.
 4. If Expensify asks for camera access, tap **Continue**, then allow camera access on your device.
 5. Tap the **flash** icon on the left to turn the flash on or off, or the **flip camera** icon on the right to switch between the front and back cameras.
-6. Tap the **shutter** button in the center to capture the photo.
-7. Review the photo in the preview, then send it to the chat.
+6. Tap the **shutter** button in the center to capture the photo. The photo is sent to the chat immediately — there is no preview screen and no separate send step. If you already typed a message, it is sent along with the photo.
 
 To leave the camera without capturing a photo, tap the **X** in the top-right corner.
 
