@@ -24,7 +24,7 @@ If you're not eligible for a commercial card feed, you can [set up a direct conn
 To set up a commercial card feed, you must:
 
 - Be a workspace admin or card admin for a workspace on the Collect or Control plan.
-- Have **Company Cards** enabled on the workspace.
+- Have **Company cards** enabled on the workspace.
 
 **Note**: Workspaces on the Collect plan are limited to one company card connection. [Learn about the different plan types available in Expensify](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans).
 
