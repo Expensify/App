@@ -852,10 +852,10 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    // 0 stands for "failed with no usable response code", which covers a network-level rejection that
-                    // never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
+                    // NO_RESPONSE stands for "failed with no usable response code", which covers a network-level rejection
+                    // that never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
                     // write of `errors` carries a code this way, so the error view never has to guess.
-                    ...(isSearchRequest && {hash, responseJsonCode: 0}),
+                    ...(isSearchRequest && {hash, responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },

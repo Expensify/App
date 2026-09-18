@@ -2675,6 +2675,8 @@ const CONST = {
         UTILITIES: 'Utilities',
     },
     JSON_CODE: {
+        // Client-side placeholder, never sent by the server: the request failed without a usable response code
+        NO_RESPONSE: 0,
         SUCCESS: 200,
         BAD_REQUEST: 400,
         INVALID_SEARCH_QUERY: 401,
@@ -7256,6 +7258,11 @@ const CONST = {
         SNAPSHOT_STATE: {
             LOADING: 'loading',
             LOADED: 'loaded',
+        },
+        FAILURE_KIND: {
+            STALE: 'stale',
+            INVALID_QUERY: 'invalidQuery',
+            FAILED: 'failed',
         },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
