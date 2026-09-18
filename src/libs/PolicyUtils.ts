@@ -2460,6 +2460,14 @@ function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * True when Campfire is connected AND configured. Mirrors `Campfire::hasVendorFeature` on the PHP side.
+ * Campfire has no export-destination enum, so `config.isConfigured` is the configuration gate.
+ */
+function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config?.isConfigured;
+}
+
+/**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
  * in `getMatchingVendors` (QBO → Intacct → Xero) so the UI labels, copy, and inactive-vendor
@@ -2478,10 +2486,11 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Intacct and Xero branches but not on QBO:
+ * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, and Campfire branches but not on QBO:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
  *   - Xero (R3) has no export destination enum, so a present connection is enough. Beta required
+ *   - Campfire has no export destination enum, so a configured connection is enough. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -2490,7 +2499,7 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (isQBOVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy));
 }
 
 /**
@@ -2527,6 +2536,12 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isIntacctVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
     }
+    if (isXeroVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.XERO;
+    }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+    }
     return undefined;
 }
 
@@ -2554,7 +2569,26 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         if (!xeroContacts) {
             return undefined;
         }
-        return Object.values(xeroContacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+        return Object.values(xeroContacts).map((contact) => ({
+            id: contact.id,
+            name: contact.name,
+            currency: '',
+            email: contact.email,
+        }));
+    }
+    if (isCampfireVendorMatchingActive(policy)) {
+        const campfireVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors;
+        if (campfireVendors === undefined) {
+            return undefined;
+        }
+        return campfireVendors
+            .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
+            .map((vendor) => ({
+                id: vendor.id,
+                name: vendor.name,
+                currency: '',
+                email: vendor.email ?? '',
+            }));
     }
     return undefined;
 }
@@ -2625,7 +2659,12 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     }
     const xeroContact = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[vendorID];
     if (xeroContact) {
-        return {id: xeroContact.id, name: xeroContact.name, currency: '', email: xeroContact.email};
+        return {
+            id: xeroContact.id,
+            name: xeroContact.name,
+            currency: '',
+            email: xeroContact.email,
+        };
     }
     return undefined;
 }
@@ -2663,7 +2702,12 @@ function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
     if (!contacts) {
         return [];
     }
-    return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+    return Object.values(contacts).map((contact) => ({
+        id: contact.id,
+        name: contact.name,
+        currency: '',
+        email: contact.email,
+    }));
 }
 
 /**
@@ -3153,6 +3197,7 @@ export {
     getXeroSuppliers,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
+    isCampfireVendorMatchingActive,
     hasVendorFeature,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
