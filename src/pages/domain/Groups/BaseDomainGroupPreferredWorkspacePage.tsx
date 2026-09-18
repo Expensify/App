@@ -12,6 +12,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
@@ -31,6 +33,9 @@ import React, {useState} from 'react';
 
 type WorkspaceListItem = {
     policyID: string;
+
+    /** Value used to match the pinned selection */
+    value: string;
 
     /** The timestamp of when the policy was created */
     created?: string;
@@ -77,6 +82,8 @@ function BaseDomainGroupPreferredWorkspacePage({
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
     const checkedPolicyID = draftPolicyID ?? selectedPolicyID;
+    // Freeze the workspace selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialPolicyID = useInitialSelection(checkedPolicyID, {resetOnFocus: true});
 
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isKeyboardActive} = useKeyboardState();
@@ -93,6 +100,7 @@ function BaseDomainGroupPreferredWorkspacePage({
         workspaceOptions.push({
             text: policy.name,
             policyID: policy.id,
+            value: policy.id,
             created: policy.created,
             keyForList: policy.id,
             isSelected: checkedPolicyID === policy.id,
@@ -100,8 +108,11 @@ function BaseDomainGroupPreferredWorkspacePage({
     }
     workspaceOptions.sort((a, b) => localeCompare(a.created ?? '', b.created ?? ''));
 
+    // Pin the frozen initial workspace to the top of the full list before searching, so the pre-selected workspace stays pinned while searching.
+    const orderedWorkspaceOptions = moveInitialSelectionToTop(workspaceOptions, initialPolicyID ? [initialPolicyID] : []);
+
     const [searchTerm, setSearchTerm, filteredWorkspaceOptions] = useSearchResults(
-        workspaceOptions,
+        orderedWorkspaceOptions,
         (option, searchInput) => tokenizedSearch([option], searchInput, () => [option.text ?? '']).length > 0,
     );
 
@@ -151,7 +162,8 @@ function BaseDomainGroupPreferredWorkspacePage({
                     }}
                     onSelectRow={(item: WorkspaceListItem) => (shouldConfirmSelection ? setDraftPolicyID(item.policyID) : onSelectWorkspace(item.policyID))}
                     confirmButtonOptions={confirmButtonOptions}
-                    initiallyFocusedItemKey={selectedPolicyID}
+                    initiallyFocusedItemKey={initialPolicyID}
+                    shouldScrollToFocusedIndexOnMount={false}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
                     shouldFooterBeInsideList={shouldFooterBeInsideList}
