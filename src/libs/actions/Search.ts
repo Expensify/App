@@ -35,7 +35,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import Permissions from '@libs/Permissions';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -59,12 +58,12 @@ import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
-    isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
-import {isTransactionGroupListItemType, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -82,6 +81,7 @@ import type {
     IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
+    OnyxInputOrEntry,
     Policy,
     Report,
     ReportAction,
@@ -105,8 +105,8 @@ import {SafeString} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
-import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
+import type AdditionalPayOnyxData from './IOU/types/AdditionalPayOnyxData';
 
 import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
@@ -267,6 +267,7 @@ type HandleActionButtonPressParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -309,6 +310,7 @@ function handleActionButtonPress({
     currentUserLogin,
     introSelected,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -361,6 +363,7 @@ function handleActionButtonPress({
                 currentUserLogin,
                 introSelected,
                 betas,
+                isASAPSubmitBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
                 chatReport,
@@ -400,7 +403,7 @@ function handleActionButtonPress({
                 currentSearchKey,
                 currentUserAccountID,
                 currentUserLogin,
-                betas,
+                isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
@@ -523,16 +526,16 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
-function getReportType(reportID?: string) {
-    if (isIOUReportUtil(reportID)) {
+function getReportType(report: OnyxInputOrEntry<Report> | SelectedReports) {
+    if (isIOUReportUtil(report?.reportID)) {
         return CONST.REPORT.TYPE.IOU;
     }
 
-    if (isInvoiceReport(reportID)) {
+    if (report?.type === CONST.REPORT.TYPE.INVOICE) {
         return CONST.REPORT.TYPE.INVOICE;
     }
 
-    if (isExpenseReport(reportID)) {
+    if (isExpenseReport(report?.reportID)) {
         return CONST.REPORT.TYPE.EXPENSE;
     }
 
@@ -603,6 +606,7 @@ type GetPayActionCallbackParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -633,6 +637,7 @@ function getPayActionCallback({
     currentUserLogin,
     introSelected,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -649,12 +654,11 @@ function getPayActionCallback({
     getCurrencyDecimals,
     rules,
 }: GetPayActionCallbackParams) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
-
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -688,6 +692,7 @@ function getPayActionCallback({
         policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -712,7 +717,7 @@ type GetApproveActionCallbackParams = {
     currentSearchKey: SearchKey | undefined;
     currentUserAccountID: number;
     currentUserLogin?: string;
-    betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -734,7 +739,7 @@ function getApproveActionCallback({
     currentSearchKey,
     currentUserAccountID,
     currentUserLogin,
-    betas,
+    isASAPSubmitBetaEnabled,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
@@ -752,7 +757,6 @@ function getApproveActionCallback({
 
     const reportPolicy = policy ?? snapshotPolicy;
     const hasViolations = hasViolationsReportUtils(item.reportID, allViolations, currentUserAccountID, currentUserLogin ?? '');
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
 
     approveMoneyRequest({
         expenseReport: snapshotReport,
@@ -762,7 +766,6 @@ function getApproveActionCallback({
         currentUserEmailParam: currentUserLogin ?? '',
         hasViolations,
         isASAPSubmitBetaEnabled,
-        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
@@ -849,10 +852,10 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    // 0 stands for "failed with no usable response code", which covers a network-level rejection that
-                    // never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
+                    // NO_RESPONSE stands for "failed with no usable response code", which covers a network-level rejection
+                    // that never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
                     // write of `errors` carries a code this way, so the error view never has to guess.
-                    ...(isSearchRequest && {hash, responseJsonCode: 0}),
+                    ...(isSearchRequest && {hash, responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -1246,6 +1249,7 @@ function search({
             queryJSON,
             offset,
             allowPostSearchRecount: false,
+            searchKey,
         });
     }
 
@@ -1297,6 +1301,7 @@ function search({
                                 hasMoreResults: !!response?.search?.hasMoreResults,
                                 previousLengthOfResults: prevReportsLength,
                                 allowPostSearchRecount: false,
+                                searchKey,
                             });
                         }
                     } else {
@@ -1307,6 +1312,7 @@ function search({
                             hasMoreResults: !!response?.search?.hasMoreResults,
                             previousLengthOfResults: reports.length,
                             allowPostSearchRecount: true,
+                            searchKey,
                         });
                     }
                 }
@@ -1694,7 +1700,7 @@ function rejectMoneyRequestInBulk(
     transactionIDs: string[],
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
@@ -1724,7 +1730,7 @@ function rejectMoneyRequestInBulk(
             policy,
             currentUserAccountIDParam,
             currentUserLogin,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
             rules,
@@ -1767,7 +1773,7 @@ function rejectMoneyRequestsOnSearch(
     allReports: OnyxCollection<Report>,
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
@@ -1813,7 +1819,7 @@ function rejectMoneyRequestsOnSearch(
                 selectedTransactionIDs,
                 currentUserAccountIDParam,
                 currentUserLogin,
-                betas,
+                isASAPSubmitBetaEnabled,
                 delegateAccountID,
                 getCurrencyDecimals,
                 rules,
@@ -1827,7 +1833,7 @@ function rejectMoneyRequestsOnSearch(
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, {
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, isASAPSubmitBetaEnabled, delegateAccountID, getCurrencyDecimals, {
                     rules,
                     options: {
                         sharedRejectedToReportID,
@@ -1852,6 +1858,7 @@ function rejectMoneyRequestsOnSearch(
                         query: searchParams.q,
                         ...(searchParams?.rawQuery && {rawQuery: searchParams.rawQuery}),
                         ...(searchParams?.name && {name: searchParams.name}),
+                        ...(searchParams?.searchKey && {searchKey: searchParams.searchKey}),
                     });
                 } else {
                     urlToNavigateBack = undefined;
@@ -2190,7 +2197,7 @@ function getPayOption(
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const payableReports = selectedReports.filter((report) => report.canPay);
     const firstPayableReport = payableReports.at(0);
-    const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report?.reportID);
+    const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report);
     const hasLastPaymentMethod =
         selectedReports.length > 0
             ? payableReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
@@ -2207,7 +2214,7 @@ function getPayOption(
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID),
+                      getReportType(selectedTransactions[transactionIDKey].report) === getReportType(firstTransaction?.report),
               );
 
     return {

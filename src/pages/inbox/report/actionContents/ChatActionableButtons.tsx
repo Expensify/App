@@ -28,11 +28,11 @@ import {
     isResolvedConciergeCategoryOptions,
     isResolvedConciergeDescriptionOptions,
 } from '@libs/ReportActionsUtils';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import {isSplitChildTransaction} from '@libs/TransactionUtils';
 
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -229,7 +229,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
             preferredPolicyID,
             actionName: CONST.IOU.ACTION.SUBMIT,
             submitDestination,
-            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
+            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', personalDetail.displayName, lastWorkspaceNumber, translate),
         });
     };
 

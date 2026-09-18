@@ -18,6 +18,7 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,7 +48,7 @@ import {openAgentsPage} from '@userActions/Agent';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -106,6 +107,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const isSupportalSession = useIsSupportalSession();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
 
     const styles = useThemeStyles();
@@ -214,6 +216,7 @@ function ProfilePage({route}: ProfilePageProps) {
                 betas,
                 hasReportActions,
                 conciergeChat,
+                isSupportalSession,
             }),
         );
     }
@@ -345,13 +348,12 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {isConcierge && !!guideCalendarLink && (
-                            <MenuItem
+                            <MenuItemAction
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={expensifyIcons.Phone}
-                                isAnonymousAction={false}
-                                onPress={callFunctionIfActionIsAllowed(() => {
+                                onPress={() => {
                                     openExternalLink(guideCalendarLink);
-                                })}
+                                }}
                             />
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (

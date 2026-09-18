@@ -64,7 +64,6 @@ import {
     canJoinChat,
     canLeaveChat,
     canWriteInReport,
-    createDraftTransactionAndNavigateToParticipantSelector,
     findLastAccessedReport,
     getAvailableReportFields,
     getChatRoomSubtitle,
@@ -91,8 +90,8 @@ import {
     isHiddenForCurrentUser,
     isInvoiceReport as isInvoiceReportUtil,
     isInvoiceRoom as isInvoiceRoomUtil,
-    isMoneyRequestReport as isMoneyRequestReportUtil,
     isMoneyRequest as isMoneyRequestUtil,
+    isMoneyRequestReport as isMoneyRequestReportUtil,
     isPolicyExpenseChat as isPolicyExpenseChatUtil,
     isPublicRoom as isPublicRoomUtil,
     isReportFieldDisabled,
@@ -115,6 +114,7 @@ import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransacti
 import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
     clearAvatarErrors,
@@ -580,7 +580,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 };
                 // "Submit to someone" splits into two destinations here too, matching the track-expense whisper:
                 // submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
-                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
+                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate);
 
                 // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
                 // just like it is on the track-expense whisper.
@@ -826,8 +826,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     ]);
 
     const icons = useMemo(
-        () => getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs),
-        [report, formatPhoneNumber, translate, personalDetails, policy, isReportArchived, pendingDeleteMemberAccountIDs],
+        () => getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs, conciergeReportID),
+        [report, formatPhoneNumber, translate, personalDetails, policy, isReportArchived, pendingDeleteMemberAccountIDs, conciergeReportID],
     );
 
     const renderedAvatar = useMemo(() => {
