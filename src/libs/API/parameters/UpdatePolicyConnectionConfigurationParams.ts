@@ -3,7 +3,6 @@ type UpdatePolicyConnectionConfigurationParams = {
     connectionName: string;
     settingName: string;
     settingValue: string;
-    idempotencyKey: string;
 };
 
 export default UpdatePolicyConnectionConfigurationParams;
