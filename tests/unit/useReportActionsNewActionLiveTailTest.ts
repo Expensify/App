@@ -70,6 +70,9 @@ jest.mock('@libs/actions/Report', () => ({
         mockOpenReport(...args);
     },
     pruneReportActionPagesToNewestWindow: jest.fn(),
+}));
+
+jest.mock('@libs/actions/Report/reportActionSubscribers', () => ({
     subscribeToNewActionEvent: (_reportID: string, callback: (isFromCurrentUser: boolean, action?: ReportAction) => void) => {
         newActionHandler = callback;
         return jest.fn();

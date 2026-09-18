@@ -276,7 +276,7 @@ import {DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import deleteReport from './DeleteReport';
-import {notifyNewAction, subscribeToNewActionEvent} from './reportActionSubscribers';
+import {notifyNewAction} from './reportActionSubscribers';
 
 type Video = Dimensions & {
     url: string;
@@ -9030,7 +9030,6 @@ export {
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,
-    subscribeToNewActionEvent,
     subscribeToReportLeavingEvents,
     clearAgentZeroProcessingIndicator,
     clearConciergeThinkingKickoff,
