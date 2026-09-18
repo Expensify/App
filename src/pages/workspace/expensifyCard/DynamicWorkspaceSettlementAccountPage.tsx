@@ -1,3 +1,4 @@
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +18,7 @@ import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
@@ -26,7 +28,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {updateSettlementAccount as updateSettlementAccountCard} from '@userActions/Card';
+import {clearSettlementAccountError, updateSettlementAccount as updateSettlementAccountCard} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +38,7 @@ import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
@@ -69,6 +71,9 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const paymentBankAccountNumberFromCardSettings = settings?.paymentBankAccountNumber;
     const paymentBankAccountAddressName = settings?.paymentBankAccountAddressName;
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
+    const settlementAccountErrors = getLatestErrorField(cardSettings, 'paymentBankAccountID');
+    const settlementAccountPendingAction = cardSettings?.pendingFields?.paymentBankAccountID;
+    const [selectedBankAccountID, setSelectedBankAccountID] = useState<number>();
 
     const getEligibleBankAccounts = () => {
         if (isUkEuCurrencySupported) {
@@ -95,6 +100,13 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
         fetchPolicyAccountingData();
     }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
 
+    useEffect(() => {
+        if (!selectedBankAccountID || cardSettings?.isLoading || settlementAccountPendingAction || paymentBankAccountID !== selectedBankAccountID) {
+            return;
+        }
+        Navigation.goBack();
+    }, [selectedBankAccountID, cardSettings?.isLoading, settlementAccountPendingAction, paymentBankAccountID]);
+
     const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts.map((bankAccount) => {
         const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
         const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
@@ -107,6 +119,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
             alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
             keyForList: bankAccountID?.toString() ?? '',
             isSelected: bankAccountID === paymentBankAccountID,
+            isDisabled: !!settlementAccountPendingAction,
         };
     });
 
@@ -117,6 +130,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
         alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
         keyForList: paymentBankAccountID?.toString() ?? '',
         isSelected: true,
+        isDisabled: !!settlementAccountPendingAction,
     };
 
     const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [fallbackBankAccountOption];
@@ -126,8 +140,12 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
             Log.alert('[WorkspaceSettlementAccountPage] handleSelectAccount called without a detected card program key');
             return;
         }
+        if (value === paymentBankAccountID) {
+            Navigation.goBack();
+            return;
+        }
+        setSelectedBankAccountID(value);
         updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID);
-        Navigation.goBack();
     };
 
     const getCustomListHeaderContent = () => {
@@ -148,6 +166,11 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
                         />
                     </View>
                 )}
+                <ErrorMessageRow
+                    errors={settlementAccountErrors}
+                    errorRowStyles={[styles.mh5, styles.mb3]}
+                    onDismiss={() => clearSettlementAccountError(defaultFundID)}
+                />
             </>
         );
     };

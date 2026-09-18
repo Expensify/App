@@ -751,14 +751,25 @@ function updateSettlementAccount(
         return;
     }
 
-    const optimisticValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true};
+    const optimisticValue = {
+        [programKey]: {paymentBankAccountID: settlementBankAccountID},
+        isLoading: true,
+        pendingFields: {paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        errorFields: {paymentBankAccountID: null},
+    };
 
-    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
+    const successValue = {
+        [programKey]: {paymentBankAccountID: settlementBankAccountID},
+        isLoading: false,
+        pendingFields: {paymentBankAccountID: null},
+        errorFields: {paymentBankAccountID: null},
+    };
 
     const failureValue = {
         [programKey]: {paymentBankAccountID: currentSettlementBankAccountID},
         isLoading: false,
-        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+        pendingFields: {paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        errorFields: {paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0)},
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -791,6 +802,13 @@ function updateSettlementAccount(
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT, parameters, {optimisticData, successData, failureData});
+}
+
+function clearSettlementAccountError(workspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
+        pendingFields: {paymentBankAccountID: null},
+        errorFields: {paymentBankAccountID: null},
+    });
 }
 
 function getCardDefaultName(userName?: string) {
@@ -2014,6 +2032,7 @@ export {
     unfreezeCard,
     updateExpensifyCardTitle,
     updateSettlementAccount,
+    clearSettlementAccountError,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
