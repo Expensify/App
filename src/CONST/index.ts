@@ -2677,7 +2677,7 @@ const CONST = {
         UTILITIES: 'Utilities',
     },
     JSON_CODE: {
-        // Client-side sentinel, never sent by the server: the request failed without a usable response code
+        // Client-side placeholder, never sent by the server: the request failed without a usable response code
         NO_RESPONSE: 0,
         SUCCESS: 200,
         BAD_REQUEST: 400,

@@ -199,7 +199,7 @@ describe('search snapshot terminal state', () => {
 
     it('persists a non-401 server failure code over the NO_RESPONSE placeholder written by failureData', async () => {
         const queryJSON = getQueryJSON();
-        // failureData lands first and writes NO_RESPONSE; the real code must overwrite it, otherwise the error view
+        // failureData lands first and writes NO_RESPONSE. The real code must overwrite it, otherwise the error view
         // would show the "stale results" copy for a request the server actually rejected.
         jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
             await Onyx.update(onyxData?.optimisticData ?? []);
