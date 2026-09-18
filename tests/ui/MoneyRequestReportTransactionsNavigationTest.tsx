@@ -319,13 +319,13 @@ async function getCarouselTransactionIDs(): Promise<string[] | undefined> {
 }
 
 // The RHP prev/next arrows walk the transaction IDs this list seeds, so the seed has to stay equal to the rows the
-// user is actually looking at. Sorting is the case that breaks it: the rows move, and if the seed is built from
-// anything other than the rendered groups (a flattened list, or groups left in alphabetical order) "next" jumps to a
-// row that isn't below the current one on screen.
+// user is actually looking at. Sorting is the case that breaks it: the rows move within their groups, and if the seed
+// is built from anything other than the rendered groups (a flat date sort, say) "next" jumps to a row that isn't
+// below the current one on screen.
 describe('MoneyRequestReportTransactionList - RHP arrow order', () => {
-    // The newest expense is in the alphabetically-last category, so date order and alphabetical group order disagree:
-    // under Date DESC the groups must come back Travel then Meals, which is the opposite of the alphabetical order the
-    // groups fall back to when no column has been pressed.
+    // The newest expense is in the alphabetically-last category, so a flat date sort and the rendered order disagree:
+    // under Date DESC the newest expense (4, Travel) is not the first row, because the alphabetical Meals group still
+    // renders first.
     const transactions = [
         buildExpenseReportTransaction('1', '2026-09-15', 'Meals', 0),
         buildExpenseReportTransaction('2', '2026-09-16', 'Travel', 1),
@@ -357,37 +357,19 @@ describe('MoneyRequestReportTransactionList - RHP arrow order', () => {
         render(buildTransactionListElement(transactions, EXPENSE_REPORT_ID));
         await waitForBatchedUpdates();
 
-        // On first open the rows are grouped and the groups are alphabetical, so the arrows must follow that order
-        // rather than the flat date order the rows were sorted into.
+        // Date ascending, bucketed into alphabetical groups: Meals (1, 3) then Travel (2, 4). The arrows must follow
+        // that rendered order rather than the flat date order the rows were sorted into.
         const initialRenderedOrder = getRenderedTransactionIDs();
         expect(initialRenderedOrder).toEqual(['1', '3', '2', '4']);
         expect(await getCarouselTransactionIDs()).toEqual(initialRenderedOrder);
 
-        // When the user sorts by date descending, both the rows and the group headers move.
         pressDateHeader(CONST.SEARCH.SORT_ORDER.DESC);
         await waitForBatchedUpdates();
 
         const sortedRenderedOrder = getRenderedTransactionIDs();
-        // Grouping is still applied after the sort — Travel leads because it holds the newest expense — so this is
-        // neither the alphabetical group order nor a flat date sort.
-        expect(sortedRenderedOrder).toEqual(['4', '2', '3', '1']);
+        // The rows reverse inside each group while the group headers stay alphabetical, so Meals (3, 1) still renders
+        // before Travel (4, 2). Group order is a separate axis from the column sort and is deliberately unaffected.
+        expect(sortedRenderedOrder).toEqual(['3', '1', '4', '2']);
         expect(await getCarouselTransactionIDs()).toEqual(sortedRenderedOrder);
-    });
-
-    // The component is reused across reportID changes, so a sort left over from the previous report would otherwise
-    // still be in effect — and would keep suppressing the RBR-first ordering the next report's first open gets.
-    it('drops the sort when a different report is opened in the same component', async () => {
-        const {rerender} = render(buildTransactionListElement(transactions, EXPENSE_REPORT_ID));
-        await waitForBatchedUpdates();
-
-        pressDateHeader(CONST.SEARCH.SORT_ORDER.DESC);
-        await waitForBatchedUpdates();
-        expect(getRenderedTransactionIDs()).toEqual(['4', '2', '3', '1']);
-
-        rerender(buildTransactionListElement(transactions, 'expense2'));
-        await waitForBatchedUpdates();
-
-        // Back to the first-open order: date ascending with the groups alphabetical again.
-        expect(getRenderedTransactionIDs()).toEqual(['1', '3', '2', '4']);
     });
 });

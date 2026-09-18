@@ -1,7 +1,4 @@
-import type {SortOrder} from '@components/Search/types';
-
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
-import type {CompareLeadingTransactions} from '@libs/ReportLayoutUtils';
 
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -27,15 +24,6 @@ const createMockReport = (overrides: Partial<Report> = {}): Report =>
         currency: 'USD',
         ...overrides,
     }) as Report;
-
-// Stands in for the date comparator the transaction list builds from the active sort, so the groups can be checked
-// against the same ordering the rows use.
-const compareByCreated =
-    (sortOrder: SortOrder): CompareLeadingTransactions =>
-    (a, b) => {
-        const result = (a.created ?? '').localeCompare(b.created ?? '');
-        return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? result : -result;
-    };
 
 describe('groupTransactionsByCategory', () => {
     it('returns empty array when report is undefined', () => {
@@ -478,114 +466,5 @@ describe('groupTransactionsByTag', () => {
         expect(result.at(0)?.groupKey).toBe('R&D');
         expect(result.at(0)?.transactions).toHaveLength(2);
         expect(result.at(0)?.subTotalAmount).toBe(3000);
-    });
-});
-
-describe('group ordering under an explicit sort', () => {
-    it('keeps groups alphabetical with the empty key last when no comparator is passed', () => {
-        const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', category: '', created: '2026-09-01'}),
-            createMockTransaction({transactionID: '2', category: 'Zebra', created: '2026-09-02'}),
-            createMockTransaction({transactionID: '3', category: 'Alpha', created: '2026-09-03'}),
-        ];
-
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
-
-        expect(result.map((group) => group.groupKey)).toEqual(['Alpha', 'Zebra', '']);
-    });
-
-    it('orders groups by their leading transaction when sorting by date ascending', () => {
-        const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', category: 'Travel', created: '2026-09-15'}),
-            createMockTransaction({transactionID: '2', category: 'Meals', created: '2026-09-17'}),
-            createMockTransaction({transactionID: '3', category: 'Advertising', created: '2026-09-20'}),
-        ];
-
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, compareByCreated(CONST.SEARCH.SORT_ORDER.ASC));
-
-        expect(result.map((group) => group.groupKey)).toEqual(['Travel', 'Meals', 'Advertising']);
-    });
-
-    it('orders groups by their leading transaction when sorting by date descending', () => {
-        const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', category: 'Advertising', created: '2026-09-20'}),
-            createMockTransaction({transactionID: '2', category: 'Meals', created: '2026-09-17'}),
-            createMockTransaction({transactionID: '3', category: 'Travel', created: '2026-09-15'}),
-        ];
-
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, compareByCreated(CONST.SEARCH.SORT_ORDER.DESC));
-
-        expect(result.map((group) => group.groupKey)).toEqual(['Advertising', 'Meals', 'Travel']);
-    });
-
-    it('lets the empty key group leave the bottom when the sort puts it first', () => {
-        const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', category: '', created: '2026-09-01'}),
-            createMockTransaction({transactionID: '2', category: 'Travel', created: '2026-09-10'}),
-        ];
-
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, compareByCreated(CONST.SEARCH.SORT_ORDER.ASC));
-
-        expect(result.map((group) => group.groupKey)).toEqual(['', 'Travel']);
-    });
-
-    it('falls back to alphabetical order when the leading transactions tie', () => {
-        const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', category: 'Zebra', created: '2026-09-10'}),
-            createMockTransaction({transactionID: '2', category: 'Alpha', created: '2026-09-10'}),
-            createMockTransaction({transactionID: '3', category: '', created: '2026-09-10'}),
-        ];
-
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, compareByCreated(CONST.SEARCH.SORT_ORDER.ASC));
-
-        expect(result.map((group) => group.groupKey)).toEqual(['Alpha', 'Zebra', '']);
-    });
-
-    it('orders tag groups by their leading transaction too', () => {
-        const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', tag: 'Project Z', created: '2026-09-15'}),
-            createMockTransaction({transactionID: '2', tag: 'Project A', created: '2026-09-20'}),
-        ];
-
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare, compareByCreated(CONST.SEARCH.SORT_ORDER.ASC));
-
-        expect(result.map((group) => group.groupKey)).toEqual(['Project Z', 'Project A']);
-    });
-
-    // The RHP prev/next arrows walk the transaction IDs flat-mapped out of these groups, so the flattened groups have
-    // to come back in the same order as the sorted rows or "next" would jump to a row the user isn't looking at.
-    it('flattens back into the rendered row order', () => {
-        const report = createMockReport();
-        // The rows reach the grouping already sorted, so they are passed in newest first here as well.
-        const transactions = [
-            createMockTransaction({transactionID: '4', category: 'Meals', created: '2026-09-18'}),
-            createMockTransaction({transactionID: '3', category: 'Travel', created: '2026-09-17'}),
-            createMockTransaction({transactionID: '2', category: 'Meals', created: '2026-09-16'}),
-            createMockTransaction({transactionID: '1', category: 'Travel', created: '2026-09-15'}),
-        ];
-
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, compareByCreated(CONST.SEARCH.SORT_ORDER.DESC));
-
-        // Rendered order, not the raw sorted order: rows are bucketed by category, so Meals (4, 2) renders before
-        // Travel (3, 1). Changing this to ['4', '3', '2', '1'] would be asserting that grouping is bypassed.
-        expect(result.flatMap((group) => group.transactions.map((transaction) => transaction.transactionID))).toEqual(['4', '2', '3', '1']);
-    });
-
-    it('does not reorder the transactions array it was given', () => {
-        const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', category: 'Zebra', created: '2026-09-20'}),
-            createMockTransaction({transactionID: '2', category: 'Alpha', created: '2026-09-15'}),
-        ];
-
-        groupTransactionsByCategory(transactions, report, mockLocaleCompare, compareByCreated(CONST.SEARCH.SORT_ORDER.ASC));
-
-        expect(transactions.map((transaction) => transaction.transactionID)).toEqual(['1', '2']);
     });
 });

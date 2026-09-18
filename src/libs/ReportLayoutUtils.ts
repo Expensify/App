@@ -10,32 +10,11 @@ import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {getDecodedTagName, isTagMissing} from './TagUtils';
 import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
-/** Compares the leading (first rendered) transaction of two groups under the sort the user selected */
-type CompareLeadingTransactions = (a: Transaction, b: Transaction) => number;
-
 /**
- * Sorts groups alphabetically (A→Z) with empty keys at the end.
- * When `compareLeadingTransactions` is passed, the groups follow the sorted column instead, so the group headers
- * can't hold a group in place while the rows inside it move. Alphabetical order remains the tiebreak.
+ * Sorts groups alphabetically (A→Z) with empty keys at the end
  */
-function sortGroupedTransactions(
-    groups: GroupedTransactions[],
-    localeCompare: LocaleContextProps['localeCompare'],
-    compareLeadingTransactions?: CompareLeadingTransactions,
-): GroupedTransactions[] {
-    return [...groups].sort((a, b) => {
-        if (compareLeadingTransactions) {
-            const leadingA = a.transactions.at(0);
-            const leadingB = b.transactions.at(0);
-            // Defensive only: the grouping functions below create a group at the moment they push a transaction into
-            // it, so a group is never empty and this guard never falls through to the alphabetical order in practice.
-            if (leadingA && leadingB) {
-                const result = compareLeadingTransactions(leadingA, leadingB);
-                if (result !== 0) {
-                    return result;
-                }
-            }
-        }
+function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
+    return groups.sort((a, b) => {
         if (a.groupKey === '' && b.groupKey !== '') {
             return 1;
         }
@@ -78,12 +57,7 @@ function calculateGroupTotal(transactionList: Transaction[], reportCurrency: str
 /**
  * Groups transactions by category
  */
-function groupTransactionsByCategory(
-    transactions: Transaction[],
-    report: OnyxEntry<Report>,
-    localeCompare: LocaleContextProps['localeCompare'],
-    compareLeadingTransactions?: CompareLeadingTransactions,
-): GroupedTransactions[] {
+function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     if (!report) {
         return [];
     }
@@ -112,18 +86,13 @@ function groupTransactionsByCategory(
         });
     }
 
-    return sortGroupedTransactions(result, localeCompare, compareLeadingTransactions);
+    return sortGroupedTransactions(result, localeCompare);
 }
 
 /**
  * Groups transactions by tag
  */
-function groupTransactionsByTag(
-    transactions: Transaction[],
-    report: OnyxEntry<Report>,
-    localeCompare: LocaleContextProps['localeCompare'],
-    compareLeadingTransactions?: CompareLeadingTransactions,
-): GroupedTransactions[] {
+function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     if (!report) {
         return [];
     }
@@ -152,8 +121,7 @@ function groupTransactionsByTag(
         });
     }
 
-    return sortGroupedTransactions(result, localeCompare, compareLeadingTransactions);
+    return sortGroupedTransactions(result, localeCompare);
 }
 
 export {groupTransactionsByCategory, groupTransactionsByTag};
-export type {CompareLeadingTransactions};
