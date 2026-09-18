@@ -136,6 +136,7 @@ describe('actions/IOU/createExpenseByType', () => {
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             rules: undefined,
+            isVendorMatchingBetaEnabled: false,
         };
 
         return {transaction, transactionDetails, params};
