@@ -46,7 +46,19 @@ describe('useOnboardingIntent', () => {
         expect(result.current).toBe(CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
     });
 
-    it('prefers NVP_INTRO_SELECTED.choice over ONBOARDING_PURPOSE_SELECTED when both are set', async () => {
+    it('prefers ONBOARDING_PURPOSE_SELECTED during incomplete onboarding when both are set', async () => {
+        await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+        await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useOnboardingIntent());
+
+        expect(result.current).toBe(CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+    });
+
+    it('prefers NVP_INTRO_SELECTED.choice after onboarding completes when both are set', async () => {
+        await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
         await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
         await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
         await waitForBatchedUpdates();

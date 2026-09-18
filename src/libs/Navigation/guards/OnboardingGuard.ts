@@ -12,6 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Account, Onboarding} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
@@ -28,6 +29,8 @@ import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
+
+const JOIN_WORKSPACE_TASK_SCREENS = new Set<string>([SCREENS.ONBOARDING.WORK_EMAIL, SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, SCREENS.ONBOARDING.WORKSPACES]);
 
 /**
  * Module-level Onyx subscriptions for OnboardingGuard
@@ -145,6 +148,14 @@ function getActionPayloadScreenName(action: NavigationAction): string | undefine
     return getDeepestFocusedScreen(action.payload)?.name;
 }
 
+function getActionPayloadScreenParams(action: NavigationAction): Record<string, unknown> | undefined {
+    if (!isObjectPayload(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.params;
+}
+
 function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
     return isTwoFactorSetupScreen(getDeepestFocusedScreen(state)?.name);
 }
@@ -176,6 +187,11 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
  * This handles NAVIGATE/PUSH actions that target the OnboardingModalNavigator directly.
  */
 function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
+    if (action.type === CONST.NAVIGATION_ACTIONS.RESET && isObjectPayload(action.payload)) {
+        const targetScreenName = getActionPayloadScreenName(action);
+        return targetScreenName === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR || isOnboardingFlowName(targetScreenName);
+    }
+
     if (
         (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH) &&
         (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR
@@ -184,6 +200,14 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
     }
 
     return false;
+}
+
+function isNavigatingToJoinWorkspaceTask(action: NavigationAction): boolean {
+    if (!isNavigatingToOnboardingFlow(action)) {
+        return false;
+    }
+
+    return JOIN_WORKSPACE_TASK_SCREENS.has(getActionPayloadScreenName(action) ?? '') && getActionPayloadScreenParams(action)?.isJoinWorkspaceTask === 'true';
 }
 
 /**
@@ -217,10 +241,18 @@ const OnboardingGuard: NavigationGuard = {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
-        // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
-        // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
-        if ((isOnboardingCompleted || CONFIG.SKIP_ONBOARDING) && isNavigatingToOnboardingFlow(action)) {
+        const isNavigatingToJoinWorkspaceTaskRoute = isNavigatingToJoinWorkspaceTask(action);
+
+        // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link), since onboarding
+        // is not something they should be able to re-enter once it is done.
+        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isNavigatingToJoinWorkspaceTaskRoute) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
+        // Test builds must never enter onboarding, even for the join-workspace exemption above.
+        if (CONFIG.SKIP_ONBOARDING && isNavigatingToOnboardingFlow(action)) {
+            Log.info('[OnboardingGuard] SKIP_ONBOARDING: redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 

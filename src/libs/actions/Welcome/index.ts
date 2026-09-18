@@ -4,8 +4,10 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {prepareOnboardingOnyxData} from '@libs/ReportUtils';
 
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,13 +16,18 @@ import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
+import type Report from '@src/types/onyx/Report';
 
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 
 import type {OnboardingCompanySize} from './OnboardingFlow';
+
+import {getOnboardingMessages} from './OnboardingFlow';
+
+type JoinWorkspaceOnboardingContentType = 'validateEmail' | 'joinWorkspace' | 'empty';
 
 let isLoadingReportData = true;
 // Tracks whether we've seen loading start (true) in the current session.
@@ -105,6 +112,64 @@ function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
 
+function setOnboardingMergingAccountBlocked(value: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: value});
+}
+
+function createJoinWorkspaceOnboardingContent(
+    contentType: JoinWorkspaceOnboardingContentType,
+    companyDomain: string,
+    workEmail: string,
+    conciergeChat: OnyxEntry<Report>,
+    delegateAccountID: number | undefined,
+) {
+    const {joinWorkspaceMessages} = getOnboardingMessages();
+    let onboardingMessage = joinWorkspaceMessages.joinWorkspace;
+    if (contentType === 'validateEmail') {
+        onboardingMessage = joinWorkspaceMessages.validateEmail;
+    } else if (contentType === 'empty') {
+        onboardingMessage = joinWorkspaceMessages.empty;
+    }
+    if (contentType !== 'empty') {
+        onboardingMessage = {...onboardingMessage, message: ''};
+    }
+    const onboardingData = prepareOnboardingOnyxData({
+        introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE},
+        engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+        onboardingMessage,
+        companySize: undefined,
+        companyDomain,
+        workEmail,
+        conciergeChat,
+        delegateAccountID,
+        isIncremental: true,
+    });
+
+    if (!onboardingData) {
+        return;
+    }
+
+    const task = onboardingData.guidedSetupData.find(
+        (item) => item.type === 'task' && item.task === (contentType === 'joinWorkspace' ? CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE : CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL),
+    );
+    const taskReportID = task && 'taskReportID' in task ? task.taskReportID : undefined;
+
+    API.write(
+        WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT,
+        {
+            event: contentType === 'empty' ? 'noJoinableWorkspacesMessage' : contentType,
+            data: JSON.stringify(onboardingData.guidedSetupData),
+        },
+        {
+            optimisticData: onboardingData.optimisticData,
+            successData: onboardingData.successData,
+            failureData: onboardingData.failureData,
+        },
+    );
+
+    return taskReportID;
+}
+
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
@@ -149,6 +214,12 @@ function clearWorkEmailFormErrors(isLoading = false) {
         errorFields: null,
         isLoading,
     });
+}
+
+function clearOnboardingMergeAccountBlocked() {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: false});
+    setOnboardingErrorMessage(null);
+    clearWorkEmailFormErrors();
 }
 
 // We use `connectWithoutView` here since this connection only to get loading flag
@@ -227,6 +298,8 @@ export {
     setOnboardingCompanySize,
     setSelfTourViewed,
     setOnboardingMergeAccountStepValue,
+    setOnboardingMergingAccountBlocked,
+    createJoinWorkspaceOnboardingContent,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
     setOnboardingAccountingEnabled,
@@ -234,4 +307,5 @@ export {
     setOnboardingPersonalTrackGoal,
     addWorkEmailFormError,
     clearWorkEmailFormErrors,
+    clearOnboardingMergeAccountBlocked,
 };
