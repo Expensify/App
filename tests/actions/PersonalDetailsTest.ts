@@ -24,7 +24,10 @@ const mockAPI = jest.mocked(API);
 jest.mock('@libs/Navigation/Navigation');
 const mockNavigation = jest.mocked(Navigation);
 
-jest.mock('@libs/PersonalDetailsUtils');
+jest.mock('@libs/PersonalDetailsUtils', () => {
+    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
+    return {...actual, getFormattedStreet: jest.fn(), createDisplayName: jest.fn()};
+});
 const mockPersonalDetailsUtils = jest.mocked(PersonalDetailsUtils);
 
 jest.mock('@libs/UserAvatarUtils');
