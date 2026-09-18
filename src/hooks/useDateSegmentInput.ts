@@ -111,7 +111,9 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     if (value !== appliedValue) {
         setAppliedValue(value);
 
-        if (isEditing) {
+        // A date this field has just committed already agrees with the segments, and seeding from it would replace a
+        // half typed segment with the padded form it is showing. The next digit would then start the segment over.
+        if (isEditing && value !== getISODateFromSegments(segments)) {
             setSegments(getSegmentsFromISODate(value));
         }
     }

@@ -220,10 +220,25 @@ describe('DateInputMaskUtils', () => {
             expect(getISODateFromSegments(segments('2026', '09', '18'))).toBe('2026-09-18');
         });
 
-        it('returns undefined while a segment is unfinished', () => {
-            expect(getISODateFromSegments(segments('2026', '9', '18'))).toBeUndefined();
+        it('reads a zero padded segment from one digit, since that is what it already shows', () => {
+            expect(getISODateFromSegments(segments('2026', '9', '18'))).toBe('2026-09-18');
+            expect(getISODateFromSegments(segments('2026', '09', '3'))).toBe('2026-09-03');
+        });
+
+        it('returns undefined while a segment is empty or the year is unfinished', () => {
             expect(getISODateFromSegments(segments('202', '09', '18'))).toBeUndefined();
+            expect(getISODateFromSegments(segments('2026', '', '18'))).toBeUndefined();
+            expect(getISODateFromSegments(segments('2026', '09', ''))).toBeUndefined();
             expect(getISODateFromSegments(EMPTY)).toBeUndefined();
+        });
+
+        it('refuses a segment that cannot be a month or a day, which only a zero can be', () => {
+            expect(getISODateFromSegments(segments('2026', '0', '18'))).toBeUndefined();
+            expect(getISODateFromSegments(segments('2026', '09', '0'))).toBeUndefined();
+        });
+
+        it('refuses a day the typed month does not have', () => {
+            expect(getISODateFromSegments(segments('2026', '02', '31'))).toBeUndefined();
         });
     });
 

@@ -273,13 +273,19 @@ function getSegmentsFromText(text: string): DateSegments {
     return filled;
 }
 
-/** Returns the date in the format the rest of the app stores, or undefined while any segment is still unfinished */
+/**
+ * Returns the date in the format the rest of the app stores, or undefined while a segment is empty or reads as an
+ * impossible date.
+ *
+ * A zero padded segment counts from one digit, since that is already what it shows. A day of 3 therefore reads as the
+ * third rather than waiting to find out whether it was going to be the 30th, and typing that second digit revises it.
+ */
 function getISODateFromSegments(segments: DateSegments): string | undefined {
-    if (segments.year.length !== YEAR_LENGTH || segments.month.length !== SEGMENT_LENGTH || segments.day.length !== SEGMENT_LENGTH) {
+    if (segments.year.length !== YEAR_LENGTH || !segments.month || !segments.day) {
         return undefined;
     }
 
-    const isoDate = `${segments.year}-${segments.month}-${segments.day}`;
+    const isoDate = `${segments.year}-${getSegmentDisplay(segments, 'month')}-${getSegmentDisplay(segments, 'day')}`;
 
     return isValid(parse(isoDate, CONST.DATE.FNS_FORMAT_STRING, new Date())) ? isoDate : undefined;
 }
