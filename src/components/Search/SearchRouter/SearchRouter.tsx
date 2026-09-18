@@ -92,7 +92,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {setShouldResetSearchQuery, resetSearchKey} = useSearchQueryActions();
+    const {setShouldResetSearchQuery, getSearchKeyForQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -116,7 +116,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {query: pendingInitialQuery, isFromSearchPageSearchButton} = peekPendingRouterState();
-    const {currentSearchQueryJSON, currentSearchHash} = useSearchQueryContext();
+    const {currentSearchQueryJSON, currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -391,11 +391,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             onRouterClose();
             setSearchContext(true);
             const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
-            if (currentSearchHash !== updatedQueryJSON?.hash) {
-                resetSearchKey(updatedQueryJSON);
-            }
+            const searchKey = updatedQueryJSON?.hash === currentSearchHash ? currentSearchKey : getSearchKeyForQuery(updatedQueryJSON);
             Navigation.navigate(
-                ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: updatedQuery,
+                    rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions,
+                    searchKey,
+                }),
             );
 
             setTextInputValue('');
@@ -404,12 +406,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         [
             autocompleteSubstitutions,
             currentUserAccountID,
-            currentSearchHash,
             onRouterClose,
             setAutocompleteQueryValue,
             setTextInputValue,
             setShouldResetSearchQuery,
-            resetSearchKey,
+            getSearchKeyForQuery,
+            currentSearchHash,
+            currentSearchKey,
             isFromSearchPageSearchButton,
             policies,
         ],

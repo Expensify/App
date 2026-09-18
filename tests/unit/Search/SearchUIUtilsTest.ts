@@ -31,6 +31,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
@@ -14215,26 +14216,6 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('searchKeyToSavedSearchID', () => {
-        it('strips the prefix to recover the saved search ID', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`)).toBe('12345');
-        });
-
-        it('returns undefined for a non saved-search key', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(CONST.SEARCH.SEARCH_KEYS.EXPENSES)).toBeUndefined();
-        });
-
-        it('returns undefined when the key is undefined', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(undefined)).toBeUndefined();
-        });
-    });
-
-    describe('savedSearchIDToSearchKey', () => {
-        it('prefixes a saved search ID to build a search key', () => {
-            expect(SearchUIUtils.savedSearchIDToSearchKey('12345')).toBe(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`);
-        });
-    });
-
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 
@@ -14443,7 +14424,7 @@ describe('splitGroupsIntoPairs', () => {
 
 describe('getLastSearchQuery', () => {
     const submitKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
-    const savedSearchKey = SearchUIUtils.savedSearchIDToSearchKey('100');
+    const savedSearchKey = savedSearchIDToSearchKey('100');
     const submitQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`;
     const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`;
 
@@ -14481,7 +14462,7 @@ describe('getLastSearchQuery', () => {
     });
 
     it('returns undefined when the search key has no filter', () => {
-        expect(SearchUIUtils.getLastSearchQuery(searchFilters, SearchUIUtils.savedSearchIDToSearchKey('200'))).toBeUndefined();
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, savedSearchIDToSearchKey('200'))).toBeUndefined();
     });
 
     it('returns undefined when there are no filters at all', () => {
