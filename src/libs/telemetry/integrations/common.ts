@@ -10,10 +10,7 @@ const shouldCreateSpanForRequest = (url: string): boolean => {
         'api.github.com',
         'group-ib.com',
         'fp-api.expensify.com',
-        // NetInfo polls this on a timer for every client, so it is heartbeat volume with nothing to debug in a span (GH #101449).
         '/api/Ping',
-        // Google Ads/Analytics conversion endpoints. They are third-party requests we cannot act on, and they were
-        // one of our largest sources of span volume (GH #101449).
         'ccm/collect',
         'rmkt/collect',
         'pagead/form-data',
