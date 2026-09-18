@@ -6,6 +6,7 @@ import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
+import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
@@ -597,35 +598,13 @@ function openReportFromDeepLink(
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
 
-                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
-                            return;
-                        }
+                        const deeplinkRoute = route as Route;
 
-                        if (shouldSkipDeepLinkNavigation(route)) {
-                            return;
-                        }
-
-                        if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
-                            return;
-                        }
-
-                        // Drop a deep link captured before onboarding finished: navigateAfterOnboarding owns the
-                        // post-onboarding destination and overrides it anyway, so honoring it only risks the flash (#91437).
-                        if (initialHasCompletedGuidedSetupFlow === false) {
-                            return;
-                        }
-
-                        // Navigation for signed users is handled by react-navigation.
-                        if (isAuthenticated) {
-                            return;
-                        }
-
-                        const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
-                            // Skip if the user already left the deeplinked route.
-                            const deeplinkRoute = route as Route;
-                            if (deeplinkRoute && !Navigation.isActiveRoute(deeplinkRoute)) {
-                                return;
+                        const navigateHandler = (reportParam?: OnyxEntry<Report>, isReplayAfterOnboarding = false): boolean => {
+                            // Skip if the user already left the deeplinked route. A link replayed after onboarding was never
+                            // opened in the first place, so the active route is wherever onboarding exited, not the link.
+                            if (!isReplayAfterOnboarding && deeplinkRoute && !Navigation.isActiveRoute(deeplinkRoute)) {
+                                return false;
                             }
 
                             // Check if the report exists in the collection
@@ -637,32 +616,78 @@ function openReportFromDeepLink(
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
-                                    return;
+                                    return true;
                                 }
                                 navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
-                                return;
+                                return true;
                             }
 
                             // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                             const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
                             Navigation.navigate(deeplinkRoute, {forceReplace, waitForTransition: true});
+                            return true;
                         };
-                        // If we log with deeplink with reportID and data for this report is not available yet,
-                        // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                        if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
-                            const reportConnection = Onyx.connectWithoutView({
-                                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                                // eslint-disable-next-line rulesdir/prefer-early-return
-                                callback: (report) => {
-                                    if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
-                                        Onyx.disconnect(reportConnection);
-                                        navigateHandler(report);
-                                    }
-                                },
-                            });
-                        } else {
-                            navigateHandler();
+
+                        const openDeepLink = (isReplayAfterOnboarding = false): boolean => {
+                            // If we log with deeplink with reportID and data for this report is not available yet,
+                            // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
+                            if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+                                const reportConnection = Onyx.connectWithoutView({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                                    // The callback stays subscribed until the report resolves, so there is no early return to take.
+                                    // eslint-disable-next-line rulesdir/prefer-early-return
+                                    callback: (report) => {
+                                        if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
+                                            Onyx.disconnect(reportConnection);
+                                            navigateHandler(report, isReplayAfterOnboarding);
+                                        }
+                                    },
+                                });
+                                // Nothing has navigated yet, so a replay still needs its default destination.
+                                return false;
+                            }
+
+                            return navigateHandler(undefined, isReplayAfterOnboarding);
+                        };
+
+                        // Shared with the onboarding branch below, which sits above this check and would otherwise let a parked link
+                        // replay past it.
+                        const shouldDropDeepLink = () => shouldSkipDeepLinkNavigation(route) || (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME);
+
+                        // Opening the link while onboarding still owns the screen flashes the "Not here" page, so hand it to
+                        // navigateAfterOnboarding, which runs after the modal is gone and would otherwise lose it.
+                        const deferUntilAfterOnboarding = () => {
+                            if (initialHasCompletedGuidedSetupFlow !== false || shouldDropDeepLink()) {
+                                return false;
+                            }
+
+                            setDeepLinkToOpenAfterOnboarding(() => openDeepLink(true));
+                            return true;
+                        };
+
+                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                            if (deferUntilAfterOnboarding()) {
+                                return;
+                            }
+
+                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            return;
                         }
+
+                        if (shouldDropDeepLink()) {
+                            return;
+                        }
+
+                        // Navigation for signed users is handled by react-navigation.
+                        if (isAuthenticated) {
+                            return;
+                        }
+
+                        if (deferUntilAfterOnboarding()) {
+                            return;
+                        }
+
+                        openDeepLink();
                     };
 
                     if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
