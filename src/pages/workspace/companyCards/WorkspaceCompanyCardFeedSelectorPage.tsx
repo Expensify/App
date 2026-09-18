@@ -1,3 +1,5 @@
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -145,26 +147,11 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
-    const selectFeed = (feed: CardFeedListItem) => {
-        setDraftFeed(feed.value);
-    };
-
-    const saveFeed = () => {
-        if (!currentSelectedFeed) {
-            return;
-        }
-        updateSelectedFeed(currentSelectedFeed, policyID);
-        goBack();
-    };
-
-    const confirmButtonOptions = {
-        showButton: true,
-        text: translate('common.save'),
-        onConfirm: saveFeed,
-        isDisabled: !currentSelectedFeed || currentSelectedFeed === selectedFeedName,
-    };
-
-    const selectOtherFeed = (feed: CardFeedListItem) => {
+    /**
+     * Links a feed owned by another workspace to this policy and then selects it. The user may first have to add or
+     * validate a work email, in which case that flow carries the feed and finishes the selection on its own.
+     */
+    const linkOtherWorkspaceFeed = (feed: CardFeedListItem) => {
         if (isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
@@ -192,9 +179,44 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             });
     };
 
+    const selectFeed = (feed: CardFeedListItem) => {
+        // Staging another row makes an error left over from a previous link attempt irrelevant.
+        setFeedWithError(undefined);
+        setDraftFeed(feed.value);
+    };
+
+    const stagedOtherWorkspaceFeed = otherFeeds.find((feed) => feed.value === currentSelectedFeed);
+
+    const saveFeed = () => {
+        if (!currentSelectedFeed) {
+            return;
+        }
+        // A feed from another workspace is not selectable until it has been linked to this policy.
+        if (stagedOtherWorkspaceFeed) {
+            linkOtherWorkspaceFeed(stagedOtherWorkspaceFeed);
+            return;
+        }
+        updateSelectedFeed(currentSelectedFeed, policyID);
+        goBack();
+    };
+
+    // Linking a feed from another workspace needs the network, which is why those rows are also disabled offline.
+    const isSaveDisabled = !currentSelectedFeed || currentSelectedFeed === selectedFeedName || (!!stagedOtherWorkspaceFeed && isOffline);
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveFeed,
+        isDisabled: isSaveDisabled,
+    };
+
     const onDismissError = () => {
         setFeedWithError(undefined);
     };
+
+    // Without any available feed the page renders a plain ScrollView instead of a SelectionList, so it has to supply
+    // its own Save button for the "From other workspaces" rows — they are the only selectable rows in that state.
+    const shouldShowOtherFeedsSaveButton = canWriteCompanyCards && otherFeeds.length > 0;
 
     const otherMenuItemFeeds = canWriteCompanyCards ? (
         <View style={[styles.w100, styles.flexColumn]}>
@@ -208,16 +230,21 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 <>
                     <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
                     {otherFeeds.map((feed) => {
-                        const isFeedWithError = feedWithError?.feed === feed.value;
-                        const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
+                        const item = {
+                            ...feed,
+                            // The hook marks the committed feed as selected, but while a selection is staged the
+                            // checkmark has to follow the draft instead.
+                            isSelected: feed.value === currentSelectedFeed,
+                            errors: feedWithError?.feed === feed.value ? feedWithError.error : undefined,
+                        };
                         return (
                             <SingleSelectListItem
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={feed.keyForList}
                                 showTooltip={false}
-                                item={itemWithError}
-                                onSelectRow={selectOtherFeed}
+                                item={item}
+                                onSelectRow={selectFeed}
                                 isMultilineSupported
                                 isAlternateTextMultilineSupported
                                 alternateTextNumberOfLines={2}
@@ -260,13 +287,32 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         listFooterContent={otherMenuItemFeeds}
                     />
                 ) : (
-                    <ScrollView
-                        addBottomSafeAreaPadding
-                        style={styles.flex1}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {otherMenuItemFeeds}
-                    </ScrollView>
+                    <>
+                        <ScrollView
+                            // The Save button below carries the bottom safe area padding whenever it is rendered.
+                            addBottomSafeAreaPadding={!shouldShowOtherFeedsSaveButton}
+                            style={styles.flex1}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            {otherMenuItemFeeds}
+                        </ScrollView>
+                        {shouldShowOtherFeedsSaveButton && (
+                            <FixedFooter
+                                style={styles.mtAuto}
+                                addBottomSafeAreaPadding
+                            >
+                                <Button
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size="large"
+                                    style={styles.w100}
+                                    onPress={saveFeed}
+                                    isDisabled={isSaveDisabled}
+                                >
+                                    <Button.Text>{translate('common.save')}</Button.Text>
+                                </Button>
+                            </FixedFooter>
+                        )}
+                    </>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
