@@ -31,6 +31,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {taxSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -46,25 +47,10 @@ type TaxFieldsProps = {
     reportID: string;
     formError: string;
     clearFormErrors: (errors: string[]) => void;
-
-    /** Whether the rows render as the form's bordered fields instead of as push rows */
-    shouldUseDropdownRows: boolean;
 };
 
-function TaxFields({
-    policy,
-    policyForMovingExpenses,
-    iouCurrencyCode,
-    canModifyTaxFields,
-    didConfirm,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    formError,
-    clearFormErrors,
-    shouldUseDropdownRows,
-}: TaxFieldsProps) {
+function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, clearFormErrors}: TaxFieldsProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();

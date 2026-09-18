@@ -19,6 +19,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -35,9 +36,6 @@ type CategoryFieldProps = {
     formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
-
-    /** Whether the row renders as one of the form's bordered fields instead of as a push row */
-    shouldUseDropdownRows: boolean;
 };
 
 function CategoryField({
@@ -53,8 +51,8 @@ function CategoryField({
     formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
-    shouldUseDropdownRows,
 }: CategoryFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);

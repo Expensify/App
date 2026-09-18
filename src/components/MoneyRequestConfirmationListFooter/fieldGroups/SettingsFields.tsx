@@ -1,4 +1,5 @@
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {useExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ReportField from '@components/MoneyRequestConfirmationList/sections/ReportField';
 import ToggleFields from '@components/MoneyRequestConfirmationList/sections/ToggleFields';
 import type {ToggleHandlers} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
@@ -24,12 +25,6 @@ type SettingsFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'toggles' | 'report'>;
-
-    /**
-     * Whether the selectable rows render as the form's bordered fields instead of as push rows. The toggles stay
-     * borderless either way — a toggle is not a value to pick — and group below Report rather than above it.
-     */
-    shouldUseDropdownRows: boolean;
 };
 
 /**
@@ -37,8 +32,11 @@ type SettingsFieldsProps = {
  * Gating ReportField behind `isPolicyExpenseChat` keeps its 5 Onyx subscriptions
  * (including `COLLECTION.REPORT_NVP`) from instantiating on non-policy-expense flows.
  */
-function SettingsFields({selectedParticipants, shouldShowBillable, shouldShowReimbursable, toggleHandlers, isCompactMode, fieldVisibility, shouldUseDropdownRows}: SettingsFieldsProps) {
+function SettingsFields({selectedParticipants, shouldShowBillable, shouldShowReimbursable, toggleHandlers, isCompactMode, fieldVisibility}: SettingsFieldsProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, isPolicyExpenseChat, isPerDiemRequest} = useConfirmationFields();
+    // The toggles stay borderless whichever presentation the form uses, since a toggle is not a value to pick. What
+    // the dropdown-row form does change is their place: they group below Report rather than above it.
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
 
     if (isCompactMode) {
         return null;
@@ -65,7 +63,6 @@ function SettingsFields({selectedParticipants, shouldShowBillable, shouldShowRei
             action={action}
             transactionID={transactionID}
             isPerDiemRequest={isPerDiemRequest}
-            shouldUseDropdownRows={shouldUseDropdownRows}
         />
     ) : null;
 

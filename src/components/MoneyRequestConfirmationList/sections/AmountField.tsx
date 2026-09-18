@@ -28,13 +28,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -51,12 +51,6 @@ type AmountFieldProps = {
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
     isParticipantPickerVisible?: boolean;
-
-    /** Action rendered beside the field, vertically aligned with it, e.g. the compact add-receipt button */
-    trailingAction?: ReactNode;
-
-    /** Renders the flip and currency buttons without their pill background, so they read as part of the field */
-    shouldUseBorderlessButtons?: boolean;
 };
 
 function AmountField({
@@ -72,10 +66,11 @@ function AmountField({
     clearFormErrors,
     setFormError,
     isParticipantPickerVisible = false,
-    trailingAction,
-    shouldUseBorderlessButtons = false,
 }: AmountFieldProps) {
     const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    // The form that borders its selectable rows also wants the flip and currency buttons to read as part of the
+    // field rather than as controls stacked on top of it, and is the one that fills the trailing slot.
+    const {shouldUseDropdownRows, amountTrailingAction} = useExpenseFormLayout();
     // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
     // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
     const shouldAutoFocusOnMount = !canUseTouchScreen() && !canEnterScanFieldsManually;
@@ -341,11 +336,11 @@ function AmountField({
                                 setIsAmountInputFocused(false);
                             }}
                             leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
-                            shouldUseBorderlessButtons={shouldUseBorderlessButtons}
+                            shouldUseBorderlessButtons={shouldUseDropdownRows}
                             disabled={isAmountFieldDisabled}
                         />
                     </View>
-                    {trailingAction}
+                    {amountTrailingAction}
                 </View>
             ) : (
                 <MenuItemWithTopDescription

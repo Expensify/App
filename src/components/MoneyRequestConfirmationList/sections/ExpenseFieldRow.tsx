@@ -56,7 +56,7 @@ type ExpenseFieldRowProps = {
  * A selectable row of the expense form, rendered as one of the form's bordered fields rather than as a push row:
  * the field name stands in for the value while the field is empty, and moves above the value once one is picked.
  *
- * Tapping it opens the same selector the push row opened — the caret only says the row holds a value to pick.
+ * Tapping it opens the same selector the push row opened. The caret only says the row holds a value to pick.
  */
 function ExpenseFieldRow({
     name,

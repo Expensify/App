@@ -27,12 +27,9 @@ type TagFieldRowProps = {
 
     /** Form-level error message */
     formError: string;
-
-    /** Whether the row renders as one of the form's bordered fields instead of as a push row */
-    shouldUseDropdownRows: boolean;
 };
 
-function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTagsVisibility, formError, shouldUseDropdownRows}: TagFieldRowProps) {
+function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTagsVisibility, formError}: TagFieldRowProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
     const policyTagList = policyTagLists.at(index);
     if (!policyTagList) {
@@ -52,7 +49,6 @@ function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTag
             reportID={reportID}
             reportActionID={reportActionID}
             formError={formError}
-            shouldUseDropdownRows={shouldUseDropdownRows}
         />
     );
 }
@@ -96,9 +92,6 @@ type ClassificationFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'categoryRequired' | 'categoryOptional' | 'date' | 'tagsRequired' | 'tagsOptional' | 'tax' | 'attendees'>;
-
-    /** Whether the selectable rows render as the form's bordered fields instead of as push rows */
-    shouldUseDropdownRows: boolean;
 };
 
 function ClassificationFields({
@@ -115,7 +108,6 @@ function ClassificationFields({
     formattedAmountPerAttendee,
     isCompactMode,
     fieldVisibility,
-    shouldUseDropdownRows,
 }: ClassificationFieldsProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
 
@@ -135,7 +127,6 @@ function ClassificationFields({
                     formError={errorState.formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
-                    shouldUseDropdownRows={shouldUseDropdownRows}
                 />
             )}
 
@@ -160,7 +151,6 @@ function ClassificationFields({
                     policyTagLists={policyTagLists}
                     previousTagsVisibility={previousTagsVisibility}
                     formError={errorState.formError}
-                    shouldUseDropdownRows={shouldUseDropdownRows}
                 />
             ))}
 
@@ -172,7 +162,6 @@ function ClassificationFields({
                         policyTagLists={policyTagLists}
                         previousTagsVisibility={previousTagsVisibility}
                         formError={errorState.formError}
-                        shouldUseDropdownRows={shouldUseDropdownRows}
                     />
                 ))}
 
@@ -189,7 +178,6 @@ function ClassificationFields({
                     reportID={reportID}
                     formError={errorState.formError}
                     clearFormErrors={errorState.clearFormErrors}
-                    shouldUseDropdownRows={shouldUseDropdownRows}
                 />
             )}
 
@@ -202,7 +190,6 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={errorState.formError}
-                    shouldUseDropdownRows={shouldUseDropdownRows}
                 />
             )}
         </>

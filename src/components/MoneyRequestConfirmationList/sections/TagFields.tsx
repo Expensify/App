@@ -17,6 +17,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {createTagDisplaySelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -35,9 +36,6 @@ type TagFieldsProps = {
 
     /** The global tag index used for navigation and display */
     tagIndex: number;
-
-    /** Whether the row renders as one of the form's bordered fields instead of as a push row */
-    shouldUseDropdownRows: boolean;
 };
 
 function TagFields({
@@ -53,8 +51,8 @@ function TagFields({
     reportActionID,
     formError,
     tagIndex,
-    shouldUseDropdownRows,
 }: TagFieldsProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';

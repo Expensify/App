@@ -24,6 +24,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {attendeeSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -35,12 +36,10 @@ type AttendeeFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     formError: string;
-
-    /** Whether the row renders as one of the form's bordered fields instead of as a push row */
-    shouldUseDropdownRows: boolean;
 };
 
-function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError, shouldUseDropdownRows}: AttendeeFieldProps) {
+function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const personalDetailsList = usePersonalDetails();

@@ -25,6 +25,7 @@ import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {reportFieldTransactionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -40,12 +41,10 @@ type ReportFieldProps = {
     transactionID: string | undefined;
     isPerDiemRequest: boolean;
     isPolicyExpenseChat: boolean;
-
-    /** Whether the row renders as one of the form's bordered fields instead of as a push row */
-    shouldUseDropdownRows: boolean;
 };
 
-function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat, shouldUseDropdownRows}: ReportFieldProps) {
+function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
