@@ -4,6 +4,8 @@ import AttachmentCamera from '@components/AttachmentPicker/AttachmentCamera';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import isInLandscapeMode from '@libs/isInLandscapeMode';
+
 import type {CameraDevice} from 'react-native-vision-camera';
 
 import React from 'react';
@@ -16,6 +18,9 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 
 const mockTakePhoto = jest.fn(() => Promise.resolve({path: '/tmp/photos/shot.jpg', width: 3024, height: 4032}));
 let mockPermissionStatus = 'granted';
+
+jest.mock('@libs/isInLandscapeMode');
+jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/CameraPermission', () => ({
     getCameraPermissionStatus: jest.fn(() => Promise.resolve(mockPermissionStatus)),
@@ -50,6 +55,7 @@ const FRONT_DEVICE = createMock<CameraDevice>({id: 'front', position: 'front', h
 
 const mockedUseCameraDevice = jest.mocked(useCameraDevice);
 const mockedUseCameraDevices = jest.mocked(useCameraDevices);
+const mockedIsInLandscapeMode = jest.mocked(isInLandscapeMode);
 
 function renderCamera(props: Partial<React.ComponentProps<typeof AttachmentCamera>> = {}) {
     const onCapture = jest.fn();
@@ -84,6 +90,7 @@ describe('AttachmentCamera', () => {
         mockTakePhoto.mockResolvedValue({path: '/tmp/photos/shot.jpg', width: 3024, height: 4032});
         mockedUseCameraDevice.mockReturnValue(BACK_DEVICE);
         mockedUseCameraDevices.mockReturnValue([BACK_DEVICE, FRONT_DEVICE]);
+        mockedIsInLandscapeMode.mockReturnValue(false);
         await act(async () => {
             await Onyx.clear();
         });
@@ -180,5 +187,16 @@ describe('AttachmentCamera', () => {
 
         expect(mockTakePhoto).not.toHaveBeenCalled();
         expect(onCapture).not.toHaveBeenCalled();
+    });
+
+    it('adapts layout for landscape orientation', async () => {
+        mockedIsInLandscapeMode.mockReturnValue(true);
+        renderCamera();
+        await waitForBatchedUpdatesWithAct();
+
+        const shutter = screen.getByLabelText(translateLocal('receipt.shutter'));
+        expect(shutter).toBeOnTheScreen();
+        const controlsContainer = shutter.parent;
+        expect(controlsContainer?.props.style).toEqual(expect.not.arrayContaining([expect.objectContaining({flexDirection: 'row'})]));
     });
 });
