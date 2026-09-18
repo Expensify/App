@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 
 import {getHRCards} from './utils';
@@ -26,7 +25,6 @@ function WorkspaceHRPage({
     },
 }: WorkspaceHRPageProps) {
     const {translate, getLocalDateFromDatetime, formatPhoneNumber} = useLocalize();
-    const isFocused = useIsFocused();
     const policy = usePolicy(policyID);
     const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
