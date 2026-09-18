@@ -146,15 +146,15 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
               shouldRender: shouldShowProductTrainingTooltip,
               renderTooltipContent: renderProductTrainingTooltip,
               anchorAlignment: {
-                  // On wide layouts the button sits in the top bar with room on both sides, so center the tooltip and its
-                  // pointer on the button. On narrow layouts it sits in the account details block near the right edge,
-                  // where centering would push the tooltip into the gutter, so keep it right-aligned to open leftward.
+                  // Center on the button so the pointer lands on the button's center rather than off by its right edge.
+                  // The tooltip is wider than the room left of the window gutter, so the body still gets pulled left and
+                  // only the pointer ends up truly centered. Narrow layouts keep the right alignment they had before.
                   horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
               shiftVertical: variables.accountSwitcherTooltipShiftVertical,
-              // The nudge only squares up the right-aligned tooltip. Centered alignment subtracts it back out of the
-              // pointer offset, which would leave the pointer on the button but the tooltip body off-center.
+              // The nudge squares the right-aligned tooltip up against the gutter. Centered alignment subtracts it back
+              // out of the pointer offset, which would drag the pointer off the button's center, so drop it.
               shiftHorizontal: shouldUseNarrowLayout ? variables.accountSwitcherTooltipShiftHorizontal : 0,
               wrapperStyle: styles.productTrainingTooltipWrapper,
               onTooltipPress: onPressSwitcher,
