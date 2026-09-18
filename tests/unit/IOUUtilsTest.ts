@@ -638,7 +638,7 @@ describe('Check valid amount for IOU/Expense request', () => {
             payeeAccountID: 100,
             total: 122,
             currency: 'USD',
-            betas: [CONST.BETAS.ALL],
+            isASAPSubmitBetaEnabled: true,
         });
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {

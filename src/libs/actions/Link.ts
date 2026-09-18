@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
+import openExternalLink from '@libs/openExternalLink';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -75,13 +76,6 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
         // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
         return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
     });
-}
-
-/**
- * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
- */
-function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shouldOpenInSameTab = false) {
-    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic, shouldOpenInSameTab);
 }
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
@@ -622,6 +616,12 @@ function openReportFromDeepLink(
                         }
 
                         const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                            // Skip if the user already is in the deeplinked route.
+                            const deeplinkRoute = route as Route;
+                            if (deeplinkRoute && Navigation.isActiveRoute(deeplinkRoute)) {
+                                return;
+                            }
+
                             // Check if the report exists in the collection
                             const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
@@ -633,13 +633,13 @@ function openReportFromDeepLink(
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                     return;
                                 }
-                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
+                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
                                 return;
                             }
 
                             // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                             const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                            Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
+                            Navigation.navigate(deeplinkRoute, {forceReplace, waitForTransition: true});
                         };
                         // If we log with deeplink with reportID and data for this report is not available yet,
                         // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens

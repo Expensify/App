@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -79,7 +80,7 @@ function IOURequestStepDistanceMap({
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({policyID: policy?.id, isDistanceRequest: true});
     const personalPolicy = usePersonalPolicy();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
@@ -102,7 +103,7 @@ function IOURequestStepDistanceMap({
     const reportAttributesDerived = useReportAttributes();
 
     const transactionState: TransactionStateType = shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT;
-    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action, transactionState);
+    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action, transactionState, policy);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
