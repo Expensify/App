@@ -1,6 +1,15 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {getConnectedHRProvider, getHRApprovalMode, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
+import {
+    getConnectedHRProvider,
+    getHRApprovalMode,
+    getSelectableMergeHRGroupIDs,
+    hasStaleMergeHRGroups,
+    isAnyHRConnected,
+    isAnyHRReadOnlyWorkflowMode,
+    isMergeHRCompleteSetupNeeded,
+    shouldShowHRConnectionError,
+} from '@libs/merge/HRUtils';
 
 import {getApprovalModeLabel, getHRCards, getHRCardState} from '@pages/workspace/hr/utils';
 import type {MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
@@ -321,6 +330,136 @@ describe('HRUtils', () => {
         });
     });
 
+    describe('hasStaleMergeHRGroups', () => {
+        it('returns false when not connected', () => {
+            expect(hasStaleMergeHRGroups(makePolicy())).toBe(false);
+        });
+
+        it('returns false when the admin has not chosen groups yet', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]}}),
+                },
+            });
+            expect(hasStaleMergeHRGroups(policy)).toBe(false);
+        });
+
+        it('returns false when the cache has never synced', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1']}, data: {}}),
+                },
+            });
+            expect(hasStaleMergeHRGroups(policy)).toBe(false);
+        });
+
+        it('returns true when a synced cache legitimately has zero groups', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1']}, data: {allGroupIDs: []}}),
+                },
+            });
+            expect(hasStaleMergeHRGroups(policy)).toBe(true);
+        });
+
+        it('returns false when every selected group still exists', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1', 'g2']},
+                        data: {allGroupIDs: ['g1', 'g2']},
+                    }),
+                },
+            });
+            expect(hasStaleMergeHRGroups(policy)).toBe(false);
+        });
+
+        it('returns true when a selected group is missing from the cached list', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1', 'g-deleted']},
+                        data: {allGroupIDs: ['g1']},
+                    }),
+                },
+            });
+            expect(hasStaleMergeHRGroups(policy)).toBe(true);
+        });
+
+        it('returns false when a selected group still exists but lost its display name/type', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1']},
+                        data: {groups: [], allGroupIDs: ['g1']},
+                    }),
+                },
+            });
+            expect(hasStaleMergeHRGroups(policy)).toBe(false);
+        });
+    });
+
+    describe('getSelectableMergeHRGroupIDs', () => {
+        it('returns an empty list when the admin has not chosen groups yet', () => {
+            expect(getSelectableMergeHRGroupIDs(makePolicy())).toEqual([]);
+        });
+
+        it('keeps the selection intact when every selected group is still in the cached list', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1', 'g2']},
+                        data: {
+                            groups: [
+                                {id: 'g1', name: 'Eng', type: 'Department'},
+                                {id: 'g2', name: 'Sales', type: 'Department'},
+                            ],
+                        },
+                    }),
+                },
+            });
+            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
+        });
+
+        it('drops a selected group the cached list no longer has', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1', 'g-deleted']},
+                        data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}], allGroupIDs: ['g1']},
+                    }),
+                },
+            });
+            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1']);
+        });
+
+        it('drops a selected group that still exists upstream but is no longer renderable', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1', 'g2']},
+                        data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}], allGroupIDs: ['g1', 'g2']},
+                    }),
+                },
+            });
+            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1']);
+        });
+
+        it('leaves the selection alone when the cache has never synced', () => {
+            const policy = makePolicy({
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1', 'g2']}, data: {}})},
+            });
+            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
+        });
+
+        it('drops the whole selection when a synced cache legitimately has zero renderable groups', () => {
+            const policy = makePolicy({
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1', 'g2']}, data: {groups: []}})},
+            });
+            expect(getSelectableMergeHRGroupIDs(policy)).toEqual([]);
+        });
+    });
+
     describe('shouldShowHRConnectionError', () => {
         it('returns false when user is not an admin', () => {
             const policy = makePolicy({
@@ -347,6 +486,32 @@ describe('HRUtils', () => {
         it('returns true when Merge HR sync status is FAILED', () => {
             const policy = makePolicy({
                 connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.FAILED}})},
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(true);
+        });
+
+        it('returns false when the Merge HR failure came from its own settings and they are now valid', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {integration: 'workday', groups: ['g1']},
+                        data: {allGroupIDs: ['g1']},
+                        lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.FAILED, isConfigurationError: true},
+                    }),
+                },
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(false);
+        });
+
+        it('returns true when the Merge HR settings failure is still unresolved', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {integration: 'workday', groups: ['g-deleted']},
+                        data: {allGroupIDs: ['g1']},
+                        lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.FAILED, isConfigurationError: true},
+                    }),
+                },
             });
             expect(shouldShowHRConnectionError(policy, false, true)).toBe(true);
         });
@@ -734,6 +899,62 @@ describe('getHRCards', () => {
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bamboo?.hasError).toBe(true);
         expect(bamboo?.lastSyncErrorMessage).toBe('Auth failed');
+    });
+
+    it('keeps the generic sync error off the Merge card when the failure came from its own settings', () => {
+        const policy = makePolicy({
+            connections: {
+                [MERGE_HR]: makeMergeHRConnection({
+                    config: {integration: 'bamboohr', groups: ['g1']},
+                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}], allGroupIDs: ['g1']},
+                    lastSync: {
+                        syncStatus: CONST.MERGE.SYNC_STATUS.FAILED,
+                        errorMessage: 'None of the selected groups exist in your HR system anymore.',
+                        isConfigurationError: true,
+                    },
+                }),
+            },
+        });
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
+
+        const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
+        expect(bamboo?.hasError).toBe(false);
+        expect(bamboo?.lastSyncErrorMessage).toBeUndefined();
+        expect(bamboo?.staleGroupsRoute).toBeUndefined();
+    });
+
+    it('points the connected Merge card at the group selector when a selected group no longer exists', () => {
+        const policy = makePolicy({
+            connections: {
+                [MERGE_HR]: makeMergeHRConnection({
+                    config: {integration: 'bamboohr', groups: ['g1', 'g-deleted']},
+                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}], allGroupIDs: ['g1']},
+                    lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
+                }),
+            },
+        });
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
+
+        const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
+        expect(bamboo?.staleGroupsRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
+        expect(getRow(bamboo, 'groups')?.hasInvalidValue).toBe(true);
+    });
+
+    it('leaves the connected Merge card alone when every selected group still exists', () => {
+        const policy = makePolicy({
+            connections: {
+                [MERGE_HR]: makeMergeHRConnection({
+                    config: {integration: 'bamboohr', groups: ['g1']},
+                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                    lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
+                }),
+            },
+        });
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
+
+        const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
+        expect(bamboo?.staleGroupsRoute).toBeUndefined();
+        expect(getRow(bamboo, 'groups')?.hasInvalidValue).toBe(false);
     });
 
     it('disconnected Merge cards do not inherit error state from the connection', () => {

@@ -8319,7 +8319,12 @@ ${reportName}`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
             mergeHR: {
-                groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+                groups: {
+                    title: '群组',
+                    description: '选择要与此工作区同步的员工分组',
+                    staleSelectionError: (providerName: string) => `您选择的部分群组在 ${providerName} 中已不存在，因此其员工已停止同步。`,
+                    updateSelectionLink: '更新你的群组。',
+                },
             },
         },
         recruiting: {

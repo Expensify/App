@@ -8631,7 +8631,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
+                groups: {
+                    title: 'Grupos',
+                    description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace',
+                    staleSelectionError: (providerName: string) =>
+                        `Alguns dos grupos que você selecionou não existem mais em ${providerName}, então seus funcionários pararam de sincronizar.`,
+                    updateSelectionLink: 'Atualize seus grupos.',
+                },
             },
         },
         recruiting: {

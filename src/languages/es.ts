@@ -7414,7 +7414,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
+                groups: {
+                    title: 'Grupos',
+                    description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo',
+                    staleSelectionError: (providerName: string) =>
+                        `Algunos de los grupos que seleccionaste ya no existen en ${providerName}, por lo que sus empleados han dejado de sincronizarse.`,
+                    updateSelectionLink: 'Actualiza tus grupos.',
+                },
             },
         },
         recruiting: {

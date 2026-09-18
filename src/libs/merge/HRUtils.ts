@@ -47,6 +47,40 @@ function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
     return syncDone && hasGroups && !setupComplete;
 }
 
+/**
+ * True when a selected group ID is missing from the cached group list, meaning it no longer exists upstream.
+ * Returns false if the cache has never synced, since there's nothing to compare against.
+ */
+function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
+    const mergeHR = policy?.connections?.merge_hris;
+    const selectedGroupIDs = mergeHR?.config?.groups;
+    // allGroupIDs (not the display-filtered groups) is what the backend prunes against, so a group
+    // missing a name/type isn't wrongly flagged as deleted here.
+    const availableGroupIDs = mergeHR?.data?.allGroupIDs;
+    // allGroupIDs is explicitly [] once a sync has actually run and found zero groups, so only
+    // undefined (never synced) means there's nothing to compare against yet.
+    if (!selectedGroupIDs?.length || !availableGroupIDs) {
+        return false;
+    }
+    return selectedGroupIDs.some((groupID) => !availableGroupIDs.includes(groupID));
+}
+
+/**
+ * The admin's group selection, minus any group the cached list no longer has. Those have no row to uncheck and the API
+ * rejects them, so keeping them would leave the selector unable to save. A cache that has never synced is left untouched.
+ */
+function getSelectableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
+    const mergeHR = policy?.connections?.merge_hris;
+    const selectedGroupIDs = mergeHR?.config?.groups ?? [];
+    const availableGroups = mergeHR?.data?.groups;
+    // data.groups is explicitly [] once a sync has actually run and found zero renderable groups, so
+    // only undefined (cache never loaded) means the selection should be left untouched.
+    if (!availableGroups) {
+        return [...selectedGroupIDs];
+    }
+    return selectedGroupIDs.filter((groupID) => availableGroups.some((group) => group.id === groupID));
+}
+
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
 function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | null {
     if (isGustoConnected(policy)) {
@@ -166,7 +200,7 @@ function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress
         return true;
     }
     if (connectedProvider.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        return hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
+        return hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) || hasStaleMergeHRGroups(policy);
     }
     return hasSynchronizationErrorMessage(policy, connectedProvider.connectionName, isSyncInProgress);
 }
@@ -176,6 +210,8 @@ export {
     getHRApprovalMode,
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
+    getSelectableMergeHRGroupIDs,
+    hasStaleMergeHRGroups,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,
