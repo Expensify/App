@@ -18,9 +18,11 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+let mockIsFocused = true;
+
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused,
     useRoute: jest.fn(() => ({key: 'search-test-route'})),
     useRootNavigationState: jest.fn(() => undefined),
     useNavigation: jest.fn(() => ({
@@ -296,6 +298,7 @@ describe('Lazily loaded group selection', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
+        mockIsFocused = true;
         flatExpense = makeFlatExpense(-3000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
@@ -574,6 +577,135 @@ describe('Lazily loaded group selection', () => {
 
         expect(result.current.excludedTransactions['report-1-transaction-1']?.amount).toBe(-700);
         expect(result.current.excludedTransactions['report-1-transaction-2']?.amount).toBe(-700);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('selects an excluded expense after it moves to a selected report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-2']), makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(new Set(Object.keys(result.current.selectedTransactions))).toEqual(new Set(['report-2-transaction-1', 'report-1-transaction-1']));
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-2']);
+        expect(result.current.excludedTransactions['report-1-transaction-2']?.reportID).toBe('report-1');
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('selects an excluded expense immediately when it moves while the Reports screen is behind an RHP', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        mockIsFocused = false;
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-2']), makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(new Set(Object.keys(result.current.selectedTransactions))).toEqual(new Set(['report-2-transaction-1', 'report-1-transaction-1']));
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-2']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps a moved expense excluded when its destination report is excluded', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            result.current.toggle(secondReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-2']), makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.selectedTransactions).toEqual({});
+        expect(new Set(Object.keys(result.current.excludedTransactions))).toEqual(new Set(['report-1-transaction-2', 'report-2-transaction-1', 'report-1-transaction-1']));
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.reportID).toBe('report-2');
+        expect(result.current.selectedReports).toEqual([]);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps an emptied source report excluded when its last expense moves to a selected report', async () => {
+        const sourceReport = makeExpenseReport('source-report', ['moved-transaction']);
+        const destinationReport = makeExpenseReport('destination-report', ['destination-transaction']);
+        reportFilteredData = [sourceReport, destinationReport];
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(sourceReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('source-report', []), makeExpenseReport('destination-report', ['destination-transaction', 'moved-transaction'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(new Set(Object.keys(result.current.selectedTransactions))).toEqual(new Set(['destination-transaction', 'moved-transaction']));
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['source-report']);
+        expect(result.current.excludedTransactions['source-report']?.reportID).toBe('source-report');
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['destination-report']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('excludes a selected expense after it moves into an excluded report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-2']), makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-1-transaction-2']);
+        expect(new Set(Object.keys(result.current.excludedTransactions))).toEqual(new Set(['report-1-transaction-1', 'report-2-transaction-1']));
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.reportID).toBe('report-2');
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-1']);
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 

@@ -131,7 +131,21 @@ function useReconcileSelectionWithData({
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
-        if (!isFocused) {
+        const shouldReconcileMovedExcludedTransaction =
+            isExpenseReportType &&
+            areAllMatchingItemsSelected &&
+            shouldReconcileExcludedTransactions &&
+            filteredData.some((item) => {
+                if (!('transactions' in item) || !item.keyForList) {
+                    return false;
+                }
+                return item.transactions.some((transaction) => {
+                    const listKey = transaction.keyForList ?? transaction.transactionID;
+                    const exclusion = excludedTransactions[listKey] ?? excludedTransactions[transaction.transactionID];
+                    return !!exclusion?.reportID && exclusion.reportID !== item.keyForList;
+                });
+            });
+        if (!isFocused && shouldReconcileMovedExcludedTransaction === false) {
             return;
         }
 
@@ -197,7 +211,12 @@ function useReconcileSelectionWithData({
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
-                    const isDirectlyExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
+                    const directExclusion = excludedTransactions[listKey] ?? excludedTransactions[transactionItem.transactionID];
+                    // A report exclusion belongs to the report where it was created. If the transaction moves to a
+                    // selected report, it must inherit that destination report's selection instead of carrying the
+                    // source report's exclusion with it.
+                    const directExclusionBelongsToCurrentReport = !isExpenseReportType || !reportKey || !directExclusion?.reportID || directExclusion.reportID === reportKey;
+                    const isDirectlyExcluded = !!directExclusion && directExclusionBelongsToCurrentReport;
                     const isExcluded = isParentGroupExcluded || isDirectlyExcluded;
                     const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
 
@@ -341,6 +360,9 @@ function useReconcileSelectionWithData({
                 const transactionID = excludedTransaction.transaction?.transactionID;
                 const liveEntry = liveSelectionEntries.get(key) ?? (transactionID ? liveSelectionEntries.get(transactionID) : undefined);
                 if (liveEntry) {
+                    if (isExpenseReportType && excludedTransaction.reportID && liveEntry.reportID && excludedTransaction.reportID !== liveEntry.reportID) {
+                        continue;
+                    }
                     nextExcludedTransactions[key] = {
                         ...liveEntry,
                         groupKey: excludedTransaction.groupKey,
