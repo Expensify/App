@@ -1316,7 +1316,7 @@ describe('SubscriptionUtils', () => {
         const translateImplementation: LocalizedTranslate = (key, ...parameters) => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const remainingDays = (parameters.at(0) as {count?: number} | undefined)?.count;
-            if (key === 'subscription.billingBanner.trialStarted.title' && typeof remainingDays === 'number') {
+            if (key === 'subscription.billingBanner.trialStarted.badgeTitle' && typeof remainingDays === 'number') {
                 return `trialStarted:${remainingDays}`;
             }
             if (key === 'subscription.billingBanner.preTrial.title') {
@@ -1360,7 +1360,7 @@ describe('SubscriptionUtils', () => {
             const expectedRemainingDays = calculateRemainingFreeTrialDays(lastDayFreeTrial);
             const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
-            expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', {count: expectedRemainingDays});
+            expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.badgeTitle', {count: expectedRemainingDays});
             expect(result).toBe(`trialStarted:${expectedRemainingDays}`);
         });
 
