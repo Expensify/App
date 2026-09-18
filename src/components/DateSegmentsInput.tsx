@@ -14,7 +14,7 @@ import type {DateSegmentName} from '@libs/DateInputMaskUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {AnimatedTextInputRef} from './RNTextInput';
@@ -23,14 +23,21 @@ import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 import RNTextInput from './RNTextInput';
 import Text from './Text';
 
-/** The mask letters are wider than the digits that replace them, so a segment is sized to hold its placeholder */
-const SEGMENT_PADDING = CONST.CHARACTER_WIDTH / 2;
+/** Leaves the caret somewhere to sit, since a segment sized to its text exactly would clip it at the end */
+const CARET_ALLOWANCE = 2;
+
+/** Used until the real text has been measured, so the first paint is close rather than collapsed */
+const ESTIMATED_CHARACTER_WIDTH = CONST.CHARACTER_WIDTH;
 
 /**
- * The style the field hands down stretches its input to fill the row, which would spread three of them evenly across
- * it. Each segment is sized to its own digits instead, so the date reads as one run of text.
+ * The style the field hands down stretches its input across the whole row, which would spread the segments evenly and
+ * make each separator as wide as the field. Everything here is sized to its own text instead, so the date reads as one
+ * run of text.
  */
-const SIZED_TO_CONTENT = {flexGrow: 0, flexShrink: 0, flexBasis: 'auto'} as const;
+const SIZED_TO_CONTENT = {flexGrow: 0, flexShrink: 0, flexBasis: 'auto', width: 'auto'} as const;
+
+/** Holds a copy of a segment's text purely to be measured, so it must not take part in the layout it is measuring */
+const MEASURED_OFF_LAYOUT = {position: 'absolute', opacity: 0} as const;
 
 function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, disabled, onPressOut, forwardedFSClass, ref}: BaseTextInputProps) {
     const styles = useThemeStyles();
@@ -40,6 +47,9 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
     // moving within it once the next focus has had its chance to arrive.
     const blurTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const appliedFocusVersionRef = useRef(0);
+    // The mask letters are wider than the digits that replace them, so a fixed width would either clip the placeholder
+    // or leave a gap once the segment is filled in. Each one is measured from the text it is currently showing.
+    const [measuredWidths, setMeasuredWidths] = useState<Partial<Record<DateSegmentName, number>>>({});
 
     const focusRequest = dateSegmentsConfig?.focusRequest;
 
@@ -69,9 +79,21 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
             {getDateMaskParts(mask).map((part) => {
                 const segmentProps = getSegmentProps(part.name);
+                const measuredText = segmentProps.value || part.placeholder;
+                const width = (measuredWidths[part.name] ?? measuredText.length * ESTIMATED_CHARACTER_WIDTH) + CARET_ALLOWANCE;
 
                 return (
                     <React.Fragment key={part.name}>
+                        <Text
+                            style={[style, styles.p0, SIZED_TO_CONTENT, MEASURED_OFF_LAYOUT]}
+                            onLayout={(event) => {
+                                const layoutWidth = event.nativeEvent.layout.width;
+
+                                setMeasuredWidths((previous) => (previous[part.name] === layoutWidth ? previous : {...previous, [part.name]: layoutWidth}));
+                            }}
+                        >
+                            {measuredText}
+                        </Text>
                         <RNTextInput
                             ref={(element: AnimatedTextInputRef | null) => {
                                 segmentRefs.current[part.name] = element;
@@ -87,7 +109,7 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
                                     ref.current = element;
                                 }
                             }}
-                            style={[style, styles.p0, SIZED_TO_CONTENT, {width: part.placeholder.length * CONST.CHARACTER_WIDTH + SEGMENT_PADDING}]}
+                            style={[style, styles.p0, SIZED_TO_CONTENT, {width}]}
                             value={segmentProps.value}
                             placeholder={part.placeholder}
                             placeholderTextColor={placeholderTextColor}
