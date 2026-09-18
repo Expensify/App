@@ -1,7 +1,6 @@
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PushRowWithModal from '@components/PushRowWithModal';
@@ -12,6 +11,7 @@ import ValuePicker from '@components/ValuePicker';
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {WiseField, WiseFieldOption, WiseFieldType} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -27,6 +27,10 @@ import YesNoAdapter from './adapters/YesNoAdapter';
 const SELECT_MODAL_THRESHOLD = 8;
 const DIGITS_ONLY_REGEX = /^\^?(?:\\d|\[0-9\])(?:\{\d+(?:,\d*)?\}|[+*])?\$?$/;
 const ACCEPTED_FILE_TYPES: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>> = ['png', 'jpg', 'pdf'];
+
+function isCountryCode(code: string): code is Country {
+    return code in CONST.ALL_COUNTRIES;
+}
 
 function getFieldLabel(field: WiseField, translate: LocalizedTranslate): string {
     return field.labelKey ? translate(field.labelKey) : (field.label ?? field.key);
@@ -100,10 +104,19 @@ const REGISTRY = {
         InputComponent: DatePicker,
         inputProps: {placeholder: translate('common.dateFormat')},
     }),
-    country: () => ({
-        InputComponent: CountrySelector,
+    country: (field, {translate}) => ({
+        InputComponent: PushRowWithModal,
         isMenuRow: true,
-        inputProps: {},
+        inputProps: {
+            optionsList: Object.fromEntries(
+                Object.keys(CONST.ALL_COUNTRIES)
+                    .filter(isCountryCode)
+                    .map((code) => [code, translate(`allCountries.${code}`)]),
+            ),
+            description: getFieldLabel(field, translate),
+            modalHeaderTitle: translate('countryStep.selectCountry'),
+            searchInputTitle: translate('common.country'),
+        },
     }),
     address: (field) => ({
         InputComponent: AddressSearch,
