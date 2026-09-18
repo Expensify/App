@@ -28,6 +28,10 @@ const cursor: CursorStyles = {
     cursorZoomIn: {
         cursor: 'zoom-in' as ViewStyle['cursor'],
     },
+    cursorGrab: {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- "grab" is a valid web cursor that react-native's CursorValue type doesn't include
+        cursor: 'grab' as ViewStyle['cursor'],
+    },
     cursorGrabbing: {
         cursor: 'grabbing' as ViewStyle['cursor'],
     },
