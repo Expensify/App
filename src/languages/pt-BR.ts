@@ -535,6 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Siga-nos no LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'O Concierge tem uma resposta!',
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
         enableNotifications: {prompt: 'Quer ser avisado quando o Concierge responder?', cta: 'Notificar'},
@@ -1293,6 +1294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Deixe pra lá',
         dropMessage: 'Solte seu arquivo aqui',
         flash: 'flash',
+        flipCamera: 'inverter câmera',
         multiScan: 'escaneamento múltiplo',
         shutter: 'obturador',
         gallery: 'galeria',
@@ -5300,6 +5302,9 @@ ${amount} para ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando pagas',
                 },
             },
+            fxExpenseAccount: 'Conta de taxa de conversão de moeda do Sage Intacct',
+            fxExpenseAccountDescription:
+                'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, nós lançaremos esse custo nesta conta no Sage Intacct como um lançamento contábil.',
         },
         certinia: {
             title: 'Certinia',
@@ -5566,6 +5571,7 @@ ${amount} para ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Adicione uma subsidiária no NetSuite e sincronize a conexão novamente',
             tokenInput: {
                 title: 'Configuração do NetSuite',
+                connectWithTokenAuthentication: 'Conectar com autenticação baseada em token (SOAP) em vez disso',
                 formSteps: {
                     installBundle: {
                         title: 'Instale o pacote do Expensify',

@@ -537,6 +537,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Suivez-nous sur LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge a une réponse !',
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
         enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
@@ -1299,6 +1300,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
         flash: 'flash',
+        flipCamera: 'inverser la caméra',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
         gallery: 'galerie',
@@ -5348,6 +5350,9 @@ ${amount} pour ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses payées de votre poche seront exportées une fois remboursées',
                 },
             },
+            fxExpenseAccount: 'Compte de frais de conversion de devise Sage Intacct',
+            fxExpenseAccountDescription:
+                'Lorsque votre entreprise prend en charge le coût de conversion de devise pour un paiement effectué à l’étranger, nous comptabiliserons ce coût dans ce compte dans Sage Intacct sous forme d’écriture de journal.',
         },
         certinia: {
             title: 'Certinia',
@@ -5615,6 +5620,7 @@ ${amount} pour ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans NetSuite et synchroniser à nouveau la connexion',
             tokenInput: {
                 title: 'Configuration NetSuite',
+                connectWithTokenAuthentication: 'Connectez-vous plutôt avec l’authentification par jeton (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Installer le bundle Expensify',

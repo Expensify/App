@@ -531,6 +531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: '在LinkedIn上关注我们',
     },
     concierge: {
+        hasAnAnswer: 'Concierge 已有答案！',
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
         enableNotifications: {
@@ -1241,6 +1242,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '随它去',
         dropMessage: '将文件拖放到此处',
         flash: '闪光',
+        flipCamera: '翻转摄像头',
         multiScan: '多重扫描',
         shutter: '快门',
         gallery: '图库',
@@ -5125,6 +5127,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自掏腰包的报销在支付时会导出',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct 货币转换手续费科目',
+            fxExpenseAccountDescription: '当您公司承担境外付款的货币兑换成本时，我们会在 Sage Intacct 中将该成本作为一条日记账分录记入此科目。',
         },
         certinia: {
             title: 'Certinia',
@@ -5376,6 +5380,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noSubsidiariesFoundDescription: '请在 NetSuite 中添加一个子公司，然后再次同步连接',
             tokenInput: {
                 title: 'NetSuite 设置',
+                connectWithTokenAuthentication: '改为使用基于令牌的身份验证（SOAP）连接',
                 formSteps: {
                     installBundle: {
                         title: '安装 Expensify 插件包',

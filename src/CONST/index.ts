@@ -3332,6 +3332,7 @@ const CONST = {
         DIMENSION_PREFIX: 'dimension_',
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     SAGE_INTACCT: {
@@ -3470,6 +3471,9 @@ const CONST = {
                 CREDENTIALS: 'credentials',
                 OAUTH: 'enable-oauth',
                 REST: 'enable-rest',
+            },
+            AUTH_TYPE: {
+                TBA: 'tba',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -9982,6 +9986,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+        },
+        SEARCH_KEY: {
+            SPEND: 'insightsSpend',
+        },
+        GRAPH: {
+            SPEND_OVER_TIME: 'spendOverTime',
+            TOP_MERCHANTS: 'topMerchants',
+            TOP_CATEGORIES: 'topCategories',
+            TOP_SPENDERS: 'topSpenders',
         },
     },
 

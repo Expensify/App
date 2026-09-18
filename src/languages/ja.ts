@@ -535,6 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'LinkedInでフォロー',
     },
     concierge: {
+        hasAnAnswer: 'Concierge からの回答があります！',
         collapseReasoning: '推論を折りたたむ',
         expandReasoning: '推論を展開',
         enableNotifications: {
@@ -1278,6 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '手放して',
         dropMessage: 'ここにファイルをドロップしてください',
         flash: 'フラッシュ',
+        flipCamera: 'カメラを反転',
         multiScan: 'マルチスキャン',
         shutter: 'シャッター',
         gallery: 'ギャラリー',
@@ -5261,6 +5263,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担経費は支払われた時点でエクスポートされます',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct 外貨換算手数料勘定',
+            fxExpenseAccountDescription: '海外で行った支払いについて、御社が為替換算コストを負担する場合、そのコストは仕訳として Sage Intacct のこの勘定科目に計上します。',
         },
         certinia: {
             title: 'Certinia',
@@ -5517,6 +5521,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noSubsidiariesFoundDescription: 'NetSuite に子会社を追加して、もう一度接続を同期してください',
             tokenInput: {
                 title: 'NetSuite のセットアップ',
+                connectWithTokenAuthentication: '代わりにトークンベース認証（SOAP）で接続します',
                 formSteps: {
                     installBundle: {
                         title: 'Expensify バンドルをインストール',

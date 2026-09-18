@@ -536,6 +536,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Seguici su LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge ha una risposta!',
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
         enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},
@@ -1293,6 +1294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Lascia perdere',
         dropMessage: 'Rilascia qui il tuo file',
         flash: 'flash',
+        flipCamera: 'inverti fotocamera',
         multiScan: 'scansione multipla',
         shutter: 'otturatore',
         gallery: 'galleria',
@@ -5308,6 +5310,9 @@ ${amount} per ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
+            fxExpenseAccount: 'Conto commissioni conversione valuta Sage Intacct',
+            fxExpenseAccountDescription:
+                'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo quel costo su questo conto in Sage Intacct come scrittura contabile.',
         },
         certinia: {
             title: 'Certinia',
@@ -5575,6 +5580,7 @@ ${amount} per ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Aggiungi una consociata in NetSuite e sincronizza di nuovo la connessione',
             tokenInput: {
                 title: 'Configurazione NetSuite',
+                connectWithTokenAuthentication: 'Connettiti invece con autenticazione basata su token (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Installa il pacchetto Expensify',

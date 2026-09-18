@@ -524,6 +524,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Síguenos en LinkedIn',
     },
     concierge: {
+        hasAnAnswer: '¡Concierge tiene una respuesta!',
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
         enableNotifications: {
@@ -1294,6 +1295,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         flash: 'flash',
+        flipCamera: 'cambiar de cámara',
         multiScan: 'escaneo múltiple',
         shutter: 'obturador',
         gallery: 'galería',
@@ -5274,6 +5276,9 @@ ${amount} para ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
                 },
             },
+            fxExpenseAccount: 'Cuenta de comisión por conversión de divisa de Sage Intacct',
+            fxExpenseAccountDescription:
+                'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Sage Intacct como un asiento contable.',
         },
         certinia: {
             title: 'Certinia',
@@ -5540,6 +5545,7 @@ ${amount} para ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión',
             tokenInput: {
                 title: 'Netsuite configuración',
+                connectWithTokenAuthentication: 'Conéctate con autenticación basada en tokens (SOAP) en su lugar',
                 formSteps: {
                     installBundle: {
                         title: 'Instala el paquete de Expensify',

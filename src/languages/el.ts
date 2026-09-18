@@ -537,6 +537,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Ακολουθήστε μας στο LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Ο Concierge έχει απάντηση!',
         collapseReasoning: 'Σύμπτυξη αιτιολόγησης',
         expandReasoning: 'Επεκτείνετε την αιτιολόγηση',
         enableNotifications: {
@@ -1344,6 +1345,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Άφησέ το να πάει',
         dropMessage: 'Αποθέστε το αρχείο σας εδώ',
         flash: 'φλας',
+        flipCamera: 'περιστροφή κάμερας',
         multiScan: 'πολλαπλή σάρωση',
         shutter: 'κλείστρο',
         gallery: 'συλλογή',
@@ -5420,6 +5422,9 @@ ${amount} για ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εξοφληθούν',
                 },
             },
+            fxExpenseAccount: 'λογαριασμός χρέωσης μετατροπής νομίσματος Sage Intacct',
+            fxExpenseAccountDescription:
+                'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή που γίνεται στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Sage Intacct ως λογιστική εγγραφή.',
         },
         certinia: {
             title: 'Certinia',
@@ -5697,6 +5702,7 @@ ${amount} για ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια θυγατρική στο NetSuite και συγχρονίστε ξανά τη σύνδεση',
             tokenInput: {
                 title: 'Ρύθμιση NetSuite',
+                connectWithTokenAuthentication: 'Συνδεθείτε με έλεγχο ταυτότητας βάσει διακριτικού (SOAP) αντ’ αυτού',
                 formSteps: {
                     installBundle: {
                         title: 'Εγκαταστήστε το πακέτο Expensify',

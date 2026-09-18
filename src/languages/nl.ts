@@ -536,6 +536,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Volg ons op LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge heeft een antwoord!',
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
         enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
@@ -1293,6 +1294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laat het los',
         dropMessage: 'Zet je bestand hier neer',
         flash: 'flits',
+        flipCamera: 'camera omdraaien',
         multiScan: 'meerscannen',
         shutter: 'sluiter',
         gallery: 'galerij',
@@ -5306,6 +5308,9 @@ ${amount} voor ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd zodra ze zijn betaald',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct rekening voor kosten valutaconversie',
+            fxExpenseAccountDescription:
+                'Wanneer je bedrijf de kosten voor valutaconversie dekt voor een betaling in het buitenland, boeken we die kosten in Sage Intacct op deze rekening als een memoriaalboeking.',
         },
         certinia: {
             title: 'Certinia',
@@ -5573,6 +5578,7 @@ ${amount} voor ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Voeg een dochteronderneming toe in NetSuite en synchroniseer de verbinding opnieuw',
             tokenInput: {
                 title: 'NetSuite-configuratie',
+                connectWithTokenAuthentication: 'In plaats daarvan verbinding maken met token-gebaseerde authenticatie (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Installeer de Expensify-bundel',

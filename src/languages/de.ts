@@ -537,6 +537,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Folgen Sie uns auf LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge hat eine Antwort!',
         collapseReasoning: 'Begründung einklappen',
         expandReasoning: 'Begründung erweitern',
         enableNotifications: {prompt: 'Möchten Sie benachrichtigt werden, wenn Concierge antwortet?', cta: 'Benachrichtigen'},
@@ -1295,6 +1296,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Lass es los',
         dropMessage: 'Datei hierher ziehen',
         flash: 'Blitz',
+        flipCamera: 'Kamera wechseln',
         multiScan: 'Mehrfachscan',
         shutter: 'Verschluss',
         gallery: 'Galerie',
@@ -5343,6 +5345,9 @@ ${amount} für ${merchant} – ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagenausgaben werden beim Bezahlen exportiert',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct Konto für Währungsumrechnungsgebühren',
+            fxExpenseAccountDescription:
+                'Wenn Ihr Unternehmen die Kosten für die Währungsumrechnung bei einer im Ausland getätigten Zahlung übernimmt, buchen wir diese Kosten in Sage Intacct als Journalbuchung auf dieses Konto.',
         },
         certinia: {
             title: 'Certinia',
@@ -5610,6 +5615,7 @@ ${amount} für ${merchant} – ${date}`,
             noSubsidiariesFoundDescription: 'Bitte füge in NetSuite eine Tochtergesellschaft hinzu und synchronisiere die Verbindung erneut',
             tokenInput: {
                 title: 'NetSuite-Einrichtung',
+                connectWithTokenAuthentication: 'Stattdessen mit tokenbasierter Authentifizierung (SOAP) verbinden',
                 formSteps: {
                     installBundle: {
                         title: 'Expensify-Bundle installieren',

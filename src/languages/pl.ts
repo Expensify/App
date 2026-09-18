@@ -539,6 +539,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Śledź nas na LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge ma odpowiedź!',
         collapseReasoning: 'Zwiń rozumowanie',
         expandReasoning: 'Rozwiń rozumowanie',
         enableNotifications: {prompt: 'Chcesz otrzymywać powiadomienia, gdy Concierge odpowie?', cta: 'Powiadom'},
@@ -1325,6 +1326,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Odpuść to',
         dropMessage: 'Upuść tutaj plik',
         flash: 'błysk',
+        flipCamera: 'obróć kamerę',
         multiScan: 'wielokrotne skanowanie',
         shutter: 'migawka',
         gallery: 'galeria',
@@ -5332,6 +5334,9 @@ ${amount} dla ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
                 },
             },
+            fxExpenseAccount: 'Konto opłat za przewalutowanie Sage Intacct',
+            fxExpenseAccountDescription:
+                'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w Sage Intacct jako zapis w dzienniku.',
         },
         certinia: {
             title: 'Certinia',
@@ -5599,6 +5604,7 @@ ${amount} dla ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę zależną w NetSuite i ponownie zsynchronizuj połączenie',
             tokenInput: {
                 title: 'Konfiguracja NetSuite',
+                connectWithTokenAuthentication: 'Połącz się zamiast tego z użyciem uwierzytelniania opartego na tokenie (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Zainstaluj pakiet Expensify',
