@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getPlatform from '@libs/getPlatform';
 import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
@@ -268,18 +268,41 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInFilter,
     isItemInSearch,
     initialSortColumn,
+    initialSortOrder,
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
     shouldUseDynamicColumns = false,
+    isMobileSelectionModeEnabled,
+    onMobileSelectionModeChange,
+    shouldPreserveSelectionOnSearchAndFilter,
+    shouldFooterRenderAsLastRow,
     onRowSelectionChange,
     onSearchStringChange,
     onSortingChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
-    const isMobileSelectionEnabled = useMobileSelectionMode();
+    const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
+    // The app wide selection mode is shared with every other screen, so an unrelated screen can turn it off while this
+    // table is still using it. A table that passes its own mode in keeps it to itself instead.
+    const isMobileSelectionModeControlled = !!onMobileSelectionModeChange;
+    const isMobileSelectionEnabled = isMobileSelectionModeControlled ? !!isMobileSelectionModeEnabled : isGlobalMobileSelectionEnabled;
+
+    const setMobileSelectionModeEnabled = (isEnabled: boolean) => {
+        if (isMobileSelectionModeControlled) {
+            onMobileSelectionModeChange(isEnabled);
+            return;
+        }
+
+        if (isEnabled) {
+            turnOnMobileSelectionMode();
+            return;
+        }
+
+        turnOffMobileSelectionMode();
+    };
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
@@ -304,6 +327,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     } = useSorting<DataType, ColumnKey>({
         compareItems,
         initialSortColumn,
+        initialSortOrder,
         narrowLayoutSortColumn,
         shouldUseNarrowTableLayout,
         onSortingChange,
@@ -322,6 +346,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectedKeys,
         onRowSelectionChange,
         shouldEnableSelectionInNarrowPaneModal,
+        isSelectionModeEnabled: isMobileSelectionEnabled,
+        setSelectionModeEnabled: setMobileSelectionModeEnabled,
+        shouldPreserveSelectionOnSearchAndFilter,
     });
     const selectionData = selectionMiddleware(sortedData);
 
@@ -441,9 +468,13 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
             return;
         }
 
-        turnOnMobileSelectionMode();
+        setMobileSelectionModeEnabled(true);
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
+        // setMobileSelectionModeEnabled is omitted from the dependencies below because it closes over the caller's
+        // onMobileSelectionModeChange, which a caller is free to pass inline. This effect must only run when the user
+        // confirms the selection.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
 
     useEffect(
@@ -474,6 +505,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         activeFilters: currentFilters,
         activeSorting,
         initialSortColumn,
+        initialSortOrder: initialSortOrder ?? 'asc',
         narrowLayoutSortColumn,
         activeSearchString,
         tableMethods,
@@ -483,6 +515,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isEmptyResult,
         isDefaultViewEmpty,
         shouldUseNarrowTableLayout,
+        shouldFooterRenderAsLastRow,
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
