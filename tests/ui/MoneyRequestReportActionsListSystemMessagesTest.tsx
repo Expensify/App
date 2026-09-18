@@ -32,13 +32,12 @@ const EMAIL = 'testuser@example.com';
 type MockReportActionRendererProps = {
     reportAction: ReportAction;
     displayAsGroup: boolean;
-    reportActionItemComponent?: React.ComponentType;
 };
 
 const mockReportActionRenderer = jest.fn((props: MockReportActionRendererProps) => (
     <View
         testID={`report-action-${props.reportAction.reportActionID}`}
-        accessibilityLabel={`${props.displayAsGroup ? 'grouped' : 'single'}-${props.reportActionItemComponent ? 'system' : 'chat'}`}
+        accessibilityLabel={props.displayAsGroup ? 'grouped' : 'single'}
     />
 ));
 
@@ -211,30 +210,24 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         });
     });
 
-    it('collapses and expands the real list while keeping system members without avatars and preserving chat boundaries', async () => {
+    it('expands the real audit list into normal rows and removes the control', async () => {
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
-        const collapsedControl = screen.getByRole('button', {name: 'Show 2 actions'});
+        const collapsedControl = screen.getByRole('button', {name: 'show 2 updates'});
         expect(collapsedControl.props.accessibilityState).toMatchObject({expanded: false});
         expect(getRenderedActionIDs()).toEqual(['report-action-chat-boundary', 'report-action-system-singleton']);
-        expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('single-chat');
-        expect(screen.getByTestId('report-action-system-singleton').props.accessibilityLabel).toBe('grouped-system');
+        expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('single');
+        expect(screen.getByTestId('report-action-system-singleton').props.accessibilityLabel).toBe('grouped');
 
         fireEvent.press(collapsedControl);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByRole('button', {name: 'Hide 2 actions'}).props.accessibilityState).toMatchObject({expanded: true});
+        expect(screen.queryByRole('button', {name: 'show 2 updates'})).toBeNull();
+        expect(screen.queryByRole('button', {name: /Hide/})).toBeNull();
         expect(getRenderedActionIDs()).toEqual(['report-action-system-anchor', 'report-action-legacy-system', 'report-action-chat-boundary', 'report-action-system-singleton']);
-        expect(screen.getByTestId('report-action-system-anchor').props.accessibilityLabel).toBe('grouped-system');
-        expect(screen.getByTestId('report-action-legacy-system').props.accessibilityLabel).toBe('grouped-system');
-        expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('single-chat');
-
-        fireEvent.press(screen.getByRole('button', {name: 'Hide 2 actions'}));
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByTestId('report-action-system-anchor')).toBeNull();
-        expect(screen.queryByTestId('report-action-legacy-system')).toBeNull();
-        expect(getRenderedActionIDs()).toEqual(['report-action-chat-boundary', 'report-action-system-singleton']);
+        expect(screen.getByTestId('report-action-system-anchor').props.accessibilityLabel).toBe('single');
+        expect(screen.getByTestId('report-action-legacy-system').props.accessibilityLabel).toBe('grouped');
+        expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('grouped');
     });
 });

@@ -4,7 +4,7 @@ import type {ProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUti
 import ROUTES from '@src/ROUTES';
 
 const activeAnnouncement: ProductMarketingAnnouncement = {
-    updateKey: 'productUpdateJuly2026',
+    updateKey: 'productUpdateAugust2026',
     admin: {
         visual: {type: 'illustration', name: 'Rules'},
         heading: 'productMarketingWindow.roleTypes.admin.heading',
@@ -25,7 +25,8 @@ const adminOnlyAnnouncement: ProductMarketingAnnouncement = {
     admin: activeAnnouncement.admin,
 };
 
-const OLDER_UPDATE_KEY = 'productUpdateJune2026';
+const OLDER_UPDATE_KEY = 'productUpdateJuly2026';
+const UNKNOWN_UPDATE_KEY = 'productUpdateSeptember2026';
 
 describe('ProductMarketingWindowUtils', () => {
     describe('isProductMarketingAnnouncementDismissed', () => {
@@ -44,6 +45,10 @@ describe('ProductMarketingWindowUtils', () => {
 
         it('returns false when the last dismissed key belongs to an older update', () => {
             expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, OLDER_UPDATE_KEY)).toBe(false);
+        });
+
+        it('returns true when the last dismissed key is unknown to this client', () => {
+            expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, UNKNOWN_UPDATE_KEY)).toBe(true);
         });
     });
 
@@ -72,6 +77,10 @@ describe('ProductMarketingWindowUtils', () => {
 
         it('still returns the active announcement variant when an older update was dismissed', () => {
             expect(getProductMarketingAnnouncementVariant(activeAnnouncement, false, OLDER_UPDATE_KEY)).toBe(activeAnnouncement.member);
+        });
+
+        it('returns undefined when the dismissed update is unknown to this client', () => {
+            expect(getProductMarketingAnnouncementVariant(activeAnnouncement, false, UNKNOWN_UPDATE_KEY)).toBeUndefined();
         });
     });
 });

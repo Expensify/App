@@ -88,6 +88,10 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
     };
 
+    // Mirrors how the step screens compute dirtiness: the current value against the committed baseline
+    const renderValueDrivenHook = (baseline: string) =>
+        renderHook(({typed}: {typed: string}) => useDiscardChangesConfirmation({getHasUnsavedChanges: () => typed !== baseline}), {initialProps: {typed: baseline}});
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockPreventRemoveFlag = undefined;
@@ -165,6 +169,37 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
             expect(mockPreventRemoveFlag).toBe(true);
+        });
+
+        it('leaves prevention off on a clean screen', () => {
+            renderValueDrivenHook('');
+
+            expect(mockPreventRemoveFlag).toBe(false);
+        });
+
+        it('leaves prevention off on a prefilled screen still matching its baseline', () => {
+            renderValueDrivenHook('42');
+
+            expect(mockPreventRemoveFlag).toBe(false);
+        });
+
+        it('arms prevention as soon as the value differs from the baseline', () => {
+            const {rerender} = renderValueDrivenHook('');
+
+            rerender({typed: '5'});
+
+            expect(mockPreventRemoveFlag).toBe(true);
+        });
+
+        it('relaxes prevention as soon as the value is reverted to the baseline', () => {
+            const {rerender} = renderValueDrivenHook('42');
+
+            rerender({typed: '4'});
+            expect(mockPreventRemoveFlag).toBe(true);
+
+            // No timer to flush: a swipe started right after the revert must not be swallowed
+            rerender({typed: '42'});
+            expect(mockPreventRemoveFlag).toBe(false);
         });
 
         it('re-dispatches a beforeRemove fired during the goBack replay instead of re-prompting', async () => {

@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef, useState} from 'react';
 
@@ -7,7 +7,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports} from './selectionBuilders';
+import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -109,9 +109,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                         excludedTransactions[key] = transaction;
                     }
                 }
-                for (const key of Object.keys(selectedTransactions)) {
+                for (const [key, transaction] of Object.entries(selectedTransactions)) {
                     if (!Object.hasOwn(prevState.selectedTransactions, key) && Object.hasOwn(excludedTransactions, key)) {
                         delete excludedTransactions[key];
+                    }
+                    if (!Object.hasOwn(prevState.selectedTransactions, key) && transaction.isSelectedViaGroup && transaction.groupKey) {
+                        delete excludedTransactions[transaction.groupKey];
                     }
                 }
             } else if (!areAllMatchingItemsSelected) {
@@ -288,12 +291,11 @@ function useSyncSelectedReports(data: SearchData) {
 
 /** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
 function useRowSelection(keyForList: string | undefined, parentGroupKey?: string): {isSelected: boolean} {
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     if (!keyForList) {
         return {isSelected: false};
     }
-    const isExcluded = Object.hasOwn(excludedTransactions, keyForList) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey));
-    return {isSelected: (areAllMatchingItemsSelected && !isExcluded) || !!selectedTransactions[keyForList]?.isSelected};
+    return {isSelected: isRowChecked({rowKey: keyForList, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})};
 }
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */

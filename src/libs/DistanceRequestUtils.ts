@@ -2,6 +2,7 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -19,7 +20,7 @@ import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDispl
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
-import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
+import {getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -336,29 +337,68 @@ function getCommuterExclusionDisplayData(customUnit: TransactionCustomUnit | und
     };
 }
 
+/**
+ * Whether the commuter exclusion preview on the transaction is the one for this workspace. The preview rides
+ * along on the route response, so one left behind by a workspace the member has since switched away from
+ * describes a different trip and does not answer for this one.
+ */
+function hasCommuterExclusionPreviewForPolicy(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.id && transaction?.commuterExclusionPreview?.policyID === policy.id;
+}
+
+/**
+ * Whether a workspace's commuter exclusion applies to a distance expense of this request type.
+ *
+ * Only a distance the app itself measured describes a route the workspace can recognize a commute in, so a manually
+ * entered or odometer distance is reimbursed in full.
+ */
+function isCommuterExclusionApplicableToRequestType(iouRequestType: IOURequestType | undefined): boolean {
+    return iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL && iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+}
+
+/**
+ * Returns the distance a workspace excludes from a distance of `distance` units, expressed in that same unit.
+ *
+ * Returns 0 when the workspace excludes nothing, so callers can treat it as "no exclusion applies". The exclusion never
+ * exceeds the distance itself, which is what keeps a reimbursable distance from going negative.
+ */
+function getPolicyCommuterExclusionForDistance(policy: OnyxEntry<Policy>, distance: number, distanceUnit: Unit): number {
+    const commuterExclusions = policy?.commuterExclusions;
+    if (commuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+        return 0;
+    }
+
+    const fixedDistanceUnit: Unit =
+        commuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
+
+    return Math.max(0, Math.min(fixedDistanceInRequestUnit, distance));
+}
+
 function getTransactionCommuterExclusionData({
     transaction,
     policy,
     customUnit,
+    storedCustomUnit,
     translate,
     toLocaleDigit,
     getCurrencySymbol,
     personalPolicyOutputCurrency,
+    hasTripChanged = false,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     customUnit?: TransactionCustomUnit;
+    storedCustomUnit?: TransactionCustomUnit;
     translate?: LocaleContextProps['translate'];
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
     personalPolicyOutputCurrency?: string;
+
+    /** Whether the trip's waypoints just changed, which retires an exclusion derived from the old ones */
+    hasTripChanged?: boolean;
 }): (Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit}) | undefined {
-    const policyCommuterExclusions = policy?.commuterExclusions;
-    if (
-        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
-        policyCommuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
-    ) {
+    if (!isCommuterExclusionApplicableToRequestType(transaction?.iouRequestType)) {
         return;
     }
 
@@ -384,15 +424,44 @@ function getTransactionCommuterExclusionData({
         return;
     }
 
-    const fixedDistanceUnit: Unit =
-        policyCommuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(policyCommuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), requestDistanceUnit);
+    // A stored exclusion is the one the expense was created with. A fixed distance is a per-claim constant, so it
+    // stays frozen even if the workspace later changes it. A home and office exclusion was derived from where the
+    // trip started and ended, so a changed trip or a fresh decision for the current one retires it.
+    const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
+    const commuterExclusionPreview = transaction?.commuterExclusionPreview;
+    const hasPreviewForThisPolicy = hasCommuterExclusionPreviewForPolicy(transaction, policy);
+    const isStoredExclusionDerivedFromTheTrip = storedCustomUnit?.commuterExclusionMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const shouldReuseStoredExclusion =
+        typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0 && !(isStoredExclusionDerivedFromTheTrip && (hasPreviewForThisPolicy || hasTripChanged));
 
-    if (fixedDistanceInRequestUnit <= 0) {
-        return;
+    let commuterExclusion: number;
+    let commuterExclusionMethod: NonNullable<TransactionCustomUnit['commuterExclusionMethod']>;
+    if (shouldReuseStoredExclusion) {
+        const storedExclusionInRequestUnit = convertDistanceUnit(
+            convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit),
+            requestDistanceUnit,
+        );
+        commuterExclusion = Math.max(0, Math.min(storedExclusionInRequestUnit, routeDistance));
+        commuterExclusionMethod = storedCustomUnit?.commuterExclusionMethod ?? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+    } else if (policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+        // How much of a trip is the member's commute is decided against their home address and the workspace
+        // address, which takes geocoding the backend does and the app can't, so the preview rides along on the
+        // route response.
+        if (!hasPreviewForThisPolicy || !commuterExclusionPreview?.hasExclusion) {
+            commuterExclusion = 0;
+        } else if (commuterExclusionPreview.isWholeTripExcluded) {
+            // The route distance here is the one to exclude, rather than the backend's copy of it, so the trip
+            // still comes out at nothing reimbursable when the member picked a different alternate route.
+            commuterExclusion = routeDistance;
+        } else {
+            commuterExclusion = Math.min(routeDistance, convertDistanceUnit(commuterExclusionPreview.commuteDistanceMeters, requestDistanceUnit));
+        }
+        commuterExclusionMethod = CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    } else {
+        commuterExclusion = getPolicyCommuterExclusionForDistance(policy, routeDistance, requestDistanceUnit);
+        commuterExclusionMethod = CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
     }
 
-    const commuterExclusion = Math.min(fixedDistanceInRequestUnit, routeDistance);
     if (commuterExclusion <= 0) {
         return;
     }
@@ -427,7 +496,7 @@ function getTransactionCommuterExclusionData({
             ...(routeDistanceInMeters !== undefined && {routeDistanceMeters: routeDistanceInMeters}),
             commuterExclusion,
             reimbursableDistance,
-            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+            commuterExclusionMethod,
         },
     };
 }
@@ -537,12 +606,42 @@ function getFullyBoundedDateRangeMs(rate: MileageRate): number | undefined {
 }
 
 /**
- * Finds the best eligible rate for a given expense date from a set of mileage rates.
+ * Ranks two rates that are both eligible for the same expense date.
  * Selection order per design doc:
  * 1. Most specific date range (fully bounded > partially bounded > unbounded)
  * 2. Narrower date range for two fully bounded ranges
  * 3. Latest start date
  * 4. Lowest index (creation order)
+ */
+function compareRatesByDateSpecificity(a: MileageRate, b: MileageRate): number {
+    const aScore = getBoundednessScore(a);
+    const bScore = getBoundednessScore(b);
+    if (aScore !== bScore) {
+        return bScore - aScore;
+    }
+
+    // Both scores are equal here, so aScore === 2 means both rates are fully bounded.
+    if (aScore === 2) {
+        const aRange = getFullyBoundedDateRangeMs(a);
+        const bRange = getFullyBoundedDateRangeMs(b);
+        if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
+            return aRange - bRange;
+        }
+    }
+
+    const aStart = a.startDate ?? '';
+    const bStart = b.startDate ?? '';
+    if (aStart !== bStart) {
+        return aStart < bStart ? 1 : -1;
+    }
+
+    const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
+    const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
+    return aIndex - bIndex;
+}
+
+/**
+ * Finds the best eligible rate for a given expense date from a set of mileage rates.
  */
 function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseDate: string): MileageRate | undefined {
     const eligibleRates = Object.values(mileageRates).filter((rate) => rate.enabled !== false && isRateEligibleForDate(rate, expenseDate));
@@ -551,31 +650,7 @@ function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseD
         return undefined;
     }
 
-    eligibleRates.sort((a, b) => {
-        const aScore = getBoundednessScore(a);
-        const bScore = getBoundednessScore(b);
-        if (aScore !== bScore) {
-            return bScore - aScore;
-        }
-
-        if (aScore === 2 && bScore === 2) {
-            const aRange = getFullyBoundedDateRangeMs(a);
-            const bRange = getFullyBoundedDateRangeMs(b);
-            if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
-                return aRange - bRange;
-            }
-        }
-
-        const aStart = a.startDate ?? '';
-        const bStart = b.startDate ?? '';
-        if (aStart !== bStart) {
-            return aStart < bStart ? 1 : -1;
-        }
-
-        const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
-        const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
-        return aIndex - bIndex;
-    });
+    eligibleRates.sort(compareRatesByDateSpecificity);
 
     return eligibleRates.at(0);
 }
@@ -587,6 +662,45 @@ function getBestEligibleRateOrPolicyDefault(mileageRates: Record<string, Mileage
     }
 
     return getDefaultMileageRate(policy);
+}
+
+/**
+ * Finds the rate that is equivalent to the expense's current rate: same value, same currency and same distance unit, and valid for the expense date.
+ * The unit is taken from the policy's distance custom unit, so a unit mismatch disqualifies every rate on that policy.
+ */
+function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, currentRate: MileageRate | undefined, expenseDate: string): MileageRate | undefined {
+    if (currentRate?.rate === undefined || !currentRate.currency) {
+        return undefined;
+    }
+
+    const equivalentRates = Object.fromEntries(
+        Object.entries(mileageRates).filter(([, rate]) => rate.rate === currentRate.rate && rate.currency === currentRate.currency && rate.unit === currentRate.unit),
+    );
+
+    return getBestEligibleRate(equivalentRates, expenseDate);
+}
+
+/**
+ * Selects the distance rate for an expense moving to a different workspace: an equivalent rate on the destination policy, else its
+ * best rate for the expense date, else its default rate, else nothing so the caller keeps the `customUnitOutOfPolicy` violation.
+ *
+ * `currentRate` resolves against the source policy, which this module cannot look up, so callers pass it in. It is optional because
+ * a P2P expense carries its rate on the transaction.
+ *
+ * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here.
+ */
+function getRateForPolicyChange({transaction, policy, currentRate}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; currentRate?: MileageRate}): MileageRate | undefined {
+    const expenseDate = getFormattedCreated(transaction);
+    const mileageRates = getMileageRates(policy);
+    const p2pRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(getCurrency(transaction), transaction) : undefined;
+    // getRateForP2P reports the loaded global default's unit, not the expense's, so read the unit off the transaction the way getRate does.
+    // Otherwise an expense saved in kilometers is matched as miles and the fallback rate reprices it.
+    const rateToMatch = currentRate ?? (p2pRate ? {...p2pRate, unit: getDistanceUnit(transaction, p2pRate)} : undefined);
+
+    const selectedRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate) ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+
+    // getDefaultMileageRate returns a fully shaped rate with an undefined customUnitRateID when the policy has no enabled rates, so normalize that case to undefined.
+    return selectedRate?.customUnitRateID ? selectedRate : undefined;
 }
 
 /**
@@ -764,6 +878,25 @@ function getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID: string 
 }
 
 /**
+ * Resolve a mileage rate from the supplied policy, falling back to any policy that owns an enabled rate with the same ID.
+ */
+function getRateByCustomUnitRateIDAcrossPolicies({
+    customUnitRateID,
+    policy,
+    policies,
+}: {
+    customUnitRateID: string | undefined;
+    policy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
+}): MileageRate | undefined {
+    if (!customUnitRateID) {
+        return undefined;
+    }
+
+    return getRateByCustomUnitRateID({customUnitRateID, policy}) ?? getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
+}
+
+/**
  * Returns whether the selected custom unit rate is out of its valid date range for the given expense date.
  */
 function isCustomUnitRateOutOfDateRange({
@@ -852,6 +985,9 @@ export default {
     getDistanceMerchant,
     getDistanceRequestAmount,
     getCommuterExclusionDisplayData,
+    getPolicyCommuterExclusionForDistance,
+    isCommuterExclusionApplicableToRequestType,
+    hasCommuterExclusionPreviewForPolicy,
     getTransactionCommuterExclusionData,
     getDistanceDisplayDetailsWithCommuter,
     getFormattedRateValue,
@@ -868,6 +1004,7 @@ export default {
     getUpdatedDistanceUnit,
     getRate,
     getRateByCustomUnitRateID,
+    getRateByCustomUnitRateIDAcrossPolicies,
     getEnabledRateByCustomUnitRateIDFromAnyPolicy,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
@@ -879,6 +1016,7 @@ export default {
     isRateEligibleForDate,
     isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,
+    getRateForPolicyChange,
     getRateDateLabel,
 };
 

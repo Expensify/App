@@ -48,19 +48,16 @@ type NumberWithSymbolFormProps = {
     /** Callback to update the value in the FormProvider */
     onInputChange?: (number: string) => void;
 
-    /** Number of decimals to display in the number */
     decimals?: number;
 
     /** Currency of the input */
     currency?: string;
 
-    /** Whether the big number pad should be shown */
     shouldShowBigNumberPad?: boolean;
 
     /** Footer to display at the bottom of the form */
     footer?: React.ReactNode;
 
-    /** Reference to the number form */
     numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
     /** Error to display at the bottom of the form */
@@ -72,10 +69,7 @@ type NumberWithSymbolFormProps = {
     /** Custom label for the TextInput */
     label?: string;
 
-    /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
-
-    /** Style applied to the outer ScrollView */
     scrollViewStyle?: StyleProp<ViewStyle>;
 
     /** Whether to refocus the input when clicking on the ScrollView empty space */
@@ -96,7 +90,6 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
-    /** Style for the negative symbol */
     negativeSymbolStyle?: StyleProp<TextStyle>;
 
     /** Whether to use dynamic font size for the amount input */
@@ -105,22 +98,17 @@ type NumberWithSymbolFormProps = {
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-
-    /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
-
-    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
-
-    /** Whether to show the flip (+/-) button */
     shouldShowFlipButton?: boolean;
 
     /** Whether to show the currency selection button */
     shouldShowCurrencyButton?: boolean;
 
-    /** Callback when currency button is pressed */
+    /** Extra content rendered at the start of the right-hand side, before the flip and currency buttons. `displayAsTextInput` mode only. */
+    leadingRightHandSideComponent?: React.ReactNode;
+
     onCurrencyButtonPress?: () => void;
 
     /**
@@ -199,6 +187,7 @@ function NumberWithSymbolForm({
     onSubmitEditing,
     shouldShowFlipButton = false,
     shouldShowCurrencyButton = false,
+    leadingRightHandSideComponent,
     onCurrencyButtonPress,
     currencyButtonLabel,
     currencyButtonAccessibilityLabel,
@@ -498,30 +487,41 @@ function NumberWithSymbolForm({
     const textInputRightHandSideComponent = useMemo(() => {
         return (
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {leadingRightHandSideComponent}
                 {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                     <Button
-                        small
-                        icon={icons.PlusMinus}
-                        iconAccessibilityLabel={translate('iou.flip')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
-                        iconWrapperStyles={styles.justifyContentCenter}
-                        text={translate('iou.flip')}
+                        contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={translate('iou.flip')}
                         isDisabled={disabled}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.PlusMinus}
+                            accessibilityLabel={translate('iou.flip')}
+                        />
+                        <Button.Text>{translate('iou.flip')}</Button.Text>
+                    </Button>
                 )}
                 {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                     <Button
-                        small
-                        icon={icons.CoinsButton}
-                        iconAccessibilityLabel={translate('common.currency')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onTrailingDropdownPress}
-                        iconWrapperStyles={styles.justifyContentCenter}
-                        text={currencyOrUnitButtonText}
+                        // Keep the press from blurring the input. Callers that only reveal these buttons while the
+                        // field is focused would otherwise unmount this one before the press lands, leaving the
+                        // currency unreachable until an amount is typed.
+                        onMouseDown={(e) => e.preventDefault()}
+                        contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
                         isDisabled={disabled}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.CoinsButton}
+                            accessibilityLabel={translate('common.currency')}
+                        />
+                        <Button.Text>{currencyOrUnitButtonText}</Button.Text>
+                    </Button>
                 )}
             </View>
         );
@@ -530,6 +530,7 @@ function NumberWithSymbolForm({
         allowNegativeInput,
         disabled,
         shouldShowCurrencyButton,
+        leadingRightHandSideComponent,
         styles,
         icons,
         handleFlipPress,
@@ -573,7 +574,8 @@ function NumberWithSymbolForm({
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
                 onBlur={props.onBlur}
-                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
+                testID={props.testID}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton || !!leadingRightHandSideComponent ? textInputRightHandSideComponent : undefined}
             />
         );
     }
@@ -645,27 +647,33 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
                             {isSymbolPressable && (
                                 <Button
-                                    small
-                                    icon={icons.CoinsButton}
-                                    iconAccessibilityLabel={translate('common.currency')}
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={onSymbolButtonPress}
                                     style={styles.minWidth18}
-                                    iconWrapperStyles={styles.justifyContentCenter}
-                                    text={currency}
+                                    contentContainerStyle={styles.justifyContentCenter}
                                     accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
-                                />
+                                >
+                                    <Button.Icon
+                                        src={icons.CoinsButton}
+                                        accessibilityLabel={translate('common.currency')}
+                                    />
+                                    <Button.Text>{currency}</Button.Text>
+                                </Button>
                             )}
                             {allowFlippingAmount && (
                                 <Button
-                                    small
-                                    icon={icons.PlusMinus}
-                                    iconAccessibilityLabel={translate('iou.flip')}
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
-                                    iconWrapperStyles={styles.justifyContentCenter}
-                                    text={translate('iou.flip')}
+                                    contentContainerStyle={styles.justifyContentCenter}
                                     accessibilityLabel={translate('iou.flip')}
-                                />
+                                >
+                                    <Button.Icon
+                                        src={icons.PlusMinus}
+                                        accessibilityLabel={translate('iou.flip')}
+                                    />
+                                    <Button.Text>{translate('iou.flip')}</Button.Text>
+                                </Button>
                             )}
                         </View>
                         {!!errorText && (
@@ -725,15 +733,18 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
                             <Button
-                                small
-                                icon={icons.CoinsButton}
-                                iconAccessibilityLabel={translate('common.currency')}
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
-                                iconWrapperStyles={styles.justifyContentCenter}
-                                text={currency}
+                                contentContainerStyle={styles.justifyContentCenter}
                                 accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
-                            />
+                            >
+                                <Button.Icon
+                                    src={icons.CoinsButton}
+                                    accessibilityLabel={translate('common.currency')}
+                                />
+                                <Button.Text>{currency}</Button.Text>
+                            </Button>
                         )}
                         {!!errorText && (
                             <FormHelpMessage
@@ -751,27 +762,33 @@ function NumberWithSymbolForm({
             <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
                 {isSymbolPressable && canUseTouchScreen && (
                     <Button
-                        small
-                        icon={icons.CoinsButton}
-                        iconAccessibilityLabel={translate('common.currency')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
-                        iconWrapperStyles={styles.justifyContentCenter}
-                        text={currency}
+                        contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.CoinsButton}
+                            accessibilityLabel={translate('common.currency')}
+                        />
+                        <Button.Text>{currency}</Button.Text>
+                    </Button>
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
                     <Button
-                        small
-                        icon={icons.PlusMinus}
-                        iconAccessibilityLabel={translate('iou.flip')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
-                        iconWrapperStyles={styles.justifyContentCenter}
-                        text={translate('iou.flip')}
+                        contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={translate('iou.flip')}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.PlusMinus}
+                            accessibilityLabel={translate('iou.flip')}
+                        />
+                        <Button.Text>{translate('iou.flip')}</Button.Text>
+                    </Button>
                 )}
             </View>
 

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -24,7 +24,7 @@ type DistanceManualTabContentProps = {
     distanceUnit: Unit;
     onSubmit: () => void;
     manualFormError: string;
-    onInputChange: () => void;
+    onInputChange: (value: string) => void;
     manualTextInputRef: React.RefObject<BaseTextInputRef | null>;
     manualNumberFormRef: React.RefObject<NumberWithSymbolFormRef | null>;
 };

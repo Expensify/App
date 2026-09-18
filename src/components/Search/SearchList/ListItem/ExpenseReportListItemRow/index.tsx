@@ -29,7 +29,7 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
                 isPendingDelete={props.isPendingDelete}
                 shouldDisableActionPointerEvents={props.shouldDisableActionPointerEvents}
                 columns={props.columns}
-                isMarkAsDone={props.isMarkAsDone}
+                shouldShowMarkAsDoneCopy={props.shouldShowMarkAsDoneCopy}
             />
         );
     }

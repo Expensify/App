@@ -8,51 +8,33 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
+import {isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
+import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import AutomaticFieldHint from './AutomaticFieldHint';
 import {merchantStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type MerchantFieldProps = {
     isMerchantRequired: boolean | undefined;
-    isNewManualExpenseFlowEnabled: boolean;
-    isReadOnly: boolean;
-    didConfirm: boolean;
     shouldDisplayFieldError: boolean;
     formError: string;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
 };
 
-function MerchantField({
-    isMerchantRequired,
-    isNewManualExpenseFlowEnabled,
-    isReadOnly,
-    didConfirm,
-    shouldDisplayFieldError,
-    formError,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: MerchantFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -62,8 +44,32 @@ function MerchantField({
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
     const merchantValue = merchantState?.merchant ?? '';
-    const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
+    const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
+
+    // Mirror the persisted merchant in local state so the controlled input updates synchronously as the user types;
+    // feeding the async Onyx value straight to `value` snaps the caret to the end on every keystroke (see #98647).
+    const [isMerchantInputFocused, setIsMerchantInputFocused] = useState(false);
+    const [merchantInput, setMerchantInput] = useState(displayMerchantValue);
+    const [prevDisplayValue, setPrevDisplayValue] = useState(displayMerchantValue);
+    const [prevTransactionID, setPrevTransactionID] = useState(transactionID);
+
+    // The hint says SmartScan will fill this in. It goes once the user takes the field over, by focusing it or by
+    // entering any of the three fields.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isMerchantInputFocused && !hasAnyManuallyEnteredScanField(merchantState);
+
+    // Sync the mirror during render (not in an effect) to avoid an extra render pass. Reset on transaction change
+    // even while focused; otherwise sync external updates (SmartScan, drafts) only when the field isn't being edited.
+    if (transactionID !== prevTransactionID) {
+        setPrevTransactionID(transactionID);
+        setPrevDisplayValue(displayMerchantValue);
+        setMerchantInput(displayMerchantValue);
+    } else if (displayMerchantValue !== prevDisplayValue) {
+        setPrevDisplayValue(displayMerchantValue);
+        if (!isMerchantInputFocused) {
+            setMerchantInput(displayMerchantValue);
+        }
+    }
 
     // Determine if the merchant error should be displayed
     const merchantErrorText = (() => {
@@ -77,6 +83,12 @@ function MerchantField({
             return translate('iou.error.invalidMerchant');
         }
 
+        // `common.error.fieldRequired` is shared with the amount and date fields, so only surface it here when the
+        // merchant is the one that is missing.
+        if (formError === 'common.error.fieldRequired' && (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually) || (isMerchantRequired && !displayMerchantValue))) {
+            return translate('common.error.fieldRequired');
+        }
+
         if (shouldDisplayFieldError && isMerchantRequired && !displayMerchantValue) {
             return translate('common.error.fieldRequired');
         }
@@ -87,6 +99,8 @@ function MerchantField({
     const shouldDisplayMerchantError = !!merchantErrorText;
 
     const handleMerchantInputChange = (newMerchant: string) => {
+        setMerchantInput(newMerchant);
+
         if (!transactionID) {
             return;
         }
@@ -110,16 +124,23 @@ function MerchantField({
         setMoneyRequestMerchant(transactionID, newMerchant, true, transactionHasReceipt);
     };
 
-    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
+    if (!isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
-                    value={displayMerchantValue}
+                    value={merchantInput}
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
+                    onFocus={() => {
+                        setIsMerchantInputFocused(true);
+                    }}
+                    onBlur={() => {
+                        setIsMerchantInputFocused(false);
+                    }}
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
+                    rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                 />
             </View>
         );

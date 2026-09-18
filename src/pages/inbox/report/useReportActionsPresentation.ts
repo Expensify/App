@@ -17,48 +17,28 @@ type ReportActionsPresentationProps = {
 
 function useReportActionsPresentation({visibleReportActions, linkedReportActionID, unreadMarkerReportActionID}: ReportActionsPresentationProps) {
     const [expandedSystemMessageReportActionIDs, setExpandedSystemMessageReportActionIDs] = useState<Set<string>>(() => new Set());
-    const [manuallyCollapsedLinkedReportActionID, setManuallyCollapsedLinkedReportActionID] = useState<string>();
-    const [previousLinkedReportActionID, setPreviousLinkedReportActionID] = useState(linkedReportActionID);
-
-    if (linkedReportActionID !== previousLinkedReportActionID) {
-        setPreviousLinkedReportActionID(linkedReportActionID);
-        if (manuallyCollapsedLinkedReportActionID !== undefined && manuallyCollapsedLinkedReportActionID !== linkedReportActionID) {
-            setManuallyCollapsedLinkedReportActionID(undefined);
-        }
+    const displayState = getSystemMessageDisplayState(visibleReportActions, expandedSystemMessageReportActionIDs, linkedReportActionID ? [linkedReportActionID] : []);
+    // Remember every revealed member, including linked targets and members loaded by pagination.
+    // Otherwise an older page can repartition the 24-hour runs and hide an already revealed update.
+    const newlyExpandedReportActionIDs = [...displayState.runsByAnchorReportActionID.values()]
+        .filter((run) => run.isExpanded)
+        .flatMap((run) => run.reportActionIDs)
+        .filter((reportActionID) => !expandedSystemMessageReportActionIDs.has(reportActionID));
+    if (newlyExpandedReportActionIDs.length > 0) {
+        setExpandedSystemMessageReportActionIDs(new Set([...expandedSystemMessageReportActionIDs, ...newlyExpandedReportActionIDs]));
     }
 
-    const forceExpandedLinkedReportActionID = linkedReportActionID === manuallyCollapsedLinkedReportActionID ? undefined : linkedReportActionID;
-
-    const displayState = getSystemMessageDisplayState(
-        visibleReportActions,
-        expandedSystemMessageReportActionIDs,
-        forceExpandedLinkedReportActionID ? [forceExpandedLinkedReportActionID] : [],
-    );
     const unreadMarkerReportActionIndex = unreadMarkerReportActionID ? (displayState.reportActionIDToDisplayIndex.get(unreadMarkerReportActionID) ?? -1) : -1;
 
-    const toggleSystemMessageRun = (reportActionIDs: string[], isExpanded: boolean) => {
-        if (isExpanded && linkedReportActionID && reportActionIDs.includes(linkedReportActionID)) {
-            setManuallyCollapsedLinkedReportActionID(linkedReportActionID);
-        }
-
-        setExpandedSystemMessageReportActionIDs((previousReportActionIDs) => {
-            const nextReportActionIDs = new Set(previousReportActionIDs);
-            for (const reportActionID of reportActionIDs) {
-                if (isExpanded) {
-                    nextReportActionIDs.delete(reportActionID);
-                } else {
-                    nextReportActionIDs.add(reportActionID);
-                }
-            }
-            return nextReportActionIDs;
-        });
+    const expandSystemMessageRun = (reportActionIDs: string[]) => {
+        setExpandedSystemMessageReportActionIDs((previousReportActionIDs) => new Set([...previousReportActionIDs, ...reportActionIDs]));
     };
 
     return {
         ...displayState,
         expandedSystemMessageReportActionIDs,
         unreadMarkerReportActionIndex,
-        toggleSystemMessageRun,
+        expandSystemMessageRun,
     };
 }
 

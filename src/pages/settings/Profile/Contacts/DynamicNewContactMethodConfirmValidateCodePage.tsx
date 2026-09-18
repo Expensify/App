@@ -43,6 +43,7 @@ function DynamicNewContactMethodConfirmValidateCodePage() {
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_CONTACT_METHOD})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.ADD_CONTACT_METHOD}
             descriptionPrimary={translate('contacts.enterSecurityCode', contactMethod)}
             validateCodeActionErrorField="addedLogin"
             validateError={validateCodeError}

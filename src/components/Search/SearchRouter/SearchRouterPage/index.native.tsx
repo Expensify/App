@@ -1,6 +1,6 @@
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
-import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
+import {setIsSearchRouterOpenOrOpening, useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
@@ -12,7 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getKeyboardHeight from '@libs/getKeyboardHeight';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type GetAvailableHeightParams = {
@@ -40,6 +40,15 @@ function SearchRouterPage() {
     const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
+
+    // The presence of this route is the source of truth for "the router is open" on native: it mounts on a deep link
+    // or a restored last-visited path without openSearchRouter, and hardware Back and the iOS gesture pop it without
+    // closeSearchRouter.
+    useEffect(() => {
+        setIsSearchRouterOpenOrOpening(true);
+        return () => setIsSearchRouterOpenOrOpening(false);
+    }, []);
+
     const shouldConstrainForOfflineKeyboard = isOffline && isKeyboardActive;
     // Keep the router between the top safe area and the keyboard; ScreenWrapper and the
     // list already handle bottom safe-area and offline-indicator spacing.

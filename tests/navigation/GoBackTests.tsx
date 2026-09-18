@@ -41,11 +41,12 @@ describe('Go back on the narrow layout', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 4,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -70,7 +71,7 @@ describe('Go back on the narrow layout', () => {
             );
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitBeforeGoBack = tabState?.routes.at(3);
+            const settingsSplitBeforeGoBack = tabState?.routes.at(4);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
             expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
 
@@ -81,7 +82,7 @@ describe('Go back on the narrow layout', () => {
 
             // Then pop the last screen from the navigation state
             const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
+            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(4);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(0);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
@@ -98,11 +99,12 @@ describe('Go back on the narrow layout', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 4,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -130,7 +132,7 @@ describe('Go back on the narrow layout', () => {
             );
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitBeforeGoBack = tabState?.routes.at(3);
+            const settingsSplitBeforeGoBack = tabState?.routes.at(4);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(2);
             expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PREFERENCES.ROOT);
 
@@ -141,7 +143,7 @@ describe('Go back on the narrow layout', () => {
 
             // Then pop to the fallbackRoute
             const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
+            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(4);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(0);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
@@ -156,11 +158,12 @@ describe('Go back on the narrow layout', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 4,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -185,7 +188,7 @@ describe('Go back on the narrow layout', () => {
             );
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitBeforeGoBack = tabState?.routes.at(3);
+            const settingsSplitBeforeGoBack = tabState?.routes.at(4);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
             expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
 
@@ -196,7 +199,7 @@ describe('Go back on the narrow layout', () => {
 
             // Then replace the current page with the page passed as a fallbackRoute
             const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
+            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(4);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(1);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
         });
@@ -236,6 +239,7 @@ describe('Go back on the narrow layout', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -324,6 +328,7 @@ describe('Go back on the narrow layout', () => {
                                                 ],
                                             },
                                         },
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -407,6 +412,7 @@ describe('Go back on the narrow layout', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
@@ -469,6 +475,7 @@ describe('Go back on the narrow layout', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
@@ -535,6 +542,7 @@ describe('Go back on the narrow layout', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
@@ -586,11 +594,12 @@ describe('Go back on the wide layout', () => {
                         {
                             name: NAVIGATORS.TAB_NAVIGATOR,
                             state: {
-                                index: 4,
+                                index: 5,
                                 routes: [
                                     {name: SCREENS.HOME},
                                     {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                     {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: SCREENS.INSIGHTS},
                                     {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                     {
                                         name: NAVIGATORS.WORKSPACE_NAVIGATOR,
@@ -626,7 +635,7 @@ describe('Go back on the wide layout', () => {
         // Then the backTo params should be preserved in the sidebar route
         const initialRootState = navigationRef.current?.getRootState();
         const tabState = initialRootState?.routes.at(0)?.state;
-        const initialWorkspaceNavigator = tabState?.routes.at(4);
+        const initialWorkspaceNavigator = tabState?.routes.at(5);
         const workspacesNavRoutes = initialWorkspaceNavigator?.state?.routes ?? [];
         const workspaceSplitNavigator = workspacesNavRoutes.find((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
         const initialSplitRoutes = workspaceSplitNavigator?.state?.routes ?? [];
@@ -635,5 +644,100 @@ describe('Go back on the wide layout', () => {
             policyID: mockedPolicyID,
             backTo: mockedBackToRoute,
         });
+    });
+});
+
+describe('Go back with nothing to pop', () => {
+    beforeEach(() => {
+        mockedGetIsNarrowLayout.mockReturnValue(false);
+        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
+    });
+
+    it('Should stay put when the only root route is already the tab navigator', () => {
+        // Given a stack whose only route is the tab navigator, which is the public sign in root
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: NAVIGATORS.TAB_NAVIGATOR}],
+                }}
+            />,
+        );
+
+        const navigationContainer = navigationRef.current;
+        if (!navigationContainer) {
+            throw new Error('Navigation container is not ready');
+        }
+        // The key identifies the mounted screen. A reset assigns a new one, which remounts SignInPage.
+        const keyBefore = navigationContainer.getRootState().routes.at(0)?.key;
+        const resetSpy = jest.spyOn(navigationContainer, 'reset');
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then the same route instance is still mounted, so SignInPage keeps the email and magic code the user entered
+        const rootState = navigationRef.current?.getRootState();
+        expect(rootState?.routes.length).toBe(1);
+        expect(rootState?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        expect(rootState?.routes.at(0)?.key).toBe(keyBefore);
+        expect(resetSpy).not.toHaveBeenCalled();
+        resetSpy.mockRestore();
+    });
+
+    it('Should stay put when the root state is not available', () => {
+        // Given an initialized navigation whose root state cannot be read yet
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: SCREENS.VALIDATE_LOGIN, params: {accountID: '1', validateCode: '1'}}],
+                }}
+            />,
+        );
+
+        const navigationContainer = navigationRef.current;
+        if (!navigationContainer) {
+            throw new Error('Navigation container is not ready');
+        }
+        const resetSpy = jest.spyOn(navigationContainer, 'reset');
+        // getRootState() is typed as always returning a state, but it resolves to undefined before the container is
+        // ready, which is the branch under test.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const getRootStateSpy = jest.spyOn(navigationContainer, 'getRootState').mockReturnValue(undefined as unknown as ReturnType<typeof navigationContainer.getRootState>);
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then nothing is reset, because there is no state to reset
+        expect(resetSpy).not.toHaveBeenCalled();
+
+        getRootStateSpy.mockRestore();
+        resetSpy.mockRestore();
+    });
+
+    it('Should reset to the tab navigator when the only root route is reachable by link', () => {
+        // Given a stack whose only route is a link entry screen, which is how /v/ and /u/ are opened
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: SCREENS.VALIDATE_LOGIN, params: {accountID: '1', validateCode: '1'}}],
+                }}
+            />,
+        );
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then the stranded route is replaced by the app root instead of the press doing nothing
+        const rootState = navigationRef.current?.getRootState();
+        expect(rootState?.routes.length).toBe(1);
+        expect(rootState?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
     });
 });

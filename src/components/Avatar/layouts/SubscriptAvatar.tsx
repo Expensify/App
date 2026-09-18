@@ -1,38 +1,32 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 
 import type {BaseAvatarProps} from './types';
 
-import Avatar from '..';
 import getSubscriptAvatarSizing from './getSubscriptAvatarSizing';
 import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 
 type SubscriptAvatarProps = BaseAvatarProps & {
-    /** The primary (main) avatar icon */
     primaryAvatar: IconType;
 
     /** The secondary (subscript) avatar icon */
     secondaryAvatar?: IconType;
 
-    /** Border color for the subscript avatar */
-    subscriptAvatarBorderColor?: ColorValue;
-
-    /** Style for  avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 
 /** `SubscriptAvatar` renders a primary avatar with a smaller secondary avatar overlaid as a subscript in the bottom-right corner. */
-function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, subscriptAvatarBorderColor, fallbackDisplayName, containerStyle}: SubscriptAvatarProps) {
+function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, backdropColor, fallbackDisplayName, containerStyle}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -48,14 +42,9 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, subscriptAvatarB
                     avatar={primaryAvatar}
                     fallbackDisplayName={fallbackDisplayName}
                 >
-                    <Avatar
+                    <AvatarFromIcon
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                        type={primaryAvatar.type}
-                        source={primaryAvatar.source}
-                        name={primaryAvatar.name ?? ''}
-                        avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                        fallbackIcon={primaryAvatar.fallbackIcon}
-                        fill={primaryAvatar.fill}
+                        icon={primaryAvatar}
                         size={size}
                         testID="ReportActionAvatars-Subscript-MainAvatar"
                     />
@@ -67,14 +56,9 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, subscriptAvatarB
                         avatar={secondaryAvatar}
                         style={styles[containerStyleKey]}
                     >
-                        <Avatar
-                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG)]}
-                            type={secondaryAvatar.type}
-                            source={secondaryAvatar.source}
-                            name={secondaryAvatar.name ?? ''}
-                            avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={secondaryAvatar.fallbackIcon}
-                            fill={secondaryAvatar.fill}
+                        <AvatarFromIcon
+                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(backdropColor ?? theme.componentBG)]}
+                            icon={secondaryAvatar}
                             size={subscriptSize}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                         />

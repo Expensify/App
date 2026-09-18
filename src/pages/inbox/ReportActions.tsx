@@ -2,7 +2,6 @@ import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/Mo
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 
 import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
-import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -47,6 +46,7 @@ function ReportActions() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const isAppLoadPending = useIsAppLoadPending();
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -62,15 +62,12 @@ function ReportActions() {
     // The app-load skeleton is hoisted out of the body so the body's data hooks/effects never run
     // during app boot. It only applies on the chat path (after the skeleton and money-request
     // branches below) — matching the previous behavior, where this skeleton lived inside the
-    // chat-only ReportActionsView. Because the body won't mount for this branch, it can't close the
-    // open-report span itself, so we close it here for the branch we gate.
+    // chat-only ReportActionsView.
     //
     // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
     // before content appeared.
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
     const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
-
-    useMarkOpenReportEndOnSkeleton(report, shouldShowAppLoadSkeleton);
 
     if (!report || shouldWaitForTransactions) {
         return (
@@ -97,6 +94,7 @@ function ReportActions() {
     return (
         <>
             <ReportActionsList
+                conciergeChat={conciergeChat}
                 key={report.reportID}
                 reportID={report.reportID}
             />
@@ -122,9 +120,11 @@ function ReportActionsWithInboxTabDeferredMount({reportID, shouldDefer}: ReportA
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
+                // Deferral, not a data wait. Closing the span here would time the defer and tag a cached report cold.
                 <ReportActionsLoadingSkeleton
                     reportID={reportID}
                     skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.INBOX_TAB_DEFER}
+                    shouldMarkOpenReportEnd={false}
                 />
             }
         >

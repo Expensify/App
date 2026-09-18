@@ -29,11 +29,10 @@ type AvatarLetterProps = AvatarPrimitivesCommonProps & {
     /** Styles for View wrapping the initials. */
     containerStyles?: StyleProp<ViewStyle & ImageStyle>;
 
-    /** Additional styles for the wrapping View. */
     containerAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
-function AvatarLetter({initials, urlColors, accountID, size, type, containerStyles, containerAdditionalStyles: initialsAdditionalStyles}: AvatarLetterProps) {
+function AvatarLetter({initials, urlColors, accountID, size, shape, containerStyles, containerAdditionalStyles: initialsAdditionalStyles}: AvatarLetterProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const avatarSize = StyleUtils.getAvatarSize(size);
@@ -46,7 +45,7 @@ function AvatarLetter({initials, urlColors, accountID, size, type, containerStyl
     const colors = pickedColorKey && isLetterAvatarSchemeKey(pickedColorKey) ? LETTER_AVATAR_SCHEMES[pickedColorKey] : urlColors;
 
     return (
-        <View style={[baseContainerStyles, StyleUtils.getAvatarBorderStyle(size, type), initialsAdditionalStyles]}>
+        <View style={[baseContainerStyles, StyleUtils.getAvatarBorderStyle(size, shape), initialsAdditionalStyles]}>
             <UserInitialsAvatar
                 text={initials}
                 colors={colors}

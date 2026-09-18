@@ -16,7 +16,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -45,7 +45,6 @@ const DOT_HOVER_EXTRA_RADIUS = 2;
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
 type LineChartProps = CartesianChartProps & {
-    /** Callback when a data point is pressed */
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
@@ -129,7 +128,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         measurements,
     });
 
-    const originalLabels = data.map((p) => p.label);
+    const originalLabels = data.map(getXAxisLabel);
 
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
         fontManager,

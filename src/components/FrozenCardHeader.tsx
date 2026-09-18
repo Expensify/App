@@ -104,14 +104,14 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
             <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt6, styles.alignSelfStretch]}>
                 <View style={equalButtonWrapperStyles}>
                     <Button
-                        medium
-                        text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
-                        icon={icons.FreezeCard}
                         onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                         isDisabled={canUnfreezeCard && isOffline}
                         innerStyles={equalButtonInnerStyles}
                         style={shouldUseEqualButtonWidths ? styles.w100 : styles.alignSelfStart}
-                    />
+                    >
+                        <Button.Icon src={icons.FreezeCard} />
+                        <Button.Text>{translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}</Button.Text>
+                    </Button>
                 </View>
                 {shouldUseEqualButtonWidths
                     ? actionButtons.map((button, index) => (

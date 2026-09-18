@@ -33,6 +33,9 @@ function CertiniaPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const {config} = policy?.connections?.financialforce ?? {};
     const exportConfig = config?.export;
+    // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string on a fresh connection
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const selectedExporter = exportConfig?.exporter || policyOwner;
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path);
@@ -44,7 +47,7 @@ function CertiniaPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
                 value: policyOwner,
                 text: policyOwner,
                 keyForList: policyOwner,
-                isSelected: exportConfig?.exporter === policyOwner,
+                isSelected: selectedExporter === policyOwner,
             },
         ];
     } else {
@@ -63,7 +66,7 @@ function CertiniaPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
                     value: exporter.email,
                     text: exporter.email,
                     keyForList: exporter.email,
-                    isSelected: (exportConfig?.exporter ?? policyOwner) === exporter.email,
+                    isSelected: selectedExporter === exporter.email,
                 });
                 return options;
             }, []) ?? [];
@@ -94,7 +97,7 @@ function CertiniaPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
             headerContent={headerContent}
             onSelectRow={selectExporter}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={exportConfig?.exporter}
+            initiallyFocusedOptionKey={selectedExporter}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.EXPORTER], config?.pendingFields)}

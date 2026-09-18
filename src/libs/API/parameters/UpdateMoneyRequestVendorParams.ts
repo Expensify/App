@@ -3,7 +3,7 @@ type UpdateMoneyRequestVendorParams = {
     reportActionID: string;
     vendorID: string;
     vendorName: string;
-    isManuallySet: boolean;
+    wasManuallySet: boolean;
 };
 
 export default UpdateMoneyRequestVendorParams;

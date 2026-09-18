@@ -37,16 +37,12 @@ type TagPickerProps = {
     /** The name of tag list we are getting tags for */
     tagListName: string;
 
-    /** Callback to submit the selected tag */
     onSubmit: (selectedTag: Partial<OptionData>) => void;
-
-    /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
     /** Whether the list should be sorted by tag name. default is false */
     shouldOrderListByTagName?: boolean;
 
-    /** Indicates which tag list index was selected */
     tagListIndex: number;
 
     /**
@@ -56,6 +52,8 @@ type TagPickerProps = {
      */
     additionalTagsToInclude?: string[];
 
+    /** Whether to add bottom safe area padding to the list (for edge-to-edge bottom-docked modals) */
+    addBottomSafeAreaPadding?: boolean;
     /**
      * Optional override for whether to show GL codes. When omitted, TagPicker reads
      * `showTagGLCodes && glCodes` from the policy in Onyx.
@@ -90,6 +88,7 @@ function TagPicker({
     shouldOrderListByTagName = false,
     onSubmit,
     additionalTagsToInclude,
+    addBottomSafeAreaPadding = false,
     shouldShowGLCode: shouldShowGLCodeProp,
     shouldAutoFocusSearchInput = false,
 }: TagPickerProps) {
@@ -195,6 +194,7 @@ function TagPicker({
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />

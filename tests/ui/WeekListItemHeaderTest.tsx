@@ -31,6 +31,8 @@ const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     currentSearchResults: undefined,
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
@@ -63,11 +65,13 @@ const mockSearchActionsContext = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
+    getSearchKeyForQuery: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createWeekListItem = (week: string, options: Partial<TransactionWeekGroupListItemType> = {}): TransactionWeekGroupListItemType => ({
     week,
     formattedWeek: options.formattedWeek ?? 'Jan 25 - Jan 31, 2026',
+    shortFormattedWeek: options.shortFormattedWeek ?? 'Jan 25 - 31, ’26',
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,

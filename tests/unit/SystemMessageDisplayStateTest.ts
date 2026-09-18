@@ -1,14 +1,7 @@
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
-import {
-    canReportActionUseActorGrouping,
-    getSystemMessageDisplayState,
-    isChatMessageAction,
-    isCollapsibleSystemMessageAction,
-    isSystemMessageAction,
-    withDEWRoutedActionsArray,
-} from '../../src/libs/ReportActionsUtils';
+import {getSystemMessageDisplayState, isCollapsibleSystemMessageAction, isSystemMessageAction, withDEWRoutedActionsArray} from '../../src/libs/ReportActionsUtils';
 
 function makeAction(reportActionID: string, actionName: ReportAction['actionName'], overrides: Partial<ReportAction> = {}): ReportAction {
     return {
@@ -172,7 +165,7 @@ describe('system message presentation', () => {
             expect(isCollapsibleSystemMessageAction(integrationFailure)).toBe(false);
         });
 
-        it('keeps reimbursement setup actions without avatars but outside collapsed runs', () => {
+        it('keeps reimbursement setup actions but outside collapsed runs', () => {
             const reimbursementQueued = makeAction('1', CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED);
 
             expect(isSystemMessageAction(reimbursementQueued)).toBe(true);
@@ -189,7 +182,7 @@ describe('system message presentation', () => {
             expect(isSystemMessageAction(unhandledDisabledFieldsAction)).toBe(false);
         });
 
-        it('keeps reasoned system messages without avatars but outside collapsed runs', () => {
+        it('keeps reasoned system messages but outside collapsed runs', () => {
             const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] = {reasoning: 'The expense was changed automatically.'};
             const reasonedAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
                 originalMessage,
@@ -197,39 +190,6 @@ describe('system message presentation', () => {
 
             expect(isSystemMessageAction(reasonedAction)).toBe(true);
             expect(isCollapsibleSystemMessageAction(reasonedAction)).toBe(false);
-        });
-
-        it('distinguishes chat comments from ADD_COMMENT task previews', () => {
-            const chat = makeAction('1', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>['originalMessage'] = {
-                html: '',
-                whisperedTo: [],
-                taskReportID: 'task-report',
-            };
-            const taskPreview = makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
-                originalMessage,
-            });
-
-            expect(isChatMessageAction(chat)).toBe(true);
-            expect(isChatMessageAction(taskPreview)).toBe(false);
-        });
-
-        it('groups chat actors only across another chat action', () => {
-            const systemAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
-            const firstChat = makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            const secondChat = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>['originalMessage'] = {
-                html: '',
-                whisperedTo: [],
-                taskReportID: 'task-report',
-            };
-            const taskPreview = makeAction('4', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
-                originalMessage,
-            });
-
-            expect(canReportActionUseActorGrouping(firstChat, systemAction)).toBe(false);
-            expect(canReportActionUseActorGrouping(secondChat, firstChat)).toBe(true);
-            expect(canReportActionUseActorGrouping(firstChat, taskPreview)).toBe(false);
         });
     });
 
@@ -246,25 +206,24 @@ describe('system message presentation', () => {
             expect(state.reportActionIDToDisplayIndex.get('1')).toBe(0);
         });
 
-        it.each([CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.FORWARDED])('collapses a dynamic external workflow %s action with its routed audit action', (actionName) => {
-            const sourceAction = makeAction('1', actionName, {
-                originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'workflow@example.com'},
-            });
-            const actions = withDEWRoutedActionsArray([sourceAction]);
-            const collapsedState = getSystemMessageDisplayState(actions, new Set());
-            const expandedState = getSystemMessageDisplayState(actions, new Set(['1DEW']));
+        it.each([CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.FORWARDED])(
+            'keeps a dynamic external workflow %s action separate from the Concierge routed action',
+            (actionName) => {
+                const sourceAction = makeAction('1', actionName, {
+                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'workflow@example.com'},
+                });
+                const actions = withDEWRoutedActionsArray([sourceAction]);
+                const collapsedState = getSystemMessageDisplayState(actions, new Set());
+                const expandedState = getSystemMessageDisplayState(actions, new Set(['1DEW']));
 
-            expect(actions.map((action) => action.actionName)).toEqual([actionName, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED]);
-            expect(actions.every((action) => isSystemMessageAction(action))).toBe(true);
-            expect(actions.every((action) => isCollapsibleSystemMessageAction(action))).toBe(true);
-            expect(collapsedState.displayReportActions).toEqual([sourceAction]);
-            expect(collapsedState.runsByAnchorReportActionID.get('1')).toEqual({
-                reportActionIDs: ['1', '1DEW'],
-                isExpanded: false,
-            });
-            expect(expandedState.displayReportActions).toEqual(actions);
-            expect(expandedState.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(true);
-        });
+                expect(actions.map((action) => action.actionName)).toEqual([actionName, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED]);
+                expect(actions.every((action) => isSystemMessageAction(action))).toBe(true);
+                expect(actions.every((action) => isCollapsibleSystemMessageAction(action))).toBe(true);
+                expect(collapsedState.displayReportActions).toEqual(actions);
+                expect(collapsedState.runsByAnchorReportActionID.size).toBe(0);
+                expect(expandedState.displayReportActions).toEqual(actions);
+            },
+        );
 
         it('collapses maximal runs of two or more system messages to one anchor row', () => {
             const actions = [systemAction('1'), systemAction('2'), systemAction('3')];
@@ -273,6 +232,7 @@ describe('system message presentation', () => {
             expect(state.displayReportActions).toEqual([actions.at(0)]);
             expect(state.runsByAnchorReportActionID.get('1')).toEqual({
                 reportActionIDs: ['1', '2', '3'],
+                earliestReportAction: actions.at(0),
                 isExpanded: false,
             });
             expect([...state.reportActionIDToDisplayIndex.entries()]).toEqual([
@@ -360,15 +320,75 @@ describe('system message presentation', () => {
             expect(state.reportActionIDToDisplayIndex.get('2')).toBe(1);
         });
 
-        it('allows a linked run to collapse after its one-shot force is removed', () => {
-            const actions = [systemAction('1'), systemAction('2'), systemAction('3')];
-            const initiallyLinkedState = getSystemMessageDisplayState(actions, new Set(), ['2']);
-            const manuallyCollapsedState = getSystemMessageDisplayState(actions, new Set());
+        it.each([false, true])('uses the same bounded 24-hour runs in either list direction (newest first: %s)', (newestFirst) => {
+            const actions = [
+                systemAction('1', {created: '2026-07-30 00:00:00.000'}),
+                systemAction('2', {created: '2026-07-30 20:00:00.000'}),
+                systemAction('3', {created: '2026-07-31 16:00:00.000'}),
+                systemAction('4', {created: '2026-07-31 17:00:00.000'}),
+            ];
+            const state = getSystemMessageDisplayState(newestFirst ? actions.toReversed() : actions, new Set());
+            expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(newestFirst ? ['4', '2'] : ['1', '3']);
+            expect([...state.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([
+                ['1', '2'],
+                ['3', '4'],
+            ]);
+            expect(state.runsByAnchorReportActionID.get(newestFirst ? '2' : '1')?.earliestReportAction).toBe(actions.at(0));
+            expect(state.reportActionIDToDisplayIndex.get('1')).toBe(newestFirst ? 1 : 0);
+        });
 
-            expect(initiallyLinkedState.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(true);
-            expect(manuallyCollapsedState.displayReportActions).toEqual([actions.at(0)]);
-            expect(manuallyCollapsedState.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(false);
-            expect(manuallyCollapsedState.reportActionIDToDisplayIndex.get('2')).toBe(0);
+        it.each([
+            ['2026-07-31 00:00:00.000', 1],
+            ['2026-07-31 00:00:00.001', 2],
+            ['invalid', 2],
+        ])('includes exactly 24 hours but rejects larger or invalid timestamps: %s', (created, expectedRows) => {
+            const actions = [systemAction('1', {created: '2026-07-30 00:00:00.000'}), systemAction('2', {created})];
+            expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toHaveLength(expectedRows);
+        });
+
+        it.each([{actorAccountID: 2}, {delegateAccountID: 2}, {originalMessage: {delegateAccountID: 2}}])('keeps different actor/delegate identities in separate runs: %s', (overrides) => {
+            const actions = [systemAction('1'), systemAction('2', overrides), systemAction('3', overrides)];
+            const state = getSystemMessageDisplayState(actions, new Set());
+            expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '2']);
+            expect(state.runsByAnchorReportActionID.get('2')?.reportActionIDs).toEqual(['2', '3']);
+        });
+
+        it('groups actions attributed to the same admin even when the raw submission actor differs', () => {
+            const actions = [makeAction('1', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {adminAccountID: 2}), systemAction('2', {actorAccountID: 2})];
+            expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toEqual([actions.at(0)]);
+        });
+
+        it.each([
+            ['2026-03-08 00:00:00.000', '2026-03-09 01:00:00.000', 2],
+            ['2026-11-01 00:00:00.000', '2026-11-02 00:00:00.000', 1],
+        ])('applies elapsed UTC hours across daylight-saving dates: %s to %s', (firstCreated, secondCreated, expectedRows) => {
+            const actions = [systemAction('1', {created: firstCreated}), systemAction('2', {created: secondCreated})];
+            expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toHaveLength(expectedRows);
+        });
+
+        it('does not combine admin-submitted or automated updates with a different displayed actor', () => {
+            const actions = [
+                makeAction('1', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {adminAccountID: 2}),
+                makeAction('2', CONST.REPORT.ACTIONS.TYPE.SUBMITTED),
+                makeAction('3', CONST.REPORT.ACTIONS.TYPE.APPROVED, {originalMessage: {automaticAction: true}}),
+            ];
+            expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toEqual(actions);
+        });
+
+        it('does not combine Concierge updates assisted by different human agents', () => {
+            const actions = [
+                systemAction('1', {actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: {humanAgentAccountID: 2}}),
+                systemAction('2', {actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: {humanAgentAccountID: 3}}),
+            ];
+            expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toEqual(actions);
+        });
+
+        it('restores descending order and canonical indices when expanding an inverted run', () => {
+            const actions = [systemAction('3'), systemAction('2'), systemAction('1')];
+            const state = getSystemMessageDisplayState(actions, new Set(['2']));
+            expect(state.displayReportActions).toEqual(actions);
+            expect(state.reportActionIDToDisplayIndex.get('3')).toBe(0);
+            expect(state.reportActionIDToDisplayIndex.get('1')).toBe(2);
         });
 
         it('maps an unread member to a collapsed anchor without expanding the run', () => {

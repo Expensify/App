@@ -2,22 +2,30 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 
+import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
+
+import type {ReactNode} from 'react';
+
 import React from 'react';
+
+const earliestReportAction: ReportAction = {reportActionID: 'oldest', actorAccountID: 1, created: '2026-09-17 12:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE};
+const mockHeader = jest.fn(({children}: {children: ReactNode}) => <>{children}</>);
+jest.mock('@pages/inbox/report/ReportActionItemSingle', () => (props: {children: ReactNode}) => mockHeader(props));
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
         DownArrow: 'DownArrow',
-        UpArrow: 'UpArrow',
     })),
 }));
 
 jest.mock('@hooks/useLocalize', () => () => ({
-    translate: (_key: string, options?: {count?: number; isExpanded?: boolean}) => {
+    translate: (_key: string, options?: {count?: number}) => {
         const count = options?.count;
         if (count === undefined) {
             return 'New message line indicator';
         }
-        return `${options?.isExpanded ? 'Hide' : 'Show'} ${count === 1 ? '1 action' : `${count} actions`}`;
+        return `show ${count === 1 ? '1 update' : `${count} updates`}`;
     },
 }));
 
@@ -27,35 +35,26 @@ describe('CollapsedSystemMessages', () => {
         render(
             <CollapsedSystemMessages
                 count={4}
-                isExpanded={false}
+                earliestReportAction={earliestReportAction}
+                report={undefined}
                 onPress={onPress}
             />,
         );
 
-        const control = screen.getByRole('button', {name: 'Show 4 actions'});
+        const control = screen.getByRole('button', {name: 'show 4 updates'});
         expect(control.props.accessibilityState).toMatchObject({expanded: false});
 
         fireEvent.press(control);
         expect(onPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('uses singular grammar and exposes the collapsed action for an expanded run', () => {
-        render(
-            <CollapsedSystemMessages
-                count={1}
-                isExpanded
-                onPress={jest.fn()}
-            />,
-        );
-
-        expect(screen.getByRole('button', {name: 'Hide 1 action'}).props.accessibilityState).toMatchObject({expanded: true});
+        expect(mockHeader.mock.calls.at(-1)?.at(0)).toMatchObject({action: earliestReportAction});
     });
 
     it('renders an unread marker for a member represented by the collapsed row', () => {
         render(
             <CollapsedSystemMessages
                 count={2}
-                isExpanded={false}
+                earliestReportAction={earliestReportAction}
+                report={undefined}
                 onPress={jest.fn()}
                 unreadMarkerReportActionID="unread-action"
             />,

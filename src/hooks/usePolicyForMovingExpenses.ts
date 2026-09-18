@@ -1,6 +1,7 @@
 import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {useSession} from '@components/OnyxListItemProvider';
 
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -30,6 +31,8 @@ function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string
         isPolicyMemberByRole(policy) &&
         isGroupPolicy(policy) &&
         policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        // Teachers Unite doesn't support reimbursement, so it can never be a destination for moving/reporting an expense.
+        !isTeachersUnitePolicyID(policy?.id) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)) &&
         (!isTimeRequest || isTimeTrackingEnabled(policy))
     );
@@ -123,7 +126,12 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
         return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
-    if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) && (!isTimeRequest || isTimeTrackingEnabled(activePolicy))) {
+    if (
+        activePolicy &&
+        !isTeachersUnitePolicyID(activePolicy.id) &&
+        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) &&
+        (!isTimeRequest || isTimeTrackingEnabled(activePolicy))
+    ) {
         return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 

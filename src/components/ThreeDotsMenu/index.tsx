@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import type BaseModalProps from '@components/Modal/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -185,7 +184,7 @@ function ThreeDotsMenu({
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, iconStyles]}
                         hoverStyle={iconHoverStyle}
-                        role={getButtonRole(isNested)}
+                        role={CONST.ROLE.BUTTON}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
                         sentryLabel={sentryLabel}
@@ -215,6 +214,8 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                // The button blurs itself before opening and is not a text input, so ComposerFocusManager has nothing to restore — the trap has to return focus.
+                shouldReturnFocus
                 restoreFocusType={restoreFocusType}
                 enableEdgeToEdgeBottomSafeAreaPadding
             />

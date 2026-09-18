@@ -1,11 +1,11 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -15,6 +15,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -66,7 +67,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type DynamicIOURequestStepDistanceManualProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 
@@ -83,9 +83,11 @@ function DynamicIOURequestStepDistanceManual({
     // The page is also mounted on the static distance create screen, where there is nothing to go back to within the flow.
     const backTo = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL ? backPath : undefined;
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
     const isArchived = useReportIsArchived(report?.reportID);
@@ -129,6 +131,7 @@ function DynamicIOURequestStepDistanceManual({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -155,9 +158,10 @@ function DynamicIOURequestStepDistanceManual({
         currentUserAccountIDParam,
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
+        isEditingExistingDistanceRequest: isEditing,
     });
 
     // to make sure the correct distance amount and unit will be shown we use distance unit
@@ -174,11 +178,12 @@ function DynamicIOURequestStepDistanceManual({
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
 
+    const committedDistance = distance?.toString() ?? '';
+    // Mirrors the input so dirtiness compares the current value against the baseline instead of reading a ref
+    const [typedDistance, setTypedDistance] = useState(committedDistance);
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            const typedDistance = numberFormRef.current?.getNumber() ?? '';
-            return getStringFieldHasUnsavedChanges(typedDistance, distance?.toString() ?? '', isCreatingNewRequest);
-        },
+        getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedDistance, committedDistance, isCreatingNewRequest),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
@@ -200,11 +205,16 @@ function DynamicIOURequestStepDistanceManual({
     // whenever it or the selected tab changes. This is syncing with an external
     // (imperative) widget, which is a legitimate effect use case.
     useEffect(() => {
-        if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
+        // The transaction can hydrate after this screen mounts, so the mount-time mirror above can be
+        // empty while the input already shows the committed distance. Re-seed it here or an untouched
+        // screen reads as dirty and prompts on back.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTypedDistance(committedDistance);
+        if (numberFormRef.current && numberFormRef.current?.getNumber() === committedDistance) {
             return;
         }
-        numberFormRef.current?.updateNumber(distance?.toString() ?? '');
-    }, [distance, selectedTab]);
+        numberFormRef.current?.updateNumber(committedDistance);
+    }, [committedDistance, selectedTab]);
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -261,6 +271,7 @@ function DynamicIOURequestStepDistanceManual({
 
             if (shouldUpdateTransaction) {
                 updateMoneyRequestDistance({
+                    isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
@@ -280,8 +291,10 @@ function DynamicIOURequestStepDistanceManual({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`],
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             }
             Navigation.goBack(backTo);
@@ -294,10 +307,12 @@ function DynamicIOURequestStepDistanceManual({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             iouType,
             action,
             report,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,
@@ -320,6 +335,7 @@ function DynamicIOURequestStepDistanceManual({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
+            isOffline,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -341,11 +357,12 @@ function DynamicIOURequestStepDistanceManual({
             getCurrencySymbol,
             participants,
             participantsPolicyTags,
+            rules,
         });
     };
 
     const submitAndNavigateToNextPage = () => {
-        if (blockManualOrOdometerDistanceRequestIfNeeded()) {
+        if (blockDistanceRequestIfNeeded()) {
             return;
         }
 
@@ -380,7 +397,8 @@ function DynamicIOURequestStepDistanceManual({
                 numberFormRef={numberFormRef}
                 value={distance?.toString()}
                 shouldUseDynamicFontSize
-                onInputChange={() => {
+                onInputChange={(newDistance) => {
+                    setTypedDistance(newDistance);
                     if (!formError) {
                         return;
                     }

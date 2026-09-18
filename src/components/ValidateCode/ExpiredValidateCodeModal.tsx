@@ -8,13 +8,12 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import {beginSignIn} from '@userActions/Session';
 
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -37,7 +36,7 @@ function ExpiredValidateCodeModal() {
                         src={illustrations.ToddBehindCloud}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
                 <View style={[styles.mt2, styles.mb2]}>
                     {credentials?.login ? (
                         <Text style={styles.textAlignCenter}>
@@ -49,7 +48,7 @@ function ExpiredValidateCodeModal() {
                                     // navigate/goBack no-op from the public /v/ route when it's the stack root (security link opened
                                     // in a fresh tab), so reset the stack to TAB_NAVIGATOR (which hosts the public SignInPage).
                                     Navigation.isNavigationReady().then(() => {
-                                        navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+                                        Navigation.resetToAppRoot();
                                     });
                                 }}
                             >
