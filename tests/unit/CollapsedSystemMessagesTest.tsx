@@ -10,7 +10,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 const earliestReportAction: ReportAction = {reportActionID: 'oldest', actorAccountID: 1, created: '2026-09-17 12:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE};
-const mockHeader = jest.fn(({children}: {children: ReactNode}) => <>{children}</>);
+const mockHeader = jest.fn(({children}: {children: ReactNode}) => children);
 jest.mock('@pages/inbox/report/ReportActionItemSingle', () => (props: {children: ReactNode}) => mockHeader(props));
 
 jest.mock('@hooks/useLazyAsset', () => ({

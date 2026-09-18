@@ -383,7 +383,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
             const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? indexWithinReportActions;
             const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
-            const previousRun = runsByAnchorReportActionID.get(displayReportActions.at(indexWithinReportActions - 1)?.reportActionID ?? '');
+            const previousReportAction = indexWithinReportActions > 0 ? displayReportActions.at(indexWithinReportActions - 1) : undefined;
+            const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
             const isAfterCollapsedRun = indexWithinReportActions > 0 && !!previousRun && !previousRun.isExpanded;
             const displayAsGroup =
                 !isAfterCollapsedRun &&
@@ -405,7 +406,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                                 report={reportStable}
                                 onPress={() => expandSystemMessageRun(systemMessageRun.reportActionIDs)}
                                 unreadMarkerReportActionID={
-                                    systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID ?? '') ? (unreadMarkerReportActionID ?? undefined) : undefined
+                                    unreadMarkerReportActionID && systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID) ? unreadMarkerReportActionID : undefined
                                 }
                             />
                         ) : (

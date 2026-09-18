@@ -346,7 +346,8 @@ describe('system message presentation', () => {
             expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toHaveLength(expectedRows);
         });
 
-        it.each([{actorAccountID: 2}, {delegateAccountID: 2}, {originalMessage: {delegateAccountID: 2}}])('keeps different actor/delegate identities in separate runs: %s', (overrides) => {
+        const legacyDelegateMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] & {delegateAccountID: number} = {delegateAccountID: 2};
+        it.each([{actorAccountID: 2}, {delegateAccountID: 2}, {originalMessage: legacyDelegateMessage}])('keeps different actor/delegate identities in separate runs: %s', (overrides) => {
             const actions = [systemAction('1'), systemAction('2', overrides), systemAction('3', overrides)];
             const state = getSystemMessageDisplayState(actions, new Set());
             expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '2']);
@@ -370,15 +371,17 @@ describe('system message presentation', () => {
             const actions = [
                 makeAction('1', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {adminAccountID: 2}),
                 makeAction('2', CONST.REPORT.ACTIONS.TYPE.SUBMITTED),
-                makeAction('3', CONST.REPORT.ACTIONS.TYPE.APPROVED, {originalMessage: {automaticAction: true}}),
+                makeAction('3', CONST.REPORT.ACTIONS.TYPE.APPROVED, {originalMessage: {amount: 100, currency: CONST.CURRENCY.USD, expenseReportID: 'report', automaticAction: true}}),
             ];
             expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toEqual(actions);
         });
 
         it('does not combine Concierge updates assisted by different human agents', () => {
+            const firstMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] & {humanAgentAccountID: number} = {humanAgentAccountID: 2};
+            const secondMessage: typeof firstMessage = {humanAgentAccountID: 3};
             const actions = [
-                systemAction('1', {actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: {humanAgentAccountID: 2}}),
-                systemAction('2', {actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: {humanAgentAccountID: 3}}),
+                systemAction('1', {actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: firstMessage}),
+                systemAction('2', {actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: secondMessage}),
             ];
             expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toEqual(actions);
         });

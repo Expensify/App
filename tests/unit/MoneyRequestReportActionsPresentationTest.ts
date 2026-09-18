@@ -37,13 +37,14 @@ describe('useReportActionsPresentation', () => {
 
     it('expands a newly linked run on the first render after a same-screen route change', () => {
         const separatedVisibleReportActions = [makeAction('1'), makeAction('2'), {...makeAction('3'), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}, makeAction('4'), makeAction('5')];
+        const initialProps: {linkedReportActionID?: string} = {linkedReportActionID: '1'};
         const {result, rerender} = renderHook(
             (props: {linkedReportActionID?: string}) =>
                 useReportActionsPresentation({
                     visibleReportActions: separatedVisibleReportActions,
                     linkedReportActionID: props.linkedReportActionID,
                 }),
-            {initialProps: {linkedReportActionID: '1'}},
+            {initialProps},
         );
 
         const displayStateSpy = jest.spyOn(ReportActionsUtils, 'getSystemMessageDisplayState');

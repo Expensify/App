@@ -192,7 +192,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
-    const {unreadMarkerReportActionID} = useUnreadMarker({
+    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex: canonicalUnreadMarkerIndex} = useUnreadMarker({
         reportID,
         sortedVisibleReportActions,
         sortedReportActions,
@@ -255,11 +255,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         });
     const displayedReportActions = shouldCollapseSystemMessages ? displayReportActions : renderedVisibleReportActions;
     const canonicalIndexByReportActionID = new Map(renderedVisibleReportActions.map((action, index) => [action.reportActionID, index]));
-    const displayedUnreadMarkerIndex = unreadMarkerReportActionID
-        ? shouldCollapseSystemMessages
-            ? unreadMarkerReportActionIndex
-            : displayedReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID)
-        : -1;
+    const displayedUnreadMarkerIndex = shouldCollapseSystemMessages ? unreadMarkerReportActionIndex : canonicalUnreadMarkerIndex;
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
@@ -395,7 +391,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
         const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? index;
         const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
-        const previousRun = runsByAnchorReportActionID.get(displayedReportActions.at(index + 1)?.reportActionID ?? '');
+        const previousReportAction = displayedReportActions.at(index + 1);
+        const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
         const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
@@ -410,7 +407,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                         earliestReportAction={systemMessageRun.earliestReportAction}
                         report={reportStable}
                         onPress={() => expandSystemMessageRun(systemMessageRun.reportActionIDs)}
-                        unreadMarkerReportActionID={systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID ?? '') ? (unreadMarkerReportActionID ?? undefined) : undefined}
+                        unreadMarkerReportActionID={
+                            unreadMarkerReportActionID && systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID) ? unreadMarkerReportActionID : undefined
+                        }
                     />
                 ) : (
                     <ReportActionsListItemRenderer
