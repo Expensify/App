@@ -8,9 +8,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
-
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+import {canIOUBePaid as canIOUBePaidAction, getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

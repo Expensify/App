@@ -13,11 +13,10 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
-import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
+import {canIOUBePaid, getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
