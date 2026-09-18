@@ -1,3 +1,4 @@
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -34,13 +35,14 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
         [CONST.CANCELLATION_POLICY.PARTIALLY_REFUNDABLE]: translate('travel.hotelDetails.cancellationPolicies.partiallyRefundable'),
     };
 
-    const checkInDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.start.date));
-    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.end.date));
+    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), dateFnsLocale);
+    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), dateFnsLocale);
     const cancellationText = reservation.cancellationDeadline
-        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(translate, dateFnsLocale, reservation.cancellationDeadline)}`
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(reservation.cancellationDeadline, dateFnsLocale)}`
         : cancellationMapping[reservation.cancellationPolicy ?? CONST.CANCELLATION_POLICY.UNKNOWN];
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+    const confirmationNumber = reservation.confirmations?.at(0)?.value;
 
     return (
         <>
@@ -79,14 +81,13 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                     numberOfLinesTitle={2}
                 />
             )}
-            {!!reservation.confirmations?.at(0)?.value && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.hotelDetails.confirmation')}
-                    title={reservation.confirmations?.at(0)?.value}
-                    copyValue={reservation.confirmations?.at(0)?.value}
-                    copyable
-                    interactive={false}
-                />
+            {!!confirmationNumber && (
+                <MenuItemField
+                    name={translate('travel.hotelDetails.confirmation')}
+                    value={confirmationNumber}
+                >
+                    <MenuItem.Copy value={confirmationNumber} />
+                </MenuItemField>
             )}
             {!!displayName && (
                 <MenuItemWithTopDescription
