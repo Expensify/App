@@ -1,3 +1,5 @@
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή -- German and Greek weekday and month
+// names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
@@ -72,6 +74,11 @@ describe('DateUtils', () => {
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
+    it('formatToLongDateWithWeekday follows the locale order as well as its words', () => {
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, CONST.LOCALES.DE)).toBe('Montag, 7. November 2022');
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, CONST.LOCALES.JA)).toBe('2022年11月7日月曜日');
+    });
+
     it('formatToDayOfWeek should return a weekday', () => {
         const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime), LOCALE);
         expect(weekDay).toBe('Monday');
@@ -79,6 +86,13 @@ describe('DateUtils', () => {
     it('formatToLocalTime should return a date in a local format', () => {
         const localTime = DateUtils.formatToLocalTime(datetime, LOCALE);
         expect(localTime).toBe('12:00 AM');
+    });
+
+    it('formatToLocalTime should follow the given locale clock convention', () => {
+        expect(DateUtils.formatToLocalTime(datetime, CONST.LOCALES.DE)).toBe('00:00');
+        expect(DateUtils.formatToLocalTime(datetime, CONST.LOCALES.JA)).toBe('0:00');
+        // Greek is the one shipped locale besides English that keeps a 12-hour clock, with its own marker.
+        expect(DateUtils.formatToLocalTime(datetime, CONST.LOCALES.EL)).toBe('12:00 π.μ.');
     });
 
     it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
@@ -372,6 +386,40 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('travel date formatters', () => {
+        // Current year and a past year, to exercise both branches. `translate` stays English throughout, so the
+        // assertions isolate the locale: it drives the weekday, the month, their order and the clock convention.
+        const thisYear = new Date(2026, 2, 17, 8, 0);
+        const pastYear = new Date(2023, 2, 17, 20, 30);
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(2026, 5, 1));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('getFormattedTransportDate uses the locale weekday, month and clock', () => {
+            expect(DateUtils.getFormattedTransportDate(translateLocal, thisYear, CONST.LOCALES.EN)).toBe('Departs Tuesday, Mar 17 at 8:00 AM');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, thisYear, CONST.LOCALES.DE)).toBe('Departs Dienstag, 17. März at 08:00');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, thisYear, CONST.LOCALES.JA)).toBe('Departs 3月17日火曜日 at 8:00');
+            // Greek is the one shipped locale besides English that keeps a 12-hour clock.
+            expect(DateUtils.getFormattedTransportDate(translateLocal, thisYear, CONST.LOCALES.EL)).toBe('Departs Τρίτη 17 Μαρ at 8:00 π.μ.');
+        });
+
+        it('getFormattedTransportDate adds the year outside the current year', () => {
+            expect(DateUtils.getFormattedTransportDate(translateLocal, pastYear, CONST.LOCALES.DE)).toBe('Departs Freitag, 17. März 2023 at 20:30');
+        });
+
+        it('getFormattedTransportDateAndHour returns the date and hour separately, both localized', () => {
+            expect(DateUtils.getFormattedTransportDateAndHour(thisYear, CONST.LOCALES.EN)).toEqual({date: 'Tuesday, Mar 17', hour: '8:00 AM'});
+            expect(DateUtils.getFormattedTransportDateAndHour(thisYear, CONST.LOCALES.DE)).toEqual({date: 'Dienstag, 17. März', hour: '08:00'});
+            expect(DateUtils.getFormattedTransportDateAndHour(pastYear, CONST.LOCALES.DE)).toEqual({date: 'Freitag, 17. März 2023', hour: '20:30'});
+        });
+    });
+
     describe('getStatusUntilDate', () => {
         const currentTimeZone = 'America/Los_Angeles' as SelectedTimezone;
         const inputTimeZoneNY = 'America/New_York' as SelectedTimezone;
@@ -385,6 +433,19 @@ describe('DateUtils', () => {
 
         afterEach(() => {
             jest.useRealTimers();
+        });
+
+        it('formats every branch with the given locale clock', () => {
+            // `translate` stays English so the assertion isolates what the locale controls: German uses a 24-hour
+            // clock and day-first dates, while the surrounding copy is untouched.
+            const sameDay = tzFormat(toZonedTime(new Date('2025-10-19T22:34:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, sameDay, currentTimeZone, currentTimeZone, CONST.LOCALES.DE)).toBe('Until 15:34');
+
+            const sameYear = tzFormat(toZonedTime(new Date('2025-12-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, sameYear, currentTimeZone, currentTimeZone, CONST.LOCALES.DE)).toBe('Until 2. Dez. 12:15');
+
+            const otherYear = tzFormat(toZonedTime(new Date('2026-03-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, otherYear, currentTimeZone, currentTimeZone, CONST.LOCALES.DE)).toBe('Until 02.03.2026 12:15');
         });
 
         it('returns empty string when input date is empty', () => {
@@ -981,6 +1042,16 @@ describe('DateUtils', () => {
             expect(es).toContain('15:00');
             expect(es).toContain('GMT+7');
         });
+
+        it('should use the given locale for the weekday, the month, their order and the clock', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            // German and Japanese use a 24-hour clock, so the time loses its meridiem entirely.
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', CONST.LOCALES.DE)).toBe('Sonntag, 19. Apr. 2026 15:00, GMT+7');
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', CONST.LOCALES.JA)).toBe('2026年4月19日日曜日 15:00, GMT+7');
+            // Greek is the one shipped locale besides English that keeps a 12-hour clock, with its own marker.
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', CONST.LOCALES.EL)).toBe('Κυριακή 19 Απρ 2026 3:00 μ.μ., GMT+7');
+        });
     });
 
     // CI runs TZ=UTC, which hides a missing timeZone arg from output-based tests. Isolate for a cold memoize cache.
@@ -1334,17 +1405,31 @@ describe('DateUtils', () => {
             expect(DateUtils.combineDateAndTime('08:00 AM', '2026-08-04 00:00:00')).toBe('2026-08-04 08:00:00');
         });
 
-        it('get12HourTimeObjectFromDate returns the AM/PM period for a localized time string', () => {
-            const localizedNoon = DateUtils.extractTime12Hour('2026-08-04 12:00:00');
-            expect(DateUtils.get12HourTimeObjectFromDate(localizedNoon)?.period).toBe(CONST.TIME_PERIOD.PM);
-            const localizedMorning = DateUtils.extractTime12Hour('2026-08-04 08:00:00');
-            expect(DateUtils.get12HourTimeObjectFromDate(localizedMorning)).toEqual({hour: '08', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.AM});
+        it('extractTime12Hour emits an English AM/PM marker whatever the active language', () => {
+            // This value is the picker's wire format, not display text, so it stays English for the same reason
+            // `combineDateAndTime` parses English: the period is compared against `CONST.TIME_PERIOD`.
+            expect(DateUtils.extractTime12Hour('2026-08-04 12:00:00')).toBe('12:00 PM');
+            expect(DateUtils.extractTime12Hour('2026-08-04 08:00:00')).toBe('08:00 AM');
+            expect(DateUtils.extractTime12Hour('2026-08-04 12:00:00.500', true)).toBe('12:00:00.500 PM');
+        });
+
+        it('get12HourTimeObjectFromDate reads back what extractTime12Hour wrote', () => {
+            const noon = DateUtils.extractTime12Hour('2026-08-04 12:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(noon)?.period).toBe(CONST.TIME_PERIOD.PM);
+            const morning = DateUtils.extractTime12Hour('2026-08-04 08:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(morning)).toEqual({hour: '08', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.AM});
         });
 
         it('per diem start/end range built from picker values validates', () => {
             const newStart = DateUtils.combineDateAndTime('08:00 AM', '2026-08-04');
             const newEnd = DateUtils.combineDateAndTime('02:00 PM', '2026-08-04');
             expect(DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd})).toBe(true);
+        });
+    });
+
+    describe('Search day formatting', () => {
+        test('formats a compact day label', () => {
+            expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', CONST.LOCALES.EN)).toBe('Sep 15, ’26');
         });
     });
 });

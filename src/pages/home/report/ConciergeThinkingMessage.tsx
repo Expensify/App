@@ -9,7 +9,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +28,6 @@ import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActio
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useEffect, useMemo, useState} from 'react';
@@ -135,9 +134,9 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
         opacity: statusLabelOpacity.get(),
     }));
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate, formatPhoneNumber}) ?? CONST.CONCIERGE_DISPLAY_NAME;
-    const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
+    const [personalDetail] = usePersonalDetail(accountID);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate, formatPhoneNumber}) ?? CONST.CONCIERGE_DISPLAY_NAME;
+    const actorIcon = personalDetail?.avatar ? {source: personalDetail.avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
     const showConciergeDetails = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
@@ -161,7 +160,7 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
         <View style={[styles.chatItem]}>
             {/* Avatar */}
             <View style={[styles.alignSelfStart, styles.mr3]}>
-                <OfflineWithFeedback pendingAction={personalDetails?.[accountID]?.pendingFields?.avatar ?? undefined}>
+                <OfflineWithFeedback pendingAction={personalDetail?.pendingFields?.avatar ?? undefined}>
                     {accountID === CONST.ACCOUNT_ID.CONCIERGE ? (
                         <UserDetailsTooltip accountID={accountID}>
                             <PressableWithoutFeedback

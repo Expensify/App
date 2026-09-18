@@ -248,7 +248,6 @@ type PerDiemExpenseInformation = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldPlaySound?: boolean;
@@ -262,6 +261,7 @@ type PerDiemExpenseInformation = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -284,7 +284,6 @@ type PerDiemExpenseInformationParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticChatReportID?: string;
@@ -294,6 +293,7 @@ type PerDiemExpenseInformationParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -329,7 +329,7 @@ type GetPerDiemExpensePolicyIDParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
 };
@@ -340,7 +340,14 @@ type GetPerDiemExpensePolicyIDParams = {
  * transaction. Keep in sync with STEP 1/STEP 2 in `getPerDiemExpenseInformation` (and the chat report/moneyRequestReportID
  * resolution in `submitPerDiemExpense`) if their resolution order changes.
  */
-function getPerDiemExpensePolicyID({report, participantParams, existingIOUReport, betas, rules, currentUserAccountIDParam}: GetPerDiemExpensePolicyIDParams): string | undefined {
+function getPerDiemExpensePolicyID({
+    report,
+    participantParams,
+    existingIOUReport,
+    isASAPSubmitBetaEnabled,
+    rules,
+    currentUserAccountIDParam,
+}: GetPerDiemExpensePolicyIDParams): string | undefined {
     const {payeeAccountID = currentUserAccountIDParam, participant} = participantParams;
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -362,7 +369,7 @@ function getPerDiemExpensePolicyID({report, participantParams, existingIOUReport
     } else if (chatReport) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
-    const shouldCreateNew = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas, rules);
+    const shouldCreateNew = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, isASAPSubmitBetaEnabled, rules);
 
     if (iouReport && !shouldCreateNew) {
         return iouReport.policyID;
@@ -394,7 +401,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        betas,
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,
@@ -404,6 +410,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -461,7 +468,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         }
     }
 
-    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas, rules);
+    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, isASAPSubmitBetaEnabled, rules);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = uiProvidedOptimisticTransactionID ?? NumberUtils.rand64();
@@ -479,7 +486,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   currency,
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
-                  betas,
+                  isASAPSubmitBetaEnabled,
                   getCurrencyDecimals,
                   rules,
               })
@@ -689,6 +696,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     });
 
     return {
@@ -1045,7 +1053,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        betas,
         customUnitPolicyID,
         personalDetails,
         shouldPlaySound: shouldPlaySoundParam = true,
@@ -1059,6 +1066,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -1085,6 +1093,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         billable,
         reimbursable,
     } = getPerDiemExpenseInformation({
+        isVendorMatchingBetaEnabled,
         parentChatReport: currentChatReport,
         participantParams,
         policyParams,
@@ -1103,7 +1112,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        betas,
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,

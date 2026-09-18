@@ -17,7 +17,7 @@ import RECEIPT_LOG_PREFIX from './receiptLogPrefix';
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
 /** How a receipt entered the app. */
-type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share';
+type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share' | 'odometer';
 
 /**
  * Maps the picker capture path to a source. On native the picker is the OS gallery. On web the same callback fires
@@ -246,6 +246,23 @@ function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureS
     });
 }
 
+/** The in-app camera failed to produce a photo, so the user tapped the shutter and got nothing back. */
+function logCameraCaptureFailed(error: unknown) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} camera capture failed`, {
+        event: 'cameraCaptureFailed',
+        error: error instanceof Error ? error.message : String(error),
+    });
+}
+
+/** VisionCamera reported a runtime error, which usually means the preview never became usable. */
+function logCameraRuntimeError({code, message}: {code: string; message: string}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} camera runtime error`, {
+        event: 'cameraRuntimeError',
+        code,
+        error: message,
+    });
+}
+
 function getQueuedReceiptPath(receipt: QueuedReceipt): ReceiptSource | undefined {
     return receipt.localSource ?? receipt.source ?? receipt.uri;
 }
@@ -371,6 +388,8 @@ export {
     logReceiptGaveUp,
     logReceiptStatFailed,
     logReceiptAdoptFailed,
+    logCameraCaptureFailed,
+    logCameraRuntimeError,
     logReceiptQueueSnapshot,
     getPickerCaptureSource,
     RECEIPT_BEARING_COMMANDS,

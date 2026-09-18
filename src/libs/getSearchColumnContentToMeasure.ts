@@ -23,6 +23,7 @@ import {getReportName} from './ReportNameUtils';
 import {getReportStatusTranslation} from './ReportUtils';
 import {
     isTransactionCategoryGroupListItemType,
+    isTransactionDayGroupListItemType,
     isTransactionListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionMonthGroupListItemType,
@@ -107,6 +108,7 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
@@ -148,6 +150,7 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]: 'common.category',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG]: 'common.tag',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT]: 'common.merchant',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY]: 'search.filters.groupBy.day',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'common.month',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'common.week',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR]: 'common.year',
@@ -332,6 +335,10 @@ function getGroupNameColumnContentToMeasure(column: SearchColumnType, item: Sear
 
     if (isTransactionMerchantGroupListItemType(item)) {
         return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT ? [{text: item.formattedMerchant ?? item.merchant}] : [];
+    }
+
+    if (isTransactionDayGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY ? [{text: item.formattedDay}] : [];
     }
 
     if (isTransactionMonthGroupListItemType(item)) {

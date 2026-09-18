@@ -100,7 +100,8 @@ type UseExpenseActionsReturn = {
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -263,6 +264,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             duplicateTransactionAction({
+                isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -446,6 +448,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const reportDuplicateParticipantsPolicyTags = getPolicyTagsSelector(reportDuplicateParticipants)(allPolicyTags);
 
                 duplicateReportAction({
+                    isVendorMatchingBetaEnabled,
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
@@ -455,7 +458,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     parentChatReport: targetChatForDuplicate,
                     ownerPersonalDetails: currentUserPersonalDetails,
                     isASAPSubmitBetaEnabled,
-                    betas,
                     personalDetails,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],

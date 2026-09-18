@@ -1,3 +1,4 @@
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -38,6 +39,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     }
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+    const confirmationNumber = reservation.confirmations?.at(0)?.value ?? reservation.reservationID;
 
     return (
         <>
@@ -71,21 +73,19 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 />
             )}
             {!!cancellationText && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.cancellation')}
-                    title={cancellationText}
-                    interactive={false}
-                    numberOfLinesTitle={2}
+                <MenuItemField
+                    name={translate('travel.carDetails.cancellation')}
+                    value={cancellationText}
+                    numberOfLinesValue={2}
                 />
             )}
-            {!!reservation.reservationID && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.confirmation')}
-                    title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
-                    interactive={false}
-                    copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
-                    copyable
-                />
+            {!!confirmationNumber && (
+                <MenuItemField
+                    name={translate('travel.carDetails.confirmation')}
+                    value={confirmationNumber}
+                >
+                    <MenuItem.Copy value={confirmationNumber} />
+                </MenuItemField>
             )}
             {!!displayName && (
                 <MenuItemWithTopDescription

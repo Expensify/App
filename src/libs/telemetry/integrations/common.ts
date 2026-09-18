@@ -2,7 +2,20 @@ import * as SentryReact from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
 
 const shouldCreateSpanForRequest = (url: string): boolean => {
-    const filteredPhrases = ['/api/Log', 'firebaselogging-pa.googleapis.com', 'analytics.google.com', 'rs.fullstory.com', 'api.github.com', 'group-ib.com', 'fp-api.expensify.com'];
+    const filteredPhrases = [
+        '/api/Log',
+        'firebaselogging-pa.googleapis.com',
+        'analytics.google.com',
+        'rs.fullstory.com',
+        'api.github.com',
+        'group-ib.com',
+        'fp-api.expensify.com',
+        '/api/Ping',
+        'ccm/collect',
+        'rmkt/collect',
+        'pagead/form-data',
+        'ccm/form-data',
+    ];
     return !filteredPhrases.some((phrase) => url.includes(phrase));
 };
 

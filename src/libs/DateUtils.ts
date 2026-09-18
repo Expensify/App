@@ -1473,10 +1473,6 @@ function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: st
 }
 
 /**
- * param {SelectedTimezone} timeZone - also decides the marker
- * returns {string} example: 11:10 PM
- */
-/**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
  * @param utcDateTime - Datetime string in UTC format (yyyy-MM-dd HH:mm:ss or yyyy-MM-dd HH:mm:ss.SSS)
  * @param timeZone - Target timezone to display the date in
@@ -1584,6 +1580,12 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
 
     // String comparison works because yyyy-MM-dd format is lexicographically sortable
     return datePart >= monthStart && datePart <= monthEnd;
+}
+
+/** Returns a compact day label, e.g. "Sep 15, ’26". */
+function getShortFormattedDayForSearch(day: string, locale: Locale): string {
+    const date = parse(day, 'yyyy-MM-dd', new Date());
+    return joinRange(formatIntl(locale, 'MONTH_DAY', date), getShortYearSuffix(date), ', ');
 }
 
 /** Returns a month label, e.g. "September 2025". */
@@ -1793,6 +1795,7 @@ const DateUtils = {
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,
+    getShortFormattedDayForSearch,
     getFormattedMonthForSearch,
     getShortFormattedMonthForSearch,
     getFormattedDateRangeForSearch,
