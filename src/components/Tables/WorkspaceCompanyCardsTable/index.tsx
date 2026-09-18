@@ -374,7 +374,9 @@ function WorkspaceCompanyCardsTable({
                     isLoading={isLoading}
                     policyID={policyID}
                     feedName={feedName}
+                    domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     canWriteCompanyCards={canWriteCompanyCards}
+                    shouldShowViewTransactions={showCards}
                     CardFeedIcon={cardFeedIcon}
                 />
             </View>
