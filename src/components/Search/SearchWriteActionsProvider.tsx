@@ -1,4 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLatestRef from '@hooks/useLatestRef';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,7 +20,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
@@ -703,7 +704,14 @@ function SearchWriteActionsProvider({
     useSyncMobileSelectionModeWithScreenSize({isFocused, isMobileSelectionModeEnabled, isSearchResultsEmpty});
     useSyncSelectedReports(filteredData);
 
-    const rowSelectionActionsValue: SearchRowSelectionActionsValue = {toggle, toggleAll};
+    // Every row captures these through its list's renderItem, so a new identity here re-renders the whole table. The
+    // closures above follow this provider's own Onyx reads (outstanding reports, rnvp, rules), which change on every
+    // report open; the pair handed out stays the same and reaches the latest closures through a ref.
+    const latestRowSelectionActionsRef = useLatestRef<SearchRowSelectionActionsValue>({toggle, toggleAll});
+    const [rowSelectionActionsValue] = useState<SearchRowSelectionActionsValue>(() => ({
+        toggle: (item, itemTransactions) => latestRowSelectionActionsRef.current.toggle(item, itemTransactions),
+        toggleAll: () => latestRowSelectionActionsRef.current.toggleAll(),
+    }));
 
     return <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>{children}</SearchRowSelectionActionsContext>;
 }

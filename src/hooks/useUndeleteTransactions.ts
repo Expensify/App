@@ -6,10 +6,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLatestRef from './useLatestRef';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -30,7 +32,7 @@ function useUndeleteTransactions() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    return (transactions: Transaction[]) => {
+    const undeleteTransactions = (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
 
         changeTransactionsReport({
@@ -53,6 +55,12 @@ function useUndeleteTransactions() {
             getCurrencySymbol,
         });
     };
+
+    // The reads above change on most snapshot writes, and Search rows capture this function through renderItem, so a
+    // fresh identity would re-render every row. The function handed out stays the same and calls the latest closure.
+    const latestUndeleteTransactionsRef = useLatestRef(undeleteTransactions);
+    const [stableUndeleteTransactions] = useState(() => (transactions: Transaction[]) => latestUndeleteTransactionsRef.current(transactions));
+    return stableUndeleteTransactions;
 }
 
 export default useUndeleteTransactions;

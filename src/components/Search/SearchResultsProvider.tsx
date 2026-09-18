@@ -1,6 +1,7 @@
+import useLatestRef from '@hooks/useLatestRef';
 import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
-import {getTransactionsByReportID, getViolationsFromSearchData, isTodoSearch} from '@libs/SearchUIUtils';
+import {getTransactionsByReportID, getViolationsFromSearchData} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,12 +41,10 @@ const defaultSearchInfo: SearchResultsInfo = {
 };
 
 function SearchResultsProvider({children}: SearchResultsProviderProps) {
-    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON, suggestedSearches} = useSearchQueryContext();
-    const currentRecentSearchHash = currentSearchQueryJSON?.recentSearchHash ?? -1;
+    const {currentSearchHash, currentSearchKey, shouldUseLiveData} = useSearchQueryContext();
 
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
 
-    const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
     const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined);
 
     // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.
@@ -97,10 +96,16 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         lastSearchType,
     };
 
+    // Rows and other event handlers read the results at call time through this getter instead of subscribing; its
+    // identity never changes, so the actions context stays stable across snapshot writes.
+    const latestSearchResultsRef = useLatestRef(currentSearchResults);
+    const [getCurrentSearchResults] = useState(() => () => latestSearchResultsRef.current);
+
     const resultsActionsValue: SearchResultsActionsValue = {
         setSortedReportIDs,
         setShouldShowFiltersBarLoading,
         setLastSearchType,
+        getCurrentSearchResults,
     };
 
     return (

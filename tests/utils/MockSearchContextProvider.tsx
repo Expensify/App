@@ -40,6 +40,7 @@ function splitState(value: SearchStateContextValue): {
             currentDefaultSearchQueryFilterKeys: value.currentDefaultSearchQueryFilterKeys,
             suggestedSearches: value.suggestedSearches,
             shouldResetSearchQuery: value.shouldResetSearchQuery,
+            shouldUseLiveData: value.shouldUseLiveData,
         },
         results: {
             currentSearchResults: value.currentSearchResults,
@@ -74,6 +75,7 @@ function splitActions(value: SearchActionsContextValue): {
             setSortedReportIDs: value.setSortedReportIDs,
             setShouldShowFiltersBarLoading: value.setShouldShowFiltersBarLoading,
             setLastSearchType: value.setLastSearchType,
+            getCurrentSearchResults: value.getCurrentSearchResults,
         },
         selection: {
             setSelectedTransactions: value.setSelectedTransactions,
