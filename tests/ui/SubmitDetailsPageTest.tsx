@@ -164,17 +164,22 @@ jest.mock('@components/HeaderWithBackButton', () => {
     };
 });
 
-// Mock the confirmation list down to a button that fires onConfirm — isolates the test from the form internals.
+// Mock the confirmation list down to buttons that fire onConfirm and onOpenParticipantPicker — isolates the test from the form internals.
 jest.mock('@components/MoneyRequestConfirmationList', () => {
     const React2 = require('react');
     const {Pressable, Text} = require('react-native');
     return {
         __esModule: true,
-        default: ({onConfirm}: {onConfirm: (participants?: Array<{accountID: number; login: string}>) => void}) =>
+        default: ({onConfirm, onOpenParticipantPicker}: {onConfirm: (participants?: Array<{accountID: number; login: string}>) => void; onOpenParticipantPicker?: () => void}) =>
             React2.createElement(
-                Pressable,
-                {testID: 'mock-confirm-button', onPress: () => onConfirm([{accountID: 2, login: 'participant@example.com'}])},
-                React2.createElement(Text, null, 'confirm'),
+                React2.Fragment,
+                null,
+                React2.createElement(
+                    Pressable,
+                    {testID: 'mock-confirm-button', onPress: () => onConfirm([{accountID: 2, login: 'participant@example.com'}])},
+                    React2.createElement(Text, null, 'confirm'),
+                ),
+                React2.createElement(Pressable, {testID: 'mock-participant-picker-button', onPress: onOpenParticipantPicker}, React2.createElement(Text, null, 'participant')),
             ),
     };
 });
@@ -503,6 +508,21 @@ describe('SubmitDetailsPage', () => {
         expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID));
 
         fireEvent.press(screen.getByTestId('mock-back-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.removePreInsertedFullscreenIfNeeded).toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('cleans up a pre-inserted destination route before goBack when opening the participant picker', async () => {
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID));
+
+        fireEvent.press(screen.getByTestId('mock-participant-picker-button'));
         await waitForBatchedUpdatesWithAct();
 
         expect(Navigation.removePreInsertedFullscreenIfNeeded).toHaveBeenCalled();
