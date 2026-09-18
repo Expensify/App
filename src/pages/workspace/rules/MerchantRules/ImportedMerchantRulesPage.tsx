@@ -23,7 +23,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {escapeTagName, getMatchingVendors, hasVendorFeature, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {escapeTagName, getMatchingVendors, hasVendorFeature, isMatchingVendorListLoaded} from '@libs/PolicyUtils';
 import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -289,7 +289,6 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const {isBetaEnabled} = usePermissions();
     const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const isOnXero = isXeroActiveMatchingSource(policy);
 
     const {isFetchNeeded: isVendorConnectionsFetchNeeded, isLoadingFetchedFlag: isVendorConnectionsFetchedFlagLoading} = usePolicyConnectionsPrefetch(policy, true);
     const isVendorListLoading = isVendorConnectionsFetchNeeded || isVendorConnectionsFetchedFlagLoading;
@@ -329,7 +328,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         ...(isVendorFeatureAvailable
             ? [
                   {
-                      text: translate(isOnXero ? 'workspace.rules.merchantRules.importColumnUpdatedSupplier' : 'workspace.rules.merchantRules.importColumnUpdatedVendor'),
+                      text: translate('workspace.rules.merchantRules.importColumnUpdatedVendor'),
                       value: CONST.CSV_IMPORT_COLUMNS.VENDOR,
                   },
               ]
@@ -406,11 +405,11 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                       pendingMessageKeyParams: {count: invalidCategoryNames.size},
                   }),
                   ...(invalidVendorNames.size > 0 && {
-                      secondaryPendingMessageKey: isOnXero ? 'spreadsheet.importMerchantRulesSkippedSuppliers' : 'spreadsheet.importMerchantRulesSkippedVendors',
+                      secondaryPendingMessageKey: 'spreadsheet.importMerchantRulesSkippedVendors',
                       secondaryPendingMessageKeyParams: {count: invalidVendorNames.size},
                   }),
               }
-            : await importMerchantRulesSpreadsheet(policyID, rules, invalidCategoryNames.size, invalidVendorNames.size, isOnXero);
+            : await importMerchantRulesSpreadsheet(policyID, rules, invalidCategoryNames.size, invalidVendorNames.size);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImportingRules(false);
