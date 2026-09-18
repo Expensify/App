@@ -1024,6 +1024,14 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
         },
 
+        headerBackButtonGlass: {
+            alignItems: 'center',
+            height: variables.componentSizeNormal,
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            borderRadius: variables.componentBorderRadiusCircle,
+        },
+
         visuallyHidden: {
             ...visibility.hidden,
             overflow: 'hidden',
@@ -1966,6 +1974,30 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             top: -variables.componentSizeSmall - 16,
             alignSelf: 'center',
+            zIndex: 10,
+        },
+
+        nativeTabBarLabel: {
+            color: theme.textSupporting,
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
+        nativeTabBarActiveLabel: {
+            color: theme.text,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        nativeTabBarBadge: {
+            backgroundColor: theme.transparent,
+            fontSize: variables.fontSizeSmall,
+        },
+
+        nativeTabBarFloatingButtons: {
+            position: 'absolute',
+            right: 0,
+            bottom: variables.bottomTabHeight + spacing.gap3.gap,
+            left: 0,
+            height: 0,
             zIndex: 10,
         },
 

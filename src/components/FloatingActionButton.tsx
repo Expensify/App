@@ -13,6 +13,7 @@ import type {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text as TextType, View as ViewType} from 'react-native';
 
+import {GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable} from 'expo-glass-effect';
 import React, {useEffect, useRef} from 'react';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
@@ -38,7 +39,7 @@ type FloatingActionButtonProps = WithSentryLabel & {
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
-    const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
+    const {buttonDefaultBG, buttonHoveredBG, icon: iconColor} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
@@ -61,14 +62,26 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
         );
     }, [isActive, sharedValue]);
 
-    const animatedStyle = useAnimatedStyle(() => {
+    const backgroundStyle = useAnimatedStyle(() => {
         const backgroundColor = isHovered.get() && !sharedValue.get() ? buttonHoveredBG : interpolateColor(sharedValue.get(), [0, 1], [buttonDefaultBG, buttonHoveredBG]);
 
-        return {
-            transform: [{rotate: `${sharedValue.get() * 135}deg`}],
-            backgroundColor,
-        };
+        return {backgroundColor};
     });
+    const rotationStyle = useAnimatedStyle(() => ({transform: [{rotate: `${sharedValue.get() * 135}deg`}]}));
+    const shouldUseLiquidGlass = !isLHBVisible && isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
+
+    const fabIcon = (
+        <Svg
+            width={fabSize}
+            height={fabSize}
+            pointerEvents="none"
+        >
+            <AnimatedPath
+                d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                fill={iconColor}
+            />
+        </Svg>
+    );
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         // Drop focus to avoid blue focus ring.
@@ -113,21 +126,24 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 {({hovered}) => {
                     isHovered.set(hovered);
 
+                    if (shouldUseLiquidGlass) {
+                        return (
+                            <GlassView
+                                style={[styles.floatingActionButton, styles.bgTransparent]}
+                                glassEffectStyle="regular"
+                                isInteractive
+                            >
+                                <Animated.View style={rotationStyle}>{fabIcon}</Animated.View>
+                            </GlassView>
+                        );
+                    }
+
                     return (
                         <Animated.View
-                            style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}
+                            style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, backgroundStyle, rotationStyle]}
                             testID="fab-animated-container"
                         >
-                            <Svg
-                                width={fabSize}
-                                height={fabSize}
-                                pointerEvents="none"
-                            >
-                                <AnimatedPath
-                                    d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                                    fill={icon}
-                                />
-                            </Svg>
+                            {fabIcon}
                         </Animated.View>
                     );
                 }}

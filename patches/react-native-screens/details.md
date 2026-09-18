@@ -1,5 +1,12 @@
 # `react-native-screens` patches
 
+### [react-native-screens+4.25.0+002+ios-tab-badge-text-style.patch](react-native-screens+4.25.0+002+ios-tab-badge-text-style.patch)
+
+- Reason: Exposes iOS tab badge text color and font size through the existing item appearance object and applies them with UIKit's public `badgeTextAttributes` API. This allows smaller GBR/RBR circle glyphs on transparent badges without modifying UIKit's private view hierarchy. Existing badge styling is preserved when these options are absent.
+- Upstream PR/issue: N/A; adds appearance options for the Liquid Glass prototype.
+- E/App issue: Tracked in the prototype PR below; remove when upstream provides equivalent options.
+- PR Introducing Patch: [#100887](https://github.com/Expensify/App/pull/100887)
+
 ### [react-native-screens+4.25.0+001+fix-removal-listener-use-after-free.patch](react-native-screens+4.25.0+001+fix-removal-listener-use-after-free.patch)
 
 - Reason: Fixes a use-after-free behind the Android SIGSEGV in `MountingCoordinator::pullTransaction` (Sentry APP-9Y9). `NativeProxy::nativeAddMutationsListener` lazily created `screenRemovalListener_` without synchronization, and on a cold launch two threads reach it concurrently: `ScreensModule.initialize()` calls `setupFabric()` on the module thread while `onHostResume()` dispatches the same call to the main thread. Both can pass the null check, and the racing `shared_ptr` assignments tear — libc++ moves the object pointer and the control block as two independent words, so the member can keep one thread's pointer next to the other thread's control block while the losing temporary frees the listener it points at. The delegate registered in core's append-only override list then reports `use_count=1, expired=0` forever, so `lock()` succeeds and the next `pullTransaction` virtual-dispatches through a recycled vtable slot. A listener destroyed normally through its own control block is harmless (`expired=1`, core null-checks that path), which is what identifies this as the init race rather than teardown. The patch makes the listener a process-lifetime singleton (function-local static, thread-safe initialization) holding a mutex-guarded swappable callback that captures the JNI global reference by value instead of `this`; `setListener` returns an ownership token and `invalidateNative()` clears the callback only when it still owns it, so a stale proxy's late teardown cannot disarm a newer install (e.g. with a second `ReactHost`), and a disarmed listener passes the transaction through untouched.

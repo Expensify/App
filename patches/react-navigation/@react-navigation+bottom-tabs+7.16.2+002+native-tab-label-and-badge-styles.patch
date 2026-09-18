@@ -1,0 +1,201 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+index 1183c51..42b3a5c 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+@@ -248,10 +248,22 @@ export function NativeBottomTabView({
+           tabBarItemTitleFontSize: fontSize,
+           tabBarItemTitleFontWeight: fontWeight,
+           tabBarItemTitleFontStyle: fontStyle,
+-          tabBarItemTitleFontColor: inactiveTintColor ?? fontColor,
++          tabBarItemTitleFontColor: fontColor ?? inactiveTintColor,
+           tabBarItemIconColor: inactiveTintColor,
+-          tabBarItemBadgeBackgroundColor: badgeBackgroundColor
++          tabBarItemBadgeBackgroundColor: badgeBackgroundColor,
++          tabBarItemBadgeTextColor: tabBarBadgeStyle?.color,
++          tabBarItemBadgeFontSize: tabBarBadgeStyle?.fontSize
+         };
++        const activeLabelStyle = currentOptions.tabBarActiveLabelStyle;
++        const activeTabItemAppearance = activeLabelStyle ? {
++          ...tabItemAppearance,
++          tabBarItemTitleFontFamily: activeLabelStyle.fontFamily ?? fontFamily,
++          tabBarItemTitleFontSize: activeLabelStyle.fontSize ?? fontSize,
++          tabBarItemTitleFontWeight: activeLabelStyle.fontWeight ?? fontWeight,
++          tabBarItemTitleFontStyle: activeLabelStyle.fontStyle ?? fontStyle,
++          tabBarItemTitleFontColor: activeLabelStyle.color ?? activeTintColor,
++          tabBarItemIconColor: activeTintColor
++        } : undefined;
+         const normalTabItemAppearance = {
+           tabBarItemTitleFontColor: inactiveTintColor ?? fontColor,
+           tabBarItemIconColor: inactiveTintColor
+@@ -322,13 +334,16 @@ export function NativeBottomTabView({
+               tabBarShadowColor,
+               tabBarBlurEffect,
+               stacked: {
+-                normal: tabItemAppearance
++                normal: tabItemAppearance,
++                selected: activeTabItemAppearance
+               },
+               inline: {
+-                normal: tabItemAppearance
++                normal: tabItemAppearance,
++                selected: activeTabItemAppearance
+               },
+               compactInline: {
+-                normal: tabItemAppearance
++                normal: tabItemAppearance,
++                selected: activeTabItemAppearance
+               }
+             },
+             standardAppearance: {
+@@ -336,13 +351,16 @@ export function NativeBottomTabView({
+               tabBarShadowColor,
+               tabBarBlurEffect,
+               stacked: {
+-                normal: tabItemAppearance
++                normal: tabItemAppearance,
++                selected: activeTabItemAppearance
+               },
+               inline: {
+-                normal: tabItemAppearance
++                normal: tabItemAppearance,
++                selected: activeTabItemAppearance
+               },
+               compactInline: {
+-                normal: tabItemAppearance
++                normal: tabItemAppearance,
++                selected: activeTabItemAppearance
+               }
+             },
+             overrideScrollViewContentInsetAdjustmentBehavior
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
+index 5a502c2..a7ac84b 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
++++ b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
+@@ -122,6 +122,12 @@ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
+      * Style object for the tab label.
+      */
+     tabBarLabelStyle?: Pick<TextStyle, 'fontFamily' | 'fontSize' | 'fontWeight' | 'fontStyle' | 'color'>;
++    /**
++     * Style overrides for the selected tab label.
++     *
++     * @platform ios
++     */
++    tabBarActiveLabelStyle?: NativeBottomTabNavigationOptions['tabBarLabelStyle'];
+     /**
+      * Icon to display for the tab.
+      *
+@@ -139,12 +145,14 @@ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
+     /**
+      * Custom style for the tab bar badge.
+      * You can specify a background color or text color here.
+-     * - on iOS, you can only set the background color.
++     * - on iOS, you can set the background color, text color and font size.
+      * - on Android, you can set both background and text colors.
+      */
+     tabBarBadgeStyle?: {
+         backgroundColor?: ColorValue;
+         color?: ColorValue;
++        /** @platform ios */
++        fontSize?: number;
+     };
+     /**
+      * Color for the icon and label in the active tab.
+diff --git a/node_modules/@react-navigation/bottom-tabs/src/unstable/NativeBottomTabView.native.tsx b/node_modules/@react-navigation/bottom-tabs/src/unstable/NativeBottomTabView.native.tsx
+index 287dea3..e7378e3 100644
+--- a/node_modules/@react-navigation/bottom-tabs/src/unstable/NativeBottomTabView.native.tsx
++++ b/node_modules/@react-navigation/bottom-tabs/src/unstable/NativeBottomTabView.native.tsx
+@@ -380,11 +380,27 @@ export function NativeBottomTabView({ state, navigation, descriptors }: Props) {
+             tabBarItemTitleFontSize: fontSize,
+             tabBarItemTitleFontWeight: fontWeight,
+             tabBarItemTitleFontStyle: fontStyle,
+-            tabBarItemTitleFontColor: inactiveTintColor ?? fontColor,
++            tabBarItemTitleFontColor: fontColor ?? inactiveTintColor,
+             tabBarItemIconColor: inactiveTintColor,
+             tabBarItemBadgeBackgroundColor: badgeBackgroundColor,
++            tabBarItemBadgeTextColor: tabBarBadgeStyle?.color,
++            tabBarItemBadgeFontSize: tabBarBadgeStyle?.fontSize,
+           };
+ 
++          const activeLabelStyle = currentOptions.tabBarActiveLabelStyle;
++          const activeTabItemAppearance: TabsScreenItemStateAppearanceIOS | undefined =
++            activeLabelStyle
++              ? {
++                  ...tabItemAppearance,
++                  tabBarItemTitleFontFamily: activeLabelStyle.fontFamily ?? fontFamily,
++                  tabBarItemTitleFontSize: activeLabelStyle.fontSize ?? fontSize,
++                  tabBarItemTitleFontWeight: activeLabelStyle.fontWeight ?? fontWeight,
++                  tabBarItemTitleFontStyle: activeLabelStyle.fontStyle ?? fontStyle,
++                  tabBarItemTitleFontColor: activeLabelStyle.color ?? activeTintColor,
++                  tabBarItemIconColor: activeTintColor,
++                }
++              : undefined;
++
+           const normalTabItemAppearance: TabsScreenItemStateAppearanceAndroid =
+             {
+               tabBarItemTitleFontColor: inactiveTintColor ?? fontColor,
+@@ -460,12 +476,15 @@ export function NativeBottomTabView({ state, navigation, descriptors }: Props) {
+                   tabBarBlurEffect,
+                   stacked: {
+                     normal: tabItemAppearance,
++                    selected: activeTabItemAppearance,
+                   },
+                   inline: {
+                     normal: tabItemAppearance,
++                    selected: activeTabItemAppearance,
+                   },
+                   compactInline: {
+                     normal: tabItemAppearance,
++                    selected: activeTabItemAppearance,
+                   },
+                 },
+                 standardAppearance: {
+@@ -474,12 +493,15 @@ export function NativeBottomTabView({ state, navigation, descriptors }: Props) {
+                   tabBarBlurEffect,
+                   stacked: {
+                     normal: tabItemAppearance,
++                    selected: activeTabItemAppearance,
+                   },
+                   inline: {
+                     normal: tabItemAppearance,
++                    selected: activeTabItemAppearance,
+                   },
+                   compactInline: {
+                     normal: tabItemAppearance,
++                    selected: activeTabItemAppearance,
+                   },
+                 },
+                 overrideScrollViewContentInsetAdjustmentBehavior,
+diff --git a/node_modules/@react-navigation/bottom-tabs/src/unstable/types.tsx b/node_modules/@react-navigation/bottom-tabs/src/unstable/types.tsx
+index a2471f5..e05d116 100644
+--- a/node_modules/@react-navigation/bottom-tabs/src/unstable/types.tsx
++++ b/node_modules/@react-navigation/bottom-tabs/src/unstable/types.tsx
+@@ -161,6 +161,13 @@ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
+     'fontFamily' | 'fontSize' | 'fontWeight' | 'fontStyle' | 'color'
+   >;
+ 
++  /**
++   * Style overrides for the selected tab label.
++   *
++   * @platform ios
++   */
++  tabBarActiveLabelStyle?: NativeBottomTabNavigationOptions['tabBarLabelStyle'];
++
+   /**
+    * Icon to display for the tab.
+    *
+@@ -180,12 +187,14 @@ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
+   /**
+    * Custom style for the tab bar badge.
+    * You can specify a background color or text color here.
+-   * - on iOS, you can only set the background color.
++   * - on iOS, you can set the background color, text color and font size.
+    * - on Android, you can set both background and text colors.
+    */
+   tabBarBadgeStyle?: {
+     backgroundColor?: ColorValue;
+     color?: ColorValue;
++    /** @platform ios */
++    fontSize?: number;
+   };
+ 
+   /**
