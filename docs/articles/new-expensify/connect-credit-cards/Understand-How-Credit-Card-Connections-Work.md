@@ -23,6 +23,8 @@ Company cards are connected at the workspace level and then assigned to individu
 
 Company card expenses appear with a lock and card icon, identifying them as company card expenses.
 
+![Spend page showing company card expense highlighted]({{site.url}}/assets/images/Spend_companycardicon.png){:width="100%"}
+
 ---
 
 ## How personal card connections work
@@ -30,6 +32,8 @@ Company card expenses appear with a lock and card icon, identifying them as comp
 Personal cards are connected in your wallet, rather than on a workspace. Transactions from a personal card import into your own account.
 
 Personal card expenses appear with a card icon, identifying them as personal card expenses.
+
+![Spend page showing personal card expense highlighted]({{site.url}}/assets/images/Spend_personalcardicon.png){:width="100%"}
 
 ---
 
