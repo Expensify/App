@@ -90,7 +90,12 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
 
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
-        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        {
+            photoResolution: {
+                width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH,
+                height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT,
+            },
+        },
         getVideoResolutionFormatFilter(windowWidth, windowHeight),
     ]);
     const hasFlash = !!device?.hasFlash;
@@ -181,6 +186,12 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                 ]);
             })
             .catch((error: Error) => {
+                // Tearing down the camera (e.g. tapping X while takePhoto is in-flight) rejects the
+                // promise on Android. That is the user's own cancellation, not a real failure, so
+                // skip both the alert and the Sentry log when the camera is no longer active.
+                if (!isActiveRef.current) {
+                    return;
+                }
                 Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
                 logCameraCaptureFailed(error);
             })
@@ -190,11 +201,18 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     };
 
     const handleCameraError = (error: CameraRuntimeError) => {
+        if (!isActiveRef.current) {
+            return;
+        }
         Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
         logCameraRuntimeError({code: error.code, message: error.message});
     };
 
     const handleClose = () => {
+        // Drop the active flag synchronously so the guard in the takePhoto catch and
+        // handleCameraError is already correct when the teardown-induced rejection arrives,
+        // instead of waiting for the isVisible useEffect to commit.
+        isActiveRef.current = false;
         isCapturing.current = false;
         setFlash(false);
         setCameraPosition('back');
