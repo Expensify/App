@@ -427,7 +427,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             },
         },
         performance: {
-            // We have to load the whole lottie player to get the player to work in offline mode
             // heic-to library is used sparsely so we load it as a separate chunk to reduce initial bundle size
             // ExpensifyIcons/illustrations chunks are loaded eagerly for offline support
             // Vendor: extract all 3rd party deps (~75% of App) to a separate js file for better caching
@@ -435,11 +434,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 strategy: 'custom',
                 splitChunks: {
                     cacheGroups: {
-                        lottiePlayer: {
-                            test: /[\\/]node_modules[\\/](@dotlottie\/react-player)[\\/]/,
-                            name: 'lottiePlayer',
-                            chunks: 'all',
-                        },
                         heicTo: {
                             test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                             name: 'heicTo',
