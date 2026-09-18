@@ -70,11 +70,13 @@ const REGISTRY = {
     multiselect: (field, context) => ({
         InputComponent: MultiSelectListAdapter,
         isMenuRow: true,
+        shouldRenderLabelAbove: true,
         inputProps: {items: getChoices(field, context), valueType: 'stringList'},
     }),
     radio: (field, context) => ({
         InputComponent: RadioButtons,
         isMenuRow: true,
+        shouldRenderLabelAbove: true,
         inputProps: {items: getChoices(field, context), onSelect: () => {}},
     }),
     date: (field, {translate}) => ({
@@ -96,6 +98,7 @@ const REGISTRY = {
     }),
     file: (field, {translate}) => ({
         InputComponent: FileUploadAdapter,
+        shouldRenderLabelAbove: true,
         inputProps: {
             valueType: 'files',
             buttonText: translate(field.maxFiles && field.maxFiles > 1 ? 'common.chooseFiles' : 'common.chooseFile'),
