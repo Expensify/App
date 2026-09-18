@@ -165,6 +165,13 @@ describe('Wise KYC requirements pages', () => {
         screen.unmount();
         await renderRequirementFormPage('ID_DOCUMENT');
         expect(screen.getAllByTestId('upload-file')).toHaveLength(2);
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM_DRAFT, {documentType: 'RESIDENCE_PERMIT'});
+        });
+        screen.unmount();
+        await renderRequirementFormPage('ID_DOCUMENT');
+        expect(screen.getAllByTestId('upload-file')).toHaveLength(2);
     });
 
     it('opens the embedded page for a hostedOnly requirement', async () => {
