@@ -85,6 +85,8 @@ function ExpenseFlatSearchView({
 
     // Flat lists have no group children to skip, so visibility is computed straight off the rendered rows.
     const isItemVisible = (item: SearchListItem) => !isRowDeleted(item) || isOffline;
+    // Read here so renderItem depends on the number, not on the array: a rebuilt array must not re-render every row.
+    const lastRowIndex = data.length - 1;
     const firstVisibleIndex = data.findIndex(isItemVisible);
     const lastVisibleIndex = data.findLastIndex(isItemVisible);
 
@@ -98,7 +100,7 @@ function ExpenseFlatSearchView({
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         const isDisabled = isRowDeleted(item);
         // Only expense row exits animate; invoice and trip transaction lists do not (matches the legacy per-type gate).
-        const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < data.length - 1;
+        const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < lastRowIndex;
 
         return (
             <AnimatedExitRow
