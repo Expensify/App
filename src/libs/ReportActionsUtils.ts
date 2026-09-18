@@ -2670,10 +2670,7 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
     return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
 }
 
-function getAgentPromptUpdatedMessage(
-    translate: LocalizedTranslate,
-    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>,
-): string {
+function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
     const originalMessage = getOriginalMessage(reportAction);
     return originalMessage ? translate('agentPromptUpdated', originalMessage) : getReportActionMessageText(reportAction);
 }
