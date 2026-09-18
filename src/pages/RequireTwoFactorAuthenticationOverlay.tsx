@@ -7,14 +7,13 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
+import useSignOut from '@hooks/useSignOut';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
-import {signOutInteractively} from '@libs/actions/InteractiveSignOut';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
@@ -25,7 +24,6 @@ import {buildOnboardingFlowParams, getRequired2FAOnboardingResumePath} from '@us
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 
@@ -62,12 +60,9 @@ function RequireTwoFactorAuthenticationOverlay() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const network = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {
-        selector: isTrackingSelector,
-    });
+    const {signOut, leaveDelegateAccount, isActingAsDelegate} = useSignOut();
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -119,13 +114,24 @@ function RequireTwoFactorAuthenticationOverlay() {
             return;
         }
 
-        await signOutInteractively({
-            translate,
-            isOffline: network.isOffline,
-            isTrackingGPS,
-            showConfirmModal,
-            hasConfirmedSignOut: true,
+        await signOut({hasConfirmedSignOut: true});
+    };
+
+    const confirmLeaveAccount = async () => {
+        const result = await showConfirmModal({
+            title: translate('common.areYouSure'),
+            prompt: translate('delegate.leaveAccountConfirmationText'),
+            confirmText: translate('delegate.leaveAccount'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        await leaveDelegateAccount({hasConfirmedLeave: true});
     };
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
@@ -157,9 +163,9 @@ function RequireTwoFactorAuthenticationOverlay() {
                             <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
                                 <Button
                                     size={CONST.BUTTON_SIZE.LARGE}
-                                    onPress={confirmSignOut}
+                                    onPress={isActingAsDelegate ? confirmLeaveAccount : confirmSignOut}
                                 >
-                                    <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
+                                    <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
                                 </Button>
                                 <Button
                                     size={CONST.BUTTON_SIZE.LARGE}

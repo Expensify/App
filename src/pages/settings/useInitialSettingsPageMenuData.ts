@@ -2,18 +2,16 @@
  * Builds the Account and General menu section data shown on the Initial Settings page.
  */
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
+import useSignOut from '@hooks/useSignOut';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {signOutImmediately, signOutInteractively} from '@libs/actions/InteractiveSignOut';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -75,8 +73,8 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
-    const network = useNetwork();
     const {translate} = useLocalize();
+    const {signOut: signOutInteractively, signOutImmediately} = useSignOut();
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
@@ -119,19 +117,12 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
-    const {showConfirmModal} = useConfirmModal();
-
     const signOut = async (shouldForceSignout = false) => {
         if (shouldForceSignout) {
             return signOutImmediately();
         }
 
-        return signOutInteractively({
-            translate,
-            isOffline: network.isOffline,
-            isTrackingGPS,
-            showConfirmModal,
-        });
+        return signOutInteractively();
     };
 
     const surveyThresholdInDays = 30;
