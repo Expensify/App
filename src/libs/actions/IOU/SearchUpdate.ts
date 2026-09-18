@@ -280,6 +280,9 @@ function getSearchOnyxUpdate({
                 buildSearchQueryString({
                     ...queryJSON,
                     groupBy: undefined,
+                    // Must match buildSpecificGroupQuery, which drops `limit` so it only bounds the group count.
+                    // `limit` is part of the query hash, so keeping it here would write the snapshot under a hash the group row never reads.
+                    limit: undefined,
                     flatFilters: newFlatFilters,
                 }),
             );

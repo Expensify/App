@@ -68,6 +68,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         const newQueryJSON: SearchQueryJSON = {
             ...parsedQueryJSON,
             groupBy: undefined,
+            // `limit` bounds how many bars the chart draws. Without `groupBy` it would cap the rows behind the bar we
+            // are drilling into, so it is dropped together with `groupBy`.
+            limit: undefined,
             view: CONST.SEARCH.VIEW.TABLE,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,

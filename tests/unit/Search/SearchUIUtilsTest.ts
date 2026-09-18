@@ -3785,6 +3785,82 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        it('should not carry the group limit into the category drill-down query', () => {
+            // Given a category-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:category limit:10');
+            if (!parsedQuery) {
+                throw new Error('Failed to parse category-grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the category sections are built
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByCategory.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: {...parsedQuery},
+                }),
+                SearchUIUtils.isTransactionCategoryGroupListItemType,
+            );
+
+            // Then the per-group query drops the limit along with the grouping, so expanding a group
+            // shows every transaction in it instead of capping them at the group limit
+            const categorySection = sections.at(0);
+            if (!categorySection) {
+                throw new Error('Expected a category group section');
+            }
+            expect(categorySection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(categorySection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+        });
+
+        it('should not carry the group limit into the day drill-down query', () => {
+            // Given a day-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:day limit:10');
+            if (!parsedQuery) {
+                throw new Error('Failed to parse day-grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the day sections are built
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByDay.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                groupBy: CONST.SEARCH.GROUP_BY.DAY,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+                queryJSON: {...parsedQuery},
+            });
+
+            // Then the per-group query drops the limit along with the grouping
+            const daySection = sections.at(0);
+            if (!daySection || !SearchUIUtils.isTransactionDayGroupListItemType(daySection)) {
+                throw new Error('Expected a day group section');
+            }
+            expect(daySection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(daySection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(daySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+        });
+
         it('should match a day group using created when modifiedCreated is empty', () => {
             const dayGroup: TransactionDayGroupListItemType = {
                 day: '2026-09-15',
