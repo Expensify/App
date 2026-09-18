@@ -1,4 +1,4 @@
-import {act, cleanup, render, waitFor} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import * as AppActions from '@libs/actions/App';
 import * as Device from '@libs/actions/Device';
@@ -226,6 +226,10 @@ describe('Deep linking', () => {
             const {unmount: unmount2} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: 'Switch accounts'}));
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
 
             expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
 
