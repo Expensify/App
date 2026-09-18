@@ -221,6 +221,9 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WiseBankAccountFields from './WiseBankAccountFields';
+import type {WiseField, WiseFieldOption, WiseFieldType} from './WiseField';
+import type {WiseKYCRequirement, WiseKYCRequirements} from './WiseKYCRequirements';
 
 export type {
     FileObject,
@@ -429,6 +432,12 @@ export type {
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
+    WiseBankAccountFields,
+    WiseField,
+    WiseFieldOption,
+    WiseFieldType,
+    WiseKYCRequirement,
+    WiseKYCRequirements,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
