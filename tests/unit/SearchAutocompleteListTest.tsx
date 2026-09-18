@@ -848,6 +848,44 @@ describe('SearchAutocompleteList', () => {
             expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: 1}));
         });
 
+        it('keeps a matched self-DM first in Recent chats when Auth returns it', async () => {
+            const selfDM = {reportID: 'self', keyForList: 'self', text: 'My space', alternateText: '', lastMessageText: '', isSelfDM: true};
+            const localReport = {reportID: 'local', keyForList: 'local', text: 'My space local', alternateText: '', lastMessageText: ''};
+            const serverReport = {reportID: 'server', keyForList: 'server', text: 'My space server', alternateText: '', lastMessageText: ''};
+            getSearchOptionsSpy.mockImplementation((params: {includeCurrentUser?: boolean}) => ({
+                options: {
+                    recentReports: params.includeCurrentUser ? [localReport, selfDM] : [selfDM, serverReport],
+                    personalDetails: [],
+                    currentUserOption: null,
+                    userToInvite: null,
+                },
+            }));
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'space');
+            await flushAllUpdates();
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['server', 'self']);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+            });
+            await flushAllUpdates();
+
+            const names = screen.queryAllByText(/My space/).map((element) => (typeof element.props.children === 'string' ? element.props.children : ''));
+
+            expect(names).toEqual(['My space', 'My space local', 'My space server']);
+        });
+
         // Regression test for https://github.com/Expensify/App/issues/93009: after the two-section switcher was
         // introduced, the first matched chat was no longer highlighted because the highlight focused a fixed flat
         // index that now lands on the "Recent chats" section header row instead of the first result. As a result
