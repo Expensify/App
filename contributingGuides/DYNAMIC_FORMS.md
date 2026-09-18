@@ -67,7 +67,7 @@ The `adapters/` folder holds prop mappers that give existing components the `val
 
 The route must accept a `subPage` segment and an optional `action=edit` parameter, as the Corpay and enable-GR routes do. Pages that mount before their draft has loaded must wait for it (`isLoadingOnyxValue` on the draft metadata); the flow does this, and any page that uses `DynamicFormFields` directly must too, because `AmountForm` reads its value only on mount.
 
-Single-screen forms (one group, a few fields) should not use the step indicator. `DynamicFormShell` handles that threshold; a plain `ScreenWrapper` with `HeaderWithBackButton` and an XXL title is the pattern.
+The step indicator appears at three or more pages by default. Pass `shouldShowStepIndicator` to force it on for a shorter flow or off for a longer one; single-screen forms never get one.
 
 ## Fixtures are the server contract
 

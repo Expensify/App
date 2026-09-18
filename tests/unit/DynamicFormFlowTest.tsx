@@ -253,6 +253,43 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'));
     });
 
+    it('lets a flow force the step indicator on or off regardless of page count', async () => {
+        const twoGroups = allFieldTypes.filter((field) => field.group !== 'Ownership');
+        mockRouteParams.subPage = 'account-details';
+        render(
+            <DynamicFormFlow
+                fields={twoGroups}
+                formID={FORM_ID}
+                headerTitle="Add bank account"
+                testID="DynamicFormFlowForced"
+                buildRoute={buildRoute}
+                onSubmit={jest.fn()}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+                shouldShowStepIndicator
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getAllByLabelText(/stepCounter/)).toHaveLength(2);
+
+        screen.unmount();
+        render(
+            <DynamicFormFlow
+                fields={allFieldTypes}
+                formID={FORM_ID}
+                headerTitle="Add bank account"
+                testID="DynamicFormFlowHidden"
+                buildRoute={buildRoute}
+                onSubmit={jest.fn()}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+                shouldShowStepIndicator={false}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryAllByLabelText(/stepCounter/)).toHaveLength(0);
+    });
+
     it('calls onBack from the first page and goes to the previous page otherwise', async () => {
         const onBack = jest.fn();
         mockRouteParams.subPage = 'account-holder-details';
