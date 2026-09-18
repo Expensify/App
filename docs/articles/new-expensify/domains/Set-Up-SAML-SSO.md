@@ -72,9 +72,11 @@ Managing multiple domains with one Entity ID is supported. Contact Concierge or 
 
 # Advanced configurations for SAML Single Sign-On (SSO)
 
-## Okta SCIM API and SAML provisioning
+## Okta SCIM API for account deprovisioning
 
-Once SAML is configured: 
+Once Okta SCIM is enabled, when a member is deactivated in Okta, they are immediately logged out of Expensify.
+
+To enable Okta SCIM: 
 
 1. In Okta, add Expensify as an app and configure attribute mappings.
 2. Request SCIM API access via **concierge@expensify.com**.
