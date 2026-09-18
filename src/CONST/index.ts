@@ -1587,6 +1587,8 @@ const CONST = {
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
+        // "Auto report" destination: the backend picks each expense's report (its owner's latest draft, or a new one).
+        AUTOMATIC_REPORT_ID: '-3',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -3332,6 +3334,7 @@ const CONST = {
         DIMENSION_PREFIX: 'dimension_',
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     SAGE_INTACCT: {
@@ -7356,6 +7359,7 @@ const CONST = {
             CATEGORY: 'category',
             MERCHANT: 'merchant',
             TAG: 'tag',
+            DAY: 'day',
             MONTH: 'month',
             WEEK: 'week',
             YEAR: 'year',
@@ -7652,6 +7656,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                DAY: {
+                    DAY: this.TABLE_COLUMNS.GROUP_DAY,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
                 MONTH: {
                     MONTH: this.TABLE_COLUMNS.GROUP_MONTH,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
@@ -7720,6 +7729,7 @@ const CONST = {
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                DAY: [this.TABLE_COLUMNS.GROUP_DAY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
@@ -7834,6 +7844,7 @@ const CONST = {
             GROUP_CATEGORY: 'groupCategory',
             GROUP_MERCHANT: 'groupMerchant',
             GROUP_TAG: 'groupTag',
+            GROUP_DAY: 'groupday',
             GROUP_MONTH: 'groupmonth',
             GROUP_WEEK: 'groupweek',
             GROUP_YEAR: 'groupyear',
@@ -8068,6 +8079,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
                 [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
                 [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
+                [this.TABLE_COLUMNS.GROUP_DAY]: 'group-day',
                 [this.TABLE_COLUMNS.GROUP_MONTH]: 'group-month',
                 [this.TABLE_COLUMNS.GROUP_WEEK]: 'group-week',
                 [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
@@ -9363,6 +9375,9 @@ const CONST = {
         EMOJI_REACTIONS: {
             REACTION_BUBBLE: 'EmojiReactions-ReactionBubble',
             ADD_REACTION_BUBBLE: 'EmojiReactions-AddReactionBubble',
+        },
+        CONCIERGE_FEEDBACK: {
+            THUMB: 'ConciergeFeedback-Thumb',
         },
         MINI_CONTEXT_MENU: {
             QUICK_REACTION: 'MiniContextMenu-QuickReaction',

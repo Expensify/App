@@ -5,6 +5,7 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
+// We need direct access to useOnyx from react-native-onyx to read the live personal details list instead of the search snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 

@@ -26,6 +26,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
+    getLatestConciergeFeedbackActionID,
     getReportActionHtml,
     getReportActionMessage,
     isConsecutiveActionMadeByPreviousActor,
@@ -181,6 +182,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
+        allReportActionIDs,
     } = useReportActionsListState();
 
     const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, handleShowPreviousMessages} = useReportActionsListActions();
@@ -450,6 +452,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
+    // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
+    const latestConciergeFeedbackActionID =
+        reportNameValuePairs?.conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
+            ? undefined
+            : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, allReportActionIDs);
+
     useFollowActionBadgeTarget({
         isProduction,
         reportID,
@@ -509,6 +517,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                     shouldDisplayReplyDivider={reportActionsToRender.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                    isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
@@ -534,6 +543,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         draftReportActionID,
         draftMessageHTML,
         isDraftPendingCompletion,
+        latestConciergeFeedbackActionID,
     ];
 
     const listHeaderComponent = (

@@ -523,12 +523,14 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Síguenos en LinkedIn',
     },
     concierge: {
+        hasAnAnswer: '¡Concierge tiene una respuesta!',
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
         enableNotifications: {
             prompt: '¿Quieres que te avisemos cuando Concierge responda?',
             cta: 'Notificar',
         },
+        feedback: {prompt: '¿Te ha sido útil esta respuesta?', useful: 'Respuesta útil', notUseful: 'Respuesta poco útil', thanks: '¡Gracias por tus comentarios!'},
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1805,6 +1807,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'No se ha podido rechazar el gasto porque es posible que ya se haya movido o rechazado.',
         },
         moveExpenses: 'Mover a informe',
+        autoReport: 'Informe automático',
+        autoReportDescription: 'Añadir a los informes borrador en nombre del empleado',
         moveExpensesMaxTransactionsError: `Los informes están limitados a ${CONST.REPORT.MAX_TRANSACTIONS} gastos. Por favor, mueve algunos a otro informe.`,
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         submitReportTo: {
@@ -2468,7 +2472,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
         downloadCodes: 'Descargar códigos',
         copyCodes: 'Copiar códigos',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'Por motivos de seguridad, NetSuite requiere autenticación de dos factores para conectar la integración.',
     },
     recoveryCodeForm: {
         error: {
@@ -5274,6 +5277,9 @@ ${amount} para ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
                 },
             },
+            fxExpenseAccount: 'Cuenta de comisión por conversión de divisa de Sage Intacct',
+            fxExpenseAccountDescription:
+                'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Sage Intacct como un asiento contable.',
         },
         certinia: {
             title: 'Certinia',
@@ -9553,6 +9559,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoría',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Día',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mes',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Año',
@@ -9582,6 +9589,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorías',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciantes',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Etiquetas',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Días',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Meses',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semanas',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Años',
