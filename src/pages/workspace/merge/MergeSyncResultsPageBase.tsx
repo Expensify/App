@@ -31,6 +31,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Beta} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -47,12 +48,14 @@ const PAGE_CONFIG = {
         dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path,
         testID: 'DynamicHRSyncResultsPage',
         getProviderDisplayName: (policy: OnyxEntry<Policy>) => getConnectedHRProvider(policy)?.displayName ?? '',
+        shouldBeBlocked: () => false,
     },
     [CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
         dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_RECRUITING_SYNC_RESULTS.path,
         testID: 'DynamicRecruitingSyncResultsPage',
         getProviderDisplayName: (policy: OnyxEntry<Policy>) => getConnectedATSProvider(policy)?.displayName ?? '',
+        shouldBeBlocked: (isBetaEnabled: (beta: Beta) => boolean) => !isBetaEnabled(CONST.BETAS.MERGE_ATS),
     },
 } as const;
 
@@ -73,7 +76,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
     const illustrations = useMemoizedLazyIllustrations(['SyncUsers']);
     const [isSkippedSectionExpanded, setIsSkippedSectionExpanded] = useState(false);
 
-    const {featureName, dynamicRoutePath, testID, getProviderDisplayName} = PAGE_CONFIG[category];
+    const {featureName, dynamicRoutePath, testID, shouldBeBlocked, getProviderDisplayName} = PAGE_CONFIG[category];
     const backPath = useDynamicBackPath(dynamicRoutePath);
 
     const [providerDisplayName = ''] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -106,7 +109,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
             policyID={policyID}
             featureName={featureName}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={category === CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING ? !isBetaEnabled(CONST.BETAS.MERGE_ATS) : false}
+            shouldBeBlocked={shouldBeBlocked(isBetaEnabled)}
         >
             <ScreenWrapper
                 testID={testID}
