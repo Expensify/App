@@ -33,20 +33,6 @@ Updated rules for managing members across all types of chats in New Expensify.
 - DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
 
 ### Workspace Rooms
-#### Workspace
-|                    | Creator | Member(Employee/User) | Admin | Auditor |
-| :----------------: | :-----: | :-------------------: | :---: | :-----: |
-|     **Invite**     |    ✅    |           ❌           |   ✅   |    ❌    |
-|     **Remove**     |    ✅    |           ❌           |   ✅   |    ❌    |
-|     **Leave**      |    ❌    |           ✅           |   ❌   |    ✅    |
-| **Can be removed** |    ❌    |           ✅           |   ✅   |    ✅    |
-
-- Creator can't leave or be removed from their own workspace
-- Admins can't leave from the workspace
-- Admins can remove other workspace admins, as well as workspace members, and invited guests
-- Creator can remove other workspace admins, as well as workspace members, and invited guests
-- Members and Auditors cannot invite or remove anyone from the workspace
-
 #### Workspace #announce room
 |                    | Member(Employee/User) | Admin | Auditor |
 | :----------------: | :-------------------: | :---: | :-----: |
@@ -112,12 +98,26 @@ Updated rules for managing members across all types of chats in New Expensify.
 
 - Domain members can't leave or be removed from their domain chat
 
-4. ### Reports
-    |                    | Submitter | Manager |
-    | :----------------: | :-------: | :-----: |
-    |     **Remove**     |     ❌     |    ❌    |
-    |     **Leave**      |     ❌     |    ❌    |
-    | **Can be removed** |     ❌     |    ❌    |
+### Reports
+|                    | Submitter | Manager |
+| :----------------: | :-------: | :-----: |
+|     **Remove**     |     ❌     |    ❌    |
+|     **Leave**      |     ❌     |    ❌    |
+| **Can be removed** |     ❌     |    ❌    |
 
 - Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
 - Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
+
+## Workspace membership
+|                    | Creator | Member(Employee/User) | Admin | Auditor |
+| :----------------: | :-----: | :-------------------: | :---: | :-----: |
+|     **Invite**     |    ✅    |           ❌           |   ✅   |    ❌    |
+|     **Remove**     |    ✅    |           ❌           |   ✅   |    ❌    |
+|     **Leave**      |    ❌    |           ✅           |   ❌   |    ✅    |
+| **Can be removed** |    ❌    |           ✅           |   ✅   |    ✅    |
+
+- Creator can't leave or be removed from their own workspace
+- Admins can't leave from the workspace
+- Admins can remove other workspace admins, as well as workspace members, and invited guests
+- Creator can remove other workspace admins, as well as workspace members, and invited guests
+- Members and Auditors cannot invite or remove anyone from the workspace
