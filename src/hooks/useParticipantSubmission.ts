@@ -387,7 +387,7 @@ function useParticipantSubmission({
             const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName);
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
                 introSelected: intro,
-                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDetails.displayName),
+                workspaceName: generateDefaultWorkspaceName(email, userDetails.displayName, lastWorkspaceNumber, translate),
                 currentUserAccountID: userDetails.accountID,
                 currentUserEmail: email,
                 currency: userDetails.localCurrencyCode ?? CONST.CURRENCY.USD,

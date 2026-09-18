@@ -136,7 +136,6 @@ import {isTrackOnboardingChoice} from './OnboardingUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
-import Permissions from './Permissions';
 import {getAllPersonalDetails, getPersonalDetail} from './PersonalDetailsStore';
 import {
     buildPersonalDetailsUpdate,
@@ -239,7 +238,7 @@ import {
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
+import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
 import {getAllPersonalDetailLogins} from './ShortMentionLogins';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -1027,7 +1026,7 @@ type BuildOptimisticExpenseReportParams = {
     payeeAccountID: number;
     total: number;
     currency: string;
-    betas: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     nonReimbursableTotal?: number;
     parentReportActionID?: string;
     optimisticIOUReportID?: string;
@@ -2328,6 +2327,7 @@ function pushTransactionAutoSelectionsOnyxData(
 function pushTransactionViolationsOnyxData(
     onyxData: PolicyOptimisticOnyxData,
     policyData: PolicyData,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     policyUpdate: Partial<Policy> = {},
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
@@ -2401,6 +2401,7 @@ function pushTransactionViolationsOnyxData(
                 hasDependentTags: hasDependentTagsValue,
                 isInvoiceTransaction: false,
                 ownerLogin: undefined,
+                isVendorMatchingBetaEnabled,
             });
 
             // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
@@ -4488,6 +4489,7 @@ function getReasonAndReportActionThatRequiresAttention(
     allReportActionsParam?: OnyxCollection<ReportActions>,
     reports?: OnyxCollection<Report>,
     policiesParam?: OnyxCollection<Policy>,
+    reportMetadataParam?: OnyxEntry<ReportMetadata>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -4530,7 +4532,7 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    const optionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
+    const optionReportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
     // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
     // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
     // Onyx.connect and can still be stale/missing a policy that's already present in the caller's own snapshot.
@@ -5124,12 +5126,20 @@ function canEditMoneyRequest(
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
-    const isAdmin = reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
+    const isManagerOfReport = deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
 
-    if (isInvoiceReport(moneyRequestReport) && (isManager || isChatReportArchived)) {
+    if (isInvoiceReport(moneyRequestReport) && (isManagerOfReport || isChatReportArchived)) {
         return false;
     }
+
+    // Admin/manager rights only apply when the expense actually sits on a workspace report. Without this guard an
+    // unreported expense (self-DM track expense) is weighed against the caller's policy, which is the viewer's own
+    // default workspace rather than the expense's, so anyone who admins any workspace could edit someone else's
+    // expense. A self-DM also has no managerID, so an unresolved account ID would otherwise match it. Invoice reports
+    // stay included so a policy admin keeps the rights they had before this guard existed.
+    const isReportOnAWorkspace = isFinancialReportsForBusinesses(moneyRequestReport);
+    const isAdmin = isReportOnAWorkspace && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isReportOnAWorkspace && isManagerOfReport;
 
     // Admin & managers can always edit coding fields such as tag, category, billable, etc.
     if (isAdmin || isManager) {
@@ -5891,13 +5901,13 @@ type GetReportPreviewMessageBaseParams = {
  * `translateLocal`.
  */
 function getReportPreviewMessageForCopy(
-    params: Pick<GetReportPreviewMessageBaseParams, 'reportOrID' | 'iouReportAction' | 'originalReportAction'> & {reportAttributes?: ReportAttributesDerivedValue['reports']},
+    params: Pick<GetReportPreviewMessageBaseParams, 'reportOrID' | 'iouReportAction' | 'originalReportAction'> & {derivedReportName: string | undefined},
 ): string {
-    const {reportOrID, iouReportAction = null, reportAttributes} = params;
+    const {reportOrID, iouReportAction = null, derivedReportName} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     if (report) {
-        return deprecatedGetReportName(report, reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
+        return getReportName(report, derivedReportName) || (originalReportAction?.childReportName ?? '');
     }
     return originalReportAction?.childReportName ?? '';
 }
@@ -7334,8 +7344,7 @@ function computeOptimisticReportNameWithMetadata(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, betas: OnyxEntry<Beta[]>, isEmptyOptimisticReport = false) {
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitBetaEnabled: boolean, isEmptyOptimisticReport = false) {
     if (isASAPSubmitBetaEnabled) {
         return {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -7384,7 +7393,7 @@ function buildOptimisticExpenseReport({
     payeeAccountID,
     total,
     currency,
-    betas,
+    isASAPSubmitBetaEnabled,
     nonReimbursableTotal = 0,
     parentReportActionID,
     optimisticIOUReportID,
@@ -7404,7 +7413,7 @@ function buildOptimisticExpenseReport({
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 
@@ -7462,11 +7471,11 @@ function buildOptimisticEmptyReport(
     parentReportActionID: string,
     policy: OnyxEntry<Policy>,
     timeOfCreation: string,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
 ) {
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled, true);
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
         reportID,
@@ -9774,7 +9783,7 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  */
-function canSeeDefaultRoom(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, hasGuidesEmails: boolean, isReportArchived = false): boolean {
+function canSeeDefaultRoom(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: boolean, hasGuidesEmails: boolean, isReportArchived = false): boolean {
     // Include archived rooms
     if (isArchivedNonExpenseReport(report, isReportArchived)) {
         return true;
@@ -9791,12 +9800,12 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, 
     }
 
     // For all other cases, just check that the user belongs to the default rooms beta
-    return Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, betas ?? []);
+    return isDefaultRoomsBetaEnabled;
 }
 
-function canAccessReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, hasGuidesEmails: boolean, isReportArchived = false): boolean {
+function canAccessReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: boolean, hasGuidesEmails: boolean, isReportArchived = false): boolean {
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
-    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, betas, hasGuidesEmails, isReportArchived)) {
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, isDefaultRoomsBetaEnabled, hasGuidesEmails, isReportArchived)) {
         return false;
     }
 
@@ -10254,7 +10263,7 @@ type ShouldReportBeInOptionListParams = {
     chatReport: OnyxEntry<Report>;
     currentReportId: string | undefined;
     isInFocusMode: boolean;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
@@ -10275,7 +10284,7 @@ function reasonForReportToBeInOptionList({
     chatReport,
     currentReportId,
     isInFocusMode,
-    betas,
+    isDefaultRoomsBetaEnabled,
     excludeEmptyChats,
     doesReportHaveViolations,
     draftComment,
@@ -10339,7 +10348,7 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    if (!canAccessReport(report, betas, hasGuidesEmails, isReportArchived)) {
+    if (!canAccessReport(report, isDefaultRoomsBetaEnabled, hasGuidesEmails, isReportArchived)) {
         return null;
     }
 
@@ -10538,9 +10547,8 @@ function chatIncludesChronosWithID(reportOrID?: string | Report): boolean {
  * - It's a welcome message whisper
  * - It's an ADD_COMMENT that is not an attachment
  */
-// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, currentUserAccountID?: number): boolean {
-    const isCurrentUserAction = reportAction?.actorAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
+function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, currentUserAccountID: number | undefined): boolean {
+    const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
     if (isWhisperAction(reportAction)) {
         // Allow flagging whispers that are sent by other users
         if (!isCurrentUserAction && reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
@@ -10573,9 +10581,15 @@ function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, repor
 /**
  * Whether flag comment page should show
  */
-function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined, isReportArchived = false): boolean {
+function shouldShowFlagComment(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    report: OnyxInputOrEntry<Report>,
+    conciergeReportID: string | undefined,
+    isReportArchived: boolean,
+    currentUserAccountID: number | undefined,
+): boolean {
     return (
-        canFlagReportAction(reportAction, report?.reportID) &&
+        canFlagReportAction(reportAction, report?.reportID, currentUserAccountID) &&
         !isArchivedNonExpenseReport(report, isReportArchived) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report, conciergeReportID) &&
@@ -11525,8 +11539,8 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
 /**
  * Check to see if the current user has access to view the report.
  */
-function canCurrentUserOpenReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, hasGuidesEmails: boolean, isReportArchived = false): boolean {
-    return (isReportParticipant(deprecatedCurrentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, betas, hasGuidesEmails, isReportArchived);
+function canCurrentUserOpenReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: boolean, hasGuidesEmails: boolean, isReportArchived = false): boolean {
+    return (isReportParticipant(deprecatedCurrentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, isDefaultRoomsBetaEnabled, hasGuidesEmails, isReportArchived);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
@@ -11942,7 +11956,7 @@ function shouldCreateNewMoneyRequestReport(
     existingIOUReport: OnyxInputOrEntry<Report> | undefined,
     chatReport: OnyxInputOrEntry<Report>,
     isScanRequest: boolean,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     rules: OnyxCollection<Rule>,
     action?: IOUAction,
     isFromExistingReport?: boolean,
@@ -11951,7 +11965,6 @@ function shouldCreateNewMoneyRequestReport(
         return true;
     }
 
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     return (
         !existingIOUReport ||
         isReportPendingDelete(existingIOUReport) ||
@@ -13124,6 +13137,7 @@ function getIntegrationIcon(
                   | 'RilletSquare'
                   | 'DualEntrySquare'
                   | 'CampfireSquare'
+                  | 'BusinessCentralSquare'
                   | 'GustoSquare'
                   | 'IntuitSquare',
                   IconAsset
@@ -13161,6 +13175,9 @@ function getIntegrationIcon(
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
         return expensifyIcons?.CampfireSquare;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+        return expensifyIcons?.BusinessCentralSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
         return expensifyIcons?.GustoSquare;
@@ -13412,6 +13429,7 @@ function getChatListItemReportName(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    derivedReportName: string | undefined,
 ): string {
     const reportForHeader = getReportForHeader(report, parentReport);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
@@ -13430,10 +13448,10 @@ function getChatListItemReportName(
     }
 
     if (report?.reportID) {
-        return deprecatedGetReportName(getReport(report?.reportID, deprecatedAllReports), reportAttributesDerivedValue);
+        return getReportName(getReport(report.reportID, deprecatedAllReports), derivedReportName);
     }
 
-    return deprecatedGetReportName(report, reportAttributesDerivedValue);
+    return getReportName(report, derivedReportName);
 }
 
 /**
@@ -13450,6 +13468,7 @@ function generateReportAttributes({
     allTransactions,
     reports,
     policies,
+    reportMetadata,
     currentUserLogin,
     currentUserAccountID,
 }: {
@@ -13465,6 +13484,7 @@ function generateReportAttributes({
     actionTargetReportActionID?: string;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
+    reportMetadata?: OnyxEntry<ReportMetadata>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -13475,7 +13495,17 @@ function generateReportAttributes({
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const {reason, actionBadge, reportAction} =
-        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions, reports, policies) ?? {};
+        getReasonAndReportActionThatRequiresAttention(
+            report,
+            currentUserLogin,
+            currentUserAccountID,
+            parentReportAction,
+            isReportArchived,
+            reportActions,
+            reports,
+            policies,
+            reportMetadata,
+        ) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
