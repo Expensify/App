@@ -9,5 +9,5 @@ const readOnyxState = (): Promise<OnyxState> => Onyx.exportState({includeStaleRa
 
 const shareAsFile = (fileContent: string): Promise<void> => saveTextFile({fileName: CONST.DEFAULT_ONYX_DUMP_FILE_NAME, content: fileContent});
 
-export {maskOnyxState} from './common';
+export {maskOnyxState} from './masking';
 export {readOnyxState, shareAsFile};
