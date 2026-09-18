@@ -371,6 +371,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
             hasWorkspaceToSubmitTo,
+            isRestrictedToPreferredPolicy,
             rules,
         });
     })();
