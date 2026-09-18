@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type BasePolicyParams from '@userActions/IOU/types/BasePolicyParams';
 
-import type {Beta, Report, Rule, Transaction} from '@src/types/onyx';
+import type {Report, Rule, Transaction} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -27,7 +27,7 @@ type ReceiptRetryContext = {
 
     policyParams: BasePolicyParams;
 
-    betas: OnyxEntry<Beta[]>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 
     /** Feeds `shouldCreateNewMoneyRequestReport`, so an empty collection here can push the retry into creating a second report. */
     rules: OnyxCollection<Rule>;

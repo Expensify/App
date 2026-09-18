@@ -93,7 +93,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         iouActionID,
         transactionThreadReportID,
         policyParams,
-        betas,
+        isVendorMatchingBetaEnabled,
         rules,
         conciergeReportID,
         isSelfTourViewed,
@@ -157,7 +157,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- `requestMoney` needs the whole collection for its `hasViolations` check, as UpdateMoneyRequest and TrackExpense do. Subscribing from the receipt view would put a collection-wide listener on every expense row.
         transactionViolations: getAllTransactionViolations(),
         personalDetails: getAllPersonalDetails(),
-        betas,
+        isVendorMatchingBetaEnabled,
         rules,
         conciergeChat: conciergeReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`] : undefined,
         isSelfTourViewed,

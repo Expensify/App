@@ -48,7 +48,7 @@ function buildContext(transaction: Transaction): ReceiptRetryContext {
         iouActionID: IOU_ACTION_ID,
         transactionThreadReportID: THREAD_REPORT_ID,
         policyParams: {},
-        betas: [],
+        isVendorMatchingBetaEnabled: false,
         rules: {},
         conciergeReportID: undefined,
         isSelfTourViewed: true,

@@ -431,7 +431,7 @@ function MoneyRequestReceiptView({
               iouActionID: parentReportAction?.reportActionID,
               transactionThreadReportID: report?.reportID,
               policyParams: {policy, policyCategories, policyTagList},
-              betas,
+              isVendorMatchingBetaEnabled,
               rules,
               conciergeReportID,
               isSelfTourViewed: !!isSelfTourViewed,
