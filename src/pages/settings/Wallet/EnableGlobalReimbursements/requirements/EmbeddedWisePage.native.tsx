@@ -1,0 +1,73 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
+import {getWiseKYCRequirements} from '@userActions/BankAccounts/wise';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {WebView} from 'react-native-webview';
+
+import isWiseDoneMessage from './isWiseDoneMessage';
+
+type EmbeddedWisePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_KYC_EMBEDDED>;
+
+function EmbeddedWisePage({route}: EmbeddedWisePageProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const bankAccountID = Number(route.params.bankAccountID);
+    const [embeddedLink] = useOnyx(ONYXKEYS.WISE_KYC_REVIEW_EMBEDDED_LINK);
+
+    const finish = () => {
+        getWiseKYCRequirements(bankAccountID);
+        Navigation.goBack(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(bankAccountID));
+    };
+
+    return (
+        <ScreenWrapper
+            testID="EmbeddedWisePage"
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={translate('wiseKYC.continueInWise')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(bankAccountID))}
+            />
+            {embeddedLink?.url ? (
+                <WebView
+                    source={{uri: embeddedLink.url}}
+                    originWhitelist={['https://*']}
+                    style={styles.flex1}
+                    mediaCapturePermissionGrantType="grant"
+                    allowsInlineMediaPlayback
+                    onMessage={(event) => {
+                        if (!isWiseDoneMessage(event.nativeEvent.data)) {
+                            return;
+                        }
+                        finish();
+                    }}
+                    onNavigationStateChange={(state) => {
+                        if (!state.url.includes(ROUTES.WISE_KYC_COMPLETE)) {
+                            return;
+                        }
+                        finish();
+                    }}
+                />
+            ) : (
+                <FullScreenLoadingIndicator />
+            )}
+        </ScreenWrapper>
+    );
+}
+
+export default EmbeddedWisePage;

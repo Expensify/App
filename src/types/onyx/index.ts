@@ -224,6 +224,7 @@ import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseField, WiseFieldOption, WiseFieldType} from './WiseField';
 import type {WiseKYCRequirement, WiseKYCRequirements} from './WiseKYCRequirements';
+import type WiseKYCReviewEmbeddedLink from './WiseKYCReviewEmbeddedLink';
 
 export type {
     FileObject,
@@ -438,6 +439,7 @@ export type {
     WiseFieldType,
     WiseKYCRequirement,
     WiseKYCRequirements,
+    WiseKYCReviewEmbeddedLink,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,

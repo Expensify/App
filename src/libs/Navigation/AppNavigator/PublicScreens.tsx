@@ -12,6 +12,7 @@ import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
+import WiseKYCCompletePage from '@pages/WiseKYCCompletePage';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -58,6 +59,10 @@ function PublicScreens() {
             <RootStack.Screen
                 name={SCREENS.BANK_CONNECTION_COMPLETE}
                 component={ConnectionCompletePage}
+            />
+            <RootStack.Screen
+                name={SCREENS.WISE_KYC_COMPLETE}
+                component={WiseKYCCompletePage}
             />
             <RootStack.Screen
                 name={SCREENS.UNLINK_LOGIN}

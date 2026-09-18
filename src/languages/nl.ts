@@ -3908,6 +3908,26 @@ ${amount} voor ${merchant} - ${date}`,
             invalidDate: 'Voer een geldige datum in',
         },
     },
+    wiseKYC: {
+        title: 'Wise heeft meer informatie nodig',
+        description: 'Vul elk onderdeel hieronder in zodat Wise de beoordeling van je bedrijf kan afronden.',
+        continueInWise: 'Doorgaan in Wise',
+        state: {
+            NOT_PROVIDED: 'Niet aangeleverd',
+            IN_REVIEW: 'In beoordeling',
+            VERIFIED: 'Geverifieerd',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: 'Doel van de rekening',
+            ID_DOCUMENT: 'Identiteitsbewijs',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: 'Identiteitsbewijs van de eigenaar',
+            LIVENESS_CHECK: 'Identiteitscontrole',
+        },
+        complete: {
+            title: 'Verificatie voltooid',
+            supportingText: 'Je kunt terugkeren naar Expensify.',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Waar is je bankrekening gevestigd?',
         accountDetailsStepHeader: 'Wat zijn je accountgegevens?',

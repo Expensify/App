@@ -3907,6 +3907,26 @@ ${amount} per ${merchant} - ${date}`,
             invalidDate: 'Inserisci una data valida',
         },
     },
+    wiseKYC: {
+        title: 'Wise ha bisogno di ulteriori informazioni',
+        description: 'Completa ogni elemento qui sotto affinché Wise possa terminare la verifica della tua azienda.',
+        continueInWise: 'Continua su Wise',
+        state: {
+            NOT_PROVIDED: 'Non fornito',
+            IN_REVIEW: 'In revisione',
+            VERIFIED: 'Verificato',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: "Scopo dell'account",
+            ID_DOCUMENT: "Documento d'identità",
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: "Documento d'identità del titolare",
+            LIVENESS_CHECK: "Verifica dell'identità",
+        },
+        complete: {
+            title: 'Verifica completata',
+            supportingText: 'Puoi tornare a Expensify.',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Dove si trova il tuo conto bancario?',
         accountDetailsStepHeader: 'Quali sono i dettagli del tuo account?',
