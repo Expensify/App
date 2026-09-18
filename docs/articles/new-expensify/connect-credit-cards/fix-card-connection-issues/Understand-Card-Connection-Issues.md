@@ -1,8 +1,8 @@
 ---
 title: Understand Card Connection Issues
 description: Learn why card connections fail in Expensify and the difference between a connection that needs reauthentication and one that is broken.
-keywords: [card connection issues Expensify, card connection failed, card stopped importing transactions, broken card connection, reauthenticate card connection, reconnect card Expensify, bank connection issue, company card connection issue, personal card connection issue]
-internalScope: Audience is members with personal cards and workspace admins and card admins with company card feeds. Covers why new and existing card connections can fail, the difference between reauthentication and a broken connection, where connection issues appear, and how they affect expenses. Does not cover specific connection errors or step-by-step troubleshooting.
+keywords: [card connection issues Expensify, card connection failed, card stopped importing transactions, broken card connection, reauthenticate card connection, reconnect card Expensify, bank connection issue, company card connection issue, personal card connection issue, temporary bank issue, can't auto-match receipt]
+internalScope: Audience is members with personal cards and workspace admins and card admins with company card feeds. Covers why new and existing card connections can fail, the difference between reauthentication and a broken connection, temporary bank issues that resolve on their own, where connection issues appear, and how they affect expenses. Does not cover specific connection errors or step-by-step troubleshooting.
 retrievalIntent: Why a card connection failed or stopped importing and what the difference is between reauthentication and a broken connection.
 contentType: topic
 platform: new
@@ -53,6 +53,24 @@ Resolving a broken connection may require reconnecting the account, reassigning 
 
 ---
 
+## What it means when you see a temporary bank issue
+
+Not every card connection message means the feed is broken. When your bank returns a temporary error, Expensify holds the expense and shows this message on it instead:
+
+"Can't auto-match receipt due to a temporary bank issue. Please try again later."
+
+This message means the bank couldn't be reached right now, not that the card feed needs reconnecting.
+
+- Do not reconnect the card feed or choose **Fix card**. The connection is still valid.
+- No workspace admin, card admin, or member action is required.
+- Expensify retries automatically, and the message clears once the transaction imports and matches the receipt.
+
+Both members and workspace admins see this message on the expense and in the expense report header, whether the card is a company card or a personal card.
+
+If the same expense still shows the message after several days, check the card feed for a broken connection message and follow [Fix a Card Connection Error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error), or contact Concierge.
+
+---
+
 ## Where card connection issues appear
 
 When an existing connection needs attention, Expensify surfaces the issue in a few places:
@@ -100,3 +118,7 @@ Commercial card feeds rarely experience connection errors because the bank maint
 ## Why did the Home notification and workspace red dot disappear while the feed is still broken?
 
 If a company card feed has gone 90 days or more without a successful sync, Expensify stops showing the proactive reminders — the **Time Sensitive** notification on **Home** and the red dot on the workspace row. For direct (bank-connected) feeds, the "Card feed connection is broken" banner stays on the **Company cards** page, so a workspace admin or card admin can still reconnect the feed and clear the error whenever they're ready.
+
+## Why does my expense say "Can't auto-match receipt due to a temporary bank issue"?
+
+Your bank returned a temporary error, so Expensify couldn't pull the card transaction to match against the receipt. The card feed is not broken, so there's nothing to reconnect. Expensify retries automatically and the message clears once the transaction imports.

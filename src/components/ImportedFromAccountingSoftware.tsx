@@ -57,6 +57,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
     ]);
     const icon = getIntegrationIcon(connectedIntegration, expensifyIcons, policy);

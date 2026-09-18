@@ -63,7 +63,8 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -96,7 +97,6 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const reports = useChangeTransactionsReportReports(transactions, selectedReport?.reportID);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
@@ -115,6 +115,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
                 transactionIDs,
                 isASAPSubmitBetaEnabled,
                 accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -147,6 +148,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs,
             isASAPSubmitBetaEnabled,
             accountID: currentUserPersonalDetails.accountID,
@@ -181,7 +183,6 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
-            betas,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,

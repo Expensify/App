@@ -7,6 +7,7 @@ import {
     createAdminPoliciesSelector,
     createCopySettingsEligibleTargetsSelector,
     createIOURequestStartPoliciesSelector,
+    createPoliciesByIDsSelector,
     createWorkspaceListPoliciesSelector,
     isAdminForPolicyByIDSelector,
     lastWorkspaceNumberSelector,
@@ -135,6 +136,60 @@ describe('createAdminPoliciesSelector', () => {
         const entry = result[`${P}1`];
         expect(entry).toBeDefined();
         expect(Object.keys(entry ?? {})).toEqual(['id', 'name', 'avatarURL', 'created']);
+    });
+});
+
+describe('createPoliciesByIDsSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+
+    const policy1 = buildPolicy({id: '1', name: 'Workspace 1'});
+    const policy2 = buildPolicy({id: '2', name: 'Workspace 2'});
+    const policy3 = buildPolicy({id: '3', name: 'Workspace 3'});
+    const allPolicies = {
+        [`${P}1`]: policy1,
+        [`${P}2`]: policy2,
+        [`${P}3`]: policy3,
+    };
+
+    it('returns an empty object for an empty ID list without touching the collection', () => {
+        // Given a selector built with no policy IDs to select
+        // When it runs against a populated policy collection
+        // Then it short-circuits to an empty object instead of iterating a collection it has nothing to pick from
+        expect(createPoliciesByIDsSelector([])(allPolicies)).toEqual({});
+    });
+
+    it('returns an empty object when the collection is undefined', () => {
+        // Given requested IDs but a policies collection that has not loaded into Onyx yet
+        // When the selector runs against that undefined collection
+        // Then it returns an empty object rather than throwing on the missing collection
+        expect(createPoliciesByIDsSelector(['1', '2'])(undefined)).toEqual({});
+    });
+
+    it('returns only the requested keys and drops policies that were not requested', () => {
+        // Given a collection with policies beyond the ones being requested
+        // When the selector is built for a subset of the IDs in that collection
+        // Then only the requested keys come back, so callers get exactly the policies they asked for and nothing more
+        const result = createPoliciesByIDsSelector(['1', '3'])(allPolicies);
+        expect(Object.keys(result).sort()).toEqual([`${P}1`, `${P}3`]);
+    });
+
+    it('omits a requested ID that has no policy in the collection', () => {
+        // Given a requested ID with no matching entry in the collection, alongside one that does exist
+        // When the selector runs
+        // Then the missing ID is left out entirely rather than appearing with an undefined/null value
+        const result = createPoliciesByIDsSelector(['1', 'missing'])(allPolicies);
+        expect(Object.keys(result)).toEqual([`${P}1`]);
+        expect(`${P}missing` in result).toBe(false);
+    });
+
+    it('returns the same object references as the input, without copying or narrowing', () => {
+        // Given policy objects already stored in the collection
+        // When the selector picks a subset of them
+        // Then it hands back the exact same references, since copying here would break callers relying on
+        // reference equality (e.g. memoized components) to skip unnecessary re-renders
+        const result = createPoliciesByIDsSelector(['1', '2'])(allPolicies);
+        expect(result[`${P}1`]).toBe(policy1);
+        expect(result[`${P}2`]).toBe(policy2);
     });
 });
 
