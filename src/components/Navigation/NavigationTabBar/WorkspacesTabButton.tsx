@@ -28,17 +28,13 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
 
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
-    const handleWorkspacesPress = () => {
-        navigateToWorkspaces();
-    };
-
     const workspacesAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.WORKSPACES};
     const workspacesStatusIndicatorColor = workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined;
 
     if (isWideLayout) {
         return (
             <PressableWithFeedback
-                onPress={handleWorkspacesPress}
+                onPress={navigateToWorkspaces}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                 accessibilityState={workspacesAccessibilityState}
@@ -61,7 +57,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
 
     return (
         <PressableWithFeedback
-            onPress={handleWorkspacesPress}
+            onPress={navigateToWorkspaces}
             role={CONST.ROLE.TAB}
             accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
             accessibilityState={workspacesAccessibilityState}
