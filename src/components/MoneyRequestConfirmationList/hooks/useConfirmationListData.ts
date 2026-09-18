@@ -81,7 +81,6 @@ function useConfirmationListDataWithPolicy({
         shouldCalculateDistanceAmount = false,
         distanceRequestAmount = 0,
         currency: distanceCurrency,
-        prevCurrency,
     }: Partial<ConfirmationDistanceState> = distanceState ?? {};
 
     const transactionReport = useTransactionReportForConfirmation(transaction?.reportID);
@@ -136,8 +135,6 @@ function useConfirmationListDataWithPolicy({
         distanceRequestAmount,
         distanceCurrency,
         isPerDiemRequest,
-        prevCurrency,
-        currency: distanceCurrency,
         prevSubRates,
     });
 

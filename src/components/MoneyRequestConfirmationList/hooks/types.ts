@@ -16,7 +16,7 @@ import type useDistanceRequestState from './useDistanceRequestState';
  */
 type ConfirmationDistanceState = Pick<
     ReturnType<typeof useDistanceRequestState>,
-    'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency' | 'prevCurrency'
+    'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency'
 >;
 
 /** Everything the confirmation reads from the workspace */
