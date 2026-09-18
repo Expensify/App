@@ -5,6 +5,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useScrollEnabled from '@hooks/useScrollEnabled';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
@@ -18,6 +19,7 @@ import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getListIndex, getSyntheticRowKind} from './buildTableListData';
+import ColumnScrollFollower from './columnScroll/ColumnScrollFollower';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -33,6 +35,26 @@ type TableBodyListProps = TableBodyProps & {
     /** Message shown when the filtered table is empty. */
     emptyMessage: string;
 };
+
+/**
+ * Lets the list's own scroller take the horizontal axis too, so the columns scroll inside the same scroller that
+ * scrolls the rows vertically. Has to land on the internal ScrollView, which renders `overflowX: 'hidden'` for a
+ * vertical list, so it goes through `overrideProps` rather than the list's own `style`.
+ */
+const columnScrollOverrideStyle = {overflowX: 'auto'};
+
+/**
+ * Keeps the list header — the page header and the filter bar with its search input and pills — from being carried
+ * sideways when the columns scroll. `left: 0` pins it against the scroller, and no `top` is set so it still scrolls
+ * away vertically with the rows.
+ *
+ * The header is held at the table's width rather than the scrolled content's: a sticky box is only shifted within its
+ * containing block, so a header spanning the full scroll range has nowhere to be pinned to and would travel with the
+ * columns as if it were not sticky at all. A percentage would resolve against that same scrolled content, stretching
+ * the search input across the whole range and pushing the pills out to its far end, so the measured table width is
+ * used instead.
+ */
+const columnScrollListHeaderStyle = {position: 'sticky', left: 0} as ViewStyle;
 
 type ViewabilityInfo = {
     viewableItems: Array<ViewToken<TableData>>;
@@ -97,6 +119,7 @@ function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListH
  */
 function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const scrollEnabled = useScrollEnabled();
     const [isListLoaded, setIsListLoaded] = useState(false);
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
@@ -117,6 +140,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         noResultsStateElement,
         tableListMetadata,
         isEmptyResult,
+        scrollWidth,
+        tableWidth,
     } = useTableContext<TableData>();
     const {
         ListEmptyComponent,
@@ -124,6 +149,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         ListFooterComponent,
         ListFooterComponentStyle,
         ListHeaderComponent,
+        ListHeaderComponentStyle,
         contentContainerStyle: listContentContainerStyle,
         getItemType,
         initialScrollIndex,
@@ -135,6 +161,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         onStartReached,
         onViewableItemsChanged,
         overrideItemLayout,
+        overrideProps,
         renderItem,
         stickyHeaderIndices,
         viewabilityConfigCallbackPairs,
@@ -156,6 +183,11 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
     const hasRows = filteredAndSortedData.length > 0;
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
+
+    // The columns are wider than the table, so the list scroller takes the horizontal axis as well (see
+    // `columnScrollOverrideStyle`). Only ever true on web: content-sized columns need to measure text, which native
+    // can't do, so native tables always fit.
+    const isColumnScrollEnabled = !!scrollWidth;
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const shouldApplyPageHeaderTable = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && hasRows;
     const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !tableListMetadata.hasPageHeader;
@@ -330,12 +362,20 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
                 const isAccessibleTableHeader = info.target === (isTableHeaderSticky ? 'StickyHeader' : 'Cell');
                 const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;
-                return React.cloneElement(tableHeaderElement, {
+                const header = React.cloneElement(tableHeaderElement, {
                     isStickyListHeader: true,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'aria-hidden': isAccessibilityHidden ? true : undefined,
                     isAccessibilityHidden,
                 });
+
+                // The in-flow copy sits inside the scroller and moves with the columns on its own. The stuck copy is
+                // an overlay outside it, so it only stays above the columns it labels by following their offset.
+                if (!isColumnScrollEnabled || info.target !== 'StickyHeader') {
+                    return header;
+                }
+
+                return <ColumnScrollFollower>{header}</ColumnScrollFollower>;
             }
             case 'data':
             default: {
@@ -385,9 +425,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 ref={listRef}
                 data={listData}
                 style={[styles.flex1, styles.mnh0]}
-                showsVerticalScrollIndicator={false}
+                // The web scroller hides both scrollbars at once, so while the columns scroll the vertical bar has to
+                // come back with the horizontal one the table needs as its only affordance for scrolling sideways.
+                showsVerticalScrollIndicator={isColumnScrollEnabled ? undefined : false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={pageHeaderElement}
+                ListHeaderComponentStyle={[ListHeaderComponentStyle, isColumnScrollEnabled && [columnScrollListHeaderStyle, tableWidth > 0 && StyleUtils.getWidthStyle(tableWidth)]]}
                 ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
                 ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}
                 ListFooterComponent={ListFooterComponent}
@@ -399,6 +442,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
+                    // The rows are absolutely positioned, so they size themselves to the columns and would leave the
+                    // scroller's content as narrow as the table. This holds the scroll extent open for them.
+                    !!scrollWidth && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,
                     shouldUseNarrowTableLayout &&
                         typeof contentMinHeight === 'number' &&
@@ -422,6 +468,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 }}
                 {...restListProps}
                 scrollEnabled={scrollEnabled}
+                // Merged rather than replaced, and placed after the spread, so neither a consumer's own
+                // `overrideProps` nor the horizontal axis the table needs can silently drop the other.
+                overrideProps={isColumnScrollEnabled ? {...overrideProps, style: [overrideProps?.style, columnScrollOverrideStyle]} : overrideProps}
             />
         </View>
     );

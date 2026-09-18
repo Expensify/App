@@ -468,6 +468,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         originalDataLength,
         columns,
         dynamicGridTemplateColumns,
+        scrollWidth: dynamicScrollWidth,
+        tableWidth,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
@@ -505,7 +507,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                scrollWidth={dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {renderedChildren}

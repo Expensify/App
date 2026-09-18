@@ -94,7 +94,7 @@ export default function WorkspaceMembersTable({
                     {text: item.name, fontSize: fontScale.text},
                     {text: item.email, fontSize: fontScale.label},
                 ],
-                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+                extraWidth: MEMBER_CELL_AVATAR_WIDTH + 800,
             },
         },
 

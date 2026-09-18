@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,6 +21,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
+import ColumnScrollFollower from './columnScroll/ColumnScrollFollower';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
@@ -67,6 +69,7 @@ type TableHeaderProps = ViewProps & {
 function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, isAccessibilityHidden = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -81,6 +84,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         isMobileSelectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         dynamicGridTemplateColumns,
+        scrollWidth,
     } = useTableContext<DataType, ColumnKey>();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
@@ -203,11 +207,26 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         </View>
     );
 
+    // Rendered beside the list rather than inside it (tables without a page header), so the scroller never carries
+    // the header sideways and it has to mirror the offset itself. The inner box carries the width the columns scroll
+    // across, and the follower shows the slice of it that lines up with the rows.
     if (!isStickyListHeader) {
-        return header;
+        if (!scrollWidth) {
+            return header;
+        }
+
+        return (
+            <ColumnScrollFollower>
+                <View style={StyleUtils.getWidthStyle(scrollWidth)}>{header}</View>
+            </ColumnScrollFollower>
+        );
     }
 
-    return <View style={styles.appBG}>{header}</View>;
+    // The stuck copy is an overlay outside the list's scroller, so nothing above it carries the width the columns
+    // scroll across the way the scroller's content container does for the copy inside it. Without it the header is
+    // sized by the overlay, and its background and bottom border stop at the table's width while its columns keep
+    // painting past them. The margin the header keeps is part of `scrollWidth`, so this resolves to the same box.
+    return <View style={[styles.appBG, !!scrollWidth && StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
 }
 
 TableHeader.type = 'header';
