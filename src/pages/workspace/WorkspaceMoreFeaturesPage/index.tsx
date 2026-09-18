@@ -164,15 +164,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct / DualEntry) being connected,
+    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct) being connected,
     // not on the export config actually scoping vendors. That way members on a supported workspace
     // still see the row so they can discover the feature even when the row is locked OFF (export
     // config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
     // `hasVendorFeature` stays as the narrower `isActive` predicate (is the export config scoping
     // vendors right now), so it can't double as the visibility gate.
     //
-    // When no source is active, keep the connected integration's discovery row.
-    // QBO (R1) and DualEntry are GA. Xero, Sage Intacct, and Rillet require the vendorMatching beta.
+    // Use the active vendor source so a stale QBO connection cannot bypass the beta for another
+    // integration. When no source is active, keep the connected integration's discovery row.
+    // QBO (R1) is GA. Sage Intacct, Xero, Rillet, and DualEntry require the vendorMatching beta.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -182,8 +183,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
         ]);
-    const isGenerallyAvailableVendorConnection = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
-    const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (isVendorMatchingEnabled && !!vendorMatchingConnection);
+    const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (isVendorMatchingEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
