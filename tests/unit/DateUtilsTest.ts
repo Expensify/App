@@ -1,3 +1,5 @@
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή -- German and Greek weekday and month
+// names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
@@ -7,13 +9,14 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {de} from 'date-fns/locale/de';
 import {el} from 'date-fns/locale/el';
+import {ja} from 'date-fns/locale/ja';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -23,10 +26,6 @@ jest.mock('@src/libs/Log');
 
 const LOCALE = CONST.LOCALES.EN;
 const UTC = 'UTC';
-const getTranslateFn =
-    (locale: Locale): LocaleContextProps['translate'] =>
-    (path, ...params) =>
-        translate(locale, path, ...params);
 describe('DateUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -76,13 +75,28 @@ describe('DateUtils', () => {
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
+    it('formatToLongDateWithWeekday should translate the weekday and month names', () => {
+        // Only the words follow the locale here. `LONG_DATE_FORMAT_WITH_WEEKDAY` is still the hand-written
+        // `eeee, MMMM d, yyyy`, so the component order stays US — German would otherwise read `Montag, 7. November
+        // 2022` and Japanese `2022年11月7日月曜日`. Localizing that ordering is a separate change to `CONST.DATE`.
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, de)).toBe('Montag, November 7, 2022');
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, ja)).toBe('月曜日, 11月 7, 2022');
+    });
+
     it('formatToDayOfWeek should return a weekday', () => {
         const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime), undefined);
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
-        const localTime = DateUtils.formatToLocalTime(translateLocal, datetime);
+        const localTime = DateUtils.formatToLocalTime(datetime, undefined);
         expect(localTime).toBe('12:00 AM');
+    });
+
+    it('formatToLocalTime should follow the given locale clock convention', () => {
+        // `LOCAL_TIME_FORMAT` is now `p`, so the clock comes from the locale rather than a fixed 12-hour pattern.
+        expect(DateUtils.formatToLocalTime(datetime, de)).toBe('00:00');
+        expect(DateUtils.formatToLocalTime(datetime, ja)).toBe('0:00');
+        expect(DateUtils.formatToLocalTime(datetime, el)).toBe('12:00 π.μ.');
     });
 
     it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
@@ -326,6 +340,40 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('travel date formatters', () => {
+        // Current year and a past year, to exercise both branches. `translate` stays English throughout, so the
+        // assertions isolate `dateFnsLocale`: it drives the weekday, the month and the clock convention.
+        const thisYear = new Date(2026, 2, 17, 8, 0);
+        const pastYear = new Date(2023, 2, 17, 20, 30);
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(2026, 5, 1));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('getFormattedTransportDate uses the locale weekday, month and clock', () => {
+            expect(DateUtils.getFormattedTransportDate(translateLocal, undefined, thisYear)).toBe('Departs Tuesday, Mar 17 at 8:00 AM');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, de, thisYear)).toBe('Departs Dienstag, März 17 at 08:00');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, ja, thisYear)).toBe('Departs 火曜日, 3月 17 at 8:00');
+            // Greek is the one shipped locale that keeps a 12-hour clock.
+            expect(DateUtils.getFormattedTransportDate(translateLocal, el, thisYear)).toBe('Departs Τρίτη, Μαρ 17 at 8:00 π.μ.');
+        });
+
+        it('getFormattedTransportDate adds the year outside the current year', () => {
+            expect(DateUtils.getFormattedTransportDate(translateLocal, de, pastYear)).toBe('Departs Freitag, März 17, 2023 at 20:30');
+        });
+
+        it('getFormattedTransportDateAndHour returns the date and hour separately, both localized', () => {
+            expect(DateUtils.getFormattedTransportDateAndHour(thisYear, undefined)).toEqual({date: 'Tuesday, Mar 17', hour: '8:00 AM'});
+            expect(DateUtils.getFormattedTransportDateAndHour(thisYear, de)).toEqual({date: 'Dienstag, März 17', hour: '08:00'});
+            expect(DateUtils.getFormattedTransportDateAndHour(pastYear, de)).toEqual({date: 'Freitag, März 17, 2023', hour: '20:30'});
+        });
+    });
+
     describe('getStatusUntilDate', () => {
         const currentTimeZone = 'America/Los_Angeles' as SelectedTimezone;
         const inputTimeZoneNY = 'America/New_York' as SelectedTimezone;
@@ -339,6 +387,19 @@ describe('DateUtils', () => {
 
         afterEach(() => {
             jest.useRealTimers();
+        });
+
+        it('formats every branch with the given locale clock', () => {
+            // `translate` stays English so the assertion isolates what `dateFnsLocale` controls: German uses a
+            // 24-hour clock, so each branch loses its meridiem while the surrounding copy is untouched.
+            const sameDay = tzFormat(toZonedTime(new Date('2025-10-19T22:34:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameDay, currentTimeZone, currentTimeZone)).toBe('Until 15:34');
+
+            const sameYear = tzFormat(toZonedTime(new Date('2025-12-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameYear, currentTimeZone, currentTimeZone)).toBe('Until 12-02 12:15');
+
+            const otherYear = tzFormat(toZonedTime(new Date('2026-03-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, otherYear, currentTimeZone, currentTimeZone)).toBe('Until 2026-03-02 12:15');
         });
 
         it('returns empty string when input date is empty', () => {
@@ -684,7 +745,7 @@ describe('DateUtils', () => {
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
             // 2026-04-19T15:00:00+07:00 — venue is UTC+7, device timezone is UTC
-            const result = DateUtils.getFormattedCancellationDate(translateLocal, undefined, '2026-04-19T15:00:00+07:00');
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', undefined);
             // Should display 3:00 PM in the venue's +07:00 timezone, not converted to device-local time
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, GMT+7');
         });
@@ -693,20 +754,30 @@ describe('DateUtils', () => {
             // Pin "now" to 2026 so the 2026 date is treated as the current year and the year is omitted.
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2026-06-01T00:00:00Z'));
-            const result = DateUtils.getFormattedCancellationDate(translateLocal, undefined, '2026-06-15T10:30:00+00:00');
+            const result = DateUtils.getFormattedCancellationDate('2026-06-15T10:30:00+00:00', undefined);
             expect(result).toBe('Monday, Jun 15 10:30 AM, UTC');
         });
 
         it('should return empty string for falsy input', () => {
-            expect(DateUtils.getFormattedCancellationDate(translateLocal, undefined, '')).toBe('');
+            expect(DateUtils.getFormattedCancellationDate('', undefined)).toBe('');
         });
 
         it('should fall back to UTC when no timezone offset is present in the ISO string', () => {
             // Pin "now" before 2026 so the 2026 date is treated as a non-current year and the year is shown.
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
-            const result = DateUtils.getFormattedCancellationDate(translateLocal, undefined, '2026-04-19T15:00:00');
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00', undefined);
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
+        });
+
+        it('should use the given locale for the weekday, the month and the clock', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            // German and Japanese use a 24-hour clock, so the time loses its meridiem entirely.
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', de)).toBe('Sonntag, Apr. 19, 2026 15:00, GMT+7');
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', ja)).toBe('日曜日, 4月 19, 2026 15:00, GMT+7');
+            // Greek is the one shipped locale that keeps a 12-hour clock, with its own marker.
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', el)).toBe('Κυριακή, Απρ 19, 2026 3:00 μ.μ., GMT+7');
         });
     });
 
@@ -765,11 +836,19 @@ describe('DateUtils', () => {
             expect(DateUtils.combineDateAndTime('08:00 AM', '2026-08-04 00:00:00')).toBe('2026-08-04 08:00:00');
         });
 
-        it('get12HourTimeObjectFromDate returns the AM/PM period for a localized time string', () => {
-            const localizedNoon = DateUtils.extractTime12Hour('2026-08-04 12:00:00');
-            expect(DateUtils.get12HourTimeObjectFromDate(localizedNoon).period).toBe(CONST.TIME_PERIOD.PM);
-            const localizedMorning = DateUtils.extractTime12Hour('2026-08-04 08:00:00');
-            expect(DateUtils.get12HourTimeObjectFromDate(localizedMorning)).toEqual({hour: '08', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.AM});
+        it('extractTime12Hour emits an English AM/PM marker whatever the active language', () => {
+            // This value is the picker's wire format, not display text, so it stays English for the same reason
+            // `combineDateAndTime` parses English: the period is compared against `CONST.TIME_PERIOD`.
+            expect(DateUtils.extractTime12Hour('2026-08-04 12:00:00')).toBe('12:00 PM');
+            expect(DateUtils.extractTime12Hour('2026-08-04 08:00:00')).toBe('08:00 AM');
+            expect(DateUtils.extractTime12Hour('2026-08-04 12:00:00.500', true)).toBe('12:00:00.500 PM');
+        });
+
+        it('get12HourTimeObjectFromDate reads back what extractTime12Hour wrote', () => {
+            const noon = DateUtils.extractTime12Hour('2026-08-04 12:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(noon).period).toBe(CONST.TIME_PERIOD.PM);
+            const morning = DateUtils.extractTime12Hour('2026-08-04 08:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(morning)).toEqual({hour: '08', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.AM});
         });
 
         it('per diem start/end range built from picker values validates', () => {
@@ -777,47 +856,11 @@ describe('DateUtils', () => {
             const newEnd = DateUtils.combineDateAndTime('02:00 PM', '2026-08-04');
             expect(DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd})).toBe(true);
         });
-
-        it('getTime12HourWithTranslatedPeriod shows the same period the picker offers', () => {
-            const translateDE = getTranslateFn(CONST.LOCALES.DE);
-            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 00:00:00')).toBe('12:00 AM');
-            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 12:00:00')).toBe('12:00 PM');
-            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 08:30:00')).toBe('08:30 AM');
-        });
-
-        it('getTime12HourWithTranslatedPeriod returns an empty string when there is no date', () => {
-            expect(DateUtils.getTime12HourWithTranslatedPeriod(getTranslateFn(CONST.LOCALES.DE), '')).toBe('');
-        });
-
-        it('formatDateTimeTo12Hour and the Until label use the same period as the row', () => {
-            const translateDE = getTranslateFn(CONST.LOCALES.DE);
-            expect(DateUtils.formatDateTimeTo12Hour(translateDE, '2026-08-04 14:30:00')).toBe('2026-08-04 02:30 PM');
-            expect(DateUtils.getLocalizedTimePeriodDescription(translateDE, undefined, '2026-08-04 14:30:00')).toBe('2026-08-04 02:30 PM');
-        });
-
-        it('datetimeToCalendarTime uses the same period as the row', () => {
-            // Pinned so the date lands outside the current week and the branch under test is stable.
-            jest.useFakeTimers();
-            jest.setSystemTime(new Date('2026-08-25T00:00:00Z'));
-            expect(DateUtils.datetimeToCalendarTime(CONST.LOCALES.DE, '2026-08-04 14:30:00', timezone)).toBe('Aug. 4, 2026 um 2:30 PM');
-            jest.useRealTimers();
-        });
-
-        it('a time in the hour skipped by the local DST change keeps its own hour', () => {
-            jest.useFakeTimers();
-            jest.setSystemTime(new Date(2026, 2, 8, 0, 30));
-            expect(DateUtils.getTime12HourWithTranslatedPeriod(getTranslateFn(CONST.LOCALES.DE), '2026-08-04 02:30:00')).toBe('02:30 AM');
-            jest.useRealTimers();
-        });
     });
 
-    describe('getTime12HourWithTranslatedPeriod in a locale that translates the period', () => {
-        beforeEach(() => IntlStore.load(CONST.LOCALES.JA));
-
-        it('keeps the translated marker', () => {
-            const translateJA = getTranslateFn(CONST.LOCALES.JA);
-            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateJA, '2026-08-04 14:00:00')).toBe('02:00 午後');
-            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateJA, '2026-08-04 08:00:00')).toBe('08:00 午前');
+    describe('Search day formatting', () => {
+        test('formats a compact day label', () => {
+            expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined)).toBe('Sep 15, ’26');
         });
     });
 });

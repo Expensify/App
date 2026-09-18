@@ -266,6 +266,11 @@ describe('WorkspacesSettingsUtils', () => {
             expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmationApprover');
         });
 
+        it('returns approver key when user approves outstanding reports without being in the approval workflow', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, true)).toBe('common.leaveWorkspaceConfirmationApprover');
+        });
+
         it('returns admin key when the policy role is admin', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmationAdmin');

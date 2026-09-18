@@ -70,7 +70,7 @@ import navigationRef from './Navigation/navigationRef';
 import {isRecord} from './ObjectUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -459,18 +459,32 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
- * Whether the query includes a positive `has:submitted-violation` filter.
- * Grouped CSV export uses this so Violations is included even when the query has no saved `columns`.
+ * Whether the query includes a positive `has:submitted-violation` or `has:approved-violation` filter.
+ * Used so the Violations column and CSV export only appear when those filters are active. Normal
+ * search snapshots can still include FORWARDED actions with violation data.
  */
-function queryHasSubmittedViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
     const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
     if (hasFilterGroups.length === 0) {
         return false;
     }
 
     return hasFilterGroups.some((group) =>
-        group.filters.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && filter.value.toString() === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION),
+        group.filters.some((filter) => {
+            if (filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                return false;
+            }
+            const value = filter.value.toString();
+            return value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
+        }),
     );
+}
+
+/**
+ * Same meaning as queryHasViolationFilter, for the advanced-filters form `has` array rather than parsed query JSON.
+ */
+function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
+    return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 }
 
 /**
@@ -994,8 +1008,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (columns?.length) {
-        const filterValueArray = [...new Set<string>(columns)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+        // Violations is only meaningful with has:submitted-violation / has:approved-violation.
+        const shouldIncludeViolationsColumn = hasValuesIncludeViolationFilter(supportedFilterValues.has);
+        const filterValueArray = [...new Set<string>(columns)].filter((column) => shouldIncludeViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        if (filterValueArray.length) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+        }
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1827,7 +1845,8 @@ function getFilterDisplayValue({
         return getBankAccountSearchLabel(bankAccount);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return deprecatedGetReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
+        const filterReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`];
+        return getReportName(filterReport, filterReport?.reportID ? reportAttributes?.[filterReport.reportID]?.reportName : undefined) || filterValue;
     }
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
@@ -2429,7 +2448,7 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeForMatch(referenceText).toLowerCase());
 }
 
-const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
+const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.DAY, CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
 
 /**
  * Determines whether sortBy and sortOrder should be fully reset (re-derived by
@@ -2759,7 +2778,8 @@ export {
     getFilterFromQuery,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
-    queryHasSubmittedViolationFilter,
+    queryHasViolationFilter,
+    hasValuesIncludeViolationFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};
