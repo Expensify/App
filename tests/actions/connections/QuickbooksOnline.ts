@@ -136,11 +136,11 @@ describe('actions/connections/QuickbooksOnline', () => {
             expect(readSpy).not.toHaveBeenCalled();
             expect(getRequiredQuickBooksConfig(onyxData?.optimisticData?.at(0))).toMatchObject({
                 syncCustomDimensions: {project: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG},
-                pendingFields: {syncCustomDimensions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                pendingFields: {[`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_project`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             });
             expect(getRequiredQuickBooksConfig(onyxData?.successData?.at(0))).toMatchObject({
-                pendingFields: {syncCustomDimensions: null},
-                errorFields: {syncCustomDimensions: null},
+                pendingFields: {[`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_project`]: null},
+                errorFields: {[`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_project`]: null},
             });
         });
 
@@ -161,9 +161,9 @@ describe('actions/connections/QuickbooksOnline', () => {
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
             expect(policy?.connections?.quickbooksOnline?.config).toMatchObject({
                 syncCustomDimensions: {department: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, project: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE},
-                errorFields: {syncCustomDimensions: MOCK_ONYX_ERROR},
+                errorFields: {[`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_project`]: MOCK_ONYX_ERROR},
             });
-            expect(policy?.connections?.quickbooksOnline?.config.pendingFields?.syncCustomDimensions).toBeUndefined();
+            expect(policy?.connections?.quickbooksOnline?.config.pendingFields).toEqual({});
             expect(readSpy).not.toHaveBeenCalled();
         });
 
@@ -177,6 +177,31 @@ describe('actions/connections/QuickbooksOnline', () => {
 
             // Then the original selections are restored
             expect(getRequiredQuickBooksConfig(onyxData?.failureData?.at(0)).syncCustomDimensions).toEqual(oldMappings);
+        });
+
+        it('keeps another dimension pending when an earlier save completes', async () => {
+            // Given two dimensions are changed while offline
+            updateQuickbooksOnlineSyncCustomDimensions(MOCK_POLICY_ID, {department: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}, {department: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG});
+            const departmentData = getFirstWriteCall().onyxData;
+            await Onyx.update(departmentData?.optimisticData ?? []);
+            writeSpy.mockClear();
+            updateQuickbooksOnlineSyncCustomDimensions(MOCK_POLICY_ID, {project: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}, undefined);
+            const projectData = getFirstWriteCall().onyxData;
+            await Onyx.update(projectData?.optimisticData ?? []);
+
+            // When the first save completes before the second
+            await Onyx.update(departmentData?.successData ?? []);
+            await waitForBatchedUpdates();
+
+            // Then only the second dimension stays pending with both selections preserved
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
+            expect(policy?.connections?.quickbooksOnline?.config.pendingFields).toEqual({
+                [`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_project`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+            expect(policy?.connections?.quickbooksOnline?.config.syncCustomDimensions).toEqual({
+                department: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+                project: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+            });
         });
     });
 
