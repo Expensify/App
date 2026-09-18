@@ -52,6 +52,7 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.GROUP_CATEGORY,
         TABLE_COLUMNS.GROUP_MERCHANT,
         TABLE_COLUMNS.GROUP_TAG,
+        TABLE_COLUMNS.GROUP_DAY,
         TABLE_COLUMNS.GROUP_MONTH,
         TABLE_COLUMNS.GROUP_WEEK,
         TABLE_COLUMNS.GROUP_YEAR,
