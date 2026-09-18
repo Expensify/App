@@ -3582,7 +3582,7 @@ function getDisplayNameForParticipant({
     shouldRemoveDomain?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     /**
-     * Pre-resolved "Hidden" string, passed instead of a `translate` fn. Callers resolve it once (e.g. `translate('common.hidden')`,
+     * Pre-resolved "Hidden" string, passed instead of a `translate` function. Callers resolve it once (e.g. `translate('common.hidden')`,
      * hoisted out of loops) and pass the value. English-only persisted messages pass the English literal. Defaults to the cached
      * module value when omitted. Mirrors `getPolicyName`'s `unavailableTranslation`.
      */
