@@ -44,7 +44,7 @@ function Template({fields, draftValues}: DynamicFormStoryProps) {
             {({inputValues}) =>
                 groups.map((group) => (
                     <View key={group}>
-                        <Text style={[defaultStyles.textHeadlineH2, defaultStyles.mt5, defaultStyles.mb2]}>{group}</Text>
+                        <Text style={[defaultStyles.textHeadlineLineHeightXXL, defaultStyles.mt5, defaultStyles.mb3]}>{group}</Text>
                         <DynamicFormFields
                             fields={fields.filter((field) => field.group === group)}
                             values={inputValues}

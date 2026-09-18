@@ -7,7 +7,7 @@ import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
-import MultiSelectListAdapter from '@components/DynamicForm/adapters/MultiSelectListAdapter';
+import MultiSelectPushRowAdapter from '@components/DynamicForm/adapters/MultiSelectPushRowAdapter';
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import PushRowWithModal from '@components/PushRowWithModal';
@@ -72,7 +72,7 @@ function renderFields(fields: WiseField[], values: DynamicFormValues = {}) {
 const EXPECTED_COMPONENT_BY_TYPE: Record<WiseFieldType, ComponentType | ((...args: never[]) => unknown)> = {
     text: TextInput,
     select: ValuePicker,
-    multiselect: MultiSelectListAdapter,
+    multiselect: MultiSelectPushRowAdapter,
     radio: RadioButtons,
     date: DatePicker,
     country: CountrySelector,
