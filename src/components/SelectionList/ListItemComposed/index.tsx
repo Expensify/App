@@ -20,11 +20,17 @@
  */
 import ListItemPressable from './ListItemPressable';
 import ListItemCompactAvatar from './primitives/ListItemCompactAvatar';
+import ListItemInvitedSecondaryLoginFooter from './primitives/ListItemInvitedSecondaryLoginFooter';
 import ListItemRBRIndicator from './primitives/ListItemRBRIndicator';
+import ListItemReportAvatar from './primitives/ListItemReportAvatar';
 import ListItemRightCaret from './primitives/ListItemRightCaret';
+import ListItemRow from './primitives/ListItemRow';
+import ListItemSelectionButton from './primitives/ListItemSelectionButton';
 import ListItemSubtitle from './primitives/ListItemSubtitle';
 import ListItemTextColumn from './primitives/ListItemTextColumn';
 import ListItemTitle from './primitives/ListItemTitle';
+import ListItemUserAvatar from './primitives/ListItemUserAvatar';
+import ListItemWorkspaceAvatar from './primitives/ListItemWorkspaceAvatar';
 
 const ListItem = Object.assign(ListItemPressable, {
     Title: ListItemTitle,
@@ -32,6 +38,12 @@ const ListItem = Object.assign(ListItemPressable, {
     RBRIndicator: ListItemRBRIndicator,
     TextColumn: ListItemTextColumn,
     RightCaret: ListItemRightCaret,
+    Row: ListItemRow,
+    ReportAvatar: ListItemReportAvatar,
+    UserAvatar: ListItemUserAvatar,
+    WorkspaceAvatar: ListItemWorkspaceAvatar,
+    SelectionButton: ListItemSelectionButton,
+    InvitedSecondaryLoginFooter: ListItemInvitedSecondaryLoginFooter,
     CompactAvatar: ListItemCompactAvatar,
 });
 
