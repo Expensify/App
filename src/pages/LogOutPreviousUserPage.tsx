@@ -59,7 +59,6 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: linkEmail ?? '', currentEmail: sessionEmail ?? ''}),
                 confirmText: translate('deeplinkWrapper.switchAccount.confirm'),
                 cancelText: translate('common.cancel'),
-                isConfirmLoading: false,
             }).then((result) => {
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
