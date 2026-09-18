@@ -178,6 +178,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     const oldExporter =
         settingName === CONST.QUICKBOOKS_CONFIG.EXPORT && oldSettingValue && typeof oldSettingValue === 'object' && 'exporter' in oldSettingValue ? oldSettingValue.exporter : undefined;
     const exporterErrorData = typeof oldExporter === 'string' ? {exporter: oldExporter} : {};
+    const feedbackFields =
+        settingName === CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS ? Object.keys(settingValue ?? {}).map((dimensionID) => `${settingName}_${dimensionID}`) : [settingName];
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -189,12 +191,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
+                            pendingFields: Object.fromEntries(feedbackFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE])),
+                            errorFields: Object.fromEntries(feedbackFields.map((field) => [field, null])),
                         },
                     },
                 },
@@ -212,12 +210,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
                             [settingName]: oldSettingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
+                            pendingFields: Object.fromEntries(feedbackFields.map((field) => [field, null])),
+                            errorFields: Object.fromEntries(feedbackFields.map((field) => [field, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')])),
                         },
                     },
                 },
@@ -234,12 +228,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
+                            pendingFields: Object.fromEntries(feedbackFields.map((field) => [field, null])),
+                            errorFields: Object.fromEntries(feedbackFields.map((field) => [field, null])),
                         },
                     },
                 },
