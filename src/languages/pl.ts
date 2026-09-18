@@ -10601,6 +10601,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `Czy na pewno chcesz usunąć swój dostęp kopilota do konta Expensify użytkownika ${delegatorName}? Tej czynności nie można cofnąć.`,
         removeCopilotAccessConfirm: 'Usuń dostęp',
         copilotAccess: 'Dostęp do Copilota',
+        leaveAccount: 'Opuść konto',
+        leaveAccountConfirmationText: 'Wrócisz do swojego konta. Nie zostaniesz całkowicie wylogowany.',
     },
     debug: {
         debug: 'Debug',

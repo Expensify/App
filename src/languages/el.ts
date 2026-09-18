@@ -10877,6 +10877,8 @@ ${reportName}`,
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Ως <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">συνοδοιπόρος</a> για τον/την ${accountOwnerEmail}, δεν έχετε δικαίωμα να εκτελέσετε αυτήν την ενέργεια. Συγγνώμη!`,
         copilotAccess: 'Πρόσβαση στο Copilot',
+        leaveAccount: 'Αποχώρηση από τον λογαριασμό',
+        leaveAccountConfirmationText: 'Θα επιστρέψετε στον δικό σας λογαριασμό. Δεν θα αποσυνδεθείτε πλήρως.',
     },
     debug: {
         debug: 'Εντοπισμός σφαλμάτων',

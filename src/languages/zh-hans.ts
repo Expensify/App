@@ -10197,6 +10197,8 @@ ${reportName}`,
         removeCopilotAccessConfirmation: (delegatorName: string) => `您确定要移除对${delegatorName}的 Expensify 账户的副驾驶访问权限吗？此操作无法撤销。`,
         removeCopilotAccessConfirm: '移除访问权限',
         copilotAccess: 'Copilot 访问',
+        leaveAccount: '退出账户',
+        leaveAccountConfirmationText: '您将返回到您自己的账户。您不会完全登出。',
     },
     debug: {
         debug: '调试',

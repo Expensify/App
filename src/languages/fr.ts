@@ -10685,6 +10685,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `Êtes-vous sûr de vouloir supprimer votre accès copilote au compte Expensify de ${delegatorName} ? Cette action est irréversible.`,
         removeCopilotAccessConfirm: "Supprimer l'accès",
         copilotAccess: 'Accès Copilot',
+        leaveAccount: 'Quitter le compte',
+        leaveAccountConfirmationText: 'Vous reviendrez à votre propre compte. Vous ne serez pas complètement déconnecté.',
     },
     debug: {
         debug: 'Déboguer',

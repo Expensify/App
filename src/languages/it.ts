@@ -10617,6 +10617,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `Sei sicuro di voler rimuovere il tuo accesso copilota all'account Expensify di ${delegatorName}? Questa azione non può essere annullata.`,
         removeCopilotAccessConfirm: 'Rimuovi accesso',
         copilotAccess: 'Accesso a Copilot',
+        leaveAccount: 'Abbandona account',
+        leaveAccountConfirmationText: 'Verrai reindirizzato al tuo account. Non verrai disconnesso completamente.',
     },
     debug: {
         debug: 'Debug',

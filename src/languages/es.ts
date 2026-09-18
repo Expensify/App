@@ -10861,6 +10861,8 @@ ${reportName}`,
         notAllowedMessage: (accountOwnerEmail) =>
             `Como <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloto</a> de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
         copilotAccess: 'Acceso a Copilot',
+        leaveAccount: 'Abandonar cuenta',
+        leaveAccountConfirmationText: 'Volverás a tu propia cuenta. No cerrarás sesión por completo.',
     },
     debug: {
         debug: 'Depuración',
