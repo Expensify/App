@@ -1,8 +1,8 @@
 ---
 title: Fix a Broken Company Card Feed Connection
 description: Learn how to fix a broken company card connection in Expensify so transactions resume importing correctly.
-keywords: [fix company card connection, troubleshoot card feed, Expensify card errors, reconnect bank feed, temporary bank issue, can't auto-match receipt]
-internalScope: Audience is Workspace Admins. Covers fixing broken company card connections, resolving connection errors, and recognizing temporary bank issues that resolve on their own. Does not cover CSV imports, missing transactions, or feed monitoring.
+keywords: [fix company card connection, troubleshoot card feed, Expensify card errors, reconnect bank feed, log into your bank, couldn't load this feed, temporary bank issue, can't auto-match receipt]
+internalScope: Audience is Workspace Admins. Covers fixing broken company card connections, resolving connection errors, recognizing temporary bank issues that resolve on their own, and why commercial and spreadsheet feeds have no in-app reconnect link. Does not cover how to run a spreadsheet import, missing transactions, or feed monitoring.
 ---
 
 # Fix a Broken Company Card Feed Connection
@@ -30,7 +30,23 @@ If your company card feed stops working, a Workspace Admin can reconnect it from
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace name]**. 
 2. Select **Company cards**.
 3. Locate the card feed with a red dot indicator and the message “Card feed connection is broken”
-4. Select the error message under the card feed name and follow the prompts to restore the connection. 
+4. Select **log into your bank** in that message.
+5. Complete the login at your bank in the window that opens.
+
+Leave the panel open while you log in. It stays open for the whole login and closes on its own once Expensify finishes reconnecting the feed.
+
+---
+
+## What to do when a card feed has no log into your bank link
+
+Only direct (bank-connected) feeds can be reconnected from inside Expensify, so only those feeds show the **log into your bank** link.
+
+For commercial card feeds and feeds imported from a spreadsheet, the message reads “Your card connection is broken.” with no link. There is nothing to log into, so instead:
+
+- For a commercial card feed, ask your bank or card provider to resend the feed file, then contact Concierge if the error stays.
+- For a spreadsheet feed, upload a new file with the latest transactions.
+
+[Learn how to import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet).
 
 ---
 
@@ -66,6 +82,10 @@ If you see an error while reconnecting, use the guidance below:
  - **What it means:** Your bank requires you to re-authenticate the connection before transactions can resume importing. Until you reconnect, affected expenses show a pending message that the bank connection needs re-authentication.
  - **What to do:** Go to **Company cards**, select the affected card feed, and follow the prompts to reconnect and restore the connection.
 
+**Error: Couldn’t load this feed**
+ - **What it means:** You finished the login at your bank, but Expensify could not load the card feed afterward. The panel stays open and shows this message instead of closing.
+ - **What to do:** Select **Got it** to return to **Company cards**, then select **log into your bank** again to retry. If the same message appears again, contact Concierge.
+
 ---
 
 ## How to recognize a temporary bank issue on a company card expense
@@ -90,6 +110,7 @@ If the same expense still shows the message after several days, check the card f
 
 When a company card connection is fixed, the card feed reconnects to your bank and the red dot error message disappears. 
 
+ - The panel closes on its own once the reconnect finishes.
  - New transactions begin importing again. 
  - Any missing transactions during downtime will import automatically.
 
@@ -118,6 +139,10 @@ After fixing the feed, you can update an assigned company card manually from the
 ## Why does my expense say “Can't auto-match receipt due to a temporary bank issue”?
 
 Your bank returned a temporary error, so Expensify couldn't pull the card transaction to match against the receipt. The card feed is not broken, so there's nothing to reconnect. Expensify retries automatically and the message clears once the transaction imports.
+
+## Why doesn’t my broken card feed show a log into your bank link?
+
+Only direct (bank-connected) feeds can be reconnected from inside Expensify. Commercial card feeds and feeds imported from a spreadsheet show “Your card connection is broken.” without the link, because the fix happens outside Expensify — with your card provider or by uploading a new file.
 
 ## What should I do if the connection still fails after retrying?
 

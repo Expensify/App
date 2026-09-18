@@ -50,6 +50,14 @@ Only Workspace members can have company cards assigned to them, so it depends on
 - **Workspace Admins** can enter any name, email address, or phone number. If the assignee is not yet a Workspace member, you can invite them while assigning the card.
 - **Card Admins** can only assign company cards to people who are already Workspace members. If you search for someone who is not a member, no result appears and you cannot invite them from the assignment flow. Ask a Workspace Admin to invite the person to the Workspace first, then assign the card.
 
+## What happens if the card feed connection expires while I’m assigning a company card?
+
+When you select **Assign card** on the last step and the feed connection has expired, Expensify opens your bank login first so the feed can be reconnected.
+
+After you finish the login, the panel closes and the card is not assigned. Reconnecting the feed and assigning a card are separate actions, so go back to **Company cards** and assign the card again on the reconnected feed.
+
+[Learn how to fix a broken company card feed connection](/articles/new-expensify/connect-credit-cards/Fix-a-Broken-Company-Card-Feed-Connection).
+
 ## Can I assign multiple company cards to one member?
 
 Yes. A member can have multiple company cards assigned. Each card’s transactions will be automatically imported into their account.
