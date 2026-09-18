@@ -340,7 +340,7 @@ function tokenizeKeywordSegments(keywords: string) {
 const groupByWithoutValueRegex = new RegExp(`^${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY}\\s*(?:${syntaxOperatorPattern})$`, 'i');
 
 function getGroupByValueForValidation(segment: string) {
-    const valueWithoutTrailingCommas = segment.replace(/,+$/g, '');
+    const valueWithoutTrailingCommas = segment.replaceAll(/,+$/g, '');
     return isCompleteQuotedValue(valueWithoutTrailingCommas) ? valueWithoutTrailingCommas.slice(1, -1) : valueWithoutTrailingCommas;
 }
 
