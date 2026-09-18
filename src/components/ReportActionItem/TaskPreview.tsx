@@ -225,7 +225,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                 )}
                 <Icon
                     src={icons.ArrowRight}
-                    fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered})})}
                     additionalStyles={iconWrapperStyle}
                 />
             </PressableWithoutFeedback>

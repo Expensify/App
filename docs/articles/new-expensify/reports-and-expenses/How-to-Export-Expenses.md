@@ -69,6 +69,7 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 
    - **Basic export** - Essential fields including date, amount, merchant, category, and receipt URL.
    - **All Data - expense level** - One row per expense with all available data fields.
+   - **Canadian Multiple Tax Export** - One row per expense with a separate column for each tax (such as GST and PST). This template only appears when the workspace currency is set to CAD.
    - **Custom templates** - Any custom template created by you or your Workspace Admin, if available.
 
 ## Where do I find the exported file?
@@ -82,6 +83,10 @@ Yes. Select **Export current view** to download a CSV that matches the columns c
 ## Why don't I see certain export templates?
 
 If all selected expenses are deleted, only the **Basic export** template is available. Other export templates require a report, and deleted expenses are not associated with any report.
+
+## What happens if I refresh the page while my receipts are preparing?
+
+Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
 
 ## Why don't I see Download receipts for my selected expenses?
 

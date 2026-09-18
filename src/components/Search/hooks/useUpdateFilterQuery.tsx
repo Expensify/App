@@ -1,12 +1,12 @@
+import {useSearchQueryActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
 import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
-import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,6 +15,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     const {translate} = useLocalize();
+    const {getSearchKeyForQuery} = useSearchQueryActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -51,9 +52,13 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             return;
         }
 
-        HapticFeedback.press();
+        // Mark the query as a refinement so SearchPage holds the previous results while it loads (the fade path).
         markQueryAsRefinement(queryString);
-        Navigation.setParams({q: queryString, rawQuery: undefined});
+
+        // Changing the type invalidates the current search key, so recompute it from the new query.
+        const shouldResetSearchKey = !!values.type && values.type !== searchAdvancedFiltersForm.type;
+
+        Navigation.setParams({q: queryString, rawQuery: undefined, ...(shouldResetSearchKey && {searchKey: getSearchKeyForQuery(buildSearchQueryJSON(queryString))})});
     }
 
     function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {

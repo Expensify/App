@@ -6,7 +6,6 @@ import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipC
 import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -34,7 +33,6 @@ type AvatarProps = {
 
 function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
@@ -45,8 +43,10 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
 
     // Match the header's delegate avatar logic: when a delegate exists on the
     // parent report action, the header (useReportActionAvatars) shows the
-    // delegate's avatar as primary instead of the report owner's.
-    const skipDelegate = optionItem?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !optionItem?.chatReportID);
+    // delegate's avatar as primary instead of the report owner's. A Concierge thread is the exception the header
+    // already makes: its icon is Concierge rather than whoever asked, so swapping in the copilot would both disagree
+    // with the thread header and read as "acted as Concierge".
+    const skipDelegate = !!optionItem?.isConciergeThread || optionItem?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !optionItem?.chatReportID);
 
     let icons: AvatarIcon[] = optionItem?.icons ?? [];
     if (!skipDelegate && delegateAccountID && personalDetails && icons.length > 0) {
@@ -79,7 +79,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
                 primaryAvatar={primaryIcon}
                 secondaryAvatar={secondaryIcon}
                 size={avatarSize}
-                subscriptAvatarBorderColor={avatarBackgroundColor}
+                backdropColor={avatarBackgroundColor}
             />
         );
     }
@@ -91,7 +91,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
                 // Only the two rendered icons are passed: a longer array makes DiagonalAvatars replace the secondary avatar with a "+N" overflow count.
                 icons={[primaryIcon, secondaryIcon]}
                 isInReportAction={false}
-                secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
+                backdropColor={avatarBackgroundColor}
             />
         );
     }

@@ -9,7 +9,7 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -18,6 +18,7 @@ import Onyx from 'react-native-onyx';
 import {getCountryCode} from './CountryUtils';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
+import {getPersonalDetailByLogin} from './PersonalDetailsStore';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
@@ -26,24 +27,6 @@ type FirstAndLastName = {
     firstName: string;
     lastName: string;
 };
-
-let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        const personalDetails = Object.values(val ?? {});
-        emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
-            if (detail?.login) {
-                const key = detail.login.toLowerCase();
-                const existing = acc[key];
-                if (!existing || existing.isClosed || existing.isOptimisticPersonalDetail) {
-                    acc[key] = detail;
-                }
-            }
-            return acc;
-        }, {});
-    },
-});
 
 let hiddenTranslation = '';
 let youTranslation = '';
@@ -264,10 +247,7 @@ function getDisplayNameOrYou(displayName: string, accountID: number, currentUser
 }
 
 function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
-    if (!email) {
-        return undefined;
-    }
-    return emailToPersonalDetailsCache[email.toLowerCase()];
+    return getPersonalDetailByLogin(email);
 }
 
 /**
@@ -335,6 +315,17 @@ function getNewAccountIDsAndLogins(invitedEmailsToAccountIDs: InvitedEmailsToAcc
         },
         {newAccountIDs: [] as number[], newLogins: [] as string[]},
     );
+}
+
+type PersonalDetailsUpdate = OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>;
+
+// All writes are merges, and the builder is what turns one list update into one update per account after the reshape
+function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        value: personalDetails,
+    };
 }
 
 /**
@@ -534,14 +525,6 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     return {firstName: '', lastName: ''};
 }
 
-function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
-    const userDetails = getPersonalDetailByEmail(email);
-    if (userDetails) {
-        return userDetails[nameToDisplay] ? Str.removeSMSDomain(userDetails[nameToDisplay]) : Str.removeSMSDomain(userDetails.login ?? '');
-    }
-    return Str.removeSMSDomain(email);
-}
-
 const getShortMentionIfFound = (displayText: string, userAccountID: string, currentUserPersonalDetails: OnyxEntry<PersonalDetails>, userLogin = '') => {
     // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
     // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
@@ -638,7 +621,6 @@ export {
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
-    getUserNameByEmail,
     getShortMentionIfFound,
     getLoginByAccountID,
     getPhoneNumber,
@@ -646,4 +628,5 @@ export {
     areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     temporaryGetDisplayNameOrDefault,
+    buildPersonalDetailsUpdate,
 };

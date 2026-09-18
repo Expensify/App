@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,7 +51,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     const styles = useThemeStyles();
     const theme = useTheme();
     const subtitle = item.alternateText;
-    const shouldShowBrickRoadIndicator = !item.isSelected || !!item.canShowSeveralIndicators;
+    const titleStyle = [styles.justifyContentCenter, !!subtitle && styles.mb1];
 
     return (
         <ListItemComposed
@@ -58,7 +59,6 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             pressableStyle={[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             shouldSyncFocus={shouldSyncFocus}
@@ -78,12 +78,12 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                     <ListItemComposed.Title
                         text={item.text ?? ''}
-                        style={[styles.justifyContentCenter, !!subtitle && styles.mb1]}
+                        style={titleStyle}
                     />
                     {!!subtitle && <ListItemComposed.Subtitle text={subtitle} />}
                 </View>
                 {!!item.rightElement && <View style={[styles.ml2, styles.flexShrink1, styles.mw50]}>{item.rightElement}</View>}
-                {!!item.brickRoadIndicator && shouldShowBrickRoadIndicator && <ListItemComposed.RBRIndicator brickRoadIndicator={item.brickRoadIndicator} />}
+                {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
             </View>
         </ListItemComposed>
     );

@@ -61,8 +61,6 @@ function ChatListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pressableWrapperStyle={pressableWrapperStyle}

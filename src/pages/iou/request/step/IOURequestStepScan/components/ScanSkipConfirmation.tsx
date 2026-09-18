@@ -85,7 +85,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const isArchived = useReportIsArchived(report?.reportID);
     const selfDMReport = useSelfDMReport();
     const reportAttributesDerived = useReportAttributes();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -100,6 +101,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
@@ -116,24 +118,26 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
-    const participants = getMoneyRequestParticipantOptions(
-        currentUserPersonalDetails.accountID,
+    const participants = getMoneyRequestParticipantOptions({
+        currentUserAccountID: currentUserPersonalDetails.accountID,
         report,
         policy,
         personalDetails,
         conciergeReportID,
-        isArchived,
+        privateIsArchived: isArchived,
+        rules,
         reportAttributesDerived,
         reportDraft,
         translate,
+        convertToDisplayString,
         dateFnsLocale,
-    );
+    });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     // Whether this expense's sole destination is the current user's self-DM. Forwarded to the cleanup helpers so the
@@ -294,6 +298,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         });
 
         const baseParams = {
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             transactions,
             iouType,
@@ -321,10 +326,12 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             optimisticTransactionIDs,
             optimisticChatReportID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            isDraftChatReport: !!reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             conciergeChat,
             formatPhoneNumber,
+            rules,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
