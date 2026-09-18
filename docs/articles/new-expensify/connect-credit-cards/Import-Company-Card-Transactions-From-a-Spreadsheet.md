@@ -1,8 +1,8 @@
 ---
 title: Import Company Card Transactions From a Spreadsheet 
 description: Learn how Workspace Admins can upload company card transactions manually from a spreadsheet file.
-keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import, unique ID, duplicate transactions, duplicate expenses, re-import csv, reupload csv]
-internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds, including mapping Unique ID to avoid duplicate transactions on re-import. Does not cover personal card imports or Plaid connections.
+keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import, unique ID, duplicate transactions, duplicate expenses, re-import csv, reupload csv, column mapping, field mapping, map columns, auto-fill mappings, column headers, wrong column mapped, ignore column, different column order]
+internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds, how Expensify auto-fills field mappings from column headers and saved column positions, and mapping Unique ID to avoid duplicate transactions on re-import. Does not cover personal card imports or Plaid connections.
 ---
 
 # Import Company Card Transactions From a Spreadsheet 
@@ -30,14 +30,34 @@ Only **Workspace Admins** can import transactions for company cards.
 4. Choose **Import transactions from file**.
 5. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 6. Enter a name for the card feed.
-7. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
+7. Review the field mappings, which Expensify fills in from your file's column headers, and set any that are still **Ignore**. You must map either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
 8. Map **Unique ID** to a column that holds a unique reference for each transaction, if your file has one.
 9. Assign cards to users based on the transactions in the file.
 10. Click **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
+Expensify reads your file's column headers to fill in the mappings for you, so check them before you continue and correct anything it didn't identify. [Learn how Expensify fills in company card field mappings](#how-expensify-fills-in-company-card-field-mappings).
+
 **Note:** Download the [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for an example of the recommended column structure and formatting for company card transaction imports.
+
+---
+
+## How Expensify fills in company card field mappings
+
+When you upload a file, Expensify pre-selects the field mappings for you so you have less to set by hand:
+
+1. It reads the header row of the file you just uploaded and matches each header to a field. A header of `Transaction Date` maps to **Date**, `Vendor` maps to **Merchant**, `Posted Amount` maps to **Amount**, and so on.
+2. For any field the headers didn't identify, it falls back to the column positions you mapped the last time you uploaded a file to this feed.
+3. Any column it can't identify is left as **Ignore** for you to set.
+
+Because headers are matched first, the mappings stay correct even when your new file orders its columns differently than the last one. Expensify also never pre-selects the same field on two columns, so you won't see the "Oops! You've mapped a single field to multiple columns" error on a file it filled in for you.
+
+Keep these limits in mind:
+
+- Matching reads the first row of each column, so it only helps when your file has a header row. If your file starts straight into transaction data, nothing matches a field name and Expensify falls back to the saved column positions.
+- **Unique ID** is never filled in for you, even when a header names it. Map it yourself on every upload.
+- Header matching is a best guess, not a guarantee. A file whose headers don't resemble the field names leaves more columns on **Ignore**, so always review every mapping before you click **Import**.
 
 ---
 
@@ -75,7 +95,7 @@ You must map **Unique ID** yourself on every import. Unlike the other field mapp
 6. Review and confirm the field mappings, and map **Unique ID** again if your file has a unique reference column.
 7. Click **Import**.
 
-**Note:** Previously mapped fields auto-fill to save time, with one exception: **Unique ID** is never restored, so map it again on every upload to keep Expensify from importing duplicate transactions.
+**Note:** Field mappings auto-fill to save time — from your new file's column headers first, then from the columns you mapped last time. **Unique ID** is the one exception: it is never restored, so map it again on every upload to keep Expensify from importing duplicate transactions. [Learn how Expensify fills in company card field mappings](#how-expensify-fills-in-company-card-field-mappings).
 
 ---
 
@@ -115,9 +135,17 @@ Your file must include a way to identify each card so transactions can be matche
 
 Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to users — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
 
-## What happens if I map the same spreadsheet column twice?
+## What happens if I map the same field to two columns?
 
-You’ll see an error message and won’t be able to proceed until the issue is resolved.
+You'll see an "Oops!" error telling you a single field is mapped to multiple columns, and you won't be able to proceed until you set one of them back to **Ignore**. Expensify never pre-selects the same field twice, so this only happens on mappings you set yourself.
+
+## Will my field mappings still be right if my new file has different columns?
+
+Yes, as long as your file has a header row. Expensify matches your new file's headers to fields before it falls back to the column positions you used last time, so reordered, added, or removed columns no longer push the mappings onto the wrong columns. Headers that don't resemble any field name are left as **Ignore**, so review the mappings before you click **Import**.
+
+## Why is a column I expected to be filled in showing Ignore?
+
+Expensify couldn't match that column's header to one of its fields, so it left the column for you to set. This is normal for files with unusual header names, for files with no header row, and for the first upload to a brand-new feed when the headers don't resemble the field names. Pick the correct field from the dropdown and continue.
 
 ## Why am I seeing an "Oops!" error about empty values? 
 
@@ -125,7 +153,7 @@ If you map a required field such as **Date**, **Merchant**, or **Amount** — or
 
 ## Can I change field mappings after importing transactions?
 
-Yes. When importing new transactions, previous mappings will be suggested, but you can change them as needed. **Unique ID** is the one mapping that is never suggested — set it again each time.
+Yes. When importing new transactions, Expensify suggests mappings from your file's column headers and from your previous mappings, but you can change them as needed. **Unique ID** is the one mapping that is never suggested — set it again each time.
 
 ## Why do I get duplicate expenses when I upload the same file again?
 
