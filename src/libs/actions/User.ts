@@ -695,6 +695,7 @@ function triggerNotifications<TKey extends OnyxKey>(
     currentUserAccountID: number,
     currentUserEmail: string,
     topmostOneTransactionThreadReportID: string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     for (const update of onyxUpdates) {
@@ -715,6 +716,7 @@ function triggerNotifications<TKey extends OnyxKey>(
                     topmostOneTransactionThreadReportID,
                     currentUserAccountID,
                     currentUserEmail,
+                    formatPhoneNumber,
                     reportAttributes?.[reportID]?.reportName,
                     derivedMovedFromReportName,
                 );
@@ -832,6 +834,7 @@ function subscribeToUserEvents(
     currentUserAccountID: number,
     currentUserEmail: string,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
@@ -894,7 +897,7 @@ function subscribeToUserEvents(
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), formatPhoneNumber, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1072,7 +1075,7 @@ function setContactMethodAsDefault(
     ];
 
     // Pattern C: apply all actual data changes only after server confirms success
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1098,16 +1101,12 @@ function setContactMethodAsDefault(
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
-                },
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                login: newDefaultContactMethod,
+                displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
             },
-        },
+        }),
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
@@ -1176,16 +1175,12 @@ function setHighContrastIntent(hasIntent: boolean | null) {
  * Sets a custom status
  */
 function updateCustomStatus(currentUserAccountID: number, status: Status) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserAccountID]: {
-                    status,
-                },
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserAccountID]: {
+                status,
             },
-        },
+        }),
     ];
 
     const parameters: UpdateStatusParams = {text: status.text, emojiCode: status.emojiCode, clearAfter: status.clearAfter};
@@ -1199,16 +1194,12 @@ function updateCustomStatus(currentUserAccountID: number, status: Status) {
  * Clears the custom status
  */
 function clearCustomStatus(currentUserAccountID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserAccountID]: {
-                    status: null, // Clearing the field
-                },
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserAccountID]: {
+                status: null, // Clearing the field
             },
-        },
+        }),
     ];
     API.write(WRITE_COMMANDS.CLEAR_STATUS, null, {optimisticData});
 }

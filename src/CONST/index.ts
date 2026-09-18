@@ -1587,6 +1587,8 @@ const CONST = {
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
+        // "Auto report" destination: the backend picks each expense's report (its owner's latest draft, or a new one).
+        AUTOMATIC_REPORT_ID: '-3',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -2675,6 +2677,8 @@ const CONST = {
         UTILITIES: 'Utilities',
     },
     JSON_CODE: {
+        // Client-side placeholder, never sent by the server: the request failed without a usable response code
+        NO_RESPONSE: 0,
         SUCCESS: 200,
         BAD_REQUEST: 400,
         INVALID_SEARCH_QUERY: 401,
@@ -3332,6 +3336,7 @@ const CONST = {
         DIMENSION_PREFIX: 'dimension_',
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     SAGE_INTACCT: {
@@ -7257,6 +7262,11 @@ const CONST = {
             LOADING: 'loading',
             LOADED: 'loaded',
         },
+        FAILURE_KIND: {
+            STALE: 'stale',
+            INVALID_QUERY: 'invalidQuery',
+            FAILED: 'failed',
+        },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -7360,6 +7370,7 @@ const CONST = {
             CATEGORY: 'category',
             MERCHANT: 'merchant',
             TAG: 'tag',
+            DAY: 'day',
             MONTH: 'month',
             WEEK: 'week',
             YEAR: 'year',
@@ -7656,6 +7667,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                DAY: {
+                    DAY: this.TABLE_COLUMNS.GROUP_DAY,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
                 MONTH: {
                     MONTH: this.TABLE_COLUMNS.GROUP_MONTH,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
@@ -7724,6 +7740,7 @@ const CONST = {
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                DAY: [this.TABLE_COLUMNS.GROUP_DAY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
@@ -7838,6 +7855,7 @@ const CONST = {
             GROUP_CATEGORY: 'groupCategory',
             GROUP_MERCHANT: 'groupMerchant',
             GROUP_TAG: 'groupTag',
+            GROUP_DAY: 'groupday',
             GROUP_MONTH: 'groupmonth',
             GROUP_WEEK: 'groupweek',
             GROUP_YEAR: 'groupyear',
@@ -8074,6 +8092,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
                 [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
                 [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
+                [this.TABLE_COLUMNS.GROUP_DAY]: 'group-day',
                 [this.TABLE_COLUMNS.GROUP_MONTH]: 'group-month',
                 [this.TABLE_COLUMNS.GROUP_WEEK]: 'group-week',
                 [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
@@ -8226,6 +8245,7 @@ const CONST = {
                 title: 'workspace.upgrade.reportFields.title' as const,
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             invoiceFields: {
                 id: 'invoiceFields' as const,
@@ -8240,6 +8260,7 @@ const CONST = {
                 alias: 'policy-prevent-member-changing-title',
                 name: undefined,
                 icon: undefined,
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             preventSelfApproval: {
                 id: 'preventSelfApproval' as const,
@@ -8283,6 +8304,7 @@ const CONST = {
                 title: 'workspace.upgrade.multiLevelTags.title' as const,
                 description: 'workspace.upgrade.multiLevelTags.description' as const,
                 icon: 'Tag',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
 
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
@@ -8365,6 +8387,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             multiApprovalLevels: {
                 id: 'multiApprovalLevels' as const,
@@ -8373,6 +8396,7 @@ const CONST = {
                 title: `workspace.upgrade.multiApprovalLevels.title` as const,
                 description: `workspace.upgrade.multiApprovalLevels.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             glCodes: {
                 id: 'glCodes' as const,
@@ -8381,6 +8405,7 @@ const CONST = {
                 title: 'workspace.upgrade.glCodes.title' as const,
                 description: 'workspace.upgrade.glCodes.description' as const,
                 icon: 'Tag',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             glAndPayrollCodes: {
                 id: 'glAndPayrollCodes' as const,
@@ -8389,6 +8414,7 @@ const CONST = {
                 title: 'workspace.upgrade.glAndPayrollCodes.title' as const,
                 description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
                 icon: 'FolderOpen',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             taxCodes: {
                 id: 'taxCodes' as const,
@@ -8397,6 +8423,7 @@ const CONST = {
                 title: 'workspace.upgrade.taxCodes.title' as const,
                 description: 'workspace.upgrade.taxCodes.description' as const,
                 icon: 'Coins',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             companyCards: {
                 id: 'companyCards' as const,
@@ -8654,6 +8681,7 @@ const CONST = {
         UPDATED_MERCHANT: 'updatedMerchant',
         REIMBURSABLE: 'reimbursable',
         BILLABLE: 'billable',
+        VENDOR: 'vendor',
     },
 
     IMPORT_SPREADSHEET: {
@@ -9073,6 +9101,13 @@ const CONST = {
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
         },
+        ATTACHMENT_CAMERA: {
+            CLOSE: 'AttachmentCamera-Close',
+            FLASH: 'AttachmentCamera-Flash',
+            SHUTTER: 'AttachmentCamera-Shutter',
+            FLIP_CAMERA: 'AttachmentCamera-FlipCamera',
+            PERMISSION_PROMPT_BUTTON: 'AttachmentCamera-PermissionPromptButton',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
@@ -9369,6 +9404,9 @@ const CONST = {
         EMOJI_REACTIONS: {
             REACTION_BUBBLE: 'EmojiReactions-ReactionBubble',
             ADD_REACTION_BUBBLE: 'EmojiReactions-AddReactionBubble',
+        },
+        CONCIERGE_FEEDBACK: {
+            THUMB: 'ConciergeFeedback-Thumb',
         },
         MINI_CONTEXT_MENU: {
             QUICK_REACTION: 'MiniContextMenu-QuickReaction',

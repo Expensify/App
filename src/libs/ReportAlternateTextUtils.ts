@@ -625,6 +625,7 @@ function getLastMessageTextForReport({
             policyTags,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
             movedFromReportName: undefined,
         });
         // Strip HTML tags for plain text display in options list

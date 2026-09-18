@@ -43,6 +43,7 @@ import {
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getOwnerChangePayerSuccessData,
     getSageIntacctVendors,
     getReimburserEmail,
     getSubmitReportManagerAccountID,
@@ -2133,6 +2134,68 @@ describe('PolicyUtils', () => {
                 owner: 'owner@example.com',
             });
             expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+    });
+
+    describe('getOwnerChangePayerSuccessData', () => {
+        it('should reassign policy.reimburser when the outgoing owner is the payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({reimburser: 'new@example.com'});
+        });
+
+        it('should reassign achAccount.reimburser when that is where the payer is stored', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                achAccount: {reimburser: 'owner@example.com'},
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({achAccount: {reimburser: 'new@example.com'}});
+        });
+
+        it('should not reassign when the workspace has a bank account, because the backend keeps the former payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@example.com',
+                achAccount: {bankAccountID: 1234, reimburser: 'owner@example.com'},
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should not reassign when someone other than the outgoing owner is the payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'payer@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should not reassign when reimbursement is disabled', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'owner@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should return no payer fields for an undefined policy', () => {
+            expect(getOwnerChangePayerSuccessData(undefined, 'new@example.com')).toEqual({});
         });
     });
 
@@ -4283,12 +4346,13 @@ describe('PolicyUtils', () => {
                     },
                 });
 
-            it('requires a configured connection and the matching beta', () => {
+            it('requires a configured connection but not the matching beta', () => {
                 const policy = buildDualEntryPolicy(vendors);
                 expect(isDualEntryVendorMatchingActive(policy)).toBe(true);
                 expect(hasVendorFeature(policy, true)).toBe(true);
-                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(policy, false)).toBe(true);
                 expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), true)).toBe(false);
+                expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), false)).toBe(false);
                 expect(isDualEntryVendorMatchingActive(undefined)).toBe(false);
             });
 

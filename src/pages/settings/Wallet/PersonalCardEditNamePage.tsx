@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCardName} from '@libs/CardUtils';
@@ -41,8 +42,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList), [cardID]);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+    const [cardholder] = usePersonalDetail(card?.accountID);
     const isCSVImportedPersonalCard = !!card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV));
     const defaultValue =
         customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);

@@ -18,10 +18,13 @@ type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & {
 
     /** Value the field holds. Omit it, or pass an empty string, for a field not filled in yet */
     value?: string;
+
+    /** How many lines the value may take. Defaults to 1, and `0` lets it grow unbounded */
+    numberOfLinesValue?: number;
 };
 
 /** Field preset: a field name plus its value. With no `value` the name takes over the row */
-function MenuItemField({name, value, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
+function MenuItemField({name, value, numberOfLinesValue, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
     return (
         <MenuItemRoot
             onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
@@ -34,7 +37,7 @@ function MenuItemField({name, value, children, onPress, isDisabled = false, sent
                     {value ? (
                         <>
                             <MenuItemFieldName>{name}</MenuItemFieldName>
-                            <MenuItemFieldValue>{value}</MenuItemFieldValue>
+                            <MenuItemFieldValue numberOfLines={numberOfLinesValue}>{value}</MenuItemFieldValue>
                         </>
                     ) : (
                         <MenuItemFieldNamePlaceholder>{name}</MenuItemFieldNamePlaceholder>
