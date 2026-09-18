@@ -1,91 +1,61 @@
 ---
 title: Configure Company Card Settings
-description: Learn how to manage third-party company card feeds in Expensify, including commercial and direct feeds, accounting exports, and automated eReceipts.
-keywords: [New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, accounting exports, ereceipts, expense automation, card management, e-receipt, electronic receipt, digital receipt, auto-generated receipt, card admin]
-internalScope: Applies to workspace admins and card admins. Covers how to manage third-party feed settings on the workspace level. Does not cover company card troubleshooting, setup, or card assignment.
+description: Learn how to manage the settings for company card feeds in Expensify, including setting the statement close date and allowing transactions to be deleted. 
+keywords: [New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, card management, card admin, allow deleting transactions]
+internalScope: Applies to workspace admins and card admins. Covers how to manage third-party feed settings on the workspace level. Does not cover company card troubleshooting, setup, card assignment or Expensify Card settings. 
 order: 2
 ---
 
 # Configure Company Card Settings
 
-Workspace admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. Card admins can manage company card feed settings and assign export accounts to individual cards. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
+Configure company card feed settings to manage how an existing direct or commercial card feed works in your workspace. You can rename the feed, set its statement close date, allow cardholders to delete imported transactions, refresh available cards for a direct feed, or remove the feed.
 
-To set up a direct company credit card connection on a workspace, see [Set up a Direct Connection for Company Cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards).
+To create a new connection, see [Set up a Direct Connection for Company Cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards) or see [Set up a Commercial Feed for Company Cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards).
 
-To set up a commercial card file feed on a workspace, see [Set up a Commercial Feed for Company Cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards).
+This article only covers third-party card feeds. To manage settings for the Expensify Card, see [Set Up and Manage the Expensify Card](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-US).
 
 ---
+
+## Who can configure Company Card Settings?
+
+Workspace admins and card admins can manage company card feed settings for an existing company card connection.
+
+Some settings are available only for specific feed types. For example, **Assign new cards** is available for direct feeds.
 
 ## How to configure settings for company card feeds
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Company cards**.
+3. Confirm the card feed you want to manage is selected.
+    - If you have multiple card feeds and need to select a different one, select the current card feed name, then select the card feed you want to manage.
 4. Select **Settings**.
+5. Configure the applicable settings:
+    - **Card feed name**: Change the name of the card feed to make it easier to identify.
+    - **Statement close date**: Enter the date your card statement closes. Expensify uses this date to create a matching statement under **Card statements** on the **Spend** page.
+    - **Allow deleting transactions**: Allow cardholders to delete imported company card transactions. This setting applies only to transactions imported after it is enabled.
+    - **Assign new cards**: For direct feeds, reconnect to your bank and refresh the available card list so newly issued cards can be assigned.
+    - **Remove card feed**: Remove the card feed from the workspace, unassign its cards, and delete all imported expenses in the **Unreported** and **Draft** states. If the feed is not connected to another workspace, the feed is permanently deleted.
 
-You can manage the following company card feed settings:
-
-- **Card feed name**: Update the name of the card feed to help identify it.
-- **Statement close date**: Enter the date when your card statement closes so Expensify can create a matching statement under **Card statements** on the Spend page.
-- **Allow deleting transactions**: Allow cardholders to delete imported company card transactions. 
-  - **Note:** When this setting is enabled, it applies only to new transactions. It does not apply to transactions imported before the setting was enabled.
-- **Assign new cards** (direct feeds only): Reconnects to your bank to refresh the card list so newly issued cards appear for assignment.
-- **Remove card feed**: Remove the card feed from the workspace and unassign all cards. If the feed is not connected to another workspace, it is permanently deleted.
-  - **Note:** Removing the feed or unassigning a card deletes all imported expenses in the **Unreported** and **Draft** states.
-
-![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
-
----
-
-## How to export transactions to your accounting system
-
-If you’ve connected accounting software (like **QuickBooks**, **NetSuite**, or **Xero**), you can export company card expenses either to a **central account** or **individual accounts**.
-
-## How to export to a central account
-
-To apply this setting to all card expenses in the workspace:
-
-1. Go to **Workspaces > [Workspace name] > Accounting > Connections > Export**.
-2. Under **Export company card expenses as**, choose **Central account**.
-
-## How to export to individual accounts
-
-To override the central export account per card:
-
-1. Go to **Workspaces > [workspace name] > Company Cards**.
-2. Click on an assigned card to open the **Card Details** page.
-3. Select a specific **export account** for that card.
-
-**Note:** If the card is set to Default option, the central export account will be used.
-
----
-
-## How to use eReceipts with third-party card feeds
-
-**eReceipts** are digital receipts that replace paper ones for many USD transactions of $75 or less on commercial and direct card feeds.
-
-1. Go to **Workspaces > [workspace name] > More Features** and toggle on **Rules**.
-2. Navigate to the **Rules** section.
-3. Enable **eReceipts**.
-
-**Things to Note:**
-- eReceipts are not generated for certain categories, like **lodging**.
-- Missing or incorrect category data may prevent eReceipts from being applied.
-- Manually re-categorizing an expense can invalidate an existing eReceipt.
+![Tap settings to open the card feed settings page]({{site.url}}/assets/images/company-cards-configure-settings.png){:width="100%"}
 
 ---
 
 # FAQ
 
-## Are commercial and direct card feeds limited by plan?
+## Does enabling Allow deleting transactions apply to existing company card transactions?
 
-Yes, below is a breakdown:  
-- On the **Collect plan**, you can connect one [commercial feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards) or [direct connection](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards).
-- The **Control plan** supports **unlimited** card connections.
-- The [Expensify Card](https://use.expensify.com/company-credit-card) is available on **both plans**.
+No. **Allow deleting transactions** applies only to new transactions imported after the setting is enabled. Transactions imported before the setting was enabled are not affected.
 
-## When do direct or commercial feed transactions import?
+## What happens if I remove a company card feed?
 
-Transactions import **after a card is assigned**. Once a purchase **posts** (typically within 1–3 business days), it will appear in the cardholder’s account.
+Removing a company card feed unassigns all cards associated with that feed. Imported expenses in the **Unreported** and **Draft** states are also deleted.
 
-**Note:** Pending transactions are not imported.
+If the feed is not connected to another workspace, removing it permanently deletes the feed.
 
+## What does the Statement close date do?
+
+The **Statement close date** tells Expensify when the card statement closes. Expensify uses this date to create a corresponding statement under **Card statements** on the **Spend** page.
+
+## How do I manage settings for a different company card feed?
+
+**Settings** applies to the currently selected card feed. If you have multiple card feeds, select the current card feed name, then select the feed you want to manage. Select **Settings** to configure that feed.
