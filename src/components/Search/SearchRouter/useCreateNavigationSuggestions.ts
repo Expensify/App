@@ -106,7 +106,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
@@ -160,7 +159,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 false,
                 isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 policy,
-                allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,

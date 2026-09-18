@@ -158,6 +158,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
+        allReportActionIDs,
     };
 
     // The command handles on `ReportActionsListActionsContext`. Referentially stable, so actions-only

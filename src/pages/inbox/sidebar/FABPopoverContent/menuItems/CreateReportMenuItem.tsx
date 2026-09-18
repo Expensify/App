@@ -46,7 +46,6 @@ function CreateReportMenuItem() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -75,7 +74,6 @@ function CreateReportMenuItem() {
             hasViolations,
             isASAPSubmitBetaEnabled,
             policy,
-            allBetas,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,

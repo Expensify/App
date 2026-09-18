@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
-import {applyCompanyCardSavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
+import {applyCompanyCardColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -62,13 +62,13 @@ function getCompanyCardImportColumnRoles(translate: LocaleContextProps['translat
 function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard, addNewCardMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const feedDomainAccountID = addNewCard?.data?.domainAccountID ?? workspaceAccountID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
+    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
@@ -85,30 +85,39 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const columnRoles: ColumnRole[] = getCompanyCardImportColumnRoles(translate);
 
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
-    const hasAppliedSavedMappings = useRef(false);
+    const hasAppliedColumnMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
+    const lastAppliedMappingsRef = useRef(savedColumnMappings);
 
     useEffect(() => {
-        if (spreadsheet?.data !== lastProcessedDataRef.current) {
-            hasAppliedSavedMappings.current = false;
+        if (spreadsheet?.data !== lastProcessedDataRef.current || savedColumnMappings !== lastAppliedMappingsRef.current) {
+            hasAppliedColumnMappings.current = false;
             lastProcessedDataRef.current = spreadsheet?.data;
+            lastAppliedMappingsRef.current = savedColumnMappings;
         }
 
-        if (hasAppliedSavedMappings.current) {
+        if (hasAppliedColumnMappings.current) {
             return;
         }
 
-        if (!spreadsheet?.data || isEmptyObject(savedColumnMappings)) {
+        if (isLoadingOnyxValue(workspaceCardFeedsMetadata, addNewCardMetadata)) {
             return;
         }
 
-        hasAppliedSavedMappings.current = true;
-        applyCompanyCardSavedColumnMappings(
+        if (!spreadsheet?.data) {
+            return;
+        }
+
+        // Compute the whole mapping here (and disable each column's own header auto-detect) so a property is never
+        // pre-selected on more than one column. This runs even without a saved layout so a brand-new feed still gets
+        // header-based auto-detection.
+        hasAppliedColumnMappings.current = true;
+        applyCompanyCardColumnMappings(
             spreadsheet.data,
             savedColumnMappings,
             columnRoles.map((role) => role.value),
         );
-    }, [spreadsheet?.data, savedColumnMappings, columnRoles]);
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles, workspaceCardFeedsMetadata, addNewCardMetadata]);
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -252,6 +261,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                     columnRoles={columnRoles}
                     learnMoreLink={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                     isButtonLoading={isImportingTransactions}
+                    shouldAutoDetectColumns={false}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

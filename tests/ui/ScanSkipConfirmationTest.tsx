@@ -56,6 +56,7 @@ jest.mock('react-native-permissions', () => ({
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
+    useCameraDevices: jest.fn(() => []),
     useCameraFormat: jest.fn(() => null),
 }));
 
