@@ -54,6 +54,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Deixar de compartilhar',
         yes: 'Sim',
         no: 'Não',
+        exampleValue: ({example}: {example: string}) => `Exemplo: ${example}`,
         approve: 'Aprovar',
         deny: 'Negar',
         dontChange: 'Não alterar',

@@ -31,30 +31,31 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const visibleFields = fields.filter((field) => isFieldVisible(field, values));
+    const isAloneOnPage = visibleFields.length === 1;
+
     return (
         <>
-            {fields
-                .filter((field) => isFieldVisible(field, values))
-                .map((field) => {
-                    const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove} = getInputComponentForField(field, {values, translate, currency});
-                    const label = getFieldLabel(field, translate);
-                    return (
-                        <View
-                            key={field.key}
-                            style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
-                        >
-                            {!!shouldRenderLabelAbove && <Text style={[styles.mutedTextLabel, styles.mb3, isMenuRow && styles.ph5]}>{label}</Text>}
-                            <InputWrapper
-                                InputComponent={InputComponent}
-                                inputID={field.key}
-                                label={label}
-                                shouldSaveDraft={shouldSaveDraft}
-                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                {...inputProps}
-                            />
-                        </View>
-                    );
-                })}
+            {visibleFields.map((field) => {
+                const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove} = getInputComponentForField(field, {values, translate, currency, isAloneOnPage});
+                const label = getFieldLabel(field, translate);
+                return (
+                    <View
+                        key={field.key}
+                        style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
+                    >
+                        {!!shouldRenderLabelAbove && <Text style={[styles.mutedTextLabel, styles.mb3, isMenuRow && styles.ph5]}>{label}</Text>}
+                        <InputWrapper
+                            InputComponent={InputComponent}
+                            inputID={field.key}
+                            label={label}
+                            shouldSaveDraft={shouldSaveDraft}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            {...inputProps}
+                        />
+                    </View>
+                );
+            })}
         </>
     );
 }

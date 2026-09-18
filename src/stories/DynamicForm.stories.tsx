@@ -170,6 +170,20 @@ PageByPageFlow.args = {
     layout: 'pages',
 };
 
+const SingleQuestion: DynamicFormStory = Template.bind({});
+SingleQuestion.args = {
+    fields: allFieldTypes.filter((field) => field.key === 'useCases'),
+    draftValues: {},
+    layout: 'pages',
+};
+
+const YesNoQuestion: DynamicFormStory = Template.bind({});
+YesNoQuestion.args = {
+    fields: allFieldTypes.filter((field) => field.key === 'isSourceOfFund').map((field) => ({...field, required: true})),
+    draftValues: {},
+    layout: 'pages',
+};
+
 const HiddenFileField: DynamicFormStory = Template.bind({});
 HiddenFileField.args = {
     fields: allFieldTypes,
@@ -198,4 +212,4 @@ LargeSelect.args = {
 };
 
 export default story;
-export {AllFieldTypes, HiddenFileField, LargeSelect, PageByPageFlow};
+export {AllFieldTypes, HiddenFileField, LargeSelect, PageByPageFlow, SingleQuestion, YesNoQuestion};
