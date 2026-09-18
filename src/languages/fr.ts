@@ -9833,6 +9833,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         mergeReports: {
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
+            listPage: {noEligibleReportsFound: 'Aucune note de frais éligible trouvée', noEligibleReportsFoundSubtitle: 'Vous n’avez aucune note de frais pouvant être fusionnée.'},
         },
     },
     genericErrorPage: {
