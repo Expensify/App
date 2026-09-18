@@ -9,6 +9,8 @@ type SyntheticRowKind = 'tableHeader' | 'data';
 type TableListMetadata = {
     hasPageHeader: boolean;
     shouldRenderStickyHeader: boolean;
+    shouldRenderHeaderInListHeader: boolean;
+    hasHeaderRow: boolean;
     syntheticRowsBeforeData: number;
     stickyTableHeaderIndex: number;
     listDataRowOffset: number;
@@ -18,15 +20,24 @@ type TableListMetadataParams<DataType extends TableData> = {
     listHeaderElement?: React.ReactNode;
     listHeaderComponent?: SharedListProps<DataType>['ListHeaderComponent'];
     shouldRenderStickyHeader: boolean;
+    shouldRenderHeaderInListHeader: boolean;
 };
 
-function getTableListMetadata<DataType extends TableData>({listHeaderElement, listHeaderComponent, shouldRenderStickyHeader}: TableListMetadataParams<DataType>): TableListMetadata {
+function getTableListMetadata<DataType extends TableData>({
+    listHeaderElement,
+    listHeaderComponent,
+    shouldRenderStickyHeader,
+    shouldRenderHeaderInListHeader,
+}: TableListMetadataParams<DataType>): TableListMetadata {
     const hasPageHeader = !!listHeaderComponent || !!listHeaderElement;
     const syntheticRowsBeforeData = shouldRenderStickyHeader ? 1 : 0;
 
     return {
         hasPageHeader,
         shouldRenderStickyHeader,
+        shouldRenderHeaderInListHeader,
+        // Either placement is a real header row, so `aria-rowindex` has to count it whichever one is in use.
+        hasHeaderRow: shouldRenderStickyHeader || shouldRenderHeaderInListHeader,
         syntheticRowsBeforeData,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: syntheticRowsBeforeData,

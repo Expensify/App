@@ -21,7 +21,6 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
-import ColumnScrollFollower from './columnScroll/ColumnScrollFollower';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
@@ -85,6 +84,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         shouldEnableSelectionInNarrowPaneModal,
         dynamicGridTemplateColumns,
         scrollWidth,
+        tableListMetadata,
     } = useTableContext<DataType, ColumnKey>();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
@@ -207,26 +207,20 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         </View>
     );
 
-    // Rendered beside the list rather than inside it (tables without a page header), so the scroller never carries
-    // the header sideways and it has to mirror the offset itself. The inner box carries the width the columns scroll
-    // across, and the follower shows the slice of it that lines up with the rows.
-    if (!isStickyListHeader) {
-        if (!scrollWidth) {
-            return header;
-        }
-
-        return (
-            <ColumnScrollFollower>
-                <View style={StyleUtils.getWidthStyle(scrollWidth)}>{header}</View>
-            </ColumnScrollFollower>
-        );
+    // Sits in the list header rather than in FlashList's sticky-row overlay, so it is in flow inside the scroller and
+    // is carried sideways with the columns. It only needs the width they scroll across: the list header stretches to
+    // the scrolled content, and without an explicit width the header's background and bottom border would stop at it
+    // while its columns kept painting past them. The margin the header keeps is part of `scrollWidth`, so this
+    // resolves to the same box as the rows. The opaque backdrop is what the rows scroll under once it is stuck.
+    if (tableListMetadata.shouldRenderHeaderInListHeader && !!scrollWidth) {
+        return <View style={[styles.appBG, StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
     }
 
-    // The stuck copy is an overlay outside the list's scroller, so nothing above it carries the width the columns
-    // scroll across the way the scroller's content container does for the copy inside it. Without it the header is
-    // sized by the overlay, and its background and bottom border stop at the table's width while its columns keep
-    // painting past them. The margin the header keeps is part of `scrollWidth`, so this resolves to the same box.
-    return <View style={[styles.appBG, !!scrollWidth && StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
+    if (!isStickyListHeader) {
+        return header;
+    }
+
+    return <View style={styles.appBG}>{header}</View>;
 }
 
 TableHeader.type = 'header';

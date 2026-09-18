@@ -395,7 +395,12 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
         return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
     });
-    const shouldRenderStickyHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
+    const shouldRenderHeaderRow = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
+    // FlashList renders its sticky rows as an overlay outside the scroller, which is fine while that scroller only
+    // moves vertically. Once the columns overflow it takes the horizontal axis as well, and an overlay outside it
+    // cannot follow them, so the header moves into the list header and sticks there instead (see `TableBody`).
+    const shouldRenderHeaderInListHeader = shouldRenderHeaderRow && !!dynamicScrollWidth;
+    const shouldRenderStickyHeader = shouldRenderHeaderRow && !shouldRenderHeaderInListHeader;
 
     const tableListMetadata = useMemo(
         () =>
@@ -403,8 +408,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 listHeaderElement,
                 listHeaderComponent: listProps.ListHeaderComponent,
                 shouldRenderStickyHeader,
+                shouldRenderHeaderInListHeader,
             }),
-        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderStickyHeader],
+        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderStickyHeader, shouldRenderHeaderInListHeader],
     );
     /**
      * Exposes table control methods through the ref.
@@ -507,6 +513,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                // Only tables without a page header scroll their columns here. The ones that have one keep their
+                // filter bar inside the list, which an ancestor scroller would carry sideways, so their list takes
+                // the horizontal axis itself instead (see `TableBody`).
+                scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {renderedChildren}
