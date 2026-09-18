@@ -65,7 +65,7 @@ jest.mock('@components/Table/TableContext', () => ({
         isMobileSelectionEnabled: false,
         tableListMetadata: {
             hasPageHeader: false,
-            shouldRenderColumnHeaderAsStickyRow: false,
+            columnHeaderPlacement: 'none',
         },
     })),
     useTableRowSemanticID: jest.fn(() => undefined),
