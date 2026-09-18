@@ -7051,6 +7051,9 @@ const CONST = {
 
     // Returned when a user tries to add a work email that is a domain-controlled login for an existing account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_DOMAIN_CONTROLLED_ERROR: '401 work domain is controlled',
+
+    // Returned when an already validated public-domain account tries to add a work email, so we can show a takeover-protection error message instead of the generic blocking screen subtitle
+    WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR: '403 Forbidden',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
