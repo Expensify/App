@@ -1,18 +1,23 @@
 import CONST from '@src/CONST';
 
+import Config from 'react-native-config';
 import DeviceInfo from 'react-native-device-info';
 
 import type {IsBetaBuild} from './types';
 
 /**
- * Distinguishes different Play Store deployment tracks based on the prefix added in Gradle.
+ * Distinguishes different Play Store deployment tracks based on the versionCode prefix. The scheme lives in
+ * Mobile-Expensify/Android/build.gradle, which exposes it through BuildConfig; standalone builds have no such fields.
  */
 function isBetaTrackBuild(): boolean {
-    const BETA_TRACK_VERSION_CODE_PREFIX = 6;
-    const VERSION_CODE_PREFIX_DIVISOR = 100_000_000;
+    const prefixMultiplier = Number(Config.VERSION_CODE_PREFIX_MULTIPLIER);
+    const betaTrackPrefix = Number(Config.BETA_TRACK_VERSION_CODE_PREFIX);
+    if (!prefixMultiplier || Number.isNaN(betaTrackPrefix)) {
+        return false;
+    }
 
     try {
-        return Math.floor(Number(DeviceInfo.getBuildNumber()) / VERSION_CODE_PREFIX_DIVISOR) === BETA_TRACK_VERSION_CODE_PREFIX;
+        return Math.floor(Number(DeviceInfo.getBuildNumber()) / prefixMultiplier) === betaTrackPrefix;
     } catch {
         return false;
     }
