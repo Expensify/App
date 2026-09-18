@@ -119,8 +119,11 @@ If you are creating expenses on a Workspace:
 - Workspace Admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
 - When creating a Distance expense, the available reimbursement rates will show for selection.
 - When a Workspace has multiple rates with effective dates, Expensify automatically applies the rate whose date range matches the expense date, so you don't need to pick the right one manually.
+- If the Workspace excludes commutes, your commute is subtracted from map-based and GPS Distance expenses before the amount is calculated.
 
 [Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
+
+[Learn how to exclude commutes from distance expenses](/articles/new-expensify/workspaces/Exclude-commutes-from-distance-expenses)
 
 ### Distance expenses created outside of a Workspace
 
@@ -164,6 +167,10 @@ Yes! You can edit the expense before it is approved. When editing a map-based Di
 The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level.
 
 If a Workspace has rates with effective dates and you manually select a rate that doesn't match the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission — selecting the rate that matches the expense date clears the violation.
+
+## Why is my Distance expense shorter than the trip I entered?
+
+Your Workspace may exclude commutes from Distance expenses. When it does, the **Distance** field shows the reimbursable distance labeled with the trip's original distance, such as **Distance • Original: 25.00 mi**, and a hint below it shows how much was removed, such as **Removed 12 commuter miles**. A commute is only removed from map-based and GPS Distance expenses. To learn more, see [Exclude commutes from distance expenses](/articles/new-expensify/workspaces/Exclude-commutes-from-distance-expenses).
 
 ## What happens if a Distance expense is moved to a different Workspace?
 
