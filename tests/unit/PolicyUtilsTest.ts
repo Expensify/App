@@ -15,6 +15,7 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
+    canCreateReportOnPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -5306,6 +5307,23 @@ describe('arePolicyRulesEnabled', () => {
 
     it('returns false for a team policy with areRulesEnabled explicitly false', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
+    });
+});
+
+describe('canCreateReportOnPolicy', () => {
+    // createRandomPolicy randomizes these, so eligibility comes out flaky
+    const eligibleFields = {role: CONST.POLICY.ROLE.ADMIN, isJoinRequestPending: false, pendingAction: undefined, archivedDate: undefined};
+
+    it.each([
+        ['allows a paid Team workspace', {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), ...eligibleFields}, true],
+        ['allows a paid Corporate workspace', {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), ...eligibleFields}, true],
+        ['allows a Submit workspace', {...createRandomPolicy(3, CONST.POLICY.TYPE.SUBMIT), ...eligibleFields}, true],
+        ['rejects a personal workspace', {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), ...eligibleFields}, false],
+        ['rejects a workspace with a pending join request', {...createRandomPolicy(5, CONST.POLICY.TYPE.TEAM), ...eligibleFields, isJoinRequestPending: true}, false],
+        ['rejects a workspace pending deletion', {...createRandomPolicy(6, CONST.POLICY.TYPE.TEAM), ...eligibleFields, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, false],
+        ['rejects an undefined policy', undefined, false],
+    ])('%s', (_description, policy, expected) => {
+        expect(canCreateReportOnPolicy(policy)).toBe(expected);
     });
 });
 

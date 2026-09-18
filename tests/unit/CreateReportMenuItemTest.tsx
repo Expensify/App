@@ -68,7 +68,6 @@ jest.mock('@libs/PolicyUtils', () => {
     const CONSTANTS = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
 
     return {
-        getDefaultChatEnabledPolicy: jest.fn((policies: Policy[]) => policies.at(0)),
         getGroupPoliciesWhereReportCanBeCreated: jest.fn((policies: Record<string, Policy> | undefined) =>
             Object.values(policies ?? {}).filter(
                 (policy): policy is Policy =>

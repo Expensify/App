@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
+import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
@@ -32,14 +32,12 @@ import React from 'react';
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
 // Returns up to 2 matching policies. The active policy is moved to the front so it survives the slice,
-// otherwise getDefaultChatEnabledPolicy can't find it and the workspace selector opens instead of creating directly.
+// otherwise useCreateReport can't resolve it as the default and opens the workspace selector instead of creating directly.
 const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined, activePolicyID: string | undefined) => {
     const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
-    const activePolicyIndex = eligiblePolicies.findIndex((policy) => policy.id === activePolicyID);
-    if (activePolicyIndex < 1) {
-        return eligiblePolicies.slice(0, 2);
-    }
-    return [eligiblePolicies.at(activePolicyIndex), ...eligiblePolicies.filter((_, index) => index !== activePolicyIndex)].slice(0, 2);
+    const activePolicy = eligiblePolicies.find((policy) => policy.id === activePolicyID);
+    const otherPolicy = eligiblePolicies.find((policy) => policy.id !== activePolicyID);
+    return activePolicy && otherPolicy ? [activePolicy, otherPolicy] : eligiblePolicies.slice(0, 2);
 };
 
 function CreateReportMenuItem() {
@@ -47,7 +45,6 @@ function CreateReportMenuItem() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -62,12 +59,10 @@ function CreateReportMenuItem() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
-
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
 
-    const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!defaultChatEnabledPolicy?.id) {
+    const handleCreateWorkspaceReport = (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!policy?.id) {
             return;
         }
 
@@ -79,7 +74,7 @@ function CreateReportMenuItem() {
             currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            defaultChatEnabledPolicy,
+            policy,
             allBetas,
             isTrackIntentUser,
             getCurrencyDecimals,
