@@ -25976,7 +25976,12 @@ var GithubUtils = class {
     return files;
   }
   /**
-   * Get commits between two tags via the GitHub API
+   * Get commits between two tags via the GitHub API.
+   *
+   * Returns both the list of commits and the committer date of the base tag's commit.
+   * The base commit date is used downstream to detect cherry-picked PRs that were already
+   * deployed to production: any commit whose date predates the base tag was brought into
+   * this range by a post-deploy sync rather than by a normal merge in the current cycle.
    */
   static async getCommitHistoryBetweenTags(fromTag, toTag, repositoryName) {
     console.log("Getting pull requests merged between the following tags:", fromTag, toTag);
@@ -25986,6 +25991,7 @@ var GithubUtils = class {
       let page = 1;
       const perPage = 250;
       let hasMorePages = true;
+      let baseCommitDate = "";
       while (hasMorePages) {
         info(`\u{1F4C4} Fetching page ${page} of commits...`);
         const response = await this.octokit.repos.compareCommits({
@@ -25999,6 +26005,10 @@ var GithubUtils = class {
         if (response.data?.commits && Array.isArray(response.data.commits)) {
           if (page === 1) {
             info(`\u{1F4CA} Total commits: ${response.data.total_commits ?? "unknown"}`);
+            baseCommitDate = response.data.base_commit?.commit?.committer?.date ?? "";
+            if (baseCommitDate) {
+              info(`\u{1F4C5} Base tag commit date: ${baseCommitDate}`);
+            }
           }
           info(`\u2705 compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
           allCommits = allCommits.concat(response.data.commits);
@@ -26016,14 +26026,17 @@ var GithubUtils = class {
       info(`\u{1F389} Successfully fetched ${allCommits.length} total commits`);
       endGroup();
       console.log("");
-      return allCommits.map(
-        (commit) => ({
-          commit: commit.sha,
-          subject: commit.commit.message,
-          authorName: commit.commit.author?.name ?? "Unknown",
-          date: commit.commit.committer?.date ?? ""
-        })
-      );
+      return {
+        commits: allCommits.map(
+          (commit) => ({
+            commit: commit.sha,
+            subject: commit.commit.message,
+            authorName: commit.commit.author?.name ?? "Unknown",
+            date: commit.commit.committer?.date ?? ""
+          })
+        ),
+        baseCommitDate
+      };
     } catch (error2) {
       if (error2 instanceof RequestError && error2.status === 404) {
         error(
@@ -26178,7 +26191,7 @@ function getValidMergedPRs(commits) {
 }
 async function getMergedPRsDeployedBetween(fromTag, toTag, repositoryName) {
   console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-  const apiCommitList = await GithubUtils_default.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
+  const { commits: apiCommitList, baseCommitDate } = await GithubUtils_default.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
   const mergedPRs = getValidMergedPRs(apiCommitList);
   const submoduleUpdates = getSubmoduleUpdates(apiCommitList);
   console.log(`Found ${apiCommitList.length} commits.`);
@@ -26190,7 +26203,7 @@ async function getMergedPRsDeployedBetween(fromTag, toTag, repositoryName) {
     info(submoduleUpdates.map((u) => u.version).join(", "));
     endGroup();
   }
-  return { mergedPRs, submoduleUpdates };
+  return { mergedPRs, submoduleUpdates, baseCommitDate };
 }
 async function getPullRequestsDeployedBetween(fromTag, toTag, repositoryName) {
   const { mergedPRs } = await getMergedPRsDeployedBetween(fromTag, toTag, repositoryName);
