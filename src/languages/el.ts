@@ -3986,6 +3986,26 @@ ${amount} για ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
         },
     },
+    wiseKYC: {
+        title: 'Η Wise χρειάζεται περισσότερες πληροφορίες',
+        description: 'Συμπληρώστε κάθε στοιχείο παρακάτω για να ολοκληρώσει η Wise τον έλεγχο της επιχείρησής σας.',
+        continueInWise: 'Συνέχεια στη Wise',
+        state: {
+            NOT_PROVIDED: 'Δεν έχει υποβληθεί',
+            IN_REVIEW: 'Υπό έλεγχο',
+            VERIFIED: 'Επαληθεύτηκε',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: 'Σκοπός του λογαριασμού',
+            ID_DOCUMENT: 'Έγγραφο ταυτότητας',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: 'Έγγραφο ταυτότητας ιδιοκτήτη',
+            LIVENESS_CHECK: 'Έλεγχος ταυτότητας',
+        },
+        complete: {
+            title: 'Η επαλήθευση ολοκληρώθηκε',
+            supportingText: 'Μπορείτε να επιστρέψετε στο Expensify.',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Πού βρίσκεται ο τραπεζικός σας λογαριασμός;',
         accountDetailsStepHeader: 'Ποια είναι τα στοιχεία του λογαριασμού σας;',

@@ -3880,6 +3880,26 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
         },
     },
+    wiseKYC: {
+        title: 'Wiseが追加情報を必要としています',
+        description: 'Wiseが事業の審査を完了できるよう、以下の各項目を完了してください。',
+        continueInWise: 'Wiseで続ける',
+        state: {
+            NOT_PROVIDED: '未提出',
+            IN_REVIEW: '審査中',
+            VERIFIED: '確認済み',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: '口座の目的',
+            ID_DOCUMENT: '本人確認書類',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: '所有者の本人確認書類',
+            LIVENESS_CHECK: '本人確認',
+        },
+        complete: {
+            title: '確認が完了しました',
+            supportingText: 'Expensifyに戻ることができます。',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: '銀行口座はどこにありますか？',
         accountDetailsStepHeader: 'あなたの口座情報は何ですか？',

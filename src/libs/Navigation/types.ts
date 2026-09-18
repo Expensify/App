@@ -220,6 +220,18 @@ type SettingsNavigatorParamList = {
         bankCountry?: string;
         bankCurrency?: string;
     };
+    [SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENTS]: {
+        bankAccountID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENT_FORM]: {
+        bankAccountID: string;
+        requirementKey: string;
+        subPage?: string;
+        action?: 'edit';
+    };
+    [SCREENS.SETTINGS.WALLET.WISE_KYC_EMBEDDED]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
         bankAccountID: string;
         subPage: string;
@@ -3359,6 +3371,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+    [SCREENS.WISE_KYC_COMPLETE]: undefined;
     [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
 
@@ -3472,6 +3485,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
         [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+        [SCREENS.WISE_KYC_COMPLETE]: undefined;
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
         [SCREENS.PRE_MOUNT_BUFFER]: undefined;
     };

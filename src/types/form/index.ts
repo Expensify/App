@@ -103,6 +103,7 @@ export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm'
 export type {ReportRejectForm} from './ReportRejectForm';
 export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsForm';
 export type {DynamicFormListItemForm} from './DynamicFormListItemForm';
+export type {WiseKYCRequirementForm} from './WiseKYCRequirementForm';
 export type {SearchEditMultipleDescriptionForm} from './SearchEditMultipleDescriptionForm';
 export type {SearchEditMultipleMerchantForm} from './SearchEditMultipleMerchantForm';
 export type {SearchEditMultipleDateForm} from './SearchEditMultipleDateForm';

@@ -4043,6 +4043,26 @@ const translations = {
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
         },
     },
+    wiseKYC: {
+        title: 'Wise needs more information',
+        description: 'Complete each item below so Wise can finish reviewing your business.',
+        continueInWise: 'Continue in Wise',
+        state: {
+            NOT_PROVIDED: 'Not provided',
+            IN_REVIEW: 'In review',
+            VERIFIED: 'Verified',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: 'Purpose of the account',
+            ID_DOCUMENT: 'Identity document',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: "Owner's identity document",
+            LIVENESS_CHECK: 'Identity check',
+        },
+        complete: {
+            title: 'Verification complete',
+            supportingText: 'You can return to Expensify.',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: "Where's your bank account located?",
         accountDetailsStepHeader: 'What are your account details?',

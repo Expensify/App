@@ -534,6 +534,9 @@ export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemPa
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
 export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
+export type {default as GetWiseKYCRequirementsParams} from './GetWiseKYCRequirementsParams';
+export type {default as GetWiseKYCReviewEmbeddedLinkParams} from './GetWiseKYCReviewEmbeddedLinkParams';
+export type {default as SubmitWiseKYCRequirementParams} from './SubmitWiseKYCRequirementParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as AskToJoinPolicyParams} from './AskToJoinPolicyParams';

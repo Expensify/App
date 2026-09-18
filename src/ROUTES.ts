@@ -60,6 +60,7 @@ const PUBLIC_SCREENS_ROUTES = {
     TRANSITION_BETWEEN_APPS: 'transition',
     CONNECTION_COMPLETE: 'connection-complete',
     BANK_CONNECTION_COMPLETE: 'bank-connection-complete',
+    WISE_KYC_COMPLETE: 'wise-kyc-complete',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
     SAML_SIGN_IN: 'sign-in-with-saml',
@@ -2457,6 +2458,24 @@ const ROUTES = {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
             }),
+    },
+    SETTINGS_WALLET_WISE_KYC_REQUIREMENTS: {
+        route: 'settings/wallet/:bankAccountID/wise-kyc',
+        getRoute: (bankAccountID: number) => `settings/wallet/${bankAccountID}/wise-kyc` as const,
+    },
+    SETTINGS_WALLET_WISE_KYC_REQUIREMENT_FORM: {
+        route: 'settings/wallet/:bankAccountID/wise-kyc/requirement/:requirementKey/:subPage?/:action?',
+        getRoute: (bankAccountID: number, requirementKey: string, subPage?: string, action?: 'edit') => {
+            const base = `settings/wallet/${bankAccountID}/wise-kyc/requirement/${requirementKey}` as const;
+            if (!subPage) {
+                return base;
+            }
+            return action ? (`${base}/${subPage}/${action}` as const) : (`${base}/${subPage}` as const);
+        },
+    },
+    SETTINGS_WALLET_WISE_KYC_EMBEDDED: {
+        route: 'settings/wallet/:bankAccountID/wise-kyc/wise',
+        getRoute: (bankAccountID: number) => `settings/wallet/${bankAccountID}/wise-kyc/wise` as const,
     },
     SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/share-bank-account',

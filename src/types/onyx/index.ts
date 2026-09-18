@@ -222,6 +222,8 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type {WiseKYCRequirement, WiseKYCRequirements} from './WiseKYCRequirements';
+import type WiseKYCReviewEmbeddedLink from './WiseKYCReviewEmbeddedLink';
 
 export type {
     FileObject,
@@ -434,6 +436,9 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormKeyboard,
+    WiseKYCRequirement,
+    WiseKYCRequirements,
+    WiseKYCReviewEmbeddedLink,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,

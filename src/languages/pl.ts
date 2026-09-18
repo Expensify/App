@@ -3941,6 +3941,26 @@ ${amount} dla ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Wprowadź wartość od ${min} do ${max}`,
         },
     },
+    wiseKYC: {
+        title: 'Wise potrzebuje więcej informacji',
+        description: 'Uzupełnij każdy element poniżej, aby Wise mogło zakończyć weryfikację Twojej firmy.',
+        continueInWise: 'Kontynuuj w Wise',
+        state: {
+            NOT_PROVIDED: 'Nie przekazano',
+            IN_REVIEW: 'W trakcie weryfikacji',
+            VERIFIED: 'Zweryfikowano',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: 'Cel konta',
+            ID_DOCUMENT: 'Dokument tożsamości',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: 'Dokument tożsamości właściciela',
+            LIVENESS_CHECK: 'Weryfikacja tożsamości',
+        },
+        complete: {
+            title: 'Weryfikacja zakończona',
+            supportingText: 'Możesz wrócić do Expensify.',
+        },
+    },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Gdzie znajduje się Twoje konto bankowe?',
         accountDetailsStepHeader: 'Jakie są szczegóły Twojego konta?',
