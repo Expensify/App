@@ -41,7 +41,7 @@ function Finish() {
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: true});
 
     return (
         <ScreenWrapper
@@ -93,7 +93,7 @@ function Finish() {
                                     <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
                                 </MenuItem.Content>
                                 <MenuItem.Trailing>
-                                    <MenuItem.NewWindowIcon />
+                                    <MenuItem.Chevron />
                                 </MenuItem.Trailing>
                             </MenuItem.Row>
                         </MenuItem.Root>

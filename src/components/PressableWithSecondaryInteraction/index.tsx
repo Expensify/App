@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
+import mergeRefs from '@libs/mergeRefs';
 
 import type {GestureResponderEvent} from 'react-native';
 
@@ -52,20 +53,10 @@ function PressableWithSecondaryInteraction({
     };
 
     useEffect(() => {
-        if (!pressableRef.current) {
+        const element = pressableRef.current;
+        if (!element) {
             return;
         }
-
-        if (ref) {
-            if (typeof ref === 'function') {
-                ref(pressableRef.current);
-            } else if (typeof ref === 'object') {
-                // eslint-disable-next-line no-param-reassign
-                ref.current = pressableRef.current;
-            }
-        }
-
-        const element = pressableRef.current;
 
         /**
          * @param event - A right-click MouseEvent.
@@ -101,7 +92,7 @@ function PressableWithSecondaryInteraction({
         return () => {
             element.removeEventListener('contextmenu', executeSecondaryInteractionOnContextMenu);
         };
-    }, [ref, onSecondaryInteraction, preventDefaultContextMenu, withoutFocusOnSecondaryInteraction]);
+    }, [onSecondaryInteraction, preventDefaultContextMenu, withoutFocusOnSecondaryInteraction]);
 
     const inlineStyle = inline ? styles.dInline : {};
     const selectionStyle = canUseTouchScreen() && !shouldAllowTextSelection ? [styles.userSelectNone, styles.noSelect] : [];
@@ -119,7 +110,7 @@ function PressableWithSecondaryInteraction({
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
             dimAnimationDuration={opacityAnimationDuration}
-            ref={pressableRef}
+            ref={mergeRefs(pressableRef, ref) as PressableWithSecondaryInteractionProps['ref']}
             style={(state) => [StyleUtils.parseStyleFromFunction(style, state), inlineStyle]}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >
