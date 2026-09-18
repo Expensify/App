@@ -9934,6 +9934,12 @@ ${reportName}`,
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
             },
+            transactionStatus: {
+                label: 'Κατάσταση συναλλαγής',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Σε εκκρεμότητα',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Καταχωρίστηκε',
+                hint: 'Ισχύει μόνο για συναλλαγές με κάρτα.',
+            },
         },
         display: {
             label: 'Εμφάνιση',

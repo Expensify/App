@@ -9586,6 +9586,12 @@ ${reportName}`,
             },
             reportField: (name, value) => `${name} es ${value}`,
             filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
+            transactionStatus: {
+                label: 'Estado de la transacción',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Pendiente',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publicado',
+                hint: 'Solo se aplica a las transacciones con tarjeta.',
+            },
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
