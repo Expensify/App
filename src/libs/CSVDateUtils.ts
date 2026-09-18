@@ -39,12 +39,7 @@ function parseCSVDate(input: string): string | null {
         }
     }
 
-    // Next, check for an Excel date serial number. This has to run before `new Date()` because V8 reads a bare number above 31
-    // as a year, so "45678" would otherwise become the year 45678 instead of 2025-01-21.
-    // Excel stores dates serialized from January 1st, 1900 (with 1/1/1900 being 1)
-    // Excel thinks that 1900 was a leap year and adds an extra day to account for that
-    // Only 5-digit values are treated as serial numbers so that a year-only value like "2025" keeps parsing as a year rather
-    // than turning into 1905.
+    // Convert 5-digit Excel serials before new Date() treats them as years. We subtract 2 because Excel counts from 1900-01-01 and treats 1900 as a leap year.
     if (/^\d{5}$/.test(trimmedInput)) {
         const inputInt = parseInt(trimmedInput, 10);
         if (inputInt > 0) {
