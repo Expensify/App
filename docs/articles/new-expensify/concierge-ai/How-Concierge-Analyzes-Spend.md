@@ -1,7 +1,7 @@
 ---
 title: How Concierge Analyzes Spend
 description: Learn how Concierge proactively analyzes company spend to share highlights, and how to ask Concierge questions about your expense data on demand.
-keywords: [New Expensify, Concierge, spend analysis, ask Concierge about expenses, expense questions, Concierge management report, insights, AI, expense trends, proactive insights, spend monitoring, flux analysis, spend chart, bar chart, Concierge chart]
+keywords: [New Expensify, Concierge, spend analysis, ask Concierge about expenses, expense questions, Concierge management report, insights, AI, expense trends, proactive insights, spend monitoring, flux analysis, spend chart, bar chart, Concierge chart, expand chart, full screen chart, zoom chart, pinch to zoom chart, pan chart]
 internalScope: Audience is Workspace Admins and Members. Covers how Concierge performs proactive spend analysis and how to ask Concierge questions about expense data. Does not cover how to use Insights or generate custom reports.
 ---
 
@@ -65,6 +65,31 @@ This lets you move from a high-level view of your spend straight to the individu
 
 ---
 
+## How to open a Concierge spend chart full screen
+
+Charts are small in the chat, so you can open one full screen to read its labels and values more easily. The full-screen chart is drawn at full resolution, so its text, axis labels, and lines stay sharp even on a large display.
+
+Web:
+
+1. Hover over the chart to reveal the **Expand** icon in the chart's top-right corner.
+2. Click the **Expand** icon to open the chart full screen.
+3. Click the chart to zoom in on the point you clicked.
+4. Scroll or drag to pan around the chart while it's zoomed in.
+5. Click the chart again to zoom back out.
+6. Click the close icon in the **Details** header to return to the chat.
+
+Mobile:
+
+1. Tap the **Expand** icon in the chart's top-right corner. On a touchscreen the icon is always visible, so you don't need to hover first.
+2. Pinch or double-tap the chart to zoom in.
+3. Drag to pan around the chart while it's zoomed in.
+4. Double-tap the chart again to zoom back out.
+5. Swipe down on the chart, or tap the back arrow in the **Details** header, to return to the chat.
+
+If the chart already fills the screen at full resolution, there's nothing more to zoom into, so zooming does nothing. This can happen on a very large display.
+
+---
+
 ## Where Concierge shares spend analysis insights
 
 When Concierge analyzes spend proactively, it sends a message to the #admins room for that workspace. The message is visible to all members of that room.
@@ -114,6 +139,10 @@ Concierge looks for meaningful changes or trends in your workspace—like shifts
 ## What kinds of questions can I ask Concierge about my expenses?
 
 You can ask direct lookup questions about your expense data, such as who spent what, spend by category, merchant, employee, or tag, comparisons across time periods, and the status of expenses or reports. If a question is too complex to answer directly, Concierge will point you to the **Search** page.
+
+## Can I zoom in on a Concierge spend chart?
+
+Yes. Select the **Expand** icon in the chart's top-right corner to open it full screen, then click the chart (on web) or pinch or double-tap it (on mobile) to zoom in. Drag to pan around the chart while it's zoomed in.
 
 ## Where can I ask Concierge about my expenses?
 
