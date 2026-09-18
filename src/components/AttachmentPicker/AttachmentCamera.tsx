@@ -230,7 +230,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                         onPress={handleClose}
-                        sentryLabel="AttachmentCamera-Close"
+                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.CLOSE}
                     >
                         <Icon
                             height={variables.iconSizeNormal}
@@ -260,7 +260,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                                         accessibilityLabel={translate('common.continue')}
                                         style={[styles.p9, styles.pt5]}
                                         onPress={askForPermissions}
-                                        sentryLabel="AttachmentCamera-PermissionPrompt"
+                                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.PERMISSION_PROMPT_BUTTON}
                                     >
                                         <Button.Text>{translate('common.continue')}</Button.Text>
                                     </Button>
@@ -305,7 +305,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                             style={[styles.alignItemsStart, !hasFlash && styles.opacity0]}
                             disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                             onPress={() => setFlash((prevFlash) => !prevFlash)}
-                            sentryLabel="AttachmentCamera-Flash"
+                            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.FLASH}
                         >
                             <Icon
                                 height={variables.iconSizeMenuItem}
@@ -320,7 +320,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                             accessibilityLabel={translate('receipt.shutter')}
                             style={[styles.alignItemsCenter]}
                             onPress={capturePhoto}
-                            sentryLabel="AttachmentCamera-Shutter"
+                            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.SHUTTER}
                         >
                             <ImageSVG
                                 contentFit="contain"
@@ -336,7 +336,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                             style={[styles.alignItemsEnd, !canFlipCamera && styles.opacity0]}
                             disabled={cameraPermissionStatus !== RESULTS.GRANTED || !canFlipCamera}
                             onPress={() => setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'))}
-                            sentryLabel="AttachmentCamera-FlipCamera"
+                            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.FLIP_CAMERA}
                         >
                             <Icon
                                 height={variables.iconSizeMenuItem}

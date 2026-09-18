@@ -9070,6 +9070,13 @@ const CONST = {
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
         },
+        ATTACHMENT_CAMERA: {
+            CLOSE: 'AttachmentCamera-Close',
+            FLASH: 'AttachmentCamera-Flash',
+            SHUTTER: 'AttachmentCamera-Shutter',
+            FLIP_CAMERA: 'AttachmentCamera-FlipCamera',
+            PERMISSION_PROMPT_BUTTON: 'AttachmentCamera-PermissionPromptButton',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
