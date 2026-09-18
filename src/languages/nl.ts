@@ -1269,6 +1269,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Nieuwe kaarten en transacties kunnen even duren voordat ze verschijnen, even geduld.',
         importMembersRolePermissionWarning: 'Je hebt geen toestemming om sommige ledensrollen toe te wijzen. Alle betrokken nieuwe leden zijn uitgenodigd als lid.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 leverancier is overgeslagen omdat die niet bestaat in deze workspace.',
+            other: `${count} leveranciers zijn overgeslagen omdat ze niet bestaan in deze workspace.`,
+        }),
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -8100,6 +8104,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 importColumnUpdatedCategory: 'Bijgewerkte categorie',
                 importColumnUpdatedTag: 'Bijgewerkte tag',
                 importColumnUpdatedDescription: 'Bijgewerkte omschrijving',
+                importColumnUpdatedVendor: 'Leverancier bijgewerkt',
                 expensesWith: 'Voor declaraties met:',
                 expensesExactlyMatching: 'Voor onkosten die exact overeenkomen met:',
                 applyUpdates: 'Pas deze updates toe:',
@@ -9642,6 +9647,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
             filterType: {label: 'Filtertype', has: {positive: 'heeft', negative: 'heeft niet'}, is: {positive: 'is', negative: 'is niet'}},
+            transactionStatus: {
+                label: 'Transactiestatus',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'In behandeling',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Geboekt',
+                hint: 'Alleen van toepassing op kaarttransacties.',
+            },
         },
         display: {
             label: 'Weergave',
