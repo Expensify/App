@@ -55,9 +55,9 @@ function NumericTextInput({
 
     const handleInputKeyPress = (event: NumericEditingKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
+        const isCaretAtStart = selection.start === 0 && selection.end === 0;
 
-        // The minus sign is rendered outside the input, so backspacing an empty input clears it.
-        if (!formattedNumber && key === 'backspace' && isNegative) {
+        if ((!formattedNumber || isCaretAtStart) && key === 'backspace' && isNegative) {
             clearSign();
         }
 

@@ -221,6 +221,59 @@ describe('NumericInput', () => {
             expect(onInputChange).toHaveBeenCalledWith('');
         });
 
+        it('clears the minus sign when backspace is pressed with caret at the start of a non-empty negative input', () => {
+            renderNumericInput({value: '-1.23', allowNegative: true});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+
+            expect(screen.getByText(MINUS_SIGN)).toBeOnTheScreen();
+            expect(input).toHaveDisplayValue('1.23');
+
+            // Position caret before the first digit ("-|1.23")
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+            fireEvent(input, 'keyPress', {nativeEvent: {key: 'Backspace'}});
+
+            // Minus sign is removed, value becomes positive
+            expect(screen.queryByText(MINUS_SIGN)).not.toBeOnTheScreen();
+            expect(input).toHaveDisplayValue('1.23');
+            expect(onInputChange).toHaveBeenLastCalledWith('1.23');
+
+            // Pressing backspace again at the start does nothing because the sign is already gone
+            fireEvent(input, 'keyPress', {nativeEvent: {key: 'Backspace'}});
+            expect(screen.queryByText(MINUS_SIGN)).not.toBeOnTheScreen();
+            expect(input).toHaveDisplayValue('1.23');
+            expect(onInputChange).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not clear anything when backspace is pressed with caret at the start of a positive input', () => {
+            renderNumericInput({value: '1.23', allowNegative: true});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+
+            expect(screen.queryByText(MINUS_SIGN)).not.toBeOnTheScreen();
+            expect(input).toHaveDisplayValue('1.23');
+
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+            fireEvent(input, 'keyPress', {nativeEvent: {key: 'Backspace'}});
+
+            expect(screen.queryByText(MINUS_SIGN)).not.toBeOnTheScreen();
+            expect(input).toHaveDisplayValue('1.23');
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+
+        it('does not clear the minus sign when backspace is pressed on a non-collapsed selection starting at 0', () => {
+            renderNumericInput({value: '-12.34', allowNegative: true});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+
+            expect(screen.getByText(MINUS_SIGN)).toBeOnTheScreen();
+
+            // Select "12" (range 0..2)
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 2}}});
+            fireEvent(input, 'keyPress', {nativeEvent: {key: 'Backspace'}});
+
+            // Since selection is not collapsed, the minus sign should not be cleared by the keypress handler
+            expect(screen.getByText(MINUS_SIGN)).toBeOnTheScreen();
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+
         it('toggles the sign and notifies the parent with the signed value', () => {
             renderNumericInput(
                 {value: '12', allowNegative: true},
