@@ -186,6 +186,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     };
 
     const stagedOtherWorkspaceFeed = otherFeeds.find((feed) => feed.value === currentSelectedFeed);
+    const isStagedFeedOnPage = !!stagedOtherWorkspaceFeed || feeds.some((feed) => feed.value === currentSelectedFeed);
 
     const saveFeed = () => {
         if (!currentSelectedFeed) {
@@ -200,9 +201,10 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         goBack();
     };
 
-    // Any row on the page is a valid thing to submit, matching the pre-Save behaviour where tapping any row committed
-    // it. Re-saving the active feed is a no-op, and an offline link attempt surfaces its own error on the row.
-    const isSaveDisabled = !currentSelectedFeed;
+    // Every row is submittable, matching the old behaviour where tapping any row committed it: re-saving the active
+    // feed is a harmless no-op, and an offline link attempt reports its own error on the row. Save is only dead when
+    // no row is checked.
+    const isSaveDisabled = !isStagedFeedOnPage;
 
     const confirmButtonOptions = {
         showButton: true,

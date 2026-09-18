@@ -190,6 +190,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const isOtherWorkspaceFeedStaged = otherFeeds.some((entry) => entry.fundID === currentSelectedFundID);
+    const isStagedFeedOnPage = isOtherWorkspaceFeedStaged || primaryFeeds.some((entry) => entry.fundID === currentSelectedFundID);
 
     const saveFeed = () => {
         if (!currentSelectedFundID) {
@@ -205,10 +206,12 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         goBack();
     };
 
-    // Any row on the page is a valid thing to submit, matching the pre-Save behaviour where tapping any row committed
-    // it. Re-saving the active feed is a no-op, and an offline link attempt surfaces its own error on the row. This
-    // also keeps Save usable for a fallback feed that lands in otherFeeds while still resolving as the default fund.
-    const isSaveDisabled = !currentSelectedFundID;
+    // Every row is submittable, matching the old behaviour where tapping any row committed it: re-saving the active
+    // feed is a harmless no-op, and an offline link attempt reports its own error on the row. Save is only dead when
+    // no row is checked, which happens with no primary feeds, where the default fund resolves to the workspace
+    // account ID rather than to any listed feed. Checking membership rather than inequality also keeps Save usable
+    // for a fallback feed that lands in otherFeeds while still resolving as the default fund.
+    const isSaveDisabled = !isStagedFeedOnPage;
 
     const confirmButtonOptions = {
         showButton: true,
