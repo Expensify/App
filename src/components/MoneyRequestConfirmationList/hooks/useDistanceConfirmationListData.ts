@@ -5,8 +5,6 @@ import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {getCurrency, hasValidModifiedAmount, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
 
-import CONST from '@src/CONST';
-
 import {useConfirmationListDataWithPolicy} from './useConfirmationListData';
 import useConfirmationPolicyData from './useConfirmationPolicyData';
 import useDistanceRequestState from './useDistanceRequestState';
@@ -17,16 +15,7 @@ import useDistanceRequestState from './useDistanceRequestState';
  * this resolves the policy first, builds the distance state from it, and only then derives the shared data.
  */
 function useDistanceConfirmationListData(props: MoneyRequestConfirmationListProps) {
-    const {
-        transaction,
-        policyID,
-        action = CONST.IOU.ACTION.CREATE,
-        iouType = CONST.IOU.TYPE.SUBMIT,
-        isPerDiemRequest = false,
-        isPolicyExpenseChat = false,
-        isOdometerDistanceRequest = false,
-        onConfirm,
-    } = props;
+    const {transaction, policyID, action, iouType, isPerDiemRequest, isPolicyExpenseChat = false, isOdometerDistanceRequest = false, onConfirm} = props;
 
     const policyData = useConfirmationPolicyData({transaction, policyID, action, iouType, isPerDiemRequest});
     const {policy, policyForMovingExpenses} = policyData;

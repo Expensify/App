@@ -45,8 +45,8 @@ const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fi
  */
 function useConfirmationListDataWithPolicy({
     transaction,
-    action = CONST.IOU.ACTION.CREATE,
-    iouType = CONST.IOU.TYPE.SUBMIT,
+    action,
+    iouType,
     policyID,
     policyData,
     reportID = '',
@@ -363,7 +363,7 @@ function useConfirmationListDataWithPolicy({
  * `useDistanceConfirmationListData` instead.
  */
 function useConfirmationListData(props: MoneyRequestConfirmationListProps) {
-    const {transaction, policyID, action = CONST.IOU.ACTION.CREATE, iouType = CONST.IOU.TYPE.SUBMIT, isPerDiemRequest = false} = props;
+    const {transaction, policyID, action, iouType, isPerDiemRequest} = props;
     const policyData = useConfirmationPolicyData({transaction, policyID, action, iouType, isPerDiemRequest});
 
     return useConfirmationListDataWithPolicy({...props, policyData});

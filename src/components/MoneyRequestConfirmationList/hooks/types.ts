@@ -47,7 +47,7 @@ type UseConfirmationPolicyDataParams = {
     iouType: IOUType;
 
     /** A per diem reads the policy owning its custom unit rather than the one for moved expenses. */
-    isPerDiemRequest: boolean;
+    isPerDiemRequest?: boolean;
 };
 
 type UseParticipantSectionParams = {

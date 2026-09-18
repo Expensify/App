@@ -36,7 +36,7 @@ type RenderOptions = {
     isTimeRequest?: boolean;
 };
 
-function renderConfirmationList({requestType, action = CONST.IOU.ACTION.CREATE, iouType, isPerDiemRequest, isTimeRequest}: RenderOptions = {}) {
+function renderConfirmationList({requestType, action = CONST.IOU.ACTION.CREATE, iouType = CONST.IOU.TYPE.SUBMIT, isPerDiemRequest, isTimeRequest}: RenderOptions = {}) {
     // The scan and distance branches read only `iouRequestType`, so the rest of the transaction is incidental.
     const transaction = {...mockTransaction, iouRequestType: requestType};
     return render(

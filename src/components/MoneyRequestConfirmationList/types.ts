@@ -27,7 +27,7 @@ type MoneyRequestConfirmationListProps = {
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
     /** The IOU flow being confirmed. */
-    iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
     /** Writes the billable flag from the settings-fields toggle */
     onToggleBillable?: (isOn: boolean) => void;
@@ -93,7 +93,7 @@ type MoneyRequestConfirmationListProps = {
     reportActionID?: string;
 
     /** CREATE, SPLIT or SUBMIT */
-    action?: IOUAction;
+    action: IOUAction;
 
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;

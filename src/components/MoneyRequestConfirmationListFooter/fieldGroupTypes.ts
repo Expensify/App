@@ -76,7 +76,7 @@ type ReceiptOptions = {
     receiptPath?: string | number;
     isLoadingReceipt?: boolean;
     isReceiptEditable?: boolean;
-    shouldDisplayReceipt?: boolean;
+    shouldDisplayReceipt: boolean;
     onPDFLoadError?: () => void;
     onPDFPassword?: () => void;
 };

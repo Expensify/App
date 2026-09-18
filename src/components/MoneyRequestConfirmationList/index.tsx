@@ -17,7 +17,7 @@ import TimeConfirmationList from './variants/TimeConfirmationList';
  * Selects the confirmation list variant for the expense type being confirmed.
  */
 function MoneyRequestConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {transaction, iouType = CONST.IOU.TYPE.SUBMIT, action = CONST.IOU.ACTION.CREATE, isPerDiemRequest = false, isTimeRequest = false} = props;
+    const {transaction, iouType, action, isPerDiemRequest, isTimeRequest} = props;
 
     // Invoice is keyed on `iouType` rather than the request type, and is checked first. That is safe because an
     // invoice can never also be a distance or scan request.
