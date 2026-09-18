@@ -399,6 +399,17 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense policyID:12345 amount<100');
         });
 
+        test('vendor filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                vendor: ['Acme', 'none'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense vendor:Acme,none');
+        });
+
         test('receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1207,6 +1218,22 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 category: ['Maintenance', 'none'],
+            });
+        });
+
+        test('vendor filter keeps the typed names and the empty value', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense vendor:"Acme Tools",none';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                vendor: ['Acme Tools', 'none'],
             });
         });
 
