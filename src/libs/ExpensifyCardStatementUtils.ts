@@ -195,8 +195,8 @@ function getExpensifyCardStatementSelection(
     // A statement covers one feed, so group the selected settlements by feed (fundID, not feedCountry: one program can
     // have several feeds). Group before checking exportability so a selection spanning more than one feed still trips
     // the multi-feed message, even when the user is not an admin of one of those feeds. A settlement with no fundID
-    // already spans multiple feeds, so key it uniquely by entryID to keep it a distinct feed. Cash back credits have
-    // no fundID either but belong to no feed at all, so they are folded into the selected feed afterwards.
+    // already spans multiple feeds, so key it uniquely by entryID to keep it a distinct feed. A cash back credit
+    // carries domainAccountID instead of fundID and joins that feed's settlements, otherwise it is a feed of its own.
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
     const cashBackGroups: SearchWithdrawalIDGroup[] = [];
     for (const settlementGroup of selectedSettlementGroups) {
@@ -221,27 +221,30 @@ function getExpensifyCardStatementSelection(
         });
     }
 
+    // Settlements go first so a feed's country and exportability always come from a settlement when one is selected.
+    for (const cashBackGroup of cashBackGroups) {
+        const feedKey = cashBackGroup.domainAccountID !== undefined ? `fund_${cashBackGroup.domainAccountID}` : `entry_${cashBackGroup.entryID}`;
+        const existingFeed = feedsByKey.get(feedKey);
+        if (existingFeed) {
+            existingFeed.entryIDs.push(cashBackGroup.entryID);
+            continue;
+        }
+
+        feedsByKey.set(feedKey, {
+            policyID: scopedPolicyID,
+            feedCountry: cashBackGroup.feedCountry,
+            fundID: cashBackGroup.domainAccountID,
+            entryIDs: [cashBackGroup.entryID],
+            canExportStatement: !!cashBackGroup.canExportStatement,
+        });
+    }
+
     const feeds = Array.from(feedsByKey.values());
 
     // More than one feed selected: show the multi-feed message regardless of which feeds the user can export, so the
     // user isn't silently given a statement for only the feeds they administer.
     if (feeds.length > 1) {
         return {feeds, hasMultipleFeeds: true};
-    }
-
-    if (cashBackGroups.length > 0) {
-        const selectedFeed = feeds.at(0);
-        if (selectedFeed) {
-            selectedFeed.entryIDs.push(...cashBackGroups.map((group) => group.entryID));
-        } else {
-            feeds.push({
-                policyID: scopedPolicyID,
-                feedCountry: cashBackGroups.at(0)?.feedCountry,
-                fundID: undefined,
-                entryIDs: cashBackGroups.map((group) => group.entryID),
-                canExportStatement: cashBackGroups.every((group) => !!group.canExportStatement),
-            });
-        }
     }
 
     // Single feed: the export is admin-only, and the backend stamps canExportStatement per settlement (same

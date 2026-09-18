@@ -214,6 +214,9 @@ type SearchWithdrawalIDGroup = SearchGroupBase & {
 
     /** Whether this group is an ACH cash back credit rather than a card settlement withdrawal */
     isCashBack?: boolean;
+
+    /** The feed a cash back credit was paid through; matches the fundID of that feed's settlements */
+    domainAccountID?: number;
 };
 
 /** Model of category grouped search result */
