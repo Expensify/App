@@ -87,6 +87,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
@@ -1125,15 +1126,15 @@ function Search({
         // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
         // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
         // and an invalid query gets no button because re-sending it cannot succeed.
-        let failureKind: 'stale' | 'invalidQuery' | 'failed' = 'failed';
+        let failureKind: ValueOf<typeof CONST.SEARCH.FAILURE_KIND> = CONST.SEARCH.FAILURE_KIND.FAILED;
         if (responseStatusCode === CONST.JSON_CODE.NO_RESPONSE) {
-            failureKind = 'stale';
+            failureKind = CONST.SEARCH.FAILURE_KIND.STALE;
         } else if (responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) {
-            failureKind = 'invalidQuery';
+            failureKind = CONST.SEARCH.FAILURE_KIND.INVALID_QUERY;
         }
         const errorTitle = translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout});
         const errorViewByKind = {
-            stale: {
+            [CONST.SEARCH.FAILURE_KIND.STALE]: {
                 title: translate('search.searchResults.staleResults.title'),
                 subtitle: translate('search.searchResults.staleResults.subtitle'),
                 illustration: 'FolderSync',
@@ -1142,11 +1143,11 @@ function Search({
                 buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
                 onButtonPress: retrySearch,
             },
-            invalidQuery: {
+            [CONST.SEARCH.FAILURE_KIND.INVALID_QUERY]: {
                 title: errorTitle,
                 subtitle: translate('errorPage.wrongTypeSubtitle'),
             },
-            failed: {
+            [CONST.SEARCH.FAILURE_KIND.FAILED]: {
                 title: errorTitle,
                 subtitle: translate('errorPage.subtitle'),
                 buttonTranslationKey: 'common.tryAgain',

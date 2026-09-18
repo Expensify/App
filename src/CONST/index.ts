@@ -7262,6 +7262,12 @@ const CONST = {
             LOADING: 'loading',
             LOADED: 'loaded',
         },
+        // How the Search error view classifies a failed request from the snapshot's responseJsonCode.
+        FAILURE_KIND: {
+            STALE: 'stale',
+            INVALID_QUERY: 'invalidQuery',
+            FAILED: 'failed',
+        },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
