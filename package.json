@@ -201,7 +201,7 @@
     "react-native-nitro-fetch": "1.5.4",
     "react-native-nitro-modules": "0.36.3",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "github:margelo/react-native-onyx#9fbd90ce919db81343aca2f353055473c8636ef4",
+    "react-native-onyx": "github:margelo/react-native-onyx#ef2f5900b1073c19e8aa1f31c715b551a9c6a82b",
     "react-native-pager-view": "9.0.4",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
