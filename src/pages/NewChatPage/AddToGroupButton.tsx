@@ -29,7 +29,7 @@ function AddToGroupButton({item, onPress}: AddToGroupButtonProps) {
             onPress={() => onPress(item)}
             style={styles.pl2}
             accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
-            innerStyles={isFocused ? styles.buttonDefaultHovered : {}}
+            innerStyles={isFocused ? styles.buttonDefaultHovered : undefined}
             size={CONST.BUTTON_SIZE.SMALL}
         >
             <Button.Text>{translate('newChatPage.addToGroup')}</Button.Text>
