@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Report, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
@@ -139,7 +139,7 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderItemWithAction(action: ReportAction) {
+    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
         return render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
@@ -153,6 +153,7 @@ describe('ReportActionItem', () => {
                             displayAsGroup={false}
                             shouldDisplayNewMarker={false}
                             isFirstVisibleReportAction={false}
+                            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
                         />
                     </PortalProvider>
                 </ScreenWrapper>
@@ -3280,6 +3281,41 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(translateLocal('travel.tripSummary'))).toBeOnTheScreen();
+        });
+    });
+
+    describe('Concierge feedback prompt', () => {
+        const prompt = () => translateLocal('concierge.feedback.prompt');
+
+        function createConciergeComment(moderationDecision?: DecisionName) {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {});
+            action.actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+            action.message = [{type: 'COMMENT', html: 'Here you go', text: 'Here you go', ...(moderationDecision ? {moderationDecision: {decision: moderationDecision}} : {})}];
+            return action;
+        }
+
+        it('renders under the latest Concierge comment', async () => {
+            renderItemWithAction(createConciergeComment(), true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+        });
+
+        it('does not render while moderation has the message hidden', async () => {
+            renderItemWithAction(createConciergeComment(CONST.MODERATION.MODERATOR_DECISION_HIDDEN), true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('renders once the user reveals the hidden message', async () => {
+            renderItemWithAction(createConciergeComment(CONST.MODERATION.MODERATOR_DECISION_HIDDEN), true);
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Reveal message'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
         });
     });
 
