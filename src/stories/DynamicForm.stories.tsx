@@ -1,6 +1,9 @@
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
+import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
+
+import useLocalize from '@hooks/useLocalize';
 
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
@@ -30,6 +33,7 @@ type DynamicFormStoryProps = {
 type DynamicFormStory = StoryFn<DynamicFormStoryProps>;
 
 function Template({fields, draftValues}: DynamicFormStoryProps) {
+    const {translate} = useLocalize();
     clearDraftValues(STORYBOOK_FORM_ID);
     setDraftValues(STORYBOOK_FORM_ID, draftValues);
     const groups = [...new Set(fields.map((field) => field.group))];
@@ -38,6 +42,7 @@ function Template({fields, draftValues}: DynamicFormStoryProps) {
         <FormProvider
             formID={STORYBOOK_FORM_ID}
             submitButtonText="Submit"
+            validate={(values) => getDynamicFieldErrors(fields, values, translate)}
             onSubmit={(values) => alert(JSON.stringify(values, null, 4))}
             style={defaultStyles.ph5}
         >
