@@ -18,10 +18,10 @@ To enable Report Fields in a workspace:
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
-3. Click **More Features**.
-4. Toggle on **Report Fields**.
+3. Click **Reports**.
+4. Toggle on **Report fields**.
 
-**Note:** If you're not on a Control plan, you'll be prompted to upgrade before enabling this feature.
+**Note:** If you're not on a Control plan, you'll be prompted to upgrade before enabling this feature. Click **Upgrade** to move the workspace to the Control plan. If you're on a free Submit workspace, the upgrade takes the workspace straight to Control, so you don't have to upgrade a second time. [Learn how to upgrade a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace#how-to-upgrade-a-submit-workspace).
 
 ---
 
@@ -29,8 +29,8 @@ To enable Report Fields in a workspace:
 
 Once Report Fields are enabled, follow these steps to create a new field:
 
-1. Go to **Workspaces > [Workspace Name] > Report Fields**.
-   - If you don’t see **Report Fields**, first enable it using the steps above.
+1. Go to **Workspaces > [Workspace Name] > Reports**.
+   - If you don’t see the **Report fields** section, first enable it using the steps above.
 2. Click **Add field**.
 3. Click **Name** and enter a name for your field.
 4. Click **Type** and choose one:
@@ -47,7 +47,7 @@ Once Report Fields are enabled, follow these steps to create a new field:
 
 To modify or remove an existing Report Field:
 
-1. Go to **Workspaces > [Workspace Name] > Report Fields**.
+1. Go to **Workspaces > [Workspace Name] > Reports**.
 2. Click the field you want to update.
 3. Make your edits in the right-hand panel, or click **Delete** to remove the field entirely.
 
