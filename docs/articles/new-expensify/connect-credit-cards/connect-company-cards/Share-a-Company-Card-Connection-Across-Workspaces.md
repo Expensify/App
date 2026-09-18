@@ -26,6 +26,7 @@ If you haven't set up a company card connection yet, learn how to connect to you
 
 To share a company card connection, you must:
 
+- Have an email address on a private domain.
 - Be a workspace admin or card admin for two or more workspaces on the Collect or Control plan.
 - Have an existing company card connection on at least one of those workspaces.
 - Have **Company Cards** enabled on the workspace receiving the shared connection.
@@ -40,8 +41,10 @@ To share a company card connection, you must:
 2. Select the workspace you want to add the connection to.
 3. Select **Company cards**.
 4. Select **Add cards** to set up your first connection.
-    - If you don't see **Add cards**, select your existing company card connection, then select **Add cards**.
+    - If you don't see **Add cards**, select your existing company card connection.
 5. Under **From other workspaces**, choose a company card connection to add to the workspace.
+
+![Company cards page with from other workspaces highlighted]({{site.url}}/assets/images/company-cards-share-feeds.png){:width="100%"}
 
 ---
 
