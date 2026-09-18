@@ -55,7 +55,7 @@ function RequirementFormPage({route}: RequirementFormPageProps) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={getWiseRequirementTitle(requirementKey, translate)}
+                title={translate('wiseKYC.title')}
                 onBackButtonPress={goBackToList}
             />
             {isLoadingOnyxValue(draftMetadata) ? (
@@ -66,24 +66,24 @@ function RequirementFormPage({route}: RequirementFormPageProps) {
                     submitButtonText={translate('common.submit')}
                     onSubmit={submit}
                     validate={validate}
-                    style={[styles.flexGrow1, styles.mt3]}
-                    submitButtonStyles={[styles.ph5, styles.mb0]}
+                    style={[styles.mh5, styles.flexGrow1]}
+                    submitButtonStyles={styles.mb0}
                     enabledWhenOffline
                 >
-                    {({inputValues}) =>
-                        pages.map((page) => (
-                            <View
-                                key={page.name}
-                                style={styles.ph5}
-                            >
-                                {pages.length > 1 && <Text style={[styles.textHeadlineH2, styles.mb2]}>{page.name}</Text>}
-                                <DynamicFormFields
-                                    fields={page.fields}
-                                    values={inputValues}
-                                />
-                            </View>
-                        ))
-                    }
+                    {({inputValues}) => (
+                        <>
+                            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{getWiseRequirementTitle(requirementKey, translate)}</Text>
+                            {pages.map((page) => (
+                                <View key={page.name}>
+                                    {pages.length > 1 && <Text style={[styles.mutedTextLabel, styles.mt4, styles.mb1]}>{page.name}</Text>}
+                                    <DynamicFormFields
+                                        fields={page.fields}
+                                        values={inputValues}
+                                    />
+                                </View>
+                            ))}
+                        </>
+                    )}
                 </FormProvider>
             )}
         </ScreenWrapper>
