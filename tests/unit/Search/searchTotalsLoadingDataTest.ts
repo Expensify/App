@@ -33,7 +33,7 @@ type SearchSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
 type SearchResponse = Response<SearchSnapshotKey>;
 type SearchLoadingState = Pick<SearchResultsInfo, 'isLoading'> &
     Partial<{
-        [TKey in 'offset' | 'count' | 'total' | 'currency']: SearchResultsInfo[TKey] | null;
+        [TKey in 'offset' | 'count' | 'reportCount' | 'total' | 'currency']: SearchResultsInfo[TKey] | null;
     }>;
 
 function isSearchLoadingState(value: unknown): value is SearchLoadingState {
@@ -42,6 +42,7 @@ function isSearchLoadingState(value: unknown): value is SearchLoadingState {
         typeof value.isLoading === 'boolean' &&
         (value.offset === null || value.offset === undefined || typeof value.offset === 'number') &&
         (value.count === null || value.count === undefined || typeof value.count === 'number') &&
+        (value.reportCount === null || value.reportCount === undefined || typeof value.reportCount === 'number') &&
         (value.total === null || value.total === undefined || typeof value.total === 'number') &&
         (value.currency === null || value.currency === undefined || typeof value.currency === 'string')
     );
@@ -96,6 +97,7 @@ describe('search loading totals handling', () => {
             isLoading: true,
             offset: 0,
             count: null,
+            reportCount: null,
             total: null,
             currency: null,
         });
@@ -119,6 +121,7 @@ describe('search loading totals handling', () => {
             offset: 0,
         });
         expect(loadingSearchData?.count).toBeUndefined();
+        expect(loadingSearchData?.reportCount).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
     });
@@ -140,6 +143,7 @@ describe('search loading totals handling', () => {
             offset: 20,
         });
         expect(loadingSearchData?.count).toBeUndefined();
+        expect(loadingSearchData?.reportCount).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
     });
@@ -187,7 +191,10 @@ describe('search loading totals handling', () => {
         expect(queuedQuery).toEqual(expect.objectContaining({shouldCalculateTotals: true}));
     });
 
-    it('keeps the original expense-report deduplication when a totals request collides with an in-flight request', async () => {
+    it('queues a totals request for expense-report when a non-totals search is already in flight', async () => {
+        // The totals upgrade is no longer gated to the EXPENSE type: an expense-report totals request that
+        // collides with an in-flight non-totals request must still re-fire, otherwise reportCount never
+        // arrives and the bulk-actions button spins forever.
         const queryJSON = getQueryJSON('type:expense-report');
         const response = buildSearchResponse(50, true);
         let resolveFirstRequest: (value: SearchResponse) => void = () => {};
@@ -218,7 +225,9 @@ describe('search loading totals handling', () => {
         await firstSearch;
         await Promise.resolve();
 
-        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(2);
+        const queuedQuery: unknown = JSON.parse(getLastSearchRequestJSON());
+        expect(queuedQuery).toEqual(expect.objectContaining({shouldCalculateTotals: true}));
     });
 
     it('does not queue another request when the in-flight search already calculates totals', async () => {

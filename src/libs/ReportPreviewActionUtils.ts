@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import type {BankAccountList, Policy, Report, ReportMetadata, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportMetadata, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -21,7 +21,6 @@ import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
-    getReportTransactions,
     hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
     isClosedReport,
@@ -44,6 +43,7 @@ function canSubmit(
     currentUserAccountID: number,
     currentUserEmail: string,
     ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
     violations?: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
     transactions?: Transaction[],
@@ -72,7 +72,7 @@ function canSubmit(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
 
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
@@ -81,7 +81,7 @@ function canSubmit(
     return isExpense && isSubmitter && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
-function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
+function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy: Policy | undefined, transactions: Transaction[]) {
     if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
@@ -95,14 +95,13 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
-    const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
-    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
+    const isAnyReceiptBeingScanned = transactions.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+    if (transactions.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -118,7 +117,7 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
         return false;
     }
 
-    return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
+    return isExpense && isProcessing && !!isApprovalEnabled && transactions.length > 0 && isCurrentUserManager;
 }
 
 function canPay(
@@ -243,6 +242,7 @@ function getReportPreviewAction({
     violationsData,
     reportMetadata,
     ownerLogin,
+    rules,
 }: {
     isReportArchived: boolean;
     currentUserAccountID: number;
@@ -259,6 +259,7 @@ function getReportPreviewAction({
     violationsData?: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
     ownerLogin: string | undefined;
+    rules: OnyxCollection<Rule>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -273,7 +274,7 @@ function getReportPreviewAction({
     if (isSubmittingAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
+    if (isAddExpenseAction(report, transactions ?? [], isReportArchived, rules)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
@@ -281,7 +282,7 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (canSubmit(report, currentUserAccountID, currentUserLogin, ownerLogin, violationsData, policy, transactions)) {
+    if (canSubmit(report, currentUserAccountID, currentUserLogin, ownerLogin, rules, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {

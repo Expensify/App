@@ -13,7 +13,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveVendorMatchingIntegration, getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
+import {getActiveVendorMatchingIntegration, getMatchingVendors, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -30,7 +30,7 @@ type WorkspaceVendorsPageProps = WithPolicyConnectionsProps & PlatformStackScree
 function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
 
@@ -38,19 +38,20 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const vendors = getMatchingVendors(policy);
+    const sortedVendors = sortVendors(vendors, localeCompare);
     const connectedIntegration = getActiveVendorMatchingIntegration(policy);
     const currentConnectionName = connectedIntegration ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration] : undefined;
 
     const vendorRows: WorkspaceVendorTableRowData[] = useMemo(
         () =>
-            vendors.map((vendor) => ({
+            sortedVendors.map((vendor) => ({
                 keyForList: vendor.id,
                 name: vendor.name,
             })),
-        [vendors],
+        [sortedVendors],
     );
 
-    const headerContent = !!currentConnectionName && (
+    const headerContent = currentConnectionName ? (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <ImportedFromAccountingSoftware
                 policyID={policyID}
@@ -59,7 +60,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 translatedText={translate('workspace.vendors.managedInAccountingSoftware')}
             />
         </View>
-    );
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -83,8 +84,10 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                     title={translate('workspace.common.vendors')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                {headerContent}
-                <WorkspaceVendorsTable vendors={vendorRows} />
+                <WorkspaceVendorsTable
+                    vendors={vendorRows}
+                    headerComponent={headerContent}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

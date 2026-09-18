@@ -60,6 +60,7 @@ import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
+import getCollator from './CollatorUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import Log from './Log';
@@ -67,9 +68,9 @@ import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
 import {isRecord} from './ObjectUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -458,18 +459,32 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
- * Whether the query includes a positive `has:submitted-violation` filter.
- * Grouped CSV export uses this so Violations is included even when the query has no saved `columns`.
+ * Whether the query includes a positive `has:submitted-violation` or `has:approved-violation` filter.
+ * Used so the Violations column and CSV export only appear when those filters are active. Normal
+ * search snapshots can still include FORWARDED actions with violation data.
  */
-function queryHasSubmittedViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
     const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
     if (hasFilterGroups.length === 0) {
         return false;
     }
 
     return hasFilterGroups.some((group) =>
-        group.filters.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && filter.value.toString() === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION),
+        group.filters.some((filter) => {
+            if (filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                return false;
+            }
+            const value = filter.value.toString();
+            return value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
+        }),
     );
+}
+
+/**
+ * Same meaning as queryHasViolationFilter, for the advanced-filters form `has` array rather than parsed query JSON.
+ */
+function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
+    return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 }
 
 /**
@@ -508,21 +523,6 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
         });
     }
 
-    if (
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
-    ) {
-        if (typeof filterValue === 'string') {
-            return getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
-        }
-
-        return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
-    }
-
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         if (typeof filterValue === 'string') {
             return resolvePolicyIDFromName(filterValue, policies);
@@ -553,7 +553,7 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
  * The reason for this is that the computation of hashes should not depend on the locale.
  * This is used to ensure that hashes stay consistent.
  */
-const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+const customCollator = getCollator(CONST.LOCALES.EN);
 
 let defaultSearchQueryJSON: SearchQueryJSON | undefined;
 
@@ -584,6 +584,30 @@ function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQuery
     }
 
     return false;
+}
+
+function getQueryHashWithoutFilters(query: SearchQueryJSON, exclude: ReadonlySet<SearchFilterKey>) {
+    let orderedQuery = '';
+    const flatFilters = query.flatFilters
+        .map((filter) => {
+            const filterKey = filter.key;
+            const filters = cloneDeep(filter.filters);
+            filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
+            return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
+        })
+        .sort((a, b) => customCollator.compare(a.filterString, b.filterString));
+
+    for (const {filterString, filterKey} of flatFilters) {
+        if (exclude.has(filterKey)) {
+            continue;
+        }
+
+        orderedQuery += ` ${filterString}`;
+    }
+
+    const primaryHash = hashText(orderedQuery, 2 ** 32);
+
+    return primaryHash;
 }
 
 /**
@@ -831,6 +855,23 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     return queryParts.join(' ');
 }
 
+const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
+    const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
+    const keptFilters = currentQueryJSON.flatFilters.filter((filter) => NON_FILTER_CHIP_KEYS.has(filter.key));
+
+    return buildSearchQueryString({
+        ...currentQueryJSON,
+        type: defaultQueryJSON?.type ?? currentQueryJSON.type,
+        flatFilters: [...resetFilters, ...keptFilters],
+    });
+}
+
+function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON) {
+    return getQueryHashWithoutFilters(currentQueryJSON, NON_FILTER_CHIP_KEYS) !== getQueryHashWithoutFilters(defaultQueryJSON, NON_FILTER_CHIP_KEYS);
+}
+
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
     if (!queryJSON.rawFilterList || queryJSON.rawFilterList.length === 0) {
         return undefined;
@@ -952,8 +993,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (columns?.length) {
-        const filterValueArray = [...new Set<string>(columns)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+        // Violations is only meaningful with has:submitted-violation / has:approved-violation.
+        const shouldIncludeViolationsColumn = hasValuesIncludeViolationFilter(supportedFilterValues.has);
+        const filterValueArray = [...new Set<string>(columns)].filter((column) => shouldIncludeViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        if (filterValueArray.length) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+        }
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1785,7 +1830,8 @@ function getFilterDisplayValue({
         return getBankAccountSearchLabel(bankAccount);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return deprecatedGetReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
+        const filterReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`];
+        return getReportName(filterReport, filterReport?.reportID ? reportAttributes?.[filterReport.reportID]?.reportName : undefined) || filterValue;
     }
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
@@ -2387,7 +2433,7 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeForMatch(referenceText).toLowerCase());
 }
 
-const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
+const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.DAY, CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
 
 /**
  * Determines whether sortBy and sortOrder should be fully reset (re-derived by
@@ -2527,30 +2573,6 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
- * Returns an object containing the filter values needed to reset
- * the currently applied advanced filters back to their initial state.
- *
- * - STATUS is reset to `ALL`
- * - TYPE is reset to `EXPENSE`
- * - COLUMNS is reset to undefined only if the current TYPE is not EXPENSE
- * - Other filters are reset to `undefined`
- */
-function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
-    const isTypeExpense = searchAdvancedFiltersForm.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
-        if (filterKey === FILTER_KEYS.TYPE) {
-            if (!isTypeExpense) {
-                acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            }
-        } else if (filterKey !== FILTER_KEYS.COLUMNS || !isTypeExpense) {
-            Object.assign(acc, {[filterKey]: undefined});
-        }
-
-        return acc;
-    }, {} as Partial<SearchAdvancedFiltersForm>);
-}
-
-/**
  * Set of filter keys that represent free-text fields where the default `:` (eq) operator
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
@@ -2643,11 +2665,52 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
     return update;
 }
 
+/**
+ * Checks whether a query still matches a default query: it contains all of the default query's filter keys and has the same type.
+ * Used to detect when a query no longer represents a given default/suggested search (e.g. a filter was removed).
+ */
+function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
+    if (!queryJSON || !defaultQueryJSON) {
+        return true;
+    }
+
+    const queryFilterKeys = new Set(queryJSON.flatFilters.map((filter) => filter.key));
+    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key));
+
+    return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
+}
+
+function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {
+    if (!lastQuery) {
+        return defaultQuery;
+    }
+
+    const lastQueryJSON = buildSearchQueryJSON(lastQuery);
+
+    if (!lastQueryJSON) {
+        return defaultQuery;
+    }
+
+    const defaultQueryJSON = buildSearchQueryJSON(defaultQuery);
+
+    if (!defaultQueryJSON) {
+        return defaultQuery;
+    }
+
+    if (!doesQueryMatchDefaultFilterKeysAndType(lastQueryJSON, defaultQueryJSON)) {
+        return defaultQuery;
+    }
+
+    return lastQuery;
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
+    getQueryHashWithoutFilters,
     getQueryHashes,
+    hasFiltersChangedFromDefault,
     withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
@@ -2656,6 +2719,7 @@ export {
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
+    buildQueryStringWithResetFilters,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,
@@ -2685,7 +2749,6 @@ export {
     buildOptimisticSnapshotData,
     getDateFilterKeys,
     getEmptyDateValues,
-    getAdvancedFiltersToReset,
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
@@ -2698,7 +2761,10 @@ export {
     removeNegation,
     getFilterFormValues,
     getFilterFromQuery,
-    queryHasSubmittedViolationFilter,
+    getValidLastQuery,
+    doesQueryMatchDefaultFilterKeysAndType,
+    queryHasViolationFilter,
+    hasValuesIncludeViolationFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};

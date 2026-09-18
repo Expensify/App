@@ -1,5 +1,4 @@
-import UserAvatar from '@components/Avatar/UserAvatar';
-import TextWithTooltip from '@components/TextWithTooltip';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -7,11 +6,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
-import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {ListItem, UserSelectionListItemProps} from './types';
@@ -42,25 +40,18 @@ function UserSelectionListItem<TItem extends ListItem>({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
 
-    const userHandle = useMemo(() => {
-        const login = item.login ?? '';
+    const login = item.login ?? '';
 
-        // If the emails are not in the same private domain, we just return the users email
-        if (!areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '')) {
-            return formatPhoneNumber(login);
-        }
+    // When the emails share a private domain we can strip the domain and show just the username. Otherwise show the full email.
+    const userHandle = areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '') ? login.split('@').at(0) : formatPhoneNumber(login);
 
-        // Otherwise, the emails are a part of the same private domain, so we can remove the domain and just show username
-        return login.split('@').at(0);
-    }, [currentUserPersonalDetails.login, item.login, formatPhoneNumber]);
+    const userDisplayName = getDisplayNameForParticipant({
+        accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        formatPhoneNumber,
+        translate,
+    });
 
-    const userDisplayName = useMemo(() => {
-        return getDisplayNameForParticipant({
-            accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            formatPhoneNumber,
-            translate,
-        });
-    }, [formatPhoneNumber, item.accountID, translate]);
+    const icon = item.icons?.at(0);
 
     return (
         <SelectableListItem
@@ -81,28 +72,17 @@ function UserSelectionListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3]}>
-                {!!item.icons?.length && (
-                    <View style={styles.mentionSuggestionsAvatarContainer}>
-                        <UserAvatar
-                            source={item.icons.at(0)?.source}
-                            size={CONST.AVATAR_SIZE.X_SMALL}
-                            accountID={getAccountIDFromAvatarID(item.icons.at(0)?.id)}
-                            fallbackIcon={item.icons.at(0)?.fallbackIcon}
-                        />
-                    </View>
-                )}
+                {!!icon && <ListItemComposed.CompactAvatar icon={icon} />}
 
                 <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.flexShrink1, styles.alignItemsCenter]}>
-                    <TextWithTooltip
-                        shouldShowTooltip={showTooltip}
+                    <ListItemComposed.Title
                         text={userDisplayName}
-                        style={[styles.flexShrink0, styles.optionDisplayName, styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
+                        style={styles.flexShrink0}
                     />
                     {!!userHandle && (
-                        <TextWithTooltip
+                        <ListItemComposed.Subtitle
                             text={`@${userHandle}`}
-                            shouldShowTooltip={showTooltip}
-                            style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
+                            style={styles.flexShrink1}
                         />
                     )}
                 </View>

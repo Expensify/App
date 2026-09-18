@@ -42,7 +42,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     const {
         avatarType,
         avatars: icons,
-        details: {delegateAccountID},
+        details: {delegateAccountID, shouldUseConciergeAvatar},
         source,
     } = useReportActionAvatars({
         report,
@@ -102,7 +102,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
         );
     }
 
-    const delegateAccountIDFromAction = source.action?.delegateAccountID;
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : source.action?.delegateAccountID;
     const singleAvatar: AvatarIcon = delegateAccountIDFromAction
         ? {
               ...primaryIcon,

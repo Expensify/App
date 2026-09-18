@@ -15,16 +15,9 @@ import {Keyboard} from 'react-native';
 import type CalendarPickerListItem from './types';
 
 type YearPickerModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
-
-    /** The list of years to render */
     years: CalendarPickerListItem[];
-
-    /** Currently selected year */
     currentYear?: number;
-
-    /** Function to call when the user selects a year */
     onYearChange?: (year: number) => void;
 
     /** Function to call when the user closes the year picker */

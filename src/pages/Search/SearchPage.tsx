@@ -10,6 +10,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
 import usePrevious from '@hooks/usePrevious';
+import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
@@ -52,6 +53,7 @@ function SearchPage({route}: SearchPageProps) {
 
     useSearchPageSetup(currentSearchQueryJSON);
     useSeedMyExpensesSearch();
+    useReleaseOptionListCaches();
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
     // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -87,7 +87,7 @@ function CopyPolicySettingsConfirmPage() {
         // Editing the workspace selection from this screen can introduce a Collect (Team) target that
         // requires an upgrade for the already-selected Control-only settings, bypassing the Upgrade step.
         // Re-gate at submit time and route to the Upgrade step instead of copying when one is still required.
-        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)) {
+        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)) {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }

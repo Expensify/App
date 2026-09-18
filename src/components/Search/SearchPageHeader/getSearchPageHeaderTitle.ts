@@ -12,10 +12,10 @@ type SearchPageHeaderTitleDeps = {
     /** The `type` of the current search query, used for the data-type fallbacks */
     type: SearchDataTypes | undefined;
 
-    /** The saved search the current query maps to, if any (from `useSearchTypeMenuSections`) */
+    /** The saved search the current query maps to, if any */
     activeSavedSearch: SaveSearchItem | undefined;
 
-    /** The matched suggested-search menu item, if any (only pass when `activeItemIndex >= 0`) */
+    /** The matched suggested-search menu item, if any */
     selectedItem: SearchTypeMenuItem | undefined;
 };
 

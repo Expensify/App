@@ -5,7 +5,11 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
+import type {Policy} from '@src/types/onyx';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import type {FormulaPart} from './Formula';
 
@@ -66,8 +70,9 @@ function validateReportFieldListValueName(
 /**
  * Generates a field ID based on the field name.
  */
-function generateFieldID(name: string) {
-    return `field_id_${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
+function generateFieldID(name: string, target?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>) {
+    const targetPrefix = target ? `${target.toUpperCase()}_` : '';
+    return `field_id_${targetPrefix}${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
 }
 
 /**
@@ -109,8 +114,58 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
 /**
  * Checks if a report field name already exists in the policy's field list (case-insensitive).
  */
-function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string): boolean {
-    return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
+function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
+    return Object.values(fieldList ?? {}).some((reportField) => {
+        if (!isReportFieldTargetValid(reportField, expectedTarget)) {
+            return false;
+        }
+
+        return reportField.name.toLowerCase() === fieldName.toLowerCase();
+    });
+}
+
+/**
+ * Determines whether a report field matches the expected target.
+ */
+function isReportFieldTargetValid(reportField: PolicyReportField | null, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
+    if (!reportField) {
+        return false;
+    }
+
+    if (expectedTarget === CONST.REPORT_FIELD_TARGETS.INVOICE) {
+        return reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    }
+
+    if (expectedTarget === CONST.REPORT_FIELD_TARGETS.EXPENSE) {
+        return !reportField.target || reportField.target === CONST.REPORT_FIELD_TARGETS.EXPENSE;
+    }
+
+    return true;
+}
+
+/**
+ * Returns report fields that match the expected target.
+ */
+function getReportFieldsForTarget(fieldList: Record<string, PolicyReportField> | undefined, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): Record<string, PolicyReportField> {
+    return Object.fromEntries(Object.entries(fieldList ?? {}).filter(([, reportField]) => isReportFieldTargetValid(reportField, expectedTarget)));
+}
+
+/**
+ * Determines whether a report field was imported from the accounting integration the workspace is currently connected to.
+ *
+ * The `origin` an integration stamps on a report field sticks around after that integration is disconnected, so the
+ * origin on its own isn't enough. A field only counts as imported while the connection that created it is still active,
+ * which means leftover fields from a disconnected (or replaced) integration become regular fields that admins can
+ * disable and delete again.
+ */
+function isReportFieldImportedFromIntegration(reportField: PolicyReportField | undefined | null, policy: OnyxEntry<Policy>): boolean {
+    if (!reportField?.origin) {
+        return false;
+    }
+
+    return CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.some(
+        (connectionName) => CONST.POLICY.CONNECTIONS.REPORT_FIELD_ORIGIN[connectionName] === reportField.origin && !!policy?.connections?.[connectionName],
+    );
 }
 
 /**
@@ -221,4 +276,7 @@ export {
     getUnsupportedReportFieldFormulaParts,
     hasFormulaPartsInInitialValue,
     isReportFieldNameExisting,
+    isReportFieldTargetValid,
+    getReportFieldsForTarget,
+    isReportFieldImportedFromIntegration,
 };

@@ -4,6 +4,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
@@ -20,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyFeatureEnabled, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryText, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -29,7 +30,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
 
@@ -40,13 +41,10 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type SetSpendRulesStepProps = {
-    /* The policy that the card will be issued under */
+    /** The ID of the policy that the card will be issued under */
     policyID: string;
 
-    /** Start from step index */
     startStepIndex: number;
-
-    /** Array of step names */
     stepNames: readonly string[];
 };
 
@@ -74,6 +72,9 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
     const isVirtualCard = issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
     const isSpendRuleVisible = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
+    // Card spend rules stay Control-only even though the general Rules feature is now available to Collect too, so
+    // Collect sees the toggle locked and gets sent to the upgrade page rather than being able to configure a rule.
+    const isSpendRuleLocked = isSpendRuleVisible && !isControlPolicy(policy);
 
     const spendRuleID = issueNewCard?.data?.spendRuleID;
     const spendRuleForm = issueNewCard?.data.spendRuleValue ?? {};
@@ -114,6 +115,13 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         }
         setSpendRuleErrorMessage('');
         setIssueNewCardData(policyID, {spendRuleEnabled: isEnabled});
+    };
+
+    const promptSpendRuleUpgrade = () => {
+        // Send them back into this same wizard step, not the workspace Rules page the hook defaults to, so upgrading
+        // doesn't strand the card they were partway through issuing.
+        const backToWizard = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, backToWizard);
     };
 
     const handleChooseSpendRule = () => {
@@ -277,12 +285,15 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                     <>
                         <ToggleSettingOptionRow
                             title={translate('workspace.card.issueNewCard.addSpendRule')}
-                            isActive={spendRuleEnabled}
+                            isActive={!isSpendRuleLocked && spendRuleEnabled}
                             onToggle={handleToggleSpendRules}
+                            disabled={isSpendRuleLocked}
+                            showLockIcon={isSpendRuleLocked}
+                            disabledAction={isSpendRuleLocked ? promptSpendRuleUpgrade : undefined}
                             switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
                             wrapperStyle={[styles.mv3]}
                         />
-                        {spendRuleEnabled && (
+                        {!isSpendRuleLocked && spendRuleEnabled && (
                             <View style={[styles.pt4, styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
                                 <TabSelectorBase
                                     equalWidth
@@ -292,12 +303,11 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                 />
 
                                 {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
-                                    <MenuItemWithTopDescription
-                                        shouldShowRightIcon
-                                        title={existingSpendRuleTitle}
-                                        description={translate('workspace.card.chooseRule')}
+                                    <MenuItemField
+                                        name={translate('workspace.card.chooseRule')}
                                         onPress={handleChooseSpendRule}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
+                                        value={existingSpendRuleTitle}
                                     />
                                 )}
 

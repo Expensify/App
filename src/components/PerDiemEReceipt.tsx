@@ -23,7 +23,6 @@ import Icon from './Icon';
 import Text from './Text';
 
 type PerDiemEReceiptProps = {
-    /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string;
 };
 

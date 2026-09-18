@@ -169,7 +169,10 @@ const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/re
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
 const getCapturedListProps = (): MockInvertedFlashListProps | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0);
 
-const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAction, index = 0): {shouldDisableContextMenuForConciergeDraft?: boolean} => {
+const getRenderedReportActionsListItemProps = (
+    reportAction: OnyxTypes.ReportAction,
+    index = 0,
+): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean} => {
     const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
 
     if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
@@ -243,6 +246,32 @@ const renderReportActionsList = (props: {reportID?: string} = {}) => {
     );
 };
 
+// useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
+// which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
+// directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
+// in the fixture for any component still reading it directly.
+const getMockOnyxValue: Parameters<typeof mockUseOnyx.mockImplementation>[0] = (key: string, options) => {
+    if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+        return [false, {status: 'loaded'}];
+    }
+    if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+        return [false, {status: 'loaded'}];
+    }
+    if (key.includes('reportLoadingState')) {
+        return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
+    }
+    if (key.includes('reportActions')) {
+        return [[], {status: 'loaded'}];
+    }
+    if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+        return [mockReport, {status: 'loaded'}];
+    }
+    if (key.includes('report')) {
+        return [undefined, {status: 'loaded'}];
+    }
+    return [undefined, {status: 'loaded'}];
+};
+
 describe('ReportActionsList (body)', () => {
     beforeAll(() => {
         Onyx.init({
@@ -302,31 +331,7 @@ describe('ReportActionsList (body)', () => {
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
         mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
-        mockUseOnyx.mockImplementation((key: string, options) => {
-            // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
-            // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
-            // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
-            // in the fixture for any component still reading it directly.
-            if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
-                return [false, {status: 'loaded'}];
-            }
-            if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
-                return [false, {status: 'loaded'}];
-            }
-            if (key.includes('reportLoadingState')) {
-                return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
-            }
-            if (key.includes('reportActions')) {
-                return [[], {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
-                return [mockReport, {status: 'loaded'}];
-            }
-            if (key.includes('report')) {
-                return [undefined, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
+        mockUseOnyx.mockImplementation(getMockOnyxValue);
     });
 
     afterEach(async () => {
@@ -334,7 +339,111 @@ describe('ReportActionsList (body)', () => {
         await Onyx.clear();
     });
 
+    describe('Concierge Feedback Prompt', () => {
+        beforeEach(() => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: null,
+                hasActiveDraft: false,
+                isDraftPendingCompletion: false,
+            });
+        });
+
+        const conciergeReply: OnyxTypes.ReportAction = {
+            reportID: mockReport.reportID,
+            reportActionID: 'concierge-reply',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2023-01-04',
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            message: [{type: 'COMMENT', html: 'Here you go', text: 'Here you go'}],
+            originalMessage: {html: 'Here you go', whisperedTo: []},
+            shouldShow: true,
+            person: [{type: 'TEXT', style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME}],
+            pendingAction: null,
+            errors: {},
+        };
+
+        it('marks the newest Concierge reply as the feedback target', () => {
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks nothing while a Concierge answer is still streaming', () => {
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: {...conciergeReply, message: [{type: 'COMMENT', html: 'Here', text: 'Here'}]},
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
+        });
+
+        it('marks the reply once streaming finishes even when the draft HTML differs from the saved comment', () => {
+            // The draft keeps HTML entities that the saved comment does not have, so the draft can stay in the list after it completes
+            const completedDraft: OnyxTypes.ReportAction = {...conciergeReply, message: [{type: 'COMMENT', html: 'Here&apos;s it', text: "Here's it"}]};
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: completedDraft,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: false,
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, {...conciergeReply, message: [{type: 'COMMENT', html: "Here's it", text: "Here's it"}]}],
+            });
+
+            renderReportActionsList();
+
+            expect(getCapturedVisibleActions()).toContain(completedDraft);
+            expect(getRenderedReportActionsListItemProps(completedDraft).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks nothing inside the feedback thread the backend opens after a thumbs down', () => {
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
+                    return [{conciergeFeedbackForReportActionID: conciergeReply.reportActionID}, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
+        });
+
+        it('marks nothing while newer pages are still unloaded', () => {
+            // A deep link can open an older page where the newest loaded reply is not the newest in the report
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+                hasNewerActions: true,
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
+        });
+    });
+
     describe('Concierge Draft Context Menu', () => {
+        // extraData is an array, so isDraftPendingCompletion is read by its position
+        const DRAFT_PENDING_EXTRA_DATA_INDEX = 4;
+
         const conciergeDraftReportAction: OnyxTypes.ReportAction = {
             reportID: mockReport.reportID,
             reportActionID: 'concierge-draft',
@@ -364,7 +473,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(true);
-            expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(true);
+            expect((getCapturedListProps()?.extraData as unknown[]).at(DRAFT_PENDING_EXTRA_DATA_INDEX)).toBe(true);
         });
 
         it('enables the context menu after the Concierge draft finishes streaming', () => {
@@ -378,7 +487,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(false);
-            expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(false);
+            expect((getCapturedListProps()?.extraData as unknown[]).at(DRAFT_PENDING_EXTRA_DATA_INDEX)).toBe(false);
         });
     });
 

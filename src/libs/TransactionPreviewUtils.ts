@@ -48,6 +48,7 @@ import {
     isOnHold,
     isPending,
     isScanning,
+    shouldShowViolation,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
@@ -210,7 +211,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     transactionDetails,
     isBillSplit,
     shouldShowRBR,
-    shouldShowCanceledStatus,
     violationMessage,
     reportActions,
     originalTransaction,
@@ -225,8 +225,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     transactionDetails: Partial<TransactionDetails>;
     isBillSplit: boolean;
     shouldShowRBR: boolean;
-    /** Whether a cancelled payment has to be reported on this line, because the enclosing surface doesn't show it anywhere else */
-    shouldShowCanceledStatus: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
@@ -329,18 +327,14 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewDateText = {text: date};
     }
 
-    // Paid, Approved, Review required and the hold message are intentionally omitted here because the report status badge and the
-    // RBR row already show them, so repeating them on this line is noise. Canceled is the exception: it can't be derived from
-    // stateNum/statusNum, so surfaces without their own report status badge have to report it here.
+    // Paid, Approved, Review required and the hold message are omitted here: the status badge and the RBR row already show them.
     const previewStatusText: TranslationPathOrText[] = [];
 
     if (isPending(transaction)) {
         previewStatusText.push({translationPath: 'iou.pending'});
     }
 
-    if (shouldShowCanceledStatus && iouReport?.isCancelledIOU) {
-        previewStatusText.push({translationPath: 'iou.canceled'});
-    } else if (hasPendingRTERViolation(violations)) {
+    if (hasPendingRTERViolation(violations)) {
         previewStatusText.push({translationPath: 'iou.pendingMatch'});
     }
 
@@ -363,6 +357,27 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewStatusText,
         previewTypeText,
     };
+}
+
+/**
+ * The over-auto-approval-limit notice ships without `showInReview`, so the notice-type check that gates the preview RBR
+ * skips it, even though it is worth an RBR for whoever has to approve the report. `shouldShowViolation` is the single
+ * rule for who that is, and it is applied here rather than trusting the array because some callers pass raw Onyx
+ * violations instead of the visible ones.
+ */
+function hasVisibleOverAutoApprovalLimitViolation(
+    transaction: OnyxEntry<OnyxTypes.Transaction> | undefined,
+    violations: OnyxTypes.TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+): boolean {
+    if (!violations?.some((violation) => violation.name === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT)) {
+        return false;
+    }
+
+    return shouldShowViolation(report, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, currentUserEmail, currentUserAccountID, true, transaction);
 }
 
 function createTransactionPreviewConditionals({
@@ -394,7 +409,7 @@ function createTransactionPreviewConditionals({
     currentUserAccountID: number;
     reportActions?: OnyxTypes.ReportActions;
 }) {
-    const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
+    const {amount: requestAmount, comment: requestComment, merchant, category} = transactionDetails;
 
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -416,7 +431,6 @@ function createTransactionPreviewConditionals({
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
 
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;
 
@@ -426,6 +440,7 @@ function createTransactionPreviewConditionals({
         !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, iouReportOwnerLogin, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, iouReportOwnerLogin, policy, true) ||
+        hasVisibleOverAutoApprovalLimitViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         (isDistanceRequest(transaction) &&
             violations?.some(
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
@@ -450,7 +465,6 @@ function createTransactionPreviewConditionals({
 
     return {
         shouldShowSkeleton,
-        shouldShowTag,
         shouldShowRBR,
         shouldShowCategory,
         shouldShowKeepButton,
@@ -495,6 +509,11 @@ function transactionHasRBR(
 
     // Check for notice-type violations (only on group policies)
     if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy, true) && isGroupPolicyUtil(policy)) {
+        return true;
+    }
+
+    // Check for the over-auto-approval-limit notice, which reaches the approver without showInReview
+    if (hasVisibleOverAutoApprovalLimitViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy)) {
         return true;
     }
 

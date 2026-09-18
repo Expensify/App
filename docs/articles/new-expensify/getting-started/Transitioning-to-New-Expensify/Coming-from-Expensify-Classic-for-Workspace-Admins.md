@@ -16,7 +16,7 @@ This guide explains where familiar Workspace workflows now happen in New Expensi
 If you want a curated tour of what's new, what's better, and how to take advantage of it as an admin, see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Explore-whats-changed-in-New-Expensify). A few of the most popular improvements for Workspace Admins include **customizable, savable searches**, **bulk paying reports**, **full approver visibility into direct reports' activity in every status**, **Workspace merchant rules**, **seeing unassigned company cards**, and **better Insights reporting**.
 
 If you'd like a guided walkthrough of common Workspace workflows in New Expensify, explore the interactive product tours:
-- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/qlgnexxbsdtp)
+- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/rbncowjn0nav)
 - [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).

@@ -1,5 +1,4 @@
 type ImportMerchantRulesSpreadsheetParams = {
-    /** ID of the policy */
     policyID: string;
 
     /**

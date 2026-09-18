@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 
 import useAppFocusEvent from '@hooks/useAppFocusEvent';

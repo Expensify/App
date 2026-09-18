@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,6 +19,7 @@ import {
 
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type {Beta, IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
@@ -35,49 +37,32 @@ type AncestorReportActionItemProps = {
     /** Report for this action */
     report: Report;
 
-    /** All the data of the action item */
     reportAction: ReportAction;
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Report name value pairs for the ancestor reports */
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 
     /** Beta features list */
     allBetas: OnyxEntry<Beta[]>;
 
-    /** Concierge personal details */
     conciergePersonalDetail: OnyxEntry<PersonalDetails>;
-
-    /** The user's Concierge reportID */
     conciergeReportID: string | undefined;
-
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** Model of onboarding */
     introSelected: OnyxEntry<IntroSelected>;
 
-    /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
-
-    /** Whether the current report is archived */
     isReportArchived: boolean;
 
     /** Whether the user has viewed the self-guided tour */
     isSelfTourViewed: boolean | undefined;
 
-    /** Linked transaction route error */
     linkedTransactionRouteError: Errors | undefined;
-
-    /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<ReportAction>;
-
-    /** If the thread divider line will be used */
     shouldUseThreadDividerLine: boolean;
-
-    /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<Report>;
 };
 
@@ -108,9 +93,11 @@ function AncestorReportActionItem({
     const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
 
+    const {isBetaEnabled} = usePermissions();
+
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
-    const canOpenAncestorReport = canCurrentUserOpenReport(report, allBetas, hasGuidesEmails, isAncestorReportArchived);
+    const canOpenAncestorReport = canCurrentUserOpenReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isAncestorReportArchived);
 
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();

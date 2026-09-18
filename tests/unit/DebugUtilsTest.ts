@@ -33,7 +33,12 @@ const MOCK_REPORT_ACTION: ReportAction = {
     originalMessage: undefined,
 };
 
-const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
+const MOCK_TRANSACTION: Transaction = {
+    ...createRandomTransaction(0),
+
+    // The shared factory leaves this off, so name it here to exercise its branch of the draft property validator.
+    commuterExclusionPreview: {policyID: '1', hasExclusion: true, isWholeTripExcluded: false, commuteDistanceMeters: 100},
+};
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 const RORY_EMAIL = 'rory@email.com';
@@ -390,6 +395,50 @@ describe('DebugUtils', () => {
                         c: 'array',
                     },
                 );
+            }).toThrow();
+        });
+    });
+
+    describe('validateStringRecord', () => {
+        it('does not throw SyntaxError when value is "undefined"', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('undefined');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a string representation of an empty object', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{}');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a valid string representation of a string-to-string record', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":"CostCenterB","1":"IndicationZ"}');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when value is just a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('a');
+            }).toThrow();
+        });
+
+        it('throws SyntaxError when value is a string representation of an array', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('["a"]');
+            }).toThrow();
+        });
+
+        it('does not throw SyntaxError when value is "null" (treated as an empty value)', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('null');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when a value in the record is not a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":1}');
             }).toThrow();
         });
     });

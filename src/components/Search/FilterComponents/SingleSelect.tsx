@@ -23,7 +23,6 @@ type SingleSelectItem<T> = {
 };
 
 type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefined> & {
-    /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
 
     /** Whether the search input should be displayed */
@@ -35,7 +34,6 @@ type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefi
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
 
-    /** Custom height for each item in the list */
     itemHeight?: number;
 
     /** Whether the popover keeps a fixed height instead of growing with its content */

@@ -18,7 +18,6 @@ import Text from './Text';
 import UserInitialsAvatar from './UserInitialsAvatar';
 
 type AvatarSelectorProps = {
-    /** Currently selected avatar ID */
     selectedID?: string;
 
     /** Called when an avatar is selected */

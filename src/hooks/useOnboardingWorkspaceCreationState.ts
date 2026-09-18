@@ -6,6 +6,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from './useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnboardingMessages from './useOnboardingMessages';
@@ -33,6 +34,7 @@ function useOnboardingWorkspaceCreationState() {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const {onboardingMessages} = useOnboardingMessages();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -52,6 +54,7 @@ function useOnboardingWorkspaceCreationState() {
         formatPhoneNumber,
         isRestrictedPolicyCreation,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
         shouldUseNarrowLayout,

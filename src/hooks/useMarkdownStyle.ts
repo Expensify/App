@@ -1,3 +1,4 @@
+import {fontScale, lineHeightScale} from '@styles/typography';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 
@@ -35,12 +36,12 @@ function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<ke
                 color: theme.link,
             },
             h1: {
-                fontSize: variables.fontSizeLarge,
+                fontSize: fontScale.pageHeader,
             },
             emoji: {
                 ...FontUtils.fontFamily.platform.CUSTOM_EMOJI_FONT,
                 fontSize: emojiFontSize,
-                lineHeight: variables.lineHeightXLarge,
+                lineHeight: lineHeightScale.pageHeader,
             },
             blockquote: {
                 borderColor: theme.border,

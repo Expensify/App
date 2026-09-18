@@ -1,3 +1,5 @@
+import type CONST_APP from '@src/CONST';
+
 import type {CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 
@@ -24,6 +26,12 @@ type ResendValidateCodeForReportCardFraudParams = {
     reasonCardID: number;
 };
 
+// Lives in our own CONST until the reason is added to expensify-common's VALIDATE_CODE_REASONS
+type ResendValidateCodeForApproveDigitalWalletParams = {
+    reasonCode: typeof CONST_APP.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON;
+    reasonCardID: number;
+};
+
 // Will be removed eventually
 type ResendValidateCodeNotYetImplementedParams = {
     reasonCode: null;
@@ -34,6 +42,7 @@ type ResendValidateCodeParams =
     | ResendValidateCodeNotYetImplementedParams
     | ResendValidateCodeForRevealCardDetailsParams
     | ResendValidateCodeForReplaceCardParams
-    | ResendValidateCodeForReportCardFraudParams;
+    | ResendValidateCodeForReportCardFraudParams
+    | ResendValidateCodeForApproveDigitalWalletParams;
 
 export default ResendValidateCodeParams;

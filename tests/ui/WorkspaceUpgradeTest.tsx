@@ -275,10 +275,12 @@ describe('WorkspaceUpgrade', () => {
     it("should show the upgrade corporate plan price is in the user's local currency", async () => {
         // Team policy which the user can upgrade to corporate
         const policy = LHNTestUtils.getFakePolicy();
+        const accountID = 1;
 
-        // Given that a policy is initialized in Onyx
+        // Given that a policy and the signed in user's session are initialized in Onyx
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID});
         });
 
         // Render the WorkspaceUpgradePage without initializing user's preferred currency
@@ -301,7 +303,7 @@ describe('WorkspaceUpgrade', () => {
 
             // Initialized the user's preferred currency to another payment card currency
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.DEFAULT_NUMBER_ID]: {localCurrencyCode: currency}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: {localCurrencyCode: currency}});
             });
 
             // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView

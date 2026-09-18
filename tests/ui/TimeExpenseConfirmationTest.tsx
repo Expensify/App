@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 import type * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMockScreenNavigation from '../utils/createMockScreenNavigation';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -187,6 +188,8 @@ const DEFAULT_TIME_TRANSACTION: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
 };
 
+const {navigation: mockNavigation} = createMockScreenNavigation();
+
 function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
     return render(
         <OnyxListItemProvider>
@@ -205,8 +208,7 @@ function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
                                         reportID: POLICY_CHAT_REPORT_ID,
                                     },
                                 }}
-                                // @ts-expect-error we don't need navigation param here
-                                navigation={undefined}
+                                navigation={mockNavigation}
                             />
                         </CurrencyListContextProvider>
                     </LocaleContextProvider>

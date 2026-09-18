@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
 

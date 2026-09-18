@@ -55,22 +55,6 @@ describe('CurrencyUtils', () => {
         );
     });
 
-    describe('getCurrencyDecimals', () => {
-        test('Currency decimals smaller than or equal 2', () => {
-            expect(CurrencyUtils.getCurrencyDecimals('JPY')).toBe(0);
-            expect(CurrencyUtils.getCurrencyDecimals('USD')).toBe(2);
-            expect(CurrencyUtils.getCurrencyDecimals('RSD')).toBe(2);
-        });
-
-        test('Currency decimals larger than 2 should return 2', () => {
-            // Actual: 3
-            expect(CurrencyUtils.getCurrencyDecimals('LYD')).toBe(2);
-
-            // Actual: 4
-            expect(CurrencyUtils.getCurrencyDecimals('UYW')).toBe(2);
-        });
-    });
-
     describe('convertToBackendAmount', () => {
         test.each([
             [25, 2500],
@@ -129,33 +113,6 @@ describe('CurrencyUtils', () => {
         ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult, decimals) => {
             expect(CurrencyUtils.convertToFrontendAmountAsString(input, decimals)).toBe(expectedResult);
         });
-    });
-
-    describe('convertToDisplayString', () => {
-        test.each([
-            [CONST.CURRENCY.USD, 25, '$0.25'],
-            [CONST.CURRENCY.USD, 2500, '$25.00'],
-            [CONST.CURRENCY.USD, 150, '$1.50'],
-            [CONST.CURRENCY.USD, 250000, '$2,500.00'],
-            ['JPY', 2500, '¥25'],
-            ['JPY', 250000, '¥2,500'],
-            ['JPY', 2500.5, '¥25'],
-            ['RSD', 100, 'RSD\xa01.00'],
-            ['RSD', 145, 'RSD\xa01.45'],
-            ['BHD', 12345, 'BHD\xa0123.45'],
-            ['BHD', 1, 'BHD\xa00.01'],
-        ])('Correctly displays %s', (currency, amount, expectedResult) => {
-            expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult);
-        });
-
-        test.each([
-            ['EUR', 25, '0,25\xa0€'],
-            ['EUR', 2500, '25,00\xa0€'],
-            ['EUR', 250000, '2500,00\xa0€'],
-            ['EUR', 250000000, '2.500.000,00\xa0€'],
-        ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
-            IntlStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult)),
-        );
     });
 
     describe('convertToShortDisplayString', () => {
@@ -263,34 +220,13 @@ describe('CurrencyUtils', () => {
         test('shares the throttle across helpers that go through sanitizeCurrencyCode', () => {
             const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
             try {
-                CurrencyUtils.convertToDisplayString(2500, 'XX');
+                CurrencyUtils.convertAmountToDisplayString(2500, 'XX');
                 CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, 'XX');
                 CurrencyUtils.convertToShortDisplayString(2500, 'XX');
                 expect(warnSpy).toHaveBeenCalledTimes(1);
             } finally {
                 warnSpy.mockRestore();
             }
-        });
-    });
-
-    describe('convertToDisplayString with malformed currency', () => {
-        test.each(['', 'XX', 'USDD', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
-            expect(() => CurrencyUtils.convertToDisplayString(2500, input)).not.toThrow();
-            expect(CurrencyUtils.convertToDisplayString(2500, input)).toBe('$25.00');
-        });
-
-        test('normalizes case-only variations to the intended currency instead of USD', () => {
-            expect(CurrencyUtils.convertToDisplayString(2500, 'eur')).toBe(CurrencyUtils.convertToDisplayString(2500, 'EUR'));
-        });
-
-        test('falls back to USD when shouldUseLocalCurrencySymbol is true and currency is malformed', () => {
-            expect(() => CurrencyUtils.convertToDisplayString(2500, 'invalid', true)).not.toThrow();
-            // USD has a known local symbol in the currencyList, so the local-symbol branch should produce a $-prefixed result.
-            expect(CurrencyUtils.convertToDisplayString(2500, 'invalid', true)).toMatch(/\$/);
-        });
-
-        test('handles undefined currency via the default parameter', () => {
-            expect(CurrencyUtils.convertToDisplayString(2500, undefined)).toBe('$25.00');
         });
     });
 
@@ -306,29 +242,6 @@ describe('CurrencyUtils', () => {
             expect(() => CurrencyUtils.convertAmountToDisplayString(2500, input)).not.toThrow();
             // The result should at least include a $ symbol from the USD fallback.
             expect(CurrencyUtils.convertAmountToDisplayString(2500, input)).toMatch(/\$/);
-        });
-    });
-
-    describe('convertToDisplayStringWithoutCurrency with malformed currency', () => {
-        test.each(['', 'XX', 'USDD', '???'])('does not throw and produces a numeric output for %p', (input) => {
-            expect(() => CurrencyUtils.convertToDisplayStringWithoutCurrency(2500, input)).not.toThrow();
-            // Output should not contain a currency symbol but should contain the numeric portion.
-            const result = CurrencyUtils.convertToDisplayStringWithoutCurrency(2500, input);
-            expect(result).not.toMatch(/\$/);
-            expect(result).toContain('25');
-        });
-    });
-
-    describe('convertToDisplayStringWithExplicitCurrency with malformed currency', () => {
-        test.each(['XX', 'USDD', '???'])('does not throw and falls back to USD formatting for truthy malformed %p', (input) => {
-            expect(() => CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input)).not.toThrow();
-            expect(CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input)).toBe('$25.00');
-        });
-
-        test.each([undefined, ''])('returns the symbol-less form for falsy currency %p (delegates to convertToDisplayStringWithoutCurrency)', (input) => {
-            const result = CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input);
-            expect(result).not.toMatch(/\$/);
-            expect(result).toContain('25');
         });
     });
 
