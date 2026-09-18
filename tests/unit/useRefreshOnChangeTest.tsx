@@ -18,7 +18,9 @@ jest.mock('@userActions/FormActions', () => ({
 const FORM_ID = ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM;
 const COUNTRY_KEY = 'address.country';
 
-const initialValues: DynamicFormValues = {currency: 'GBP', sortCode: '401276', accountNumber: '12345678', [COUNTRY_KEY]: 'GB'};
+const STATE_KEY = 'address.state';
+
+const initialValues: DynamicFormValues = {sortCode: '401276', accountNumber: '12345678', [COUNTRY_KEY]: 'GB'};
 
 function renderRefreshHook(fields: WiseField[], values: DynamicFormValues) {
     const fetch = jest.fn();
@@ -52,7 +54,7 @@ describe('useRefreshOnChange', () => {
         act(() => jest.advanceTimersByTime(REFRESH_DEBOUNCE_MS));
         expect(fetch).not.toHaveBeenCalled();
 
-        const changedValues = {...initialValues, currency: 'EUR'};
+        const changedValues = {...initialValues, [COUNTRY_KEY]: 'US'};
         rerender({fields: refreshBefore, values: changedValues});
         expect(fetch).not.toHaveBeenCalled();
         act(() => jest.advanceTimersByTime(REFRESH_DEBOUNCE_MS));
@@ -73,13 +75,22 @@ describe('useRefreshOnChange', () => {
     });
 
     it('after a schema replace, keeps drafts for surviving keys and clears removed ones', () => {
-        const {rerender, resetToPage} = renderRefreshHook(refreshBefore, initialValues);
+        const usValues = {...initialValues, [COUNTRY_KEY]: 'US', [STATE_KEY]: 'CA'};
+        const {rerender, resetToPage} = renderRefreshHook(refreshAfter, usValues);
 
-        rerender({fields: refreshAfter, values: initialValues});
+        rerender({fields: refreshBefore, values: usValues});
 
         expect(setDraftValues).toHaveBeenCalledTimes(1);
-        expect(setDraftValues).toHaveBeenCalledWith(FORM_ID, {sortCode: null, accountNumber: null});
+        expect(setDraftValues).toHaveBeenCalledWith(FORM_ID, {[STATE_KEY]: null});
         expect(resetToPage).toHaveBeenCalledWith('Account details');
+    });
+
+    it('after a schema replace that only adds fields, clears nothing', () => {
+        const {rerender} = renderRefreshHook(refreshBefore, initialValues);
+
+        rerender({fields: refreshAfter, values: {...initialValues, [COUNTRY_KEY]: 'US'}});
+
+        expect(setDraftValues).not.toHaveBeenCalled();
     });
 
     it('returns to the first page when the current group disappears from the schema', () => {

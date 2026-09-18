@@ -2,22 +2,22 @@ import type {WiseField} from '@src/types/onyx';
 
 import refreshBefore from './refreshBefore';
 
-/** The same form after `currency` changed to EUR: IBAN replaces the sort code and account number */
+/** The same form after `address.country` changed to US: Wise adds `address.state` with its allowed values */
 const refreshAfter: WiseField[] = [
-    ...refreshBefore.filter((field) => field.key === 'currency'),
+    ...refreshBefore,
     {
-        key: 'IBAN',
-        label: 'IBAN',
-        group: 'Account details',
-        type: 'text',
+        key: 'address.state',
+        label: 'State',
+        group: 'Account holder details',
+        type: 'select',
         required: true,
-        regex: '^[A-Z]{2}\\d{2}[A-Z0-9]{11,30}$',
-        minLength: 15,
-        maxLength: 34,
-        example: 'DE89370400440532013000',
+        values: [
+            {key: 'CA', label: 'California'},
+            {key: 'NY', label: 'New York'},
+            {key: 'TX', label: 'Texas'},
+        ],
         refreshOnChange: false,
     },
-    ...refreshBefore.filter((field) => field.group === 'Account holder details'),
 ];
 
 export default refreshAfter;
