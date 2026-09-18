@@ -1219,14 +1219,6 @@ Onyx.connect({
     },
 });
 
-let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'];
-Onyx.connect({
-    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    callback: (value) => {
-        reportAttributesDerivedValue = value?.reports ?? {};
-    },
-});
-
 let cachedSelfDMReportID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.SELF_DM_REPORT_ID,
