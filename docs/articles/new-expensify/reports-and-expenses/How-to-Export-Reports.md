@@ -1,7 +1,7 @@
 ---
 title: How to Export Reports
 description: Learn how to export reports to CSV, download them as PDFs, or download their receipts.
-keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
+keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data, Reconciliation - All Expenses]
 internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
@@ -56,6 +56,7 @@ Expensify offers pre-built export templates, or you can build your own custom ex
    - **All Data - expense level** - One row per expense on the report with all available data fields.
    - **All Data - report level** - One row per report with all available data fields.
    - **Canadian Multiple Tax Export** - One row per expense with a separate column for each tax (such as GST and PST). This template only appears when the workspace's output currency is set to CAD.
+   - **Reconciliation - All Expenses** - One row per expense with the fields used to reconcile card spend, such as posted date, card name, custom card name, bank, MCC, and expense status. This template only appears if you're a **Workspace admin** or **Card admin** of a workspace that has company cards or the Expensify Card enabled.
    - **Custom templates** - Any custom template created by you or your Workspace Admin, if available.
 
 **Note** Currently, it's not possible to build custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting reports. [Learn how to build a custom export template in Expensify Classic](/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template).  
