@@ -62,7 +62,6 @@ function AddVendorPage({route}: AddVendorPageProps) {
     // connection, and when the data has already been fetched.
     const {isFetchNeeded, isLoadingFetchedFlag} = usePolicyConnectionsPrefetch(policy, true);
 
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isOnXero = isXeroActiveMatchingSource(policy);
     const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID, unavailableLabel);
@@ -82,7 +81,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
 
     // Gate direct/deeplink access behind the same predicate that hides the "Set vendor to" row, so the beta can't be
     // bypassed by opening this picker's URL directly (which would otherwise write vendorID into the draft and save it).
-    if (!hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
+    if (!hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))) {
         return <NotFoundPage />;
     }
 

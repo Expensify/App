@@ -266,8 +266,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const isVendorFeatureEnabled = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+    const isVendorFeatureEnabled = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const isOnXero = isXeroActiveMatchingSource(policy);
     const vendorFieldLabel = translate(isOnXero ? 'common.supplier' : 'common.vendor');
     const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
