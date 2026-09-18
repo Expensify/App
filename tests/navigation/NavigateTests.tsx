@@ -749,7 +749,10 @@ describe('Navigate', () => {
             }
 
             function getWorkspaceState() {
-                return navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+                return navigationRef.current
+                    ?.getRootState()
+                    .routes.at(0)
+                    ?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             }
 
             it('pushes a sibling split instead of reusing the focused one', () => {
