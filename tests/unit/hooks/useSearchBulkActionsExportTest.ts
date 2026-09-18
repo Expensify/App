@@ -1367,6 +1367,39 @@ describe('useSearchBulkActions - export options', () => {
             expect(parameters?.transactionIDList).toEqual(['tx2']);
             expect(parameters?.jsonQuery).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
         });
+
+        // The template export and Current view both scope a group selection through `getGroupExportScope`. Pinning
+        // Current view to the same expectation is what stops the two paths drifting apart again: the gate that shows
+        // the Reconciliation option and the gate that scopes it have to agree, or a card group exports incompletely.
+        it('scopes the Current view export of a card group the same way as the Reconciliation template', async () => {
+            mockTemplatesIncludingReconciliation();
+            selectCardGroup();
+            // An expense ticked on its own, alongside the card group, so it is not covered by the group's filter.
+            mockSelectedTransactions.tx2 = makeSelectedTransaction();
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
+            mockCurrentSearchResults = searchResults;
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+            });
+
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(exportSearchItemsToCSV).toHaveBeenCalled();
+            });
+
+            const {isGroupExport, reportIDList, transactionIDList, query} = getLastCSVExportParameters();
+            expect(isGroupExport).toBe(true);
+            expect(reportIDList).toEqual([]);
+            expect(transactionIDList).toEqual(['tx2']);
+            // The selected card groups reach the backend as a `cardID:` filter on the query rather than as IDs.
+            expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+        });
     });
 
     it('offers Current view as the only plain-CSV export on a grouped search', async () => {
