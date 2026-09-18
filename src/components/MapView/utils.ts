@@ -126,6 +126,13 @@ function areCoordinatesEqual(coordinate1: Coordinate | undefined, coordinate2: C
     return coordinate1[0] === coordinate2[0] && coordinate1[1] === coordinate2[1];
 }
 
+/** The coordinate that every waypoint and direction coordinate shares, or undefined when they span an area. Bounds around a single point have no area to fit a camera to. */
+function getSinglePointCoordinate(waypoints: Coordinate[], directionCoordinates: Coordinate[] | undefined): Coordinate | undefined {
+    const {southWest, northEast} = getBounds(waypoints, directionCoordinates);
+
+    return areCoordinatesEqual(southWest, northEast) ? southWest : undefined;
+}
+
 // Simple linear interpolation of a coordinate between two points
 function simpleInterpolateCoordinate(start: Coordinate, end: Coordinate, progress: number): Coordinate {
     return [start[0] + (end[0] - start[0]) * progress, start[1] + (end[1] - start[1]) * progress];
@@ -234,6 +241,7 @@ export default {
     getBounds,
     areSameCoordinate,
     areCoordinatesEqual,
+    getSinglePointCoordinate,
     findClosestCoordinateOnLineFromCenter,
     getBoundsCenter,
     getDistanceSymbolCoordinates,

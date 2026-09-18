@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -129,13 +129,14 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {},
     );
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const {login: currentUserLogin, accountID, email, displayName} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
 
     const {isOffline} = useNetwork();
@@ -165,7 +166,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
@@ -199,6 +200,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
@@ -215,15 +217,17 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 conciergeChat,
                 betas,
                 isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                rules,
             });
         } else {
             startAnimation();
             payMoneyRequest({
                 getCurrencyDecimals,
+                isASAPSubmitBetaEnabled,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
@@ -246,6 +250,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                rules,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -389,6 +394,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               outstandingReportsByPolicyID,
               isChatReportArchived,
               isOffline,
+              rules,
           })
         : [];
 
@@ -441,7 +447,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isASAPSubmitBetaEnabled,
                 confirmApproval: () => confirmApproval(),
                 iouReport: moneyRequestReport,
-                betas,
+                rules,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,

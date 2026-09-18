@@ -25,7 +25,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
@@ -45,7 +45,8 @@ type AddExistingExpenseFooterProps = {
 function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
@@ -55,13 +56,13 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const [transactions] = useTransactionsByID([...selectedIds]);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
@@ -76,6 +77,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
             afterTransition: () => {
                 if (report && isIOUReport(report)) {
                     convertBulkTrackedExpensesToIOU({
+                        isVendorMatchingBetaEnabled,
                         getCurrencyDecimals,
                         transactions,
                         iouReport: report,
@@ -87,15 +89,16 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         quickAction,
                         personalDetails,
-                        betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
                         selfDMReportActions,
                         delegateAccountID,
                         isTrackIntentUser,
                         formatPhoneNumber,
+                        rules,
                     });
                 } else {
                     changeTransactionsReport({
+                        isVendorMatchingBetaEnabled,
                         transactionIDs: [...selectedIds],
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -107,6 +110,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         transactions,
                         allTransactionViolation: transactionViolations,
                         reports,
+                        rules,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,

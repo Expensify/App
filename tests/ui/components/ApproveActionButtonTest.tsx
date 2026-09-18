@@ -41,7 +41,7 @@ jest.mock('@components/ExpenseHeaderApprovalButton', () => ({
 
 // Capture the onPress (confirmApproval) handler the button passes to the underlying Button so approval can be triggered.
 const mockOnPressHolder: {current?: () => void} = {current: undefined};
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     function MockButton(props: {onPress?: () => void}) {
         mockOnPressHolder.current = props.onPress;
         return null;
@@ -95,7 +95,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: jest.fn(() => ({isBetaEnabled: () => false})),
+    default: jest.fn(() => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false})),
 }));
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,

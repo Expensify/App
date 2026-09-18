@@ -3,9 +3,12 @@ import type {Camera, CameraProps, Camera as VisionCamera} from 'react-native-vis
 import type {WebcamProps} from 'react-webcam';
 import type Webcam from 'react-webcam';
 
-type NavigationAwareCameraProps = WebcamProps & {
-    ref?: ForwardedRef<Webcam | Camera>;
-};
+type WebcamScreenshotProps = 'forceScreenshotSourceSize' | 'imageSmoothing' | 'screenshotFormat' | 'screenshotQuality';
+
+type NavigationAwareCameraProps = Omit<WebcamProps, WebcamScreenshotProps> &
+    Partial<Pick<WebcamProps, WebcamScreenshotProps>> & {
+        ref?: ForwardedRef<Webcam | Camera>;
+    };
 
 type NavigationAwareCameraNativeProps = Omit<CameraProps, 'isActive'> & {
     cameraTabIndex: number;
