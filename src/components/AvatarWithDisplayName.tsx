@@ -187,7 +187,7 @@ function AvatarWithDisplayName({
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
-    const [personalDetails] = useAllPersonalDetails();
+    const [personalDetails] = useAllPersonalDetails() ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policy = usePolicy(report?.policyID);
