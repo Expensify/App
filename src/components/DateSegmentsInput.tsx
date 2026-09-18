@@ -46,6 +46,9 @@ const SIZED_TO_CONTENT = {flexGrow: 0, flexShrink: 0, flexBasis: 'auto', width: 
 /** Holds a copy of a segment's text purely to be measured, so it must not take part in the layout it is measuring */
 const MEASURED_OFF_LAYOUT = {position: 'absolute', opacity: 0} as const;
 
+/** Sits over the segment's own input, which is why the input can show the typed digits alone */
+const REMAINDER_OVERLAY = {position: 'absolute', left: 0, top: 0} as const;
+
 function DateSegmentsInput({
     dateSegmentsConfig,
     style,
@@ -140,7 +143,10 @@ function DateSegmentsInput({
         >
             {getDateMaskParts(mask).map((part) => {
                 const segmentProps = getSegmentProps(part.name);
-                const measuredText = segmentProps.value || part.placeholder;
+                // The mask letters a half typed segment has not reached yet, which stay on screen in the placeholder
+                // color so the shape of the date is still readable while it is being filled in.
+                const remainder = part.placeholder.slice(segmentProps.value.length);
+                const measuredText = `${segmentProps.value}${remainder}`;
                 const width = (measuredWidths[part.name] ?? measuredText.length * ESTIMATED_CHARACTER_WIDTH) + CARET_ALLOWANCE;
 
                 return (
@@ -155,42 +161,50 @@ function DateSegmentsInput({
                         >
                             {measuredText}
                         </Text>
-                        <RNTextInput
-                            ref={(element: AnimatedTextInputRef | null) => {
-                                segmentRefs.current[part.name] = element;
+                        <View style={[SIZED_TO_CONTENT, {width}]}>
+                            <RNTextInput
+                                ref={(element: AnimatedTextInputRef | null) => {
+                                    segmentRefs.current[part.name] = element;
 
-                                // The field's own ref has to lead somewhere, and the year is where typing starts
-                                if (part.name !== 'year') {
-                                    return;
-                                }
-                                if (typeof ref === 'function') {
-                                    ref(element);
-                                } else if (ref && 'current' in ref) {
-                                    // eslint-disable-next-line no-param-reassign
-                                    ref.current = element;
-                                }
-                            }}
-                            style={[style, NO_HORIZONTAL_PADDING, SIZED_TO_CONTENT, {width}]}
-                            value={segmentProps.value}
-                            placeholder={part.placeholder}
-                            placeholderTextColor={placeholderTextColor}
-                            onKeyPress={segmentProps.onKeyPress}
-                            onChangeText={segmentProps.onChangeText}
-                            onFocus={(event) => {
-                                clearTimeout(blurTimeoutRef.current);
-                                segmentProps.onFocus();
-                                onFocus?.(event);
-                            }}
-                            onBlur={handleSegmentBlur}
-                            onPressOut={onPressOut}
-                            accessibilityLabel={translate(`common.dateSegments.${part.name}`)}
-                            inputMode="numeric"
-                            disabled={disabled}
-                            readOnly={readOnly}
-                            forwardedFSClass={forwardedFSClass}
-                            aria-describedby={ariaDescribedBy}
-                            aria-invalid={ariaInvalid}
-                        />
+                                    // The field's own ref has to lead somewhere, and the year is where typing starts
+                                    if (part.name !== 'year') {
+                                        return;
+                                    }
+                                    if (typeof ref === 'function') {
+                                        ref(element);
+                                    } else if (ref && 'current' in ref) {
+                                        // eslint-disable-next-line no-param-reassign
+                                        ref.current = element;
+                                    }
+                                }}
+                                style={[style, NO_HORIZONTAL_PADDING, styles.w100]}
+                                value={segmentProps.value}
+                                onKeyPress={segmentProps.onKeyPress}
+                                onChangeText={segmentProps.onChangeText}
+                                onFocus={(event) => {
+                                    clearTimeout(blurTimeoutRef.current);
+                                    segmentProps.onFocus();
+                                    onFocus?.(event);
+                                }}
+                                onBlur={handleSegmentBlur}
+                                onPressOut={onPressOut}
+                                accessibilityLabel={translate(`common.dateSegments.${part.name}`)}
+                                inputMode="numeric"
+                                disabled={disabled}
+                                readOnly={readOnly}
+                                forwardedFSClass={forwardedFSClass}
+                                aria-describedby={ariaDescribedBy}
+                                aria-invalid={ariaInvalid}
+                            />
+                            {/* The digits already typed are repeated invisibly so the text flow puts the remaining mask
+                            letters exactly where the input's own text ends, without measuring anything. */}
+                            {!!remainder && (
+                                <Text style={[style, NO_HORIZONTAL_PADDING, REMAINDER_OVERLAY, styles.pointerEventsNone]}>
+                                    <Text style={styles.opacity0}>{segmentProps.value}</Text>
+                                    <Text style={{color: placeholderTextColor}}>{remainder}</Text>
+                                </Text>
+                            )}
+                        </View>
                         {!!part.separator && <Text style={[style, NO_HORIZONTAL_PADDING, styles.pointerEventsNone, SIZED_TO_CONTENT]}>{part.separator}</Text>}
                     </React.Fragment>
                 );
