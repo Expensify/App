@@ -48,8 +48,8 @@ describe('MenuItem', () => {
         mockedGetOperatingSystem.mockReturnValue(CONST.OS.WINDOWS);
     });
 
-    it('forwards selectable HTML titles to RenderHTML on mobile web', () => {
-        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.MOBILE_WEB);
+    it('forwards selectable HTML titles to RenderHTML on web', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
 
         render(
             <Wrapper>
@@ -62,6 +62,21 @@ describe('MenuItem', () => {
         );
 
         expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: true}));
+    });
+
+    it('does not override HTML title selection when the title is not selectable', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+
+        render(
+            <Wrapper>
+                <MenuItem
+                    title="<strong>Formatted description</strong>"
+                    shouldRenderAsHTML
+                />
+            </Wrapper>,
+        );
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: undefined}));
     });
 
     it('does not override HTML title selection on native', () => {

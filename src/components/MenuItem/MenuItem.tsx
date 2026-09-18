@@ -688,7 +688,7 @@ function MenuItem({
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.hasHTMLTags(title);
-    const shouldOverrideHTMLTitleSelection = isTitleSelectable && getPlatform(true) === CONST.PLATFORM.MOBILE_WEB;
+    const shouldOverrideHTMLTitleSelection = isTitleSelectable && getPlatform() === CONST.PLATFORM.WEB;
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
