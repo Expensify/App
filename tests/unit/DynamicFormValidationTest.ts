@@ -4,10 +4,11 @@ import groupFieldsIntoPages from '@components/DynamicForm/groupFieldsIntoPages';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
-import allFieldTypes from '../fixtures/wise/allFieldTypes';
+import allFieldTypes from '../fixtures/dynamicForm/allFieldTypes';
 import {translateLocal} from '../utils/TestHelper';
 
 const completeAnswers = {
+    ownershipPercentage: '40',
     accountNumber: '12345678',
     legalType: 'PRIVATE',
     accountType: 'CHECKING',
@@ -42,7 +43,7 @@ describe('getDynamicFieldErrors', () => {
             accountNumber: translateLocal('dynamicForm.error.tooShort', {minLength: 8}),
         });
         expect(getDynamicFieldErrors(fields, {...completeAnswers, accountNumber: '123456789'}, translateLocal)).toEqual({
-            accountNumber: translateLocal('dynamicForm.error.tooLong', {maxLength: 8}),
+            accountNumber: translateLocal('common.error.characterLimitExceedCounter', 9, 8),
         });
     });
 
@@ -60,11 +61,52 @@ describe('getDynamicFieldErrors', () => {
     });
 });
 
+describe('getDynamicFieldErrors for lists and percentages', () => {
+    const shareholders = allFieldTypes.find((field) => field.key === 'legalEntityShareholders');
+    if (!shareholders) {
+        throw new Error('fixture changed');
+    }
+    const requiredShareholders = {...shareholders, required: true, minItems: 2};
+
+    it('flags a percentage outside 1 to 100', () => {
+        expect(getDynamicFieldErrors(allFieldTypes, {...completeAnswers, ownershipPercentage: '120'}, translateLocal)).toEqual({
+            ownershipPercentage: translateLocal('dynamicForm.error.outOfRange', {min: 1, max: 100}),
+        });
+    });
+
+    it('flags too few items and a broken item, and accepts a valid list', () => {
+        const validItem = {id: '1', name: 'Acme Holdings', country: 'GB', ownershipPercentage: '30'};
+        const brokenItem = {id: '2', name: '', country: 'GB', ownershipPercentage: '30'};
+
+        expect(getDynamicFieldErrors([requiredShareholders], {legalEntityShareholders: []}, translateLocal)).toEqual({
+            legalEntityShareholders: translateLocal('common.error.fieldRequired'),
+        });
+        expect(getDynamicFieldErrors([requiredShareholders], {legalEntityShareholders: [validItem]}, translateLocal)).toEqual({
+            legalEntityShareholders: translateLocal('dynamicForm.error.tooFewItems', {min: 2}),
+        });
+        expect(getDynamicFieldErrors([requiredShareholders], {legalEntityShareholders: [validItem, brokenItem]}, translateLocal)).toEqual({
+            legalEntityShareholders: translateLocal('common.error.fieldRequired'),
+        });
+        expect(getDynamicFieldErrors([requiredShareholders], {legalEntityShareholders: [validItem, {...validItem, id: '3'}]}, translateLocal)).toEqual({});
+    });
+
+    it('reports every failing rule on one field and skips readonly fields', () => {
+        const fields = allFieldTypes.map((field) => (field.key === 'accountNumber' ? {...field, regex: '^[A-Z]+$', minLength: 12} : field));
+        const errors = getDynamicFieldErrors(fields, {...completeAnswers, accountNumber: '12345678'}, translateLocal);
+        expect(errors.accountNumber).toBe(
+            [translateLocal('dynamicForm.error.invalidFormat', {example: '12345678'}), translateLocal('dynamicForm.error.tooShort', {minLength: 12})].join('\n'),
+        );
+
+        const readonly = allFieldTypes.map((field) => (field.key === 'accountNumber' ? {...field, readonly: true} : field));
+        expect(getDynamicFieldErrors(readonly, {...completeAnswers, accountNumber: ''}, translateLocal)).toEqual({});
+    });
+});
+
 describe('groupFieldsIntoPages', () => {
     it('groups fields into pages in first-appearance order', () => {
         const pages = groupFieldsIntoPages(allFieldTypes);
 
-        expect(pages.map((page) => page.name)).toEqual(['Account details', 'Account holder details']);
+        expect(pages.map((page) => page.name)).toEqual(['Account details', 'Account holder details', 'Ownership']);
         expect(pages.at(0)?.fields.map((field) => field.key)).toEqual(['accountNumber', 'legalType', 'accountType', 'businessRegistrationDocument', 'annualVolume']);
         expect(pages.at(1)?.fields.map((field) => field.key)).toEqual(['dateOfBirth', 'country', 'address', 'useCases', 'isSourceOfFund']);
     });

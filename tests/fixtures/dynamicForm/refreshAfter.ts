@@ -1,9 +1,9 @@
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 import refreshBefore from './refreshBefore';
 
 /** The same form after `address.country` changed to US: Wise adds `address.state` with its allowed values */
-const refreshAfter: WiseField[] = [
+const refreshAfter: DynamicFormField[] = [
     ...refreshBefore,
     {
         key: 'address.state',

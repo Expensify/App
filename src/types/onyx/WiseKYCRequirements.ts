@@ -1,4 +1,4 @@
-import type {WiseField} from './WiseField';
+import type {DynamicFormField} from './DynamicFormField';
 
 /** One outstanding Wise KYC requirement, flattened by Auth from the review's AND/OR requirement groups */
 type WiseKYCRequirement = {
@@ -11,7 +11,7 @@ type WiseKYCRequirement = {
     /** Opens Wise's embedded page instead of a form */
     hostedOnly: boolean;
 
-    fields: WiseField[];
+    fields: DynamicFormField[];
 };
 
 /** Wise's outstanding onboarding requirements; replaced after every submission because satisfying one can expose another */

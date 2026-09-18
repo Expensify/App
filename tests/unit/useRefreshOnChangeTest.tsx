@@ -6,10 +6,10 @@ import useRefreshOnChange, {REFRESH_DEBOUNCE_MS} from '@components/DynamicForm/u
 import {setDraftValues} from '@userActions/FormActions';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
-import refreshAfter from '../fixtures/wise/refreshAfter';
-import refreshBefore from '../fixtures/wise/refreshBefore';
+import refreshAfter from '../fixtures/dynamicForm/refreshAfter';
+import refreshBefore from '../fixtures/dynamicForm/refreshBefore';
 
 jest.mock('@userActions/FormActions', () => ({
     setDraftValues: jest.fn(),
@@ -22,11 +22,11 @@ const STATE_KEY = 'address.state';
 
 const initialValues: DynamicFormValues = {sortCode: '401276', accountNumber: '12345678', [COUNTRY_KEY]: 'GB'};
 
-function renderRefreshHook(fields: WiseField[], values: DynamicFormValues) {
+function renderRefreshHook(fields: DynamicFormField[], values: DynamicFormValues) {
     const fetch = jest.fn();
     const resetToPage = jest.fn();
     const hook = renderHook(
-        (props: {fields: WiseField[]; values: DynamicFormValues}) => useRefreshOnChange({...props, fetch, formID: FORM_ID, currentPageName: 'Account details', resetToPage}),
+        (props: {fields: DynamicFormField[]; values: DynamicFormValues}) => useRefreshOnChange({...props, fetch, formID: FORM_ID, currentPageName: 'Account details', resetToPage}),
         {
             initialProps: {fields, values},
         },

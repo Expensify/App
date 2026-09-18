@@ -1,7 +1,7 @@
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 /** A GBP sort-code form with a GB address, before the refreshOnChange `address.country` answer changes */
-const refreshBefore: WiseField[] = [
+const refreshBefore: DynamicFormField[] = [
     {
         key: 'accountHolderName',
         label: 'Full name of the account holder',

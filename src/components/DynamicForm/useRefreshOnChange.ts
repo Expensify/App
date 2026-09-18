@@ -1,7 +1,7 @@
 import {setDraftValues} from '@userActions/FormActions';
 
 import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 import {useEffect, useRef} from 'react';
 
@@ -10,7 +10,7 @@ import type {DynamicFormValues} from './types';
 const REFRESH_DEBOUNCE_MS = 300;
 
 type UseRefreshOnChangeParams = {
-    fields: WiseField[];
+    fields: DynamicFormField[];
 
     /** Current answers; the draft for `formID` */
     values: DynamicFormValues;

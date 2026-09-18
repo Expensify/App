@@ -4037,6 +4037,9 @@ const translations = {
             tooLong: ({maxLength}: {maxLength: number}) => `Must be at most ${maxLength} characters`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
             invalidDate: 'Please enter a valid date',
+            tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
+            outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
         },
     },
     wiseKYC: {
