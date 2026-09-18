@@ -69,10 +69,6 @@ class ExpensiMarkWithContext extends ExpensiMark {
     isHTML(text: string): boolean {
         return /<[^>]+>/.test(text) || /&[#\w]+;/.test(text);
     }
-
-    hasHTMLTags(text: string): boolean {
-        return /<[^>]+>/.test(text);
-    }
 }
 
 ExpensiMarkWithContext.setLogger(Log);
