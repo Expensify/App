@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
@@ -38,6 +38,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const [hasCancelledSwitch, setHasCancelledSwitch] = useState(false);
 
     useEffect(() => {
         const sessionEmail = session?.email;
@@ -61,6 +62,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 cancelText: translate('common.cancel'),
             }).then((result) => {
                 if (result.action !== ModalActions.CONFIRM) {
+                    setHasCancelledSwitch(true);
                     return;
                 }
                 // We don't want to close react-native app in this particular case.
@@ -115,17 +117,17 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
         // For HybridApp we have separate logic to handle transitions.
-        if (!CONFIG.IS_HYBRID_APP && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
+        if (!CONFIG.IS_HYBRID_APP && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && (!isLoggingInAsNewUser || hasCancelledSwitch)) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
                 Navigation.goBack(ROUTES.HOME);
-                if (exitTo) {
+                if (exitTo && !hasCancelledSwitch) {
                     Navigation.navigate(exitTo as Route);
                 }
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialURL, isAccountLoading]);
+    }, [initialURL, isAccountLoading, hasCancelledSwitch]);
 
     return <FullScreenLoadingIndicator />;
 }
