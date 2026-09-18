@@ -59,7 +59,12 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
-    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
+    // Check the selected member's own role on the policy, not the viewer's. `shouldCheckGlobalPolicyRole` must stay false
+    // here, otherwise this short-circuits on `policy.role` (the viewing admin) and every member looks like an admin.
+    const isSelectedMemberPolicyAdmin = isPolicyAdmin(policy, details.login, false);
+    // Without a login we cannot resolve the member's policy role, so fail closed rather than offering removal. This page
+    // can be reached directly by route, unlike the members list, which skips participants that have no personal details.
+    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && (!details.login || isSelectedMemberPolicyAdmin)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const askForConfirmationToRemove = () => {
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,

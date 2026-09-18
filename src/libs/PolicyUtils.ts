@@ -177,6 +177,10 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
 
 /**
  * Checks if the current user is an admin of the policy.
+ *
+ * By default this answers "is the *viewing* user an admin?", because `getPolicyRole` short-circuits on the global
+ * `policy.role`. When `login` belongs to somebody other than the current user you must pass
+ * `shouldCheckGlobalPolicyRole = false`, otherwise the `login` argument is silently ignored.
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
@@ -649,7 +653,10 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
         return;
     }
 
-    return policy?.employeeList?.[currentUserLogin]?.role;
+    // `employeeList` is keyed by the canonical lowercase login, but a login read off personal details is not
+    // guaranteed to be lowercase, so fall back to a normalized lookup when the exact key misses. Both lookups are
+    // O(1), unlike a case-insensitive scan of every employee, which would run per participant on member lists.
+    return policy?.employeeList?.[currentUserLogin]?.role ?? policy?.employeeList?.[currentUserLogin.toLowerCase()]?.role;
 }
 
 /**

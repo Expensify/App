@@ -214,7 +214,9 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 continue;
             }
             const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isAdmin = isPolicyAdmin(policy, details.login);
+            // Check the listed member's own role on the policy, not the viewer's. `shouldCheckGlobalPolicyRole` must stay
+            // false here, otherwise this short-circuits on `policy.role` (the viewing admin) and every member looks like an admin.
+            const isAdmin = isPolicyAdmin(policy, details.login, false);
             const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
             const isSelectionDisabled =
                 (isPolicyExpenseChat && isAdmin) ||

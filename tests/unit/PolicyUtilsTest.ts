@@ -79,6 +79,7 @@ import {
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
+    isPolicyAdmin,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isRilletVendorMatchingActive,
@@ -422,6 +423,77 @@ describe('PolicyUtils', () => {
 
         it('returns false for an undefined policy', () => {
             expect(isArchivedPolicy(undefined)).toBe(false);
+        });
+    });
+
+    describe('isPolicyAdmin', () => {
+        const adminLogin = 'admin@test.com';
+        const memberLogin = 'member@test.com';
+        // `role` is the role of the user currently viewing the policy, `employeeList` holds every member's own role
+        const buildPolicy = (): Policy =>
+            createMock<Policy>({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    [adminLogin]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [memberLogin]: {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+
+        it('resolves the role of the passed login when shouldCheckGlobalPolicyRole is false', () => {
+            // Given a policy viewed by an admin, holding one admin and one regular member in its employee list
+            // When the role of each login is resolved without the global policy role
+            // Then each login resolves to its own role, not the viewer's
+            expect(isPolicyAdmin(buildPolicy(), memberLogin, false)).toBe(false);
+            expect(isPolicyAdmin(buildPolicy(), adminLogin, false)).toBe(true);
+        });
+
+        it('ignores the passed login and answers for the viewing user by default', () => {
+            // Given a policy viewed by an admin, holding a regular member in its employee list
+            // When the member's role is resolved with the default shouldCheckGlobalPolicyRole
+            // Then the check short-circuits on the viewer's role and reports the member as an admin. This documents the
+            // trap that made every member of a workspace chat look like an admin to a viewing admin, which disabled the
+            // "Remove from chat" button for all of them
+            expect(isPolicyAdmin(buildPolicy(), memberLogin)).toBe(true);
+        });
+
+        it('returns false for a login that is not in the employee list when shouldCheckGlobalPolicyRole is false', () => {
+            // Given a policy that does not list the passed login as an employee
+            // When that login's role is resolved without the global policy role
+            // Then it does not resolve to an admin
+            expect(isPolicyAdmin(buildPolicy(), 'stranger@test.com', false)).toBe(false);
+        });
+
+        it('returns false for an undefined login when shouldCheckGlobalPolicyRole is false', () => {
+            // Given a member whose login could not be resolved
+            // When their role is resolved without the global policy role
+            // Then it does not resolve to an admin
+            expect(isPolicyAdmin(buildPolicy(), undefined, false)).toBe(false);
+        });
+
+        it('matches an employee whose login is not lowercase when shouldCheckGlobalPolicyRole is false', () => {
+            // Given an employee list keyed by canonical lowercase logins
+            // When a mixed-case login read off personal details is resolved without the global policy role
+            // Then it still matches the employee entry through the normalized fallback
+            expect(isPolicyAdmin(buildPolicy(), 'Admin@Test.com', false)).toBe(true);
+            expect(isPolicyAdmin(buildPolicy(), 'Member@Test.com', false)).toBe(false);
+        });
+
+        it('prefers an exact employee list key over the normalized one', () => {
+            // Given an employee list holding both a mixed-case and a lowercase key with different roles
+            const policy = createMock<Policy>({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role: undefined,
+                employeeList: {
+                    'Mixed@Test.com': {role: CONST.POLICY.ROLE.ADMIN},
+                    'mixed@test.com': {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+
+            // When each key is resolved without the global policy role
+            // Then the exact key wins, so the normalized fallback can never regress an existing hit
+            expect(isPolicyAdmin(policy, 'Mixed@Test.com', false)).toBe(true);
+            expect(isPolicyAdmin(policy, 'mixed@test.com', false)).toBe(false);
         });
     });
 
