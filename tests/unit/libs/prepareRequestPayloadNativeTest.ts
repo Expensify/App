@@ -24,13 +24,22 @@ jest.mock('@libs/telemetry/ReceiptObservability', () => ({
 }));
 
 const RECEIPTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/Receipts-Upload';
+const mockSettle = jest.fn<Promise<void>, [string]>(() => Promise.resolve());
+
+const mockResolveReceiptUri = (source?: string) => {
+    const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
+    return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+};
+
 jest.mock('@libs/ReceiptStorage', () => ({
     __esModule: true,
     default: {
-        resolve: (source?: string) => {
-            const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
-            return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+        locate: (source?: string) => {
+            const uri = mockResolveReceiptUri(source);
+            return mockCheckFileExists(uri).then(({exists}) => (exists ? uri : undefined));
         },
+        resolve: (source?: string) => mockResolveReceiptUri(source),
+        settle: (durableName: string) => mockSettle(durableName),
     },
 }));
 
@@ -146,5 +155,65 @@ describe('prepareRequestPayload (native)', () => {
 
         expect(formData.get('amount')).toBe('100');
         expect(formData.has('undefinedField')).toBe(false);
+    });
+
+    describe('a receipt sent as a file object, the way ReplaceReceipt sends it', () => {
+        /** `clearAllMocks` keeps a `mockReturnValue`, so a deferred one would leak into the next test. */
+        beforeEach(() => {
+            mockSettle.mockReturnValue(Promise.resolve());
+        });
+
+        /** The payload walks one key per microtask, so settle the whole queue rather than counting hops. */
+        const flushMicrotasks = () =>
+            new Promise((resolve) => {
+                setImmediate(resolve);
+            });
+
+        it('claims the file before reading it, and waits only while a claimed swap finishes renaming', async () => {
+            let releaseCommittedSwap: () => void = () => {};
+            mockSettle.mockReturnValue(
+                new Promise<void>((resolve) => {
+                    releaseCommittedSwap = resolve;
+                }),
+            );
+
+            let hasPrepared = false;
+            const prepared = prepareRequestPayload(
+                'ReplaceReceipt',
+                {
+                    transactionID: '1',
+                    receipt: {uri: `file://${RECEIPTS_FOLDER}/CAM-1.jpg`, name: 'CAM-1.jpg', type: 'image/jpeg'},
+                },
+                false,
+            ).then((formData) => {
+                hasPrepared = true;
+                return formData;
+            });
+            await flushMicrotasks();
+
+            expect(mockSettle).toHaveBeenCalledWith('CAM-1.jpg');
+            // `settle` only holds the payload while a swap has already committed to its two renames, since
+            // reading the receipt mid-rename would send the old bytes, the new ones, or nothing at all.
+            expect(hasPrepared).toBe(false);
+
+            releaseCommittedSwap();
+            await prepared;
+            expect(hasPrepared).toBe(true);
+            expect(mockValidateFormDataParameter).toHaveBeenCalledWith('ReplaceReceipt', 'receipt', expect.objectContaining({name: 'CAM-1.jpg'}));
+        });
+
+        it('never reaches locate, since a file object carries no receipt source to resolve', async () => {
+            await prepareRequestPayload(
+                'ReplaceReceipt',
+                {
+                    transactionID: '1',
+                    receipt: {uri: `file://${RECEIPTS_FOLDER}/CAM-1.jpg`, name: 'CAM-1.jpg', type: 'image/jpeg'},
+                },
+                false,
+            );
+
+            expect(mockCheckFileExists).not.toHaveBeenCalled();
+            expect(mockLogReceiptDropped).not.toHaveBeenCalled();
+        });
     });
 });

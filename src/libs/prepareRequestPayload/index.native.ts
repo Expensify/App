@@ -24,6 +24,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
+            // The assertion is FormData's signature being narrower than what request data can hold.
+            const appendValueAsIs = () => {
+                validateFormDataParameter(command, key, value);
+                formData.append(key, value as string | Blob);
+            };
+
             if (key === 'receipt') {
                 const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
 
@@ -33,13 +39,14 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return Promise.resolve();
                     }
 
-                    const localUri = ReceiptStorage.resolve(source) ?? source;
-
-                    return checkFileExistsWithReason(localUri).then(({exists, error}) => {
-                        if (!exists) {
+                    return ReceiptStorage.locate(source).then((localUri) => {
+                        if (!localUri) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
-                            logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name, statError: error});
-                            return;
+                            // `locate` reports whether the receipt is readable, not why a stat failed, so the reason is
+                            // read back here. This only runs once the receipt is already lost, never on the upload path.
+                            return checkFileExistsWithReason(ReceiptStorage.resolve(source) ?? source).then(({error}) => {
+                                logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name, statError: error});
+                            });
                         }
                         const receiptFormData = {
                             uri: localUri,
@@ -49,6 +56,13 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         validateFormDataParameter(command, key, receiptFormData);
                         formData.append(key, receiptFormData as File);
                     });
+                }
+
+                // ReplaceReceipt sends the file object rather than a receipt source, so it never reaches
+                // `locate` and claims here instead. Claiming here rather than before the action keeps the
+                // optimistic write and queue entry immediate, so a receipt replaced offline is never lost.
+                if (name) {
+                    return ReceiptStorage.settle(name).then(appendValueAsIs);
                 }
             }
 
@@ -72,8 +86,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 });
             }
 
-            validateFormDataParameter(command, key, value);
-            formData.append(key, value as string | Blob);
+            appendValueAsIs();
 
             return Promise.resolve();
         });

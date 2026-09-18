@@ -22,6 +22,7 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
@@ -44,7 +45,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit, canUpgradeReceiptQuality = true}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -112,6 +113,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
+    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
 
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
@@ -171,7 +173,18 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         const path = getReceiptsUploadFolderPath();
 
-        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
+        // `takeSnapshot` saves a screen-sized screenshot of the preview, so on that path a full-resolution
+        // `takePhoto` runs alongside it and replaces the receipt file once it lands. Nothing below awaits it.
+        const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+
+        // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
+        // reads the most recent video frame, which a photo capture can interrupt.
+        const receiptCapture = captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode});
+
+        // Handlers attached before the photo capture starts: a synchronous throw from `startPhotoCapture`
+        // would otherwise leave this promise unhandled, losing the receipt with no alert. The native
+        // snapshot request is already out, so this does not change the order they reach the camera.
+        receiptCapture
             .then((photo: PhotoFile) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
@@ -196,6 +209,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     type: 'image/jpeg',
                 };
 
+                if (shouldUpgradeToPhoto) {
+                    upgradeReceiptWithPhoto(durableName);
+                }
+
                 onCapture(cameraFile, source);
             })
             .catch((error: string) => {
@@ -203,7 +220,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 maybeCancelShutterSpan();
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
+                discardPendingPhoto();
             });
+
+        if (shouldUpgradeToPhoto) {
+            startPhotoCapture(camera.current);
+        }
     };
 
     // Wait for camera permission status to render
@@ -246,6 +268,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             blinkStyle={blinkStyle}
                             isAttachmentPickerActive={isAttachmentPickerActive}
                             didCapturePhoto={didCapturePhoto}
+                            hasPendingPhotoCapture={hasPendingPhotoCapture}
                             onInitialized={handleCameraInitialized}
                             canUseMultiScan={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}
