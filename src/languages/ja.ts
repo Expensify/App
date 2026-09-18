@@ -10889,18 +10889,8 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: '拡張されたベンダー対応付け',
-                body: '主要な会計ソフトへのスムーズなマッピングのために、取引先とカスタムルールを作成できます。',
-                cta: '試してみる',
-            },
-            member: {
-                heading: 'あらかじめ作成されたエージェントをご用意しました',
-                body: 'あらかじめ用意されたエージェントやカスタムエージェントを使って、経費を自動的にコード化・分割・提出できます。',
-                cta: '試してみる',
-            },
-        },
+        heading: 'ExpensifyをClaudeに接続',
+        body: '経費データをClaudeで直接検索・分析・要約できます。',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',

@@ -34,7 +34,7 @@ const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
 if (!announcement) {
     throw new Error('These tests require an active product marketing announcement; update them if the active announcement is removed.');
 }
-const adminHeading = en.productMarketingWindow.roleTypes.admin.heading;
+const windowHeading = en.productMarketingWindow.heading;
 
 function buildAdminPolicy(): Policy {
     return {
@@ -127,7 +127,7 @@ describe('ProductMarketingWindow across navigation', () => {
 
         // The window is visible alongside the first screen.
         expect(screen.getByText(FIRST_SCREEN_TEXT)).toBeTruthy();
-        expect(screen.getByText(adminHeading)).toBeTruthy();
+        expect(screen.getByText(windowHeading)).toBeTruthy();
 
         await act(async () => {
             testNavigationRef.current?.navigate(SCREENS.NOT_FOUND);
@@ -136,7 +136,7 @@ describe('ProductMarketingWindow across navigation', () => {
 
         // The second screen is now shown and the window is still visible because it never unmounted.
         expect(screen.getByText(SECOND_SCREEN_TEXT)).toBeTruthy();
-        expect(screen.getByText(adminHeading)).toBeTruthy();
+        expect(screen.getByText(windowHeading)).toBeTruthy();
 
         await act(async () => {
             testNavigationRef.current?.navigate(NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR);
@@ -145,7 +145,7 @@ describe('ProductMarketingWindow across navigation', () => {
 
         // A screen-based centered modal takes precedence: the window is hidden while it is on top…
         expect(screen.getByText(MODAL_SCREEN_TEXT)).toBeTruthy();
-        expect(screen.queryByText(adminHeading)).toBeNull();
+        expect(screen.queryByText(windowHeading)).toBeNull();
 
         await act(async () => {
             testNavigationRef.current?.goBack();
@@ -153,6 +153,6 @@ describe('ProductMarketingWindow across navigation', () => {
         });
 
         // …and shows again once the modal screen is closed.
-        expect(screen.getByText(adminHeading)).toBeTruthy();
+        expect(screen.getByText(windowHeading)).toBeTruthy();
     });
 });

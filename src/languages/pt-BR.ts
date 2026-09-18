@@ -11002,18 +11002,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Mapeamento de fornecedor aprimorado',
-                body: 'Crie fornecedores e regras personalizadas para facilitar o mapeamento para os principais pacotes de contabilidade.',
-                cta: 'Experimente',
-            },
-            member: {
-                heading: 'Agentes pré-configurados para você',
-                body: 'Use agentes prontos ou personalizados para codificar, dividir e enviar despesas automaticamente em seu nome.',
-                cta: 'Experimente',
-            },
-        },
+        heading: 'Conecte o Expensify ao Claude',
+        body: 'Pesquise, analise e resuma os dados de despesas diretamente no Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
