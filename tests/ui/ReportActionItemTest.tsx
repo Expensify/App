@@ -1312,6 +1312,16 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/deleted/i)).toBeOnTheScreen();
         });
 
+        it('UNDELETED_TRANSACTION action shows undeleted transaction message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION, {
+                fromReportID: '123',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/undeleted/i)).toBeOnTheScreen();
+        });
+
         it('MARKED_REIMBURSED action from OldDot shows reimbursement message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, {
                 isNewDot: false,

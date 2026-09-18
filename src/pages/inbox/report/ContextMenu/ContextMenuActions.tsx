@@ -1313,6 +1313,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translate('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(translate('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION) {
+                    Clipboard.setString(translate('iou.undeletedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
                     Clipboard.setString(translate('iou.reject.reportActions.rejectedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {

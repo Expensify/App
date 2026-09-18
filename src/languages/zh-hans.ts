@@ -1825,6 +1825,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmationSomePendingBYOC: '您确定要删除这些报销吗？其中一些处于待处理状态，如果入账后，我们可能会再次导入。',
         categoryDisabledAlert: {title: '类别已禁用', prompt: '在工作区中启用类别，以编辑报销详情或从此报销中删除该类别。', confirmText: '删除类别'},
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
+        undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
     },
     transactionMerge: {
@@ -6325,7 +6326,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 corporate: '限制删除交易',
                 personal: '允许删除交易',
                 setFeedNameDescription: '为该卡片流水命名一个唯一名称，以便与其他区分',
-                setTransactionLiabilityDescription: '启用后，持卡人可以删除卡片交易。新的交易将遵循此规则。',
+                setTransactionLiabilityDescription: '持卡人可以删除交易。仅适用于新交易。',
                 emptyAddedFeedTitle: '此订阅源中没有卡片',
                 emptyAddedFeedDescription: '请确保在您银行的卡片交易流水中有可用的卡片。',
                 pendingFeedTitle: `我们正在审核你的请求…`,

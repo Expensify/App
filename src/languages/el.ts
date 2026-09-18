@@ -1958,6 +1958,7 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsHoldExplainDM: 'Η αναμονή είναι σαν να πατάτε «παύση» σε μία δαπάνη μέχρι να είστε έτοιμοι να τη στείλετε.',
         holdIsLeftBehindDM: 'Οι δεσμευμένες δαπάνες δεν θα αποσταλούν μέχρι να καταργήσετε τη δέσμευση.',
         unholdWhenReadyDM: 'Αποδεσμεύστε τις δαπάνες όταν είστε έτοιμοι να τις στείλετε.',
+        undeletedExpense: 'ανέκτησε αυτή τη δαπάνη',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `οι τιμές αποζημίωσης χιλιομέτρων ενημερώθηκαν για το νέο χώρο εργασίας - ${policyName}`,
     },
     transactionMerge: {
@@ -6731,8 +6732,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 corporate: 'Περιορισμός διαγραφής συναλλαγών',
                 personal: 'Να επιτρέπεται η διαγραφή συναλλαγών',
                 setFeedNameDescription: 'Δώστε στη ροή κάρτας ένα μοναδικό όνομα ώστε να τη διακρίνετε από τις άλλες',
-                setTransactionLiabilityDescription:
-                    'Όταν είναι ενεργοποιημένο, οι κάτοχοι καρτών μπορούν να διαγράφουν συναλλαγές κάρτας. Οι νέες συναλλαγές θα ακολουθούν αυτόν τον κανόνα.',
+                setTransactionLiabilityDescription: 'Οι κάτοχοι κάρτας μπορούν να διαγράφουν συναλλαγές. Ισχύει μόνο για νέες συναλλαγές.',
                 emptyAddedFeedTitle: 'Δεν υπάρχουν κάρτες σε αυτήν τη ροή',
                 emptyAddedFeedDescription: 'Βεβαιωθείτε ότι υπάρχουν κάρτες στη ροή καρτών της τράπεζάς σας.',
                 pendingFeedTitle: `Εξετάζουμε το αίτημά σας...`,
