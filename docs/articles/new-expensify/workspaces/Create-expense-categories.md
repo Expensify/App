@@ -121,24 +121,28 @@ Once enabled, the GL code appears next to each category name when categorizing e
 
 Category Rules let you control how specific categories behave. You can require additional information, assign approvers, or set spending thresholds for individual categories.
 
-To manage Category Rules:
+Open a category to set the two options that live on the category itself:
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Categories**.
 3. Select a category to open its settings panel.
+4. Set either of the following:
+   - **Approver** – Assign a specific approver for expenses in this category.
+   - **Description hint** – Remind members what information to provide when they use this category.
 
-Available Category Rule options include:
+Everything else is created as a rule. The **Category rules** section at the bottom of the category lists the rules that already apply to it.
 
-- **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
-- **Flag amounts over** - Set a spending cap for this category.
-- **Require receipts over** – Set a threshold for when receipts are required.
-- **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
-- **Require fields** - Require specific fields be completed for this category. The options are:
-   - **Require description** - Force members to enter a reason when using the category.
-   - **Require attendees** - Force members to add additional attendees when using the category.
+1. Select a category to open its settings panel.
+2. In the **Category rules** section, click **Create new rule**.
+3. Choose what the rule should do:
+   - **Flag for review** – Flag expenses in this category when the individual expense amount, or the daily category total on a report, goes above an amount you set.
+   - **Set field requirements** – Require or waive a description, attendees, a receipt, or an itemized receipt for this category.
+   - **Apply expense defaults** – Set a default tax rate for this category ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+4. Configure the rule and click **Save rule**.
 
-Category Rules apply to all members who use that category. If both a Category Rule and a Workspace Rule apply to the same expense, the Category Rule takes priority.
+You can also create and manage these rules from the **Flag for review**, **Field requirements**, and **Expense defaults** tabs of the **Rules** page. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
+
+Category Rules apply to all members who use that category. If both a Category Rule and a workspace-wide rule apply to the same expense, the Category Rule takes priority.
 
 ---
 
@@ -156,17 +160,17 @@ Expensify learns your category preferences over time and suggests them automatic
 
 ## How to set default categories by MCC code
 
-Expensify can automatically assign a default category based on the merchant's MCC (Merchant Category Code). For example, you can set all airline expenses to default to a "Flights" category.
+Expensify can automatically assign a default category based on the merchant's MCC (Merchant Category Code). For example, you can set all airline expenses to default to a **Travel** category. These defaults are rules on the **Expense defaults** tab of the **Rules** page.
 
 To manage MCC default categories:
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Categories**.
-3.  Click **More**
-4. Click **Settings**. 
-5. Update the default category for any MCC group (e.g., Airlines, Gas, Groceries).
+2. Select **Rules**.
+3. Open the **Expense defaults** tab.
+4. Click the rule whose condition is **Merchant type is** for the merchant type you want to change, then update the category it applies.
+5. Click **Save rule**.
 
-## Workspace Merchant Rules
+## How Workspace Merchant Rules apply categories
 
 Workspace Admins can configure [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) to apply consistent categories based on merchant name across all workspace members.
 

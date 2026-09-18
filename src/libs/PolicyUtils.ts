@@ -22,6 +22,7 @@ import type {
 import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
+    Account,
     ApprovalRule,
     ConnectionLastSync,
     ConnectionName,
@@ -43,7 +44,7 @@ import type Rule from '@src/types/onyx/Rule';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -706,6 +707,21 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
     }
 
     return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+}
+
+/**
+ * Payer fields to merge into the successData of an ownership transfer. The backend keeps the former payer when the
+ * workspace has a bank account, so only reassign when there is none and the outgoing owner is the resolved payer.
+ */
+function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin: string): NullishDeep<Policy> {
+    if (!policy || policy.achAccount?.bankAccountID || getReimburserEmail(policy) !== policy.owner) {
+        return {};
+    }
+
+    return {
+        ...(policy.reimburser ? {reimburser: newOwnerLogin} : {}),
+        ...(policy.achAccount?.reimburser ? {achAccount: {reimburser: newOwnerLogin}} : {}),
+    };
 }
 
 /**
@@ -2169,7 +2185,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  * Returns the accountID of the policy reimburser, if not available returns -1.
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
-    const reimburserEmail = policy?.achAccount?.reimburser ?? '';
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
@@ -2279,6 +2295,16 @@ function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: 
     }));
 }
 
+/** Only profit and loss accounts can take a currency conversion cost, so these are kept apart from the bank accounts. */
+function getXeroExpenseAccounts(expenseAccounts: Account[] | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
 function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
@@ -2330,6 +2356,17 @@ function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selecte
         text: name,
         keyForList: id,
         isSelected: id === selectedBankAccountId,
+    }));
+}
+
+function getNetSuiteExpenseAccountOptions(policy: Policy | undefined, selectedExpenseAccountId: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.netsuite?.options.data.expenseAccounts;
+
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: id === selectedExpenseAccountId,
     }));
 }
 
@@ -2525,9 +2562,20 @@ function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: str
     }));
 }
 
-function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
+function getSageIntacctExpenseAccounts(policy: Policy | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.intacct?.data?.expenseAccounts ?? [];
+    return expenseAccounts.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-    return vendors.map(({id, value}) => ({
+    const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
+    return sortedVendors.map(({id, value}) => ({
         value: id,
         text: value,
         keyForList: id,
@@ -2682,24 +2730,21 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, Rillet, and DualEntry branches but not on QBO:
+ * `isVendorMatchingBetaEnabled` is consulted on the Xero and Rillet branches but not on QBO, Sage Intacct, or DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
- *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
+ *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
  *   - Rillet (R4) configured connection. Beta required
- *   - DualEntry configured connection. Beta required
+ *   - DualEntry configured connection. GA, so no beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy)) {
+    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return (
-        isVendorMatchingBetaEnabled &&
-        (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy))
-    );
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy));
 }
 
 /**
@@ -2800,6 +2845,21 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
  */
 function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return getActiveVendorMatchingVendors(policy) ?? [];
+}
+
+/**
+ * Sorts vendors alphabetically by name using the provided localeCompare.
+ * Uses vendor id as a stable tie-breaker when names match.
+ * Non-mutating: returns a new sorted array.
+ */
+function sortVendors<TVendor extends {id: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
+    return [...vendors].sort((a, b) => {
+        const nameComparison = localeCompare(a.name ?? '', b.name ?? '');
+        if (nameComparison !== 0) {
+            return nameComparison;
+        }
+        return localeCompare(a.id, b.id);
+    });
 }
 
 /**
@@ -3440,6 +3500,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getXeroSupplierByID,
@@ -3524,6 +3585,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
+    getOwnerChangePayerSuccessData,
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
@@ -3542,6 +3604,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccounts,
+    getXeroExpenseAccounts,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -3555,12 +3618,14 @@ export {
     getNetSuiteApprovalAccountOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
+    getNetSuiteExpenseAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
+    getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,

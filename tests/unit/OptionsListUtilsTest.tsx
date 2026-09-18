@@ -866,7 +866,7 @@ describe('OptionsListUtils', () => {
     describe('getSearchOptions()', () => {
         it('should return all options when no search value is provided', () => {
             // Given a set of options
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options: results} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -876,7 +876,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -935,7 +935,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -958,7 +958,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: '',
@@ -995,7 +995,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: '',
@@ -1029,7 +1029,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
                 draftComments: {},
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: '',
@@ -1063,7 +1063,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: '',
@@ -1096,7 +1096,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: '',
@@ -1132,7 +1132,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -1160,7 +1160,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -1190,7 +1190,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 searchQuery: 'Concierge',
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -3189,7 +3189,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
                     forcePolicyNamePreview: true,
@@ -3238,7 +3238,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
                     forcePolicyNamePreview: true,
@@ -3284,7 +3284,7 @@ describe('OptionsListUtils', () => {
     describe('filterAndOrderOptions()', () => {
         it('should return all options when search is empty', () => {
             // Given a set of options
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3294,7 +3294,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -3325,7 +3325,7 @@ describe('OptionsListUtils', () => {
         it('should return filtered options in correct order', () => {
             const searchText = 'man';
             // Given a set of options
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3335,7 +3335,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -3374,7 +3374,7 @@ describe('OptionsListUtils', () => {
         it('should filter users by email', () => {
             const searchText = 'mistersinister@marauders.com';
             // Given a set of options
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3384,7 +3384,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -3435,7 +3435,7 @@ describe('OptionsListUtils', () => {
                 },
                 undefined,
             );
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3445,7 +3445,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -3494,7 +3494,7 @@ describe('OptionsListUtils', () => {
                 },
                 undefined,
             );
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3503,7 +3503,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_PERIODS,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -3537,7 +3537,7 @@ describe('OptionsListUtils', () => {
         it('should include workspace rooms in the search results', () => {
             const searchText = 'avengers';
             // Given a set of options with workspace rooms
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3546,7 +3546,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -3578,7 +3578,7 @@ describe('OptionsListUtils', () => {
 
         it('should put exact match by login on the top of the list', () => {
             const searchText = 'reedrichards@expensify.com';
-            // Given a set of options with all betas
+            // Given a set of options with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3588,7 +3588,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -3631,7 +3631,7 @@ describe('OptionsListUtils', () => {
                 {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3640,7 +3640,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_CHAT_ROOMS,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -3895,7 +3895,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return any user to invite if email exists on the personal details list', () => {
             const searchText = 'natasharomanoff@expensify.com';
-            // Given a set of options with all betas
+            // Given a set of options with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -3905,7 +3905,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -3956,7 +3956,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
                     forcePolicyNamePreview: true,
@@ -4019,7 +4019,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
                     forcePolicyNamePreview: true,
@@ -4082,7 +4082,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
                     forcePolicyNamePreview: true,
@@ -4207,7 +4207,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -4273,7 +4273,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -4339,7 +4339,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -4405,7 +4405,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -4451,7 +4451,7 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
 
-            // When we call getSearchOptions with all betas
+            // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -4460,7 +4460,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -5127,7 +5127,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -5176,7 +5176,7 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
 
-            // Given a set of options with self dm and all betas
+            // Given a set of options with self dm and the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
                 dateFnsLocale: undefined,
@@ -5185,7 +5185,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_SELF_DM,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -5223,7 +5223,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -7487,7 +7487,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, betas: [], includeRecentReports: true, sortedActions: undefined},
+                {dateFnsLocale: undefined, convertToDisplayString, isDefaultRoomsBetaEnabled: false, includeRecentReports: true, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -11633,7 +11633,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 options: {reports: [inputOption], personalDetails: []},
                 draftComments: {},
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 loginList,
                 policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -11703,7 +11703,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 options: {reports: [inputOption], personalDetails: []},
                 draftComments: {},
-                betas: [CONST.BETAS.ALL],
+                isDefaultRoomsBetaEnabled: true,
                 loginList,
                 policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -11716,6 +11716,64 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports.length).toBe(1);
             expect(results.recentReports.at(0)?.isUnread).toBe(true);
             expect(results.recentReports.at(0)?.isBold).toBe(true);
+        });
+    });
+    describe('createFilteredOptionList() with members pending removal', () => {
+        const GROUP_CHAT_REPORT_ID = '9001';
+        const groupChatReport: Report = {
+            reportID: GROUP_CHAT_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            reportName: '',
+            lastVisibleActionCreated: '2024-01-01 00:00:00.000',
+            lastMessageText: 'hi',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        // Hoisted so every input other than the pending deletions keeps the same reference, which is what lets the
+        // cached (isSearching: false) path below actually hit the cache instead of missing on a fresh reports object.
+        const reports = {[`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`]: groupChatReport};
+
+        const buildGroupChatOption = (pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>, isSearching = true) => {
+            const optionList = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                reports,
+                MOCK_REPORT_ATTRIBUTES_DERIVED,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                allPolicies,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching,
+                    pendingDeleteMemberAccountIDsByReportID,
+                },
+                undefined,
+            );
+            return optionList.reports.find((option) => option.item.reportID === GROUP_CHAT_REPORT_ID);
+        };
+
+        beforeEach(() => {
+            clearFilteredOptionListCache();
+        });
+
+        it('keeps every member in the group chat icon when nothing is pending removal', () => {
+            expect(buildGroupChatOption()?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
+        });
+
+        it('leaves the members pending removal out of the group chat icon', () => {
+            expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']})?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
+        });
+
+        it('rebuilds the cached option list when a member becomes pending removal', () => {
+            // The non-search path caches its result, so the pending deletions have to be part of the cache inputs.
+            expect(buildGroupChatOption(undefined, false)?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
+            expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']}, false)?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
         });
     });
 });
