@@ -1258,10 +1258,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'このワークスペースに存在しないため、ベンダーが1件スキップされました。',
             other: `このワークスペースに存在しないため、${count} 件のベンダーをスキップしました。`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: 'このワークスペースに存在しないため、1件のサプライヤーをスキップしました。',
-            other: `${count} 件の仕入先は、このワークスペースに存在しないためスキップされました。`,
-        }),
     },
     receipt: {
         upload: '領収書をアップロード',
@@ -8031,7 +8027,6 @@ ${reportName}`,
                 importColumnUpdatedTag: '更新後のタグ',
                 importColumnUpdatedDescription: '更新後の説明',
                 importColumnUpdatedVendor: '仕入先を更新しました',
-                importColumnUpdatedSupplier: '仕入先を更新しました',
                 expensesWith: '対象となる経費条件:',
                 expensesExactlyMatching: '次の条件に完全一致する経費の場合:',
                 applyUpdates: 'これらの更新を適用する',

@@ -1273,10 +1273,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 fornitore è stato ignorato perché non esiste in questo spazio di lavoro.',
             other: `${count} fornitori sono stati ignorati perché non esistono in questo spazio di lavoro.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: '1 fornitore è stato ignorato perché non esiste in questo spazio di lavoro.',
-            other: `${count} fornitori sono stati ignorati perché non esistono in questo spazio di lavoro.`,
-        }),
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -8133,7 +8129,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 importColumnUpdatedTag: 'Tag aggiornato',
                 importColumnUpdatedDescription: 'Descrizione aggiornata',
                 importColumnUpdatedVendor: 'Fornitore aggiornato',
-                importColumnUpdatedSupplier: 'Fornitore aggiornato',
                 expensesWith: 'Per le spese con:',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente a:',
                 applyUpdates: 'Applica questi aggiornamenti:',

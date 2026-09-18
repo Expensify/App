@@ -1323,10 +1323,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 προμηθευτής παραλήφθηκε επειδή δεν υπάρχει σε αυτόν τον χώρο εργασίας.',
             other: `Παραλείφθηκαν ${count} προμηθευτές επειδή δεν υπάρχουν σε αυτόν τον χώρο εργασίας.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: 'Παραλείφθηκε 1 προμηθευτής επειδή δεν υπάρχει σε αυτόν τον χώρο εργασίας.',
-            other: `Παραλείφθηκαν ${count} προμηθευτές επειδή δεν υπάρχουν σε αυτόν τον χώρο εργασίας.`,
-        }),
     },
     receipt: {
         upload: 'Μεταφορτώστε απόδειξη',
@@ -8534,7 +8530,6 @@ ${reportName}`,
                 importColumnUpdatedTag: 'Ενημερωμένη ετικέτα',
                 importColumnUpdatedDescription: 'Ενημερωμένη περιγραφή',
                 importColumnUpdatedVendor: 'Ενημερώθηκε ο προμηθευτής',
-                importColumnUpdatedSupplier: 'Ενημερώθηκε ο προμηθευτής',
                 vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 supplierUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία',

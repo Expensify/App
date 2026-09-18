@@ -1278,10 +1278,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 fournisseur a été ignoré car il n’existe pas dans cet espace de travail.',
             other: `${count} fournisseurs ont été ignorés car ils n’existent pas dans cet espace de travail.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: '1 fournisseur a été ignoré car il n’existe pas dans cet espace de travail.',
-            other: `${count} fournisseurs ont été ignorés car ils n'existent pas dans cet espace de travail.`,
-        }),
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -8197,7 +8193,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 importColumnUpdatedTag: 'Tag mis à jour',
                 importColumnUpdatedDescription: 'Description mise à jour',
                 importColumnUpdatedVendor: 'Fournisseur mis à jour',
-                importColumnUpdatedSupplier: 'Fournisseur mis à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
                 applyUpdates: 'Appliquer ces mises à jour :',

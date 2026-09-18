@@ -1273,10 +1273,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 leverancier is overgeslagen omdat die niet bestaat in deze workspace.',
             other: `${count} leveranciers zijn overgeslagen omdat ze niet bestaan in deze workspace.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: '1 leverancier is overgeslagen omdat die niet bestaat in deze werkruimte.',
-            other: `${count} leveranciers zijn overgeslagen omdat ze niet in deze werkruimte bestaan.`,
-        }),
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -8110,7 +8106,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 importColumnUpdatedTag: 'Bijgewerkte tag',
                 importColumnUpdatedDescription: 'Bijgewerkte omschrijving',
                 importColumnUpdatedVendor: 'Leverancier bijgewerkt',
-                importColumnUpdatedSupplier: 'Leverancier bijgewerkt',
                 expensesWith: 'Voor declaraties met:',
                 expensesExactlyMatching: 'Voor onkosten die exact overeenkomen met:',
                 applyUpdates: 'Pas deze updates toe:',

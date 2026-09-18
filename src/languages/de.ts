@@ -1274,10 +1274,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 Anbieter wurde übersprungen, weil er in diesem Workspace nicht existiert.',
             other: `${count} Anbieter wurden übersprungen, weil sie in diesem Workspace nicht existieren.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: '1 Lieferant wurde übersprungen, weil er in diesem Workspace nicht existiert.',
-            other: `${count} Lieferanten wurden übersprungen, weil sie in diesem Workspace nicht existieren.`,
-        }),
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -8178,7 +8174,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 importColumnUpdatedTag: 'Aktualisiertes Tag',
                 importColumnUpdatedDescription: 'Aktualisierte Beschreibung',
                 importColumnUpdatedVendor: 'Lieferant aktualisiert',
-                importColumnUpdatedSupplier: 'Lieferant aktualisiert',
                 expensesWith: 'Für Ausgaben mit:',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
                 applyUpdates: 'Diese Aktualisierungen anwenden:',

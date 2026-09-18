@@ -1305,10 +1305,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Pominięto 1 kontrahenta, ponieważ nie istnieje w tej przestrzeni roboczej.',
             other: `Pominięto ${count} dostawców, ponieważ nie istnieją w tym obszarze roboczym.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: 'Pominięto 1 dostawcę, ponieważ nie istnieje w tym obszarze roboczym.',
-            other: `Pominięto ${count} dostawców, ponieważ nie istnieją w tym workspace.`,
-        }),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -8132,7 +8128,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 importColumnUpdatedTag: 'Zaktualizowany tag',
                 importColumnUpdatedDescription: 'Zaktualizowany opis',
                 importColumnUpdatedVendor: 'Zaktualizowano kontrahenta',
-                importColumnUpdatedSupplier: 'Zaktualizowano dostawcę',
                 expensesWith: 'Dla wydatków z:',
                 expensesExactlyMatching: 'Dla wydatków dokładnie pasujących do:',
                 applyUpdates: 'Zastosuj te aktualizacje:',

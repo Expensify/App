@@ -1221,10 +1221,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '有 1 个供应商已被跳过，因为它在此工作区中不存在。',
             other: `已跳过 ${count} 个供应商，因为它们在此工作区中不存在。`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: '已跳过 1 个供应商，因为它在此工作区中不存在。',
-            other: `已跳过 ${count} 个供应商，因为它们在此工作区中不存在。`,
-        }),
     },
     receipt: {
         upload: '上传收据',
@@ -7831,7 +7827,6 @@ ${reportName}`,
                 importColumnUpdatedTag: '更新后的标签',
                 importColumnUpdatedDescription: '更新后的描述',
                 importColumnUpdatedVendor: '已更新供应商',
-                importColumnUpdatedSupplier: '已更新供应商',
                 expensesWith: '针对以下费用：',
                 expensesExactlyMatching: '对于完全匹配以下条件的报销：',
                 applyUpdates: '应用这些更新：',

@@ -1274,10 +1274,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Se omitió 1 proveedor porque no existe en este espacio de trabajo.',
             other: `Se omitieron ${count} proveedores porque no existen en este espacio de trabajo.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: 'Se omitió 1 proveedor porque no existe en este espacio de trabajo.',
-            other: `Se omitieron ${count} proveedores porque no existen en este espacio de trabajo.`,
-        }),
     },
     receipt: {
         upload: 'Subir recibo',
@@ -8173,7 +8169,6 @@ ${reportName}`,
                 importColumnUpdatedTag: 'Etiqueta actualizada',
                 importColumnUpdatedDescription: 'Descripción actualizada',
                 importColumnUpdatedVendor: 'Proveedor actualizado',
-                importColumnUpdatedSupplier: 'Proveedor actualizado',
                 expensesWith: 'Para gastos con:',
                 expensesExactlyMatching: 'Para gastos que coincidan exactamente con:',
                 applyUpdates: 'Aplicar estas actualizaciones:',

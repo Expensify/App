@@ -1346,10 +1346,6 @@ const translations = {
             one: "1 vendor was skipped because it doesn't exist in this workspace.",
             other: `${count} vendors were skipped because they don't exist in this workspace.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: "1 supplier was skipped because it doesn't exist in this workspace.",
-            other: `${count} suppliers were skipped because they don't exist in this workspace.`,
-        }),
         importMerchantRulesRequiredColumns: 'Oops! You must map at least one "Merchant is" or "Merchant contains" column, plus at least one field to update. Please review and try again.',
         importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
             one: '1 transaction has been imported.',
@@ -8479,7 +8475,6 @@ const translations = {
                 importColumnUpdatedTag: 'Updated tag',
                 importColumnUpdatedDescription: 'Updated description',
                 importColumnUpdatedVendor: 'Updated vendor',
-                importColumnUpdatedSupplier: 'Updated supplier',
                 expensesWith: 'For expenses with:',
                 expensesExactlyMatching: 'For expenses exactly matching:',
                 applyUpdates: 'Apply these updates:',

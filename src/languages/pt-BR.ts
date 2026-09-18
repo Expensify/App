@@ -1273,10 +1273,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 fornecedor foi ignorado porque não existe neste workspace.',
             other: `${count} fornecedores foram ignorados porque não existem neste workspace.`,
         }),
-        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
-            one: '1 fornecedor foi ignorado porque não existe neste workspace.',
-            other: `${count} fornecedores foram ignorados porque não existem neste workspace.`,
-        }),
     },
     receipt: {
         upload: 'Carregar recibo',
@@ -8117,7 +8113,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 importColumnUpdatedTag: 'Tag atualizada',
                 importColumnUpdatedDescription: 'Descrição atualizada',
                 importColumnUpdatedVendor: 'Fornecedor atualizado',
-                importColumnUpdatedSupplier: 'Fornecedor atualizado',
                 expensesWith: 'Para despesas com:',
                 expensesExactlyMatching: 'Para despesas que correspondam exatamente:',
                 applyUpdates: 'Aplicar estas atualizações:',
