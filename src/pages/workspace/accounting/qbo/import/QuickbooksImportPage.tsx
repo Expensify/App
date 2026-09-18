@@ -67,7 +67,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
                   description: dimension.label,
                   action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION.getRoute(policyID, dimension.id)),
                   title: translate(`workspace.accounting.importTypes.${syncCustomDimensions?.[dimension.id] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-                  subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS],
+                  subscribedSettings: [`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_${dimension.id}`],
               }))
             : []),
         {
