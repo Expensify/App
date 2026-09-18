@@ -11,6 +11,9 @@ type ReviewDomainAdminRequests = {
     /** Number of pending domain adminship requests awaiting review, used to decide whether to render the review row */
     count: number;
 
+    /** accountIDs of the domains that have at least one pending request, used to count distinct marked domain rows */
+    domainAccountIDs: number[];
+
     /** Opens the domain admins page for the one domain with pending requests, or the domains list when there are several. */
     reviewDomainAdminRequests: () => void;
 };
@@ -31,7 +34,7 @@ function useReviewDomainAdminRequests(): ReviewDomainAdminRequests {
         Navigation.navigate(ROUTES.DOMAINS_LIST.getRoute());
     };
 
-    return {count, reviewDomainAdminRequests};
+    return {count, domainAccountIDs, reviewDomainAdminRequests};
 }
 
 export default useReviewDomainAdminRequests;

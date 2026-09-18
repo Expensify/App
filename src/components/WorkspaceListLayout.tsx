@@ -46,15 +46,17 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
-    const {count: pendingDomainAdminRequestsCount} = useReviewDomainAdminRequests();
+    const {domainAccountIDs: pendingDomainAdminRequestAccountIDs} = useReviewDomainAdminRequests();
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const domainErrorsCount = getDomainsWithErrors(allDomainErrors, allDomains).length;
+    const errorDomainAccountIDs = getDomainsWithErrors(allDomainErrors, allDomains).map(([key]) => Number(key.replace(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, '')));
 
-    // Domains tab badge: shows the total count of items needing attention (pending admin requests + domains with errors).
-    // The count is colored red when any of them is an error, otherwise green.
-    const hasDomainErrors = domainErrorsCount > 0;
-    const domainsBadgeCount = pendingDomainAdminRequestsCount + domainErrorsCount;
+    // Domains tab badge: counts the domain rows needing attention (a pending admin request or an error).
+    // A domain with both is counted once so the badge matches the number of marked rows in the list.
+    // The count is colored red when any marked row has an error, otherwise green.
+    const hasDomainErrors = errorDomainAccountIDs.length > 0;
+    const markedDomainAccountIDs = new Set([...pendingDomainAdminRequestAccountIDs, ...errorDomainAccountIDs]);
+    const domainsBadgeCount = markedDomainAccountIDs.size;
     const domainsBadgeText = domainsBadgeCount > 0 ? domainsBadgeCount.toString() : undefined;
     const navigationOptions = [
         {
