@@ -135,9 +135,7 @@ type ConflictRequestReplace = {
     index: number;
 
     /**
-     * The requestIndex of the queued request this replace means. update() resolves it against the live queue, so a drain that
-     * renumbered the queue cannot move the target off it. A nextAction replace is applied after an awaited disk commit and is
-     * refused without one; a top-level replace is applied synchronously, so here it only backstops that branch's index.
+     * The requestIndex of the queued request this replace targets.
      */
     requestIndex?: number;
 
@@ -167,8 +165,7 @@ type ConflictRequestDelete = {
     pushNewRequest: boolean;
 
     /**
-     * The next action to execute after the current conflict is resolved. This runs after an awaited disk commit, so the queue may have
-     * shifted by then: only a replace addressed by requestIndex is accepted.
+     * The next action to execute after the current conflict is resolved.
      */
     nextAction?: ConflictRequestReplace;
 };

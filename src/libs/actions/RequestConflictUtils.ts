@@ -291,7 +291,8 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
         indicesToDelete.push(index);
     }
 
-    const currentAddComment = addCommentIndex >= 0 ? persistedRequests.at(addCommentIndex) : undefined;
+    const addCommentIsLocated = addCommentIndex >= 0;
+    const currentAddComment = addCommentIsLocated ? persistedRequests.at(addCommentIndex) : undefined;
     let nextAction = null;
     if (currentAddComment) {
         currentAddComment.data = {...currentAddComment.data, ...parameters};

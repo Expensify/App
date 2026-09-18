@@ -110,7 +110,7 @@ describe('PersistedRequests', () => {
         };
 
         try {
-            // When the update is addressed by requestIndex from a stale positional index
+            // When an update is applied for requestIndex 11 from the stale positional index 0
             PersistedRequests.update(0, newRequest, 11);
 
             // Then the request carrying requestIndex 11 is replaced, not the one at index 0
@@ -133,7 +133,7 @@ describe('PersistedRequests', () => {
         PersistedRequests.save({...request, command: 'AddComment', data: {reportActionID: 'A1', reportComment: 'v1'}, requestIndex: 12});
 
         try {
-            // When an edit is applied against that identity from a stale positional index
+            // When an update for requestIndex 12 is applied from the stale positional index 1
             PersistedRequests.update(1, {...request, command: 'AddComment', data: {reportActionID: 'A1', reportComment: 'v3'}, requestIndex: 13}, 12);
 
             // Then neither request is overwritten: the OpenReport survives and the AddComment keeps its old text instead of the edit landing on the first carrier
@@ -158,7 +158,7 @@ describe('PersistedRequests', () => {
         PersistedRequests.save({...request, requestIndex: 11});
 
         try {
-            // When an update cannot resolve the request it is asked to replace
+            // When update() is asked to replace that target
             PersistedRequests.update(oldRequestIndex, {...request, requestIndex: 12}, requestIndexToReplace);
 
             // Then the queue is left untouched and the dropped update is alerted, never appended

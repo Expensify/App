@@ -363,25 +363,23 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     const requests = [...persistedRequests];
     const carriesTargetIdentity = (persistedRequest: AnyRequest) => requestIndexToReplace !== undefined && getClientRequestIndex(persistedRequest) === requestIndexToReplace;
     const indexToReplace = requestIndexToReplace === undefined ? oldRequestIndex : requests.findIndex(carriesTargetIdentity);
-    const identityCarrierCount = requests.reduce((count, persistedRequest) => (carriesTargetIdentity(persistedRequest) ? count + 1 : count), 0);
+    const targetIdentityIsAmbiguous = requests.filter(carriesTargetIdentity).length > 1;
+    const targetIsMissingFromQueue = indexToReplace === -1 || indexToReplace >= requests.length;
     const skippedLogParams = {command: newRequest.command, requestIndexToReplace, staleIndex: oldRequestIndex, queueLength: requests.length};
 
-    if (identityCarrierCount > 1) {
-        // The identity is a per-tab counter and a cross-tab merge can land two live requests under one of them, so taking the
-        // first carrier would splice over an innocent write. Refuse, the way the follow-up guard refuses a replace it cannot address.
+    if (targetIdentityIsAmbiguous) {
         Log.alert('[PersistedRequests] Refusing to update a request whose requestIndex is carried by more than one queued request', skippedLogParams);
         return Promise.resolve();
     }
 
-    if (indexToReplace === -1 || indexToReplace >= requests.length) {
-        // Two opposite outcomes share this skip. Benign: the target was promoted to the ongoing request, which is the very object
-        // the resolver mutated in place, so the edit rides along with it. Loss: it already left the queue and nothing persists the
-        // new text. The ongoing request is what tells them apart, and only the second outcome is an emergency. Never append here.
+    if (targetIsMissingFromQueue) {
         const ongoing = getOngoingRequest();
-        if (requestIndexToReplace !== undefined && ongoing !== null && getClientRequestIndex(ongoing) === requestIndexToReplace) {
-            Log.info('[PersistedRequests] Update target has been promoted to the ongoing request, skipping the update', false, skippedLogParams);
+        const targetIsTheOngoingRequest = requestIndexToReplace !== undefined && ongoing !== null && getClientRequestIndex(ongoing) === requestIndexToReplace;
+
+        if (targetIsTheOngoingRequest) {
+            Log.info('[PersistedRequests] Update target has been promoted to the ongoing request, which carries the update already, skipping it', false, skippedLogParams);
         } else {
-            Log.alert('[PersistedRequests] Update target is in neither the queue nor the ongoing request, dropping the update', skippedLogParams);
+            Log.alert('[PersistedRequests] Update target is in neither the queue nor the ongoing request, so the update is dropped', skippedLogParams);
         }
         return Promise.resolve();
     }

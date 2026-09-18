@@ -38,6 +38,9 @@ const request: Request<'userMetadata'> = {
     failureData: [{key: 'userMetadata', onyxMethod: 'set', value: {}}],
 };
 let mockFetch: MockFetch;
+
+const waitForOnyxConnectCallback = () => Promise.resolve();
+
 beforeAll(() => {
     Onyx.init({
         keys: ONYXKEYS,
@@ -261,12 +264,12 @@ describe('SequentialQueue', () => {
     it('should replace request in queue while a similar one is ongoing and keep the same index', async () => {
         mockFetch.pause();
         try {
-            // Given one request is ongoing
+            // Given an OpenReport is ongoing while fetch is paused
             await SequentialQueue.push({command: 'OpenReport'});
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('OpenReport');
 
-            // And a similar ReconnectApp is queued behind it
+            // And a ReconnectApp carrying requestIndex 20 is queued behind it
             await SequentialQueue.push({...request, requestIndex: 20});
 
             const requestWithConflictResolution: Request<never> = {
@@ -308,7 +311,7 @@ describe('SequentialQueue', () => {
         SequentialQueue.push({...request, requestIndex: 30});
         SequentialQueue.push({command: 'AddComment6'});
         SequentialQueue.push({command: 'OpenReport6'});
-        await Promise.resolve();
+        await waitForOnyxConnectCallback();
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp-replaced',
             data: {accountID: 56789},
@@ -336,7 +339,7 @@ describe('SequentialQueue', () => {
         await Promise.resolve();
         const persistedRequests = getAll();
 
-        // Then the request the resolver pointed at is the one replaced at index 9
+        // Then the ReconnectApp is replaced at index 9, the position the resolver measured for it
         expect(persistedRequests.at(9)?.command).toBe('ReconnectApp-replaced');
         expect(persistedRequests.at(9)?.data?.accountID).toBe(56789);
     });
@@ -513,8 +516,6 @@ describe('SequentialQueue - conflict replace addressing', () => {
     }
 
     /**
-     * Runs `drain` while the queue's next storage write is still in flight, which is the window the race lives in.
-     *
      * Onyx's jest provider resolves a set in a couple of microtasks; IndexedDB and SQLite resolve on a storage `complete` event or a WAL commit, so the
      * queue really does keep draining while this write is in flight.
      */
@@ -694,7 +695,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
             expect(getAll().map((r) => r.command)).toEqual(['OpenReport']);
             expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
 
-            // And the skip is reported as the benign promotion it is, so a lost edit stays the only alerted outcome
+            // And the skip logs the promotion at info and raises no alert, so a lost edit stays the only alerted outcome
             expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('promoted to the ongoing request'), false, expect.objectContaining({requestIndexToReplace: 2}));
             expect(logAlertSpy).not.toHaveBeenCalled();
 
