@@ -74,20 +74,25 @@ function DateSegmentsInput({
 
     const focusRequest = dateSegmentsConfig?.focusRequest;
 
+    /**
+     * Arriving at a segment rests the caret after the digits already in it, rather than wherever the browser last left
+     * the caret there, so a half typed month reads as 02 and not 0 followed by a caret and a 2.
+     */
+    const focusSegment = (name: DateSegmentName) => {
+        const element = segmentRefs.current[name];
+        element?.focus();
+
+        const caretPosition = element?.value?.length ?? 0;
+        element?.setSelectionRange?.(caretPosition, caretPosition);
+    };
+
     useEffect(() => {
         if (!focusRequest || focusRequest.version === appliedFocusVersionRef.current) {
             return;
         }
 
         appliedFocusVersionRef.current = focusRequest.version;
-
-        const element = segmentRefs.current[focusRequest.name];
-        element?.focus();
-
-        // Arriving by keystroke rests the caret after the digits already there, rather than wherever it was last left
-        // in this segment, so a half typed month reads as 02 and not 0 followed by a caret and a 2.
-        const caretPosition = element?.value?.length ?? 0;
-        element?.setSelectionRange?.(caretPosition, caretPosition);
+        focusSegment(focusRequest.name);
     }, [focusRequest]);
 
     useEffect(() => () => clearTimeout(blurTimeoutRef.current), []);
@@ -96,7 +101,22 @@ function DateSegmentsInput({
         return null;
     }
 
-    const {mask, getSegmentProps, requestInitialFocus, onFieldBlur} = dateSegmentsConfig;
+    const {mask, getSegmentProps, onFieldBlur} = dateSegmentsConfig;
+
+    /**
+     * Where a press on the field itself lands. The segments are read from the inputs rather than from this render, so
+     * a press arriving as the field is being cleared aims at what the field holds by then and not a moment earlier.
+     */
+    const focusFirstUnfilledSegment = () => {
+        const parts = getDateMaskParts(mask);
+        const target = parts.find((part) => (segmentRefs.current[part.name]?.value?.length ?? 0) < part.placeholder.length) ?? parts.at(-1);
+
+        if (!target) {
+            return;
+        }
+
+        focusSegment(target.name);
+    };
 
     /**
      * The field's own blur handler is what a form hangs its validation on, so it has to wait for the whole field to be
@@ -180,7 +200,7 @@ function DateSegmentsInput({
             <PressableWithoutFeedback
                 accessible={false}
                 accessibilityLabel={translate('common.date')}
-                onPress={requestInitialFocus}
+                onPress={focusFirstUnfilledSegment}
                 sentryLabel="DateSegmentsInput-EmptySpace"
                 style={[styles.flex1, styles.cursorText]}
             />

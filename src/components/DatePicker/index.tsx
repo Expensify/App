@@ -225,6 +225,16 @@ function DatePicker({
     // has to follow the field, and following it keeps an edit in progress from being interrupted.
     useRemeasureOnScroll({isActive: shouldAllowTyping && isModalVisible, remeasure: calculatePopoverPosition});
 
+    // The error text renders inside the anchor, so showing or hiding it changes the height the calendar was positioned
+    // from. Remeasuring on the anchor's own layout covers that without having to name each thing that can resize it.
+    const handleAnchorLayout = () => {
+        if (!isModalVisible) {
+            return;
+        }
+
+        calculatePopoverPosition();
+    };
+
     const handleClear = () => {
         onTouched?.();
         onInputChange?.('');
@@ -268,6 +278,7 @@ function DatePicker({
             <View
                 ref={anchorRef}
                 style={styles.mv2}
+                onLayout={handleAnchorLayout}
             >
                 <TextInput
                     ref={combinedTextInputRef}
@@ -286,7 +297,6 @@ function DatePicker({
                                   mask: dateMask,
                                   getSegmentProps: segmentInput.getSegmentProps,
                                   focusRequest: segmentInput.focusRequest,
-                                  requestInitialFocus: segmentInput.requestInitialFocus,
                                   onFieldBlur: segmentInput.onFieldBlur,
                               }
                             : undefined

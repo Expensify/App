@@ -9,7 +9,6 @@ import {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
-    getFirstUnfilledSegmentName,
     getISODateFromSegments,
     getSegmentDisplay,
     getSegmentsFromISODate,
@@ -86,9 +85,6 @@ type UseDateSegmentInputResult = {
     hasTypedDigits: boolean;
 
     getSegmentProps: (name: DateSegmentName) => DateSegmentProps;
-
-    /** Sends focus to the first segment still to be filled in, for a press that landed on the field but not on a segment */
-    requestInitialFocus: () => void;
 
     /** Called once focus has left the field altogether rather than moved between segments */
     onFieldBlur: () => void;
@@ -257,7 +253,6 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             viewDateVersion: 0,
             hasTypedDigits: false,
             getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}}),
-            requestInitialFocus: () => {},
             onFieldBlur: () => {},
         };
     }
@@ -278,8 +273,6 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             onChangeText: handleChangeText,
             onFocus: handleSegmentFocus,
         }),
-        // A date with no gaps in it has no segment waiting to be filled, so the last one takes the focus
-        requestInitialFocus: () => enterSegment(getFirstUnfilledSegmentName(displayedSegments) ?? LAST_SEGMENT_NAME),
         onFieldBlur: handleFieldBlur,
     };
 }
