@@ -455,6 +455,7 @@ describe('ReportNameUtils', () => {
                 reportTransactions: buildTransactionsByReportID(undefined),
                 translate: translateLocal,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
                 rules: undefined,
             });
         };
@@ -2504,6 +2505,7 @@ describe('ReportNameUtils', () => {
                 translate: translateLocal,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                formatPhoneNumber,
                 rules: undefined,
             });
             expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);

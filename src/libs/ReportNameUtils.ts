@@ -216,6 +216,7 @@ type ComputeReportName = {
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     pendingDeleteMemberAccountIDs?: string[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
 };
 
