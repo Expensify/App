@@ -1,9 +1,9 @@
 import ScrollView from '@components/ScrollView';
-import useShouldFooterBeInsideList from '@components/Search/hooks/useShouldFooterBeInsideList';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
