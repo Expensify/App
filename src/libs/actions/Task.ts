@@ -13,9 +13,10 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import {getAllPersonalDetailLogins} from '@libs/ShortMentionLogins';
@@ -465,7 +466,7 @@ function createTaskFromMarkdown({text, parentReport, currentUserPersonalDetails,
     let assigneeChatReport;
     if (mentionWithDomain) {
         if (isValidMention) {
-            assignee = PersonalDetailsUtils.getPersonalDetailByEmail(mentionWithDomain);
+            assignee = getPersonalDetailByLogin(mentionWithDomain);
             if (!assignee) {
                 const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
                     accountID: generateAccountID(mentionWithDomain),
@@ -1279,7 +1280,7 @@ function getShareDestination(
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
     rules: OnyxCollection<OnyxTypes.Rule>,
-    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    reportName: string | undefined,
     pendingDeleteMemberAccountIDs?: string[],
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
@@ -1320,7 +1321,7 @@ function getShareDestination(
             pendingDeleteMemberAccountIDs,
             conciergeReportID,
         ),
-        displayName: deprecatedGetReportName(report, reportAttributes),
+        displayName: getReportName(report, reportName),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

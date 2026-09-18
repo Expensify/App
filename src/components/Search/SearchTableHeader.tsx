@@ -461,6 +461,15 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 },
                 ...commonGroupHeaders,
             ];
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
+                    translationKey: 'search.filters.groupBy.day',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
         case CONST.SEARCH.GROUP_BY.MONTH:
             return [
                 {
