@@ -805,6 +805,7 @@ function getRateIDForMovedTrackExpense({
         policy,
         ...(policyForMovingExpenses && {policyForMovingExpenses}),
         isMovingTransactionFromTrackExpense: true,
+        useTransactionDistanceUnit: false,
         personalPolicyOutputCurrency,
     });
 
