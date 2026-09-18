@@ -85,6 +85,12 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
                     role={CONST.ROLE.PRESENTATION}
                     value={nlQuery}
                     onChangeText={setNlQuery}
+                    onKeyPress={(e) => {
+                        if (e.nativeEvent.key !== 'Enter' || e.nativeEvent.shiftKey) {
+                            return;
+                        }
+                        handleSubmit();
+                    }}
                     autoFocus
                     autoGrowHeight
                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
@@ -99,7 +105,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     isLoading={isLoading}
-                    isDisabled={!nlQuery.trim() || isLoading}
+                    isDisabled={isLoading}
                     onPress={handleSubmit}
                 >
                     <Button.KeyboardShortcut />
