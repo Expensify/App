@@ -140,7 +140,7 @@ function getHRAdvancedModeFinalApprover(policy?: OnyxEntry<Policy>): string | nu
 }
 
 /** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is configured in basic or advanced (manager) approval mode, or null if none are. */
-function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
+function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | undefined {
     const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
     if ((gustoMode === CONST.GUSTO.APPROVAL_MODE.BASIC || gustoMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) && policy?.connections?.gusto?.config?.finalApprover) {
         return policy.connections.gusto.config.finalApprover;

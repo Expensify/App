@@ -92,13 +92,13 @@ function isMergeATSCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
 }
 
 /** Returns the approval mode configured for the Merge ATS connection, or null when it is not set. */
-function getMergeATSApprovalMode(policy?: OnyxEntry<Policy>): ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null {
-    return policy?.connections?.merge_ats?.config?.approvalMode ?? null;
+function getMergeATSApprovalMode(policy?: OnyxEntry<Policy>): ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | undefined {
+    return policy?.connections?.merge_ats?.config?.approvalMode ?? undefined;
 }
 
-/** Returns the ATS field the default approver is read from (e.g. the recruiter field), or null when it is not set. */
-function getMergeATSApproverField(policy?: OnyxEntry<Policy>): string | null {
-    return policy?.connections?.merge_ats?.config?.approverField ?? null;
+/** Returns the ATS field the default approver is read from (e.g. the recruiter field), or undefined when it is not set. */
+function getMergeATSApproverField(policy?: OnyxEntry<Policy>): string | undefined {
+    return policy?.connections?.merge_ats?.config?.approverField ?? undefined;
 }
 
 /** Checks if the recruiting connection on the policy is in an error state the admin needs to resolve. */

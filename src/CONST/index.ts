@@ -3370,7 +3370,7 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
-            RECRUITING_COORDINATOR: 'recruitingCoordinator',
+            RECRUITING_COORDINATOR: 'coordinator',
         },
         CATEGORY: {
             HRIS: 'hris',
