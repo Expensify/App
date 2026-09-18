@@ -108,7 +108,7 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding');
         expect(clearSignInData).not.toHaveBeenCalled();
     });
 
@@ -120,6 +120,6 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding');
     });
 });
