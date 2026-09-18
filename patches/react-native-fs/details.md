@@ -15,3 +15,15 @@
 - Upstream PR/issue: 🛑, `itinance/react-native-fs` is unmaintained. Last pushed 2024-03-18, 630 open issues, and npm `latest` is still the 2.20.0 we depend on, which does not carry this fix. Maintained forks do carry it, but they ship under their own package names, so there is no version of `react-native-fs` to upgrade to.
 - E/App issue: https://github.com/Expensify/App/issues/99350
 - PR introducing patch: https://github.com/Expensify/App/pull/99333
+
+### [react-native-fs+2.20.0+002+fix-promise-rejection-failing-with-null.patch](react-native-fs+2.20.0+002+fix-promise-rejection-failing-with-null.patch)
+
+- Reason:
+
+    ```
+    This patch fixes an issue where promises are not properly rejected due to an invalid `null` value passed as the error on Android.
+    ```
+
+- Upstream PR/issue: https://github.com/itinance/react-native-fs/pull/1259
+- E/App issue: https://github.com/Expensify/App/issues/59443
+- PR introducing patch: https://github.com/Expensify/App/pull/86677
