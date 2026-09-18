@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -19,9 +19,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isUsingStagingApi} from '@libs/ApiUtils';
+import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getCardFeedIcon, getPlaidInstitutionIconUrl, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isPersonalCard, isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -55,7 +55,7 @@ type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const {translate, formatPhoneNumber, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -74,7 +74,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
-    const isCardBroken = card ? isCardConnectionBroken(card) : false;
+    const isCardBroken = isPersonalCardBrokenConnection(card);
     const isUserPersonalCard = !!(card && isPersonalCard(card));
 
     // Personal cards always belong to the current user, so fall back to the current user's personal details
@@ -142,7 +142,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
     const isMockBank = cardBank.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isUsingNonProductionAPI = shouldUseStagingServer || CONFIG.IS_USING_LOCAL_WEB;
+    const isUsingNonProductionAPI = activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
     const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
     const lastScrape = card?.lastScrape

@@ -7,13 +7,14 @@ import resolveArtifacts from './lib/artifactsResolver';
  *
  * Usage:
  *   bun scripts/artifacts-utils/resolve-artifacts.ts \
- *       --platform=ios --package=react-hybrid --hybrid=true --new-dot-root=.
+ *       --platform=ios --hybrid=true --new-dot-root=.
  *
  * Prints the result as JSON to stdout (logs go to stderr) and always exits 0.
  */
 const args = parseCommandLineArguments();
 const platform = args.platform;
-const packageName = args.package ?? '';
+const isHybrid = args.hybrid === 'true';
+const packageName = isHybrid ? 'react-hybrid' : 'react-standalone';
 
 if (platform !== 'ios' && platform !== 'android') {
     process.stderr.write(`[PatchedArtifacts] Invalid or missing --platform "${platform ?? ''}" (expected "ios" or "android"); building from source.\n`);
@@ -21,7 +22,7 @@ if (platform !== 'ios' && platform !== 'android') {
     process.exit(0);
 }
 
-const options = {packageName, newDotRoot: args['new-dot-root'] ?? '.', isHybrid: args.hybrid === 'true'};
+const options = {packageName, newDotRoot: args['new-dot-root'] ?? '.', isHybrid};
 const resolution = platform === 'ios' ? resolveArtifacts({...options, platform: 'ios'}) : resolveArtifacts({...options, platform: 'android'});
 
 resolution

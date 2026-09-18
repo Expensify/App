@@ -47,6 +47,7 @@ import type {
     QuickAction,
     RecentWaypoint,
     Report,
+    Rule,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -106,6 +107,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     conciergeChat: OnyxEntry<Report>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
+    isDraftChatReport: boolean;
     action: IOUAction;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -115,6 +117,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
+    rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -209,6 +213,7 @@ function handleMoneyRequestStepDistanceNavigation({
     conciergeChat,
     optimisticTransactionID,
     optimisticChatReportID,
+    isDraftChatReport,
     action,
     isTrackIntentUser,
     delegateAccountID,
@@ -219,6 +224,8 @@ function handleMoneyRequestStepDistanceNavigation({
     participants,
     participantsPolicyTags,
     isOffline = false,
+    rules,
+    isVendorMatchingBetaEnabled,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -298,6 +305,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         trackExpense({
                             report,
                             isDraftPolicy: false,
+                            isDraftChatReport,
                             existingTransaction: transaction,
                             participantParams: {
                                 payeeEmail: currentUserLogin,
@@ -351,6 +359,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             delegateAccountID,
                             reportActionsList: undefined,
                             getCurrencyDecimals,
+                            rules,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -385,6 +394,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 isSelfDMDestination,
                 executeWrite: (overrides) => {
                     const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
+                        isVendorMatchingBetaEnabled,
                         report,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
@@ -427,7 +437,6 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         personalDetails,
                         recentWaypoints,
-                        betas,
                         previousOdometerDraft,
                         policyParams: {
                             policyTagList,
@@ -437,6 +446,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         formatPhoneNumber,
                         getCurrencyDecimals,
                         participantsPolicyTags,
+                        rules,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

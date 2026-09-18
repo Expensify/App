@@ -3,13 +3,15 @@
  *  - existing accounts (personal details present) for both email and phone-number logins
  *  - new accounts (personal details missing, e.g. after cache clear) for both email and phone-number logins
  */
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
+import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 
@@ -49,30 +51,16 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@hooks/useVacationDelegatePersonalDetails', () => jest.fn(() => undefined));
 
-jest.mock('@components/OfflineWithFeedback', () => {
-    function MockOfflineWithFeedback({children}: {children: React.ReactNode}) {
-        return children;
-    }
-    return MockOfflineWithFeedback;
-});
+// Capture the props passed to the MenuItemAvatar so the test can assert against `avatarID` directly
+// (rather than re-encoding through `toJSON()`).
+const capturedAvatarProps: Array<Record<string, unknown>> = [];
 
-// Capture the props passed to the MenuItem so the test can assert against `title`, `description`,
-// and `avatarID` directly (rather than re-encoding through `toJSON()`).
-const capturedMenuItemProps: Array<Record<string, unknown>> = [];
-
-jest.mock('@components/MenuItem', () => {
-    function MockMenuItem(props: Record<string, unknown>) {
-        capturedMenuItemProps.push(props);
+jest.mock('@components/Avatar/UserAvatar', () => {
+    function MockUserAvatar(props: Record<string, unknown>) {
+        capturedAvatarProps.push(props);
         return null;
     }
-    return MockMenuItem;
-});
-
-jest.mock('@components/Text', () => {
-    function MockText({children}: {children: React.ReactNode}) {
-        return children;
-    }
-    return MockText;
+    return MockUserAvatar;
 });
 
 const mockUseVacationDelegatePersonalDetails = jest.mocked(useVacationDelegatePersonalDetails);
@@ -82,19 +70,35 @@ const PHONE_DELEGATE_WITH_SMS_DOMAIN = '+919789942470@expensify.sms';
 const PHONE_DELEGATE_RAW = '+919789942470';
 const PHONE_DELEGATE_LOCALIZED = '97899 42470';
 
-function lastMenuItemProps() {
-    return capturedMenuItemProps.at(-1) ?? {};
+function lastAvatarProps() {
+    return capturedAvatarProps.at(-1) ?? {};
 }
 
 describe('VacationDelegateMenuItem', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        capturedMenuItemProps.length = 0;
+        capturedAvatarProps.length = 0;
         mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
     });
 
+    function renderMenuItem(delegate?: string, pendingAction?: PendingAction) {
+        render(
+            <VacationDelegateMenuItem
+                vacationDelegate={delegate ? {delegate} : undefined}
+                pendingAction={pendingAction}
+                onCloseError={jest.fn()}
+                onPress={jest.fn()}
+            />,
+        );
+    }
+
+    function textOccurrences(text: string) {
+        return screen.queryAllByText(text).length;
+    }
+
     describe('existing account (personal details available)', () => {
         it('renders the displayName for an email delegate without `@expensify.sms` artifacts', () => {
+            // Given an existing account with personal details already loaded: an email login and a real display name
             const personalDetails: PersonalDetails = {
                 accountID: 42,
                 login: EMAIL_DELEGATE,
@@ -102,24 +106,19 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: EMAIL_DELEGATE}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            // When the menu item renders that delegate
+            renderMenuItem(EMAIL_DELEGATE);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe('Jane Doe');
-            expect(props.description).toBe(EMAIL_DELEGATE);
-            expect(props.avatarID).toBe(42);
-            expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+            // Then the name, email, and avatar all show as-is, since an email login has no SMS artifacts to strip
+            expect(screen.getByText('Jane Doe')).toBeTruthy();
+            expect(screen.getByText(EMAIL_DELEGATE)).toBeTruthy();
+            expect(lastAvatarProps().accountID).toBe(42);
+            expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
 
-        // The backend defaults `displayName` to the login, so the title has to be formatted rather than
-        // shown as the raw E.164 login it is.
         it('renders the localized phone number for a phone-number account that has no name of its own', () => {
+            // Given a phone-number account whose displayName the backend defaulted to the raw login (its SMS
+            // domain still attached), because it has no name of its own
             const personalDetails: PersonalDetails = {
                 accountID: 43,
                 login: PHONE_DELEGATE_WITH_SMS_DOMAIN,
@@ -127,25 +126,19 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            // When the menu item renders that delegate
+            renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
-            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.avatarID).toBe(43);
-            expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+            // Then the title is formatted into the localized number rather than shown as the raw E.164 login it is
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
+            expect(lastAvatarProps().accountID).toBe(43);
+            expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
 
-        // Bug #89578 — the reported case: the backend hands back the login as the display name with the SMS domain
-        // already stripped, which used to reach the title as a raw E.164 number complete with its country code.
         it('localizes a display name that is the login without its SMS domain', () => {
+            // Given Bug #89578's reported case: Auth hands back the login as the display name but with the SMS
+            // domain already stripped off
             const personalDetails: PersonalDetails = {
                 accountID: 43,
                 login: PHONE_DELEGATE_WITH_SMS_DOMAIN,
@@ -153,20 +146,17 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            // When the menu item renders that delegate
+            renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
+            // Then the title is still localized instead of reaching the screen as a raw E.164 number, which is
+            // what used to happen because stripping the domain alone isn't the same as detecting a phone number
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
 
         it('keeps the name a phone-number account did set, and localizes the number below it', () => {
+            // Given a phone-number account that did set a real display name of its own
             const personalDetails: PersonalDetails = {
                 accountID: 44,
                 login: PHONE_DELEGATE_WITH_SMS_DOMAIN,
@@ -174,22 +164,19 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            // When the menu item renders that delegate
+            renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe('Jane Doe');
-            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
+            // Then the real name is left untouched and only the number below it is localized, so formatting logic
+            // built for the no-name case doesn't clobber a name the account actually has
+            expect(screen.getByText('Jane Doe')).toBeTruthy();
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(1);
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
 
-        // A local contact is stored without the country code. Personal details come back as E.164, which used
-        // to become the title so the status page showed `+91…` above a localized number.
         it('localizes an E.164 display name when the login is still the national form', () => {
+            // Given a local contact stored without its country code, whose personal details came back as E.164 —
+            // which used to become the title verbatim, showing `+91…` above a localized number underneath it
             const personalDetails: PersonalDetails = {
                 accountID: 45,
                 login: '9789942470@expensify.sms',
@@ -197,68 +184,66 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: '9789942470@expensify.sms'}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            // When the menu item renders that delegate
+            renderMenuItem('9789942470@expensify.sms');
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
+            // Then the title is localized rather than left as the raw E.164 display name, and the login below it
+            // still shows in its stored national form
+            expect(screen.getByText(PHONE_DELEGATE_LOCALIZED)).toBeTruthy();
+            expect(screen.getByText('9789942470')).toBeTruthy();
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
     });
 
     describe('new account (personal details missing, e.g. after cache clear)', () => {
         it('renders the raw email as title and description when no personal details exist', () => {
+            // Given a new account with no personal details loaded yet (e.g. right after a cache clear), for an
+            // email delegate
             mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: EMAIL_DELEGATE}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            // When the menu item renders that delegate
+            renderMenuItem(EMAIL_DELEGATE);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(EMAIL_DELEGATE);
-            expect(props.description).toBe(EMAIL_DELEGATE);
-            expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+            // Then the raw email is used for both title and description, since there is no name to fall back on
+            // and an email login has nothing to format
+            expect(textOccurrences(EMAIL_DELEGATE)).toBe(2);
+            expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
 
-        // Bug #89578 — the exact scenario reported.
         it('renders the localized phone number when no personal details exist', () => {
+            // Given Bug #89578's exact reported scenario: no personal details loaded at all, for a phone-number
+            // delegate
             mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            // When the menu item renders that delegate
+            renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
-            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+            // Then the number is still localized from the login alone, rather than showing the raw E.164 login
+            // or leaking its SMS domain
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
+            expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
     });
 
     it('renders the empty-state menu item when no vacation delegate is set', () => {
-        render(
-            <VacationDelegateMenuItem
-                onCloseError={jest.fn()}
-                onPress={jest.fn()}
-            />,
-        );
+        // Given no vacation delegate has ever been set
+        // When the menu item renders
+        renderMenuItem();
 
-        const props = lastMenuItemProps();
-        expect(props.description).toBe('common.vacationDelegate');
-        expect(props.title).toBeUndefined();
+        // Then the empty-state label shows and no avatar is rendered, since there is no delegate to show one for
+        expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
+        expect(capturedAvatarProps).toHaveLength(0);
+    });
+
+    it('shows the empty state immediately while the delegate removal is in flight', () => {
+        // Given a delegate removal that is still in flight: OfflineWithFeedback hides a row pending deletion, which
+        // used to blank the whole field for the length of the request, and removing the delegate empties this
+        // field rather than removing the row
+        // When the menu item renders with no delegate and a DELETE pendingAction
+        renderMenuItem(undefined, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        // Then the empty state shows at once instead of a blank field for the duration of the request
+        expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
     });
 });

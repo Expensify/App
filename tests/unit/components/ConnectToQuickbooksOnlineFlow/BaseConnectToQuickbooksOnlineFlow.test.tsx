@@ -55,7 +55,7 @@ jest.mock('@libs/actions/connections', () => ({
     isAuthenticationError: jest.fn(() => false),
 }));
 
-jest.mock('@pages/workspace/accounting/AccountingContext', () => ({
+jest.mock('@pages/workspace/accounting/AccountingContext/contexts', () => ({
     useAccountingState: jest.fn(() => ({popoverAnchorRefs: undefined})),
 }));
 
@@ -163,6 +163,6 @@ describe('BaseConnectToQuickbooksOnlineFlow', () => {
             expect(mockEnablePolicyTaxes).toHaveBeenCalledTimes(1);
         });
 
-        expect(mockEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false);
+        expect(mockEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false, false);
     });
 });

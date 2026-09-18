@@ -1,4 +1,3 @@
-import '@libs/Middleware/register';
 import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -14,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {search} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
+import registerMiddlewares from '@libs/Middleware/register';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -38,6 +38,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+
+registerMiddlewares();
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
@@ -110,13 +112,13 @@ const expenseQueryJSON = SearchQueryUtils.buildSearchQueryJSON(EXPENSE_QUERY);
 
 const SUBMITTER_ACCOUNT_ID = 1;
 
-// A full first page: pagination only starts once the loaded results fill one page.
-function buildExpenseSnapshotData(): SearchResults['data'] {
+// A full page of results: pagination only starts once the loaded results fill one page.
+function buildExpenseSnapshotData(firstIndex = 1): SearchResults['data'] {
     const data: Record<string, unknown> = {
         personalDetailsList: {[SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, avatar: '', displayName: 'Submitter', login: 'submitter@expensify.com'}},
     };
 
-    for (let index = 1; index <= CONST.SEARCH.RESULTS_PAGE_SIZE; index++) {
+    for (let index = firstIndex; index < firstIndex + CONST.SEARCH.RESULTS_PAGE_SIZE; index++) {
         const id = String(index);
         data[`report_${id}`] = {
             accountID: SUBMITTER_ACCOUNT_ID,
@@ -152,6 +154,7 @@ function buildExpenseSnapshotData(): SearchResults['data'] {
 }
 
 const expenseSnapshotData = buildExpenseSnapshotData();
+const expenseSecondPageData = buildExpenseSnapshotData(CONST.SEARCH.RESULTS_PAGE_SIZE + 1);
 
 function getExpenseSnapshot(isLoading: boolean) {
     return {
@@ -495,5 +498,132 @@ describe('SearchPageNarrow', () => {
         });
 
         expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(false);
+    });
+    it('re-requests the paginated page after a first-page response replaces the loaded results', async () => {
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // The second page lands.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {
+                data: expenseSecondPageData,
+                search: {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, isLoading: false},
+            });
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        mockSearch.mockClear();
+
+        // Switching Spend sub-tabs remounts against this snapshot and refreshes it from the first page.
+        // That response replaces the results rather than appending, so the second page is gone again.
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(true);
+    });
+    it('re-requests the paginated page when a first-page response lands after the page it displaces', async () => {
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // The second page lands first, so the cursor reaches the page that was asked for.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {
+                data: expenseSecondPageData,
+                search: {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, isLoading: false},
+            });
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        mockSearch.mockClear();
+
+        // An older first-page refresh responds last and replaces the results again. The list has not moved,
+        // so onEndReached does not fire. The page has to be asked for on its own.
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(true);
+    });
+    it('holds a page reached while offline and requests it once back online', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Nothing goes on the wire offline: the request would only fail and leave an error on the snapshot.
+        const wasSearchedAtNextPage = () => mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE);
+        expect(wasSearchedAtNextPage()).toBe(false);
+
+        // Back online, the reconnect refresh runs and settles.
+        mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: true}});
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: false}});
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(wasSearchedAtNextPage()).toBe(true);
     });
 });

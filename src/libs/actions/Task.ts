@@ -15,7 +15,7 @@ import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import {getAllPersonalDetailLogins} from '@libs/ShortMentionLogins';
@@ -37,7 +37,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -1285,7 +1285,8 @@ function getShareDestination(
     policy: OnyxEntry<OnyxTypes.Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
-    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    rules: OnyxCollection<OnyxTypes.Rule>,
+    reportName: string | undefined,
     pendingDeleteMemberAccountIDs?: string[],
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
@@ -1309,7 +1310,7 @@ function getShareDestination(
         const login = personalDetails?.[participantAccountID]?.login ?? '';
         subtitle = formatPhoneNumber(login || displayName);
     } else {
-        subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules) ?? '';
     }
     return {
         icons: ReportUtils.getIcons(
@@ -1324,8 +1325,9 @@ function getShareDestination(
             undefined,
             undefined,
             pendingDeleteMemberAccountIDs,
+            conciergeReportID,
         ),
-        displayName: deprecatedGetReportName(report, reportAttributes),
+        displayName: getReportName(report, reportName),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
