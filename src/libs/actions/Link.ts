@@ -590,6 +590,12 @@ function openReportFromDeepLink(
                         }
 
                         const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                            // Skip if the user already left the deeplinked route.
+                            const deeplinkRoute = route as Route;
+                            if (deeplinkRoute && !Navigation.isActiveRoute(deeplinkRoute)) {
+                                return;
+                            }
+
                             // Check if the report exists in the collection
                             const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
@@ -607,7 +613,7 @@ function openReportFromDeepLink(
 
                             // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                             const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                            Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
+                            Navigation.navigate(deeplinkRoute, {forceReplace, waitForTransition: true});
                         };
                         // If we log with deeplink with reportID and data for this report is not available yet,
                         // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens

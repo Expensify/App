@@ -5,8 +5,8 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {getSearchKeyForDataType} from '@libs/SearchUIUtils';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
