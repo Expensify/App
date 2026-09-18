@@ -18,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
-import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -33,7 +32,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {Beta, IntroSelected, Policy, Report} from '@src/types/onyx';
+import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -54,38 +53,6 @@ Onyx.connectWithoutView({
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
-
-let allPolicies: OnyxCollection<Policy>;
-// Read outside React: the parked deep link is replayed from navigateAfterOnboarding, which has no component to read from.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (value) => {
-        allPolicies = value;
-    },
-});
-
-/**
- /** A workspace route needs membership, except the join route, where granting membership is the point. */
-function canOpenDeepLinkAfterOnboarding(route: Route): boolean {
-    let focusedRoute;
-    try {
-        focusedRoute = findFocusedRoute(getStateFromPath(route));
-    } catch (error) {
-        Log.warn('[Link] Could not parse a deep link parked during onboarding', {error});
-        return false;
-    }
-
-    if (focusedRoute?.name === SCREENS.WORKSPACE_JOIN_USER) {
-        return true;
-    }
-
-    const policyID = (focusedRoute?.params as {policyID?: string} | undefined)?.policyID;
-    if (!policyID) {
-        return true;
-    }
-
-    return isPolicyAccessible(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], currentUserEmail);
-}
 
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
     const hashIndex = url.lastIndexOf('#');
@@ -694,13 +661,7 @@ function openReportFromDeepLink(
                                 return false;
                             }
 
-                            setDeepLinkToOpenAfterOnboarding(() => {
-                                if (!canOpenDeepLinkAfterOnboarding(deeplinkRoute)) {
-                                    return false;
-                                }
-
-                                return openDeepLink(true);
-                            });
+                            setDeepLinkToOpenAfterOnboarding(() => openDeepLink(true));
                             return true;
                         };
 

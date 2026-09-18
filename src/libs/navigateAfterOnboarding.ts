@@ -29,8 +29,7 @@ Onyx.connectWithoutView({
     },
 });
 
-/**
- /** Parked by openReportFromDeepLink() while onboarding owns the screen. In memory rather than Onyx because persisting it would let a stale destination replay after a reload or for the next account on the device. */
+/** Parked by openReportFromDeepLink() while onboarding owns the screen. In memory rather than Onyx so a stale destination cannot replay after a reload or for the next account on the device. */
 let openDeepLinkAfterOnboarding: (() => boolean) | undefined;
 
 /** The callback returns whether it opened the route. Returning false lets the caller pick the default destination. */
