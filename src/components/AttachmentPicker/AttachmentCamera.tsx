@@ -186,9 +186,6 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                 ]);
             })
             .catch((error: Error) => {
-                // Tearing down the camera (e.g. tapping X while takePhoto is in-flight) rejects the
-                // promise on Android. That is the user's own cancellation, not a real failure, so
-                // skip both the alert and the Sentry log when the camera is no longer active.
                 if (!isActiveRef.current) {
                     return;
                 }
@@ -209,9 +206,6 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     };
 
     const handleClose = () => {
-        // Drop the active flag synchronously so the guard in the takePhoto catch and
-        // handleCameraError is already correct when the teardown-induced rejection arrives,
-        // instead of waiting for the isVisible useEffect to commit.
         isActiveRef.current = false;
         isCapturing.current = false;
         setFlash(false);
