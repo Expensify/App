@@ -229,6 +229,12 @@ type SortedTransactions = {
     sortOrder: SortOrder;
 };
 
+/** Kept at module scope so resetting to it on a report change is a no-op re-render when the sort is already default. */
+const DEFAULT_SORT_CONFIG: SortedTransactions = {
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+};
+
 function MoneyRequestReportTransactionList({
     report,
     transactions,
@@ -368,16 +374,26 @@ function MoneyRequestReportTransactionList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID]);
 
-    const [sortConfig, setSortConfig] = useState<SortedTransactions>({
-        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
-    });
+    const [sortConfig, setSortConfig] = useState<SortedTransactions>(DEFAULT_SORT_CONFIG);
 
     const {sortBy, sortOrder} = sortConfig;
     // Date/ASC is both the initial state and where every second Date press lands, so pressing a column has to be
     // tracked separately for an explicit sort to win over the RBR ordering below.
     const [hasUserSortedTransactions, setHasUserSortedTransactions] = useState(false);
     const isDefaultSort = !hasUserSortedTransactions && sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
+
+    // This component is reused across reportID changes instead of being remounted (there is no key on the usage in
+    // MoneyRequestReportActionsList), which is why the selection above has to be cleared by hand. The sort is the
+    // same: without this reset, sorting one report would carry into the next report opened and suppress the RBR-first
+    // ordering that report's first open is supposed to get. Adjusted during render rather than in an effect, which is
+    // the pattern React recommends for resetting state on a prop change: it re-renders before anything is committed,
+    // so the new report never paints with the previous one's sort.
+    const [sortedReportID, setSortedReportID] = useState(reportID);
+    if (sortedReportID !== reportID) {
+        setSortedReportID(reportID);
+        setSortConfig(DEFAULT_SORT_CONFIG);
+        setHasUserSortedTransactions(false);
+    }
 
     // In a single pass over reportActions, build:
     // - reportActionsMap: keyed by reportActionID for transactionHasRBR.
@@ -499,35 +515,47 @@ function MoneyRequestReportTransactionList({
     const currentGroupBy: OnyxTypes.ReportLayoutGroupBy = currentSelection !== CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX ? currentSelection : getReportLayoutGroupBy(reportLayoutGroupBy);
     const shouldGroupTransactions = shouldShowGroupedTransactions && !isLayoutMatrixSelected;
 
-    // Once the user presses a column the group headers follow that column too, otherwise the groups stay alphabetical
-    // and only the rows inside each group would be ordered.
-    const compareLeadingTransactions: CompareLeadingTransactions | undefined = useMemo(() => {
-        if (!hasUserSortedTransactions) {
-            return undefined;
-        }
-        return (a, b) =>
-            compareValues(
-                getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
-                getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
-                sortOrder,
-                sortBy,
-                localeCompare,
-                true,
-            );
-    }, [hasUserSortedTransactions, sortBy, sortOrder, report, policy, policyCategories, policyTagLists, localeCompare]);
-
     const groupedTransactions = useMemo(() => {
         if (!shouldGroupTransactions) {
             return [];
         }
+        // Once the user presses a column the group headers follow that column too, otherwise the groups stay
+        // alphabetical and only the rows inside each group would be ordered. Built inside this memo so it inherits the
+        // narrowed report dependency below instead of pulling the whole report object back in as its own memo would.
+        const compareLeadingTransactions: CompareLeadingTransactions | undefined = hasUserSortedTransactions
+            ? (a, b) =>
+                  compareValues(
+                      getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
+                      getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
+                      sortOrder,
+                      sortBy,
+                      localeCompare,
+                      true,
+                  )
+            : undefined;
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
             return groupTransactionsByTag(resolvedTransactions, report, localeCompare, compareLeadingTransactions);
         }
         return groupTransactionsByCategory(resolvedTransactions, report, localeCompare, compareLeadingTransactions);
         // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
         // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
+        // The comparator reads report and policy fields too, but resolvedTransactions is derived from the row sort,
+        // which does depend on both in full, so any change to either already invalidates this memo through it.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions, compareLeadingTransactions]);
+    }, [
+        resolvedTransactions,
+        currentGroupBy,
+        report?.reportID,
+        report?.currency,
+        localeCompare,
+        shouldGroupTransactions,
+        hasUserSortedTransactions,
+        sortBy,
+        sortOrder,
+        policy?.id,
+        policyCategories,
+        policyTagLists,
+    ]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldGroupTransactions || groupedTransactions.length === 0) {

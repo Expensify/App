@@ -1,10 +1,10 @@
+import type {SortOrder} from '@components/Search/types';
+
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import type {CompareLeadingTransactions} from '@libs/ReportLayoutUtils';
 
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
-
-import type {ValueOf} from 'type-fest';
 
 import createMock from '../utils/createMock';
 
@@ -31,7 +31,7 @@ const createMockReport = (overrides: Partial<Report> = {}): Report =>
 // Stands in for the date comparator the transaction list builds from the active sort, so the groups can be checked
 // against the same ordering the rows use.
 const compareByCreated =
-    (sortOrder: ValueOf<typeof CONST.SEARCH.SORT_ORDER>): CompareLeadingTransactions =>
+    (sortOrder: SortOrder): CompareLeadingTransactions =>
     (a, b) => {
         const result = (a.created ?? '').localeCompare(b.created ?? '');
         return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? result : -result;
@@ -560,7 +560,7 @@ describe('group ordering under an explicit sort', () => {
 
     // The RHP prev/next arrows walk the transaction IDs flat-mapped out of these groups, so the flattened groups have
     // to come back in the same order as the sorted rows or "next" would jump to a row the user isn't looking at.
-    it('flattens back into the sorted row order', () => {
+    it('flattens back into the rendered row order', () => {
         const report = createMockReport();
         // The rows reach the grouping already sorted, so they are passed in newest first here as well.
         const transactions = [
@@ -572,6 +572,8 @@ describe('group ordering under an explicit sort', () => {
 
         const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, compareByCreated(CONST.SEARCH.SORT_ORDER.DESC));
 
+        // Rendered order, not the raw sorted order: rows are bucketed by category, so Meals (4, 2) renders before
+        // Travel (3, 1). Changing this to ['4', '3', '2', '1'] would be asserting that grouping is bypassed.
         expect(result.flatMap((group) => group.transactions.map((transaction) => transaction.transactionID))).toEqual(['4', '2', '3', '1']);
     });
 

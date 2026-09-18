@@ -27,6 +27,8 @@ function sortGroupedTransactions(
         if (compareLeadingTransactions) {
             const leadingA = a.transactions.at(0);
             const leadingB = b.transactions.at(0);
+            // Defensive only: the grouping functions below create a group at the moment they push a transaction into
+            // it, so a group is never empty and this guard never falls through to the alphabetical order in practice.
             if (leadingA && leadingB) {
                 const result = compareLeadingTransactions(leadingA, leadingB);
                 if (result !== 0) {
