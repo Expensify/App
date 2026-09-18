@@ -122,11 +122,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
-    const getWorkspaceMembers = useEffectEvent(() => {
+    const getWorkspaceMembers = () => {
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
         openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
-    });
-    const {isOffline} = useNetwork({onReconnect: () => getWorkspaceMembers()});
+    };
+    const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -209,8 +209,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
 
+    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
     useEffect(() => {
-        getWorkspaceMembers();
+        getWorkspaceMembersEvent();
     }, []);
 
     /**
