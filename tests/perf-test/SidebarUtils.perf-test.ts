@@ -16,7 +16,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {convertToDisplayString, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
@@ -43,8 +43,6 @@ const personalDetails = createCollection<PersonalDetails>(
     (index) => createPersonalDetails(index),
     PERSONAL_DETAILS_LIST_COUNT,
 );
-
-const mockedBetas = Object.values(CONST.BETAS);
 
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
@@ -89,12 +87,14 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 1,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
+                rules: undefined,
             }),
         );
     });
@@ -105,7 +105,7 @@ describe('SidebarUtils', () => {
             SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId,
                 reports: allReports,
-                betas: mockedBetas,
+                isDefaultRoomsBetaEnabled: true,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations,
@@ -126,7 +126,7 @@ describe('SidebarUtils', () => {
             SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId,
                 reports: allReports,
-                betas: mockedBetas,
+                isDefaultRoomsBetaEnabled: true,
                 priorityMode: CONST.PRIORITY_MODE.GSD,
                 draftComments: {},
                 transactionViolations,

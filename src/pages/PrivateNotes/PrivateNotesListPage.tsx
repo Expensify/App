@@ -7,7 +7,7 @@ import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -17,7 +17,6 @@ import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/inbox/report
 import withReportAndPrivateNotesOrNotFound from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
@@ -26,7 +25,6 @@ import type {ValueOf} from 'type-fest';
 import React, {useCallback, useMemo} from 'react';
 
 type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps & {
-    /** The report currently being looked at */
     report: Report;
 };
 
@@ -42,7 +40,8 @@ type NoteListItem = {
 
 function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNotesListPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PRIVATE_NOTES_LIST.path);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const privateNoteAccountIDs = Object.keys(report.privateNotes ?? {}).map(Number);
+    const [privateNoteAuthors] = usePersonalDetailsByIDs(privateNoteAccountIDs);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const getAttachmentValue = useCallback((item: NoteListItem) => ({reportID: item.reportID, accountID: Number(item.accountID), type: CONST.ATTACHMENT_TYPE.NOTE}), []);
@@ -80,14 +79,14 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
             return {
                 reportID: report.reportID,
                 accountID: privateNoteAccountID,
-                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : (personalDetailsList?.[privateNoteAccountID]?.login ?? ''),
+                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : (privateNoteAuthors?.[privateNoteAccountID]?.login ?? ''),
                 action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.getRoute(accountID))),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
                 note: privateNote?.note ?? '',
                 disabled: Number(sessionAccountID) !== accountID,
             };
         });
-    }, [report, personalDetailsList, sessionAccountID, translate]);
+    }, [report, privateNoteAuthors, sessionAccountID, translate]);
 
     return (
         <ScreenWrapper testID="PrivateNotesListPage">

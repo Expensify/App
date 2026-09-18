@@ -25,13 +25,11 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 };
 
 type CategoryPickerModalProps = {
-    /** Callback to close the modal */
     onClose: () => void;
 
     /** The policy whose categories should be shown */
     policyID: string | undefined;
 
-    /** Currently selected category */
     selectedCategory?: string;
 
     /** Called when the user confirms a category selection */

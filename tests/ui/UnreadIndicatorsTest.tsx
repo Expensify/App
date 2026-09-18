@@ -207,7 +207,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, TestHelper.formatPhoneNumber, undefined);
 
     await waitForBatchedUpdates();
 
@@ -854,6 +854,7 @@ describe('Unread Indicators', () => {
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
+            isDraftChatReport: false,
             conciergeChat: undefined,
             getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             report: selfDMReport,
@@ -879,6 +880,7 @@ describe('Unread Indicators', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            rules: undefined,
         });
         await waitForBatchedUpdates();
 

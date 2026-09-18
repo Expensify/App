@@ -9,9 +9,10 @@ import {setMoneyRequestAccountant} from '@libs/actions/IOU/MoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {createDraftWorkspaceAndNavigateToConfirmationScreen} from '@libs/ReportUtils';
 
 import MoneyRequestAccountantSelector from '@pages/iou/request/MoneyRequestAccountantSelector';
+
+import {createDraftWorkspaceAndNavigateToConfirmationScreen} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +35,7 @@ function DynamicIOURequestStepAccountant({
     },
 }: DynamicIOURequestStepAccountantProps) {
     const {translate} = useLocalize();
-    const {accountID, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {accountID, email = '', displayName, localCurrencyCode} = useCurrentUserPersonalDetails();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -51,7 +52,7 @@ function DynamicIOURequestStepAccountant({
                 introSelected,
                 transactionID,
                 action,
-                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
                 accountID,
                 email,
                 localCurrencyCode ?? CONST.CURRENCY.USD,

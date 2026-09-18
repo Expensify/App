@@ -42,7 +42,6 @@ function CreateReportMenuItem() {
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -53,6 +52,7 @@ function CreateReportMenuItem() {
         selector: (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email),
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 
@@ -72,9 +72,9 @@ function CreateReportMenuItem() {
             hasViolations,
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
-            allBetas,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
         );

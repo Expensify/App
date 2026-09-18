@@ -19,6 +19,7 @@ import useNavigationSuggestions, {
 } from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
+import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
@@ -41,26 +42,24 @@ import {isValidElement} from 'react';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 
-type MockSearchTypeMenuSectionsResult = {
-    typeMenuSections: SearchTypeMenuSection[];
-    activeItemIndex: number;
-    activeKey: string | undefined;
-};
-
 type GetWorkspaceMenuItems = typeof getWorkspaceMenuItems;
 
-const mockUseSearchTypeMenuSections = jest.fn<MockSearchTypeMenuSectionsResult, [queryParams: unknown, isScreenFocused: boolean]>();
+const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [queryParams: unknown, isScreenFocused: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
 const mockClearSelectedTransactions = jest.fn();
 const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
+const mockShouldUseNarrowLayout = jest.fn(() => false);
 const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: false}));
 const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
+const mockIsBetaEnabledOrUnknown = jest.fn<boolean | undefined, [beta: string]>(() => false);
 const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
+    useSearchQueryContext: () => ({}),
+    useSearchQueryActions: () => ({}),
 }));
 
 jest.mock('@components/Search/SearchRouter/useCreateNavigationSuggestions', () => ({
@@ -95,6 +94,7 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['common.home', 'Home'],
                 ['common.inbox', 'Inbox'],
                 ['common.spend', 'Spend'],
+                ['common.insights', 'Insights'],
                 ['common.workspacesTabTitle', 'Workspaces'],
                 ['common.domains', 'Domains'],
                 ['initialSettingsPage.account', 'Account'],
@@ -107,6 +107,7 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['initialSettingsPage.help', 'Help'],
                 ['search.tabs.reports', 'Reports'],
                 ['search.tabs.expenses', 'Expenses'],
+                ['search.tabs.topSpenders', 'Top spenders'],
                 ['workspace.common.profile', 'Overview'],
             ]);
             return translations.get(key) ?? key;
@@ -126,12 +127,12 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta)}),
+    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta), isBetaEnabledOrUnknown: (beta: string) => mockIsBetaEnabledOrUnknown(beta)}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false}),
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout()}),
 }));
 
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
@@ -151,6 +152,11 @@ jest.mock('@pages/workspace/getWorkspaceMenuItems', () => {
 
 jest.mock('@libs/actions/Search', () => ({
     setSearchContext: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -213,6 +219,8 @@ const workspaceIcons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
+    Bot: mockIcon,
+    UserPlus: mockIcon,
 };
 
 function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
@@ -262,6 +270,7 @@ beforeEach(() => {
     mockUseOnyx.mockImplementation(() => [undefined]);
     mockUseNetwork.mockReturnValue({isOffline: false});
     mockIsBetaEnabled.mockReturnValue(false);
+    mockIsBetaEnabledOrUnknown.mockReturnValue(false);
     mockUseSettingsNavigationMenuData.mockReturnValue({
         accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
         generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
@@ -382,6 +391,7 @@ describe('top-level Search Router navigation source', () => {
                 home: 'Home',
                 inbox: 'Inbox',
                 spend: 'Spend',
+                insights: 'Insights',
                 workspaces: 'Workspaces',
                 domains: 'Domains',
                 account: 'Account',
@@ -390,16 +400,61 @@ describe('top-level Search Router navigation source', () => {
                 Home: mockIcon,
                 Inbox: mockIcon,
                 ReceiptMultiple: mockIcon,
+                PieChart: mockIcon,
                 Building: mockIcon,
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
+            isInsightsPageBetaEnabled: false,
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
 
         expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Workspaces', 'Go to Domains', 'Go to Account']);
         expect(items.map((item) => item.keyForList)).toEqual(['topLevelHome', 'topLevelInbox', 'topLevelSpend', 'topLevelWorkspaces', 'topLevelDomains', 'topLevelAccount']);
+    });
+
+    it('adds the Insights destination when the beta is enabled', () => {
+        // Given a user with the Insights beta
+        const isInsightsPageBetaEnabled = true;
+
+        // When the top-level destinations are built
+        const items = buildTopLevelNavigationItems({
+            labels: {
+                home: 'Home',
+                inbox: 'Inbox',
+                spend: 'Spend',
+                insights: 'Insights',
+                workspaces: 'Workspaces',
+                domains: 'Domains',
+                account: 'Account',
+            },
+            icons: {
+                Home: mockIcon,
+                Inbox: mockIcon,
+                ReceiptMultiple: mockIcon,
+                PieChart: mockIcon,
+                Building: mockIcon,
+                Globe: mockIcon,
+                Gear: mockIcon,
+            },
+            isInsightsPageBetaEnabled,
+            getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
+            getDestinationText: (destination) => `Go to ${destination}`,
+        });
+
+        // Then the Insights row follows Spend and navigates to the Spend dashboard
+        expect(items.map((item) => item.keyForList)).toEqual([
+            'topLevelHome',
+            'topLevelInbox',
+            'topLevelSpend',
+            'topLevelInsights',
+            'topLevelWorkspaces',
+            'topLevelDomains',
+            'topLevelAccount',
+        ]);
+        items.at(3)?.action?.();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
     });
 
     it('navigates each top-level row to its intended route', () => {
@@ -410,6 +465,7 @@ describe('top-level Search Router navigation source', () => {
                 home: 'Home',
                 inbox: 'Inbox',
                 spend: 'Spend',
+                insights: 'Insights',
                 workspaces: 'Workspaces',
                 domains: 'Domains',
                 account: 'Account',
@@ -418,10 +474,12 @@ describe('top-level Search Router navigation source', () => {
                 Home: mockIcon,
                 Inbox: mockIcon,
                 ReceiptMultiple: mockIcon,
+                PieChart: mockIcon,
                 Building: mockIcon,
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
+            isInsightsPageBetaEnabled: false,
             getSpendRoute,
             getDestinationText: (destination) => `Go to ${destination}`,
         });
@@ -498,10 +556,10 @@ describe('Domain Search Router navigation source', () => {
         for (const item of items) {
             item.action?.();
         }
-        expect(onSelect).toHaveBeenNthCalledWith(1, ROUTES.DOMAIN_MEMBERS.getRoute(123));
-        expect(onSelect).toHaveBeenNthCalledWith(2, ROUTES.DOMAIN_ADMINS.getRoute(123));
-        expect(onSelect).toHaveBeenNthCalledWith(3, ROUTES.DOMAIN_GROUPS.getRoute(123));
-        expect(onSelect).toHaveBeenNthCalledWith(4, ROUTES.DOMAIN_SAML.getRoute(123));
+        expect(onSelect).toHaveBeenNthCalledWith(1, ROUTES.DOMAIN_MEMBERS.getRoute(123), 123);
+        expect(onSelect).toHaveBeenNthCalledWith(2, ROUTES.DOMAIN_ADMINS.getRoute(123), 123);
+        expect(onSelect).toHaveBeenNthCalledWith(3, ROUTES.DOMAIN_GROUPS.getRoute(123), 123);
+        expect(onSelect).toHaveBeenNthCalledWith(4, ROUTES.DOMAIN_SAML.getRoute(123), 123);
     });
 
     it('matches Domain rows by subpage label or domain name', () => {
@@ -549,7 +607,7 @@ describe('Domain Search Router navigation source', () => {
             Building: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
 
         const {result} = renderHook(() => useNavigationSuggestions('members'));
 
@@ -561,6 +619,9 @@ describe('Domain Search Router navigation source', () => {
             throw new Error('Expected Domain navigation context to be a React element');
         }
         expect(rightElement.props).toMatchObject({text: 'example.com', icon: domainIcons.Globe});
+
+        result.current.at(0)?.action?.();
+        expect(navigateToDomainRouteWithSidebarSync).toHaveBeenCalledWith(ROUTES.DOMAIN_MEMBERS.getRoute(123), 123, false);
     });
 });
 
@@ -649,8 +710,8 @@ describe('Workspace Search Router navigation source', () => {
             currentUserLogin: workspaceCurrentUserLogin,
             icons: workspaceIcons,
             isOffline,
-            isRulesRevampBetaEnabled: false,
             isVendorMatchingBetaEnabled: false,
+            isRecruitingBetaEnabled: false,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {
@@ -709,8 +770,8 @@ describe('Workspace Search Router navigation source', () => {
         expect(navigateToWorkspaceSettingsRoute).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id), policy.id, false, SCREENS.WORKSPACE.PROFILE);
     });
 
-    it('composes localized Workspace suggestions after Spend with hook-level filtering and beta flags', () => {
-        const activePolicy = createWorkspacePolicy('1', 'Active Workspace');
+    it('composes localized Workspace suggestions after top-level and Spend rows with hook-level filtering and beta flags', () => {
+        const activePolicy = createWorkspacePolicy('1', 'Spend Workspace');
         const deletedPolicy = createWorkspacePolicy('2', 'Deleted Workspace', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`]: activePolicy,
@@ -733,18 +794,22 @@ describe('Workspace Search Router navigation source', () => {
             Home: mockIcon,
             Inbox: mockIcon,
             ReceiptMultiple: mockIcon,
+            PieChart: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({
-            typeMenuSections: [
-                {
-                    translationPath: 'search.tabs.expenseReports',
-                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
-                },
-            ],
-            activeItemIndex: -1,
-            activeKey: undefined,
-        });
+        mockUseSearchTypeMenuSections.mockReturnValue([
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [
+                    createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 'search.tabs.expenses', 'Receipt', 'type:expense'),
+                    createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report'),
+                ],
+            },
+            {
+                translationPath: 'search.tabs.insights',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, 'search.tabs.topSpenders', 'UserEye', 'type:expense groupBy:from')],
+            },
+        ]);
         mockUseSettingsNavigationMenuData.mockReturnValue({
             accountMenuItemsData: {
                 sectionTranslationKey: 'initialSettingsPage.account',
@@ -755,30 +820,21 @@ describe('Workspace Search Router navigation source', () => {
         const actualGetWorkspaceMenuItems = jest.requireActual<{default: GetWorkspaceMenuItems}>('@pages/workspace/getWorkspaceMenuItems').default;
         jest.mocked(getWorkspaceMenuItems).mockImplementationOnce((params) => actualGetWorkspaceMenuItems(params).filter((item) => item.screenName === SCREENS.WORKSPACE.PROFILE));
 
-        const {result} = renderHook(() => useNavigationSuggestions('go'));
+        const {result} = renderHook(() => useNavigationSuggestions('go to spend'));
 
-        expect(result.current.map((item) => item.keyForList)).toEqual([
-            'topLevelAccount',
-            'topLevelDomains',
-            'topLevelHome',
-            'topLevelInbox',
-            'topLevelSpend',
-            'topLevelWorkspaces',
-            'spend_reports',
-            `workspace_1_${SCREENS.WORKSPACE.PROFILE}`,
-        ]);
-        expect(result.current.at(7)).toMatchObject({text: 'Go to Overview'});
+        expect(result.current.map((item) => item.keyForList)).toEqual(['topLevelSpend', `spend_${CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS}`, `workspace_1_${SCREENS.WORKSPACE.PROFILE}`]);
+        expect(result.current.at(2)).toMatchObject({text: 'Go to Overview'});
         expect(result.current.some((item) => item.keyForList?.startsWith('workspace_2_'))).toBe(false);
         expect(getWorkspaceMenuItems).toHaveBeenCalledTimes(1);
         expect(getWorkspaceMenuItems).toHaveBeenCalledWith(
             expect.objectContaining({
                 policy: activePolicy,
-                isRulesRevampBetaEnabled: true,
                 isVendorMatchingBetaEnabled: true,
+                isRecruitingBetaEnabled: true,
             }),
         );
-        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.RULES_REVAMP);
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.MERGE_ATS);
     });
 });
 
@@ -827,7 +883,7 @@ describe('Spend Search Router navigation source', () => {
         expect(items.map((item) => item.matchTerms)).toEqual([['Reports'], ['Expenses']]);
 
         items.at(0)?.action?.();
-        expect(onSelect).toHaveBeenCalledWith(reportsQuery);
+        expect(onSelect).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.REPORTS, reportsQuery);
     });
 
     it('does not use the right-side Spend context as a matching term', () => {
@@ -863,13 +919,33 @@ describe('Spend Search Router navigation source', () => {
         const clearSelectedTransactions = jest.fn();
         const searchQuery = 'type:expense sortBy:date sortOrder:desc';
 
-        navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions);
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, clearSelectedTransactions);
 
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(setSearchContext).toHaveBeenCalledWith(false);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
         expect(clearSelectedTransactions.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0) ?? 0);
         expect(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
+    });
+
+    it('navigates with the last query when it is still valid for the default query', () => {
+        const searchQuery = 'type:expense sortBy:date sortOrder:desc';
+        // The last query adds a filter but keeps the default query's type and (empty) filter keys, so it stays valid.
+        const lastSearchQuery = 'type:expense sortBy:date sortOrder:desc merchant:test';
+
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn());
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastSearchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
+    });
+
+    it('falls back to the default query when the last query drops one of its filters', () => {
+        const searchQuery = 'type:expense merchant:Amazon';
+        // The last query drops the default's merchant filter, so it is no longer valid and the default is used.
+        const lastSearchQuery = 'type:expense category:Food';
+
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn());
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('composes Spend suggestions from the menu hook with icons, context, exclusions, and approval gating', () => {
@@ -884,26 +960,22 @@ describe('Spend Search Router navigation source', () => {
             Gear: mockIcon,
             Document: reportsIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({
-            typeMenuSections: [
-                {
-                    translationPath: 'search.tabs.expenseReports',
-                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
-                },
-                {
-                    translationPath: 'search.savedSearchesMenuItemTitle',
-                    menuItems: [createSpendMenuItem(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}1`, 'search.tabs.reports', 'Receipt', 'saved-search-query')],
-                },
-            ],
-            activeItemIndex: -1,
-            activeKey: undefined,
-        });
+        mockUseSearchTypeMenuSections.mockReturnValue([
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+            },
+            {
+                translationPath: 'search.savedSearchesMenuItemTitle',
+                menuItems: [createSpendMenuItem(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}1`, 'search.tabs.reports', 'Receipt', 'saved-search-query')],
+            },
+        ]);
 
         const {result, rerender} = renderHook(({shouldWatchForApprovals}) => useNavigationSuggestions('reports', shouldWatchForApprovals), {
             initialProps: {shouldWatchForApprovals: false},
         });
 
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, false);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false, undefined);
         expect(result.current).toHaveLength(1);
         expect(result.current.at(0)).toMatchObject({
             text: 'Go to Reports',
@@ -920,7 +992,7 @@ describe('Spend Search Router navigation source', () => {
         expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, true);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, undefined);
     });
 
     it('keeps Create rows reachable when top-level and Spend sources are present', () => {
@@ -932,16 +1004,12 @@ describe('Spend Search Router navigation source', () => {
             Building: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({
-            typeMenuSections: [
-                {
-                    translationPath: 'search.tabs.expenseReports',
-                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
-                },
-            ],
-            activeItemIndex: -1,
-            activeKey: undefined,
-        });
+        mockUseSearchTypeMenuSections.mockReturnValue([
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+            },
+        ]);
         mockUseCreateNavigationSuggestions.mockReturnValue(
             CreateNavigationSuggestions.buildCreateNavigationItems([{visible: true, text: 'Create expense', icon: mockIcon, action: jest.fn(), keyForList: 'create_expense'}]),
         );
@@ -1031,7 +1099,7 @@ describe('Account Search Router navigation source', () => {
             Building: mockIcon,
             Gear: accountContextIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
         mockUseSettingsNavigationMenuData.mockReturnValue({
             accountMenuItemsData: {
                 sectionTranslationKey: 'initialSettingsPage.account',

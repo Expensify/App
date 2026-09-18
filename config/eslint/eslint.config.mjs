@@ -13,7 +13,6 @@ import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import rulesdir from 'eslint-plugin-rulesdir';
 import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
-import seatbelt from 'eslint-seatbelt';
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
 import {createRequire} from 'node:module';
@@ -22,7 +21,6 @@ import {fileURLToPath} from 'node:url';
 import tseslint from 'typescript-eslint';
 
 import reportNameUtilsPlugin from './plugins/eslint-plugin-report-name-utils.mjs';
-import expensifyProcessor from './processors/eslint-processor-expensify.mjs';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -45,16 +43,6 @@ const localRulesDir = path.resolve(projectRoot, 'eslint-plugin-local-rules');
 rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
-    {
-        name: '@components/Button',
-        importNames: ['default'],
-        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
-    },
-    {
-        name: '@src/components/Button',
-        importNames: ['default'],
-        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
-    },
     {
         name: 'react-native',
         importNames: [
@@ -131,7 +119,7 @@ const restrictedImportPaths = [
     },
     {
         name: 'date-fns/locale',
-        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
+        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-US'.",
     },
     {
         name: 'expensify-common',
@@ -199,7 +187,7 @@ const restrictedReportNameImportPatterns = [
 ];
 
 // `isPaidGroupPolicy` is BILLING/paid-only (Collect/Control). Existing usages are grandfathered via
-// eslint-seatbelt; this only flags NEW imports so they make a conscious choice: for workspace feature
+// the seatbelt baseline; this only flags NEW imports so they make a conscious choice: for workspace feature
 // gating (violations, report fields, workspace chat, report creation, expense-workspace usability) use
 // `isGroupPolicy` / `isReportInGroupPolicy` instead, otherwise free group plans like Submit (submit2026)
 // are wrongly excluded and access bugs return.
@@ -240,34 +228,12 @@ const config = defineConfig([
             },
         },
     },
-    fileProgress.configs['recommended-ci'],
-
-    // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
-    // The processor runs React Compiler on each file and filters out redundant lint messages.
     {
-        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
-        processor: expensifyProcessor,
-    },
-
-    // eslint-seatbelt config. The processor is stitched into `expensifyProcessor`
-    // above, so we only wire up the plugin, settings, and `configure` rule here.
-    {
+        ...fileProgress.configs['recommended-ci'],
         settings: {
-            seatbelt: {
-                seatbeltFile: path.join(dirname, 'eslint.seatbelt.tsv'),
-                threadsafe: true,
-                // Never persist TSV updates unless we're in CI. In CI, the ephemeral
-                // write is harmless on PR runs and essential on `push: main`, where
-                // OSBotify commits the tightened baseline back to main
-                // (see .github/workflows/lint.yml). SEATBELT_INCREASE overrides this.
-                readOnly: !process.env.CI,
+            progress: {
+                hide: process.env.CI === 'true' || process.env.LINT_PIPELINE === '1',
             },
-        },
-        plugins: {
-            'eslint-seatbelt': seatbelt,
-        },
-        rules: {
-            'eslint-seatbelt/configure': 'error',
         },
     },
 
@@ -304,7 +270,9 @@ const config = defineConfig([
 
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.json'),
+                // The app project, not the root solution: the solution owns no files, so typed linting
+                // has nothing to resolve against there.
+                project: path.resolve(projectRoot, 'tsconfig.app.json'),
                 projectService: false,
             },
 
@@ -336,6 +304,7 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-raw-typography': 'error',
+            'rulesdir/no-direct-personal-details-list': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
@@ -486,14 +455,16 @@ const config = defineConfig([
         },
     },
 
-    // Enforces every Onyx type and its properties to have a comment explaining its purpose.
+    // Enforces every Onyx type to have a comment explaining its purpose. Per-property
+    // documentation is enforced by the AI reviewer (CONSISTENCY-10) instead,
+    // since a property with nothing non-obvious to say needs no comment.
     {
         files: ['src/types/onyx/**/*.ts'],
         rules: {
             'jsdoc/require-jsdoc': [
                 'error',
                 {
-                    contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration', 'TSPropertySignature'],
+                    contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration'],
                 },
             ],
         },
@@ -682,11 +653,42 @@ const config = defineConfig([
         rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 
+    // Everything else must read personal details through `@hooks/usePersonalDetails`, `@libs/PersonalDetailsStore` or
+    // `buildPersonalDetailsUpdate`, so that changing the shape of the personal details data means changing those
+    // wrappers instead of ~200 call sites. The files below are exempt because they are the wrappers themselves, the
+    // place the key is declared, or test setup that has to seed Onyx by key.
+    {
+        files: [
+            'src/ONYXKEYS.ts',
+            'src/hooks/usePersonalDetails.ts',
+            'src/libs/PersonalDetailsStore.ts',
+            'src/libs/PersonalDetailsUtils.ts',
+            'src/components/OnyxListItemProvider.tsx',
+            'src/libs/ExportOnyxState/common.ts',
+            'tests/**/*.{ts,tsx}',
+            'jest/**/*.{ts,tsx}',
+            '__mocks__/**/*.{ts,tsx}',
+            'src/**/__mocks__/**/*.{ts,tsx}',
+        ],
+        rules: {
+            'rulesdir/no-direct-personal-details-list': 'off',
+        },
+    },
+
     // The typography token files are where raw font sizes and line heights are defined.
     {
         files: ['src/styles/typography.ts', 'src/styles/variables.ts'],
         rules: {
             'rulesdir/no-raw-typography': 'off',
+        },
+    },
+
+    // The styles layer composes tokens out of `variables`, so it reads them by name. Raw numeric literals stay banned.
+    {
+        files: ['src/styles/**'],
+        ignores: ['src/styles/typography.ts', 'src/styles/variables.ts'],
+        rules: {
+            'rulesdir/no-raw-typography': ['error', {allowVariablesReferences: true}],
         },
     },
 
@@ -703,6 +705,28 @@ const config = defineConfig([
                 {
                     paths: restrictedImportPaths,
                     patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
+                },
+            ],
+        },
+    },
+
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            '@typescript-eslint/no-restricted-imports': [
+                'error',
+                {
+                    paths: [
+                        {
+                            name: 'react-native-onyx/dist/OnyxUtils',
+                            message:
+                                'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.',
+                            allowTypeImports: true,
+                        },
+                    ],
                 },
             ],
         },
@@ -735,7 +759,10 @@ const config = defineConfig([
     },
 
     {
-        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts'],
+        // `prompts` is not Bun code, but the Bun program is the one that owns it: `scripts`,
+        // `evals` and `tests/tooling` are its callers. (The Node program lists it too, for the
+        // Proposal Police GitHub Action.)
+        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts', 'prompts/**/*.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.bun.json'),

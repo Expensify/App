@@ -1,8 +1,7 @@
 import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {ReportPreviewDataContext} from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
@@ -22,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import getIOUPayerAndReceiver from '@libs/getIOUPayerAndReceiver';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -33,10 +33,11 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -46,7 +47,7 @@ import {cardByIdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
 
 import truncate from 'lodash/truncate';
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -135,13 +136,9 @@ function TransactionPreviewContent({
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
-    // Raw useContext (not the useReportPreviewData slice hook, which throws when absent): a missing provider means this is a
-    // standalone preview with no report header to carry the status, so the preview has to report a cancelled payment itself.
-    const isInsideReportPreview = !!useContext(ReportPreviewDataContext);
-    const shouldShowCanceledStatus = !isInsideReportPreview;
-
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy, reportActions);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, rules, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -169,13 +166,12 @@ function TransactionPreviewContent({
                 dateFnsLocale,
                 ...transactionPreviewCommonArguments,
                 shouldShowRBR,
-                shouldShowCanceledStatus,
                 violationMessage,
                 reportActions,
                 originalTransaction,
                 convertToDisplayString,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, shouldShowCanceledStatus, violationMessage, reportActions, originalTransaction, convertToDisplayString, dateFnsLocale],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction, convertToDisplayString, dateFnsLocale],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
@@ -329,7 +325,7 @@ function TransactionPreviewContent({
                                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                             {shouldShowPrimaryText && (
                                                 <Text
-                                                    fontSize={variables.fontSizeNormal}
+                                                    fontSize={fontScale.text}
                                                     style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
                                                     numberOfLines={1}
                                                 >
@@ -339,7 +335,7 @@ function TransactionPreviewContent({
                                         </View>
                                         {!shouldUseScanningLayout && (
                                             <Text
-                                                fontSize={variables.fontSizeNormal}
+                                                fontSize={fontScale.text}
                                                 style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
                                                 numberOfLines={1}
                                             >

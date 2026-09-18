@@ -12,10 +12,12 @@ import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
+import isNativeOAuthCallbackURL from '@libs/Navigation/linkingConfig/isNativeOAuthCallbackURL';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
+import openExternalLink from '@libs/openExternalLink';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -74,13 +76,6 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
         // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
         return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
     });
-}
-
-/**
- * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
- */
-function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shouldOpenInSameTab = false) {
-    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic, shouldOpenInSameTab);
 }
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
@@ -151,15 +146,19 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
     });
 }
 
+const NEW_EXPENSIFY_ORIGINS = [CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL, CONST.QA_NEW_EXPENSIFY_URL];
+
 function getInternalNewExpensifyPath(href: string) {
     if (!href) {
         return '';
     }
+
     const attrPath = Url.getPathFromURL(href);
-    return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
-        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => attrPath.startsWith(path))
-        ? attrPath
-        : '';
+    // The dev server's port varies, so dev is matched by prefix instead of by origin.
+    const hasNewExpensifyOrigin = NEW_EXPENSIFY_ORIGINS.some((origin) => Url.hasSameExpensifyOrigin(href, origin)) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
+    const isExternalPath = CONST.PATHS_TO_TREAT_AS_EXTERNAL.some((path) => attrPath.startsWith(path));
+
+    return hasNewExpensifyOrigin && !isExternalPath ? attrPath : '';
 }
 
 function getInternalExpensifyPath(href: string) {
@@ -476,6 +475,8 @@ function openReportFromDeepLink(
             introSelected,
             // Unauthenticated public-room path: there is no signed-in user, so no Concierge chat exists to thread.
             conciergeChat: undefined,
+            // The public room already exists on the server, so no optimistic report is created and the personal details are never read.
+            personalDetails: undefined,
             parentReportActionID: '0',
             isFromDeepLink: true,
             betas,
@@ -518,6 +519,12 @@ function openReportFromDeepLink(
 
     // The Plaid OAuth redirect URI is handled by the native Plaid SDK on iOS — skip navigation to avoid showing NotFound
     if (route?.includes(CONST.PLAID.OAUTH_REDIRECT_PATH_IOS)) {
+        return;
+    }
+
+    // The native OAuth callback is consumed by the auth session that opened it. linkingConfig.filter already drops
+    // it for signed-in users, but this post-sign-in navigate runs outside react-navigation's linking.
+    if (isNativeOAuthCallbackURL(url)) {
         return;
     }
 
@@ -609,6 +616,12 @@ function openReportFromDeepLink(
                         }
 
                         const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                            // Skip if the user already is in the deeplinked route.
+                            const deeplinkRoute = route as Route;
+                            if (deeplinkRoute && Navigation.isActiveRoute(deeplinkRoute)) {
+                                return;
+                            }
+
                             // Check if the report exists in the collection
                             const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
@@ -620,13 +633,13 @@ function openReportFromDeepLink(
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                     return;
                                 }
-                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
+                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
                                 return;
                             }
 
                             // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                             const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                            Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
+                            Navigation.navigate(deeplinkRoute, {forceReplace, waitForTransition: true});
                         };
                         // If we log with deeplink with reportID and data for this report is not available yet,
                         // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
