@@ -23,9 +23,10 @@ import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navig
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
-import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
 
