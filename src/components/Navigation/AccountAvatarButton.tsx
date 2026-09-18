@@ -82,7 +82,7 @@ function AccountAvatarButtonContent() {
                 onPress={navigateToAccount}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${translate('initialSettingsPage.account')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
-                style={[styles.flexRow, styles.touchableButtonImage]}
+                style={[styles.flexRow, styles.touchableButtonImage, styles.ml1]}
                 sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.ACCOUNT_BUTTON}
             >
                 <AccountNavigationAvatar
