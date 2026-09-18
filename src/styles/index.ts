@@ -6692,7 +6692,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: theme.highlightBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             padding: 20,
             minHeight: CHART_CONTENT_MIN_HEIGHT,
         },
@@ -6728,7 +6728,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderStyle: 'solid',
         },
         chartContainer: {
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
         },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
