@@ -36,7 +36,7 @@ function getTableListMetadata<DataType extends TableData>({
         hasPageHeader,
         shouldRenderStickyHeader,
         shouldRenderHeaderInListHeader,
-        // Either placement is a real header row, so `aria-rowindex` has to count it whichever one is in use.
+        // Either placement is a real header row, so `aria-rowindex` has to count it.
         hasHeaderRow: shouldRenderStickyHeader || shouldRenderHeaderInListHeader,
         syntheticRowsBeforeData,
         stickyTableHeaderIndex: 0,

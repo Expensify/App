@@ -32,9 +32,9 @@ type TableSemanticContainerProps = {
     rendersBodyWhenEmpty: boolean;
 
     /**
-     * The width the rows need when the columns are too wide to fit, which makes the header/body run scroll
-     * horizontally as one so the header stays aligned with the rows it labels. Set only for tables whose filter bar
-     * is not inside the list; the others are scrolled by the list itself (see `TableBody`).
+     * The width the rows need when the columns don't fit, which scrolls the header/body run horizontally as one so the
+     * header stays aligned with its rows. Set only for tables whose filter bar isn't in the list; the others are
+     * scrolled by the list itself (see `TableBody`).
      */
     scrollWidth: number | undefined;
 
@@ -55,9 +55,9 @@ type TableSemanticContainerProps = {
  * to avoid an extra layout node. Header and body are contiguous in every table, so grouping the consecutive run keeps
  * a single table container while preserving child order.
  *
- * Columns too wide to fit are scrolled here by wrapping that run in a horizontal scroller, which carries the header
- * and the rows as one. Tables that keep their filter bar inside the list can't use it — an ancestor scroller would
- * carry the filter bar sideways too — so their list takes the horizontal axis itself instead (see `TableBody`).
+ * Columns that don't fit are scrolled here by wrapping that run in a horizontal scroller, which carries header and
+ * rows as one. Tables with an in-list filter bar can't use it — the scroller would drag that bar sideways too — so
+ * their list takes the horizontal axis itself (see `TableBody`).
  */
 function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, scrollWidth, onLayout, children}: TableSemanticContainerProps) {
     const styles = useThemeStyles();

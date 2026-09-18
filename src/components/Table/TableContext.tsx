@@ -70,13 +70,10 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      */
     dynamicGridTemplateColumns: string[] | undefined;
 
-    /**
-     * The width the rows need when the columns are too wide to fit, which makes the list scroll horizontally as well
-     * as vertically. `undefined` means the columns fit and nothing scrolls sideways.
-     */
+    /** The width the rows need when the columns don't fit, which makes the list scroll horizontally too. `undefined` means they fit. */
     scrollWidth: number | undefined;
 
-    /** Measured width of the area the table lays out into. Only measured for content-sized columns; `0` until the first layout. */
+    /** Measured width of the area the table lays out into. Content-sized columns only; `0` until the first layout. */
     tableWidth: number;
 
     /** Filter configuration for dropdown filters. */

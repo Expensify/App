@@ -36,34 +36,28 @@ type TableBodyListProps = TableBodyProps & {
 };
 
 /**
- * Lets the list's own scroller take the horizontal axis too, so the columns scroll inside the same scroller that
- * scrolls the rows vertically. Has to land on the internal ScrollView, which renders `overflowX: 'hidden'` for a
- * vertical list, so it goes through `overrideProps` rather than the list's own `style`.
+ * Makes the list's own scroller scroll the columns horizontally too. Must land on the internal ScrollView, which
+ * renders `overflowX: 'hidden'` for a vertical list, hence `overrideProps` rather than the list's own `style`.
  */
 const columnScrollOverrideStyle = {overflowX: 'auto'};
 
 /**
- * Pins the page header and the filter bar with its search input and pills against the scroller's left edge, so they
- * stay put while the columns move under them.
+ * Pins the page header and its filter bar to the scroller's left edge, so they stay put while the columns move under
+ * them.
  *
- * They are held at the table's width rather than the scrolled content's: a sticky box is only shifted within its
- * containing block, so a box spanning the full scroll range has nowhere to be pinned to and would travel with the
- * columns as if it were not sticky at all. A percentage would resolve against that same scrolled content, stretching
- * the search input across the whole range and pushing the pills out to its far end, so the measured table width is
- * used instead.
+ * Held at the measured table width rather than the scrolled content's: a box spanning the full scroll range has
+ * nothing to be pinned within and would travel with the columns, and a percentage would resolve against that same
+ * range, stretching the search input across it and pushing the pills out to its far end.
  */
 const columnScrollPageHeaderStyle = {position: 'sticky', left: 0} as ViewStyle;
 
 /**
  * Holds the column header at the top of the scroller once the page header above it has scrolled past.
  *
- * Both live in the same list-header box, and only the column header is supposed to stay: sticking the box at minus
- * the page header's height lets exactly that much of it travel off the top, which leaves the column header flush
- * against the scroller. Sticking the column header on its own instead would confine it to this box, and it would
- * scroll away with the rest of it. The offsets resolve against the content container, which spans the rows, so it
- * stays put for the whole scroll.
- *
- * Positioned content paints in tree order and the rows come later, so the header also needs to be lifted above them.
+ * Both share one list-header box, so sticking that box at minus the page header's height lets exactly that much
+ * travel off the top and leaves the column header flush. Sticking the column header alone would confine it to the box
+ * and it would scroll away with it. Offsets resolve against the content container, which spans the rows, so it stays
+ * put for the whole scroll. `zIndex` is needed because the rows paint later in tree order.
  */
 function getColumnScrollListHeaderStyle(pageHeaderHeight: number): ViewStyle {
     return {position: 'sticky', top: -pageHeaderHeight, zIndex: 1} as ViewStyle;
@@ -137,8 +131,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const [isListLoaded, setIsListLoaded] = useState(false);
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const [activeStickyHeaderIndex, setActiveStickyHeaderIndex] = useState(-1);
-    // Measured rather than derived: the page header is consumer content (search input, filter pills, an optional
-    // title row), so its height isn't known until it lays out. `0` keeps the list header unstuck until then.
+    // The page header is consumer content, so its height isn't known until it lays out. `0` keeps the list header
+    // unstuck until then.
     const [pageHeaderHeight, setPageHeaderHeight] = useState(0);
     const {
         processedData: filteredAndSortedData,
@@ -201,9 +195,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
 
     // The columns are wider than the table, so this list's scroller takes the horizontal axis as well (see
-    // `columnScrollOverrideStyle`). Only the tables that keep their filter bar in the list scroll here — the rest are
-    // scrolled by an ancestor (see `TableSemanticContainer`). Only ever true on web: content-sized columns need to
-    // measure text, which native can't do, so native tables always fit.
+    // `columnScrollOverrideStyle`). Only tables that keep their filter bar in the list scroll here — the rest are
+    // scrolled by an ancestor (see `TableSemanticContainer`). Web-only: native can't measure text, so it never
+    // content-sizes columns and its tables always fit.
     const isColumnScrollEnabled = !!scrollWidth && tableListMetadata.hasPageHeader;
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const shouldApplyPageHeaderTable = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && hasRows;
@@ -290,8 +284,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const pageHeaderElement = tableListMetadata.hasPageHeader ? (
         <View
             style={isColumnScrollEnabled && [columnScrollPageHeaderStyle, tableWidth > 0 && StyleUtils.getWidthStyle(tableWidth)]}
-            // Measured unconditionally so the height is already known by the time the columns overflow and the
-            // column header has to be stacked against it, rather than only once that mode is already active.
+            // Measured unconditionally, so the height is already known by the time the columns overflow and the
+            // column header has to be stacked against it.
             onLayout={(event) => setPageHeaderHeight(event.nativeEvent.layout.height)}
         >
             {renderListComponent(ListHeaderComponent)}
@@ -299,9 +293,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         </View>
     ) : null;
 
-    // The column header lives in the list header rather than in FlashList's sticky-row overlay while the columns
-    // scroll, so that the scroller carries it sideways with the columns it labels. One copy instead of the overlay's
-    // two, so there is no duplicate to hide from screen readers either.
+    // While the columns scroll, the column header lives in the list header rather than FlashList's sticky-row
+    // overlay, so the scroller carries it sideways with the columns it labels. One copy instead of the overlay's two,
+    // so there is no duplicate to hide from screen readers either.
     const listHeaderContent = tableListMetadata.shouldRenderHeaderInListHeader ? (
         <>
             {pageHeaderElement}
@@ -451,15 +445,15 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 ref={listRef}
                 data={listData}
                 style={[styles.flex1, styles.mnh0]}
-                // The web scroller hides both scrollbars at once, so while the columns scroll the vertical bar has to
-                // come back with the horizontal one the table needs as its only affordance for scrolling sideways.
+                // The web scroller hides both scrollbars at once, so the vertical one has to come back to get the
+                // horizontal one, the only affordance for scrolling sideways.
                 showsVerticalScrollIndicator={isColumnScrollEnabled ? undefined : false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={listHeaderContent}
                 ListHeaderComponentStyle={[
                     ListHeaderComponentStyle,
-                    // Without a measured page header there is nothing to offset the stack by, and sticking it at 0
-                    // would pin the page header itself. Better to leave the header unstuck for that one layout pass.
+                    // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin the page
+                    // header itself. Better unstuck for that one layout pass.
                     pageHeaderHeight > 0 && tableListMetadata.shouldRenderHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
                 ]}
                 ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
@@ -473,8 +467,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
-                    // The rows are absolutely positioned, so they size themselves to the columns and would leave the
-                    // scroller's content as narrow as the table. This holds the scroll extent open for them.
+                    // The rows are absolutely positioned, so they don't widen the scroller's content. This holds
+                    // the scroll extent open for them.
                     isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,
                     shouldUseNarrowTableLayout &&
@@ -499,8 +493,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 }}
                 {...restListProps}
                 scrollEnabled={scrollEnabled}
-                // Merged rather than replaced, and placed after the spread, so neither a consumer's own
-                // `overrideProps` nor the horizontal axis the table needs can silently drop the other.
+                // Merged after the spread, so a consumer's own `overrideProps` and the table's horizontal axis
+                // can't silently drop each other.
                 overrideProps={isColumnScrollEnabled ? {...overrideProps, style: [overrideProps?.style, columnScrollOverrideStyle]} : overrideProps}
             />
         </View>

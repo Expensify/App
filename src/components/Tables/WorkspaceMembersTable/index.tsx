@@ -359,7 +359,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            {/*<Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>*/}
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

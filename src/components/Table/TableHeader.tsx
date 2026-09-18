@@ -207,11 +207,10 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         </View>
     );
 
-    // Sits in the list header rather than in FlashList's sticky-row overlay, so it is in flow inside the scroller and
-    // is carried sideways with the columns. It only needs the width they scroll across: the list header stretches to
-    // the scrolled content, and without an explicit width the header's background and bottom border would stop at it
-    // while its columns kept painting past them. The margin the header keeps is part of `scrollWidth`, so this
-    // resolves to the same box as the rows. The opaque backdrop is what the rows scroll under once it is stuck.
+    // Sits in the list header rather than FlashList's sticky-row overlay, so the scroller carries it sideways with
+    // the columns. Needs an explicit width: the list header stretches to the scrolled content, so the background and
+    // bottom border would stop short of the columns. `scrollWidth` includes the header's margin, so this is the same
+    // box as the rows. The opaque background is what the rows scroll under once it is stuck.
     if (tableListMetadata.shouldRenderHeaderInListHeader && !!scrollWidth) {
         return <View style={[styles.appBG, StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
     }

@@ -396,9 +396,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
     });
     const shouldRenderHeaderRow = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
-    // FlashList renders its sticky rows as an overlay outside the scroller, which is fine while that scroller only
-    // moves vertically. Once the columns overflow it takes the horizontal axis as well, and an overlay outside it
-    // cannot follow them, so the header moves into the list header and sticks there instead (see `TableBody`).
+    // FlashList's sticky-row overlay sits outside the scroller, so it can't follow the columns once they scroll
+    // horizontally. Then the header moves into the list header and sticks there instead (see `TableBody`).
     const shouldRenderHeaderInListHeader = shouldRenderHeaderRow && !!dynamicScrollWidth;
     const shouldRenderStickyHeader = shouldRenderHeaderRow && !shouldRenderHeaderInListHeader;
 
@@ -513,9 +512,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                // Only tables without a page header scroll their columns here. The ones that have one keep their
-                // filter bar inside the list, which an ancestor scroller would carry sideways, so their list takes
-                // the horizontal axis itself instead (see `TableBody`).
+                // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
+                // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
                 scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
