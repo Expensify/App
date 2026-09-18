@@ -8477,7 +8477,6 @@ describe('ReportUtils', () => {
 
             // When it is evaluated outside focus mode, so only the participants check can exclude it
             const isInFocusMode = false;
-            const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const result = shouldReportBeInOptionList({
                 report,
                 chatReport: mockedChatReport,
@@ -8503,13 +8502,12 @@ describe('ReportUtils', () => {
 
             // When it is evaluated for the option list
             const isInFocusMode = false;
-            const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const result = shouldReportBeInOptionList({
                 report,
                 chatReport: mockedChatReport,
                 currentReportId,
                 isInFocusMode,
-                betas,
+                isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
                 draftComment: '',

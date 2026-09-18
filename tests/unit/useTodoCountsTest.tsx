@@ -688,7 +688,7 @@ describe('useTodoCounts', () => {
             const reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: undefined,
                 reports,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
