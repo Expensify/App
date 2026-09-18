@@ -47,6 +47,8 @@ When the transfer is complete, you'll see a confirmation message that you're now
 - Your payment card is used for future subscription charges.
 - You can manage the workspace's billing settings.
 - You'll receive billing notifications and receipts for that workspace.
+- If the previous Workspace owner was the **Payer** and the workspace has no business bank account connected, you become the **Payer** in **Workflows > Payments**.
+- If the workspace has a business bank account connected, the previous Workspace owner stays the **Payer** until you assign a new one.
 
 Depending on the workspace's status and subscription, you may also see one of the following messages:
 
@@ -89,6 +91,15 @@ You can take over an Annual subscription only if you're a Workspace Admin on eve
 
 - If the subscription includes only the workspace you're transferring, you'll see the **Take over Annual subscription** message. Continue to transfer the subscription to your account.
 - If the subscription includes multiple workspaces, you'll see the **Duplicate subscription alert** message. Ask the current Workspace owner to add you as a Workspace Admin to every workspace included in the subscription, then transfer ownership of each workspace.
+
+## Why can't I remove the previous Workspace owner after transferring ownership?
+
+You can't remove a member who is still set as the workspace's **Payer**. If you see a message asking you to set a new reimburser before removing them, the previous Workspace owner is still the **Payer**.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name] > Workflows**.
+2. Open **Payments**.
+3. Under **Payer**, select a different Workspace Admin.
+4. Go to **Members**, select the previous Workspace owner, and click **Remove from workspace**.
 
 ## Why can't I see billing history from the previous Workspace owner?
 
