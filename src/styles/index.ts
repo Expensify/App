@@ -3496,6 +3496,29 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
         },
 
+        // Bordered container of a confirmation row that picks a value (category, tag, tax, ...), so it reads as
+        // one of the form's fields rather than as a link out of the flow. Mirrors `textInputContainer`.
+        moneyRequestFieldRow: {
+            minHeight: variables.componentSizeLarge,
+            paddingHorizontal: 8,
+            paddingVertical: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.bordersBold,
+            backgroundColor: theme.appBG,
+            overflow: 'hidden',
+        },
+
+        // Circular icon-only button sitting beside the amount field, standing in for the full-width add-receipt button.
+        moneyRequestAddReceiptButton: {
+            width: variables.componentSizeLarge,
+            height: variables.componentSizeLarge,
+            borderRadius: variables.componentSizeLarge / 2,
+            backgroundColor: theme.buttonDefaultBG,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         requestPreviewBox: {
             marginTop: 12,
             maxWidth: variables.reportPreviewMaxWidth,

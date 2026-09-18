@@ -1435,6 +1435,7 @@ const translations = {
             cta: 'Add Home Address',
         },
         amount: 'Amount',
+        expenseDetails: 'Expense details',
         percent: 'Percent',
         date: 'Date',
         taxAmount: 'Tax amount',

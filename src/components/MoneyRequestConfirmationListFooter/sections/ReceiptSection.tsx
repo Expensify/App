@@ -50,6 +50,12 @@ type ReceiptSectionProps = {
 
     /** Callback when the receipt PDF requires a password */
     onPDFPassword?: () => void;
+
+    /**
+     * Hides the full-width "Add receipt" empty state, leaving the section to render only an attached receipt. The
+     * manual form offers the same action from a compact button beside the amount field instead.
+     */
+    shouldHideEmptyState?: boolean;
 };
 
 function ReceiptSection({
@@ -62,6 +68,7 @@ function ReceiptSection({
     showMoreFields = false,
     isReceiptEditable = false,
     isLoadingReceipt = false,
+    shouldHideEmptyState = false,
 }: ReceiptSectionProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
@@ -119,7 +126,7 @@ function ReceiptSection({
         );
     }
 
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
+    const showReceiptEmptyState = !shouldHideEmptyState && shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     if (!showReceiptEmptyState) {
         return null;
     }

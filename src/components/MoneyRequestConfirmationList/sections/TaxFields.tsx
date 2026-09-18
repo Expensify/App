@@ -30,6 +30,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {taxSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -48,6 +50,7 @@ type TaxFieldsProps = {
 };
 
 function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, clearFormErrors}: TaxFieldsProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -133,29 +136,74 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         clearFormErrors(['iou.error.invalidTaxAmount']);
     }, [formError, taxAmount, maxTaxAmount, clearFormErrors]);
 
+    const openTaxRatePage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID)));
+    };
+
+    const openTaxAmountPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
+    };
+
+    const readOnlyTaxAmountRow = shouldUseDropdownRows ? (
+        <ExpenseFieldRow
+            name={translate('iou.taxAmount')}
+            value={formattedTaxAmount}
+            onPress={openTaxAmountPage}
+            isDisabled={didConfirm}
+            isInteractive={canModifyTaxFields}
+            testID={`${taxRates?.name}_amount`}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
+        />
+    ) : (
+        <MenuItemField
+            key={`${taxRates?.name}_amount`}
+            testID={`${taxRates?.name}_amount`}
+            value={formattedTaxAmount}
+            name={translate('iou.taxAmount')}
+            onPress={canModifyTaxFields ? openTaxAmountPage : undefined}
+            isDisabled={didConfirm}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
+        />
+    );
+
     return (
         <>
-            <MenuItemWithTopDescription
-                key={`${taxRates?.name}_rate`}
-                pressableTestID={`${taxRates?.name}_rate`}
-                shouldShowRightIcon={canModifyTaxFields}
-                title={taxRateTitle}
-                description={taxRates?.name}
-                style={[styles.moneyRequestMenuItem]}
-                titleStyle={styles.flex1}
-                onPress={() => {
-                    if (!transactionID) {
-                        return;
-                    }
-
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID)));
-                }}
-                disabled={didConfirm}
-                interactive={canModifyTaxFields}
-                brickRoadIndicator={shouldDisplayTaxRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
-            />
+            {shouldUseDropdownRows ? (
+                <ExpenseFieldRow
+                    name={taxRates?.name ?? translate('iou.taxRate')}
+                    value={taxRateTitle}
+                    errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
+                    onPress={openTaxRatePage}
+                    isDisabled={didConfirm}
+                    isInteractive={canModifyTaxFields}
+                    testID={`${taxRates?.name}_rate`}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
+                />
+            ) : (
+                <MenuItemWithTopDescription
+                    key={`${taxRates?.name}_rate`}
+                    pressableTestID={`${taxRates?.name}_rate`}
+                    shouldShowRightIcon={canModifyTaxFields}
+                    title={taxRateTitle}
+                    description={taxRates?.name}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={openTaxRatePage}
+                    disabled={didConfirm}
+                    interactive={canModifyTaxFields}
+                    brickRoadIndicator={shouldDisplayTaxRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
+                />
+            )}
             {canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
@@ -175,25 +223,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                     />
                 </View>
             ) : (
-                <MenuItemField
-                    key={`${taxRates?.name}_amount`}
-                    testID={`${taxRates?.name}_amount`}
-                    value={formattedTaxAmount}
-                    name={translate('iou.taxAmount')}
-                    onPress={
-                        canModifyTaxFields
-                            ? () => {
-                                  if (!transactionID) {
-                                      return;
-                                  }
-
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
-                              }
-                            : undefined
-                    }
-                    isDisabled={didConfirm}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
-                />
+                readOnlyTaxAmountRow
             )}
         </>
     );

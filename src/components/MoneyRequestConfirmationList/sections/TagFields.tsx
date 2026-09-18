@@ -16,6 +16,8 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {createTagDisplaySelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -50,6 +52,7 @@ function TagFields({
     formError,
     tagIndex,
 }: TagFieldsProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
@@ -58,6 +61,29 @@ function TagFields({
     const tagDisplay = useTransactionSelector(transactionID, tagDisplaySelector);
 
     const displayedTag = tagDisplay ?? '';
+
+    const openTagPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, transactionID, reportID, reportActionID)));
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={policyTagList.name}
+                value={displayedTag}
+                rightLabel={isTagRequired ? translate('common.required') : ''}
+                errorText={shouldDisplayTagError && !!displayedTag ? translate(formError as TranslationPaths) : ''}
+                onPress={openTagPage}
+                isDisabled={didConfirm}
+                isInteractive={!isReadOnly}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAG_FIELD}
+            />
+        );
+    }
 
     return (
         <HighlightableMenuItemWithTopDescription
@@ -68,13 +94,7 @@ function TagFields({
             shouldShowBasicTitle
             shouldShowDescriptionOnTop
             numberOfLinesTitle={2}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, transactionID, reportID, reportActionID)));
-            }}
+            onPress={openTagPage}
             style={[styles.moneyRequestMenuItem]}
             brickRoadIndicator={shouldDisplayTagError && !!displayedTag ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={shouldDisplayTagError && !!displayedTag ? translate(formError as TranslationPaths) : ''}

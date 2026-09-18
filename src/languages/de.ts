@@ -1910,6 +1910,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Tag löschen',
         },
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
+        expenseDetails: 'Ausgabendetails',
     },
     transactionMerge: {
         listPage: {

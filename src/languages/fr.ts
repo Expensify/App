@@ -1914,6 +1914,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Supprimer le tag',
         },
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `les taux kilométriques ont été mis à jour pour le nouvel espace de travail - ${policyName}`,
+        expenseDetails: 'Détails de la dépense',
     },
     transactionMerge: {
         listPage: {

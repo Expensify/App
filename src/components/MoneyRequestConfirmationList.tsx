@@ -611,6 +611,7 @@ function MoneyRequestConfirmationList({
                         shouldShowCategories,
                         shouldShowTax,
                         isParticipantPickerVisible,
+                        hasParticipantSection: sections.length > 0,
                     }}
                     errorState={{shouldDisplayFieldError, formError, clearFormErrors, setFormError}}
                     toggleHandlers={{onToggleReimbursable, onToggleBillable}}
@@ -705,6 +706,10 @@ function MoneyRequestConfirmationList({
                     footerContent={footerContent}
                     listFooterContent={listFooterContent}
                     style={selectionListStyle}
+                    // The rows of this list are the expense's own fields, so a tap that none of them claims is a tap
+                    // outside the focused field and has to dismiss the keyboard. The list's default (`always`) is for
+                    // lists whose rows are driven by a search input that must keep focus through a row press.
+                    keyboardShouldPersistTaps="handled"
                     disableKeyboardShortcuts
                 />
             </MouseProvider>

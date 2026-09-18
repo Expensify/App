@@ -1904,6 +1904,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Elimina tag',
         },
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `tariffe chilometriche aggiornate per il nuovo spazio di lavoro - ${policyName}`,
+        expenseDetails: 'Dettagli spesa',
     },
     transactionMerge: {
         listPage: {

@@ -118,6 +118,12 @@ type NumberWithSymbolFormProps = {
 
     /** Accessibility label for the trailing dropdown button (defaults to currency-based copy when unset) */
     currencyButtonAccessibilityLabel?: string;
+
+    /**
+     * Renders the flip and currency buttons as their icon plus label, without the pill background, so they read as
+     * part of the field rather than as controls stacked on top of it. Their tap targets are unchanged.
+     */
+    shouldUseBorderlessButtons?: boolean;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -191,6 +197,7 @@ function NumberWithSymbolForm({
     onCurrencyButtonPress,
     currencyButtonLabel,
     currencyButtonAccessibilityLabel,
+    shouldUseBorderlessButtons = false,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus', 'CoinsButton']);
@@ -479,6 +486,10 @@ function NumberWithSymbolForm({
         onInputChange?.(newValue);
     }, [currentNumber, onInputChange]);
 
+    // Borderless buttons read as part of the field rather than as controls on top of it, so their labels take the
+    // supporting text color instead of the button's own, matching the icons beside them.
+    const borderlessButtonTextStyle = shouldUseBorderlessButtons ? styles.textSupporting : undefined;
+
     /**
      * Creates the right-hand side component for text input mode
      * Renders flip (+/-) button and/or currency selection button when enabled
@@ -491,6 +502,7 @@ function NumberWithSymbolForm({
                 {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
+                        innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
                         contentContainerStyle={styles.justifyContentCenter}
@@ -501,12 +513,13 @@ function NumberWithSymbolForm({
                             src={icons.PlusMinus}
                             accessibilityLabel={translate('iou.flip')}
                         />
-                        <Button.Text>{translate('iou.flip')}</Button.Text>
+                        <Button.Text style={borderlessButtonTextStyle}>{translate('iou.flip')}</Button.Text>
                     </Button>
                 )}
                 {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
+                        innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                         onPress={onTrailingDropdownPress}
                         // Keep the press from blurring the input. Callers that only reveal these buttons while the
                         // field is focused would otherwise unmount this one before the press lands, leaving the
@@ -520,7 +533,7 @@ function NumberWithSymbolForm({
                             src={icons.CoinsButton}
                             accessibilityLabel={translate('common.currency')}
                         />
-                        <Button.Text>{currencyOrUnitButtonText}</Button.Text>
+                        <Button.Text style={borderlessButtonTextStyle}>{currencyOrUnitButtonText}</Button.Text>
                     </Button>
                 )}
             </View>
@@ -529,6 +542,8 @@ function NumberWithSymbolForm({
         shouldShowFlipButton,
         allowNegativeInput,
         disabled,
+        shouldUseBorderlessButtons,
+        borderlessButtonTextStyle,
         shouldShowCurrencyButton,
         leadingRightHandSideComponent,
         styles,

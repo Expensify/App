@@ -1935,6 +1935,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Usuń znacznik',
         },
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `stawki za przejechany dystans zaktualizowane dla nowej przestrzeni roboczej – ${policyName}`,
+        expenseDetails: 'Szczegóły wydatku',
     },
     transactionMerge: {
         listPage: {

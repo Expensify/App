@@ -34,6 +34,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -67,6 +68,9 @@ function AmountField({
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
     const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    // The form that borders its selectable rows also wants the flip and currency buttons to read as part of the
+    // field rather than as controls stacked on top of it, and is the one that fills the trailing slot.
+    const {shouldUseDropdownRows, amountTrailingAction} = useExpenseFormLayout();
     // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
     // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
     const shouldAutoFocusOnMount = !canUseTouchScreen() && !canEnterScanFieldsManually;
@@ -306,33 +310,37 @@ function AmountField({
                 onInputChange={updateCurrency}
             />
             {!isAmountFieldDisabled ? (
-                <View style={[styles.mh4, styles.mv2]}>
-                    <NumberWithSymbolForm
-                        key={transactionID}
-                        ref={amountInputRef}
-                        displayAsTextInput
-                        autoFocus={false}
-                        value={transactionAmount}
-                        decimals={decimals}
-                        currency={effectiveCurrency}
-                        symbol={getLocalizedCurrencySymbol(preferredLocale, effectiveCurrency) ?? ''}
-                        label={translate('iou.amount')}
-                        errorText={amountFieldErrorText}
-                        onInputChange={handleAmountChange}
-                        allowNegativeInput={allowNegative}
-                        shouldShowFlipButton={shouldShowAmountButtons}
-                        shouldShowCurrencyButton={shouldShowAmountButtons}
-                        shouldShowBigNumberPad={false}
-                        onCurrencyButtonPress={showCurrencyPicker}
-                        onFocus={() => {
-                            setIsAmountInputFocused(true);
-                        }}
-                        onBlur={() => {
-                            setIsAmountInputFocused(false);
-                        }}
-                        leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
-                        disabled={isAmountFieldDisabled}
-                    />
+                <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
+                    <View style={styles.flex1}>
+                        <NumberWithSymbolForm
+                            key={transactionID}
+                            ref={amountInputRef}
+                            displayAsTextInput
+                            autoFocus={false}
+                            value={transactionAmount}
+                            decimals={decimals}
+                            currency={effectiveCurrency}
+                            symbol={getLocalizedCurrencySymbol(preferredLocale, effectiveCurrency) ?? ''}
+                            label={translate('iou.amount')}
+                            errorText={amountFieldErrorText}
+                            onInputChange={handleAmountChange}
+                            allowNegativeInput={allowNegative}
+                            shouldShowFlipButton={shouldShowAmountButtons}
+                            shouldShowCurrencyButton={shouldShowAmountButtons}
+                            shouldShowBigNumberPad={false}
+                            onCurrencyButtonPress={showCurrencyPicker}
+                            onFocus={() => {
+                                setIsAmountInputFocused(true);
+                            }}
+                            onBlur={() => {
+                                setIsAmountInputFocused(false);
+                            }}
+                            leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
+                            shouldUseBorderlessButtons={shouldUseDropdownRows}
+                            disabled={isAmountFieldDisabled}
+                        />
+                    </View>
+                    {amountTrailingAction}
                 </View>
             ) : (
                 <MenuItemWithTopDescription
