@@ -9,7 +9,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {IOUAction} from '@src/CONST';
 import type {
-    Beta,
     CardList,
     Login,
     PersonalDetails,
@@ -213,7 +212,7 @@ type GetValidOptionsSharedConfig = {
 
 type GetValidReportsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
-    betas?: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled?: boolean;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
     forcePolicyNamePreview?: boolean;
@@ -243,7 +242,7 @@ type GetValidReportsConfig = {
 
 type IsValidReportsConfig = Pick<
     GetValidReportsConfig,
-    | 'betas'
+    | 'isDefaultRoomsBetaEnabled'
     | 'includeMultipleParticipantReports'
     | 'includeOwnedWorkspaceChats'
     | 'includeThreads'

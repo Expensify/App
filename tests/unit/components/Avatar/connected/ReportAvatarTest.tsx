@@ -108,7 +108,7 @@ describe('ReportAvatar (connected)', () => {
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
                 backdropColor="#ff0000"
-                noRightMarginOnSubscriptContainer
+                subscriptAvatarContainerStyle={{marginRight: 0}}
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
@@ -119,7 +119,6 @@ describe('ReportAvatar (connected)', () => {
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
             backdropColor: '#ff0000',
-            // The dispatcher translates `noRightMarginOnSubscriptContainer` into this container style
             containerStyle: {marginRight: 0},
             fallbackDisplayName: FALLBACK_NAME,
         });
@@ -143,7 +142,7 @@ describe('ReportAvatar (connected)', () => {
         expect(mockCapturedExpenseReportAvatarProps).not.toHaveProperty('sort');
     });
 
-    it('should pass no container style for an expense report without noRightMarginOnSubscriptContainer', async () => {
+    it('should pass no container style for an expense report without subscriptAvatarContainerStyle', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
         await waitForBatchedUpdatesWithAct();
 
@@ -199,6 +198,7 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         const singleAvatarContainerStyle = [{marginRight: 12}];
+        const subscriptAvatarContainerStyle = [{marginRight: 0}];
         const horizontalStacking = {maxRows: 2, maxAvatarsPerRow: 4, overlapDivider: 4};
 
         render(
@@ -206,8 +206,8 @@ describe('ReportAvatar (connected)', () => {
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
                 singleAvatarContainerStyle={singleAvatarContainerStyle}
+                subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
                 backdropColor="#ff0000"
-                noRightMarginOnSubscriptContainer
                 horizontalStacking={horizontalStacking}
                 sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
                 fallbackDisplayName={FALLBACK_NAME}
@@ -219,8 +219,8 @@ describe('ReportAvatar (connected)', () => {
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
             singleAvatarContainerStyle,
+            subscriptAvatarContainerStyle,
             backdropColor: '#ff0000',
-            noRightMarginOnSubscriptContainer: true,
             horizontalStacking,
             sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
             fallbackDisplayName: FALLBACK_NAME,

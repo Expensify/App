@@ -31,7 +31,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType, isCardIssuedAction} from '@libs/ReportActionsUtils';
 import {getExpensifyCardFromReportAction, getLastMessageTextForReport, getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -75,7 +75,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     CardList,
     Locale,
     Login,
@@ -442,6 +441,8 @@ type CreateOptionParams = {
     lastActions?: Record<string, ReportAction>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
+    pendingDeleteMemberAccountIDs?: string[];
     currentUserLogin?: string;
 };
 
@@ -489,6 +490,7 @@ function createOption({
     transactionThreadIDs,
     lastActions,
     currentUserAccountID,
+    pendingDeleteMemberAccountIDs,
     currentUserLogin,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
@@ -617,7 +619,7 @@ function createOption({
                   );
 
         const computedReportName =
-            deprecatedGetReportName(report, reportAttributesDerived) ||
+            getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined) ||
             (result.isSelfDM
                 ? getDisplayNameForParticipant({
                       accountID: report.ownerAccountID,
@@ -663,7 +665,7 @@ function createOption({
         null,
         undefined,
         result?.private_isArchived,
-        undefined,
+        pendingDeleteMemberAccountIDs,
         conciergeReportID,
     );
     result.subtitle = subtitle;
@@ -740,7 +742,7 @@ function getReportOption({
     if (option.isSelfDM) {
         option.alternateText = translate('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = deprecatedGetReportName(report, reportAttributesDerived);
+        option.text = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
         option.alternateText = translate('workspace.common.invoices');
     } else {
         option.text = getPolicyName({
@@ -832,7 +834,7 @@ function getReportDisplayOption({
     if (option.isSelfDM) {
         option.alternateText = translate('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = deprecatedGetReportName(report, reportAttributesDerived);
+        option.text = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
         option.alternateText = translate('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
@@ -896,6 +898,8 @@ function getPolicyExpenseReportOption(
         rules,
         // Passing conciergeReportID as undefined is intentional, a policy expense chat is never the Concierge chat.
         conciergeReportID: undefined,
+        // Passing pendingDeleteMemberAccountIDs as undefined is intentional, a policy expense chat is never a group chat.
+        pendingDeleteMemberAccountIDs: undefined,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1029,10 +1033,12 @@ function processReport(
         transactionThreadIDs,
         lastActions,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
         currentUserLogin,
         convertToDisplayString,
     }: {
         currentUserAccountID: number;
+        pendingDeleteMemberAccountIDs?: string[];
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
         policyTags?: OnyxEntry<PolicyTagLists>;
@@ -1086,6 +1092,7 @@ function processReport(
                 transactionThreadIDs,
                 lastActions,
                 currentUserAccountID,
+                pendingDeleteMemberAccountIDs,
                 currentUserLogin,
             }),
         },
@@ -1200,6 +1207,8 @@ function buildFullOption(
             visibleReportActionsData,
             currentUserAccountID,
             translate,
+            // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
+            pendingDeleteMemberAccountIDs: undefined,
         }),
         isHydrated: true,
     };
@@ -1291,6 +1300,11 @@ function createFilteredOptionList(
          */
         deferContactsUntilSearch?: boolean;
         locale?: Locale;
+        /**
+         * Account IDs pending removal, keyed by reportID, so group chat names and avatar labels leave them out.
+         * TODO: Make it required once every caller passes it. Refactor issue: https://github.com/Expensify/App/issues/66421
+         */
+        pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
     },
     rules: OnyxCollection<Rule>,
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -1310,6 +1324,7 @@ function createFilteredOptionList(
         isSearching = false,
         deferContactsUntilSearch = false,
         locale,
+        pendingDeleteMemberAccountIDsByReportID,
     } = options;
 
     // Use the cache-key locale for translated contact fields.
@@ -1350,6 +1365,7 @@ function createFilteredOptionList(
         transactionThreadIDs,
         lastActions,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDsByReportID,
         currentUserLogin,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
@@ -1421,6 +1437,7 @@ function createFilteredOptionList(
                 transactionThreadIDs,
                 lastActions,
                 currentUserAccountID,
+                pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[report.reportID],
                 currentUserLogin,
             },
             rules,
@@ -1928,6 +1945,8 @@ function getUserToInviteOption({
         rules,
         // Passing conciergeReportID as undefined is intentional, the invite option is built without a report, so it can never be the Concierge chat.
         conciergeReportID: undefined,
+        // Passing pendingDeleteMemberAccountIDs as undefined is intentional, there is no report to build a group chat name from.
+        pendingDeleteMemberAccountIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
     });
@@ -1969,7 +1988,7 @@ function isValidReport(
     hasGuidesEmails: boolean,
 ): boolean {
     const {
-        betas = [],
+        isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
@@ -1999,7 +2018,7 @@ function isValidReport(
         report: option.item,
         chatReport,
         currentReportId: topmostReportId,
-        betas,
+        isDefaultRoomsBetaEnabled,
         doesReportHaveViolations,
         isInFocusMode: false,
         excludeEmptyChats: false,
@@ -2798,7 +2817,7 @@ type SearchOptionsConfig = {
     convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    betas?: Beta[];
+    isDefaultRoomsBetaEnabled?: boolean;
     isUsedInChatFinder?: boolean;
     includeReadOnly?: boolean;
     searchQuery?: string;
@@ -2839,7 +2858,7 @@ function getSearchOptions({
     dateFnsLocale,
     options,
     draftComments,
-    betas,
+    isDefaultRoomsBetaEnabled,
     isUsedInChatFinder = true,
     includeReadOnly = true,
     searchQuery = '',
@@ -2886,7 +2905,7 @@ function getSearchOptions({
             dateFnsLocale,
             convertToDisplayString,
             convertToDisplayStringWithoutCurrency,
-            betas,
+            isDefaultRoomsBetaEnabled,
             includeRecentReports,
             includeMultipleParticipantReports: true,
             showChatPreviewLine: isUsedInChatFinder,

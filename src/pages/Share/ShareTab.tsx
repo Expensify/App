@@ -10,6 +10,7 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,7 +45,7 @@ function ShareTab() {
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -80,7 +81,7 @@ function ShareTab() {
               convertToDisplayStringWithoutCurrency,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
-              betas: betas ?? [],
+              isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
               isUsedInChatFinder: false,
               includeReadOnly: false,
               searchQuery: textInputValue,

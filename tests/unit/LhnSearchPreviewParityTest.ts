@@ -218,7 +218,7 @@ async function computeBothSurfaces({
         options: optionList,
         draftComments: {},
         loginList: {},
-        betas: [CONST.BETAS.ALL],
+        isDefaultRoomsBetaEnabled: true,
         policyCollection: policiesCollection,
         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
         currentUserEmail: CURRENT_USER_LOGIN,
