@@ -49,7 +49,7 @@ import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
-import getMinimalAction, {getNestedAction} from './helpers/linkTo/getMinimalAction';
+import getMinimalAction, {getNestedAction, isNamedActionPayload} from './helpers/linkTo/getMinimalAction';
 import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
 import {
     canNativeSwipeDismissRHP,
@@ -386,11 +386,7 @@ function getRouteParamsToCompare(routeParams: Record<string, string | undefined>
  * Private method used in goUp to determine whether a target route is present in the navigation state.
  */
 function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | NavigationPartialRoute, minimalAction: Writable<NavigationAction>, compareParams: boolean) {
-    if (!minimalAction.payload) {
-        return false;
-    }
-
-    if (!('name' in minimalAction.payload)) {
+    if (!isNamedActionPayload(minimalAction.payload)) {
         return false;
     }
 
@@ -400,7 +396,8 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return false;
     }
 
-    // `routeParamsIgnore` drops the scope params, so without this every workspace's split answers for every other.
+    // `routeParamsIgnore` drops `policyID`, and `domainAccountID` only ever appears under the ignored `params`
+    // key, so without this every workspace's split answers for every other.
     if (hasDifferentSplitScope(route, minimalAction.payload)) {
         return false;
     }
@@ -509,6 +506,10 @@ function getPopsToNavigatorWithBackToRoute(rootState: State, action: NavigationA
         }
 
         // The match is focused here once the pop above is out, so look for the next obstacle one level down.
+        // A negative distance takes this path with nothing popped: the match sits after the focused route, which only
+        // a tab navigator does, so the back target is in another tab. Descending anyway is deliberate - trimming the
+        // target tab's own stacks is what makes the `jumpTo` `goUp` ends on land on the requested screen rather than
+        // whatever that tab was last left on.
         const nestedState: State | undefined = state.routes.at(routeToPopTo.indexOfBackToRoute)?.state;
         currentAction = nestedState ? getNestedAction(currentAction, nestedState) : currentAction;
         state = nestedState;

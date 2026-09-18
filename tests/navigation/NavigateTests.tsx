@@ -15,6 +15,7 @@ import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
+import requireNavigationContainer from '../utils/requireNavigationContainer';
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -26,6 +27,12 @@ jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
+// `jest.spyOn` here installs on the live navigation container. Each test mounts a fresh one, but restoring keeps a
+// leaked spy from ever outliving the test that made it.
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
 /**
  * Looks the Tab and Workspace navigators up by name rather than by hardcoded indexes, so adding or reordering routes
  * doesn't silently shift an index and make these assertions read `undefined`.
@@ -33,14 +40,6 @@ const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 function getWorkspaceNavigatorState() {
     const tabNavigatorState = navigationRef.current?.getRootState().routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)?.state;
     return tabNavigatorState?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
-}
-
-function requireNavigationContainer() {
-    const container = navigationRef.current;
-    if (!container) {
-        throw new Error('Expected the navigation container to be mounted');
-    }
-    return container;
 }
 
 describe('Navigate', () => {

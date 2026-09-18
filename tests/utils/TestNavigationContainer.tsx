@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {InitialState, NavigatorScreenParams, ParamListBase, RouteProp} from '@react-navigation/native';
+import type {InitialState, NavigatorScreenParams, RouteProp} from '@react-navigation/native';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
@@ -50,12 +50,15 @@ const getEmptyComponent = () => jest.fn();
 
 type TestNavigationContainerProps = {initialState: InitialState};
 
-function TestWorkspaceSplitNavigator() {
+// `usePreserveNavigatorState` keys off `parentRoute.key`, and `SplitRouter` seeds a remounting split from that entry,
+// so the workspace and domain splits get their real route. A shared placeholder key would make sibling splits of
+// different scopes share one preserved state and hide the fallback in `hasDifferentSplitScope`.
+function TestWorkspaceSplitNavigator({route}: {route: RouteProp<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>}) {
     return (
         <WorkspaceSplit.Navigator
             sidebarScreen={SCREENS.WORKSPACE.INITIAL}
             defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
-            parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
+            parentRoute={route}
         >
             <WorkspaceSplit.Screen
                 name={SCREENS.WORKSPACE.INITIAL}
@@ -89,7 +92,30 @@ function TestWorkspaceSplitNavigator() {
     );
 }
 
-function TestWorkspaceNavigator({route}: {route: RouteProp<ParamListBase>}) {
+function TestDomainSplitNavigator({route}: {route: RouteProp<WorkspaceNavigatorParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR>}) {
+    return (
+        <DomainSplit.Navigator
+            sidebarScreen={SCREENS.DOMAIN.INITIAL}
+            defaultCentralScreen={SCREENS.DOMAIN.MEMBERS}
+            parentRoute={route}
+        >
+            <DomainSplit.Screen
+                name={SCREENS.DOMAIN.INITIAL}
+                getComponent={getEmptyComponent}
+            />
+            <DomainSplit.Screen
+                name={SCREENS.DOMAIN.MEMBERS}
+                getComponent={getEmptyComponent}
+            />
+            <DomainSplit.Screen
+                name={SCREENS.DOMAIN.SAML}
+                getComponent={getEmptyComponent}
+            />
+        </DomainSplit.Navigator>
+    );
+}
+
+function TestWorkspaceNavigator({route}: {route: RouteProp<TabNavigatorParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>}) {
     return (
         <WorkspaceStack.Navigator parentRoute={route}>
             <WorkspaceStack.Screen
@@ -105,29 +131,6 @@ function TestWorkspaceNavigator({route}: {route: RouteProp<ParamListBase>}) {
                 component={TestDomainSplitNavigator}
             />
         </WorkspaceStack.Navigator>
-    );
-}
-
-function TestDomainSplitNavigator() {
-    return (
-        <DomainSplit.Navigator
-            sidebarScreen={SCREENS.DOMAIN.INITIAL}
-            defaultCentralScreen={SCREENS.DOMAIN.MEMBERS}
-            parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
-        >
-            <DomainSplit.Screen
-                name={SCREENS.DOMAIN.INITIAL}
-                getComponent={getEmptyComponent}
-            />
-            <DomainSplit.Screen
-                name={SCREENS.DOMAIN.MEMBERS}
-                getComponent={getEmptyComponent}
-            />
-            <DomainSplit.Screen
-                name={SCREENS.DOMAIN.SAML}
-                getComponent={getEmptyComponent}
-            />
-        </DomainSplit.Navigator>
     );
 }
 

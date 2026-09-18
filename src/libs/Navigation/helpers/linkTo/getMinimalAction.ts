@@ -50,7 +50,6 @@ function getNestedAction(action: NavigationAction, nestedState: State): Writable
 function getMinimalAction(action: NavigationAction, state: NavigationState): MinimalAction {
     let currentAction: Writable<NavigationAction> = action;
     let currentState: State = state;
-    let isFocusedRouteInDifferentScope = false;
 
     while (isNamedActionPayload(currentAction.payload)) {
         const currentRoute: NavigationRoute | undefined = currentState.routes.at(currentState.index ?? -1);
@@ -59,16 +58,19 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
         }
 
         // Descending into a split of another scope would reuse its sidebar for a different workspace or domain.
-        isFocusedRouteInDifferentScope = hasDifferentSplitScope(currentRoute, currentAction.payload);
-        if (!currentRoute.state || isFocusedRouteInDifferentScope) {
+        if (hasDifferentSplitScope(currentRoute, currentAction.payload)) {
+            return {action: currentAction, targetState: currentState, isFocusedRouteInDifferentScope: true};
+        }
+
+        if (!currentRoute.state) {
             break;
         }
 
         currentAction = getNestedAction(currentAction, currentRoute.state);
         currentState = currentRoute.state;
     }
-    return {action: currentAction, targetState: currentState, isFocusedRouteInDifferentScope};
+    return {action: currentAction, targetState: currentState, isFocusedRouteInDifferentScope: false};
 }
 
 export default getMinimalAction;
-export {getNestedAction};
+export {getNestedAction, isNamedActionPayload};

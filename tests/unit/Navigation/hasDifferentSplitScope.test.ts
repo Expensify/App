@@ -1,4 +1,5 @@
 import {setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
 import hasDifferentSplitScope from '@libs/Navigation/helpers/hasDifferentSplitScope';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
@@ -6,6 +7,17 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState, ParamListBase, StackNavigationState} from '@react-navigation/native';
+
+// Every split's sidebar has exactly one scope param today, so the only way to pin the multi-param semantics of
+// `scopeParams.some(...)` is to state the sidebar's params directly. Every test gets the real implementation back.
+jest.mock('@libs/Navigation/helpers/getParamsFromRoute');
+
+const actualGetParamsFromRoute = jest.requireActual<{default: typeof getParamsFromRoute}>('@libs/Navigation/helpers/getParamsFromRoute').default;
+const mockedGetParamsFromRoute = jest.mocked(getParamsFromRoute);
+
+beforeEach(() => {
+    mockedGetParamsFromRoute.mockImplementation(actualGetParamsFromRoute);
+});
 
 const POLICY_A = 'policy-a';
 const POLICY_B = 'policy-b';
@@ -129,6 +141,29 @@ describe('hasDifferentSplitScope', () => {
 
         expect(hasDifferentSplitScope(route, buildPayload(POLICY_A))).toBe(false);
         expect(hasDifferentSplitScope(route, buildPayload(POLICY_B))).toBe(true);
+    });
+
+    describe('a sidebar with more than one scope param', () => {
+        function buildTwoParamPayload(params: Record<string, unknown>) {
+            return {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {screen: SCREENS.WORKSPACE.MORE_FEATURES, params}};
+        }
+
+        it('treats one differing param as a different scope', () => {
+            mockedGetParamsFromRoute.mockReturnValue(['policyID', 'domainAccountID']);
+            const route = buildSplitRoute({routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: POLICY_A, domainAccountID: DOMAIN_A}}]});
+
+            expect(hasDifferentSplitScope(route, buildTwoParamPayload({policyID: POLICY_A, domainAccountID: DOMAIN_A}))).toBe(false);
+            expect(hasDifferentSplitScope(route, buildTwoParamPayload({policyID: POLICY_A, domainAccountID: DOMAIN_B}))).toBe(true);
+        });
+
+        it('ignores a param that is missing on either side', () => {
+            mockedGetParamsFromRoute.mockReturnValue(['policyID', 'domainAccountID']);
+            const route = buildSplitRoute({routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: POLICY_A}}]});
+
+            // Only the params both sides carry are comparable, so a missing one cannot make the scopes differ.
+            expect(hasDifferentSplitScope(route, buildTwoParamPayload({policyID: POLICY_A, domainAccountID: DOMAIN_B}))).toBe(false);
+            expect(hasDifferentSplitScope(route, buildTwoParamPayload({policyID: POLICY_B, domainAccountID: DOMAIN_B}))).toBe(true);
+        });
     });
 
     it('reports no difference when there is nothing to compare', () => {
