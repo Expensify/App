@@ -8,6 +8,7 @@ import {
     isAnyRecruitingConnected,
     isAnyRecruitingReadOnlyWorkflowMode,
     isMergeATSCompleteSetupNeeded,
+    isRecruitingAdvancedMode,
     shouldShowRecruitingConnectionError,
 } from '@libs/merge/RecruitingUtils';
 
@@ -345,6 +346,25 @@ describe('RecruitingUtils', () => {
 
         it('returns true with advanced mode', () => {
             expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED}}))).toBe(true);
+        });
+    });
+
+    describe('isRecruitingAdvancedMode', () => {
+        it('returns false when there is no connection', () => {
+            expect(isRecruitingAdvancedMode(undefined)).toBe(false);
+            expect(isRecruitingAdvancedMode(makePolicy({connections: {}}))).toBe(false);
+        });
+
+        it('returns false when the connection has no approval mode', () => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy())).toBe(false);
+        });
+
+        it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.CUSTOM])('returns false with %s mode', (approvalMode) => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy({config: {approvalMode}}))).toBe(false);
+        });
+
+        it('returns true with advanced mode, where the first approver comes from the candidate ATS fields', () => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED}}))).toBe(true);
         });
     });
 
