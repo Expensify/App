@@ -7420,6 +7420,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
             campfire: 'Campfire',
+            continuousReconciliationFeedSelection: '<muted-text-label>A Conciliação Contínua é configurada por feed de cartão. Escolha o feed acima para configurá-la.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
