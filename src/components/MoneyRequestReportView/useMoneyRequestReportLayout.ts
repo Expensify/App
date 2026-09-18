@@ -26,10 +26,9 @@ type UseMoneyRequestReportLayoutResult = {
  * Owns the report-layout (group-by) selection: reads the two NVPs, exposes the effective selection and
  * grouping mode, and persists user picks.
  *
- * Latches the user's most recent selection so the popover label and grouping mode never flick through the
- * (layoutOption=null, groupByOption=null) → CATEGORY default while the two NVPs settle in separate render passes.
- * Drops the latch once Onyx reaches the clicked value, so later authoritative updates (failureData rollback,
- * another client changing the layout) flow through instead of staying masked by stale local state.
+ * Latches the last clicked selection so the label and grouping never flicker through the CATEGORY default while
+ * the two NVPs settle in separate render passes. Drops the latch once Onyx reaches that value, so rollbacks and
+ * updates from other clients flow through.
  */
 function useMoneyRequestReportLayout(shouldShowGroupedTransactions: boolean): UseMoneyRequestReportLayoutResult {
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);

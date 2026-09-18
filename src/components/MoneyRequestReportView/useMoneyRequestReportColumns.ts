@@ -60,7 +60,7 @@ type UseMoneyRequestReportColumnsResult = {
     /** True when the rendered table is wider than the viewport and needs its own horizontal scroller */
     shouldScrollHorizontally: boolean;
 
-    /** Whether this expense-report view was opened from an IOU report — hides column customization */
+    /** True when opened from an IOU report, which hides column customization */
     isExpenseReportViewFromIOUReport: boolean;
 };
 
