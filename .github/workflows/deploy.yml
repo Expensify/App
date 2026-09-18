@@ -208,9 +208,23 @@ jobs:
       variant: Release
     secrets: inherit
 
+  # The same commit as androidBuild, but versionCode prefix '6', used to mark beta deployments.
+  # Only Play Store testing tracks receive it.
+  androidBuildBetaTrack:
+    name: Build Android HybridApp (beta track)
+    needs: [prep]
+    if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
+    uses: ./.github/workflows/buildAndroid.yml
+    with:
+      ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+      variant: Release
+      beta-track: true
+      artifact-prefix: betaTrack-
+    secrets: inherit
+
   androidUploadGooglePlay:
     name: Upload Android to Google Play
-    needs: [prep, androidBuild]
+    needs: [prep, androidBuild, androidBuildBetaTrack]
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
@@ -226,7 +240,14 @@ jobs:
           name: androidBuild-artifact
           path: ./
 
-      - name: Set aabPath for Fastlane
+      - name: Download Android beta-track build artifact
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: betaTrack-androidBuild-artifact
+          path: ./betaTrack/
+
+      - name: Set aabPath and betaTrackAabPath for Fastlane
         run: |
           AAB_PATH="$(pwd)/${{ needs.androidBuild.outputs.AAB_FILENAME }}"
           if [ ! -f "$AAB_PATH" ]; then
@@ -234,6 +255,13 @@ jobs:
             exit 1
           fi
           echo "aabPath=$AAB_PATH" >> "$GITHUB_ENV"
+
+          BETA_TRACK_AAB_PATH="$(pwd)/betaTrack/${{ needs.androidBuildBetaTrack.outputs.AAB_FILENAME }}"
+          if [ ! -f "$BETA_TRACK_AAB_PATH" ]; then
+            echo "::error::Expected beta-track AAB not found at $BETA_TRACK_AAB_PATH"
+            exit 1
+          fi
+          echo "betaTrackAabPath=$BETA_TRACK_AAB_PATH" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
         # v1.310.0
@@ -797,6 +825,7 @@ jobs:
     needs:
       [
         androidBuild,
+        androidBuildBetaTrack,
         androidUploadGooglePlay,
         androidUploadBrowserStack,
         androidUploadApplause,
