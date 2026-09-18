@@ -45,15 +45,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
+jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
+    notifyNewAction: jest.fn(),
+}));
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const RORY_EMAIL = 'rory@expensifail.com';
@@ -754,7 +749,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should call notifyNewAction after resolving the violation', async () => {
-            const {notifyNewAction} = require('@src/libs/actions/Report');
+            const {notifyNewAction} = require('@src/libs/actions/Report/reportActionSubscribers');
 
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
@@ -772,7 +767,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            const {notifyNewAction} = require('@src/libs/actions/Report');
+            const {notifyNewAction} = require('@src/libs/actions/Report/reportActionSubscribers');
 
             if (!transaction?.transactionID) {
                 throw new Error('Required transaction data is missing');

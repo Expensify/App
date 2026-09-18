@@ -9008,7 +9008,6 @@ export {
     navigateToConciergeChat,
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
-    notifyNewAction,
     openReport,
     openRoomMembersPage,
     readNewestAction,

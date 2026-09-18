@@ -16,7 +16,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import {notifyNewAction} from './Report';
+import {notifyNewAction} from './Report/reportActionSubscribers';
 
 type ChronosTimerOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_CHRONOS_TIME_TRACKING>;
 
