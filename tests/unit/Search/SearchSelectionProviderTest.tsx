@@ -29,6 +29,7 @@ const queryContextValue: SearchQueryContextValue = {
     currentDefaultSearchQueryFilterKeys: new Set(),
     suggestedSearches: getEmptyObject<SearchQueryContextValue['suggestedSearches']>(),
     shouldResetSearchQuery: false,
+    shouldUseLiveData: false,
 };
 
 function buildSelected(...keys: string[]): SelectedTransactions {

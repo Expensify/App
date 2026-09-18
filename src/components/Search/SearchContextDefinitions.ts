@@ -29,6 +29,7 @@ const defaultSearchQueryContext: SearchQueryContextValue = {
     currentDefaultSearchQueryFilterKeys: new Set<QueryFilterKey>(),
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
     shouldResetSearchQuery: false,
+    shouldUseLiveData: false,
 };
 
 const defaultSearchQueryActions: SearchQueryActionsValue = {
@@ -52,6 +53,7 @@ const defaultSearchResultsActions: SearchResultsActionsValue = {
     setSortedReportIDs: () => {},
     setShouldShowFiltersBarLoading: () => {},
     setLastSearchType: () => {},
+    getCurrentSearchResults: () => undefined,
 };
 
 const defaultSearchSelectionContext: SearchSelectionContextValue = {
