@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -100,11 +101,24 @@ function DistanceRequestController({
         // We want this effect to run when the transaction is moving from Self DM to an expense chat, or when the policy changes
         const isPolicyChanged = prevPolicy?.id !== policy?.id;
         const didSwitchPolicy = !!prevPolicy?.id && prevPolicy.id !== policy?.id;
-        if (!transactionID || !isDistanceRequest || !isPolicyExpenseChat || (!isMovingTransactionFromTrackExpense && !isPolicyChanged)) {
+        const errorKey = 'iou.error.invalidRate';
+
+        if (!transactionID || !isDistanceRequest) {
             return;
         }
 
-        const errorKey = 'iou.error.invalidRate';
+        // Moving the expense back to the self DM (or to a P2P recipient) leaves no workspace to validate against, so a
+        // rate error raised for the workspace it just left no longer applies. It has to be cleared here: every branch
+        // below is workspace-specific, so nothing else would ever take the message off the screen.
+        if (!isPolicyExpenseChat) {
+            clearFormErrors([errorKey]);
+            return;
+        }
+
+        if (!isMovingTransactionFromTrackExpense && !isPolicyChanged) {
+            return;
+        }
+
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
 
         if (didSwitchPolicy && transaction?.comment?.customUnit?.rateAutoUpdated) {
@@ -122,6 +136,13 @@ function DistanceRequestController({
         if (matchingRate?.customUnitRateID) {
             setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy, false, personalPolicy?.outputCurrency);
             clearFormErrors([errorKey]);
+            return;
+        }
+
+        // The workspace's custom units can still be loading at this point: selecting a participant resolves the new
+        // policy before Onyx has its rates, so validating now would flash an error that clears itself a moment later.
+        // With no rates to compare against we cannot tell whether the selected rate is valid - wait for the next run.
+        if (isEmptyObject(policyRates)) {
             return;
         }
 
