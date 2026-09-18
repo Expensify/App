@@ -6,11 +6,11 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -201,10 +201,9 @@ function TransactionGroupListItemImpl({
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
     const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected: isItemSelected,
         shouldApplyOtherStyles: false,
     });
 

@@ -6,13 +6,13 @@ import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -185,10 +185,9 @@ function GroupHeader({
         keyForList: item.groupKeyForList,
     });
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected: isItemSelected,
         shouldApplyOtherStyles: false,
     });
 
