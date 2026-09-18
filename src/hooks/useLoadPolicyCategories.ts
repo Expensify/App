@@ -50,12 +50,10 @@ function useLoadPolicyCategories(policyID: string | undefined) {
         getPolicyCategories(policyID);
     }, [policyID, isOffline, isLoading, hasOnceLoaded]);
 
-    // True only while the read is unsettled AND there is nothing to render yet, so the picker can show a skeleton
-    // instead of an empty list. An absent loading state means the read has not been dispatched yet, which covers the
-    // frame before the optimistic `isLoading` lands. A failed read clears `isLoading` without setting `hasOnceLoaded`,
-    // so this reaches a terminal false rather than leaving the skeleton up forever. Categories already in Onyx are
-    // rendered right away and refreshed underneath: a stale-but-present list beats a skeleton on every app start.
-    const isLoadingPolicyCategories = !isOffline && !hasOnceLoaded && !hasCategories && (isLoading || loadingState === undefined);
+    // True only while the read is unsettled and there is nothing to render yet, so the picker shows a skeleton instead
+    // of an empty list. The `policyID` check mirrors the effect's guard: with no policyID no read is ever dispatched,
+    // so the absent loading state would otherwise keep the skeleton up forever.
+    const isLoadingPolicyCategories = !!policyID && !isOffline && !hasOnceLoaded && !hasCategories && (isLoading || loadingState === undefined);
 
     return {isLoadingPolicyCategories};
 }
