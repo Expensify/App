@@ -84,7 +84,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type DynamicIOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 
@@ -103,7 +102,8 @@ function DynamicIOURequestStepDistance({
     const backTo = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE ? backPath : undefined;
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const iouReportOwnerLoginSelector = useMemo(() => personalDetailsLoginSelector(parentReport?.ownerAccountID), [parentReport?.ownerAccountID]);
@@ -163,7 +163,7 @@ function DynamicIOURequestStepDistance({
     // Fetch the backup route first to ensure the backup transaction map is updated before the main transaction map.
     // This prevents a scenario where the main map loads, the user dismisses the map editor, and the backup map has not yet loaded due to delay.
     useFetchRoute(transactionBackup, backupWaypoints, action, CONST.TRANSACTION.STATE.BACKUP);
-    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(currentTransaction, waypoints, action, transactionState);
+    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(currentTransaction, waypoints, action, transactionState, policy);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
@@ -182,6 +182,7 @@ function DynamicIOURequestStepDistance({
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
@@ -591,6 +592,7 @@ function DynamicIOURequestStepDistance({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
+                    isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
@@ -616,6 +618,7 @@ function DynamicIOURequestStepDistance({
                     violations: allTransactionViolations,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             }
             transactionWasSaved.current = true;
@@ -629,6 +632,7 @@ function DynamicIOURequestStepDistance({
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
+        isVendorMatchingBetaEnabled,
         allTransactionViolations,
         blockDistanceRequestIfNeeded,
         duplicateWaypointsError,
@@ -665,6 +669,7 @@ function DynamicIOURequestStepDistance({
         personalPolicy?.outputCurrency,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -735,6 +740,7 @@ function DynamicIOURequestStepDistance({
         const isRouteSelectionOnlyChange = shouldUpdateSelectedRoute && !isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged;
         const hasRouteChanged = haveWaypointsChanged && !deepEqual(transactionBackup?.routes, transaction?.routes);
         updateMoneyRequestDistance({
+            isVendorMatchingBetaEnabled,
             transaction,
             transactionThreadReport: report,
             parentReport,
@@ -760,6 +766,7 @@ function DynamicIOURequestStepDistance({
             violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -767,6 +774,7 @@ function DynamicIOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
+        isVendorMatchingBetaEnabled,
         allTransactionViolations,
         blockDistanceRequestIfNeeded,
         transactionBackup,
@@ -804,6 +812,7 @@ function DynamicIOURequestStepDistance({
         splitDraftTransaction,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     ]);
 
     const renderItem = useCallback(

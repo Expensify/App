@@ -63,13 +63,11 @@ type WorkspaceConfirmationFormProps = {
      */
     policyOwnerEmail?: string;
 
-    /** Submit function */
     onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void;
 
     /** Go back function */
     onBackButtonPress?: () => void;
 
-    /** Whether bottom safe area padding should be added */
     addBottomSafeAreaPadding?: boolean;
 
     /** Whether the submit button should display a loading spinner (e.g. while the new workspace is revealed) */
@@ -134,7 +132,7 @@ function WorkspaceConfirmationForm({
     const email = policyOwnerEmail || (session?.email ?? '');
     const userDisplayName = usePersonalDetailByLogin(email, displayNameSelector);
     const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDisplayName);
-    const defaultWorkspaceName = generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDisplayName);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email, userDisplayName, lastWorkspaceNumber, translate);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;

@@ -14,6 +14,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -70,6 +71,7 @@ function DynamicIOURequestStepUpgrade({
     const activePolicy = useActivePolicy();
     const personalPolicy = usePersonalPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
@@ -107,6 +109,7 @@ function DynamicIOURequestStepUpgrade({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -114,7 +117,8 @@ function DynamicIOURequestStepUpgrade({
         .map((transactionItem) => transactionItem.transaction)
         .filter((item): item is Transaction => !!item);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -142,7 +146,7 @@ function DynamicIOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser, getCurrencyDecimals);
+            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {
@@ -152,6 +156,7 @@ function DynamicIOURequestStepUpgrade({
 
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -163,6 +168,7 @@ function DynamicIOURequestStepUpgrade({
                 transactions,
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
+                rules,
                 selfDMReportActions,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
@@ -252,6 +258,7 @@ function DynamicIOURequestStepUpgrade({
                 Navigation.goBack();
         }
     }, [
+        isVendorMatchingBetaEnabled,
         action,
         upgradeBackTo,
         navigateWithMicrotask,
@@ -269,7 +276,6 @@ function DynamicIOURequestStepUpgrade({
         session?.email,
         ownerPersonalDetails,
         transactions,
-        betas,
         iouType,
         isTrack,
         allPolicyTags,
@@ -281,6 +287,7 @@ function DynamicIOURequestStepUpgrade({
         delegateAccountID,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     ]);
 
     const participant = transaction?.participants?.[0];
@@ -313,7 +320,7 @@ function DynamicIOURequestStepUpgrade({
         const upgradeCurrency = (isSplitExpense ? personalPolicy?.outputCurrency : undefined) ?? currentUserPersonalDetails?.localCurrencyCode ?? '';
         const policyData = Policy.createWorkspace({
             policyOwner: undefined,
-            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails?.displayName),
+            policyName: Policy.generateDefaultWorkspaceName(email, currentUserPersonalDetails?.displayName, lastWorkspaceNumber, translate),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: upgradeCurrency,
@@ -334,6 +341,8 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            delegateAccountID,
+            hasOwnedPaidPolicy,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -357,6 +366,8 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            delegateAccountID,
+            hasOwnedPaidPolicy,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);

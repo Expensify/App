@@ -53,10 +53,7 @@ type PopoverMenuItem = MenuItemProps & {
     /** Badge text to be shown near the right end. */
     badgeText?: string;
 
-    /** A callback triggered when this item is selected */
     onSelected?: () => void;
-
-    /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
 
     /** Header text to be displayed when this item's sub menu is opened */
@@ -73,9 +70,7 @@ type PopoverMenuItem = MenuItemProps & {
      */
     shouldCallAfterModalHide?: boolean;
 
-    /** Whether to close all modals */
     shouldCloseAllModals?: boolean;
-
     pendingAction?: PendingAction;
 
     rightIcon?: IconAsset;
@@ -88,13 +83,11 @@ type PopoverMenuItem = MenuItemProps & {
     /** Whether to keep the modal open after clicking on the menu item */
     shouldKeepModalOpen?: boolean;
 
-    /** Test identifier used to find elements in tests */
     testID?: string;
 
     /** Whether to show a loading spinner icon for the menu item */
     shouldShowLoadingSpinnerIcon?: boolean;
 
-    /** Whether to close the modal on select */
     shouldCloseModalOnSelect?: boolean;
 
     /** Whether selecting this item should avoid restoring focus to the popover before a follow-up modal opens on iOS */
@@ -128,19 +121,16 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Callback to fire when a CreateMenu item is selected */
     onItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
 
-    /** Menu items to be rendered on the list */
     menuItems: PopoverMenuItem[];
 
     /** Optional non-interactive text to display as a header for any create menu */
     headerText?: string;
 
-    /** Whether disable the animations */
     disableAnimation?: boolean;
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
 
-    /** Ref of the anchor */
     anchorRef: RefObject<View | HTMLDivElement | null>;
 
     /** Where the popover should be positioned relative to the anchor points. */
@@ -176,7 +166,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
-    /** Whether to show a radio button on each item to indicate which one is currently selected */
     shouldShowRadioButton?: boolean;
 
     /** The style of content container which wraps all child views */
@@ -191,7 +180,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** These styles will be applied to the scroll view content container which wraps all of the child views */
     scrollContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 
     /**
