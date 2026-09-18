@@ -34,7 +34,7 @@ type MoneyRequestConfirmationListFooterProps = {
 
     errorState: ErrorState;
     toggleHandlers?: ToggleHandlers;
-    receiptOptions?: ReceiptOptions;
+    receiptOptions: ReceiptOptions;
 
     /** Show-more state for the compact layout */
     compactControls: CompactControls;

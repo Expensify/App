@@ -51,7 +51,7 @@ type MoneyRequestConfirmationListProps = {
     reportID?: string;
 
     /** Everything the receipt section renders from. */
-    receiptOptions?: ReceiptOptions;
+    receiptOptions: ReceiptOptions;
 
     /** Transaction that represents the expense */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;

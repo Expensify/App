@@ -31,7 +31,7 @@ type ReceiptSectionProps = {
     /** Whether the receipt can be replaced */
     isReceiptEditable?: boolean;
 
-    shouldDisplayReceipt?: boolean;
+    shouldDisplayReceipt: boolean;
 
     /** Whether the receipt is currently being stitched */
     isLoadingReceipt?: boolean;
@@ -54,7 +54,7 @@ type ReceiptSectionProps = {
 
 function ReceiptSection({
     policy,
-    shouldDisplayReceipt = false,
+    shouldDisplayReceipt,
     receiptPath = '',
     receiptFilename = '',
     onPDFLoadError,

@@ -47,6 +47,7 @@ function renderConfirmationList({requestType, action = CONST.IOU.ACTION.CREATE, 
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
             selectedParticipants={[]}
+            receiptOptions={{shouldDisplayReceipt: false}}
             onOpenParticipantPicker={jest.fn()}
         />,
     );

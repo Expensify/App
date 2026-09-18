@@ -56,7 +56,7 @@ function ConfirmationFooterContent() {
         isDistanceRequestWithPendingRoute,
     } = useConfirmationData();
 
-    const {receiptPath = '', isLoadingReceipt = false} = receiptOptions ?? {};
+    const {receiptPath = '', isLoadingReceipt = false} = receiptOptions;
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useReceiptTraining({transaction});
 
