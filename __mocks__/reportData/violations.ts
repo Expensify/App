@@ -34,6 +34,7 @@ const receiptErrorsR14932: ReceiptErrors = {
             source: CONST.POLICY.ID_FAKE,
             transactionPolicy: undefined,
             transactionPolicyTagList: undefined,
+            isVendorMatchingBetaEnabled: false,
         },
     },
 };
