@@ -70,6 +70,8 @@ An individual card uses its per-card account when one is configured. Otherwise, 
 
 You can also change an individual company card's DualEntry export account from its card details.
 
+Expensify matches company card expenses to your imported DualEntry vendors before they export. Learn how to [manage vendor matching for DualEntry](/articles/new-expensify/connections/dualentry/Manage-Vendor-Matching-for-DualEntry).
+
 ---
 
 ## How to configure DualEntry advanced settings
