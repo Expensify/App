@@ -118,6 +118,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
     rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -224,6 +225,7 @@ function handleMoneyRequestStepDistanceNavigation({
     participantsPolicyTags,
     isOffline = false,
     rules,
+    isVendorMatchingBetaEnabled,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -392,6 +394,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 isSelfDMDestination,
                 executeWrite: (overrides) => {
                     const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
+                        isVendorMatchingBetaEnabled,
                         report,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
@@ -434,7 +437,6 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         personalDetails,
                         recentWaypoints,
-                        betas,
                         previousOdometerDraft,
                         policyParams: {
                             policyTagList,
