@@ -201,9 +201,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
 
     // The columns are wider than the table, so this list's scroller takes the horizontal axis as well (see
-    // `columnScrollOverrideStyle`). Only the tables that keep their filter bar in the list scroll here — the rest are
-    // scrolled by an ancestor (see `TableSemanticContainer`). Only ever true on web: content-sized columns need to
-    // measure text, which native can't do, so native tables always fit.
+    // `columnScrollOverrideStyle`). It is the only thing that scrolls them: the header has to travel with the columns
+    // while the filter bar stays put, and both of those live in this list. A table that rendered its filter bar
+    // outside the list would need its own handling, and none does. Only ever true on web: content-sized columns need
+    // to measure text, which native can't do, so native tables always fit.
     const isColumnScrollEnabled = !!scrollWidth && tableListMetadata.hasPageHeader;
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const shouldApplyPageHeaderTable = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && hasRows;

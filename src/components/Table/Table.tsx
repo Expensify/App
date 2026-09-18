@@ -513,10 +513,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                // Only tables without a page header scroll their columns here. The ones that have one keep their
-                // filter bar inside the list, which an ancestor scroller would carry sideways, so their list takes
-                // the horizontal axis itself instead (see `TableBody`).
-                scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {renderedChildren}
