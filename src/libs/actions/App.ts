@@ -913,7 +913,7 @@ function setUpPoliciesAndNavigate({
             introSelected,
             currency,
             policyOwner: {email: policyOwnerEmail, accountID: policyOwnerAccountID},
-            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate, policyOwnerDisplayName),
+            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, policyOwnerDisplayName, lastWorkspaceNumber, translate),
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicy,

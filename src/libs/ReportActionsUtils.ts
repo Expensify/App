@@ -1753,6 +1753,31 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
 }
 
 /**
+ * Returns the ID of the newest Concierge comment that can show the feedback prompt.
+ * The comment has to be in Onyx because the Concierge greeting and the streaming draft are built on the client and cannot hold a reaction.
+ *
+ * @param sortedVisibleReportActions - visible report actions sorted newest first
+ * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
+ */
+function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[]): string | undefined {
+    const latestConciergeComment = sortedVisibleReportActions.find(
+        (action) =>
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
+            action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
+            !isDeletedAction(action) &&
+            !isWhisperAction(action) &&
+            // A failed comment does not exist on the server, so a reaction on it cannot be saved
+            isEmptyObject(action.errors),
+    );
+
+    if (!latestConciergeComment || !persistedReportActionIDs.includes(latestConciergeComment.reportActionID)) {
+        return undefined;
+    }
+
+    return latestConciergeComment.reportActionID;
+}
+
+/**
  * The first visible action is the second last action in sortedReportActions which satisfy following conditions:
  * 1. That is not pending deletion as pending deletion actions are kept in sortedReportActions in memory.
  * 2. That has at least one visible child action.
@@ -2523,6 +2548,12 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
         const message = getDynamicExternalWorkflowRoutedMessage(action, translate);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        const message = getConciergeAutoSelectDistanceRateMessage(translate, action);
+        // The helper returns plain text, so only the html fragment is encoded — a workspace name containing an entity like `&copy;` would otherwise be parsed as markup.
+        return [{text: message, html: `<muted-text>${Str.htmlEncode(message)}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
@@ -3429,6 +3460,19 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     return getReportActionText(action);
+}
+
+/**
+ * Builds the Concierge system message explaining that the distance rates of a report's expenses were re-selected automatically.
+ */
+function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const policyName = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE) ? getOriginalMessage(action)?.policyName : undefined;
+
+    if (!policyName) {
+        return getReportActionText(action);
+    }
+
+    return translate('iou.conciergeAutoSelectedDistanceRates', {policyName});
 }
 
 function getWorkspaceCustomUnitRateDeletedMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -5097,6 +5141,7 @@ export {
     getCombinedReportActions,
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
+    getLatestConciergeFeedbackActionID,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
@@ -5124,6 +5169,7 @@ export {
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
     getDynamicExternalWorkflowRoutedMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage,
