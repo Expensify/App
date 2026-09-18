@@ -194,4 +194,4 @@ function getInputComponentForField(field: DynamicFormField, context: DynamicFiel
 }
 
 export default getInputComponentForField;
-export {getFieldDescription, getFieldLabel, getFieldOptions, getOptionLabel};
+export {getFieldDescription, getFieldLabel, getFieldOptions, getOptionLabel, isCountryCode};

@@ -1,9 +1,9 @@
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
+import DynamicFormPage from '@components/DynamicForm/DynamicFormPage';
+import DynamicFormShell from '@components/DynamicForm/DynamicFormShell';
 import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
 import groupFieldsIntoPages from '@components/DynamicForm/groupFieldsIntoPages';
-import type {DynamicFormValues} from '@components/DynamicForm/types';
 import FormProvider from '@components/Form/FormProvider';
-import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -22,18 +22,11 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import allFieldTypes from '../../tests/fixtures/dynamicForm/allFieldTypes';
+import businessProfile from '../../tests/fixtures/wise/businessProfile';
 
 const defaultStyles = styles(defaultTheme);
 
 const STORYBOOK_FORM_ID = ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM;
-
-/** Flows shorter than this are single-screen forms and get no step indicator */
-const STEP_INDICATOR_MIN_PAGES = 3;
-
-const ACCOUNT_USE_GROUP = 'Account use';
-
-/** The fixture's two groups plus a third, so the paged story is a real multi-step flow */
-const threeGroupFields: DynamicFormField[] = allFieldTypes.map((field) => (['useCases', 'isSourceOfFund'].includes(field.key) ? {...field, group: ACCOUNT_USE_GROUP} : field));
 
 type DynamicFormStoryProps = {
     fields: DynamicFormField[];
@@ -41,7 +34,7 @@ type DynamicFormStoryProps = {
     /** Answers seeded into the form draft before the first render */
     draftValues: Record<string, string | boolean | string[]>;
 
-    /** One group per step inside InteractiveStepWrapper, or every group on one page for screenshots */
+    /** One group per step through DynamicFormShell and DynamicFormPage, or every group on one page for screenshots */
     layout: 'pages' | 'single';
 };
 
@@ -93,6 +86,7 @@ function SinglePage({fields, draftValues}: LayoutProps) {
     );
 }
 
+/** The same shell and page the flow uses, driven by local state because Storybook mounts no navigator */
 function PageByPage({fields, draftValues}: LayoutProps) {
     const {translate} = useLocalize();
     const isDraftReady = useSeededDraft(draftValues);
@@ -106,43 +100,30 @@ function PageByPage({fields, draftValues}: LayoutProps) {
         return null;
     }
 
-    const withDraft = (inputValues: DynamicFormValues): DynamicFormValues => ({...draft, ...inputValues});
-
     return (
-        <InteractiveStepWrapper
-            key={page.name}
-            wrapperID="DynamicFormStory"
+        <DynamicFormShell
+            key={page.slug}
+            testID="DynamicFormStory"
             headerTitle="Add bank account"
-            stepNames={pages.length >= STEP_INDICATOR_MIN_PAGES ? pages.map((item) => item.name) : undefined}
-            startStepIndex={pageIndex}
-            handleBackButtonPress={() => setPageIndex(Math.max(0, pageIndex - 1))}
+            stepNames={pages.map((item) => item.name)}
+            stepIndex={pageIndex}
+            onBackButtonPress={() => setPageIndex(Math.max(0, pageIndex - 1))}
         >
-            <FormProvider
+            <DynamicFormPage
+                page={page}
                 formID={STORYBOOK_FORM_ID}
-                submitButtonText={isLastPage ? translate('common.confirm') : translate('common.next')}
-                validate={(values) => getDynamicFieldErrors(page.fields, withDraft(values), translate)}
-                onSubmit={(values) => {
+                draft={{...draft}}
+                currency="USD"
+                submitButtonText={translate(isLastPage ? 'common.confirm' : 'common.next')}
+                onSubmit={() => {
                     if (isLastPage) {
-                        alert(JSON.stringify({...draft, ...values}, null, 4));
+                        alert(JSON.stringify(draft, null, 4));
                         return;
                     }
                     setPageIndex(pageIndex + 1);
                 }}
-                style={[defaultStyles.mh5, defaultStyles.flexGrow1]}
-                submitButtonStyles={defaultStyles.mb0}
-            >
-                {({inputValues}) => (
-                    <>
-                        <Text style={[defaultStyles.textHeadlineLineHeightXXL, defaultStyles.mb3]}>{page.name}</Text>
-                        <DynamicFormFields
-                            fields={page.fields}
-                            values={withDraft(inputValues)}
-                            currency="USD"
-                        />
-                    </>
-                )}
-            </FormProvider>
-        </InteractiveStepWrapper>
+            />
+        </DynamicFormShell>
     );
 }
 
@@ -164,6 +145,18 @@ const story: Meta<DynamicFormStoryProps> = {
     },
 };
 
+const seededBankAccount = {
+    legalType: 'PRIVATE',
+    accountNumber: '12345678',
+    accountType: 'CHECKING',
+    annualVolume: '1000',
+    annualVolumeCurrency: 'USD',
+    dateOfBirth: '1990-01-31',
+    country: 'GB',
+    address: '1 High Street',
+    ownershipPercentage: '40',
+};
+
 const AllFieldTypes: DynamicFormStory = Template.bind({});
 AllFieldTypes.args = {
     fields: allFieldTypes,
@@ -173,9 +166,30 @@ AllFieldTypes.args = {
 
 const PageByPageFlow: DynamicFormStory = Template.bind({});
 PageByPageFlow.args = {
-    fields: threeGroupFields,
-    draftValues: {legalType: 'PRIVATE', accountNumber: '12345678', accountType: 'CHECKING', annualVolume: '1000', dateOfBirth: '1990-01-31', country: 'GB', address: '1 High Street'},
+    fields: allFieldTypes,
+    draftValues: seededBankAccount,
     layout: 'pages',
+};
+
+const BusinessIntake: DynamicFormStory = Template.bind({});
+BusinessIntake.args = {
+    fields: businessProfile,
+    draftValues: {legalName: 'Acme Logistics LLC', industry: 'TECHNOLOGY'},
+    layout: 'pages',
+};
+
+const OwnersList: DynamicFormStory = Template.bind({});
+OwnersList.args = {
+    fields: businessProfile.filter((field) => field.key === 'owners'),
+    draftValues: {},
+    layout: 'pages',
+};
+
+const AmountWithCurrency: DynamicFormStory = Template.bind({});
+AmountWithCurrency.args = {
+    fields: allFieldTypes.filter((field) => field.key === 'annualVolume' || field.key === 'accountNumber'),
+    draftValues: {annualVolume: '25000', annualVolumeCurrency: 'EUR'},
+    layout: 'single',
 };
 
 const SingleQuestion: DynamicFormStory = Template.bind({});
@@ -220,6 +234,7 @@ LargeSelect.args = {
             group: 'Business info',
             type: 'text',
             required: true,
+            multiline: true,
             maxLength: 500,
             refreshOnChange: false,
         },
@@ -229,4 +244,4 @@ LargeSelect.args = {
 };
 
 export default story;
-export {AllFieldTypes, HiddenFileField, LargeSelect, PageByPageFlow, SingleQuestion, YesNoQuestion};
+export {AllFieldTypes, AmountWithCurrency, BusinessIntake, HiddenFileField, LargeSelect, OwnersList, PageByPageFlow, SingleQuestion, YesNoQuestion};
