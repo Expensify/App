@@ -1,5 +1,7 @@
 import Log from '@libs/Log';
+import createScheduleOnce from '@libs/Navigation/helpers/createScheduleOnce';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getValidDynamicRouteBasePath from '@libs/Navigation/helpers/getValidDynamicRouteBasePath';
 import Navigation from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
@@ -30,7 +32,14 @@ let isLoadingApp = true;
 let hasRedirectedToMigratedUserModal = false;
 
 function getMigratedUserWelcomeModalRoute(basePath?: string): Route {
-    return createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
+    return createDynamicRoute(
+        DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path,
+        basePath ??
+            getValidDynamicRouteBasePath({
+                entryScreens: DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.entryScreens,
+                fallbackPath: ROUTES.HOME,
+            }),
+    );
 }
 
 function resetSessionFlag() {
@@ -61,6 +70,9 @@ function navigateToMigratedUserWelcomeModalIfReady() {
     Navigation.navigate(getMigratedUserWelcomeModalRoute());
 }
 
+/** Waits until the current Onyx update batch has populated every value used by the guard. */
+const scheduleMigratedUserWelcomeModalEvaluation = createScheduleOnce(navigateToMigratedUserWelcomeModalIfReady);
+
 /**
  * Called by guards/index.ts when session or loading app state changes.
  * Reuses the shared Onyx subscriptions from guards/index.ts to avoid duplicate connections.
@@ -68,7 +80,7 @@ function navigateToMigratedUserWelcomeModalIfReady() {
 function onSessionOrLoadingAppChanged(sessionValue: OnyxEntry<Session>, isLoadingAppValue: boolean) {
     session = sessionValue;
     isLoadingApp = isLoadingAppValue;
-    navigateToMigratedUserWelcomeModalIfReady();
+    scheduleMigratedUserWelcomeModalEvaluation();
 }
 
 Onyx.connectWithoutView({
@@ -76,7 +88,7 @@ Onyx.connectWithoutView({
     callback: (value) => {
         const result = value ? tryNewDotOnyxSelector(value) : undefined;
         hasBeenAddedToNudgeMigration = result?.hasBeenAddedToNudgeMigration ?? false;
-        navigateToMigratedUserWelcomeModalIfReady();
+        scheduleMigratedUserWelcomeModalEvaluation();
     },
 });
 
@@ -88,7 +100,7 @@ Onyx.connectWithoutView({
         if (isProductTrainingElementDismissed('migratedUserWelcomeModal', value)) {
             hasRedirectedToMigratedUserModal = false;
         }
-        navigateToMigratedUserWelcomeModalIfReady();
+        scheduleMigratedUserWelcomeModalEvaluation();
     },
 });
 
