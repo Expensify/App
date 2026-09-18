@@ -27,7 +27,7 @@ import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
-import ExportOnyxState from '@libs/ExportOnyxState';
+import {maskOnyxState, readOnyxState, shareAsFile} from '@libs/ExportOnyxState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
@@ -90,9 +90,9 @@ function TroubleshootPage() {
     };
     const exportOnyxState = useCallback(async () => {
         try {
-            const value = await ExportOnyxState.readOnyxState();
-            const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
-            await ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
+            const value = await readOnyxState();
+            const dataToShare = maskOnyxState(value, shouldMaskOnyxState);
+            await shareAsFile(JSON.stringify(dataToShare));
         } catch (error) {
             console.error('Unable to export Onyx state:', error);
             await showConfirmModal({

@@ -1,4 +1,4 @@
-import ExportOnyxState from '@libs/ExportOnyxState';
+import {readOnyxState, shareAsFile} from '@libs/ExportOnyxState';
 import saveTextFile from '@libs/saveTextFile';
 
 import CONST from '@src/CONST';
@@ -17,7 +17,7 @@ describe('Onyx state export', () => {
         const state = {test: {value: 1}};
         const exportState = jest.spyOn(Onyx, 'exportState').mockResolvedValueOnce(state);
 
-        await expect(ExportOnyxState.readOnyxState()).resolves.toBe(state);
+        await expect(readOnyxState()).resolves.toBe(state);
         expect(exportState).toHaveBeenCalledWith({includeStaleRamOnlyKeys: true});
     });
 
@@ -25,14 +25,14 @@ describe('Onyx state export', () => {
         const error = new Error('Storage read failed');
         jest.spyOn(Onyx, 'exportState').mockRejectedValueOnce(error);
 
-        await expect(ExportOnyxState.readOnyxState()).rejects.toBe(error);
+        await expect(readOnyxState()).rejects.toBe(error);
     });
 
     it('saves the exported state with its established filename', async () => {
         const content = '{"test":1}';
         jest.mocked(saveTextFile).mockResolvedValueOnce(undefined);
 
-        await ExportOnyxState.shareAsFile(content);
+        await shareAsFile(content);
 
         expect(saveTextFile).toHaveBeenCalledWith({fileName: CONST.DEFAULT_ONYX_DUMP_FILE_NAME, content});
     });
