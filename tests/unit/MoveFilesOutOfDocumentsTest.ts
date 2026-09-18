@@ -165,12 +165,10 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         await expect(MoveFilesOutOfDocuments()).resolves.toBeUndefined();
     });
 
-    it('keeps the Onyx database name aligned with the upstream per-database migration', () => {
-        const sqliteProviderContent = fs.readFileSync(path.resolve(__dirname, '../../node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js'), 'utf8');
-        expect(sqliteProviderContent).toContain(`'${CONST.DEFAULT_DB_NAME}'`);
+    it('keeps iOS NitroSQLite databases in Application Support', () => {
+        const infoPlist = fs.readFileSync(path.resolve(__dirname, '../../ios/NewExpensify/Info.plist'), 'utf8');
 
-        // NitroSQLite now migrates each database when it opens, using the caller's database name.
-        const nitroSQLiteContent = fs.readFileSync(path.resolve(__dirname, '../../node_modules/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp'), 'utf8');
-        expect(nitroSQLiteContent).toContain('return migrateDatabase(dbName,');
+        // Without this opt-in, NitroSQLite stores OnyxDB in the user-visible Documents directory.
+        expect(infoPlist).toMatch(/<key>RNNitroSQLite_DatabaseLocation<\/key>\s*<string>ApplicationSupport<\/string>/);
     });
 });
