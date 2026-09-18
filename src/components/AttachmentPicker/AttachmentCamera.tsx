@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
@@ -228,106 +229,110 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                     </PressableWithFeedback>
                 </View>
 
-                <View style={[styles.flex1]}>
-                    {cameraPermissionStatus !== RESULTS.GRANTED && (
-                        <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
+                <View style={[styles.flex1, isLandscape && styles.flexRow]}>
+                    <View style={styles.flex1}>
+                        {cameraPermissionStatus !== RESULTS.GRANTED && (
+                            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                                <View style={[styles.cameraView, isLandscape ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
+                                    <ImageSVG
+                                        contentFit="contain"
+                                        src={lazyIllustrations.Hand}
+                                        width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                        height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                        style={styles.pb5}
+                                    />
+                                    <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                                    <Button
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                        accessibilityLabel={translate('common.continue')}
+                                        style={[styles.p9, styles.pt5]}
+                                        onPress={askForPermissions}
+                                    >
+                                        <Button.Text>{translate('common.continue')}</Button.Text>
+                                    </Button>
+                                </View>
+                            </ScrollView>
+                        )}
+                        {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
+                            <View style={[styles.cameraView, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    style={[styles.flex1]}
+                                    color={theme.textSupporting}
+                                />
+                            </View>
+                        )}
+                        {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                            <View style={[styles.cameraView, styles.alignItemsCenter]}>
+                                <GestureDetector gesture={tapGesture}>
+                                    <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isLandscape)}>
+                                        <VisionCamera
+                                            ref={cameraRef}
+                                            device={device}
+                                            format={format ?? undefined}
+                                            style={styles.flex1}
+                                            zoom={device.neutralZoom}
+                                            photo
+                                            isActive={isVisible}
+                                            photoQualityBalance="quality"
+                                            onError={handleCameraError}
+                                        />
+                                        <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                                    </View>
+                                </GestureDetector>
+                            </View>
+                        )}
+                    </View>
+
+                    <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.p3, !isLandscape && styles.flexRow]}>
+                        <PressableWithFeedback
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.flash')}
+                            style={[styles.alignItemsStart, !hasFlash && styles.opacity0]}
+                            disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                            onPress={() => setFlash((prevFlash) => !prevFlash)}
+                            sentryLabel="AttachmentCamera-Flash"
+                        >
+                            <Icon
+                                height={variables.iconSizeMenuItem}
+                                width={variables.iconSizeMenuItem}
+                                src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
+                                fill={theme.textSupporting}
+                            />
+                        </PressableWithFeedback>
+
+                        <PressableWithFeedback
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.shutter')}
+                            style={[styles.alignItemsCenter]}
+                            onPress={capturePhoto}
+                            sentryLabel="AttachmentCamera-Shutter"
+                        >
                             <ImageSVG
                                 contentFit="contain"
-                                src={lazyIllustrations.Hand}
-                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                                style={styles.pb5}
+                                src={lazyIllustrations.Shutter}
+                                width={CONST.RECEIPT.SHUTTER_SIZE}
+                                height={CONST.RECEIPT.SHUTTER_SIZE}
                             />
-                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                            <Button
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                accessibilityLabel={translate('common.continue')}
-                                style={[styles.p9, styles.pt5]}
-                                onPress={askForPermissions}
-                            >
-                                <Button.Text>{translate('common.continue')}</Button.Text>
-                            </Button>
-                        </View>
-                    )}
-                    {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
-                        <View style={[styles.cameraView, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                style={[styles.flex1]}
-                                color={theme.textSupporting}
+                        </PressableWithFeedback>
+
+                        <PressableWithFeedback
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.flipCamera')}
+                            style={[styles.alignItemsEnd, !canFlipCamera && styles.opacity0]}
+                            disabled={cameraPermissionStatus !== RESULTS.GRANTED || !canFlipCamera}
+                            onPress={() => setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'))}
+                            sentryLabel="AttachmentCamera-FlipCamera"
+                        >
+                            <Icon
+                                height={variables.iconSizeMenuItem}
+                                width={variables.iconSizeMenuItem}
+                                src={lazyIcons.CameraFlip}
+                                fill={theme.textSupporting}
                             />
-                        </View>
-                    )}
-                    {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                        <View style={[styles.cameraView, styles.alignItemsCenter]}>
-                            <GestureDetector gesture={tapGesture}>
-                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isLandscape)}>
-                                    <VisionCamera
-                                        ref={cameraRef}
-                                        device={device}
-                                        format={format ?? undefined}
-                                        style={styles.flex1}
-                                        zoom={device.neutralZoom}
-                                        photo
-                                        isActive={isVisible}
-                                        photoQualityBalance="quality"
-                                        onError={handleCameraError}
-                                    />
-                                    <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                                </View>
-                            </GestureDetector>
-                        </View>
-                    )}
-                </View>
-
-                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flash')}
-                        style={[styles.alignItemsStart, !hasFlash && styles.opacity0]}
-                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                        onPress={() => setFlash((prevFlash) => !prevFlash)}
-                        sentryLabel="AttachmentCamera-Flash"
-                    >
-                        <Icon
-                            height={variables.iconSizeMenuItem}
-                            width={variables.iconSizeMenuItem}
-                            src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
-                            fill={theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
-
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.shutter')}
-                        style={[styles.alignItemsCenter]}
-                        onPress={capturePhoto}
-                        sentryLabel="AttachmentCamera-Shutter"
-                    >
-                        <ImageSVG
-                            contentFit="contain"
-                            src={lazyIllustrations.Shutter}
-                            width={CONST.RECEIPT.SHUTTER_SIZE}
-                            height={CONST.RECEIPT.SHUTTER_SIZE}
-                        />
-                    </PressableWithFeedback>
-
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flipCamera')}
-                        style={[styles.alignItemsEnd, !canFlipCamera && styles.opacity0]}
-                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !canFlipCamera}
-                        onPress={() => setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'))}
-                        sentryLabel="AttachmentCamera-FlipCamera"
-                    >
-                        <Icon
-                            height={variables.iconSizeMenuItem}
-                            width={variables.iconSizeMenuItem}
-                            src={lazyIcons.CameraFlip}
-                            fill={theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
+                        </PressableWithFeedback>
+                    </View>
                 </View>
             </View>
         </Modal>
