@@ -21,7 +21,7 @@ import useNavigationSuggestions, {
 import {setSearchContext} from '@libs/actions/Search';
 import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
@@ -53,6 +53,7 @@ const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
 const mockShouldUseNarrowLayout = jest.fn(() => false);
 const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: false}));
 const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
+const mockIsBetaEnabledOrUnknown = jest.fn<boolean | undefined, [beta: string]>(() => false);
 const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -126,7 +127,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta)}),
+    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta), isBetaEnabledOrUnknown: (beta: string) => mockIsBetaEnabledOrUnknown(beta)}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -165,7 +166,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         isTopmostRouteModalScreen: jest.fn(() => false),
         navigate: jest.fn(),
     },
-    navigationRef: {dispatch: jest.fn()},
 }));
 
 jest.mock('@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute', () => jest.fn());
@@ -270,6 +270,7 @@ beforeEach(() => {
     mockUseOnyx.mockImplementation(() => [undefined]);
     mockUseNetwork.mockReturnValue({isOffline: false});
     mockIsBetaEnabled.mockReturnValue(false);
+    mockIsBetaEnabledOrUnknown.mockReturnValue(false);
     mockUseSettingsNavigationMenuData.mockReturnValue({
         accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
         generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
@@ -922,12 +923,9 @@ describe('Spend Search Router navigation source', () => {
 
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(setSearchContext).toHaveBeenCalledWith(false);
-        expect(navigationRef.dispatch).toHaveBeenCalledWith({
-            type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
-            payload: {params: {q: searchQuery, rawQuery: undefined, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}},
-        });
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
         expect(clearSelectedTransactions.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0) ?? 0);
-        expect(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(navigationRef.dispatch).mock.invocationCallOrder.at(0) ?? 0);
+        expect(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
     });
 
     it('navigates with the last query when it is still valid for the default query', () => {
@@ -937,10 +935,7 @@ describe('Spend Search Router navigation source', () => {
 
         navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn());
 
-        expect(navigationRef.dispatch).toHaveBeenCalledWith({
-            type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
-            payload: {params: {q: lastSearchQuery, rawQuery: undefined, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}},
-        });
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastSearchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('falls back to the default query when the last query drops one of its filters', () => {
@@ -950,10 +945,7 @@ describe('Spend Search Router navigation source', () => {
 
         navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn());
 
-        expect(navigationRef.dispatch).toHaveBeenCalledWith({
-            type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
-            payload: {params: {q: searchQuery, rawQuery: undefined, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}},
-        });
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('composes Spend suggestions from the menu hook with icons, context, exclusions, and approval gating', () => {

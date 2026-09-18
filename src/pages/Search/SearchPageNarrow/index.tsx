@@ -19,7 +19,6 @@ import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,7 +43,7 @@ import type {SearchResults} from '@src/types/onyx';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {clamp, FadeIn, LayoutAnimationConfig, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, FadeIn, FadeOut, LayoutAnimationConfig, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
@@ -56,12 +55,11 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     searchResults?: SearchResults;
 
-    /** The last query whose results resolved. The area renders these, holding them while a new query loads. */
+    /** The last query whose results resolved. Drives the results area so it holds the current results while a new query loads. */
     contentQueryJSON?: SearchQueryJSON;
-    contentSearchResults: SearchResults | undefined;
 
-    /** True while the area holds a resolved query's results under a newer one that is still loading. */
-    isContentStale: boolean;
+    /** Results for `contentQueryJSON`. */
+    contentSearchResults?: SearchResults;
 
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
@@ -82,7 +80,6 @@ function SearchPageNarrow({
     searchResults,
     contentQueryJSON,
     contentSearchResults,
-    isContentStale,
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
     searchOverlayContent,
@@ -91,11 +88,6 @@ function SearchPageNarrow({
     isOverlayActive,
 }: SearchPageNarrowProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
-
-    // A layer replacing results already on screen renders its hydrate placeholder invisibly, since a skeleton there
-    // reads as a flash between two sets of results.
-    const previousContentHash = usePrevious(contentQueryJSON?.hash);
-    const isReplacingPreviousContent = previousContentHash !== contentQueryJSON?.hash;
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -224,6 +216,7 @@ function SearchPageNarrow({
         }, [isHeaderInteractive, isInteractive, startTransition]),
     );
 
+    // contentQueryJSON falls back to queryJSON upstream, so the two are always absent together.
     if (!queryJSON || !contentQueryJSON) {
         return (
             <ScreenWrapper
@@ -329,23 +322,18 @@ function SearchPageNarrow({
                             {useStaticRendering && (
                                 <>
                                     {isInteractive && (
-                                        <View
-                                            style={styles.flex1}
-                                            pointerEvents={isContentStale ? 'none' : undefined}
-                                        >
-                                            <Search
-                                                searchResults={contentSearchResults}
-                                                queryJSON={contentQueryJSON}
-                                                key={contentQueryJSON.hash}
-                                                contentContainerStyle={contentContainerStyle}
-                                                handleSearch={handleSearchAction}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                onSearchListScroll={scrollHandler}
-                                                onDestinationVisible={endSubmitNavigationSpans}
-                                                onContentReady={onSearchContentReady}
-                                                hasFilterBars={hasFilterBars}
-                                            />
-                                        </View>
+                                        <Search
+                                            searchResults={contentSearchResults}
+                                            queryJSON={contentQueryJSON}
+                                            key={contentQueryJSON.hash}
+                                            contentContainerStyle={contentContainerStyle}
+                                            handleSearch={handleSearchAction}
+                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                            onSearchListScroll={scrollHandler}
+                                            onDestinationVisible={endSubmitNavigationSpans}
+                                            onContentReady={onSearchContentReady}
+                                            hasFilterBars={hasFilterBars}
+                                        />
                                     )}
                                     {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                     {!!searchOverlayContent && (
@@ -362,21 +350,19 @@ function SearchPageNarrow({
                                 <>
                                     {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                     <LayoutAnimationConfig skipEntering>
-                                        {/* Keyed on the resolved query, so this only remounts once the new results arrive. Absolutely
-                                            filled so it never shares the parent's column layout with the layer it replaces.
-                                            Held rows read the newer query's hash and snapshot from the Search contexts, so their
-                                            actions would target the wrong search — inert until the results they belong to are current. */}
+                                        {/* A resolved query change remounts this layer: the outgoing one fades out and the incoming one waits
+                                            for it to finish before fading in. Both layers are absolutely filled so the outgoing fade overlays
+                                            the incoming layer instead of sharing the column layout. */}
                                         <Animated.View
                                             key={contentQueryJSON.hash}
-                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                            exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                             style={StyleSheet.absoluteFill}
-                                            pointerEvents={isContentStale ? 'none' : undefined}
                                         >
                                             {shouldShowLoadingSkeleton ? (
                                                 <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
                                             ) : (
                                                 <SearchWithNavigationDeferredMount
-                                                    isReplacingContent={isReplacingPreviousContent}
                                                     searchResults={contentSearchResults}
                                                     queryJSON={contentQueryJSON}
                                                     onSearchListScroll={scrollHandler}
@@ -402,7 +388,7 @@ function SearchPageNarrow({
                                 </>
                             )}
                         </View>
-                        <SearchSelectionFooter searchResults={contentSearchResults} />
+                        <SearchSelectionFooter searchResults={searchResults} />
                     </View>
                 </ScreenWrapper>
             </ReceiptScanDropZone>

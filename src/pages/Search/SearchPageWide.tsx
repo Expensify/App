@@ -13,7 +13,6 @@ import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavi
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
-import usePrevious from '@hooks/usePrevious';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,18 +33,17 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut, LayoutAnimationConfig} from 'react-native-reanimated';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
 
-    /** The last query whose results resolved. The area renders these, holding them while a new query loads. */
+    /** The last query whose results resolved. Drives the results area so it holds the current results while a new query loads. */
     contentQueryJSON?: SearchQueryJSON;
-    contentSearchResults: OnyxEntry<SearchResults>;
 
-    /** True while the area holds a resolved query's results under a newer one that is still loading. */
-    isContentStale: boolean;
+    /** Results for `contentQueryJSON`. */
+    contentSearchResults: OnyxEntry<SearchResults>;
 
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
@@ -62,7 +60,6 @@ function SearchPageWide({
     searchResults,
     contentQueryJSON,
     contentSearchResults,
-    isContentStale,
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
@@ -71,11 +68,6 @@ function SearchPageWide({
     onSearchContentReady,
 }: SearchPageWideProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
-
-    // A layer replacing results already on screen renders its hydrate placeholder invisibly, since a skeleton there
-    // reads as a flash between two sets of results.
-    const previousContentHash = usePrevious(contentQueryJSON?.hash);
-    const isReplacingPreviousContent = previousContentHash !== contentQueryJSON?.hash;
     const styles = useThemeStyles();
     const {currentSearchKey} = useSearchQueryContext();
     const {hasSelectedTransactions} = useSearchSelectionContext();
@@ -146,21 +138,19 @@ function SearchPageWide({
                                 <View style={styles.flex1}>
                                     {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                     <LayoutAnimationConfig skipEntering>
-                                        {/* Keyed on the resolved query, so this only remounts once the new results arrive. Absolutely
-                                            filled so it never shares the parent's column layout with the layer it replaces.
-                                            Held rows read the newer query's hash and snapshot from the Search contexts, so their
-                                            actions would target the wrong search — inert until the results they belong to are current. */}
+                                        {/* A resolved query change remounts this layer: the outgoing one fades out and the incoming one waits
+                                            for it to finish before fading in. Both layers are absolutely filled so the outgoing fade overlays
+                                            the incoming layer instead of sharing the column layout. */}
                                         <Animated.View
                                             key={contentQueryJSON.hash}
-                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                            exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                             style={StyleSheet.absoluteFill}
-                                            pointerEvents={isContentStale ? 'none' : undefined}
                                         >
                                             {shouldShowLoadingSkeleton ? (
                                                 <SearchLoadingSkeleton />
                                             ) : (
                                                 <SearchWithNavigationDeferredMount
-                                                    isReplacingContent={isReplacingPreviousContent}
                                                     queryJSON={contentQueryJSON}
                                                     searchResults={contentSearchResults}
                                                     handleSearch={handleSearchAction}
@@ -177,7 +167,7 @@ function SearchPageWide({
                                     {/* Floats over the bottom of the list, which already ends above SearchSelectionFooter. */}
                                     <SearchBulkActionsBarWide queryJSON={queryJSON} />
                                 </View>
-                                <SearchSelectionFooter searchResults={contentSearchResults} />
+                                <SearchSelectionFooter searchResults={searchResults} />
                             </>
                         )}
                     </FullPageNotFoundView>

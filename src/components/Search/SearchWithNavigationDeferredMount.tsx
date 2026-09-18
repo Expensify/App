@@ -12,8 +12,9 @@ import CONST from '@src/CONST';
 
 import type {ComponentProps} from 'react';
 
-import React, {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import React from 'react';
+import {StyleSheet} from 'react-native';
+import Animated, {FadeOut} from 'react-native-reanimated';
 
 import Search from './index';
 
@@ -31,15 +32,7 @@ function handleSkeletonLayout() {
     }
 }
 
-type SearchWithNavigationDeferredMountProps = ComponentProps<typeof Search> & {
-    /** True when this mount replaces results already on screen, which renders the placeholder invisibly. */
-    isReplacingContent?: boolean;
-};
-
-function SearchWithNavigationDeferredMount({isReplacingContent = false, ...props}: SearchWithNavigationDeferredMountProps) {
-    // Captured once: the prop is derived from usePrevious, so it flips back on the render after the query changes,
-    // while this placeholder can still be showing. Reading it live makes the skeleton appear partway through hydrate.
-    const [isReplacingContentAtMount] = useState(isReplacingContent);
+function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
@@ -48,15 +41,18 @@ function SearchWithNavigationDeferredMount({isReplacingContent = false, ...props
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                // Rendered invisibly rather than skipped when it replaces results already on screen: its onLayout still
-                // ends the navigate-to-Search spans, and the deferred mount still yields to the press.
-                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
+                // Absolutely filled so the exit fade overlays the incoming Search content rather than sharing
+                // the parent's column layout with it, which would halve both heights for the fade duration.
+                <Animated.View
+                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    style={[styles.flex1, StyleSheet.absoluteFill]}
+                >
                     <SearchRowSkeleton
                         shouldAnimate
                         onLayout={handleSkeletonLayout}
                         containerStyle={containerStyle}
                     />
-                </View>
+                </Animated.View>
             }
         >
             <Search {...props} />
