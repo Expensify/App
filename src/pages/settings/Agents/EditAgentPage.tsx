@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useAgentAccountID from '@hooks/useAgentAccountID';
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -37,11 +38,11 @@ import {View} from 'react-native';
 
 type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>;
 
-function EditAgentPage({route}: EditAgentPageProps) {
+function EditAgentPage({route, navigation}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'Users']);
-    const accountID = route.params.accountID;
+    const [accountID, accountIDMetadata] = useAgentAccountID(route.params.accountID, navigation);
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -49,7 +50,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
-    const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
+    const isOnyxLoaded = accountIDMetadata.status === 'loaded' && agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const shouldShowNotFoundPage = isOnyxLoaded && !agent && !personalDetails;
 
     const agentLogin = personalDetails?.login ?? '';

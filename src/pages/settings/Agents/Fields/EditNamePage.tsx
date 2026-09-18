@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
+import useAgentAccountID from '@hooks/useAgentAccountID';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,10 +26,10 @@ import React from 'react';
 
 type EditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_NAME>;
 
-function EditNamePage({route}: EditNamePageProps) {
+function EditNamePage({route, navigation}: EditNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const accountID = route.params.accountID;
+    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
 
     const {inputCallbackRef} = useAutoFocusInput();

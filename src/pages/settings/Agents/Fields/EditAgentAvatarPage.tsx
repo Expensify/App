@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAgentAccountID from '@hooks/useAgentAccountID';
 import useAvatarCrop from '@hooks/useAvatarCrop';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -232,8 +233,8 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
 EditAgentAvatarContent.displayName = 'EditAgentAvatarContent';
 
-function EditAgentAvatarPage({route}: EditAgentAvatarPageProps) {
-    const {accountID} = route.params;
+function EditAgentAvatarPage({route, navigation}: EditAgentAvatarPageProps) {
+    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
     return (
         <EditAgentAvatarContent
             accountID={accountID}

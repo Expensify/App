@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useAgentAccountID from '@hooks/useAgentAccountID';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -34,14 +35,14 @@ import {Platform, View} from 'react-native';
 
 type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>;
 
-function EditPromptPage({route}: EditPromptPageProps) {
+function EditPromptPage({route, navigation}: EditPromptPageProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = useIsInLandscapeMode();
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
-    const accountID = route.params.accountID;
+    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);

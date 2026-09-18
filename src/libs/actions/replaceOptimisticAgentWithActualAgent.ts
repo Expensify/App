@@ -19,8 +19,8 @@ import Onyx from 'react-native-onyx';
  *
  * Like replaceOptimisticReportWithActualReport, this module listens to that mapping. For each entry it redirects
  * any open agent settings screen to the real accountID, remaps the agent DM participants, clears the optimistic
- * data, and clears the consumed entry. The cleanup lives here instead of createAgent()'s successData so it always
- * runs after the redirect.
+ * data. The mapping stays in Onyx so other tabs and screens opened later can still resolve the optimistic ID.
+ * The cleanup lives here instead of createAgent()'s successData so it runs after this tab's redirect.
  *
  * Nothing is migrated onto the real keys: the mapping is only flushed to Onyx after the queue has drained, so any
  * pending state still on the optimistic keys is stale by then. The ReplaceOptimisticAgentAccountID middleware
@@ -28,6 +28,9 @@ import Onyx from 'react-native-onyx';
  */
 
 const AGENT_SETTINGS_SCREENS = new Set<string>([SCREENS.SETTINGS.AGENTS.EDIT, SCREENS.SETTINGS.AGENTS.EDIT_NAME, SCREENS.SETTINGS.AGENTS.EDIT_PROMPT, SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]);
+
+// Retained mappings are delivered again when another agent is created. Schedule each replacement only once per tab.
+const processedAccountIDs = new Map<number, number>();
 
 // Reports are only read inside the mapping callback, so connectWithoutView() is used. On app start the mapping can
 // arrive before this collection is hydrated, so consumers wait for this promise. Onyx always fires the callback at
@@ -105,9 +108,14 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
     // pending. This is the only path that runs for a persisted mapping consumed on app start.
     registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
 
+    if (processedAccountIDs.get(optimisticAccountID) === realAccountID) {
+        return;
+    }
+    processedAccountIDs.set(optimisticAccountID, realAccountID);
+
     // Neither navigation nor the report collection is guaranteed to be ready when a persisted mapping is consumed
-    // on app start. The optimistic data is cleared in the same callback so an open agent screen can never be left
-    // pointing at a deleted key.
+    // on app start. Edit screens also subscribe to the retained mapping because another tab can clear the
+    // optimistic data before this tab's navigation is ready.
     Promise.all([reportsHydrationPromise, Navigation.isNavigationReady()]).then(() => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
@@ -120,14 +128,15 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
 
                 Onyx.update([buildPersonalDetailsUpdate({[optimisticAccountID]: null})]);
                 Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
-                Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: null});
+                // Cross-tab Onyx notifications carry keys, not values. Deleting the mapping here lets another
+                // tab read only the final empty value and permanently lose the replacement ID.
             },
         });
     });
 }
 
-// No UI subscribes to the mapping, so connectWithoutView() is used. Firing with the persisted value on app start
-// also consumes any entry left over from a previous session.
+// This callback performs navigation and cleanup independently of UI subscribers. The persisted value also
+// restores action ID resolution and repairs any optimistic routes on app start.
 Onyx.connectWithoutView({
     key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
     callback: (mapping) => {
@@ -136,7 +145,7 @@ Onyx.connectWithoutView({
         }
 
         for (const [optimisticAccountID, mappedAccountID] of Object.entries(mapping)) {
-            // Already-consumed (nullish) entries are skipped. Clearing them again would just fire this callback once more.
+            // Removed invalid entries are skipped. Clearing them again would just fire this callback once more.
             const realAccountID: unknown = mappedAccountID;
             if (realAccountID === null || realAccountID === undefined) {
                 continue;

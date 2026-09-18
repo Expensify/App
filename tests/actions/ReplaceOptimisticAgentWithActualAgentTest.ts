@@ -210,14 +210,14 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
-        // Then the real agent keeps exactly the server's data, the optimistic copies are gone and the entry is cleared
+        // Then the real agent keeps exactly the server's data, the optimistic copies are gone and the mapping remains available to other tabs
         const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         expect(personalDetails?.[realAccountID]).toStrictEqual(realPersonalDetail);
         expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`)).toStrictEqual(realAgentPrompt);
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
         const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
-        expect(mapping?.[optimisticAccountID]).toBeUndefined();
+        expect(mapping?.[optimisticAccountID]).toBe(realAccountID);
     });
 
     it('does not resurrect an agent that was deleted while its CreateAgent was in flight', async () => {
@@ -314,12 +314,12 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         navigationReady.resolve();
         await waitForBatchedUpdates();
 
-        // Then the screen is redirected and only then is the optimistic data and the mapping entry cleared
+        // Then the screen is redirected and only the optimistic data is cleared
         expect(mockSetParams).toHaveBeenCalledTimes(1);
         expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
         expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeUndefined();
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
-        expect((await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBeUndefined();
+        expect((await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBe(realAccountID);
     });
 
     it('resolveAgentAccountID returns the input unchanged for an accountID with no consumed mapping', () => {
@@ -338,15 +338,24 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(resolveAgentAccountID(optimisticAccountID)).toBe(realAccountID);
     });
 
-    it('clears the mapping entry once it has been processed', async () => {
+    it('keeps the mapping available to a tab that reads storage after the optimistic data has been removed', async () => {
         const optimisticAccountID = 2837465910283746;
         const realAccountID = 6058172439605817;
 
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Pending agent', isOptimisticPersonalDetail: true},
+            [realAccountID]: {accountID: realAccountID, displayName: 'Created agent'},
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {prompt: 'Test instructions'});
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
+        // Cross-tab Onyx notifications carry keys, then read their latest stored values. A receiving tab can
+        // therefore read only after the first tab has completed cleanup, without seeing the intermediate mapping.
+        expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
         const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
-        expect(mapping?.[optimisticAccountID]).toBeUndefined();
+        expect(mapping?.[optimisticAccountID]).toBe(realAccountID);
     });
 
     it('leaves the real agent untouched and only clears the entry when the mapping maps an accountID to itself', async () => {
@@ -445,7 +454,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             await waitForBatchedUpdates();
 
             // Then the screen is redirected, the DM participants are repaired against the hydrated report collection,
-            // and the optimistic data and the mapping entry are cleared
+            // and the optimistic data is cleared while the mapping remains available to other tabs
             expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
             const report = await getColdStartOnyxValue(`${coldStartOnyxKeys.COLLECTION.REPORT}${reportID}`);
             expect(report?.participants).toStrictEqual({
@@ -454,7 +463,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             });
             expect((await getColdStartOnyxValue(coldStartOnyxKeys.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeUndefined();
             expect(await getColdStartOnyxValue(`${coldStartOnyxKeys.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
-            expect((await getColdStartOnyxValue(coldStartOnyxKeys.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBeUndefined();
+            expect((await getColdStartOnyxValue(coldStartOnyxKeys.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBe(realAccountID);
         });
     });
 });
