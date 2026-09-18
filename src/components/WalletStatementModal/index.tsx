@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const navigateRef = useRef<(event: MessageEvent<WalletStatementMessage>) => void>(null);
 
     /**
@@ -33,9 +35,9 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         (event: MessageEvent<WalletStatementMessage>) => {
             const {data} = event;
             const {type, url} = data || {};
-            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, type, url);
+            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, conciergePersonalDetails, type, url);
         },
-        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas],
+        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, conciergePersonalDetails],
     );
 
     useEffect(() => {

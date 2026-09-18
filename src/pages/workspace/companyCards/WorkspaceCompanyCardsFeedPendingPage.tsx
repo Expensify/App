@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -24,6 +25,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -40,7 +42,15 @@ function WorkspaceCompanyCardsFeedPendingPage() {
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
                     <TextLink
                         onPress={() => {
-                            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+                            navigateToConciergeChat({
+                                conciergeReportID,
+                                introSelected,
+                                currentUserAccountID,
+                                isSelfTourViewed,
+                                betas,
+                                personalDetails: conciergePersonalDetails,
+                                shouldDismissModal: false,
+                            });
                         }}
                     >
                         {' '}

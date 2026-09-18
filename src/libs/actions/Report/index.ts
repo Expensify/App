@@ -4557,9 +4557,12 @@ type NavigateToConciergeChatParams = {
     /** The report action to open the Concierge chat on. */
     reportActionID?: string;
 
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    /** Personal details used to build the Concierge chat when it does not exist yet. */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    /**
+     * Personal details used to build the Concierge chat when it does not exist yet. Only Concierge's record is read, so
+     * callers should pass a list narrowed to it (see `usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE])`) instead of
+     * subscribing to the whole personal details list.
+     */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /**
      * The report the user was viewing when they opened Concierge from the side-pane button (native). Threaded onto
@@ -5388,6 +5391,7 @@ function navigateToMostRecentReport(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     // TODO: Pass guideAccountIDs once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
     const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
@@ -5410,7 +5414,16 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false, linkToOptions: {forceReplace: true}});
+        navigateToConciergeChat({
+            conciergeReportID,
+            introSelected,
+            currentUserAccountID,
+            isSelfTourViewed,
+            betas,
+            personalDetails,
+            shouldDismissModal: false,
+            linkToOptions: {forceReplace: true},
+        });
     }
 }
 
@@ -5457,6 +5470,7 @@ function leaveGroupChat(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const reportID = report.reportID;
     // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
@@ -5507,7 +5521,7 @@ function leaveGroupChat(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.revealRouteBeforeDismissingModal(getReportRouteForCurrentContext({reportID}));
     } else {
-        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
+        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails);
     }
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
@@ -5520,6 +5534,7 @@ function leaveRoom(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
 ) {
     const reportID = report.reportID;
@@ -5632,7 +5647,7 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails);
 }
 
 function buildInviteToRoomOnyxData(
