@@ -7,14 +7,11 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-
-import type {NavigationContainerRef} from '@react-navigation/native';
 
 import React from 'react';
 
@@ -36,6 +33,14 @@ const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 function getWorkspaceNavigatorState() {
     const tabNavigatorState = navigationRef.current?.getRootState().routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)?.state;
     return tabNavigatorState?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+}
+
+function requireNavigationContainer() {
+    const container = navigationRef.current;
+    if (!container) {
+        throw new Error('Expected the navigation container to be mounted');
+    }
+    return container;
 }
 
 describe('Navigate', () => {
@@ -759,7 +764,7 @@ describe('Navigate', () => {
                 // Given a workspace split navigator of policy A focused
                 renderWorkspaceSplit(policyA);
                 const splitBeforeNavigate = getWorkspaceState()?.routes.at(0);
-                const dispatchSpy = jest.spyOn(navigationRef.current as NavigationContainerRef<RootNavigatorParamList>, 'dispatch');
+                const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
 
                 // When navigating to a route of policy B
                 act(() => {
@@ -781,7 +786,7 @@ describe('Navigate', () => {
             it('keeps a forced replace a replace', () => {
                 // Given a workspace split navigator of policy A focused
                 renderWorkspaceSplit(policyA);
-                const dispatchSpy = jest.spyOn(navigationRef.current as NavigationContainerRef<RootNavigatorParamList>, 'dispatch');
+                const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
 
                 // When navigating to a route of policy B with forceReplace
                 act(() => {

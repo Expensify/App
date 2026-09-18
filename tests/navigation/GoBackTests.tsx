@@ -5,14 +5,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {InitialState, NavigationContainerRef} from '@react-navigation/native';
+import type {InitialState} from '@react-navigation/native';
 
 import React, {createContext, useContext} from 'react';
 
@@ -109,6 +108,14 @@ function getActiveWorkspaceState() {
     const root = navigationRef.getRootState();
     const tabState = root.routes.at(root.index)?.state;
     return tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+}
+
+function requireNavigationContainer() {
+    const container = navigationRef.current;
+    if (!container) {
+        throw new Error('Expected the navigation container to be mounted');
+    }
+    return container;
 }
 
 describe('Go back on the narrow layout', () => {
@@ -648,7 +655,7 @@ describe('Go back on the narrow layout', () => {
             // going backwards within the tab navigator.
             render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
             const tabStateKey = navigationRef.current?.getRootState().routes.at(0)?.state?.key;
-            const dispatchSpy = jest.spyOn(navigationRef.current as NavigationContainerRef<RootNavigatorParamList>, 'dispatch');
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
 
             act(() => {
                 Navigation.goBack(ROUTES.SETTINGS);
@@ -744,7 +751,7 @@ describe('Go back on the narrow layout', () => {
 
         it('Should close the modal and reach the matching workspace split', () => {
             render(<TestNavigationContainer initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
-            const dispatchSpy = jest.spyOn(navigationRef.current as NavigationContainerRef<RootNavigatorParamList>, 'dispatch');
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
 
             act(() => {
                 Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));

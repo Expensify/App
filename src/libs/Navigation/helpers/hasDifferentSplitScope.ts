@@ -1,11 +1,13 @@
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
-import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
-import type {ActionPayload} from '@libs/Navigation/helpers/linkTo/types';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import {isRecord} from '@libs/ObjectUtils';
 
 import type {NavigationRoute} from '@navigation/types';
+
+import type {ActionPayload} from './linkTo/types';
+
+import getParamsFromRoute from './getParamsFromRoute';
+import {isSplitNavigatorName} from './isNavigatorName';
 
 function getSplitScopeComparisonValues(route: NavigationRoute, payload: ActionPayload & {name?: unknown}) {
     if (!isSplitNavigatorName(route.name) || route.name !== payload.name) {
