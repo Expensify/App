@@ -365,6 +365,8 @@ function getBadgeFromIOUReport(
         getAllTransactionViolations(),
         currentUserLogin,
         currentUserAccountID,
+        // TODO: Pass iouReportOwnerLogin in PR 23. canSubmitAndIsAwaitingForCurrentUser falls back to allPersonalDetails until then. See https://github.com/Expensify/App/issues/66413.
+        undefined,
         getAllReportActions(iouReport?.reportID),
     );
     if (isWaitingSubmitFromCurrentUser) {
