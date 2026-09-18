@@ -6,7 +6,9 @@ import {
     getMergeATSStagesLabel,
     getMergeATSTagsLabel,
     isAnyRecruitingConnected,
+    isAnyRecruitingReadOnlyWorkflowMode,
     isMergeATSCompleteSetupNeeded,
+    isRecruitingAdvancedMode,
     shouldShowRecruitingConnectionError,
 } from '@libs/merge/RecruitingUtils';
 
@@ -317,6 +319,52 @@ describe('RecruitingUtils', () => {
                 config: {approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM},
             });
             expect(getMergeATSApprovalMode(policy)).toBe(CONST.MERGE.APPROVAL_MODE.CUSTOM);
+        });
+    });
+
+    describe('isAnyRecruitingReadOnlyWorkflowMode', () => {
+        it('returns false when there is no connection', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(undefined)).toBe(false);
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makePolicy({connections: {}}))).toBe(false);
+        });
+
+        it('returns false when the connection has no approval mode', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy())).toBe(false);
+        });
+
+        it('returns false with custom mode', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM}}))).toBe(false);
+        });
+
+        it('returns false with manager mode, which recruiting does not lock the workflow for', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER}}))).toBe(false);
+        });
+
+        it('returns true with basic mode', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC}}))).toBe(true);
+        });
+
+        it('returns true with advanced mode', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED}}))).toBe(true);
+        });
+    });
+
+    describe('isRecruitingAdvancedMode', () => {
+        it('returns false when there is no connection', () => {
+            expect(isRecruitingAdvancedMode(undefined)).toBe(false);
+            expect(isRecruitingAdvancedMode(makePolicy({connections: {}}))).toBe(false);
+        });
+
+        it('returns false when the connection has no approval mode', () => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy())).toBe(false);
+        });
+
+        it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.CUSTOM])('returns false with %s mode', (approvalMode) => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy({config: {approvalMode}}))).toBe(false);
+        });
+
+        it('returns true with advanced mode, where the first approver comes from the candidate ATS fields', () => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED}}))).toBe(true);
         });
     });
 
