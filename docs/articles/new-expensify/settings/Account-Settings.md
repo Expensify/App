@@ -122,8 +122,11 @@ To set or update your pronouns:
 
 1. Go to **Account > Profile**.
 2. Click **Pronouns**.
-3. Choose your pronouns from the list of options.
-4. Click **Save**.
+3. Type a word or letters into the **Search to see options** field. No pronouns are listed until you type a search term.
+4. Select your pronouns from the search results.
+5. Click **Save**.
+
+When you reopen **Pronouns**, the search field is pre-filled with your saved pronouns. Your saved pronouns stay pinned to the top of the search results as you search, so your current selection is always visible.
 
 ---
 
