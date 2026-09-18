@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import {
@@ -146,7 +147,6 @@ type CreateDistanceRequestInformation = {
     customUnitPolicyID?: string;
     shouldPlaySound?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
@@ -159,6 +159,7 @@ type CreateDistanceRequestInformation = {
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type CreateSplitsTransactionParams = BaseTransactionParams & {
@@ -180,7 +181,6 @@ type CreateSplitsAndOnyxDataParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     delegateAccountID: number | undefined;
@@ -188,6 +188,7 @@ type CreateSplitsAndOnyxDataParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type StartSplitBilActionParams = {
@@ -226,7 +227,6 @@ type CompleteSplitBillActionParams = {
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
@@ -234,6 +234,7 @@ type CompleteSplitBillActionParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type SplitBillActionsParams = {
@@ -262,7 +263,6 @@ type SplitBillActionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticSplitChatReportID?: string;
     delegateAccountID: number | undefined;
@@ -271,6 +271,7 @@ type SplitBillActionsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /**
@@ -302,7 +303,6 @@ function splitBill({
     quickAction,
     policyRecentlyUsedCurrencies,
     policyRecentlyUsedTags,
-    betas,
     personalDetails,
     optimisticSplitChatReportID,
     delegateAccountID,
@@ -311,6 +311,7 @@ function splitBill({
     participantsPolicyTags,
     getCurrencyDecimals,
     rules,
+    isVendorMatchingBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -341,7 +342,6 @@ function splitBill({
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        betas,
         personalDetails,
         participantsPolicyTags,
         delegateAccountID,
@@ -349,6 +349,7 @@ function splitBill({
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     });
 
     const parameters: SplitBillParams = {
@@ -416,7 +417,6 @@ function splitBillAndOpenReport({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
-    betas,
     personalDetails,
     optimisticSplitChatReportID,
     delegateAccountID,
@@ -425,6 +425,7 @@ function splitBillAndOpenReport({
     participantsPolicyTags,
     getCurrencyDecimals,
     rules,
+    isVendorMatchingBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -455,7 +456,6 @@ function splitBillAndOpenReport({
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        betas,
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
@@ -463,6 +463,7 @@ function splitBillAndOpenReport({
         participantsPolicyTags,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     });
 
     const parameters: SplitBillParams = {
@@ -786,10 +787,8 @@ function startSplitBill({
 
         const participantPersonalDetails = getAllPersonalDetails()[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         if (!participantPersonalDetails) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
+            optimisticData.push(
+                buildPersonalDetailsUpdate({
                     [accountID]: {
                         accountID,
                         // Disabling this line since participant.displayName can be an empty string
@@ -800,8 +799,8 @@ function startSplitBill({
                         login: participant.login || participant.text,
                         isOptimisticPersonalDetail: true,
                     },
-                },
-            });
+                }),
+            );
             // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
             redundantParticipants[accountID] = null;
         }
@@ -914,6 +913,7 @@ function startSplitBill({
  * @param sessionEmail - email of the current user
  */
 function completeSplitBill({
+    isVendorMatchingBetaEnabled,
     chatReportID,
     reportAction,
     updatedTransaction,
@@ -921,7 +921,6 @@ function completeSplitBill({
     isASAPSubmitBetaEnabled,
     quickAction,
     transactionViolations,
-    betas,
     personalDetails,
     delegateAccountID,
     isTrackIntentUser,
@@ -1048,7 +1047,7 @@ function completeSplitBill({
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false, betas, rules);
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false, isASAPSubmitBetaEnabled, rules);
 
         // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
         const optimisticTransactionID = NumberUtils.rand64();
@@ -1073,7 +1072,7 @@ function completeSplitBill({
                       currency: currency ?? '',
                       optimisticIOUReportID: optimisticExpenseReportID,
                       reportTransactions,
-                      betas,
+                      isASAPSubmitBetaEnabled,
                       getCurrencyDecimals,
                       rules,
                   })
@@ -1197,6 +1196,7 @@ function completeSplitBill({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            isVendorMatchingBetaEnabled,
         });
 
         splits.push({
@@ -1486,6 +1486,7 @@ function getOrCreateOptimisticSplitChatReport(
  * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a expense chat
  */
 function createSplitsAndOnyxData({
+    isVendorMatchingBetaEnabled,
     participants,
     currentUserLogin,
     currentUserAccountID,
@@ -1515,7 +1516,6 @@ function createSplitsAndOnyxData({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
-    betas,
     personalDetails,
     participantsPolicyTags,
     delegateAccountID,
@@ -1814,7 +1814,7 @@ function createSplitsAndOnyxData({
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
         const isScanRequest = isScanRequestTransactionUtils(splitTransaction);
-        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, isScanRequest, betas, rules);
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, isScanRequest, isASAPSubmitBetaEnabled, rules);
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             const optimisticExpenseReportID = generateReportID();
@@ -1836,7 +1836,7 @@ function createSplitsAndOnyxData({
                       currency,
                       optimisticIOUReportID: optimisticExpenseReportID,
                       reportTransactions,
-                      betas,
+                      isASAPSubmitBetaEnabled,
                       getCurrencyDecimals,
                       rules,
                   })
@@ -2000,6 +2000,7 @@ function createSplitsAndOnyxData({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            isVendorMatchingBetaEnabled,
         });
 
         const individualSplit = {
@@ -2078,7 +2079,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         customUnitPolicyID,
         shouldPlaySound: shouldPlaySoundParam = true,
         personalDetails,
-        betas,
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
         previousOdometerDraft,
@@ -2089,6 +2089,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         optimisticChatReportID,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2179,7 +2180,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
-            betas,
             personalDetails,
             participantsPolicyTags,
             delegateAccountID,
@@ -2187,6 +2187,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            isVendorMatchingBetaEnabled,
         });
         onyxData = splitOnyxData;
 
@@ -2234,6 +2235,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             payerEmail,
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
+            isVendorMatchingBetaEnabled,
             parentChatReport: currentChatReport,
             existingIOUReport,
             existingTransaction,
@@ -2285,7 +2287,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             quickAction,
             policyRecentlyUsedCurrencies,
             personalDetails,
-            betas,
             optimisticReportPreviewActionID,
             delegateAccountID,
             isTrackIntentUser,

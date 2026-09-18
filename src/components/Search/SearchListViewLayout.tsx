@@ -5,16 +5,17 @@ import type {GetReportTableColumnStylesParams} from '@styles/utils';
 
 import type {CardList, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from './types';
 
 import useSearchColumnWidths from './hooks/useSearchColumnWidths';
+import useSearchTableWidth from './hooks/useSearchTableWidth';
 import HorizontalTableScroll from './primitives/HorizontalTableScroll';
 import {SearchColumnWidthsProvider} from './SearchColumnWidthsContext';
 
@@ -85,11 +86,7 @@ function SearchListViewLayout({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const [tableWidth, setTableWidth] = useState(0);
-
-    const handleTableLayout = (event: LayoutChangeEvent) => {
-        setTableWidth(event.nativeEvent.layout.width);
-    };
+    const {tableWidthRef, tableWidth, onTableLayout} = useSearchTableWidth();
 
     const columnWidths = useSearchColumnWidths({
         columns,
@@ -144,8 +141,9 @@ function SearchListViewLayout({
         // Measured outside the scroller, so this reports the width the table has to fit into rather than the width its
         // content grew to. The page is inset from the window, so the window is wider and can't answer this.
         <View
+            ref={tableWidthRef}
             style={styles.flex1}
-            onLayout={handleTableLayout}
+            onLayout={onTableLayout}
         >
             <SearchColumnWidthsProvider
                 columnWidths={columnWidths}
