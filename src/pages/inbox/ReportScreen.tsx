@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -77,7 +78,8 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const {isInNarrowPaneModal} = useResponsiveLayout();
+    const {shouldShowWelcome: shouldShowConciergeWelcome} = useConciergeAskState(reportIDFromRoute);
+    const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
@@ -151,7 +153,11 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                 <AgentZeroStatusProvider reportID={reportIDFromRoute}>
                                                     <ConciergeDraftProvider reportID={reportIDFromRoute}>
                                                         <View
-                                                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                                            style={[
+                                                                styles.flex1,
+                                                                shouldShowConciergeWelcome && !shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentEnd,
+                                                                styles.overflowHidden,
+                                                            ]}
                                                             testID="report-actions-view-wrapper"
                                                         >
                                                             <ReportActionsWithInboxTabDeferredMount

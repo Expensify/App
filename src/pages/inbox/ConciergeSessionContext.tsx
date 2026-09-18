@@ -17,6 +17,8 @@ type ConciergeSessionStateContextType = {
 
 type ConciergeSessionActionsContextType = {
     startSession: (unreadBoundary?: string | null) => void;
+    /** Begins a brand new session, so the Concierge DM drops back to its welcome state */
+    resetSession: () => void;
     setShowFullHistory: (show: boolean) => void;
     setHadMessagesAtSessionStart: (value: boolean) => void;
 };
@@ -29,6 +31,7 @@ const ConciergeSessionStateContext = createContext<ConciergeSessionStateContextT
 
 const ConciergeSessionActionsContext = createContext<ConciergeSessionActionsContextType>({
     startSession: () => {},
+    resetSession: () => {},
     setShowFullHistory: () => {},
     setHadMessagesAtSessionStart: () => {},
 });
@@ -59,6 +62,9 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
     // lastReadTime boundary doesn't cause premature expiration.
     const sessionCreatedAtRef = useRef<number | null>(null);
 
+    // True once the user presses New chat, until the next session begins.
+    const isSessionResetByUserRef = useRef(false);
+
     // Reset the session when the user switches accounts. The provider is
     // mounted at the app level and never remounts, so without this the
     // previous user's session state would leak into the new account.
@@ -73,40 +79,42 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
         }
     }
 
-    const startSession = useCallback((unreadBoundary?: string | null) => {
-        let sessionExpired = false;
-        setSessionStartTime((prev) => {
-            if (prev && sessionCreatedAtRef.current) {
-                const elapsed = Date.now() - sessionCreatedAtRef.current;
-                if (elapsed < CONST.CONCIERGE_SESSION_EXPIRATION_MS) {
-                    // Within an active session, keep the existing boundary unless a better
-                    // (earlier) unread boundary resolves after the session was created. On a
-                    // cold open the session can lock to `now` before the unread anchor resolves;
-                    // when it arrives we pull sessionStartTime back so the notification message
-                    // isn't hidden behind "Show full history". The session age (sessionCreatedAtRef)
-                    // is unchanged — only the display boundary is refined.
-                    if (unreadBoundary && unreadBoundary < prev) {
-                        return unreadBoundary;
-                    }
-                    return prev;
+    const startSession = useCallback(
+        (unreadBoundary?: string | null) => {
+            const sessionCreatedAt = sessionCreatedAtRef.current;
+            if (sessionStartTime !== null && sessionCreatedAt !== null && Date.now() - sessionCreatedAt < CONST.CONCIERGE_SESSION_EXPIRATION_MS) {
+                // Within an active session, keep the existing boundary unless a better
+                // (earlier) unread boundary resolves after the session was created. On a
+                // cold open the session can lock to `now` before the unread anchor resolves;
+                // when it arrives we pull sessionStartTime back so the notification message
+                // isn't hidden behind "Show full history". The session age (sessionCreatedAtRef)
+                // is unchanged — only the display boundary is refined.
+                if (unreadBoundary && !isSessionResetByUserRef.current) {
+                    setSessionStartTime((prev) => (prev && unreadBoundary < prev ? unreadBoundary : prev));
                 }
-                sessionExpired = true;
+                return;
             }
-            sessionCreatedAtRef.current = Date.now();
+
             const now = getServerAnchoredDBTime();
-            if (unreadBoundary && unreadBoundary < now) {
-                return unreadBoundary;
-            }
-            return now;
-        });
-        if (sessionExpired) {
+            sessionCreatedAtRef.current = Date.now();
+            isSessionResetByUserRef.current = false;
+            setSessionStartTime(unreadBoundary && unreadBoundary < now ? unreadBoundary : now);
             setShowFullHistory(false);
             setHadMessagesAtSessionStart(false);
-        }
+        },
+        [sessionStartTime],
+    );
+
+    const resetSession = useCallback(() => {
+        sessionCreatedAtRef.current = Date.now();
+        isSessionResetByUserRef.current = true;
+        setSessionStartTime(getServerAnchoredDBTime());
+        setShowFullHistory(false);
+        setHadMessagesAtSessionStart(false);
     }, []);
 
     const stateValue = useMemo(() => ({sessionStartTime, showFullHistory, hadMessagesAtSessionStart}), [sessionStartTime, showFullHistory, hadMessagesAtSessionStart]);
-    const actionsValue = useMemo(() => ({startSession, setShowFullHistory, setHadMessagesAtSessionStart}), [startSession]);
+    const actionsValue = useMemo(() => ({startSession, resetSession, setShowFullHistory, setHadMessagesAtSessionStart}), [startSession, resetSession]);
 
     return (
         <ConciergeSessionStateContext.Provider value={stateValue}>

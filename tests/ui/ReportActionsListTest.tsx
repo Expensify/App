@@ -329,7 +329,7 @@ describe('ReportActionsList (body)', () => {
             revealDraftFromReportAction: jest.fn(),
         });
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
-        mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+        mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
         mockUseOnyx.mockImplementation(getMockOnyxValue);
     });
@@ -900,7 +900,7 @@ describe('ReportActionsList (body)', () => {
             mockUseIsInSidePanel.mockReturnValue(false);
             mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
             mockUseConciergeSessionState.mockReturnValue({sessionStartTime, showFullHistory, hadMessagesAtSessionStart: false});
-            mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+            mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
             mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
@@ -1060,11 +1060,28 @@ describe('ReportActionsList (body)', () => {
             expect(passedActions?.some((a) => a.reportActionID === 'onboarding-msg')).toBe(true);
         });
 
+        it('should hide pre-session messages when nothing matches the session and there is no created action', () => {
+            setupMainDMConciergeMocks();
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED),
+                hasOlderActions: true,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
         it('should call startSession on mount for main DM concierge', () => {
             const mockStartSession = jest.fn();
-            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
             setupMainDMConciergeMocks();
-            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,

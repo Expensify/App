@@ -91,14 +91,6 @@ function useConciergeSidePanelReportActions({
         return hasUserMessageInLoadedSet || hasOlderActions;
     }, [isConciergeHiddenHistory, visibleReportActions, currentUserAccountID, sessionStartTime, hasOlderActions]);
 
-    const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
-            return false;
-        }
-        const hasPreSessionActionInLoadedSet = visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
-        return hasPreSessionActionInLoadedSet || hasOlderActions;
-    }, [isConciergeHiddenHistory, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasOlderActions]);
-
     // Main DM only: check if there are any messages (from any actor) after sessionStartTime.
     // When true, we have unread content to display and should not enter welcome mode.
     const hasMessagesInSession = useMemo(() => {
@@ -179,10 +171,10 @@ function useConciergeSidePanelReportActions({
                 return actions;
             }
             const filtered = actions.filter(isCurrentSessionAction);
-            if (filtered.length === 0) {
+            if (filtered.length === 0 && !isConciergeMainDM) {
                 // Side panel: nothing matched the current session yet (e.g. just after reopen, before the new
                 // message propagates). Show the greeting instead of `actions` to avoid flashing stale history.
-                if (!isConciergeMainDM && conciergeGreetingAction) {
+                if (conciergeGreetingAction) {
                     const createdAction = actions.find(isCreatedAction);
                     return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
                 }
@@ -208,6 +200,13 @@ function useConciergeSidePanelReportActions({
 
     const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);
     const filteredReportActions = useMemo(() => filterActions(reportActions), [filterActions, reportActions]);
+
+    const hasPreviousMessages = useMemo(() => {
+        if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
+            return false;
+        }
+        return visibleReportActions.some((action) => !isCurrentSessionAction(action)) || hasOlderActions;
+    }, [isConciergeHiddenHistory, hadUserMessageAtSessionStart, sessionStartTime, visibleReportActions, isCurrentSessionAction, hasOlderActions]);
 
     const handleShowPreviousMessages = useCallback(() => {
         setShowFullHistory(true);
