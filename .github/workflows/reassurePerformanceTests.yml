@@ -17,19 +17,66 @@ jobs:
     if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - name: Checkout baseline branch
+      - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
-      - name: Checkout baseline branch
+      # The merge ref's base parent: the commit branch-perf-tests measures against. Read out of the
+      # commit object because the checkout is --depth=1, so `git rev-parse HEAD^1` has no object to
+      # resolve. base.sha is the fallback only; GitHub can recompute it away from that parent.
+      - name: Resolve the baseline commit
+        id: baselineCommit
         shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -e
-          BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          # Reassure only needs the baseline commit's source tree, not its history.
-          git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
-          git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
+          # awk stops at the blank line ending the header, so a message line starting with "parent"
+          # cannot be read as one.
+          SHA=$(git cat-file -p HEAD | awk '/^$/{exit} /^parent /{print $2; exit}')
+          if [[ -z "$SHA" ]]; then
+            echo "::warning::Could not read the merge ref's base parent; keying the baseline on pull_request.base.sha instead."
+            SHA="$BASE_SHA"
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      # Before setupNode: the key hashes no lockfile, and not running setupNode is most of the saving.
+      # Restore-only for the same reasons as the Jest transform cache below.
+      - name: Restore the baseline measured on main
+        id: restoreBaseline
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .reassure/baseline.perf
+          key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, steps.baselineCommit.outputs.sha) }}
+
+      # A miss is otherwise silent, and reads the same whether nothing was written or the key drifted.
+      - name: Report where the baseline came from
+        shell: bash
+        env:
+          BASELINE_SHA: ${{ steps.baselineCommit.outputs.sha }}
+          CACHE_HIT: ${{ steps.restoreBaseline.outputs.cache-hit }}
+        run: |
+          if [[ "$CACHE_HIT" == "true" ]]; then
+            echo "::notice::Restored main's baseline for $BASELINE_SHA from the cache; not measuring it here."
+          else
+            echo "::warning::No cached baseline for $BASELINE_SHA - measuring it in this job. Expected when the seed run on that commit has not finished or failed; otherwise seedJestPerfCache.yml has stopped writing the entry."
+          fi
+
+      - name: Check out the baseline commit
+        if: steps.restoreBaseline.outputs.cache-hit != 'true'
+        shell: bash
+        env:
+          BASELINE_SHA: ${{ steps.baselineCommit.outputs.sha }}
+        run: |
+          set -e
+          # That commit, not the tip of main: the tip moves mid-run, and measuring the two sides at
+          # different trees is the noise this comparison exists to detect. Only its source tree is
+          # needed, and a reachable SHA can be fetched bare.
+          git fetch origin "$BASELINE_SHA" --no-tags --depth=1
+          git checkout --force --detach FETCH_HEAD --no-recurse-submodules
 
       - name: Setup NodeJS
+        if: steps.restoreBaseline.outputs.cache-hit != 'true'
         uses: ./.github/actions/composite/setupNode
 
       # Skips a cold Babel pass over the whole source tree; seedJestPerfCache.yml writes the entry
@@ -39,6 +86,7 @@ jobs:
       # COUNT_DEVIATION: 0. Keep the key identical to the other three.
       - name: Restore Jest transform cache
         id: restoreJestCache
+        if: steps.restoreBaseline.outputs.cache-hit != 'true'
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
@@ -49,17 +97,18 @@ jobs:
       # silently died: `Report Jest cache size` below reads the directory after the perf run, by
       # which point Jest has written a full transform set either way.
       - name: Warn on a Jest transform cache miss
-        if: steps.restoreJestCache.outputs.cache-hit != 'true'
+        if: steps.restoreBaseline.outputs.cache-hit != 'true' && steps.restoreJestCache.outputs.cache-hit != 'true'
         run: echo "::warning::Jest perf transform cache miss - this job re-transforms the whole source tree. Expected only when the toolchain key rotated (lockfile, patches, Babel or Jest config, Node version); otherwise seedJestPerfCache.yml has stopped writing the entry."
 
       - name: Run baseline performance tests
+        if: steps.restoreBaseline.outputs.cache-hit != 'true'
         shell: bash
         run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
       - name: Report Jest cache size
-        if: always()
+        if: ${{ !cancelled() && steps.restoreBaseline.outputs.cache-hit != 'true' }}
         run: |
           if [[ -d .jest-cache ]]; then
             echo "::notice::Jest perf cache: $(du -sm .jest-cache | cut -f1)MB, $(find .jest-cache -type f | wc -l) files"
@@ -115,7 +164,7 @@ jobs:
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
       - name: Report Jest cache size
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           if [[ -d .jest-cache ]]; then
             echo "::notice::Jest perf cache: $(du -sm .jest-cache | cut -f1)MB, $(find .jest-cache -type f | wc -l) files"

@@ -10,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,6 +45,8 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {tags: policyTagLists, categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {inputCallbackRef} = useAutoFocusInput();
     const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path);
@@ -89,6 +92,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
     const createTag = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
         createPolicyTag({
+            isVendorMatchingBetaEnabled,
             policyData,
             tagName: values.tagName.trim(),
             setupTagsTaskReport,

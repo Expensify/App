@@ -407,6 +407,10 @@ const translations = {
         downgradeWorkspace: 'Downgrade workspace',
         companyID: 'Company ID',
         userID: 'User ID',
+        tenantID: 'Tenant ID',
+        environmentName: 'Environment name',
+        clientID: 'Client ID',
+        clientSecret: 'Client secret',
         disable: 'Disable',
         export: 'Export',
         initialValue: 'Initial value',
@@ -569,11 +573,18 @@ const translations = {
         linkedin: 'Follow us on LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge has an answer!',
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
         enableNotifications: {
             prompt: 'Want to be notified when Concierge responds?',
             cta: 'Notify',
+        },
+        feedback: {
+            prompt: 'Was that response useful?',
+            useful: 'Useful response',
+            notUseful: 'Not useful response',
+            thanks: 'Thanks for the feedback!',
         },
     },
     supportalNoAccess: {
@@ -1091,6 +1102,11 @@ const translations = {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
             },
+            payOverdueInvoice: {
+                dueSoonTitle: ({date}: {date: string}) => `Pay your invoice by ${date} to avoid service interruption`,
+                overdueTitle: 'Your payment is past due, please pay your invoice',
+                cta: 'Review',
+            },
             unlockBankAccount: {
                 workspaceTitle: 'Your business bank account has been locked',
                 personalTitle: 'Your bank account has been locked',
@@ -1373,6 +1389,7 @@ const translations = {
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
+        flipCamera: 'flip camera',
         multiScan: 'multi-scan',
         shutter: 'shutter',
         gallery: 'gallery',
@@ -1881,8 +1898,11 @@ const translations = {
             rejectedNextStep: 'This report was rejected. Waiting on you to fix the issues and manually resubmit.',
             selectMemberError: 'Select a member to reject this report back to.',
             couldNotReject: 'The report could not be rejected. Please try again.',
+            couldNotRejectExpense: 'The expense could not be rejected because it may have already been moved or rejected.',
         },
         moveExpenses: 'Move to report',
+        autoReport: 'Auto report',
+        autoReportDescription: 'Add to draft reports on behalf of the employee',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         moveExpensesMaxTransactionsError: `Reports are limited to ${CONST.REPORT.MAX_TRANSACTIONS} expenses. Please move some to another report.`,
         submitReportTo: {
@@ -1935,6 +1955,7 @@ const translations = {
         correctRateError: 'Fix the rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explain<sparkles-icon/></a>`,
         conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge matched this expense to <strong>${vendorName}</strong>`,
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `distance rates updated for the new workspace - ${policyName}`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
@@ -3262,7 +3283,7 @@ const translations = {
             merchantHint: 'Type . to create a rule that applies to all merchants',
             addToReport: 'Add to a report named',
             createReport: 'Create report if necessary',
-            applyToExistingExpenses: 'Apply to existing matching expenses',
+            applyToExistingExpenses: 'Apply to existing unsubmitted expenses',
             confirmError: 'Enter merchant and apply at least one update',
             confirmErrorMerchant: 'Please enter merchant',
             confirmErrorUpdate: 'Please apply at least one update',
@@ -3912,8 +3933,15 @@ const translations = {
         vacationDelegateError: 'There was an error updating your vacation delegate.',
         asVacationDelegate: (nameOrEmail: string) => `as ${nameOrEmail}'s vacation delegate`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `You're assigning ${nameOrEmail} as your vacation delegate. They're not on all your workspaces yet. If you choose to continue, an email will be sent to all your workspace admins to add them.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> is not a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> is not a member of the workspaces below. Do you want to invite them now?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> isn't a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them. Do you want to invite them to the ones you are an admin of now?`,
+            youAreAMemberOf: 'You are a member of these workspaces:',
+            youAreAnAdminOf: 'You are an admin of these workspaces:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Step ${step}`;
@@ -4858,6 +4886,7 @@ const translations = {
             defaultDescription: 'One place for all your receipts and expenses.',
             descriptionHint: 'Share information about this workspace with all members.',
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} invited you to ${workspaceName}`,
             subscription: 'Subscription',
             markAsEntered: 'Mark as manually entered',
             markAsExported: 'Mark as exported',
@@ -5425,6 +5454,9 @@ const translations = {
             syncReimbursedReports: 'Sync reimbursed reports',
             syncReimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Sage Intacct account below.',
             paymentAccount: 'Sage Intacct payment account',
+            fxExpenseAccount: 'Sage Intacct currency conversion fee account',
+            fxExpenseAccountDescription:
+                "When your company covers the currency conversion cost on a payment made abroad, we'll post that cost to this account in Sage Intacct as a journal entry.",
             accountingMethods: {
                 label: 'When to Export',
                 description: 'Choose when to export the expenses:',
@@ -5709,6 +5741,7 @@ const translations = {
             noSubsidiariesFoundDescription: 'Please add a subsidiary in NetSuite and sync the connection again',
             tokenInput: {
                 title: 'NetSuite setup',
+                connectWithTokenAuthentication: 'Connect with token-based authentication (SOAP) instead',
                 formSteps: {
                     installBundle: {
                         title: 'Install the Expensify bundle',
@@ -6169,6 +6202,22 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            importDescription: 'Choose which coding configurations to import from Campfire.',
+            accountTypesDescription: 'Your Campfire accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Campfire accounts will be available as categories.',
+            dimensionsImport: 'All Campfire dimensions import as tags',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Dynamics 365 Business Central setup',
+            prerequisitesTitle: 'Before you connect...',
+            followSteps: 'Follow the steps in our How-to: Connect to Dynamics 365 Business Central instructions',
+            enterCredentials: 'Enter your Dynamics 365 Business Central details',
+            helpArticle: `<muted-text>Refer to this <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">help article</a> to find this information.</muted-text>`,
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: 'Select the Dynamics 365 Business Central subsidiary to sync with this workspace.',
+            noCompaniesFound: 'No companies found',
+            noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
         },
         type: {
             free: 'Free',
@@ -7248,6 +7297,7 @@ const translations = {
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -7271,6 +7321,8 @@ const translations = {
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7505,6 +7557,12 @@ const translations = {
                             return 'Syncing card settlements';
                         case 'campfireSyncTravelSettlements':
                             return 'Syncing travel settlements';
+                        case 'businessCentralSyncTitle':
+                            return 'Syncing Dynamics 365 Business Central data';
+                        case 'businessCentralSyncConnection':
+                            return 'Initializing connection to Dynamics 365 Business Central';
+                        case 'businessCentralSyncImportData':
+                            return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -7562,8 +7620,6 @@ const translations = {
             providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             syncing: 'Syncing employees',
-            syncingModalTitle: 'Your connection is syncing',
-            syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
             approvalModeWarningTitle: 'Change approval mode?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -7663,6 +7719,8 @@ const translations = {
                 advanced: 'Advanced approval',
                 custom: 'Custom approval',
             },
+            syncingModalTitle: 'Your connection is syncing',
+            syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
             syncLimitReached: {
                 title: 'Try again tomorrow',
                 prompt: "You've reached your sync limit for the day.",
@@ -7835,7 +7893,6 @@ const translations = {
             areYouSure: 'Are you sure?',
             workspaceCurrency: 'Workspace currency',
             updateCurrencyPrompt: 'It looks like your workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
-            updateCurrencyForExpensifyCard: 'The Expensify Card is available to issue in USD. Please update this workspace to USD or use a different workspace.',
             euUkUpdateCurrencyForExpensifyCard:
                 'The Expensify Card is available to issue in USD, GBP, and EUR. Please update this workspace to a supported currency or use a different workspace.',
             updateCurrencyForExpensifyCardTitle: 'Get the Expensify Card',
@@ -7975,6 +8032,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Campfire integration. Align expense coding dimensions and tax sync with your Campfire setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Campfire integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Dynamics 365 Business Central integration. Align expense coding dimensions and tax sync with your Dynamics 365 Business Central setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Dynamics 365 Business Central integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
@@ -9668,6 +9731,11 @@ const translations = {
             emptyUnapprovedResults: {
                 title: 'No expenses to approve',
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
+            staleResults: {
+                title: 'Refresh needed',
+                subtitle: 'This page is out of date, refresh to see the latest',
+                buttonText: 'Refresh',
             },
         },
         columns: 'Columns',
@@ -11499,9 +11567,9 @@ const translations = {
             permissions: 'Group permissions',
             createNewGroupButton: 'New group',
             createGroupSubmitButton: 'Create group',
-            expensifyCardPreferredWorkspace: 'Expensify Card preferred workspace',
+            expensifyCardPreferredWorkspace: 'Card preferred workspace',
             expensifyCardPreferredWorkspaceDescription:
-                'All Expensify Card transactions will be created on the Expensify Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for Expensify Card transactions only.',
+                'All Expensify Card and company card transactions will be created on the Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for card transactions only.',
             strictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
             strictlyEnforceWorkspaceRulesDescription: 'All workspace rules must be met before submitting a report. No manual exceptions allowed.',
             restrictExpenseWorkspaceCreation: 'Restrict expense workspace creation/removal',
@@ -11518,7 +11586,8 @@ const translations = {
             noWorkspacesMessage: 'There are no workspaces on this domain. A workspace is required to enable this restriction.',
             restrictDefaultLoginSelection: 'Restrict default login selection',
             restrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
-            expensifyCardPreferredWorkspaceDisabledMessage: 'To enable this setting, please first enable a preferred workspace and set up Expensify Cards on your domain.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'To enable this setting, please first enable a preferred workspace and set up an Expensify Card or a company card feed on your domain.',
             findGroup: 'Find group',
         },
     },

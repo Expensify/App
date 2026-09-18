@@ -1,6 +1,6 @@
 import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
-import {useListItemSubscriptAvatarBorderColor} from '@components/SelectionList/ListItemComposed/hooks/useListItemAvatarColors';
+import useListItemBackdropColor from '@components/SelectionList/ListItemComposed/hooks/useListItemBackdropColor';
 import {useListItemContext} from '@components/SelectionList/ListItemContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,11 +18,11 @@ type ListItemWorkspaceAvatarProps = {
     fallbackDisplayName?: string;
 };
 
-/** A workspace's avatar sized and colored for a list row. The subscript border follows the row's focus/hover state. */
+/** A workspace's avatar sized and colored for a list row. The backdrop follows the row's focus/hover state. */
 function ListItemWorkspaceAvatar({policyID, accountID, fallbackDisplayName}: ListItemWorkspaceAvatarProps) {
     const styles = useThemeStyles();
     const {shouldShowTooltip} = useListItemContext();
-    const subscriptAvatarBorderColor = useListItemSubscriptAvatarBorderColor();
+    const backdropColor = useListItemBackdropColor();
 
     return (
         <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
@@ -30,7 +30,7 @@ function ListItemWorkspaceAvatar({policyID, accountID, fallbackDisplayName}: Lis
                 policyID={policyID}
                 accountID={accountID}
                 containerStyle={[styles.actionAvatar, styles.mr3]}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         </AvatarTooltipsProvider>
