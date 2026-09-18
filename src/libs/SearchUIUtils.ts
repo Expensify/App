@@ -105,7 +105,8 @@ import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
-import type {SearchKey, SearchTypeMenuItem} from './SearchSuggestionUtils';
+import type {SearchKey} from './SearchKeyUtils';
+import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
@@ -158,7 +159,7 @@ import {
     isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -2372,7 +2373,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
-                const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
+                const parentReportName = getReportName(parentReport, parentReport?.reportID ? reportAttributesDerivedValue?.[parentReport.reportID]?.reportName : undefined);
                 // The search snapshot does not always carry the report metadata. Pass undefined rather than an empty array in that case,
                 // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
                 const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
@@ -2568,7 +2569,7 @@ function getReportActionsSections(
                     ...reportAction,
                     reportID,
                     from,
-                    reportName: deprecatedGetReportName(report, reportAttributesDerivedValue),
+                    reportName: getReportName(report, report?.reportID ? reportAttributesDerivedValue?.[report.reportID]?.reportName : undefined),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -4545,10 +4546,6 @@ function getOverflowMenu(
     ];
 }
 
-function savedSearchIDToSearchKey(id: string): SearchKey {
-    return `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${id}`;
-}
-
 /**
  * Returns the last query used for a search key.
  *
@@ -4557,32 +4554,6 @@ function savedSearchIDToSearchKey(id: string): SearchKey {
 function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey): string | undefined {
     const searchFilter = searchFilters?.[searchKey];
     return typeof searchFilter === 'object' ? searchFilter.query : undefined;
-}
-
-function searchKeyToSavedSearchID(key: string | undefined) {
-    return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
-}
-
-function isExistingSearchKey(value: string | undefined, suggestedSearchKeys: SearchKey[], savedSearchIDs: string[]): value is SearchKey {
-    if (!value) {
-        return false;
-    }
-
-    const savedSearchID = searchKeyToSavedSearchID(value);
-    if (savedSearchID) {
-        return savedSearchIDs.includes(savedSearchID);
-    }
-
-    return suggestedSearchKeys.some((searchKey) => searchKey === value);
-}
-
-const DATA_TYPE_TO_SEARCH_KEY: Partial<Record<SearchDataTypes, SearchKey>> = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-};
-
-function getSearchKeyForDataType(type: SearchDataTypes | undefined): SearchKey | undefined {
-    return type ? DATA_TYPE_TO_SEARCH_KEY[type] : undefined;
 }
 
 /**
@@ -7136,7 +7107,6 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 
 export {
     getSearchBulkEditPolicyID,
-    getSearchKeyForDataType,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,
@@ -7164,9 +7134,6 @@ export {
     shouldShowYear,
     getOverflowMenu,
     getLastSearchQuery,
-    isExistingSearchKey,
-    savedSearchIDToSearchKey,
-    searchKeyToSavedSearchID,
     isCorrectSearchUserName,
     isReportActionEntry,
     isTaskListItemType,
@@ -7248,4 +7215,4 @@ export {
     SKIPPED_SEARCH_FILTERS,
     SEARCH_TYPE_MENU_ICON_NAMES,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, SearchGroupKey, GroupBySection, SearchFilter};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchGroupKey, GroupBySection, SearchFilter};
