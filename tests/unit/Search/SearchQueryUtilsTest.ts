@@ -24,7 +24,8 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
-    queryHasSubmittedViolationFilter,
+    queryHasViolationFilter,
+    hasValuesIncludeViolationFilter,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
@@ -942,6 +943,45 @@ describe('SearchQueryUtils', () => {
 
                 expect(result).not.toContain('view:');
                 expect(result).toEqual('type:expense');
+            });
+        });
+
+        describe('violations column', () => {
+            test('omits violations from columns when no violation has-filter is set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    columns: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual(`type:expense columns:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
+            });
+
+            test('keeps violations in columns when submitted-violation has-filter is set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
+                    columns: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toContain(`columns:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
+                expect(result).toContain(`has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            });
+
+            test('keeps violations in columns when approved-violation has-filter is set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                    columns: [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toContain(`columns:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
+                expect(result).toContain(`has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
             });
         });
     });
@@ -2914,6 +2954,7 @@ describe('SearchQueryUtils', () => {
     describe('shouldResetSortForViewChange', () => {
         test('returns true for line view transitions with time-based groupBy', () => {
             // Line charts need chronological order - reset when entering or leaving line view
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.DAY})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
@@ -3996,39 +4037,63 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('queryHasSubmittedViolationFilter', () => {
+    describe('queryHasViolationFilter', () => {
         test('returns true for a positive has:submitted-violation filter', () => {
             const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+            expect(queryHasViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns true for a positive has:approved-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            expect(queryHasViolationFilter(queryJSON)).toBe(true);
         });
 
         test('returns false when the has filter is negated', () => {
             const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+            expect(queryHasViolationFilter(queryJSON)).toBe(false);
         });
 
         test('returns false when submitted-violation is negated alongside other positive has filters', () => {
             const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+            expect(queryHasViolationFilter(queryJSON)).toBe(false);
         });
 
         test('returns true when submitted-violation is positive alongside other has filters', () => {
             const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+            expect(queryHasViolationFilter(queryJSON)).toBe(true);
         });
 
-        test('returns false when the query has no submitted-violation filter', () => {
+        test('returns false when the query has no violation has-filter', () => {
             const queryJSON = buildSearchQueryJSON('type:expense groupBy:from');
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+            expect(queryHasViolationFilter(queryJSON)).toBe(false);
         });
 
         test('returns false for an undefined queryJSON', () => {
-            expect(queryHasSubmittedViolationFilter(undefined)).toBe(false);
+            expect(queryHasViolationFilter(undefined)).toBe(false);
+        });
+    });
+
+    describe('hasValuesIncludeViolationFilter', () => {
+        test('returns true when has includes submitted-violation', () => {
+            expect(hasValuesIncludeViolationFilter([CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION])).toBe(true);
+        });
+
+        test('returns true when has includes approved-violation', () => {
+            expect(hasValuesIncludeViolationFilter([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION])).toBe(true);
+        });
+
+        test('returns false when has has no violation values', () => {
+            expect(hasValuesIncludeViolationFilter([CONST.SEARCH.HAS_VALUES.RECEIPT])).toBe(false);
+        });
+
+        test('returns false for undefined has values', () => {
+            expect(hasValuesIncludeViolationFilter(undefined)).toBe(false);
         });
     });
 

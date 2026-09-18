@@ -20,15 +20,16 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
@@ -59,6 +60,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const backTo = 'backTo' in params && typeof params.backTo === 'string' ? params.backTo : undefined;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
     const {showConfirmModal} = useConfirmModal();
@@ -92,6 +95,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
     const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.path);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
@@ -145,6 +149,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                 return;
             }
             setWorkspaceCategoryEnabled({
+                isVendorMatchingBetaEnabled,
                 policyData,
                 categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
@@ -162,6 +167,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             });
         },
         [
+            isVendorMatchingBetaEnabled,
             showCannotDeleteOrDisableLastCategoryModal,
             shouldPreventDisableOrDelete,
             policyData,
@@ -182,7 +188,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     );
 
     const navigateToEditCategory = () => {
-        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
+        Navigation.navigate(isQuickSettingsFlow ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
     };
 
     const deleteCategory = () => {
@@ -195,6 +201,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
+            isVendorMatchingBetaEnabled,
         );
         navigateBack();
     };
@@ -205,7 +212,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
 
     /** Collect sees this section but every destination is Control-only, so upgrade instead of hitting Not Found. */
     const navigateToCategoryRule = (dynamicRouteSuffix: string) => {
-        const ruleRoute = createDynamicRoute(dynamicRouteSuffix);
+        const ruleRoute = buildDynamicRoute(dynamicRouteSuffix);
         if (tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ruleRoute)) {
             return;
         }
@@ -282,7 +289,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                                       CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
                                                       isQuickSettingsFlow
                                                           ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                          : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
+                                                          : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
                                                   ),
                                               );
                                               return;
@@ -290,7 +297,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                           Navigation.navigate(
                                               isQuickSettingsFlow
                                                   ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                  : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
+                                                  : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
                                           );
                                       }
                                     : undefined
@@ -309,7 +316,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                                   ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                       policyID,
                                                       CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                                      createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
+                                                      buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
                                                   ),
                                               );
                                               return;
@@ -317,7 +324,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                           Navigation.navigate(
                                               isQuickSettingsFlow
                                                   ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                  : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
+                                                  : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
                                           );
                                       }
                                     : undefined
