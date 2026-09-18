@@ -1,9 +1,8 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
-index 0287e1c..e849278 100644
+index 5dac89e..6798515 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
-@@ -67,7 +67,18 @@
-             reactWebView.callInjectedJavaScript();
+@@ -61,6 +61,17 @@ public class RNCWebViewClient extends WebViewClient {
  
              emitFinishEvent(webView, url);
          }
