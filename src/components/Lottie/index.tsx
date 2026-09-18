@@ -14,19 +14,28 @@ import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
+import type {Pattern} from 'react-native-pulsar';
 
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import HapticLottie from './HapticLottie';
+
 type Props = {
     ref?: ForwardedRef<LottieView | null>;
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
+
+    /** Haptic pattern to play in sync with the animation, aligned to its timeline on every loop */
+    haptics?: Pattern;
+
+    /** Length of one pass of the animation in milliseconds, required alongside `haptics` */
+    hapticsDurationMs?: number;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: Props) {
+function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, haptics, hapticsDurationMs, ...props}: Props) {
     const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
     const {splashScreenState} = useSplashScreenState();
@@ -116,6 +125,27 @@ function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: 
         return (
             <View
                 style={[aspectRatioStyle, props.style]}
+                testID={CONST.LOTTIE_VIEW_TEST_ID}
+            />
+        );
+    }
+
+    // `HapticLottieView` drives the animation's progress itself to keep the haptics aligned, so it owns the
+    // transport and takes no `LottieView` ref. Nothing passes both `haptics` and a ref today; the
+    // navigate-away teardown that ref serves is handled by the empty-view early return above anyway.
+    if (haptics) {
+        return (
+            <HapticLottie
+                {...props}
+                source={animationFile}
+                key={`${hasNavigatedAway}`}
+                haptics={haptics}
+                hapticsDurationMs={hapticsDurationMs}
+                hapticsEnabled={!isReduceMotionEnabled}
+                autoPlay={props.autoPlay && !isReduceMotionEnabled}
+                style={[aspectRatioStyle, props.style]}
+                webStyle={{...aspectRatioStyle, ...webStyle}}
+                onAnimationFailure={() => setIsError(true)}
                 testID={CONST.LOTTIE_VIEW_TEST_ID}
             />
         );

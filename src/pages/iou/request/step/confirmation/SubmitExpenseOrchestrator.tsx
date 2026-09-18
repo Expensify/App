@@ -6,6 +6,7 @@ import type {AfterTransition} from '@hooks/usePreMountDestination';
 import DateUtils from '@libs/DateUtils';
 import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
@@ -176,6 +177,11 @@ function SubmitExpenseOrchestrator({
     const isFromGlobalCreateFromTransaction = !!(isFromGlobalCreateOnTransaction || isFromFloatingActionButtonOnTransaction);
     const isFromGlobalCreateForNavigation = !!(isFromGlobalCreate || isFromGlobalCreateFromTransaction);
 
+    const finishConfirming = () => {
+        HapticFeedback.expenseSubmitSuccess();
+        setIsConfirming(false);
+    };
+
     const startSubmitSpans = () => {
         const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
         const scenario = getSubmitExpenseScenario({
@@ -232,7 +238,7 @@ function SubmitExpenseOrchestrator({
             // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
             // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
             createTransaction(locationPermissionGranted);
-            setIsConfirming(false);
+            finishConfirming();
         });
     };
 
@@ -243,7 +249,7 @@ function SubmitExpenseOrchestrator({
 
         const afterTransition = () => {
             createTransaction(locationPermissionGranted, false);
-            setIsConfirming(false);
+            finishConfirming();
         };
 
         // No duplicate-route guard is needed here: getSubmitExpensePreMountDestinationRoute only yields a report route (and thus
@@ -259,7 +265,7 @@ function SubmitExpenseOrchestrator({
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false);
-            setIsConfirming(false);
+            finishConfirming();
         };
 
         if (isSearchTopmostFullScreenRoute()) {
@@ -293,7 +299,7 @@ function SubmitExpenseOrchestrator({
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false);
-            setIsConfirming(false);
+            finishConfirming();
         };
 
         const runAfterSearchDismissRecovery = (afterRecovery?: () => void) => {
@@ -346,7 +352,7 @@ function SubmitExpenseOrchestrator({
             requestAnimationFrame(() => {
                 createTransaction(locationPermissionGranted);
                 requestAnimationFrame(() => {
-                    setIsConfirming(false);
+                    finishConfirming();
                 });
             });
             return;
@@ -358,7 +364,7 @@ function SubmitExpenseOrchestrator({
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
             afterTransition: () => {
                 createTransaction(locationPermissionGranted, false);
-                setIsConfirming(false);
+                finishConfirming();
             },
         });
     };
@@ -369,7 +375,7 @@ function SubmitExpenseOrchestrator({
         requestAnimationFrame(() => {
             createTransaction(locationPermissionGranted);
             requestAnimationFrame(() => {
-                setIsConfirming(false);
+                finishConfirming();
             });
         });
     };
@@ -397,7 +403,7 @@ function SubmitExpenseOrchestrator({
                 flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             }
             createTransaction(locationPermissionGranted, false);
-            setIsConfirming(false);
+            finishConfirming();
         };
 
         if (isReportOpenInSuperWideRHP(rootState)) {
@@ -441,6 +447,8 @@ function SubmitExpenseOrchestrator({
     // frequently from Onyx subscriptions anyway, and wrapping this properly would require
     // memoizing every handler + all their captured props for no measurable gain.
     const onConfirm = () => {
+        // Confirm only reaches the orchestrator once validation passed, so the tap itself is a success.
+        HapticFeedback.expenseSuccess();
         setIsConfirming(true);
 
         if (gpsRequired) {

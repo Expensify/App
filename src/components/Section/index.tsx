@@ -16,6 +16,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {Pattern} from 'react-native-pulsar';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -68,6 +69,12 @@ type SectionProps = Partial<ChildrenProps> & {
     /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
     illustration?: DotLottieAnimation | IconAsset;
 
+    /** Haptic pattern to play in sync with a Lottie illustration, on every loop of it */
+    illustrationHaptics?: Pattern;
+
+    /** Length of one pass of the Lottie illustration in milliseconds, required alongside `illustrationHaptics` */
+    illustrationHapticsDurationMs?: number;
+
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
@@ -106,6 +113,8 @@ function Section({
     isCentralPane = false,
     centralPaneContainerStyle,
     illustration,
+    illustrationHaptics,
+    illustrationHapticsDurationMs,
     illustrationBackgroundColor,
     illustrationContainerStyle,
     illustrationStyle,
@@ -150,6 +159,8 @@ function Section({
                         {isLottie ? (
                             <Lottie
                                 source={illustration}
+                                haptics={illustrationHaptics}
+                                hapticsDurationMs={illustrationHapticsDurationMs}
                                 style={styles.h100}
                                 webStyle={styles.h100}
                                 loop

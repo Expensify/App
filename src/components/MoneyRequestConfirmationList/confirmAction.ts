@@ -1,5 +1,6 @@
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
+import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,7 +57,8 @@ type BuildConfirmActionParams = {
 /**
  * Owns the click-confirm action for the Money Request confirmation flow.
  *
- * Validation always runs first and its result drives form-error state. Past it there are three
+ * Validation always runs first and its result drives form-error state, with an error haptic when it
+ * surfaces a missing required field. Past it there are three
  * branches: (1) invoice-without-company-info routes to the company info step; (2) non-PAY types
  * invoke `onConfirm`; (3) PAY types run delegate-access gating and invoke `onSendMoney` with the
  * chosen payment method.
@@ -86,6 +88,7 @@ function buildConfirmAction({
                 setDidConfirmSplit(true);
             }
             setFormError(result.errorKey);
+            HapticFeedback.expenseCreateError();
             return;
         }
 

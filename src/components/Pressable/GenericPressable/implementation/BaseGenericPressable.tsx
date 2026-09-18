@@ -33,7 +33,7 @@ function GenericPressable({
     pressStyle = {},
     screenReaderActiveStyle = {},
     shouldUseHapticsOnLongPress = true,
-    shouldUseHapticsOnPress = false,
+    shouldUseHapticsOnPress = true,
     nextFocusRef,
     keyboardShortcut,
     shouldUseAutoHitSlop = false,
@@ -139,7 +139,7 @@ function GenericPressable({
                 return;
             }
             if (shouldUseHapticsOnPress) {
-                HapticFeedback.press();
+                HapticFeedback.selection();
             }
             if (ref && 'current' in ref && nextFocusRef) {
                 ref.current?.blur();

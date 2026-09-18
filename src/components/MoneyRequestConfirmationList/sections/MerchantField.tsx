@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
+import HapticFeedback from '@libs/HapticFeedback';
 import {isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
