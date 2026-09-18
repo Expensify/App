@@ -19,14 +19,14 @@ import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -85,16 +85,25 @@ function DynamicTwoFactorAuthPage() {
         // during forced onboarding, when requiresTwoFactorAuth becomes true before Got it clears progress).
         if (isFocused && shouldLeaveEnabledSetup) {
             Navigation.isNavigationReady().then(() => {
-                // The setup page is only reached with 2FA already enabled by pressing browser Back from the success
-                // page on web (the recovery-codes page stays in history because Download codes uses PUSH). Go back out
-                // of the flow instead of forwarding to the enabled page, which would loop the user straight back to the
-                // success page.
-                Navigation.goBack();
+                // Pressing browser Back from the success page on web lands here with 2FA already enabled (the
+                // recovery-codes page stays in history because Download codes uses PUSH). Go back out of the flow
+                // instead of forwarding to the enabled page, which would loop the user straight back to the success page.
+                if (navigationRef.current?.canGoBack()) {
+                    Navigation.goBack();
+                    return;
+                }
+
+                // A direct link or a reload can also mount this page with 2FA enabled and nothing to pop. goBack()
+                // would then reset to the app root, so open the enabled page instead.
+                Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
             });
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || shouldLeaveEnabledSetup || account?.recoveryCodes || !isUserValidated) {
+        // toggleTwoFactorAuth(true) is a mutation (ENABLE_TWO_FACTOR_AUTH), not a fetch, so it must never run once 2FA
+        // is enabled. The forced-onboarding post-verify handoff has 2FA enabled, setup still in progress and no codes
+        // (the Onyx reset after validation drops them), and enabling again there would rotate the recovery codes.
+        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -105,7 +114,8 @@ function DynamicTwoFactorAuthPage() {
         toggleTwoFactorAuth(true);
         // `recoveryCodes` is a dependency because the right-modal `beforeRemove` listener clears the 2FA data after
         // this effect has already run, which happens when a browser back on a freshly loaded page rebuilds the modal.
-        // Without it the page would keep rendering an empty codes box with no way to continue.
+        // Without it the page would keep rendering an empty codes box with no way to continue. The `is2FAEnabled`
+        // guard above keeps this re-run from enabling 2FA a second time.
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress, recoveryCodes]);
 
