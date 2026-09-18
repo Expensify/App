@@ -27,10 +27,7 @@ type ImportedFromAccountingSoftwareProps = {
     /** The policy ID to link to */
     policyID: string;
 
-    /** The name of the current connection */
     currentConnectionName: string;
-
-    /** The connected integration */
     connectedIntegration: ConnectionName | undefined;
 
     /** The translated text for the "imported from" message */
@@ -60,6 +57,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
     ]);
     const icon = getIntegrationIcon(connectedIntegration, expensifyIcons, policy);

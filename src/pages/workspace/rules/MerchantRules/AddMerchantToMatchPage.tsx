@@ -2,7 +2,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
@@ -19,20 +19,25 @@ import {isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type AddMerchantToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddMerchantToMatchPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH
+>;
 
 function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {policyID, ruleID} = route.params;
+    const {isEditing, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isEditing = ruleID !== ROUTES.NEW;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const {inputCallbackRef} = useAutoFocusInput();
@@ -48,8 +53,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     };
 
     const goBack = () => {
-        const backRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
-        Navigation.goBack(backRoute);
+        Navigation.goBack(backToRoute);
     };
 
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
@@ -115,11 +119,14 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                         containerStyles={[styles.ph5]}
                     />
                 </View>
-                <MenuItemWithTopDescription
-                    description={translate('workspace.rules.merchantRules.matchType')}
-                    title={getMatchTypeLabel()}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined))}
+                <MenuItemField
+                    name={translate('workspace.rules.merchantRules.matchType')}
+                    onPress={() =>
+                        Navigation.navigate(
+                            getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
+                        )
+                    }
+                    value={getMatchTypeLabel()}
                 />
             </FormProvider>
         </ScreenWrapper>

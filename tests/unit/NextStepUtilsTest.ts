@@ -50,13 +50,14 @@ describe('libs/NextStepUtils', () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
         const report = buildOptimisticExpenseReport({
+            rules: undefined,
             chatReportID: 'fake-chat-report-id-1',
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             policyID,
             payeeAccountID: 1,
             total: -500,
             currency: CONST.CURRENCY.USD,
-            betas: [CONST.BETAS.ALL],
+            isASAPSubmitBetaEnabled: true,
         }) as Report;
 
         beforeAll(() => {
@@ -102,8 +103,9 @@ describe('libs/NextStepUtils', () => {
                     'fake-parent-report-action-id-4',
                     policy,
                     '2025-03-31 13:23:11',
-                    [CONST.BETAS.ALL],
+                    true,
                     getCurrencyDecimalsLocal,
+                    undefined,
                 );
 
                 const expectedResult: ReportNextStep = {
@@ -112,6 +114,7 @@ describe('libs/NextStepUtils', () => {
                     actorAccountID: currentUserAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report: emptyReport,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -137,6 +140,7 @@ describe('libs/NextStepUtils', () => {
                     actorAccountID: currentUserAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -161,6 +165,7 @@ describe('libs/NextStepUtils', () => {
                     actorAccountID: currentUserAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -191,6 +196,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -223,6 +229,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -256,6 +263,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -281,6 +289,7 @@ describe('libs/NextStepUtils', () => {
                 describe('monthly on the 2nd', () => {
                     const buildMonthlyOnThe2ndNextStep = () =>
                         buildOptimisticNextStep({
+                            rules: undefined,
                             report,
                             policy: {
                                 ...policy,
@@ -347,6 +356,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -380,6 +390,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -414,6 +425,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -444,6 +456,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: currentUserAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -474,9 +487,10 @@ describe('libs/NextStepUtils', () => {
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    actorAccountID: -1,
+                    actorAccountID: ownerAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -502,9 +516,10 @@ describe('libs/NextStepUtils', () => {
                     const expectedResult: ReportNextStep = {
                         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        actorAccountID: -1,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -542,6 +557,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: strangeAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -574,6 +590,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: currentUserAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -600,6 +617,7 @@ describe('libs/NextStepUtils', () => {
                         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -628,6 +646,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -656,6 +675,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: strangeAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -683,8 +703,9 @@ describe('libs/NextStepUtils', () => {
                         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
-                        policy,
+                        policy: {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO},
                         currentUserAccountIDParam: currentUserAccountID,
                         currentUserEmailParam: currentUserEmail,
                         hasViolations: false,
@@ -700,16 +721,18 @@ describe('libs/NextStepUtils', () => {
                 });
             });
 
-            test('non-payer', () => {
+            test('non-payer still waits for an admin to pay', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
                     const expectedResult: ReportNextStep = {
-                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-                        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -735,9 +758,10 @@ describe('libs/NextStepUtils', () => {
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    actorAccountID: -1,
+                    actorAccountID: ownerAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -767,9 +791,10 @@ describe('libs/NextStepUtils', () => {
                     const expectedResult: ReportNextStep = {
                         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        actorAccountID: -1,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -794,6 +819,7 @@ describe('libs/NextStepUtils', () => {
                         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -873,13 +899,14 @@ describe('libs/NextStepUtils', () => {
 
             const report: Report = {
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-1',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
@@ -889,6 +916,7 @@ describe('libs/NextStepUtils', () => {
             } as Report;
 
             const result = getReportNextStep({
+                rules: undefined,
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
                 transactions: [],
@@ -903,13 +931,14 @@ describe('libs/NextStepUtils', () => {
         it('returns an optimistic fix issue next step when all transactions have submission-blocking violations', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-2',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
@@ -935,6 +964,7 @@ describe('libs/NextStepUtils', () => {
             };
 
             const result = getReportNextStep({
+                rules: undefined,
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
                 transactions: [transaction],
@@ -974,13 +1004,14 @@ describe('libs/NextStepUtils', () => {
 
             const report: Report = {
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-3',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 policyID,
@@ -993,6 +1024,7 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getReportNextStep({
+                rules: undefined,
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
                 transactions: [],
@@ -1027,13 +1059,14 @@ describe('libs/NextStepUtils', () => {
 
             const report: Report = {
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-4',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 policyID,
@@ -1062,6 +1095,7 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getReportNextStep({
+                rules: undefined,
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
                 transactions: [transaction],
@@ -1265,13 +1299,14 @@ describe('libs/NextStepUtils', () => {
         const getOpenSubmitAndCloseReport = (): Report =>
             ({
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-track-intent',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: currentUserAccountID,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
@@ -1286,6 +1321,7 @@ describe('libs/NextStepUtils', () => {
             const report = getOpenSubmitAndCloseReport();
 
             const result = buildOptimisticNextStep({
+                rules: undefined,
                 report,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,
@@ -1306,6 +1342,7 @@ describe('libs/NextStepUtils', () => {
             const report = getOpenSubmitAndCloseReport();
 
             const result = buildOptimisticNextStep({
+                rules: undefined,
                 report,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,

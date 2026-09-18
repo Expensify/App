@@ -76,6 +76,7 @@ import type {
     ReportAction,
     ReportActions,
     ReviewDuplicates,
+    Rule,
     Transaction,
     TransactionViolation,
     TransactionViolations,
@@ -149,6 +150,10 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
 
         // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
         routes: null,
+
+        // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
+        // response that replaces the routes carries the matching decision with it.
+        commuterExclusionPreview: null,
     });
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
@@ -365,10 +370,11 @@ function stringifyWaypointsForAPI(waypoints: WaypointCollection): string {
  * Used so we can generate a map view of the provided waypoints
  */
 
-function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
+function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT, policyID?: string) {
     const parameters: GetRouteParams = {
         transactionID,
         waypoints: stringifyWaypointsForAPI(waypoints),
+        policyID,
     };
 
     let command;
@@ -459,6 +465,10 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
 
         // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
         routes: null,
+
+        // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
+        // response that replaces the routes carries the matching decision with it.
+        commuterExclusionPreview: null,
     });
 }
 
@@ -508,6 +518,7 @@ type DismissDuplicateTransactionViolationProps = {
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     allTransactions: OnyxCollection<Transaction>;
+    rules: OnyxCollection<Rule>;
     currentTransactionViolations?: Array<{
         transactionID: string;
         violations: TransactionViolations;
@@ -526,6 +537,7 @@ function dismissDuplicateTransactionViolation({
     policy,
     isASAPSubmitBetaEnabled,
     allTransactions,
+    rules,
     currentTransactionViolations = [],
     isTrackIntentUser,
 }: DismissDuplicateTransactionViolationProps) {
@@ -557,6 +569,7 @@ function dismissDuplicateTransactionViolation({
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
+            rules,
         });
 
         optimisticData.push({
@@ -709,7 +722,12 @@ function abandonReviewDuplicateTransactions() {
 }
 
 function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        errors: null,
+        errorFields: {route: null, waypoints: null, routes: null, reject: null},
+        // Dropping a reject error also drops the pin that kept the expense listed on the report it was rejected from
+        rejectFailedFromReportID: null,
+    });
 }
 
 /**
@@ -852,6 +870,7 @@ type ChangeTransactionsReportProps = {
     transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     reports: OnyxCollection<Report>;
+    rules: OnyxCollection<Rule>;
     /** Report IDs that should be skipped when generating Onyx updates (e.g. because they are being deleted) */
     skippedReportIDs?: string[];
     isTrackIntentUser: boolean | undefined;
@@ -860,6 +879,7 @@ type ChangeTransactionsReportProps = {
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -874,6 +894,7 @@ function getChangeTransactionsReportOnyxData({
     transactions,
     allTransactionViolation = {},
     reports,
+    rules,
     skippedReportIDs,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
@@ -881,6 +902,7 @@ function getChangeTransactionsReportOnyxData({
     delegateAccountID,
     getCurrencyDecimals,
     getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1372,6 +1394,7 @@ function getChangeTransactionsReportOnyxData({
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
+                isVendorMatchingBetaEnabled,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1876,6 +1899,7 @@ function getChangeTransactionsReportOnyxData({
             hasDependentTags: policyHasDependentTags,
             isInvoiceTransaction: false,
             ownerLogin: undefined,
+            isVendorMatchingBetaEnabled,
         });
         if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
@@ -1940,6 +1964,7 @@ function getChangeTransactionsReportOnyxData({
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
             isTrackIntentUser,
+            rules,
         });
 
         const optimisticPendingFields = {

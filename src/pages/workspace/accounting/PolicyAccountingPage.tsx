@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CollapsibleSection from '@components/CollapsibleSection';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -132,25 +133,26 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
     ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
-    const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
     const canUseCampfireIntegration = isBetaEnabled(CONST.BETAS.CAMPFIRE) || !!policy?.connections?.campfire;
+    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
-                    return canUseDualEntryIntegration;
-                }
                 if (name === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
                     return canUseCampfireIntegration;
                 }
+                if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+                    return canUseBusinessCentralIntegration;
+                }
                 return true;
             }),
-        [canUseDualEntryIntegration, canUseCampfireIntegration],
+        [canUseCampfireIntegration, canUseBusinessCentralIntegration],
     );
     const accountingIntegrationOptions = useMemo(
         () =>
@@ -323,6 +325,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const rilletSubsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
         const dualEntryCompanyList = policy?.connections?.dualEntry?.data?.companies;
         const campfireSubsidiaryList = policy?.connections?.campfire?.data?.subsidiaries;
+        const businessCentralCompanyList = policy?.connections?.businessCentral?.data?.companies;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
@@ -481,6 +484,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
+            case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                return !businessCentralCompanyList?.length
+                    ? {}
+                    : {
+                          description: translate('workspace.businessCentral.subsidiary'),
+                          iconRight: icons.ArrowRight,
+                          title: businessCentralCompanyList.find((company) => company.id === policy?.connections?.businessCentral?.config?.companyID)?.displayName ?? '',
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting && businessCentralCompanyList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
+                          pendingAction: policy?.connections?.businessCentral?.config.pendingFields?.companyID,
+                          brickRoadIndicator: policy?.connections?.businessCentral?.config.errorFields?.companyID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress:
+                              policyID && canWriteAccounting && businessCentralCompanyList.length > 1
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR.getRoute(policyID))
+                                  : undefined,
+                      };
 
             default:
                 return undefined;
@@ -558,7 +580,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         isBadgeSuccess: isXero,
                         shouldShowBadgeBelow: shouldUseNarrowLayout,
                         rightComponent: (
-                            <Button
+                            <ButtonDisabledWhenOffline
                                 onPress={() => {
                                     if (!canWriteAccounting) {
                                         showReadOnlyModal();
@@ -570,7 +592,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                 hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                 size={CONST.BUTTON_SIZE.SMALL}
-                                isDisabled={isOffline}
                                 ref={(ref) => {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
@@ -581,7 +602,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                             >
                                 <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                            </Button>
+                            </ButtonDisabledWhenOffline>
                         ),
                     };
                 })
@@ -748,7 +769,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         accountingIntegrationOptions,
         isConnectedToIntuitEnterpriseSuite,
         shouldUseNarrowLayout,
-        isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
@@ -803,7 +823,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ...iconProps,
                     title: integrationData?.title,
                     rightComponent: (
-                        <Button
+                        <ButtonDisabledWhenOffline
                             onPress={() => {
                                 if (!canWriteAccounting) {
                                     showReadOnlyModal();
@@ -820,7 +840,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                             hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                             size={CONST.BUTTON_SIZE.SMALL}
-                            isDisabled={isOffline}
                             ref={(r) => {
                                 if (!popoverAnchorRefs?.current) {
                                     return;
@@ -831,7 +850,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                         >
                             <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                        </Button>
+                        </ButtonDisabledWhenOffline>
                     ),
                     interactive: false,
                     // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
@@ -861,7 +880,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.buttonOpacityDisabled,
         styles.buttonDisabled,
         styles.sectionMenuItemTopDescription,
-        isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
         accountingIcons,

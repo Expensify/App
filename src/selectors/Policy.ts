@@ -114,6 +114,14 @@ const createWorkspaceListPoliciesSelector =
 
             const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
+
+            // A `policy_` record is merged field-by-field, so a freshly joined workspace can show up here before its
+            // `id` has landed. Such a row has no key, no avatar seed and nothing to navigate to, so skip it until the
+            // next update fills it in. Join requests are exempt because they carry their ID in `nonMemberDetails`.
+            if (!policy.id && !isJoinRequestPending) {
+                continue;
+            }
+
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
                 const nonMemberEntry = Object.entries(policy.policyDetailsForNonMembers ?? {}).at(0);
@@ -267,6 +275,29 @@ const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
             }
             return acc;
         }, {});
+    };
+};
+
+/**
+ * Creates a selector returning only the policies for the given IDs, so a consumer interested in a
+ * known handful of workspaces doesn't re-render when unrelated policies change.
+ */
+const createPoliciesByIDsSelector = (policyIDs: string[]) => {
+    const policyKeys = new Set(policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`));
+
+    return (policies: OnyxCollection<Policy>): NonNullable<OnyxCollection<Policy>> => {
+        if (policyKeys.size === 0) {
+            return {};
+        }
+
+        const filtered: NonNullable<OnyxCollection<Policy>> = {};
+        for (const key of policyKeys) {
+            const policy = policies?.[key];
+            if (policy) {
+                filtered[key] = policy;
+            }
+        }
+        return filtered;
     };
 };
 
@@ -442,13 +473,13 @@ const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>
 // cspell:disable-next-line
 const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
-function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string, userDisplayName: string | undefined): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
         return undefined;
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, userDisplayName);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
 
@@ -466,6 +497,9 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 }
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
+
+/** The policy fields a workspace avatar renders from. */
+const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
@@ -520,6 +554,7 @@ export {
     createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
+    createPoliciesByIDsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
     policyMapper,
@@ -529,6 +564,7 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     homeAndOfficeCommuterExclusionPolicyNameSelector,
+    policyAvatarFieldsSelector,
     policyNameSelector,
     policyRoleSelector,
     policyTypeSelector,
