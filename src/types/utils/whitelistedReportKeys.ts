@@ -15,6 +15,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageText: unknown;
         lastVisibleActionCreated: unknown;
         lastReadTime: unknown;
+        manuallyMarkedUnreadReportActionID: unknown;
         lastReadSequenceNumber: unknown;
         lastMentionedTime: unknown;
         policyAvatar: unknown;

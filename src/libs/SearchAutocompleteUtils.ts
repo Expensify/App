@@ -140,6 +140,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
@@ -174,6 +175,7 @@ function filterOutRangesWithCorrectValue(
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = userFriendlyExpenseTypeList;
     const receiptTypeList = userFriendlyReceiptTypeList;
+    const transactionStatusList = userFriendlyTransactionStatusList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const withdrawalStatusList = Object.values(CONST.SEARCH.SETTLEMENT_STATUS) as string[];
     const paidStatusList = Object.values(CONST.SEARCH.PAID_STATUS) as string[];
@@ -217,6 +219,8 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
             return receiptTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
+            return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:

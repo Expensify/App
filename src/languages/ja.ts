@@ -367,6 +367,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'ワークスペースをダウングレード',
         companyID: '会社ID',
         userID: 'ユーザーID',
+        tenantID: 'テナント ID',
+        environmentName: '環境名',
+        clientID: 'クライアント ID',
+        clientSecret: 'クライアント シークレット',
         disable: '無効にする',
         export: 'エクスポート',
         initialValue: '初期値',
@@ -530,12 +534,14 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'LinkedInでフォロー',
     },
     concierge: {
+        hasAnAnswer: 'Concierge からの回答があります！',
         collapseReasoning: '推論を折りたたむ',
         expandReasoning: '推論を展開',
         enableNotifications: {
             prompt: 'Conciergeから返信があったときに通知を受け取りますか？',
             cta: '通知',
         },
+        feedback: {prompt: 'この回答は役に立ちましたか？', useful: '役に立つ返信', notUseful: '役に立たない返信', thanks: 'フィードバックをありがとうございます！'},
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1248,6 +1254,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: '新しいカードや取引が表示されるまでに少し時間がかかる場合があります。しばらくお待ちください。',
         importMembersRolePermissionWarning: '一部のメンバー権限を割り当てる権限がありません。影響のある新しいメンバーは、メンバーとして招待されました。',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: 'このワークスペースに存在しないため、ベンダーが1件スキップされました。',
+            other: `このワークスペースに存在しないため、${count} 件のベンダーをスキップしました。`,
+        }),
     },
     receipt: {
         upload: '領収書をアップロード',
@@ -1273,6 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '手放して',
         dropMessage: 'ここにファイルをドロップしてください',
         flash: 'フラッシュ',
+        flipCamera: 'カメラを反転',
         multiScan: 'マルチスキャン',
         shutter: 'シャッター',
         gallery: 'ギャラリー',
@@ -1781,6 +1792,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'この経費は、すでに移動または却下されている可能性があるため、却下できませんでした。',
         },
         moveExpenses: 'レポートに移動',
+        autoReport: '自動レポート',
+        autoReportDescription: '従業員に代わって下書きレポートに追加',
         moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         submitReportTo: {
@@ -1871,6 +1884,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
             confirmText: 'タグを削除',
         },
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
     },
     transactionMerge: {
         listPage: {
@@ -2515,7 +2529,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
         copyCodes: 'コードをコピー',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'セキュリティ上の理由により、連携を接続するには NetSuite で二要素認証が必要です。',
     },
     recoveryCodeForm: {
         error: {
@@ -3130,7 +3143,7 @@ ${date} の ${merchant} への ${amount}`,
             merchantHint: '. を入力して、すべての加盟店に適用されるルールを作成します',
             addToReport: '名前が次のレポートに追加',
             createReport: '必要に応じてレポートを作成',
-            applyToExistingExpenses: '既存の一致する経費に適用',
+            applyToExistingExpenses: '既存の未提出経費に適用',
             confirmError: '店舗名を入力し、少なくとも1つの更新を適用してください',
             confirmErrorMerchant: '加盟店を入力してください',
             confirmErrorUpdate: '少なくとも 1 つの更新を適用してください',
@@ -3763,8 +3776,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         vacationDelegateError: '休暇の代理人を更新中にエラーが発生しました。',
         asVacationDelegate: (nameOrEmail: string) => `${nameOrEmail} さんの休暇代理として`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `${nameOrEmail} さんをあなたの休暇代理人に指定しようとしています。この人は、まだすべてのワークスペースに参加していません。続行すると、すべてのワークスペース管理者に、この人を追加するようメールが送信されます。`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。今すぐ招待しますか？`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。あなたが管理者になっているワークスペースには今すぐ招待しますか？`,
+            youAreAMemberOf: 'あなたはこれらのワークスペースのメンバーです：',
+            youAreAnAdminOf: 'あなたはこれらのワークスペースの管理者です：',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `ステップ ${step}`;
@@ -4676,6 +4696,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             defaultDescription: 'すべての領収書と経費を一か所で管理。',
             descriptionHint: 'このワークスペースに関する情報をすべてのメンバーと共有します。',
             welcomeNote: '精算のための領収書提出には Expensify をご利用ください。ありがとうございます！',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName}さんがあなたを${workspaceName}に招待しました`,
             subscription: 'サブスクリプション',
             markAsEntered: '手入力としてマーク',
             markAsExported: 'エクスポート済みにする',
@@ -5247,6 +5268,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担経費は支払われた時点でエクスポートされます',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct 外貨換算手数料勘定',
+            fxExpenseAccountDescription: '海外で行った支払いについて、御社が為替換算コストを負担する場合、そのコストは仕訳として Sage Intacct のこの勘定科目に計上します。',
         },
         certinia: {
             title: 'Certinia',
@@ -5503,6 +5526,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noSubsidiariesFoundDescription: 'NetSuite に子会社を追加して、もう一度接続を同期してください',
             tokenInput: {
                 title: 'NetSuite のセットアップ',
+                connectWithTokenAuthentication: '代わりにトークンベース認証（SOAP）で接続します',
                 formSteps: {
                     installBundle: {
                         title: 'Expensify バンドルをインストール',
@@ -7038,6 +7062,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7272,6 +7298,12 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'カード精算を同期しています';
                         case 'campfireSyncTravelSettlements':
                             return '出張精算を同期しています';
+                        case 'businessCentralSyncTitle':
+                            return 'Dynamics 365 Business Central データを同期しています';
+                        case 'businessCentralSyncConnection':
+                            return 'Dynamics 365 Business Central への接続を初期化しています';
+                        case 'businessCentralSyncImportData':
+                            return 'データを読み込んでいます';
                         default: {
                             return `ステージの翻訳が見つかりません: ${stage}`;
                         }
@@ -7314,6 +7346,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -7620,6 +7653,12 @@ ${reportName}`,
                 description: `Expensify と Campfire の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Campfire の設定に合わせて、財務の可視性を高めます。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Campfire 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Expensify と Dynamics 365 Business Central の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Dynamics 365 Business Central の設定に合わせて、財務の可視性を高めます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Dynamics 365 Business Central 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高度な承認',
@@ -7986,6 +8025,7 @@ ${reportName}`,
                 importColumnUpdatedCategory: '更新後のカテゴリ',
                 importColumnUpdatedTag: '更新後のタグ',
                 importColumnUpdatedDescription: '更新後の説明',
+                importColumnUpdatedVendor: '仕入先を更新しました',
                 expensesWith: '対象となる経費条件:',
                 expensesExactlyMatching: '次の条件に完全一致する経費の場合:',
                 applyUpdates: 'これらの更新を適用する',
@@ -8558,6 +8598,22 @@ ${reportName}`,
             subsidiarySelectDescription: 'データを取り込みたい Campfire 内の子会社を選択してください。',
             noSubsidiariesFound: '子会社が見つかりません',
             noSubsidiariesFoundDescription: 'Campfire でエンティティを追加して、接続をもう一度同期してください',
+            importDescription: 'Campfire からインポートするコーディング設定を選択してください。',
+            accountTypesDescription: 'Campfire のアカウントはカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
+            enableNewAccountsDescription: '新しい Campfire アカウントは、カテゴリーとして利用できるようになります。',
+            dimensionsImport: 'すべての Campfire ディメンションがタグとしてインポートされます',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
+            prerequisitesTitle: '接続する前に…',
+            followSteps: '「How-to: Dynamics 365 Business Central に接続する」手順のステップに従ってください',
+            enterCredentials: 'Dynamics 365 Business Central の詳細を入力してください',
+            helpArticle: `<muted-text>この情報を見つけるには、こちらの<a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">ヘルプ記事</a>を参照してください。</muted-text>`,
+            subsidiary: '子会社',
+            subsidiarySelectDescription: 'このワークスペースと同期する Dynamics 365 Business Central の子会社を選択してください。',
+            noCompaniesFound: '会社が見つかりません',
+            noCompaniesFoundDescription: 'Dynamics 365 Business Central に会社を追加して、接続をもう一度同期してください',
         },
     },
     getAssistancePage: {
@@ -9361,6 +9417,7 @@ ${reportName}`,
                 title: '承認する経費はありません',
                 subtitle: '経費はゼロ。リラックス度マックス。お見事です！',
             },
+            staleResults: {title: '再読み込みが必要です', subtitle: 'このページは古くなっています。最新の情報を見るには再読み込みしてください。', buttonText: '更新'},
         },
         columns: '列',
         editColumns: '列の編集',
@@ -9473,6 +9530,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
+                [CONST.SEARCH.GROUP_BY.DAY]: '日',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
                 [CONST.SEARCH.GROUP_BY.WEEK]: '週',
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年',
@@ -9493,6 +9551,12 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
+            transactionStatus: {
+                label: '取引ステータス',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: '保留中',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: '記帳済み',
+                hint: 'カードの取引にのみ適用されます。',
+            },
         },
         display: {
             label: '表示',
@@ -9510,6 +9574,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
             [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
+            [CONST.SEARCH.GROUP_BY.DAY]: '日数',
             [CONST.SEARCH.GROUP_BY.MONTH]: '月数',
             [CONST.SEARCH.GROUP_BY.WEEK]: '週数',
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',

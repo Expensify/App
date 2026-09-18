@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -137,7 +138,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, draftTransaction, transaction);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
@@ -234,10 +234,11 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport, {isManuallyEdited: true, policy: effectivePolicy, getCurrencyDecimals});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus']);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
     const isInitialSplit = childTransactions.length === 0;
 
@@ -385,6 +386,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         }
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,
             allTransactionsList: allTransactions,
@@ -411,7 +413,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
-            betas,
             personalDetails,
             transactionReport: draftTransactionReport,
             expenseReport,
