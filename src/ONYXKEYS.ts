@@ -773,9 +773,6 @@ const ONYXKEYS = {
     /** Wise's outstanding onboarding requirements, for the KYC follow-up form */
     WISE_KYC_REQUIREMENTS: 'wiseKYCRequirements',
 
-    /** The dynamic employee bank-account form for one country and currency */
-    WISE_BANK_ACCOUNT_FIELDS: 'wiseBankAccountFields',
-
     /** A short-lived link to Wise's embedded KYC page */
     WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
 
@@ -1865,7 +1862,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
     [ONYXKEYS.WISE_KYC_REQUIREMENTS]: OnyxTypes.WiseKYCRequirements;
-    [ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS]: OnyxTypes.WiseBankAccountFields;
     [ONYXKEYS.WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
