@@ -190,7 +190,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
-    const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
+    const shouldRenderColumnHeaderAsStickyRow = tableListMetadata.shouldRenderColumnHeaderAsStickyRow;
     const hasRows = filteredAndSortedData.length > 0;
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
 
@@ -207,10 +207,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
         ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
         : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup);
-    const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader};
+    const currentListState = {shouldRenderFlashList, shouldRenderColumnHeaderAsStickyRow};
     const [previousListState, setPreviousListState] = useState(currentListState);
     const shouldResetListLoad = previousListState.shouldRenderFlashList !== shouldRenderFlashList;
-    const shouldResetStickyHeader = previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader;
+    const shouldResetStickyHeader = previousListState.shouldRenderColumnHeaderAsStickyRow !== shouldRenderColumnHeaderAsStickyRow;
 
     if (shouldResetListLoad || shouldResetStickyHeader) {
         setPreviousListState(currentListState);
@@ -226,13 +226,13 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     }
 
     useEffect(() => {
-        if (!hasRows || !tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
+        if (!hasRows || !tableListMetadata.shouldRenderColumnHeaderAsStickyRow || !isListLoaded || hasActivatedStickyHeader) {
             return;
         }
 
         const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
         return () => cancelAnimationFrame(frame);
-    }, [hasActivatedStickyHeader, hasRows, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
+    }, [hasActivatedStickyHeader, hasRows, isListLoaded, tableListMetadata.shouldRenderColumnHeaderAsStickyRow]);
 
     const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = useCallback(
         (current, previous) => {
@@ -296,7 +296,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     // While the columns scroll, the column header lives in the list header rather than FlashList's sticky-row
     // overlay, so the scroller carries it sideways with the columns it labels. One copy instead of the overlay's two,
     // so there is no duplicate to hide from screen readers either.
-    const listHeaderContent = tableListMetadata.shouldRenderHeaderInListHeader ? (
+    const listHeaderContent = tableListMetadata.shouldRenderColumnHeaderInListHeader ? (
         <>
             {pageHeaderElement}
             {tableHeaderElement}
@@ -370,7 +370,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     // A truly empty table still uses the standalone centered layout above.
     const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
-    const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
+    const canRenderStickyHeader = !tableListMetadata.shouldRenderColumnHeaderAsStickyRow || (isListLoaded && hasActivatedStickyHeader);
     const isTableHeaderSticky = activeStickyHeaderIndex === tableListMetadata.stickyTableHeaderIndex;
     const shouldRenderEmptyStateInList = !hasRows && tableListMetadata.hasPageHeader;
 
@@ -454,7 +454,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     ListHeaderComponentStyle,
                     // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin the page
                     // header itself. Better unstuck for that one layout pass.
-                    pageHeaderHeight > 0 && tableListMetadata.shouldRenderHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
+                    pageHeaderHeight > 0 && tableListMetadata.shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
                 ]}
                 ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
                 ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}

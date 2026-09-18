@@ -90,7 +90,7 @@ export default function TableRow({
         dynamicGridTemplateColumns,
     } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
-    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.hasHeaderRow;
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
     const inertProps = isAccessibilityHidden ? {inert: true} : {};
 

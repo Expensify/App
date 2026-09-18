@@ -146,8 +146,8 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     tableListMetadata: {
         hasPageHeader: false,
-        shouldRenderStickyHeader: false,
-        shouldRenderHeaderInListHeader: false,
+        shouldRenderColumnHeaderAsStickyRow: false,
+        shouldRenderColumnHeaderInListHeader: false,
         hasHeaderRow: false,
         syntheticRowsBeforeData: 0,
         stickyTableHeaderIndex: 0,

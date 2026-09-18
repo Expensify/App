@@ -395,21 +395,21 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
         return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
     });
-    const shouldRenderHeaderRow = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
+    const shouldRenderColumnHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
     // FlashList's sticky-row overlay sits outside the scroller, so it can't follow the columns once they scroll
     // horizontally. Then the header moves into the list header and sticks there instead (see `TableBody`).
-    const shouldRenderHeaderInListHeader = shouldRenderHeaderRow && !!dynamicScrollWidth;
-    const shouldRenderStickyHeader = shouldRenderHeaderRow && !shouldRenderHeaderInListHeader;
+    const shouldRenderColumnHeaderInListHeader = shouldRenderColumnHeader && !!dynamicScrollWidth;
+    const shouldRenderColumnHeaderAsStickyRow = shouldRenderColumnHeader && !shouldRenderColumnHeaderInListHeader;
 
     const tableListMetadata = useMemo(
         () =>
             getTableListMetadata({
                 listHeaderElement,
                 listHeaderComponent: listProps.ListHeaderComponent,
-                shouldRenderStickyHeader,
-                shouldRenderHeaderInListHeader,
+                shouldRenderColumnHeaderAsStickyRow,
+                shouldRenderColumnHeaderInListHeader,
             }),
-        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderStickyHeader, shouldRenderHeaderInListHeader],
+        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderColumnHeaderAsStickyRow, shouldRenderColumnHeaderInListHeader],
     );
     /**
      * Exposes table control methods through the ref.

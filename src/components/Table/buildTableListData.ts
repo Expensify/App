@@ -8,8 +8,8 @@ type SyntheticRowKind = 'tableHeader' | 'data';
 
 type TableListMetadata = {
     hasPageHeader: boolean;
-    shouldRenderStickyHeader: boolean;
-    shouldRenderHeaderInListHeader: boolean;
+    shouldRenderColumnHeaderAsStickyRow: boolean;
+    shouldRenderColumnHeaderInListHeader: boolean;
     hasHeaderRow: boolean;
     syntheticRowsBeforeData: number;
     stickyTableHeaderIndex: number;
@@ -19,25 +19,25 @@ type TableListMetadata = {
 type TableListMetadataParams<DataType extends TableData> = {
     listHeaderElement?: React.ReactNode;
     listHeaderComponent?: SharedListProps<DataType>['ListHeaderComponent'];
-    shouldRenderStickyHeader: boolean;
-    shouldRenderHeaderInListHeader: boolean;
+    shouldRenderColumnHeaderAsStickyRow: boolean;
+    shouldRenderColumnHeaderInListHeader: boolean;
 };
 
 function getTableListMetadata<DataType extends TableData>({
     listHeaderElement,
     listHeaderComponent,
-    shouldRenderStickyHeader,
-    shouldRenderHeaderInListHeader,
+    shouldRenderColumnHeaderAsStickyRow,
+    shouldRenderColumnHeaderInListHeader,
 }: TableListMetadataParams<DataType>): TableListMetadata {
     const hasPageHeader = !!listHeaderComponent || !!listHeaderElement;
-    const syntheticRowsBeforeData = shouldRenderStickyHeader ? 1 : 0;
+    const syntheticRowsBeforeData = shouldRenderColumnHeaderAsStickyRow ? 1 : 0;
 
     return {
         hasPageHeader,
-        shouldRenderStickyHeader,
-        shouldRenderHeaderInListHeader,
+        shouldRenderColumnHeaderAsStickyRow,
+        shouldRenderColumnHeaderInListHeader,
         // Either placement is a real header row, so `aria-rowindex` has to count it.
-        hasHeaderRow: shouldRenderStickyHeader || shouldRenderHeaderInListHeader,
+        hasHeaderRow: shouldRenderColumnHeaderAsStickyRow || shouldRenderColumnHeaderInListHeader,
         syntheticRowsBeforeData,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: syntheticRowsBeforeData,
@@ -51,11 +51,11 @@ function createSyntheticRow<DataType extends TableData>(keyForList: string): Dat
 }
 
 function buildTableListData<DataType extends TableData>(data: Array<TableRow<DataType>>, metadata: TableListMetadata): DataType[] {
-    return [...(metadata.shouldRenderStickyHeader ? [createSyntheticRow<DataType>(TABLE_HEADER_KEY)] : []), ...data];
+    return [...(metadata.shouldRenderColumnHeaderAsStickyRow ? [createSyntheticRow<DataType>(TABLE_HEADER_KEY)] : []), ...data];
 }
 
 function getSyntheticRowKind(index: number, metadata: TableListMetadata): SyntheticRowKind {
-    if (metadata.shouldRenderStickyHeader && index === metadata.stickyTableHeaderIndex) {
+    if (metadata.shouldRenderColumnHeaderAsStickyRow && index === metadata.stickyTableHeaderIndex) {
         return 'tableHeader';
     }
 
@@ -82,7 +82,7 @@ function getDataVisibleIndices({startIndex, endIndex}: {startIndex: number; endI
 }
 
 function getAdjustedStickyHeaderIndices(metadata: TableListMetadata, stickyHeaderIndices: SharedListProps<TableData>['stickyHeaderIndices']) {
-    if (metadata.shouldRenderStickyHeader) {
+    if (metadata.shouldRenderColumnHeaderAsStickyRow) {
         return [metadata.stickyTableHeaderIndex];
     }
 
