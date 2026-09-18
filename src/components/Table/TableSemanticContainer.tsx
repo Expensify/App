@@ -32,6 +32,14 @@ type TableSemanticContainerProps = {
     rendersBodyWhenEmpty: boolean;
 
     /**
+     * Whether the table sizes its columns from their content. `onLayout` and `scrollWidth` below are both derived from
+     * this, but only in the wide layout, so the wrapper has to be kept for the narrow one too. Dropping it there would
+     * change the returned tree across the layout breakpoint and remount the body, losing its scroll position and the
+     * active search string along with it.
+     */
+    shouldUseDynamicColumns: boolean;
+
+    /**
      * The width the rows need when the columns are too wide to fit. Set only in that case, and it makes the header/body
      * run scroll horizontally as one, so the header stays aligned with the rows it labels.
      */
@@ -55,11 +63,11 @@ type TableSemanticContainerProps = {
  * children render as-is to avoid an extra layout node. Header and body are contiguous in every table, so grouping the
  * consecutive run keeps a single table container while preserving child order.
  */
-function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, scrollWidth, onLayout, children}: TableSemanticContainerProps) {
+function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, shouldUseDynamicColumns, scrollWidth, onLayout, children}: TableSemanticContainerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const shouldWrapTableRun = isEnabled || onLayout !== undefined || scrollWidth !== undefined;
+    const shouldWrapTableRun = isEnabled || shouldUseDynamicColumns || onLayout !== undefined || scrollWidth !== undefined;
     if (!shouldWrapTableRun) {
         return children;
     }
