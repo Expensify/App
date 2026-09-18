@@ -158,18 +158,17 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
+    const shouldCenterTooltip = shouldUseNarrowLayout && !isInLandscapeMode;
     const tooltipProps = shouldShowProductTrainingTooltip
         ? {
               shouldRender: shouldShowProductTrainingTooltip,
               renderTooltipContent: renderProductTrainingTooltip,
               anchorAlignment: {
-                  // Right-align so the tooltip opens leftward into the sidebar (matching the design mockup),
-                  // instead of overflowing past the Switch button into the central pane.
-                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                  horizontal: shouldCenterTooltip ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
               shiftVertical: variables.accountSwitcherTooltipShiftVertical,
-              shiftHorizontal: variables.accountSwitcherTooltipShiftHorizontal,
+              shiftHorizontal: shouldCenterTooltip ? 0 : variables.accountSwitcherTooltipShiftHorizontal,
               wrapperStyle: styles.productTrainingTooltipWrapper,
               onTooltipPress: onPressSwitcher,
               // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
