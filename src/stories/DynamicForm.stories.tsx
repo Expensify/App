@@ -105,7 +105,7 @@ function PageByPage({fields, draftValues}: LayoutProps) {
             key={page.name}
             wrapperID="DynamicFormStory"
             headerTitle="Add bank account"
-            stepNames={pages.map((item) => item.name)}
+            stepNames={pages.length > 1 ? pages.map((item) => item.name) : undefined}
             startStepIndex={pageIndex}
             handleBackButtonPress={() => setPageIndex(Math.max(0, pageIndex - 1))}
         >
