@@ -94,6 +94,8 @@ type CreateTransactionParams = {
     billable?: boolean;
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
+    linkedTrackedExpenseTransactionDrafts?: Array<OnyxEntry<Transaction>>;
+    linkedTrackedExpenseTransactions?: Array<OnyxEntry<Transaction>>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -146,6 +148,8 @@ function createTransaction({
     billable,
     reimbursable = true,
     allTransactionDrafts,
+    linkedTrackedExpenseTransactionDrafts,
+    linkedTrackedExpenseTransactions,
     isSelfTourViewed,
     betas,
     personalDetails,
@@ -228,7 +232,8 @@ function createTransaction({
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
-            const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
+            const existingTransactionDraft = existingTransactionID ? linkedTrackedExpenseTransactionDrafts?.find((draft) => draft?.transactionID === existingTransactionID) : undefined;
+            const existingTransaction = existingTransactionID ? linkedTrackedExpenseTransactions?.find((item) => item?.transactionID === existingTransactionID) : transaction;
 
             requestMoney({
                 isVendorMatchingBetaEnabled,
@@ -262,7 +267,7 @@ function createTransaction({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 existingTransactionDraft,
-                existingTransaction: transaction,
+                existingTransaction,
                 isSelfTourViewed,
                 conciergeChat,
                 personalDetails,
