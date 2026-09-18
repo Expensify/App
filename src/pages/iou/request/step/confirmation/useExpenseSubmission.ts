@@ -76,6 +76,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -132,7 +133,7 @@ type UseExpenseSubmissionParams = {
     isDraftPolicy: boolean;
 
     // User data
-    currentUserPersonalDetails: {accountID: number; login?: string; email?: string; localCurrencyCode?: string};
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     participants: Participant[];
 
@@ -222,7 +223,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const delegateAccountID = useDelegateAccountID();
 
     // Permissions
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const shouldGenerateTransactionThreadReport = false;
 
@@ -521,6 +523,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             }
 
             const {iouReport} = requestMoneyIOUActions({
+                isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 report,
                 existingIOUReport,
@@ -592,7 +595,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 draftTransactionIDs,
                 isSelfTourViewed,
                 conciergeChat,
-                betas,
                 personalDetails,
                 isTrackIntentUser,
                 delegateAccountID,
@@ -630,7 +632,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                   participant: perDiemParticipant,
               },
               existingIOUReport: undefined,
-              betas,
+              isASAPSubmitBetaEnabled,
               rules,
               currentUserAccountIDParam: currentUserPersonalDetails.accountID,
           })
@@ -713,6 +715,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 participant,
             };
             const result = submitPerDiemExpenseIOUActions({
+                isVendorMatchingBetaEnabled,
                 dateFnsLocale,
                 getCurrencyDecimals,
                 report,
@@ -746,7 +749,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 hasViolations,
                 policyRecentlyUsedCurrencies,
                 quickAction,
-                betas,
                 personalDetails,
                 optimisticChatReportID,
                 notifyReportID,
@@ -889,7 +891,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                defaultWorkspaceName: generateDefaultWorkspaceName(email, currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate),
                 previousOdometerDraft: odometerDraft,
                 reportActionsList: policyExpenseChatReportActions,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -928,6 +930,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             report,
             participants: selectedParticipantsForRequest,
@@ -978,7 +981,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             policyRecentlyUsedCurrencies,
             personalDetails,
             recentWaypoints,
-            betas,
             previousOdometerDraft: odometerDraft,
             isTrackIntentUser,
             delegateAccountID,
@@ -1086,6 +1088,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 splitBill({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,
@@ -1111,7 +1114,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     transactionViolations: transactionViolationsRef.current,
                     quickAction,
                     policyRecentlyUsedCurrencies,
-                    betas,
                     personalDetails,
                     delegateAccountID,
                     isTrackIntentUser,
@@ -1135,6 +1137,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, splitParticipants, currentUserPersonalDetails.accountID);
                 splitBillAndOpenReport({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,
@@ -1159,7 +1162,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     transactionViolations: transactionViolationsRef.current,
                     quickAction,
                     policyRecentlyUsedCurrencies,
-                    betas,
                     personalDetails,
                     optimisticSplitChatReportID,
                     delegateAccountID,
