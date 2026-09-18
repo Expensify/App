@@ -20,11 +20,15 @@ type DynamicFormShellProps = {
     stepIndex: number;
 
     onBackButtonPress: () => void;
+
+    /** Overrides the page-count default: true always shows the step indicator, false never does */
+    shouldShowStepIndicator?: boolean;
 };
 
 /** Header, and a step indicator when the flow is long enough, around one dynamic form page */
-function DynamicFormShell({children, testID, headerTitle, stepNames, stepIndex, onBackButtonPress}: DynamicFormShellProps) {
-    if (stepNames.length >= STEP_INDICATOR_MIN_PAGES) {
+function DynamicFormShell({children, testID, headerTitle, stepNames, stepIndex, onBackButtonPress, shouldShowStepIndicator}: DynamicFormShellProps) {
+    const isIndicatorShown = shouldShowStepIndicator ?? stepNames.length >= STEP_INDICATOR_MIN_PAGES;
+    if (isIndicatorShown && stepNames.length > 1) {
         return (
             <InteractiveStepWrapper
                 wrapperID={testID}

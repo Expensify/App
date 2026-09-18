@@ -49,6 +49,9 @@ type DynamicFormFlowProps = {
     isSubmitting?: boolean;
 
     submitError?: string;
+
+    /** Overrides the step indicator's page-count default: true always shows it, false never does */
+    shouldShowStepIndicator?: boolean;
 };
 
 function EmptyPage() {
@@ -56,7 +59,20 @@ function EmptyPage() {
 }
 
 /** A whole dynamic form: one sub page per group, a confirmation page, and a step indicator when the flow is long enough */
-function DynamicFormFlow({fields, formID, headerTitle, testID, buildRoute, onSubmit, onBack, currency, confirmationTitle, isSubmitting = false, submitError}: DynamicFormFlowProps) {
+function DynamicFormFlow({
+    fields,
+    formID,
+    headerTitle,
+    testID,
+    buildRoute,
+    onSubmit,
+    onBack,
+    currency,
+    confirmationTitle,
+    isSubmitting = false,
+    submitError,
+    shouldShowStepIndicator,
+}: DynamicFormFlowProps) {
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
     const [pageAnswers, setPageAnswers] = useState<DynamicFormValues>({});
@@ -151,6 +167,7 @@ function DynamicFormFlow({fields, formID, headerTitle, testID, buildRoute, onSub
             stepNames={stepNames}
             stepIndex={Math.min(stepIndex, Math.max(stepNames.length - 1, 0))}
             onBackButtonPress={handleBackButtonPress}
+            shouldShowStepIndicator={shouldShowStepIndicator}
         >
             {content}
         </DynamicFormShell>
