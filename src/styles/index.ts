@@ -5700,7 +5700,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         workspaceSectionMoreFeaturesItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             paddingHorizontal: 16,
             paddingVertical: 20,
             minWidth: 350,
