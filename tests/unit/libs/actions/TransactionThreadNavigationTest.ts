@@ -2,6 +2,7 @@ import {
     CAROUSEL_SOURCE,
     clearActiveTransactionIDs,
     clearActiveTransactionIDsForSource,
+    disownActiveTransactionIDs,
     getActiveTransactionIDs,
     setActiveTransactionIDs,
     shouldRefreshActiveTransactionIDs,
@@ -216,6 +217,48 @@ describe('TransactionThreadNavigation carousel ownership', () => {
             await setActiveTransactionIDs(SPEND_PAGE_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
 
             await clearActiveTransactionIDsForSource(REPORT_SOURCE);
+
+            expect(getActiveTransactionIDs()).toEqual({ids: SPEND_PAGE_IDS, descriptors: null, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+        });
+    });
+
+    /**
+     * Search is keyed by its query hash, so re-sorting or re-filtering unmounts the list that seeded the carousel
+     * and mounts a replacement under a new source. Clearing on the way out stripped the arrows of an expense open
+     * in the RHP until the replacement had loaded - and for good, when the new results no longer held it.
+     */
+    describe('disownActiveTransactionIDs', () => {
+        it('keeps the list so an expense open on top of it keeps its arrows', async () => {
+            await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+
+            disownActiveTransactionIDs(SEARCH_SOURCE);
+
+            expect(getActiveTransactionIDs()).toEqual({ids: SEEDED_IDS, descriptors: null, source: null, snapshotHash: SEARCH_HASH});
+            expect((await readCarouselFromOnyx()).ids).toEqual(SEEDED_IDS);
+        });
+
+        it('lets the screen that replaces the previous writer take the carousel over', async () => {
+            await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+            expect(shouldRefreshActiveTransactionIDs(OTHER_SEARCH_SOURCE, SPEND_PAGE_IDS)).toBe(false);
+
+            disownActiveTransactionIDs(SEARCH_SOURCE);
+
+            expect(shouldRefreshActiveTransactionIDs(OTHER_SEARCH_SOURCE, SPEND_PAGE_IDS)).toBe(true);
+        });
+
+        it('still refuses a disowned carousel to a list with nothing to page between', async () => {
+            await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+
+            disownActiveTransactionIDs(SEARCH_SOURCE);
+
+            expect(shouldRefreshActiveTransactionIDs(OTHER_SEARCH_SOURCE, ['A1'])).toBe(false);
+        });
+
+        it('leaves a carousel another screen has taken over', async () => {
+            await setActiveTransactionIDs(REPORT_B_IDS, {source: REPORT_SOURCE});
+            await setActiveTransactionIDs(SPEND_PAGE_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+
+            disownActiveTransactionIDs(REPORT_SOURCE);
 
             expect(getActiveTransactionIDs()).toEqual({ids: SPEND_PAGE_IDS, descriptors: null, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
         });

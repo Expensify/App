@@ -46,6 +46,9 @@ const CAROUSEL_SOURCE = {
     /** The Home "Review X expenses" row */
     homeReviewFlagged: 'home:reviewFlagged',
 
+    /** A transaction row pressed inside a report preview in a chat */
+    reportPreview: (reportID: string | undefined) => `reportPreview:${reportID}`,
+
     /** The duplicate-review flow */
     duplicateReview: (transactionID: string | undefined) => `duplicateReview:${transactionID}`,
 } as const;
@@ -152,8 +155,10 @@ function getActiveTransactionIDs(): {
  * background list must leave it alone until the user comes back out to it.
  */
 function shouldRefreshActiveTransactionIDs(source: string, ids: string[]): boolean {
-    if (!lastSetIDs?.length) {
+    if (!lastSetIDs?.length || !lastSetSource) {
         // Nothing owns the carousel: only take it over for a list there is actually something to page through.
+        // A list left behind by `disownActiveTransactionIDs` counts as unowned, so the screen that replaces its
+        // writer can take it over instead of being blocked by a source no mounted screen answers for any more.
         return ids.length > 1;
     }
     if (lastSetSource !== source) {
@@ -190,4 +195,28 @@ function clearActiveTransactionIDsForSource(source: string) {
     return clearActiveTransactionIDs();
 }
 
-export {setActiveTransactionIDs, clearActiveTransactionIDs, clearActiveTransactionIDsForSource, getActiveTransactionIDs, shouldRefreshActiveTransactionIDs, CAROUSEL_SOURCE};
+/**
+ * Gives up ownership of the carousel without clearing it, for a writer that unmounts while the list it seeded is
+ * still driving the arrows of an expense open on top of it.
+ *
+ * Search is keyed by its query hash, so re-sorting or re-filtering unmounts one list and mounts another. Clearing
+ * on the way out stripped the open expense's arrows until the replacement finished loading, and left them gone for
+ * good when the new results no longer contained that expense. Dropping only the stamp keeps the arrows working in
+ * the meantime and lets the replacement take the carousel over once it has results of its own.
+ */
+function disownActiveTransactionIDs(source: string) {
+    if (lastSetSource !== source) {
+        return;
+    }
+    lastSetSource = null;
+}
+
+export {
+    setActiveTransactionIDs,
+    clearActiveTransactionIDs,
+    clearActiveTransactionIDsForSource,
+    disownActiveTransactionIDs,
+    getActiveTransactionIDs,
+    shouldRefreshActiveTransactionIDs,
+    CAROUSEL_SOURCE,
+};

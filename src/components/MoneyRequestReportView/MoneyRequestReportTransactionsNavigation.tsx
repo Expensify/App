@@ -14,7 +14,7 @@ import {openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getExpenseCreationTransactionID} from '@libs/ReportActionsUtils';
-import {isOneTransactionReport} from '@libs/ReportUtils';
+import {findSelfDMReportID, isOneTransactionReport} from '@libs/ReportUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 
@@ -129,35 +129,45 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         selector: prevNextTransactionsSelector,
     });
 
+    const prevTransactionReportID = prevTransaction?.reportID;
+    const nextTransactionReportID = nextTransaction?.reportID;
+
     // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
     // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            // An unreported (self-DM) sibling's IOU action lives in the self-DM, since report "0" holds no actions
+            // of its own. Looking it up there is the only way such a sibling resolves from live data at all.
+            const isPrevUnreported = prevTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            const isNextUnreported = nextTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            const selfDMReportID = isPrevUnreported || isNextUnreported ? findSelfDMReportID() : undefined;
+            const prevActionsReportID = isPrevUnreported ? selfDMReportID : prevTransactionReportID;
+            const nextActionsReportID = isNextUnreported ? selfDMReportID : nextTransactionReportID;
             // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
             // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
-            const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevTransaction?.reportID}`] ?? {}).length;
-            const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextTransaction?.reportID}`] ?? {}).length;
+            const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`] ?? {}).length;
+            const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`] ?? {}).length;
             const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
             if (!prevTransactionID && !nextTransactionID) {
                 return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
             }
-            const parentReportIDs = new Set([currentTransaction?.reportID, prevTransaction?.reportID, nextTransaction?.reportID]);
+            const parentReportIDs = new Set([currentTransaction?.reportID, prevActionsReportID, nextActionsReportID]);
             for (const parentReportID of parentReportIDs) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
                 collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
             }
             return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
         },
-        [currentTransaction?.reportID, nextTransaction?.reportID, nextTransactionID, prevTransaction?.reportID, prevTransactionID],
+        [currentTransaction?.reportID, nextTransactionReportID, nextTransactionID, prevTransactionReportID, prevTransactionID],
     );
 
     const [reportedParentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: parentReportActionsSelector,
     });
 
-    // The live pass above can only look up `report_actions_{transaction.reportID}`, which never resolves an
-    // unreported (self-DM) sibling. Its IOU action lives in the self-DM's report actions, not under reportID "0".
-    // Scanning the snapshot's report actions is how those siblings get a parent action at all.
+    // The live pass above resolves a sibling from its parent report's actions (the self-DM's, for an unreported
+    // one), so it only finds what has already been fetched into Onyx. Scanning the snapshot's report actions is
+    // what resolves a sibling whose parent actions were never loaded in this session.
     const snapshotData = snapshot?.data;
     const snapshotParentReportActions = useMemo(() => {
         const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
@@ -306,7 +316,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     /**
      * Whether a press on a sibling's arrow can land anywhere, without the side effects `resolveSiblingReportID`
      * has (it creates threads). Every resolution path there needs the sibling to be known from at least one of
-     * these three: its transaction, an existing thread on its parent action, or a descriptor.
+     * a descriptor, an existing thread on its parent action, or its transaction.
      *
      * The arrows used to be disabled from list *position* alone, with resolvability consulted only inside the
      * handler, which bailed silently - an enabled arrow whose press did nothing, with no spinner and no error.
@@ -315,7 +325,25 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         siblingTransactionID: string | undefined,
         siblingTransaction: OnyxTypes.Transaction | undefined,
         siblingParentReportAction: OnyxTypes.ReportAction | undefined,
-    ) => !!siblingTransactionID && (!!siblingTransaction || !!siblingParentReportAction?.childReportID || !!siblingDescriptorsByTransactionID?.[siblingTransactionID]);
+    ) => {
+        if (!siblingTransactionID) {
+            return false;
+        }
+        // An existing thread or a descriptor resolves on its own, with nothing else needed.
+        if (!!siblingParentReportAction?.childReportID || !!siblingDescriptorsByTransactionID?.[siblingTransactionID]) {
+            return true;
+        }
+        // Everything else is resolved from the transaction: it is what a thread gets created from.
+        if (!siblingTransaction) {
+            return false;
+        }
+        // A reported expense can always fall back on its own report, and its parent's actions can still be fetched
+        // to find (or create) its thread. An unreported one has neither: report "0" isn't a report to open or to
+        // fetch actions from, and its IOU action lives in the self-DM. Unless that action is already resolved -
+        // from the self-DM, the search snapshot or a descriptor - a press would have nowhere to go, so don't offer
+        // an arrow that can't move.
+        return siblingTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID || !!siblingParentReportAction;
+    };
 
     const navigateToSibling = (
         e: GestureResponderEvent | KeyboardEvent | undefined,

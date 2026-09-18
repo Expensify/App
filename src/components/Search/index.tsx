@@ -25,7 +25,13 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {CAROUSEL_SOURCE, clearActiveTransactionIDsForSource, setActiveTransactionIDs, shouldRefreshActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {
+    CAROUSEL_SOURCE,
+    clearActiveTransactionIDsForSource,
+    disownActiveTransactionIDs,
+    setActiveTransactionIDs,
+    shouldRefreshActiveTransactionIDs,
+} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -823,9 +829,8 @@ function Search({
     const [activeCarouselTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
     // This list stays mounted behind the RHP, so it keeps the carousel in step with the results (an expense
-    // deleted from the list has to leave the carousel too). It only writes while it still owns the carousel:
-    // once the user drills into a report, that report's list takes ownership and this effect stands down until
-    // that report releases it again. That is why the active IDs are a dependency and not just a guard.
+    // deleted from the list has to leave the carousel too). The active IDs are a dependency, not just a guard, so
+    // that it re-runs and stands down when another screen takes ownership - see TransactionThreadNavigation.ts.
     useEffect(() => {
         if (shouldShowLoadingState) {
             return;
@@ -843,17 +848,13 @@ function Search({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
     }, [carouselSiblingsKey, activeCarouselTransactionIDs, carouselSource, hash, shouldShowLoadingState, isFocused]);
 
-    // The effect above seeds the carousel from the results alone, with no row press, so this list has to release it
-    // on the way out. Without this the Spend page's expenses stayed in the carousel after the user left, and any
-    // one-transaction report opened later (from the Inbox, say) picked them up and paged to unrelated expenses.
+    // The effect above seeds the carousel with no row press, so this list has to release it when the user leaves
+    // for another tab - otherwise the Spend page's expenses page on inside any one-transaction report opened later.
     //
-    // Unmount is the wrong moment to do that. The Spend tab is registered with `freezeOnBlur` and no
-    // `unmountOnBlur`, so leaving it for the Inbox blurs this component without ever unmounting it and an
-    // unmount-only cleanup never fires. `isFocused` is therefore a dependency: blurring re-runs this effect and
-    // runs the previous cleanup. `useFocusEffect` would be too eager in the other direction - opening the RHP over
-    // Search also blurs it - so the release additionally stands down whenever Search is still the topmost
-    // full-screen route, which is the same primitive the selection release above uses. That check also covers the
-    // `hash` remount: re-sorting or re-filtering with an expense open in the RHP must not strip its arrows.
+    // Blur, not unmount: the Spend tab uses `freezeOnBlur` without `unmountOnBlur`, so leaving it for the Inbox
+    // never unmounts this component. Hence `isFocused` as a dependency. Opening the RHP over Search also blurs it,
+    // so the release stands down while Search is still the topmost full-screen route, which also keeps a re-sort
+    // from stripping the arrows of an expense open in the RHP.
     //
     // Teardown is deliberately separate from the seeding effect: folding it in would run the cleanup on every
     // re-seed, and a run that then bailed at one of the guards would leave the carousel cleared.
@@ -870,17 +871,17 @@ function Search({
         };
     }, [carouselSource, isFocused]);
 
-    // An unmounting instance always hands its carousel back, even while Search is still the topmost full-screen
-    // route. This page is keyed by the query hash, so sorting, filtering or switching Spend tabs unmounts this
-    // instance and mounts a new one under `search:<newHash>`. The blur-time release above stands down in that
-    // moment (Search is still topmost), and ownership is hash-scoped, so `search:<oldHash>` was left owning the
-    // carousel with no mounted screen able to refresh or release it: the new list couldn't seed (the refresh check
-    // sees a different owner) and its eventual release ran against the new hash and no-op'd. The stale list then
-    // kept driving the counter and arrows - including on a one-transaction report opened later from the Inbox,
-    // since that list outlives the screen that wrote it and is persisted across reloads.
+    // An unmounting instance always gives up ownership, even while Search is still the topmost full-screen route.
+    // This page is keyed by the query hash, so sorting, filtering or switching Spend tabs unmounts this instance
+    // and mounts a new one under `search:<newHash>`. The blur-time release above stands down in that moment
+    // (Search is still topmost), which left `search:<oldHash>` owning the carousel with no mounted screen able to
+    // refresh or release it, so the replacement list could never seed and the stale one kept driving the arrows.
     //
-    // The new instance re-seeds from its own results, so this only ever drops a list that is about to be replaced.
-    // `carouselSource` is constant for an instance's lifetime (the hash is its React key), so this cleanup runs on
+    // It hands ownership over rather than clearing: the expense open in the RHP keeps its arrows while the new
+    // results load, instead of losing them for the duration - and for good, when the new results no longer hold
+    // that expense. The header already drops the arrows on its own once the open expense isn't in the list.
+    //
+    // `carouselSource` is constant for an instance's lifetime (the hash is its React key), so this runs on
     // unmount only.
     useEffect(() => {
         return () => {
@@ -888,7 +889,7 @@ function Search({
                 return;
             }
             hasSeededCarouselRef.current = false;
-            clearActiveTransactionIDsForSource(carouselSource);
+            disownActiveTransactionIDs(carouselSource);
         };
     }, [carouselSource]);
 

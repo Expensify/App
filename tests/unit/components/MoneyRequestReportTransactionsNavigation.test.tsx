@@ -654,6 +654,51 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         expect(mockMarkReportRHPWidth).not.toHaveBeenCalled();
     });
 
+    /**
+     * An unreported (self-DM) sibling is the one case the transaction alone doesn't make resolvable: report "0" is
+     * neither a report to open nor one whose actions can be fetched, so without its IOU action the arrow has
+     * nowhere to go. It used to stay enabled and bail silently on press.
+     */
+    describe('unreported (self-DM) siblings', () => {
+        beforeEach(() => {
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            };
+        });
+
+        it('disables the arrow when the sibling has no IOU action to resolve or create a thread from', () => {
+            renderNavigation();
+
+            expectArrowDisabled('next-button', true);
+            expectArrowDisabled('prev-button', true);
+        });
+
+        it('keeps the arrow enabled and creates the thread once the IOU action is known', () => {
+            // The self-DM's actions, as the search snapshot carries them. The action has no childReportID, so the
+            // shared resolver creates the thread rather than leaving the press with report "0" and no target.
+            mockState.snapshotHash = 'hash1';
+            mockState.snapshot = {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}selfDM`]: {
+                        [`action_${NEXT_ID}`]: makeIOUAction(NEXT_ID, {reportID: 'selfDM'}),
+                    },
+                },
+            };
+            jest.mocked(getReportIDToOpenForExpense).mockReturnValue('created-self-dm-thread');
+
+            renderNavigation();
+
+            expectArrowDisabled('next-button', false);
+            expectArrowDisabled('prev-button', true);
+
+            press('next-button');
+
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'created-self-dm-thread', anchorTransactionID: NEXT_ID}));
+        });
+    });
+
     describe('clearing the carousel on unmount', () => {
         const setFocusedRoute = (name: string) => {
             mockGetRootState.mockReturnValue(makeRootState(name));

@@ -86,8 +86,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     // The same filtered list MoneyRequestReportTransactionsNavigation renders from, so the two agree on whether
     // there is an expense carousel to show. Gating on the raw Onyx list let this pick the expense branch while the
-    // carousel itself found nothing to page through, and since the report carousel is the other branch, the user
-    // was left with no arrows at all.
+    // carousel found nothing to page through, leaving the user with neither set of arrows.
     const {transactionIDs: activeTransactionIDs} = useCarouselTransactionIDs();
 
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
@@ -110,12 +109,9 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     // Two entries are the minimum for a carousel; with fewer, fall through to the report-level arrows rather than
     // rendering an expense carousel that decides on its own to show nothing.
     //
-    // The carousel also only belongs in an RHP. Every entry point that seeds one opens the expense there, and
-    // stepping to a sibling can land on a transaction thread, whose own header renders the carousel in the RHP
-    // only. Without the screen check the Inbox central pane would pick up whatever list happens to be active - the
-    // seeded list is a single global value that outlives the screen that wrote it (it is persisted to storage, so
-    // it even outlives a reload), so a one-transaction report opened from the LHN could show a counter and arrows
-    // for a list of expenses the user last saw somewhere else entirely.
+    // The carousel also only belongs in an RHP, which is where every entry point that seeds one opens the expense.
+    // Without the screen check the Inbox central pane would pick up whatever list is active - a single global value
+    // that outlives the screen that wrote it - and show arrows for expenses the user last saw somewhere else.
     const shouldShowTransactionNavigation =
         route.name !== SCREENS.REPORT && !!carouselAnchorTransactionID && activeTransactionIDs.length > 1 && activeTransactionIDs.includes(carouselAnchorTransactionID);
 
@@ -128,9 +124,16 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const isReportInRHP = route.name !== SCREENS.REPORT;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
 
+    // The report-level arrows page through search results, so they are search-only; the expense carousel takes
+    // precedence wherever this report is anchored to one.
+    const shouldShowReportNavigation = !shouldShowTransactionNavigation && isReportInSearch;
+
     const {statusBarType, shouldShowNextStep, hasStatusOrNextStep} = useMoneyReportHeaderMoreContentVisibility(reportIDProp);
     const shouldRenderActionsInHeaderRow = shouldShowHeaderButtonsInHeaderRow && !hasStatusOrNextStep;
-    const shouldDisplaySearchRouter = !isReportInRHP || (isSmallScreenWidth && !isReportInSearch);
+    // A narrow header has room for one control beside the title, and prev/next wins it: the arrows are the only way
+    // to reach this expense's siblings, whereas the search router is still one back-press away on the screen the
+    // user came from. Where no arrows are rendered the magnifier keeps its place, as it did before.
+    const shouldDisplaySearchRouter = !isReportInRHP || (isSmallScreenWidth && !shouldShowTransactionNavigation && !shouldShowReportNavigation);
 
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
 
@@ -188,16 +191,13 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                             backTo={backTo}
                         />
                     )}
-                    {/* An expense carousel is shown wherever this report is anchored to one, including a
-                        one-transaction report opened straight from Home, which is not a search screen. The
-                        report-level carousel is search-only, since it pages through search results. */}
                     {shouldShowTransactionNavigation && !!carouselAnchorTransactionID ? (
                         <MoneyRequestReportTransactionsNavigation
                             currentTransactionID={carouselAnchorTransactionID}
                             shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
                         />
                     ) : (
-                        isReportInSearch && (
+                        shouldShowReportNavigation && (
                             <MoneyRequestReportNavigation
                                 reportID={reportIDProp}
                                 shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
