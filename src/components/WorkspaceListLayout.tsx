@@ -71,6 +71,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             route: ROUTES.DOMAINS_LIST.getRoute(),
             screenName: SCREENS.DOMAINS_LIST,
             badgeText: domainsBadgeText,
+            isBadgeCondensed: true,
             isBadgeError: hasDomainErrors,
         },
     ];
