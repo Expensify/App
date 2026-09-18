@@ -32,4 +32,3 @@ function useExpenseFormLayout(): ExpenseFormLayoutContextValue {
 
 export default ExpenseFormLayoutContext;
 export {useExpenseFormLayout};
-export type {ExpenseFormLayoutContextValue};
