@@ -32,6 +32,9 @@ const BASE_DOMAIN_PADDING = {top: 8, bottom: 8, left: 0, right: 8};
 /** Gap between the bar tip and the tooltip pointer, lifting the tooltip clear of the bar. */
 const TOOLTIP_TIP_GAP = 4;
 
+/** Horizontal nudge of the tooltip anchor toward the axis, so the pointer sits just inside the bar tip rather than dead-center on it. */
+const TOOLTIP_TIP_OFFSET_X = 8;
+
 /** Fraction of each row reserved as gap, leaving a thin centered bar (matches the ranking design). */
 const HORIZONTAL_BAR_PADDING = 0.7;
 
@@ -159,20 +162,18 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const barThickness = useSharedValue(0);
     const rowHeight = useSharedValue(0);
-    const plotLeft = useSharedValue(0);
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const plotHeight = bounds.bottom - bounds.top;
         setBarAreaHeight(plotHeight);
-        plotLeft.set(bounds.left);
         barThickness.set(data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0);
     };
 
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
-        // Bars are thin, so treat the whole category row inside the plot area as the hover/press target.
-        // Gate on the plot's left edge (not the zero axis) so bars extending left of zero stay hittable.
+        // Bars are thin, so treat the whole category row as the hover/press target, spanning the category
+        // label column on the left through the plot area, so hovering a group label also shows the tooltip.
         const band = rowHeight.get();
         if (band === 0) {
             return false;
@@ -180,7 +181,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         const rowTop = args.targetY - band / 2;
         const rowBottom = args.targetY + band / 2;
 
-        return args.cursorX >= plotLeft.get() && args.cursorY >= rowTop && args.cursorY <= rowBottom;
+        return args.cursorX >= 0 && args.cursorY >= rowTop && args.cursorY <= rowBottom;
     };
 
     const resolveTargetIndex = (args: ResolveTargetIndexArgs) => {
@@ -193,8 +194,9 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     const resolveTooltipPosition = (targetX: number, targetY: number) => {
         'worklet';
 
-        // Anchor the tooltip above the bar's tip (the data end: right for positive values, left for negative).
-        return {x: targetX, y: targetY - barThickness.get() / 2 - TOOLTIP_TIP_GAP};
+        // Anchor the tooltip above the bar's tip (the data end: right for positive values, left for negative),
+        // nudged slightly toward the axis so the pointer sits just inside the tip.
+        return {x: targetX - TOOLTIP_TIP_OFFSET_X, y: targetY - barThickness.get() / 2 - TOOLTIP_TIP_GAP};
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
