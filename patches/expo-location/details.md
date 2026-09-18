@@ -38,6 +38,11 @@
     while this patch exists, or the crash silently comes back.
     ```
 
-- Upstream PR/issue: 🛑 TODO — no upstream issue existed when this patch was written. The bug is still unpatched on Expo `main`, `sdk-57` and `expo-location@57.0.15`, so upgrading does not fix it. An upstream issue/PR will be filed and linked here.
+- Upstream PR/issue: None. Expo's bug tracker requires a standalone minimal reproduction, and the
+  faulty branch is only reached by a post-revocation location broadcast that carries no
+  `LocationResult`. We could not synthesize such a broadcast outside the app, so there is no report
+  we could file that Expo would accept. The bug is still unpatched on Expo `main`, `sdk-57` and
+  `expo-location@57.0.15`, so upgrading does not remove the need for this patch — it must stay until
+  the upstream code changes.
 - E/App issue: https://github.com/Expensify/App/issues/99183
 - PR introducing patch: https://github.com/Expensify/App/pull/101091
