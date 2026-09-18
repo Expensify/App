@@ -1317,7 +1317,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const chatReportID = 'p2p-chat-1';
             const iouReportID = 'p2p-iou-report-1';
             const transactionID = 'tx-from-iou-report';
-            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue({reportID: chatReportID});
             jest.mocked(getIsNarrowLayout).mockReturnValue(true);
 
             try {
@@ -1344,6 +1343,11 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         created: '2025-01-15',
                         iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         participants: [{accountID: PARTICIPANT_ACCOUNT_ID, reportID: chatReportID, selected: true}],
+                    });
+                    // The page resolves the participant chat through the derived index, so seed the entry the
+                    // derived value would produce for this chat report.
+                    await Onyx.merge(ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS, {
+                        [ReportUtils.getParticipantsChatKey([PARTICIPANT_ACCOUNT_ID, ACCOUNT_ID])]: chatReportID,
                     });
                 });
 
@@ -1375,11 +1379,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 // Then the IOU report the flow started from is pre-inserted, not the participant chat the lookup resolved
-                expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
                 expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
             } finally {
-                getChatByParticipantsSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
             }
         });
