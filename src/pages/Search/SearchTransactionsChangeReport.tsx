@@ -14,7 +14,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {createNewReport} from '@libs/actions/Report';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -23,6 +23,7 @@ import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     isDistanceRequest as isDistanceRequestUtil,
+    isManagedCardTransaction,
     isManualDistanceRequest as isManualDistanceRequestUtil,
     isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
     isUnreportedManagedCardTransaction,
@@ -119,6 +120,29 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+    // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds. Counting needs them all.
+    // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
+    // unreported expense the report lookup can never resolve one (its reportID is `0`), so a search snapshot missing
+    // the money-request action would otherwise file one cardholder's bulk selection as mixed and strip its report list.
+    // "Auto report" has the backend resolve each destination through the expense's card, so one expense without a card
+    // fails the whole request with "404 Card not found".
+    const areAllManagedCardTransactions = selectedTransactionsKeys.length > 0 && transactions.length === selectedTransactionsKeys.length && transactions.every(isManagedCardTransaction);
+    const hasMultipleSubmitters = useMemo(() => {
+        const ownerAccountIDs = new Set<number>();
+
+        for (const transactionKey of selectedTransactionsKeys) {
+            const selection = selectedTransactions[transactionKey];
+            const reportID = selection?.reportID;
+            const ownerAccountID =
+                selection?.ownerAccountID ?? getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])?.ownerAccountID;
+
+            if (typeof ownerAccountID === 'number') {
+                ownerAccountIDs.add(ownerAccountID);
+            }
+        }
+
+        return ownerAccountIDs.size > 1;
+    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 
@@ -259,6 +283,14 @@ function SearchTransactionsChangeReport() {
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
 
+    const autoReport = () => {
+        if (selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        autoReportTransactions(selectedTransactionsKeys);
+        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
+    };
+
     const removeFromReport = () => {
         if (selectedTransactionsKeys.length === 0) {
             return;
@@ -304,6 +336,9 @@ function SearchTransactionsChangeReport() {
             transactionPolicyID={selectedReportPolicyID}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
+            hasMultipleSubmitters={hasMultipleSubmitters}
+            areAllManagedCardTransactions={areAllManagedCardTransactions}
+            autoReport={autoReport}
         />
     );
 }

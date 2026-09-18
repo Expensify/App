@@ -1,7 +1,6 @@
 import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
-import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -76,30 +75,11 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-const personalDetailsFakeData = {
-    'johndoe@example.com': {
-        accountID: 12345,
-    },
-    'janedoe@example.com': {
-        accountID: 78901,
-    },
-} as Record<string, {accountID: number}>;
-
 jest.mock('@libs/SearchParser/searchParser', () => {
     const actual = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser');
     return {
         ...actual,
         parse: jest.fn(actual.parse),
-    };
-});
-
-jest.mock('@libs/PersonalDetailsUtils', () => {
-    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
-    return {
-        ...actual,
-        getPersonalDetailByEmail(email: string) {
-            return personalDetailsFakeData[email];
-        },
     };
 });
 
@@ -332,16 +312,18 @@ describe('SearchQueryUtils', () => {
             expect(getQueryWithUpdatedValues('category:Travel,Meals')).toEqual(`${defaultQuery} category:Travel,Meals`);
         });
 
-        test('returns query with user emails substituted', () => {
+        // Logins are resolved to account IDs upstream, in getQueryWithSubstitutions, so that the raw query carries
+        // account IDs too. This function only has to leave whatever it is handed alone.
+        test('leaves user logins untouched', () => {
             const userQuery = 'from:johndoe@example.com hello';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
+            expect(result).toEqual(`${defaultQuery} from:johndoe@example.com hello`);
         });
 
-        test('returns query with user emails substituted and preserves user ids', () => {
-            const userQuery = 'from:johndoe@example.com to:112233';
+        test('preserves user ids', () => {
+            const userQuery = 'from:12345 to:112233';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -349,7 +331,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with all of the fields correctly substituted', () => {
-            const userQuery = 'from:9876,87654 to:janedoe@example.com hello amount:150 test';
+            const userQuery = 'from:9876,87654 to:78901 hello amount:150 test';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -357,7 +339,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated groupBy', () => {
-            const userQuery = 'from:johndoe@example.com groupBy:reports';
+            const userQuery = 'from:12345 groupBy:reports';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -365,7 +347,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated view', () => {
-            const userQuery = 'from:johndoe@example.com view:bar';
+            const userQuery = 'from:12345 view:bar';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -2981,6 +2963,7 @@ describe('SearchQueryUtils', () => {
     describe('shouldResetSortForViewChange', () => {
         test('returns true for line view transitions with time-based groupBy', () => {
             // Line charts need chronological order - reset when entering or leaving line view
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.DAY})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
