@@ -3825,40 +3825,54 @@ describe('SearchUIUtils', () => {
             expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
         });
 
-        it('should not carry the group limit into the day drill-down query', () => {
-            // Given a day-grouped query whose limit is meant to bound how many groups are shown
-            const parsedQuery = buildSearchQueryJSON('type:expense group-by:day limit:10');
+        // Every date granularity drills down through the same `buildDateRangeGroupQuery` builder, so they are
+        // covered together: a regression that reintroduced `limit` in that one builder would break all five.
+        it.each([
+            [CONST.SEARCH.GROUP_BY.DAY, searchResultsGroupByDay, SearchUIUtils.isTransactionDayGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.WEEK, searchResultsGroupByWeek, SearchUIUtils.isTransactionWeekGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.MONTH, searchResultsGroupByMonth, SearchUIUtils.isTransactionMonthGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.QUARTER, searchResultsGroupByQuarter, SearchUIUtils.isTransactionQuarterGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.YEAR, searchResultsGroupByYear, SearchUIUtils.isTransactionYearGroupListItemType],
+        ] as const)('should not carry the group limit into the %s drill-down query', (groupBy, groupSearchResults, isExpectedGroupType) => {
+            // Given a date-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense group-by:${groupBy} limit:10`);
             if (!parsedQuery) {
-                throw new Error('Failed to parse day-grouped search query');
+                throw new Error(`Failed to parse ${groupBy}-grouped search query`);
             }
             expect(parsedQuery.limit).toBe(10);
 
-            // When the day sections are built
+            // When the date-range sections are built
             const [sections] = SearchUIUtils.getSections({
                 dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                data: searchResultsGroupByDay.data,
+                data: groupSearchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
                 rules: undefined,
-                groupBy: CONST.SEARCH.GROUP_BY.DAY,
+                groupBy,
                 conciergeReportID: undefined,
                 convertToDisplayString,
                 reportAttributesDerivedValue: {},
                 queryJSON: {...parsedQuery},
             });
 
-            // Then the per-group query drops the limit along with the grouping
-            const daySection = sections.at(0);
-            if (!daySection || !SearchUIUtils.isTransactionDayGroupListItemType(daySection)) {
-                throw new Error('Expected a day group section');
+            // Then the per-group query drops the limit along with the grouping, so expanding a date group
+            // shows every transaction in the range instead of capping them at the group limit
+            const dateSection = sections.at(0);
+            if (!dateSection || !isExpectedGroupType(dateSection)) {
+                throw new Error(`Expected a ${groupBy} group section`);
             }
-            expect(daySection.transactionsQueryJSON?.groupBy).toBeUndefined();
-            expect(daySection.transactionsQueryJSON?.limit).toBeUndefined();
-            expect(daySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+            expect(dateSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(dateSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(dateSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+
+            // And the date-range filter that defines the group is still present, so dropping `limit` did not
+            // widen the drill-down beyond the bar the user clicked
+            expect(dateSection.transactionsQueryJSON?.inputQuery).toContain('date>=');
+            expect(dateSection.transactionsQueryJSON?.inputQuery).toContain('date<=');
         });
 
         it('should match a day group using created when modifiedCreated is empty', () => {
