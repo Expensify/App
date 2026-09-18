@@ -17,7 +17,7 @@ import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ConfirmationReceiptThumbnailProps = {
@@ -121,17 +121,11 @@ function ConfirmationReceiptThumbnail({
 }: ConfirmationReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isReceiptLoaded, setIsReceiptLoaded] = useState(false);
-
-    // Stitching replaces the receipt, so drop the loaded flag or the badge sits on the spinner.
-    if (isLoadingReceipt && isReceiptLoaded) {
-        setIsReceiptLoaded(false);
-    }
 
     const receiptContainerStyle = isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall;
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptFilename) && !isLoadingReceipt && isReceiptLoaded;
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptFilename);
 
     const navigateToReceipt = () => {
         if (!transactionID) {
@@ -165,10 +159,7 @@ function ConfirmationReceiptThumbnail({
                             style={styles.h100}
                             onLoadError={onPDFLoadError}
                             onPassword={onPDFPassword}
-                            onLoadSuccess={() => {
-                                setIsReceiptLoaded(true);
-                                onPDFLoadSuccess?.();
-                            }}
+                            onLoadSuccess={onPDFLoadSuccess}
                         />
                     </PressableWithoutFocus>
                 ) : (
@@ -189,10 +180,7 @@ function ConfirmationReceiptThumbnail({
                             shouldUseThumbnailImage
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             shouldUseFullHeight={isCompactMode}
-                            onLoad={(event) => {
-                                setIsReceiptLoaded(true);
-                                onReceiptLoad(event);
-                            }}
+                            onLoad={onReceiptLoad}
                             resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
