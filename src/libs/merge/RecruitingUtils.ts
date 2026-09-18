@@ -108,8 +108,8 @@ function isRecruitingAdvancedMode(policy: OnyxEntry<Policy>): boolean {
 }
 
 /** Returns the ATS field the default approver is read from (e.g. the recruiter field), or null when it is not set. */
-function getMergeATSApproverField(policy?: OnyxEntry<Policy>): string | undefined {
-    return policy?.connections?.merge_ats?.config?.approverField ?? undefined;
+function getMergeATSApproverField(policy?: OnyxEntry<Policy>): string | null {
+    return policy?.connections?.merge_ats?.config?.approverField ?? null;
 }
 
 /** Checks if the recruiting connection on the policy is in an error state the admin needs to resolve. */
