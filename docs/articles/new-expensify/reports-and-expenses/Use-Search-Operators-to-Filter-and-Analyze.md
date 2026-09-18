@@ -1,8 +1,8 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs]
-internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, invalid search, search error, refresh needed]
+internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views, plus the error messages a search can return. Does not cover saved search management or Search page UI navigation.
 ---
 
 # Use Search Operators to Filter and Analyze
@@ -235,6 +235,29 @@ These searches update in real time and can be refined further using additional f
 For more advanced dashboards and exports, learn how to use [Insights in Expensify](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
 ---
+## How to troubleshoot search operator errors in Expensify
+
+When a search doesn’t return results, Expensify replaces the results with one of three messages. The message tells you whether the query needs fixing or the search needs to run again.
+
+**Oops... Something went wrong** with **That search isn't valid. Try adjusting your search criteria.**
+
+Your query used an operator or a value that Expensify doesn’t recognize, so the search never ran. There is no button to retry, because running the same query again returns the same error. Correct the operator or the value and search again.
+
+**Oops... Something went wrong** with **Your request could not be completed. Please try again later.**
+
+Your query was valid, but the search itself failed. Click **Try again** to rerun the same query from the first page of results.
+
+**Refresh needed** with **This page is out of date, refresh to see the latest**
+
+Expensify couldn’t reach the server, so the results on screen may no longer be current. Check your connection, then click **Refresh** to load the latest results.
+
+<!-- SCREENSHOT:
+Suggestion: The Spend page showing the "Oops... Something went wrong" title with the "That search isn't valid. Try adjusting your search criteria." message and no button.
+Location: Immediately after the first message in this section.
+Purpose: Members confuse this state with a search that returned zero results and report it as missing data; seeing that no retry button is offered makes it clear the query itself must be corrected.
+-->
+
+---
 # FAQ
 
 ## Can I combine filters from different types?
@@ -243,7 +266,7 @@ Yes, but only when they make sense together. For example, combining `type:expens
 
 ## What happens if I enter an invalid operator?
 
-If the search operator isn’t recognized, the system will ignore it and return results based on any valid parts of the query.
+The search doesn’t run. Expensify shows **Oops... Something went wrong** with **That search isn't valid. Try adjusting your search criteria.** and no results. Correct the operator or the value and search again.
 
 ## Do I need to use quotes for everything?
 
