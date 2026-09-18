@@ -75,6 +75,14 @@ async function pushSyncProgress(...args: Parameters<typeof syncProgress>) {
     });
 }
 
+/** Toggle the app's modal state the way opening or closing any modal does, then let the hook render on it. */
+async function setModalVisible(isVisible: boolean) {
+    await act(async () => {
+        await Onyx.merge(ONYXKEYS.MODAL, {isVisible});
+        await waitForBatchedUpdates();
+    });
+}
+
 async function renderWith(
     initialProgress: Parameters<typeof syncProgress>,
     connectedConnectionName: HRConnectionName | RecruitingConnectionName | undefined = CONST.POLICY.CONNECTIONS.NAME.GUSTO,
@@ -158,6 +166,20 @@ describe('useMergeSyncResultsPage', () => {
 
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT, xero);
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the results screen held back by a modal even once another integration takes the sync progress over', async () => {
+        await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+        await setModalVisible(true);
+
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        await pushSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.XERO_SYNC_STEP, '2026-08-26 10:00:06.000', undefined, CONST.POLICY.CONNECTIONS.NAME.XERO);
+        await setModalVisible(false);
+
+        expect(mockCreateDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
     describe('without a connection to watch', () => {

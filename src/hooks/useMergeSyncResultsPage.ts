@@ -58,13 +58,9 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
     });
 
     useEffect(() => {
-        // A workspace has a single sync progress entry, therefore a caller that watches one provider has to ignore the sync of any other integration.
-        if (connectionName && syncConnectionName !== connectionName) {
-            return;
-        }
-
-        const syncResult = connectionSyncProgress?.result;
-        const stageInProgress = connectionSyncProgress?.stageInProgress;
+        const isSyncForThisConnection = !connectionName || syncConnectionName === connectionName;
+        const syncResult = isSyncForThisConnection ? connectionSyncProgress?.result : undefined;
+        const stageInProgress = isSyncForThisConnection ? connectionSyncProgress?.stageInProgress : undefined;
         const hasResultsScreen = !!getSyncResultsRoutePath(syncConnectionName);
         const isSyncRunning = hasResultsScreen && !!stageInProgress && stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
