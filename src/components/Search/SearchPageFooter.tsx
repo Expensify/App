@@ -15,6 +15,8 @@ import {getFooterTotalItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
+import type {LayoutChangeEvent} from 'react-native';
+
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
@@ -88,6 +90,16 @@ function SearchPageFooter({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [isTotalButtonFocused, setIsTotalButtonFocused] = useState(false);
+    // The height the real total last occupied, which is what the skeleton stands in at.
+    const [loadedTotalHeight, setLoadedTotalHeight] = useState<number | undefined>(undefined);
+
+    const handleTotalLayout = (event: LayoutChangeEvent) => {
+        const height = Math.round(event.nativeEvent.layout.height);
+        if (!height || height === loadedTotalHeight) {
+            return;
+        }
+        setLoadedTotalHeight(height);
+    };
 
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
 
@@ -169,16 +181,23 @@ function SearchPageFooter({
                         {/* Both labels stay rendered while the total reloads, so the footer keeps its height and nothing shifts. */}
                         <Text style={styles.textLabelSupporting}>{`${totalLabel}:`}</Text>
                         {isTotalLoading ? (
-                            <SearchPageFooterSkeleton />
+                            <SearchPageFooterSkeleton height={loadedTotalHeight} />
                         ) : (
-                            <FilterPopupButton
-                                PopoverComponent={renderFooterPopup}
-                                renderButton={totalButton}
-                                popoverAnchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                }}
-                            />
+                            // Measured so the skeleton stands in at the same height. Anything else resizes the footer,
+                            // which shifts the count beside it as the row grows.
+                            <View
+                                testID="searchPageFooterTotal"
+                                onLayout={handleTotalLayout}
+                            >
+                                <FilterPopupButton
+                                    PopoverComponent={renderFooterPopup}
+                                    renderButton={totalButton}
+                                    popoverAnchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                    }}
+                                />
+                            </View>
                         )}
                     </View>
                 )}

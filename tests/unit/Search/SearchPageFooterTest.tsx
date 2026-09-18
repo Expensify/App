@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/types';
@@ -16,6 +16,7 @@ type CapturedPopupProps = {
 };
 
 const mockCapturedPopupProps: {current: CapturedPopupProps | undefined} = {current: undefined};
+const mockCapturedSkeletonProps: {current: {height?: number} | undefined} = {current: undefined};
 
 type MockFilterPopupButtonProps = {
     PopoverComponent: (props: {closeOverlay: () => void; isExpanded: boolean}) => React.ReactNode;
@@ -53,12 +54,13 @@ jest.mock('@components/Button', () => {
     MockButton.Icon = MockButtonIcon;
     return {__esModule: true, default: MockButton};
 });
-jest.mock('@components/Search/SearchPageFooterSkeleton', () => {
-    function MockSkeleton() {
+jest.mock('@components/Search/SearchPageFooterSkeleton', () => ({
+    __esModule: true,
+    default: (props: {height?: number}) => {
+        mockCapturedSkeletonProps.current = props;
         return null;
-    }
-    return {__esModule: true, default: MockSkeleton};
-});
+    },
+}));
 jest.mock('@components/Search/FilterDropdowns/FilterPopupButton', () => {
     // Render both halves so the trigger and the popover's props can both be reached.
     function MockFilterPopupButton({PopoverComponent, renderButton}: MockFilterPopupButtonProps) {
@@ -96,6 +98,7 @@ const defaultProps = {
 describe('SearchPageFooter', () => {
     beforeEach(() => {
         mockCapturedPopupProps.current = undefined;
+        mockCapturedSkeletonProps.current = undefined;
     });
 
     it('labels the count with the unit the footer is displaying', () => {
@@ -168,6 +171,22 @@ describe('SearchPageFooter', () => {
         expect(screen.getByText('1204')).toBeOnTheScreen();
         expect(screen.getByText('common.totalSpend:')).toBeOnTheScreen();
         expect(mockCapturedPopupProps.current).toBeUndefined();
+    });
+
+    it('stands the skeleton in at the height the real total was measured at, so the row does not grow', () => {
+        const {rerender} = render(<SearchPageFooter {...defaultProps} />);
+
+        // The layout pass the real total goes through is what reports the height the skeleton has to match.
+        fireEvent(screen.getByTestId('searchPageFooterTotal'), 'layout', {nativeEvent: {layout: {width: 87, height: 16, x: 0, y: 0}}});
+
+        rerender(
+            <SearchPageFooter
+                {...defaultProps}
+                isTotalLoading
+            />,
+        );
+
+        expect(mockCapturedSkeletonProps.current?.height).toBe(16);
     });
 
     it('hands the display menu the current and default count selections', () => {
