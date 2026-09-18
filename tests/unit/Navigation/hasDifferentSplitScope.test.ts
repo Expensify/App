@@ -79,7 +79,7 @@ describe('hasDifferentSplitScope', () => {
     });
 
     it('keeps the sidebar authoritative over the focused central screen', () => {
-        // A central screen can be left behind with params of its own; the sidebar is what the split belongs to.
+        // A central screen can be left behind with params of its own. The sidebar is what the split belongs to.
         const route = buildSplitRoute({
             routes: [
                 {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: POLICY_B}},

@@ -813,7 +813,7 @@ describe('Go back on the narrow layout', () => {
         it('Should restore the tab the fallback route belongs to when the tab navigator is focused elsewhere', () => {
             // Issue #89006: the tab navigator's index is left on Home by the root stack's state slicing, so popping
             // the modal alone lands on Home instead of the tab holding the back target. The POP_TO that used to
-            // restore the nested state from the payload is gone; the walk down plus the tab jumpTo replaces it.
+            // restore the nested state from the payload is gone. The walk down plus the tab jumpTo replaces it.
             render(<TestNavigationContainer initialState={buildStateWithModalOverTab(0, buildWorkspaceSplitRoute(policyA))} />);
             const tabStateBefore = navigationRef.current?.getRootState().routes.at(0)?.state;
             expect(tabStateBefore?.routes.at(tabStateBefore.index ?? 0)?.name).toBe(SCREENS.HOME);

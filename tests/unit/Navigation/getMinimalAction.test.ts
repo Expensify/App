@@ -103,7 +103,7 @@ describe('getMinimalAction', () => {
         const action: NavigationAction = {...buildWorkspaceAction(POLICY_A), type: 'REPLACE'};
         const result = getMinimalAction(action, buildRootState(POLICY_B));
 
-        // The boundary is reported for every action type; only `linkTo` cares, and it leaves a replace alone.
+        // The boundary is reported for every action type. Only `linkTo` cares, and it leaves a replace alone.
         expect(result.isFocusedRouteInDifferentScope).toBe(true);
         expect(result.action).toMatchObject({
             type: 'REPLACE',
