@@ -59,7 +59,7 @@ Updated rules for managing members across all types of chats in New Expensify.
 - Auditors are added to #announce when they join the workspace, so they can't leave or be removed from it either
 - Only workspace admins can post in #announce. Every other role, auditors included, sees the room as read-only
 
-#### Workspace #admin room
+#### Workspace #admins room
 |                    | Admin | Auditor |
 | :----------------: | :---: | :-----: |
 |     **Invite**     |   ❌   |    ❌    |
