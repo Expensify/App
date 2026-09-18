@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import type {MoneyRequestReportTransactionListController, TransactionListItemData} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import MoneyRequestReportTransactionList from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import MoneyRequestReportTransactionsNavigation from '@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -28,14 +29,8 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-/** The rendered list items the transaction list hands the unified list, in render order. */
-type CapturedListItem = {type: 'section-header'} | {type: 'transaction'; transaction: Transaction};
-
 /** The slice of the transaction list's controller the tests below read. */
-type CapturedController = {
-    tableColumnHeader: React.ReactElement<{onSortPress: (sortBy: string, sortOrder: SortOrder) => void}> | null;
-    transactionListItems: CapturedListItem[];
-};
+type CapturedController = Pick<MoneyRequestReportTransactionListController, 'tableColumnHeader' | 'transactionListItems'>;
 
 // Drives the RHP-open check both the transaction list and the navigation component make through findFocusedRoute().
 // Undefined reproduces the real module's behaviour while the navigation ref isn't ready, which is what the existing
@@ -291,9 +286,15 @@ function buildTransactionListElement(transactions: Transaction[], reportID: stri
 }
 
 function pressDateHeader(sortOrder: SortOrder) {
-    const onSortPress = mockUnifiedList.controller?.tableColumnHeader?.props.onSortPress;
-    if (!onSortPress) {
+    // The controller types the header as a plain ReactElement, so the one prop these tests drive is narrowed here
+    // rather than by duplicating the controller's own type.
+    const columnHeader = mockUnifiedList.controller?.tableColumnHeader;
+    if (!React.isValidElement<{onSortPress?: (sortBy: string, sortOrder: SortOrder) => void}>(columnHeader)) {
         throw new Error('the sortable column header did not render');
+    }
+    const onSortPress = columnHeader.props.onSortPress;
+    if (!onSortPress) {
+        throw new Error('the sortable column header rendered without onSortPress');
     }
     act(() => {
         onSortPress(CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder);
@@ -302,7 +303,7 @@ function pressDateHeader(sortOrder: SortOrder) {
 
 function getRenderedTransactionIDs(): string[] {
     const listItems = mockUnifiedList.controller?.transactionListItems ?? [];
-    return listItems.filter((item): item is {type: 'transaction'; transaction: Transaction} => item.type === 'transaction').map((item) => item.transaction.transactionID);
+    return listItems.filter((item): item is Extract<TransactionListItemData, {type: 'transaction'}> => item.type === 'transaction').map((item) => item.transaction.transactionID);
 }
 
 async function getCarouselTransactionIDs(): Promise<string[] | undefined> {
