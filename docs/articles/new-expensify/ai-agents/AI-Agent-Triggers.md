@@ -711,6 +711,12 @@ To react to this event, include phrases like:
 - When an employee's workspace role or approver is changed
 - When a member's settings are updated in the workspace
 
+**A workspace admin set the display name of a member who did not have one.**
+
+To react to this event, include phrases like:
+- When an admin names a member who signed up with a phone number
+- When a member gets a display name for the first time
+
 **A workspace admin changed whether users with matching email domains automatically join the workspace.**
 
 To react to this event, include phrases like:
@@ -899,4 +905,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 123 events AI Agents can react to.*
+*This reference covers all 124 events AI Agents can react to.*
