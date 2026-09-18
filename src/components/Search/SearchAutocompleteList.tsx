@@ -340,7 +340,7 @@ function SearchAutocompleteList({
             rules,
         }).options;
         const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
-        return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option);
+        return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option && !option.isSelfDM);
     }, [
         hasActiveSearchResults,
         listOptions,
@@ -654,7 +654,7 @@ function SearchAutocompleteList({
             const serverResultReportIDs = new Set(searchResultReportIDs ?? []);
             for (const item of nextStyledRecentReports) {
                 const stableKey = getStableRankKey(item);
-                if (stableKey && frozenLocalRank.has(stableKey)) {
+                if (item.isSelfDM || (stableKey && frozenLocalRank.has(stableKey))) {
                     localRows.push(item);
                 } else if (searchResultReportIDs == null || !item.reportID || serverResultReportIDs.has(item.reportID)) {
                     serverRows.push(item);
@@ -662,7 +662,12 @@ function SearchAutocompleteList({
             }
             // Sort the local section by the rank captured at query-change time so it cannot
             // reorder when the API returns.
-            localRows.sort((a, b) => (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0));
+            localRows.sort((a, b) => {
+                if (a.isSelfDM !== b.isSelfDM) {
+                    return a.isSelfDM ? -1 : 1;
+                }
+                return (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0);
+            });
 
             if (localRows.length > 0 || !isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
