@@ -1802,6 +1802,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'A despesa não pôde ser rejeitada porque ela pode já ter sido movida ou rejeitada.',
         },
         moveExpenses: 'Mover para relatório',
+        autoReport: 'Relatório automático',
+        autoReportDescription: 'Adicionar aos relatórios de rascunho em nome do funcionário',
         moveExpensesMaxTransactionsError: `Os relatórios são limitados a ${CONST.REPORT.MAX_TRANSACTIONS} despesas. Mova algumas para outro relatório.`,
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
         submitReportTo: {
