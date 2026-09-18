@@ -396,7 +396,6 @@ function updateQuickbooksOnlineSyncCustomDimensions(
         connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
         settingName: CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS,
         settingValue: JSON.stringify(mappings),
-        idempotencyKey: CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS,
     };
 
     // This existing command queues a sync only after Auth saves the mappings, including when an offline write is replayed.
