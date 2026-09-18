@@ -1,4 +1,5 @@
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -32,8 +33,7 @@ const defaultSearchQueryContext: SearchQueryContextValue = {
 
 const defaultSearchQueryActions: SearchQueryActionsValue = {
     setShouldResetSearchQuery: () => {},
-    setCurrentSearchKey: () => {},
-    resetSearchKey: () => {},
+    getSearchKeyForQuery: () => undefined,
 };
 
 const EMPTY_TRANSACTIONS_BY_REPORT_ID: SearchResultsContextValue['currentSearchTransactionsByReportID'] = new Map();
