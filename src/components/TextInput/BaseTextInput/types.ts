@@ -1,5 +1,7 @@
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 
+import type {UseDateSegmentInputResult} from '@hooks/useDateSegmentInput';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -11,7 +13,18 @@ import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 
-type InputType = 'markdown' | 'mask' | 'default';
+type InputType = 'markdown' | 'mask' | 'default' | 'dateSegments';
+
+/** Everything the segmented date input needs, which reaches it through `BaseTextInput` rather than directly */
+type DateSegmentsConfig = {
+    /** The localized mask, such as YYYY-MM-DD, which decides the segment order, their widths and the separators */
+    mask: string;
+
+    getSegmentProps: UseDateSegmentInputResult['getSegmentProps'];
+    focusRequest: UseDateSegmentInputResult['focusRequest'];
+    onFieldBlur: UseDateSegmentInputResult['onFieldBlur'];
+};
+
 type CustomBaseTextInputProps = ForwardedFSClassProps &
     WithSentryLabel & {
         label?: string;
@@ -151,8 +164,11 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         clearButtonIconSize?: number;
         contentWidth?: number;
 
-        /** The type (internal implementation) of input. Can be one of: `default`, `mask`, `markdown` */
+        /** The type (internal implementation) of input. Can be one of: `default`, `mask`, `markdown`, `dateSegments` */
         type?: InputType;
+
+        /** Required by the `dateSegments` type, and ignored by every other one */
+        dateSegmentsConfig?: DateSegmentsConfig;
 
         mask?: MaskedTextInputOwnProps['mask'];
         customNotations?: MaskedTextInputOwnProps['customNotations'];

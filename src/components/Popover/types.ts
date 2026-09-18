@@ -19,6 +19,20 @@ type PopoverProps = BaseModalProps &
         /** Whether we don't want to show overlay */
         withoutOverlay?: boolean;
 
+        /**
+         * Judges `withoutOverlay` on screen size rather than on whether this is a narrow pane, so the popover survives
+         * inside the RHP on a wide screen. Only for one that must leave the control that opened it usable, such as the
+         * calendar the user keeps typing a date into. A small screen still gets the full modal.
+         */
+        shouldAllowWithoutOverlayInNarrowPane?: boolean;
+
+        /**
+         * Whether scrolling the page dismisses the popover. Only reaches an overlay-free popover, since the others
+         * cover the page and cannot be scrolled past in the first place.
+         * @default true
+         */
+        shouldCloseOnWheel?: boolean;
+
         popoverDimensions?: Dimensions;
         withoutOverlayRef?: RefObject<View | HTMLDivElement>;
 

@@ -125,6 +125,11 @@ function PopoverContextProvider(props: PopoverContextProps) {
                 return;
             }
 
+            // A popover that keeps itself attached to its anchor has no reason to be dismissed by scrolling
+            if (activePopoverRef.current?.shouldCloseOnWheel === false) {
+                return;
+            }
+
             closePopover();
         };
         document.addEventListener('wheel', listener, true);

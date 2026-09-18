@@ -35,6 +35,11 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        dateSegments: {
+            year: 'Anno',
+            month: 'Mese',
+            day: 'Giorno',
+        },
         durationDays: ({count}: {count: number}) => ({
             one: `1 giorno`,
             other: `${count} giorni`,

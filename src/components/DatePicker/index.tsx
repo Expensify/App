@@ -3,12 +3,15 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDateSegmentInput from '@hooks/useDateSegmentInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useRemeasureOnScroll from '@hooks/useRemeasureOnScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import isTypedDateInputSupported from '@libs/isTypedDateInputSupported';
 import {isNumeric} from '@libs/ValidationUtils';
 
 import {setDraftValues} from '@userActions/FormActions';
@@ -69,6 +72,20 @@ function DatePicker({
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
 
+    const shouldAllowTyping = isTypedDateInputSupported();
+    const dateMask = translate('common.dateFormat');
+
+    // Updates the field without ending the selection, so the calendar stays open for whatever the user does next
+    const commitDate = (newDate: string) => {
+        setSelectedDate(newDate);
+        onTouched?.();
+        onInputChange?.(newDate);
+    };
+
+    // The hook is the single gate on typing. When the platform does not allow it, the handlers it returns are no-ops
+    // and the value passes straight through, so the call sites below do not have to check again.
+    const segmentInput = useDateSegmentInput({value: selectedDate, isEnabled: shouldAllowTyping, minDate, maxDate, onCommit: commitDate});
+
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
     autoFocusCallbackRefRef.current = autoFocusCallbackRef;
@@ -113,11 +130,21 @@ function DatePicker({
     );
 
     const showDatePickerModal = useCallback(() => {
-        cancelAutoFocus();
-        // Blur the date input before showing the modal, so the focus won't be returned after the modal is closed
-        textInputRef.current?.blur();
+        // Re-opening would remeasure and re-announce a calendar that is already showing. Both a press and a focus can
+        // ask for it, and while typing both arrive for a single click.
+        if (isModalVisible) {
+            return;
+        }
 
-        if (shouldDismissKeyboardBeforeShow) {
+        cancelAutoFocus();
+
+        // While typing is allowed the calendar sits under an input the user is still writing in, so the caret has to
+        // stay put. Otherwise blur first so focus is not returned once the modal closes.
+        if (!shouldAllowTyping) {
+            textInputRef.current?.blur();
+        }
+
+        if (shouldDismissKeyboardBeforeShow && !shouldAllowTyping) {
             // Blur whichever input is focused (e.g. a preceding text field) so closing the picker does not briefly restore its keyboard.
             ComposerFocusManager.blurActiveInput();
             // Dismiss in parallel with opening — do not await the hide animation or the open feels sluggish.
@@ -141,30 +168,39 @@ function DatePicker({
         };
 
         openPicker();
-    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
+    }, [isModalVisible, shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, shouldAllowTyping, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
 
     const closeDatePicker = useCallback(() => {
         openIntentRef.current = false;
         setPickerVisibility(false);
 
-        if (!shouldDismissKeyboardBeforeShow) {
+        if (!shouldDismissKeyboardBeforeShow || shouldAllowTyping) {
             return;
         }
 
         textInputRef.current?.blur();
         ComposerFocusManager.blurActiveInput();
         Keyboard.dismiss();
-    }, [shouldDismissKeyboardBeforeShow, setPickerVisibility]);
+    }, [shouldDismissKeyboardBeforeShow, shouldAllowTyping, setPickerVisibility]);
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
+            // The field focuses its own input on any press it is not told to leave alone, which would be the year
+            // whichever segment was actually pressed. The segments are focused by the press itself instead.
             if ('preventDefault' in event) {
                 event.preventDefault();
             }
+
             showDatePickerModal();
         },
         [showDatePickerModal],
     );
+
+    // Reaching the field by keyboard never fires a press, so focus is what opens the calendar once typing is allowed.
+    // The segments report their own focus to the hook, so there is nothing to seed here.
+    const handleFocus = () => {
+        showDatePickerModal();
+    };
 
     const handleInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
@@ -183,6 +219,20 @@ function DatePicker({
         closeDatePicker();
         // Defer until after the popover close is committed so consumers are not suppressed by modal state.
         requestAnimationFrame(() => onInputChange?.(newDate));
+    };
+
+    // Only the typing calendar stays open while the page scrolls. Every other one is dismissed instead, so it never
+    // has to follow the field, and following it keeps an edit in progress from being interrupted.
+    useRemeasureOnScroll({isActive: shouldAllowTyping && isModalVisible, remeasure: calculatePopoverPosition});
+
+    // The error text renders inside the anchor, so showing or hiding it changes the height the calendar was positioned
+    // from. Remeasuring on the anchor's own layout covers that without having to name each thing that can resize it.
+    const handleAnchorLayout = () => {
+        if (!isModalVisible) {
+            return;
+        }
+
+        calculatePopoverPosition();
     };
 
     const handleClear = () => {
@@ -228,32 +278,45 @@ function DatePicker({
             <View
                 ref={anchorRef}
                 style={styles.mv2}
+                onLayout={handleAnchorLayout}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
+                    icon={selectedDate || segmentInput.hasTypedDigits || shouldHideCalendarIcon ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.COMBOBOX}
                     accessibilityState={{expanded: isModalVisible}}
-                    value={selectedDate}
-                    placeholder={placeholder ?? translate('common.dateFormat')}
+                    type={shouldAllowTyping ? 'dateSegments' : 'default'}
+                    dateSegmentsConfig={
+                        shouldAllowTyping
+                            ? {
+                                  mask: dateMask,
+                                  getSegmentProps: segmentInput.getSegmentProps,
+                                  focusRequest: segmentInput.focusRequest,
+                                  onFieldBlur: segmentInput.onFieldBlur,
+                              }
+                            : undefined
+                    }
+                    value={segmentInput.displayValue}
+                    placeholder={placeholder ?? dateMask}
                     errorText={errorText}
-                    inputStyle={styles.pointerEventsNone}
+                    inputStyle={shouldAllowTyping ? undefined : styles.pointerEventsNone}
                     disabled={disabled}
-                    hideFocusedState={shouldDismissKeyboardBeforeShow}
-                    onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
-                    onSubmitEditing={() => showDatePickerModal()}
-                    onKeyPress={handleInputKeyPress}
+                    hideFocusedState={shouldDismissKeyboardBeforeShow && !shouldAllowTyping}
+                    onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
+                    onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
+                    onFocus={shouldAllowTyping ? handleFocus : undefined}
+                    onKeyPress={shouldAllowTyping ? undefined : handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
-                    disableKeyboard
+                    disableKeyboard={!shouldAllowTyping}
                     rightHandSideComponent={rightHandSideComponent}
                 />
             </View>
@@ -270,6 +333,13 @@ function DatePicker({
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
                 shouldCloseWhenBrowserNavigationChanged
+                anchorRef={anchorRef}
+                withoutOverlay={shouldAllowTyping}
+                shouldAllowWithoutOverlayInNarrowPane={shouldAllowTyping}
+                shouldCloseOnWheel={!shouldAllowTyping}
+                viewDate={segmentInput.viewDate}
+                viewDateVersion={segmentInput.viewDateVersion}
+                onMonthOrYearSelected={commitDate}
             />
         </>
     );
