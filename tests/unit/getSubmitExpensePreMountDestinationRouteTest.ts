@@ -103,7 +103,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
         });
 
         // Then expense Search is prepared so the post-submit transition is immediate
-        expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
+        expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('returns report route when the destination is not the report the user is looking at', () => {
@@ -461,7 +461,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
         });
 
         // Then expense Search is prepared because the current query cannot show the result
-        expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
+        expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('keeps returning the Search route once it has been pre-inserted, even though Search is now topmost with the same query type', () => {
@@ -491,6 +491,6 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
         });
 
         // Then the route remains stable so the active pre-insert is not torn down
-        expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
+        expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 });

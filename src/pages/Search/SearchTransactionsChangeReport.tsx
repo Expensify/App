@@ -61,7 +61,6 @@ function SearchTransactionsChangeReport() {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
@@ -72,7 +71,8 @@ function SearchTransactionsChangeReport() {
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
@@ -128,7 +128,6 @@ function SearchTransactionsChangeReport() {
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
-            betas,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
@@ -143,6 +142,7 @@ function SearchTransactionsChangeReport() {
         };
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -236,6 +236,7 @@ function SearchTransactionsChangeReport() {
               }
             : reports;
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -264,6 +265,7 @@ function SearchTransactionsChangeReport() {
         }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,

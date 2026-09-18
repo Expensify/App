@@ -722,7 +722,12 @@ function abandonReviewDuplicateTransactions() {
 }
 
 function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        errors: null,
+        errorFields: {route: null, waypoints: null, routes: null, reject: null},
+        // Dropping a reject error also drops the pin that kept the expense listed on the report it was rejected from
+        rejectFailedFromReportID: null,
+    });
 }
 
 /**
@@ -874,6 +879,7 @@ type ChangeTransactionsReportProps = {
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -896,6 +902,7 @@ function getChangeTransactionsReportOnyxData({
     delegateAccountID,
     getCurrencyDecimals,
     getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1387,6 +1394,7 @@ function getChangeTransactionsReportOnyxData({
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
+                isVendorMatchingBetaEnabled,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1891,6 +1899,7 @@ function getChangeTransactionsReportOnyxData({
             hasDependentTags: policyHasDependentTags,
             isInvoiceTransaction: false,
             ownerLogin: undefined,
+            isVendorMatchingBetaEnabled,
         });
         if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
