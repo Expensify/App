@@ -20,6 +20,9 @@ type MenuItemFieldRowProps = PropsWithChildren<{
 
     /** Value the field holds. Omit it, or pass an empty string, for a field not filled in yet */
     value?: string;
+
+    /** How many lines the value may take. Defaults to 1, and `0` lets it grow unbounded */
+    numberOfLinesValue?: number;
 }>;
 
 type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<MenuItemFieldRowProps, 'children'>;
@@ -29,14 +32,14 @@ type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<M
  * `MenuItemField` preset when the row needs siblings inside the same `Root` (an error or a hint
  * line under the row).
  */
-function MenuItemFieldRow({name, value, children}: MenuItemFieldRowProps) {
+function MenuItemFieldRow({name, value, nnumberOfLinesValue, children}: MenuItemFieldRowProps) {
     return (
         <MenuItemRow>
             <MenuItemContent>
                 {value ? (
                     <>
                         <MenuItemFieldName>{name}</MenuItemFieldName>
-                        <MenuItemFieldValue>{value}</MenuItemFieldValue>
+                        <MenuItemFieldValue numberOfLines={numberOfLinesValue}>{value}</MenuItemFieldValue>
                     </>
                 ) : (
                     <MenuItemFieldNamePlaceholder>{name}</MenuItemFieldNamePlaceholder>
