@@ -161,21 +161,21 @@ if (process.env.CAPTURE_METRICS === 'true') {
 }
 
 module.exports = (api) => {
-    if (!process.env.KNIP) {
+    // For `react-native` (iOS/Android) caller will be "metro"
+    // For jest, it will be babel-jest
+    // The web build and Storybook (Rsbuild) don't call into this file at all.
+    // Lint tooling (the import-alias rule under ESLint and oxlint) also loads this config
+    // with no caller — stay silent there so machine-readable linter output isn't corrupted.
+    const runningIn = api.caller((args = {}) => args.name);
+    const isRealBuild = ['metro', 'babel-jest'].includes(runningIn);
+    if (!process.env.KNIP && isRealBuild) {
         console.debug('babel.config.js');
         console.debug('  - api.version:', api.version);
         console.debug('  - api.env:', api.env());
         console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
         console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
-    }
-
-    // For `react-native` (iOS/Android) caller will be "metro"
-    // For jest, it will be babel-jest
-    // The web build and Storybook (Rsbuild) don't call into this file at all
-    const runningIn = api.caller((args = {}) => args.name);
-    if (!process.env.KNIP) {
         console.debug('  - running in: ', runningIn);
     }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : {};
+    return isRealBuild ? metro : {};
 };
