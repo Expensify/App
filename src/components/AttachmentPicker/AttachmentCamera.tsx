@@ -2,13 +2,10 @@
  * In-app VisionCamera modal used by the native AttachmentPicker.
  */
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 
 import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -27,6 +24,7 @@ import isInLandscapeMode from '@libs/isInLandscapeMode';
 import {logCameraCaptureFailed, logCameraRuntimeError} from '@libs/telemetry/ReceiptObservability';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
+import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 
 import variables from '@styles/variables';
@@ -73,7 +71,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const {windowWidth, windowHeight} = useWindowDimensions();
     const isLandscape = isInLandscapeMode(windowWidth, windowHeight);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
-    const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter']);
     const isPlatformMuted = useIsPlatformMuted();
 
     const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
@@ -232,27 +230,10 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                 <View style={[styles.flex1, isLandscape && styles.flexRow]}>
                     <View style={styles.flex1}>
                         {cameraPermissionStatus !== RESULTS.GRANTED && (
-                            <ScrollView contentContainerStyle={styles.flexGrow1}>
-                                <View style={[styles.cameraView, isLandscape ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
-                                    <ImageSVG
-                                        contentFit="contain"
-                                        src={lazyIllustrations.Hand}
-                                        width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                                        height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                                        style={styles.pb5}
-                                    />
-                                    <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                                    <Button
-                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                        accessibilityLabel={translate('common.continue')}
-                                        style={[styles.p9, styles.pt5]}
-                                        onPress={askForPermissions}
-                                    >
-                                        <Button.Text>{translate('common.continue')}</Button.Text>
-                                    </Button>
-                                </View>
-                            </ScrollView>
+                            <CameraPermissionPrompt
+                                isInLandscapeMode={isLandscape}
+                                onPress={askForPermissions}
+                            />
                         )}
                         {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
                             <View style={[styles.cameraView, styles.justifyContentCenter, styles.alignItemsCenter]}>
