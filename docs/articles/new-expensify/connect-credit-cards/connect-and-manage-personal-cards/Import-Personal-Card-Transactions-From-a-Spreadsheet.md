@@ -45,8 +45,9 @@ If your bank lets you download an .ofx or .qfx statement, you can upload it inst
 2. In the **Cards** section, choose **Import transactions**.
 3. Enter a **Card display name** and configure the currency, reimbursable state, and amount sign direction, then click **Next**.
 4. Click **Choose file** and select your .ofx or .qfx statement, or drag and drop it onto the upload area.
+5. Click **Got it** on the **Import successful** confirmation.
 
-The transactions are imported as soon as the upload finishes.
+Expensify processes the statement after the upload finishes, so the new card and its transactions can take a few minutes to appear in the **Cards** section of your **Wallet**.
 
 ---
 
@@ -75,6 +76,10 @@ You can import the following file types:
 ## Why don't I see the column mapping step when I upload an .ofx or .qfx file?
 
 An .ofx or .qfx statement already identifies its own date, merchant, and amount values, so Expensify imports the transactions without asking you to map columns.
+
+## Why haven't the transactions from my .ofx or .qfx statement appeared yet?
+
+The statement is processed after the upload finishes, which is why the confirmation says new cards and transactions may take some time to appear. Wait a few minutes, then check the **Cards** section of your **Wallet** again.
 
 ## Can I upload an .ofx or .qfx statement to a card I already imported from a spreadsheet?
 
