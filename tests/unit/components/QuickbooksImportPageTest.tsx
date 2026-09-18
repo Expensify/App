@@ -1,6 +1,7 @@
 import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import type ConnectionLayout from '@components/ConnectionLayout';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 
@@ -24,11 +25,13 @@ import type {Policy} from '@src/types/onyx';
 
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {Switch} from 'react-native';
+import {Switch, View} from 'react-native';
 
 import createMock from '../../utils/createMock';
 
 const MockSwitch = Switch;
+const MockView = View;
+const MockOfflineWithFeedback = OfflineWithFeedback;
 const MockText = Text;
 const MockPressable = PressableWithoutFeedback;
 const POLICY_ID = '123';
@@ -62,18 +65,9 @@ jest.mock(
                 </>
             ),
 );
-jest.mock(
-    '@components/OfflineWithFeedback',
-    () =>
-        ({children}: {children: React.ReactNode}) =>
-            children,
-);
-jest.mock(
-    '@components/Accordion',
-    () =>
-        ({children}: {children: React.ReactNode}) =>
-            children,
-);
+jest.mock('@components/OfflineWithFeedback', () => ({children, pendingAction}: React.ComponentProps<typeof OfflineWithFeedback>) => (
+    <MockView testID={pendingAction ? 'pending-setting' : undefined}>{children}</MockView>
+));
 jest.mock('@components/MenuItemWithTopDescription', () => ({description, title, onPress, interactive}: {description: string; title: string; onPress?: () => void; interactive?: boolean}) => (
     <MockPressable
         accessibilityLabel={description}
@@ -98,16 +92,23 @@ jest.mock('@pages/workspace/withPolicyConnections', () => (WrappedComponent: Rea
     }
     return MockPolicyConnections;
 });
-jest.mock('@pages/workspace/workflows/ToggleSettingsOptionRow', () => ({isActive, onToggle, disabled, switchAccessibilityLabel}: ToggleSettingOptionRowProps) => (
-    <MockSwitch
-        accessibilityRole="switch"
-        accessibilityLabel={switchAccessibilityLabel}
-        accessibilityState={{disabled}}
-        value={isActive}
-        onValueChange={onToggle}
-        disabled={disabled}
-    />
-));
+jest.mock(
+    '@pages/workspace/workflows/ToggleSettingsOptionRow',
+    () =>
+        ({isActive, onToggle, disabled, switchAccessibilityLabel, pendingAction, subMenuItems}: ToggleSettingOptionRowProps) => (
+            <MockOfflineWithFeedback pendingAction={pendingAction}>
+                <MockSwitch
+                    accessibilityRole="switch"
+                    accessibilityLabel={switchAccessibilityLabel}
+                    accessibilityState={{disabled}}
+                    value={isActive}
+                    onValueChange={onToggle}
+                    disabled={disabled}
+                />
+                {isActive && subMenuItems}
+            </MockOfflineWithFeedback>
+        ),
+);
 
 function renderImportPage() {
     return render(
@@ -241,21 +242,40 @@ describe('Quickbooks custom dimension import', () => {
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(POLICY_ID));
     });
 
-    it('prevents another dimension update while a save is pending', () => {
+    it('keeps the import toggle enabled while its save is pending', () => {
         // Given a pending custom dimension save
         const config = mockPolicy.connections?.quickbooksOnline?.config;
         if (!config) {
             throw new Error('Missing QBO fixture');
         }
         config.pendingFields = {
-            syncCustomDimensions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            [`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_department`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         };
 
         // When opening a dimension settings page
         renderDimensionPage('department');
 
-        // Then its import toggle is disabled until the save completes
-        expect(screen.getByLabelText('Department')).toBeDisabled();
+        // Then saving does not lock the toggle
+        expect(screen.getByLabelText('Department')).toBeEnabled();
+        expect(screen.getByTestId('pending-setting')).toBeOnTheScreen();
+    });
+
+    it('marks only the edited dimension pending in the import list', () => {
+        // Given a pending Department save
+        const config = mockPolicy.connections?.quickbooksOnline?.config;
+        if (!config) {
+            throw new Error('Missing QBO fixture');
+        }
+        config.pendingFields = {
+            [`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_department`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+
+        // When returning to the import list
+        renderImportPage();
+
+        // Then the other dimensions are not pending
+        expect(screen.getAllByTestId('pending-setting')).toHaveLength(1);
+        expect(within(screen.getByTestId('pending-setting')).getByText('Department')).toBeOnTheScreen();
     });
 
     it.each(['old', 'missing'])('blocks unavailable dimension %s', (dimensionID) => {
