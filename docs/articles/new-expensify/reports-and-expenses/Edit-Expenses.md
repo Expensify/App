@@ -1,8 +1,8 @@
 ---
 title: Edit Expenses
 description: Learn how to edit individual expenses, and edit multiple expenses at once.
-keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline, bulk edit multi-level tags, edit one tag level]
-internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once, including how multi-level Tags are updated in bulk. Does not cover creating, submitting or reopening reports, or configuring tags. 
+keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline, bulk edit multi-level tags, edit one tag level, who can edit expenses, edit an Unreported expense, expense fields read-only]
+internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once, including how multi-level Tags are updated in bulk and who can edit an Unreported expense. Does not cover creating, submitting or reopening reports, or configuring tags. 
 ---
 
 # Edit Expenses 
@@ -14,6 +14,9 @@ You can edit a single expense from within a report, or update multiple expenses 
 - **All members**: Can edit expenses on their own Draft or Outstanding reports.
 - **Current approver**: Can edit expenses on the submitter's Draft reports and on Outstanding reports pending their approval.
 - **Workspace Admin**: Can edit expenses on any Draft or Outstanding report on the Workspace.
+- **Expense creator only**: Unreported expenses, such as a tracked expense that isn't on a report yet, can only be edited by the member who created them.
+
+Approver and Workspace Admin editing rights come from the report the expense sits on, so they don't apply to an Unreported expense. If another member can see an Unreported expense in a chat, every field on it is read-only for them, even if that member is an admin of their own Workspace.
 
 Expenses on Approved reports must be unapproved before they can be edited. Expenses on Paid and Done reports cannot be edited. 
 
