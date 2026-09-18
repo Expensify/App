@@ -6,7 +6,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -146,6 +146,9 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         searchHash: undefined,
         selectedTotal: undefined,
     });
+    // The hash the footer is waiting on after asking for a different total, which is the only search whose result
+    // changes the figure on display.
+    const [pendingTotalHash, setPendingTotalHash] = useState<number | undefined>(undefined);
     const footerSelection = getFooterSelectionFromQuery(currentSearchQueryJSON);
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     // The query carries the currency across a reload and into a saved search, so it is what an untouched footer starts
@@ -553,6 +556,11 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
             return;
         }
 
+        // The hash this reload lands on is the only one whose arrival changes the figure, so it is what the skeleton waits on.
+        if (currentSearchQueryJSON) {
+            setPendingTotalHash(buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}))?.hash);
+        }
+
         applyFooterSelection({footerTotal: nextTotalType}, true);
     };
 
@@ -668,14 +676,10 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         return null;
     }
 
-    // A footer selector re-runs the search under a new hash, and the page keeps the previous results on screen while it
-    // loads, so the figures on display belong to the previous query until the new snapshot lands.
-    const isFooterReloading = metadata?.hash !== undefined && metadata.hash !== currentSearchHash;
+    const isAwaitingFooterTotal = pendingTotalHash !== undefined && pendingTotalHash === currentSearchHash && metadata?.hash !== currentSearchHash;
 
-    // A partial selection shows a client-side subtotal that is ready immediately, so only show the search-loading
-    // skeleton when the footer is displaying the whole-search total. (Load-more requests also set metadata.isLoading
-    // but don't recalculate totals, so gate on offset 0.)
-    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isFooterReloading || (!!metadata?.isLoading && metadata?.offset === 0)));
+    // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
+    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && isAwaitingFooterTotal);
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.

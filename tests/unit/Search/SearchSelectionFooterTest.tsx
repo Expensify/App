@@ -432,8 +432,42 @@ describe('SearchSelectionFooter', () => {
             expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerTotal:reimbursable');
         });
 
-        it('skeletons the total while the re-run search is in flight, leaving the count alone', async () => {
-            // The page still shows the previous hash's results while the new snapshot loads.
+        it('skeletons the total while the re-run it asked for is in flight, leaving the count alone', async () => {
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+
+            const {rerender} = render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
+
+            await act(async () => {
+                mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
+                await waitForBatchedUpdates();
+            });
+
+            // The app is now on the query the footer asked for, while the page still shows the previous snapshot.
+            const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
+            setSearchQuery(nextQuery, buildSearchQueryJSON(nextQuery)?.hash);
+            rerender(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
+            expect(mockCapturedFooterProps.current?.count).toBe(10);
+        });
+
+        it('leaves the total alone while a search the footer did not ask for runs, so it does not flicker', async () => {
+            // A select-all re-requests the same totals it is already displaying, and a sort keeps the previous figures.
             setSearchQuery('type:expense', 2);
             mockSelectedTransactions.current = {};
 
@@ -445,8 +479,7 @@ describe('SearchSelectionFooter', () => {
             );
             await waitForBatchedUpdates();
 
-            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
-            expect(mockCapturedFooterProps.current?.count).toBe(10);
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
         });
     });
 
