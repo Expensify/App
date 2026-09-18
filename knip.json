@@ -1,7 +1,6 @@
 {
     "ignoreIssues": {
-        "src/hooks/usePersonalDetails.ts": ["files"],
-        "src/libs/PersonalDetailsStore.ts": ["exports"],
+        "src/hooks/usePersonalDetails.ts": ["exports"],
         "src/libs/PersonalDetailsUtils.ts": ["exports"]
     },
     "workspaces": {
