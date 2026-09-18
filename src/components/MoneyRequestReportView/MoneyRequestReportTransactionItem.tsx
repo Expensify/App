@@ -178,10 +178,9 @@ function MoneyRequestReportTransactionItemBody({
         clearError(transaction.transactionID);
     };
 
-    // On narrow layouts `inlineEdit` is undefined (the parent skips the hook). The fallback ref
-    // keeps the press handler shape identical without ever being mutated on narrow.
-    const fallbackEditingOnMouseDownRef = useRef(false);
-    const wasEditingOnMouseDownRef = inlineEdit?.wasEditingOnMouseDownRef ?? fallbackEditingOnMouseDownRef;
+    // Keep this ref local so React Compiler can prove the after-render event mutations are safe.
+    const wasEditingOnMouseDownRef = useRef(false);
+    const wasEditingOnPressInRef = useRef(false);
     const wasPressInOnCopyableTextRef = useRef(false);
     const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
@@ -215,15 +214,16 @@ function MoneyRequestReportTransactionItemBody({
         }
         // If a cell was being edited when the user tapped the row, suppress navigation
         // so the second tap doesn't immediately open the transaction detail.
-        if (wasEditingOnMouseDownRef.current) {
+        if (wasEditingOnMouseDownRef.current || wasEditingOnPressInRef.current) {
             wasEditingOnMouseDownRef.current = false;
+            wasEditingOnPressInRef.current = false;
             return;
         }
         handleOnPress(transaction.transactionID);
     };
 
     const handlePressIn: React.ComponentProps<typeof PressableWithFeedback>['onPressIn'] = (event) => {
-        wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
+        wasEditingOnPressInRef.current = isEditingCell;
         wasPressInOnCopyableTextRef.current = false;
         // Selection only needs to be blocked for touch interactions; desktop mouse selection is handled by onMouseDown.
         if (!canUseTouchScreen()) {
