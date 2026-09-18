@@ -13,6 +13,7 @@ import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type * as UrlType from '@libs/Url';
 
+import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 
@@ -2111,10 +2112,25 @@ describe('ReportActionItem', () => {
             const reimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
                 expectedDate: '2024-01-15',
             });
-            reimbursedAction.reportActionID = '67890';
+            reimbursedAction.reportActionID = 'reimbursed';
             reimbursedAction.created = '2025-07-12 09:03:16.653';
+            const earlierReimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                expectedDate: '2024-01-14',
+            });
+            earlierReimbursedAction.reportActionID = 'earlierReimbursed';
+            earlierReimbursedAction.created = '2025-07-12 09:03:15.653';
+            const laterReimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                expectedDate: '2024-01-16',
+            });
+            laterReimbursedAction.reportActionID = 'laterReimbursed';
+            laterReimbursedAction.created = '2025-07-12 09:03:18.653';
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reimbursedAction.reportActionID]: reimbursedAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [reimbursedAction.reportActionID]: reimbursedAction,
+                    [earlierReimbursedAction.reportActionID]: earlierReimbursedAction,
+                    [laterReimbursedAction.reportActionID]: laterReimbursedAction,
+                    [action.reportActionID]: action,
+                });
             });
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -2137,6 +2153,27 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+        });
+
+        it('IOU PAY with no original message renders nothing', async () => {
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: '12345',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-07-12 09:03:17.653',
+                message: [],
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <PaymentContent
+                        action={action}
+                        policyID={undefined}
+                        reportID={undefined}
+                    />
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(/paid/i)).toBeNull();
         });
 
         it('IOU PAY VBBA manual prefers originalMessage accountNumber over current policy account', async () => {
