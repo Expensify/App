@@ -198,6 +198,7 @@ describe('ReportUtils', () => {
                 isReportArchived: false,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             }),
         );
     });
