@@ -33,13 +33,17 @@ const BASE_DOMAIN_PADDING = {top: 8, bottom: 8, left: 0, right: 8};
 const TOOLTIP_TIP_GAP = 4;
 
 /** Horizontal nudge of the tooltip anchor toward the axis, so the pointer sits just inside the bar tip rather than dead-center on it. */
-const TOOLTIP_TIP_OFFSET_X = 8;
+const TOOLTIP_TIP_OFFSET_X = 16;
 
 /** Fraction of each row reserved as gap, leaving a thin centered bar (matches the ranking design). */
 const HORIZONTAL_BAR_PADDING = 0.7;
 
-/** Large corner radius so the bar tip renders as a pill; clamped to half the bar thickness below. */
-const BAR_TIP_RADIUS = 999;
+/**
+ * Max tip corner radius, matching the vertical bars' 8px corners. Thin bars stay a pill because it is
+ * clamped to half the thickness below; only thick bars (few rows, e.g. a single one) are capped here so
+ * the tip renders rounded corners instead of a full semicircle.
+ */
+const BAR_TIP_RADIUS = 8;
 
 /** Horizontal gap between the category labels and the bars. Wider than the default axis gap for readability. */
 const CATEGORY_LABEL_GAP = 24;
