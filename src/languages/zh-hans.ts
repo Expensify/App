@@ -530,6 +530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: '在LinkedIn上关注我们',
     },
     concierge: {
+        hasAnAnswer: 'Concierge 已有答案！',
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
         enableNotifications: {
