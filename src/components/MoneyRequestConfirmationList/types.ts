@@ -71,7 +71,7 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
-    /** True for every non-scan expense; for a scan the page computes it from whether the fields can be entered by hand. */
+    /** True for every non-scan expense. For a scan the page computes it from whether the fields can be entered by hand. */
     shouldShowSmartScanFields?: boolean;
 
     /** Whether manual entry of amount / merchant / date is offered. */

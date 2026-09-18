@@ -96,7 +96,7 @@ type UseParticipantSectionParams = {
     /** Currency the split amounts are formatted in */
     iouCurrencyCode: string;
 
-    /** Opens the participant picker; omitted by the variants whose participant row can never be edited */
+    /** Opens the participant picker. Omitted by the variants whose participant row can never be edited. */
     onOpenParticipantPicker?: () => void;
 };
 

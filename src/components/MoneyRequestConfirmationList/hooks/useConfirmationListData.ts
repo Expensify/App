@@ -145,7 +145,7 @@ function useConfirmationListDataWithPolicy({
     const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the tax-empty flag whenever the transaction changes
         setIsTaxAmountEmpty(false);
     }, [transactionID]);
 
@@ -192,7 +192,7 @@ function useConfirmationListDataWithPolicy({
     }
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- keep the local didConfirm in sync when the parent toggles isConfirmed
         setDidConfirm(isConfirmed);
     }, [isConfirmed]);
 
