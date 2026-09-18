@@ -9929,6 +9929,8 @@ ${reportName}`,
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
             },
+            created: 'Δημιουργήθηκε',
+            createdDate: 'Ημερομηνία δημιουργίας',
         },
         display: {
             label: 'Εμφάνιση',

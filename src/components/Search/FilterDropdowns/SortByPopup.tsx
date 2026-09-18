@@ -64,7 +64,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
               sortBy: queryJSON.sortBy,
               shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
           });
-    const sortableColumns = getSortByOptions(currentColumns, translate);
+    const sortableColumns = getSortByOptions(currentColumns, translate, searchDataType);
     const sortOrder = queryJSON.sortOrder;
 
     const [selectedItem, setSelectedItem] = useState(queryJSON.sortBy);

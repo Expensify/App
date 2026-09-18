@@ -84,7 +84,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     name={translate('search.display.sortBy')}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-                    value={`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
+                    value={`${translate(getSearchColumnTranslationKey(sortByValue, queryJSON.type))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
                 />
                 {(isExpenseType || isTripType) && (
                     <MenuItemField
