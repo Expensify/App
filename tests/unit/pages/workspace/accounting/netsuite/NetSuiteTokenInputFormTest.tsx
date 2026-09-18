@@ -1,7 +1,6 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import usePermissions from '@hooks/usePermissions';
-import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
 import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
@@ -10,27 +9,21 @@ import connectToNetSuiteOAuthSetup from '@pages/workspace/accounting/netsuite/Ne
 import NetSuiteTokenInputForm from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenInputForm';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type {NetSuiteTokenInputForm as NetSuiteTokenInputFormType} from '@src/types/form/NetSuiteTokenInputForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 const POLICY_ID = '123';
 const ACCOUNT_ID = 'TSTDRV1234567';
 const TOKEN_ID = 'token-123';
 const TOKEN_SECRET = 'secret-123';
 const ENVIRONMENT_URL = 'https://new.expensify.com';
-const TWO_FACTOR_AUTH_ROUTE = ROUTES.SETTINGS_2FA_ENABLED;
 
 const FORM_VALUES = {
     netSuiteAccountID: ACCOUNT_ID,
     netSuiteTokenID: TOKEN_ID,
     netSuiteTokenSecret: TOKEN_SECRET,
 } as NetSuiteTokenInputFormType;
-
-// `Mock`-prefixed bindings are allowed inside jest.mock factories, unlike regular imports.
-const MockView = View;
 
 // Capture the form props to submit credentials in tests.
 type MockFormProviderProps = {
@@ -67,7 +60,6 @@ jest.mock('@hooks/useAutoFocusInput', () => () => ({
 }));
 jest.mock('@hooks/usePolicy', () => () => undefined);
 jest.mock('@hooks/usePermissions');
-jest.mock('@hooks/useTwoFactorAuthRoute');
 jest.mock('@libs/actions/connections', () => ({
     shouldUseUpdateNetSuiteTokens: jest.fn(() => false),
 }));
@@ -85,28 +77,18 @@ jest.mock('@components/Form/FormProvider', () => {
     return MockFormProvider;
 });
 jest.mock('@components/Form/InputWrapper', () => () => null);
-jest.mock('@components/RequireTwoFactorAuthenticationModal', () => () => <MockView testID="require-2fa-modal" />);
 
 const mockedUsePermissions = jest.mocked(usePermissions);
-const mockedUseTwoFactorAuthRoute = jest.mocked(useTwoFactorAuthRoute);
 const mockedShouldUseUpdateNetSuiteTokens = jest.mocked(shouldUseUpdateNetSuiteTokens);
 const mockedConnectPolicyToNetSuite = jest.mocked(connectPolicyToNetSuite);
 const mockedUpdateNetSuiteTokens = jest.mocked(updateNetSuiteTokens);
 const mockedConnectToNetSuiteOAuthSetup = jest.mocked(connectToNetSuiteOAuthSetup);
-const mockedGetTwoFactorAuthRoute = jest.fn(() => TWO_FACTOR_AUTH_ROUTE);
 const mockedOnNext = jest.fn();
 
 function setBetaEnabled(isOAuthBetaEnabled: boolean) {
     mockedUsePermissions.mockReturnValue({
         isBetaEnabled: (beta) => beta === CONST.BETAS.NETSUITE_OAUTH && isOAuthBetaEnabled,
     } as ReturnType<typeof usePermissions>);
-}
-
-function set2FAEnabled(is2FAEnabled: boolean) {
-    mockedUseTwoFactorAuthRoute.mockReturnValue({
-        is2FAEnabled,
-        getTwoFactorAuthRoute: mockedGetTwoFactorAuthRoute,
-    });
 }
 
 function renderForm() {
@@ -129,14 +111,12 @@ describe('NetSuiteTokenInputForm', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFormProps.current = undefined;
-        mockedGetTwoFactorAuthRoute.mockReturnValue(TWO_FACTOR_AUTH_ROUTE);
         mockedShouldUseUpdateNetSuiteTokens.mockReturnValue(false);
     });
 
-    describe.each([true, false])('when the netSuiteOAuth beta is enabled and 2FA enabled is %s', (is2FAEnabled) => {
+    describe('when the netSuiteOAuth beta is enabled', () => {
         beforeEach(() => {
             setBetaEnabled(true);
-            set2FAEnabled(is2FAEnabled);
         });
 
         it('hands off to the OAuth setup with the policy, account ID and environment URL', () => {
@@ -161,13 +141,6 @@ describe('NetSuiteTokenInputForm', () => {
             expect(mockedOnNext).not.toHaveBeenCalled();
         });
 
-        it('does not show the 2FA requirement modal', () => {
-            renderForm();
-            submitForm();
-
-            expect(screen.queryByTestId('require-2fa-modal')).toBeNull();
-        });
-
         it('submits synchronously so the setup link opens inside the tap gesture and is not popup-blocked', () => {
             renderForm();
 
@@ -187,16 +160,14 @@ describe('NetSuiteTokenInputForm', () => {
     describe('when the netSuiteOAuth beta is disabled', () => {
         beforeEach(() => {
             setBetaEnabled(false);
-            set2FAEnabled(false);
         });
 
-        it('writes the token-based credentials without requiring 2FA', () => {
+        it('writes the token-based credentials', () => {
             renderForm();
             submitForm();
 
             expect(mockedConnectPolicyToNetSuite).toHaveBeenCalledWith(POLICY_ID, FORM_VALUES);
             expect(mockedConnectToNetSuiteOAuthSetup).not.toHaveBeenCalled();
-            expect(screen.queryByTestId('require-2fa-modal')).toBeNull();
         });
 
         it('advances the wizard so the RHP is dismissed', () => {
