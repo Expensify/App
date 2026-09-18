@@ -515,6 +515,20 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.skip')})).toBeOnTheScreen();
     });
 
+    it('lists the workspaces alphabetically by name rather than in the order the policy diff returned them', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${ADMIN_POLICY_ID}`, {name: 'Zebra Workspace'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_ADMIN_POLICY_ID}`, {name: 'Alpha Workspace'});
+        });
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID, SECOND_ADMIN_POLICY_ID], nonAdminPolicies: []});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const rows = screen.getAllByText(/^(Alpha|Zebra) Workspace$/);
+        expect(rows.at(0)).toHaveTextContent('Alpha Workspace');
+        expect(rows.at(1)).toHaveTextContent('Zebra Workspace');
+    });
+
     it('still asks the backend to email the non-admin workspaces when Skip is pressed on a mixed diff', async () => {
         // Given a mixed policy diff, since Skip only skips the invites the user controls: the owners of the
         // workspaces they don't administer are still emailed, matching Classic
