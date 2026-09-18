@@ -205,7 +205,8 @@ jest.mock('@libs/SearchUIUtils', () => {
         getSelectedGroupFilterEntry: jest.fn(),
         isGroupEntry: (key: string) => key.startsWith(actualCONSTForSearchUIUtils.SEARCH.GROUP_PREFIX),
         navigateToSearchRHP: jest.fn(),
-        getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
+        // The real validator, so the `groupBy === GROUP_BY.CARD` comparison is exercised against it rather than an identity stub.
+        getValidGroupBy: jest.fn(jest.requireActual<{getValidGroupBy: (groupBy?: string) => string | undefined}>('@libs/SearchUIUtils').getValidGroupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
         getColumnsToShow: jest.fn(() => []),
         insertColumnBeforeTotalAmount: (columns: string[], columnId: string) => {
@@ -1270,17 +1271,38 @@ describe('useSearchBulkActions - export options', () => {
             });
         }
 
-        /** A selection made by ticking a card group's checkbox: the group row plus the child it selected. */
+        /**
+         * A selection made by ticking a populated card group's checkbox. `SearchWriteActionsProvider` stores the
+         * group's loaded children stamped with `groupKey`/`isSelectedViaGroup` and does NOT store the group key
+         * itself — it only stores that when the group had no children loaded (see `selectEmptyCardGroup`).
+         */
         function selectCardGroup() {
             mockSelectedTransactions = {
-                [CARD_GROUP_KEY]: makeSelectedTransaction(),
                 tx1: makeSelectedTransaction({groupKey: CARD_GROUP_KEY, isSelectedViaGroup: true}),
+            };
+        }
+
+        /** Ticking a card group row whose children were never loaded: the group key is stored on its own. */
+        function selectEmptyCardGroup() {
+            mockSelectedTransactions = {
+                [CARD_GROUP_KEY]: makeSelectedTransaction(),
             };
         }
 
         it('offers the Reconciliation template, and only that template, for a card group selection', async () => {
             mockTemplatesIncludingReconciliation();
             selectCardGroup();
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
+            });
+        });
+
+        it('offers the Reconciliation template for a card group whose children were never loaded', async () => {
+            mockTemplatesIncludingReconciliation();
+            selectEmptyCardGroup();
 
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -1311,6 +1333,9 @@ describe('useSearchBulkActions - export options', () => {
             });
         });
 
+        // Regression test for detecting the group export from the child metadata: with only `isSelectedViaGroup`
+        // children selected, looking for the group prefix alone misses the group and exports the loaded IDs instead
+        // of the `cardID:` filter, so a group with paginated children would export incompletely.
         it('scopes the Reconciliation export to the selected card groups instead of a transaction ID list', async () => {
             mockTemplatesIncludingReconciliation();
             selectCardGroup();

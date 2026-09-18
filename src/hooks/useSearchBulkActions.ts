@@ -200,6 +200,26 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
 }
 
 /**
+ * How a selection on a grouped search has to be exported.
+ *
+ * Ticking a populated group row stores that group's loaded children stamped with `isSelectedViaGroup`, not the group
+ * key itself — the group key is only stored when the group had no children loaded. So a group selection has to be
+ * detected with `isGroupSelection` rather than by looking for the group prefix, or a group whose children are
+ * paginated exports only the loaded ones instead of everything the group's filter covers.
+ *
+ * `transactionIDList` drops the rows covered by that filter and keeps the rows the user ticked individually
+ * alongside them.
+ */
+function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTransactions: SelectedTransactions): {isGroupExport: boolean; transactionIDList: string[]} {
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+    const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
+    return {
+        isGroupExport,
+        transactionIDList: isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys,
+    };
+}
+
+/**
  * The group rows a selection covers in full.
  *
  * A group is fully selected when the number of selected children matches the group's remaining transaction
@@ -958,20 +978,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             } else {
-                const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-                // The selected groups travel as a filter on the query, so the group rows themselves are dropped from the ID
-                // list. Rows picked individually alongside those groups are kept, matching how "Current view" exports them.
-                const transactionIDList = isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys;
+                const {isGroupExport, transactionIDList} = getGroupExportScope(queryJSON, selectedTransactions);
                 queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
-                        jsonQuery: isGroupExport
-                            ? serializeQueryJSONForBackend(
-                                  addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data),
-                                  getGroupExportExactMatchFilterKeys(queryJSON.groupBy),
-                              )
-                            : '{}',
+                        jsonQuery:
+                            isGroupExport && queryJSON
+                                ? serializeQueryJSONForBackend(
+                                      addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data),
+                                      getGroupExportExactMatchFilterKeys(queryJSON.groupBy),
+                                  )
+                                : '{}',
                         reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
                         transactionIDList,
                         policyID,
@@ -994,7 +1012,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             currentSearchResults?.data,
             queryJSON,
             selectedTransactionReportIDs,
-            selectedTransactionsKeys,
             selectAllMatchingItems,
             clearSelectedTransactions,
         ],
@@ -1106,8 +1123,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
-            const transactionIDList = isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys;
+            const {isGroupExport, transactionIDList} = getGroupExportScope(queryJSON, selectedTransactions);
             let didFail = false;
             const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
             const queryJSONToExport = isGroupExport && queryJSON ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
@@ -1932,7 +1948,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
-            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
+            const groupBy = getValidGroupBy(queryJSON?.groupBy);
+            const isGroupedSearch = !!groupBy;
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
@@ -1964,7 +1981,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // which most templates can't be scoped by, so template exports are hidden for it. Reconciliation - All Expenses is
             // the exception on a card-grouped search (Card statements and Card accruals): the selected card groups become a
             // `cardID:` filter, which is exactly the card-spend scope that template reports on.
-            const includesCardGroupExport = includesGroupExport && getValidGroupBy(queryJSON?.groupBy) === CONST.SEARCH.GROUP_BY.CARD;
+            const includesCardGroupExport = includesGroupExport && groupBy === CONST.SEARCH.GROUP_BY.CARD;
             const customTemplatesToShow = includesCardGroupExport ? [] : availableCustomTemplates;
             const defaultTemplatesToShow = includesCardGroupExport
                 ? availableDefaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)
