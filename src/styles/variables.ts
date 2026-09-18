@@ -119,6 +119,7 @@ export default {
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
     centeredContentMaxWidth: 1200,
+    insightsCardGap: 20,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,

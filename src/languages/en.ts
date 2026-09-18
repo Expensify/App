@@ -1261,6 +1261,9 @@ const translations = {
             notEnoughData: 'We don’t have enough data to populate this chart yet',
         },
     },
+    insightsPage: {
+        viewOnSpend: 'View on Spend',
+    },
     allSettingsScreen: {
         subscription: 'Subscription',
         domains: 'Domains',

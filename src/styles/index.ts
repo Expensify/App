@@ -7438,6 +7438,27 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+        insightsDashboardLayout: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsChartGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'stretch',
+            marginHorizontal: -variables.insightsCardGap / 2,
+            marginVertical: -variables.insightsCardGap / 2,
+        } satisfies ViewStyle,
+
+        insightsChartGridCell: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexBasis: shouldUseNarrowLayout ? '100%' : '50%',
+                padding: variables.insightsCardGap / 2,
+            }) satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

@@ -680,6 +680,11 @@ function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserE
     );
 }
 
+/** A member breakdown only says something on a group workspace with somebody to compare against, and only to the people allowed to see it. */
+function isPolicyEligibleForTopSpenders(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
+    return isPolicyEligibleForSpendOverTime(policy, currentUserEmail) && Object.keys(policy.employeeList ?? {}).length >= 2;
+}
+
 /**
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
@@ -753,7 +758,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
-        const isEligibleForTopSpendersSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
+        const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
         const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
         const isEligibleForViolationsBySubmitterSuggestion =
@@ -3158,6 +3163,7 @@ function getMemberSections(
     queryJSON: SearchQueryJSON | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
 ): [TransactionMemberGroupListItemType[], number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
@@ -3165,7 +3171,7 @@ function getMemberSections(
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
 
-            const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
+            const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? onyxPersonalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
             const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID) : undefined;
 
             memberSections[key] = {
@@ -3683,7 +3689,7 @@ function getSections({
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data, queryJSON, formatPhoneNumber, translate);
+                return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList, nonPersonalAndWorkspaceCardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
@@ -7279,6 +7285,7 @@ export {
     FILTER_VIEW_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
+    isPolicyEligibleForTopSpenders,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,
