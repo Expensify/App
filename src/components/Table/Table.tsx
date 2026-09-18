@@ -28,7 +28,7 @@ import type {TableContextValue} from './TableContext';
 import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
-import {getDataVisibleIndices, getListIndex, getTableListMetadata} from './buildTableListData';
+import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -395,21 +395,22 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
         return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
     });
-    const shouldRenderColumnHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
-    // FlashList's sticky-row overlay sits outside the scroller, so it can't follow the columns once they scroll
-    // horizontally. Then the header moves into the list header and sticks there instead (see `TableBody`).
-    const shouldRenderColumnHeaderInListHeader = shouldRenderColumnHeader && !!dynamicScrollWidth;
-    const shouldRenderColumnHeaderAsStickyRow = shouldRenderColumnHeader && !shouldRenderColumnHeaderInListHeader;
+    const hasColumnHeaderElement = !!tableHeaderElement;
+    const hasRows = processedData.length > 0;
+    const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
+    const areColumnsScrollable = !!dynamicScrollWidth;
 
     const tableListMetadata = useMemo(
         () =>
             getTableListMetadata({
                 listHeaderElement,
                 listHeaderComponent: listProps.ListHeaderComponent,
-                shouldRenderColumnHeaderAsStickyRow,
-                shouldRenderColumnHeaderInListHeader,
+                hasColumnHeaderElement,
+                hasRows,
+                isColumnHeaderHiddenInNarrowLayout,
+                areColumnsScrollable,
             }),
-        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderColumnHeaderAsStickyRow, shouldRenderColumnHeaderInListHeader],
+        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, areColumnsScrollable],
     );
     /**
      * Exposes table control methods through the ref.
@@ -512,6 +513,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                hasHeaderRow={rendersColumnHeader(tableListMetadata)}
                 // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
                 // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
                 scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}

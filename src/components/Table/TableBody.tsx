@@ -18,7 +18,16 @@ import {StyleSheet, View} from 'react-native';
 import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
 
-import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getListIndex, getSyntheticRowKind} from './buildTableListData';
+import {
+    buildTableListData,
+    getAdjustedStickyHeaderIndices,
+    getDataIndex,
+    getListIndex,
+    getSyntheticRowKind,
+    rendersColumnHeader,
+    rendersColumnHeaderAsStickyRow,
+    rendersColumnHeaderInListHeader,
+} from './buildTableListData';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -190,7 +199,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
-    const shouldRenderColumnHeaderAsStickyRow = tableListMetadata.shouldRenderColumnHeaderAsStickyRow;
+    const shouldRenderColumnHeaderAsStickyRow = rendersColumnHeaderAsStickyRow(tableListMetadata);
+    const shouldRenderColumnHeaderInListHeader = rendersColumnHeaderInListHeader(tableListMetadata);
     const hasRows = filteredAndSortedData.length > 0;
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
 
@@ -202,7 +212,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const shouldApplyPageHeaderTable = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && hasRows;
     const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !tableListMetadata.hasPageHeader;
-    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.hasHeaderRow;
+    const semanticTableHasHeader = rendersColumnHeader(tableListMetadata);
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
     const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
         ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
@@ -226,13 +236,13 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     }
 
     useEffect(() => {
-        if (!hasRows || !tableListMetadata.shouldRenderColumnHeaderAsStickyRow || !isListLoaded || hasActivatedStickyHeader) {
+        if (!hasRows || !shouldRenderColumnHeaderAsStickyRow || !isListLoaded || hasActivatedStickyHeader) {
             return;
         }
 
         const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
         return () => cancelAnimationFrame(frame);
-    }, [hasActivatedStickyHeader, hasRows, isListLoaded, tableListMetadata.shouldRenderColumnHeaderAsStickyRow]);
+    }, [hasActivatedStickyHeader, hasRows, isListLoaded, shouldRenderColumnHeaderAsStickyRow]);
 
     const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = useCallback(
         (current, previous) => {
@@ -296,7 +306,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     // While the columns scroll, the column header lives in the list header rather than FlashList's sticky-row
     // overlay, so the scroller carries it sideways with the columns it labels. One copy instead of the overlay's two,
     // so there is no duplicate to hide from screen readers either.
-    const listHeaderContent = tableListMetadata.shouldRenderColumnHeaderInListHeader ? (
+    const listHeaderContent = shouldRenderColumnHeaderInListHeader ? (
         <>
             {pageHeaderElement}
             {tableHeaderElement}
@@ -370,7 +380,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     // A truly empty table still uses the standalone centered layout above.
     const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
-    const canRenderStickyHeader = !tableListMetadata.shouldRenderColumnHeaderAsStickyRow || (isListLoaded && hasActivatedStickyHeader);
+    const canRenderStickyHeader = !shouldRenderColumnHeaderAsStickyRow || (isListLoaded && hasActivatedStickyHeader);
     const isTableHeaderSticky = activeStickyHeaderIndex === tableListMetadata.stickyTableHeaderIndex;
     const shouldRenderEmptyStateInList = !hasRows && tableListMetadata.hasPageHeader;
 
@@ -454,7 +464,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     ListHeaderComponentStyle,
                     // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin the page
                     // header itself. Better unstuck for that one layout pass.
-                    pageHeaderHeight > 0 && tableListMetadata.shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
+                    pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
                 ]}
                 ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
                 ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}

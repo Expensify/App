@@ -21,6 +21,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
+import {rendersColumnHeaderInListHeader} from './buildTableListData';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
@@ -211,7 +212,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     // the columns. Needs an explicit width: the list header stretches to the scrolled content, so the background and
     // bottom border would stop short of the columns. `scrollWidth` includes the header's margin, so this is the same
     // box as the rows. The opaque background is what the rows scroll under once it is stuck.
-    if (tableListMetadata.shouldRenderColumnHeaderInListHeader && !!scrollWidth) {
+    if (rendersColumnHeaderInListHeader(tableListMetadata) && !!scrollWidth) {
         return <View style={[styles.appBG, StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
     }
 

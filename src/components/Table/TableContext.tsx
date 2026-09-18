@@ -11,6 +11,8 @@ import type {ActiveSorting} from './middlewares/sorting';
 import type {TableHeaderProps} from './TableHeader';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
+import {COLUMN_HEADER_PLACEMENT} from './buildTableListData';
+
 /**
  * The shape of the Table context value.
  * This context is provided by the `<Table>` component and consumed by its sub-components.
@@ -146,9 +148,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     tableListMetadata: {
         hasPageHeader: false,
-        shouldRenderColumnHeaderAsStickyRow: false,
-        shouldRenderColumnHeaderInListHeader: false,
-        hasHeaderRow: false,
+        columnHeaderPlacement: COLUMN_HEADER_PLACEMENT.NONE,
         syntheticRowsBeforeData: 0,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: 0,
