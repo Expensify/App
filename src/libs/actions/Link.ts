@@ -624,7 +624,7 @@ function openReportFromDeepLink(
                         const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                             // Skip if the user already left the deeplinked route.
                             const deeplinkRoute = route as Route;
-                            if (deeplinkRoute && !Navigation.isActiveRoute(deeplinkRoute)) {
+                            if (deeplinkRoute && Navigation.isActiveRoute(deeplinkRoute)) {
                                 return;
                             }
 
