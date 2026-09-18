@@ -12,6 +12,8 @@ import {View} from 'react-native';
 
 type SidebarSpacerWrapperProps = {
     children?: ReactNode;
+
+    /** Injected by the split navigator as a NavigationContentWrapper, never passed by hand. When undefined the default sidebar width is used. */
     state?: PlatformStackNavigationState<ParamListBase>;
 };
 
