@@ -35,6 +35,12 @@ const TOOLTIP_TIP_GAP = 4;
 /** Horizontal nudge of the tooltip anchor toward the axis, so the pointer sits just inside the bar tip rather than dead-center on it. */
 const TOOLTIP_TIP_OFFSET_X = 16;
 
+/** Extra pixels past the bar tip still counted as a hover, so the rounded tip stays comfortably hoverable without extending into the empty plot space beyond it. */
+const HOVER_TIP_TOLERANCE = 8;
+
+/** Extra pixels added above and below the bar thickness for the vertical hover band, keeping thin bars easy to target without covering the whole row gap. */
+const HOVER_ROW_PADDING = 6;
+
 /** Fraction of each row reserved as gap, leaving a thin centered bar (matches the ranking design). */
 const HORIZONTAL_BAR_PADDING = 0.7;
 
@@ -176,16 +182,22 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
-        // Bars are thin, so treat the whole category row as the hover/press target, spanning the category
-        // label column on the left through the plot area, so hovering a group label also shows the tooltip.
-        const band = rowHeight.get();
-        if (band === 0) {
+        // Vertically the target is the bar thickness plus a small pad (thin bars stay easy to hit), never wider
+        // than the row spacing so adjacent rows don't overlap. Using the bar thickness rather than the full row
+        // gap keeps the empty space above/below a bar inert, including a single bar that spans the whole plot.
+        // Horizontally the target spans the category label column on the left through the bar itself (so hovering
+        // a group label also shows the tooltip), but stops at the bar tip so the plot space beyond a short bar is inert.
+        const thickness = barThickness.get();
+        if (thickness <= 0) {
             return false;
         }
+        const band = Math.min(thickness + 2 * HOVER_ROW_PADDING, rowHeight.get());
         const rowTop = args.targetY - band / 2;
         const rowBottom = args.targetY + band / 2;
+        const isWithinRow = args.cursorY >= rowTop && args.cursorY <= rowBottom;
+        const isWithinBarExtent = args.cursorX >= 0 && args.cursorX <= args.targetX + HOVER_TIP_TOLERANCE;
 
-        return args.cursorX >= 0 && args.cursorY >= rowTop && args.cursorY <= rowBottom;
+        return isWithinRow && isWithinBarExtent;
     };
 
     const resolveTargetIndex = (args: ResolveTargetIndexArgs) => {
@@ -217,8 +229,9 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
             oy,
         );
 
-        // Derive the hover band from the real center-to-center row spacing. domainPadding compresses the
-        // rows inward, so areaHeight / count would overestimate the spacing and make adjacent bands overlap.
+        // Cap the hover band at the real center-to-center row spacing so adjacent rows never overlap.
+        // domainPadding compresses the rows inward, so areaHeight / count would overestimate the spacing.
+        // A single row has no gap to measure, so it falls back to MAX and the bar-thickness band applies as-is.
         let minGap = 0;
         for (let i = 1; i < oy.length; i++) {
             const gap = Math.abs((oy.at(i) ?? 0) - (oy.at(i - 1) ?? 0));
