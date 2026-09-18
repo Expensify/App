@@ -31,10 +31,10 @@ Only workspace admins can import transactions for company cards.
 4. Choose the country your bank is located in and select **Next**.
 5. Choose **Import transactions from file**.
 6. Enter a company card layout name and select **Save**. Then select **Next**.
-6. Select **Choose file** to choose the CSV, TXT, XLS, or XLSX file you want to upload.
-7. Choose which fields to map to your spreadsheet columns by selecting **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency** from the list. 
-8. Map **Unique ID** to a column that holds a unique reference for each transaction, if your file has one.
-9. Select **Import**.
+7. Select **Choose file** to choose the CSV, TXT, XLS, or XLSX file you want to upload.
+8. Choose which fields to map to your spreadsheet columns by selecting **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency** from the list. 
+9. Map **Unique ID** to a column that holds a unique reference for each transaction, if your file has one.
+10. Select **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
