@@ -66,9 +66,13 @@ Mobile:
 
 Yes. Marking your own message as unread works the same way as marking someone else's message, and the green **New** line appears above it.
 
-## Why is the green New line gone when you return to a chat?
+## Does a message you just sent get a green New line above it?
 
-The green **New** line marks your place for the visit in which you set it. When you leave the chat and come back, or reload the page, Expensify treats the messages you already read as read and clears the line. Mark the message as unread again to set a new place.
+No. A message you send is never treated as unread, so no green **New** line appears above it. If you want the line there, mark that message as unread.
+
+## How long does the green New line stay in a chat?
+
+The line stays anchored to the message you marked, including when you leave the chat and come back to it. It clears once Expensify treats those messages as read, which happens as you keep using the chat. If the line is gone and you still need it, mark the message as unread again.
 
 ## Does marking a chat or message as unread notify anyone else?
 
