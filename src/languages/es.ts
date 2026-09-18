@@ -5861,7 +5861,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         businessCentral: {
             noVendorsFound: 'No se han encontrado proveedores',
-            noVendorsFoundDescription: 'Por favor, añade proveedores en Business Central y sincroniza la conexión de nuevo',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en Business Central y vuelve a sincronizar la conexión',
         },
         dualEntry: {
             dualEntrySetup: 'Configuración de DualEntry',
