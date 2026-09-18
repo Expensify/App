@@ -2,12 +2,17 @@ import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {buildOptimisticAddCommentReportAction, getOptimisticDataForAncestors} from '@libs/ReportUtils';
 
+import {addComment} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /** The account the copilot is acting on behalf of. While connected as a copilot this is also the session account. */
@@ -97,5 +102,72 @@ describe('thread summary avatars', () => {
         expect(getDelegateAccountIDFromReportAction(reply)).toBeUndefined();
         expect(updatedParentAction?.childOldestFourAccountIDs?.split(',')).toEqual([String(DELEGATOR_ACCOUNT_ID)]);
         expect(updatedParentAction?.childCommenterCount).toBe(1);
+    });
+});
+
+describe('addComment thread summary attribution', () => {
+    const threadReport: Report = {reportID: THREAD_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, parentReportID: PARENT_REPORT_ID, parentReportActionID: PARENT_REPORT_ACTION_ID};
+
+    beforeEach(async () => {
+        global.fetch = TestHelper.createGlobalFetchMock();
+        await Onyx.clear();
+        await TestHelper.signInWithTestUser(DELEGATOR_ACCOUNT_ID, 'accounts.payable@example.com');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, parentReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`, threadReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {[PARENT_REPORT_ACTION_ID]: parentReportAction});
+        await waitForBatchedUpdates();
+    });
+
+    async function readActions(reportID: string): Promise<OnyxEntry<ReportActions>> {
+        return new Promise((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+    }
+
+    it('writes the copilot into the parent summary when the reply is posted on behalf of someone else', async () => {
+        addComment({
+            report: threadReport,
+            notifyReportID: THREAD_REPORT_ID,
+            ancestors: buildAncestors(parentReportAction),
+            text: 'Reply in the thread',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: DELEGATOR_ACCOUNT_ID,
+            delegateAccountID: COPILOT_ACCOUNT_ID,
+            conciergeReportID: undefined,
+            shouldPlaySound: false,
+        });
+        await waitForBatchedUpdates();
+
+        const reply = Object.values((await readActions(THREAD_REPORT_ID)) ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+        const updatedParentAction = (await readActions(PARENT_REPORT_ID))?.[PARENT_REPORT_ACTION_ID];
+
+        expect(getDelegateAccountIDFromReportAction(reply)).toBe(COPILOT_ACCOUNT_ID);
+        expect(updatedParentAction?.childOldestFourAccountIDs).toBe(String(COPILOT_ACCOUNT_ID));
+        expect(updatedParentAction?.childCommenterCount).toBe(1);
+    });
+
+    it('writes the signed-in account into the parent summary for a regular reply', async () => {
+        addComment({
+            report: threadReport,
+            notifyReportID: THREAD_REPORT_ID,
+            ancestors: buildAncestors(parentReportAction),
+            text: 'Reply in the thread',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: DELEGATOR_ACCOUNT_ID,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+            shouldPlaySound: false,
+        });
+        await waitForBatchedUpdates();
+
+        const updatedParentAction = (await readActions(PARENT_REPORT_ID))?.[PARENT_REPORT_ACTION_ID];
+
+        expect(updatedParentAction?.childOldestFourAccountIDs).toBe(String(DELEGATOR_ACCOUNT_ID));
     });
 });
