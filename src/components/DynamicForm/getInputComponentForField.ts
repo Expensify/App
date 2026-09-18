@@ -11,7 +11,7 @@ import ValuePicker from '@components/ValuePicker';
 
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type {WiseField, WiseFieldOption, WiseFieldType} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -20,9 +20,12 @@ import type {DynamicFieldContext, DynamicFieldFactory, DynamicFieldInput, Dynami
 
 import addressAdapter from './adapters/addressAdapter';
 import FileUploadAdapter from './adapters/FileUploadAdapter';
+import InlineSelectionListAdapter from './adapters/InlineSelectionListAdapter';
 import MultiSelectPushRowAdapter from './adapters/MultiSelectPushRowAdapter';
+import YesNoAdapter from './adapters/YesNoAdapter';
 
 const SELECT_MODAL_THRESHOLD = 8;
+const DIGITS_ONLY_REGEX = /^\^?(?:\\d|\[0-9\])(?:\{\d+(?:,\d*)?\}|[+*])?\$?$/;
 const ACCEPTED_FILE_TYPES: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>> = ['png', 'jpg', 'pdf'];
 
 function getFieldLabel(field: WiseField, translate: LocalizedTranslate): string {
@@ -46,12 +49,20 @@ function getChoices(field: WiseField, {values, translate}: DynamicFieldContext) 
 }
 
 const REGISTRY = {
-    text: (field) => ({
+    text: (field, {translate}) => ({
         InputComponent: TextInput,
-        inputProps: {maxLength: field.maxLength, placeholder: field.example, ...getTextInputAutocorrectProps()},
+        inputProps: {
+            maxLength: field.maxLength,
+            hint: field.example ? translate('common.exampleValue', {example: field.example}) : undefined,
+            inputMode: field.regex && DIGITS_ONLY_REGEX.test(field.regex) ? CONST.INPUT_MODE.NUMERIC : undefined,
+            ...getTextInputAutocorrectProps(),
+        },
     }),
     select: (field, context) => {
         const choices = getChoices(field, context);
+        if (context.isAloneOnPage) {
+            return {InputComponent: InlineSelectionListAdapter, isMenuRow: true, inputProps: {items: choices}};
+        }
         if (choices.length > SELECT_MODAL_THRESHOLD) {
             const label = getFieldLabel(field, context.translate);
             return {
@@ -68,17 +79,21 @@ const REGISTRY = {
         return {InputComponent: ValuePicker, isMenuRow: true, inputProps: {items: choices}};
     },
     multiselect: (field, context) => {
+        const choices = getChoices(field, context);
+        if (context.isAloneOnPage) {
+            return {InputComponent: InlineSelectionListAdapter, isMenuRow: true, inputProps: {items: choices, canSelectMultiple: true, valueType: 'stringList'}};
+        }
         const label = getFieldLabel(field, context.translate);
         return {
             InputComponent: MultiSelectPushRowAdapter,
             isMenuRow: true,
-            inputProps: {items: getChoices(field, context), description: label, modalHeaderTitle: label, valueType: 'stringList'},
+            inputProps: {items: choices, description: label, modalHeaderTitle: label, valueType: 'stringList'},
         };
     },
     radio: (field, context) => ({
         InputComponent: RadioButtons,
         isMenuRow: true,
-        shouldRenderLabelAbove: true,
+        shouldRenderLabelAbove: !context.isAloneOnPage,
         inputProps: {items: getChoices(field, context), onSelect: () => {}},
     }),
     date: (field, {translate}) => ({
@@ -94,13 +109,18 @@ const REGISTRY = {
         InputComponent: AddressSearch,
         inputProps: {renamedInputKeys: addressAdapter(field.key)},
     }),
-    boolean: (field, {translate}) => ({
-        InputComponent: CheckboxWithLabel,
-        inputProps: {valueType: 'boolean', accessibilityLabel: getFieldLabel(field, translate)},
-    }),
-    file: (field, {translate}) => ({
+    boolean: (field, {translate, isAloneOnPage}) => {
+        if (isAloneOnPage) {
+            return {InputComponent: YesNoAdapter, isMenuRow: true, inputProps: {valueType: 'boolean'}};
+        }
+        return {
+            InputComponent: CheckboxWithLabel,
+            inputProps: {valueType: 'boolean', accessibilityLabel: getFieldLabel(field, translate)},
+        };
+    },
+    file: (field, {translate, isAloneOnPage}) => ({
         InputComponent: FileUploadAdapter,
-        shouldRenderLabelAbove: true,
+        shouldRenderLabelAbove: !isAloneOnPage,
         inputProps: {
             valueType: 'files',
             buttonText: translate(field.maxFiles && field.maxFiles > 1 ? 'common.chooseFiles' : 'common.chooseFile'),

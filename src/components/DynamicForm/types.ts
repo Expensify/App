@@ -12,6 +12,9 @@ type DynamicFieldContext = {
 
     /** Currency for amount fields when the form has no `currency` answer */
     currency?: string;
+
+    /** The field is the only one on its page, so choice inputs present as the page instead of as a row */
+    isAloneOnPage?: boolean;
 };
 
 type DynamicFieldInput = {

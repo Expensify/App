@@ -53,6 +53,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
         no: 'Όχι',
+        exampleValue: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
         approve: 'Έγκριση',
         deny: 'Άρνηση',
         dontChange: 'Να μην αλλάξει',
