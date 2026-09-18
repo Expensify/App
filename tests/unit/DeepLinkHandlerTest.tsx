@@ -1,7 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
 import {openReportFromDeepLink} from '@libs/actions/Link';
-import type * as Link from '@libs/actions/Link';
 import * as Report from '@libs/actions/Report';
 
 import CONST from '@src/CONST';
@@ -14,7 +13,6 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Link', () => ({
-    ...jest.requireActual<typeof Link>('@libs/actions/Link'),
     openReportFromDeepLink: jest.fn(),
 }));
 
