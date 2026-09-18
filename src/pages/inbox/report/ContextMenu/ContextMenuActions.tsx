@@ -1075,6 +1075,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         policyTags,
                         currentUserAccountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                        formatPhoneNumber,
                         movedFromReportName: undefined,
                     });
                     // Convert HTML to markdown for clipboard copy to preserve links and formatting

@@ -5288,6 +5288,7 @@ function showReportActionNotification(
     topmostOneTransactionThreadReportID: string | undefined,
     currentUserAccountID: number,
     currentUserLogin: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     derivedReportName: string | undefined,
     derivedMovedFromReportName: string | undefined,
 ) {
@@ -5317,6 +5318,7 @@ function showReportActionNotification(
             movedToReport,
             currentUserAccountID,
             currentUserLogin,
+            formatPhoneNumber,
             derivedMovedFromReportName,
         });
     } else {
