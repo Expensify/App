@@ -1,0 +1,60 @@
+diff --git a/node_modules/@sentry/browser/build/npm/cjs/dev/tracing/request.js b/node_modules/@sentry/browser/build/npm/cjs/dev/tracing/request.js
+index e964754..f31df07 100644
+--- a/node_modules/@sentry/browser/build/npm/cjs/dev/tracing/request.js
++++ b/node_modules/@sentry/browser/build/npm/cjs/dev/tracing/request.js
+@@ -149,6 +149,10 @@ function xhrCallback(handlerData, shouldCreateSpan, shouldAttachHeaders2, spans,
+     if (span2) {
+       if (shouldCreateSpanResult && sentryXhrData.status_code !== void 0) {
+         browser.setHttpStatus(span2, sentryXhrData.status_code);
++        const requestId = xhr.getResponseHeader("x-request-id");
++        if (requestId) {
++          span2.setAttribute("request-id", requestId);
++        }
+         span2.end();
+         onRequestSpanEnd?.(span2, {
+           headers: utils.createHeadersSafely(browserUtils.parseXhrResponseHeaders(xhr)),
+diff --git a/node_modules/@sentry/browser/build/npm/cjs/prod/tracing/request.js b/node_modules/@sentry/browser/build/npm/cjs/prod/tracing/request.js
+index e964754..f31df07 100644
+--- a/node_modules/@sentry/browser/build/npm/cjs/prod/tracing/request.js
++++ b/node_modules/@sentry/browser/build/npm/cjs/prod/tracing/request.js
+@@ -149,6 +149,10 @@ function xhrCallback(handlerData, shouldCreateSpan, shouldAttachHeaders2, spans,
+     if (span2) {
+       if (shouldCreateSpanResult && sentryXhrData.status_code !== void 0) {
+         browser.setHttpStatus(span2, sentryXhrData.status_code);
++        const requestId = xhr.getResponseHeader("x-request-id");
++        if (requestId) {
++          span2.setAttribute("request-id", requestId);
++        }
+         span2.end();
+         onRequestSpanEnd?.(span2, {
+           headers: utils.createHeadersSafely(browserUtils.parseXhrResponseHeaders(xhr)),
+diff --git a/node_modules/@sentry/browser/build/npm/esm/dev/tracing/request.js b/node_modules/@sentry/browser/build/npm/esm/dev/tracing/request.js
+index ff4e893..f5ec87d 100644
+--- a/node_modules/@sentry/browser/build/npm/esm/dev/tracing/request.js
++++ b/node_modules/@sentry/browser/build/npm/esm/dev/tracing/request.js
+@@ -147,6 +147,10 @@ function xhrCallback(handlerData, shouldCreateSpan, shouldAttachHeaders2, spans,
+     if (span2) {
+       if (shouldCreateSpanResult && sentryXhrData.status_code !== void 0) {
+         setHttpStatus(span2, sentryXhrData.status_code);
++        const requestId = xhr.getResponseHeader("x-request-id");
++        if (requestId) {
++          span2.setAttribute("request-id", requestId);
++        }
+         span2.end();
+         onRequestSpanEnd?.(span2, {
+           headers: createHeadersSafely(parseXhrResponseHeaders(xhr)),
+diff --git a/node_modules/@sentry/browser/build/npm/esm/prod/tracing/request.js b/node_modules/@sentry/browser/build/npm/esm/prod/tracing/request.js
+index ff4e893..f5ec87d 100644
+--- a/node_modules/@sentry/browser/build/npm/esm/prod/tracing/request.js
++++ b/node_modules/@sentry/browser/build/npm/esm/prod/tracing/request.js
+@@ -147,6 +147,10 @@ function xhrCallback(handlerData, shouldCreateSpan, shouldAttachHeaders2, spans,
+     if (span2) {
+       if (shouldCreateSpanResult && sentryXhrData.status_code !== void 0) {
+         setHttpStatus(span2, sentryXhrData.status_code);
++        const requestId = xhr.getResponseHeader("x-request-id");
++        if (requestId) {
++          span2.setAttribute("request-id", requestId);
++        }
+         span2.end();
+         onRequestSpanEnd?.(span2, {
+           headers: createHeadersSafely(parseXhrResponseHeaders(xhr)),

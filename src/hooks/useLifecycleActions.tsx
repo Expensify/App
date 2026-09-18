@@ -97,10 +97,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID),
     });
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const delegateAccountID = useDelegateAccountID();
@@ -134,11 +134,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const {currentSearchResults} = useSearchResultsContext();
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'MoneyBag', 'ArrowRight', 'DocumentCheck']);
 
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport, rules);
     const isSubmitterSameAsNextApprover =
         isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = !!(isSubmitterSameAsNextApprover && policy?.preventSelfApproval);
@@ -191,7 +191,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             currentUserEmailParam: email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            betas,
             full: isFullApproval,
             expenseReportPolicy: policy,
             userBillingGracePeriodEnds,
@@ -207,6 +206,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            rules,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
@@ -260,6 +260,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         policy,
         report: moneyRequestReport,
         isTrackIntentUser,
+        rules,
     });
 
     const handleSubmitReport = (skipAnimation = false) => {
@@ -298,7 +299,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: () => {
@@ -312,6 +312,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 delegateAccountID,
                 submitterLogin,
                 isTrackIntentUser,
+                rules,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -377,7 +378,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
+                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals, rules);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -385,7 +386,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
+                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals, rules);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
@@ -420,7 +421,18 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, getCurrencyDecimals);
+                unapproveExpenseReport(
+                    moneyRequestReport,
+                    policy,
+                    accountID,
+                    email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    delegateEmail,
+                    isTrackIntentUser,
+                    getCurrencyDecimals,
+                    rules,
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -441,7 +453,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser);
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser, rules);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
@@ -475,7 +487,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, rules);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -509,7 +521,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, chatReport, isTrackIntentUser);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, chatReport, isTrackIntentUser, rules);
             },
         },
     };

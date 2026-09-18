@@ -11,7 +11,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {sortIconsByName} from '@libs/ReportUtils';
 
@@ -57,15 +56,14 @@ type ReportActionAvatarsProps = {
     accountIDs?: number[];
 
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
-    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
+
+    subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
 
-    /** Whether to show the subscript avatar without margin */
-    noRightMarginOnSubscriptContainer?: boolean;
-
-    subscriptAvatarBorderColor?: ColorValue;
+    /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
+    backdropColor?: ColorValue;
 
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CardFeed;
@@ -105,11 +103,10 @@ function ReportActionAvatars({
     horizontalStacking,
     sort: sortAvatars,
     singleAvatarContainerStyle,
-    subscriptAvatarBorderColor,
-    noRightMarginOnSubscriptContainer = false,
+    backdropColor,
+    subscriptAvatarContainerStyle,
     subscriptCardFeed,
     subscriptCardFeedIconSize,
-    secondaryAvatarContainerStyle,
     isInReportAction = false,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
@@ -119,7 +116,6 @@ function ReportActionAvatars({
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
     const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const reportID =
@@ -140,7 +136,7 @@ function ReportActionAvatars({
     const {
         avatarType: notPreciseAvatarType,
         avatars: unsortedIcons,
-        details: {delegateAccountID},
+        details: {delegateAccountID, shouldUseConciergeAvatar},
         source,
     } = useReportActionAvatars({
         report,
@@ -191,7 +187,7 @@ function ReportActionAvatars({
         return null;
     }
 
-    const delegateAccountIDFromAction = source.action?.delegateAccountID;
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : source.action?.delegateAccountID;
     const singleAvatar: AvatarIcon = delegateAccountIDFromAction
         ? {
               ...primaryAvatar,
@@ -209,8 +205,8 @@ function ReportActionAvatars({
                 cardFeed={subscriptCardFeed}
                 cardFeedIconSize={subscriptCardFeedIconSize}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                containerStyle={subscriptAvatarContainerStyle}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -222,8 +218,8 @@ function ReportActionAvatars({
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                containerStyle={subscriptAvatarContainerStyle}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -248,7 +244,7 @@ function ReportActionAvatars({
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+                backdropColor={backdropColor}
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
             />

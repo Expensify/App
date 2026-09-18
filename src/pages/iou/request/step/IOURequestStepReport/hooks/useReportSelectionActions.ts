@@ -5,6 +5,7 @@ import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsRepo
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
@@ -107,6 +108,8 @@ function useReportSelectionActions({
     backPath,
     handleGoBack,
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -116,6 +119,7 @@ function useReportSelectionActions({
     const {removeTransaction} = useSearchSelectionActions();
     const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
@@ -201,6 +205,7 @@ function useReportSelectionActions({
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
                     const reportsForCall = report?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report, ...reports} : reports;
                     changeTransactionsReport({
+                        isVendorMatchingBetaEnabled,
                         transactionIDs: targetTransactionIDs,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -212,6 +217,7 @@ function useReportSelectionActions({
                         transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
                         reports: reportsForCall,
+                        rules,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                         selfDMReportActions,
@@ -233,6 +239,7 @@ function useReportSelectionActions({
             afterTransition: () => {
                 const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled,
                     transactionIDs: targetTransactionIDs,
                     isASAPSubmitBetaEnabled,
                     accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -242,6 +249,7 @@ function useReportSelectionActions({
                     transactions: targetTransactions,
                     allTransactionViolation: transactionViolations,
                     reports,
+                    rules,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     selfDMReportActions,

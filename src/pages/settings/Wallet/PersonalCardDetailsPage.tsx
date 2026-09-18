@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getCardFeedIcon, getPlaidInstitutionIconUrl, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isPersonalCard, isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -74,7 +74,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
-    const isCardBroken = card ? isCardConnectionBroken(card) : false;
+    const isCardBroken = isPersonalCardBrokenConnection(card);
     const isUserPersonalCard = !!(card && isPersonalCard(card));
 
     // Personal cards always belong to the current user, so fall back to the current user's personal details

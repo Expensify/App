@@ -107,7 +107,7 @@ function SettlementButton({
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const {accountID, email = '', displayName} = useCurrentUserPersonalDetails();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
@@ -201,7 +201,7 @@ function SettlementButton({
                     return;
                 }
                 pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID);
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
             });
             return true;
         }
@@ -406,7 +406,8 @@ function SettlementButton({
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
                     hasOwnedPaidPolicy,
-                    policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                    policyName: generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
+                    delegateAccountID,
                 }).policyID;
             };
 
