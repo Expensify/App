@@ -142,7 +142,7 @@ describe('Wise KYC requirements pages', () => {
         });
         await renderRequirementFormPage('ACCOUNT_PURPOSE');
 
-        expect(screen.getByText('Purpose of the account')).toBeOnTheScreen();
+        expect(screen.getByText('Paying bills')).toBeOnTheScreen();
 
         fireEvent.press(screen.getByText('common.submit'));
         await waitForBatchedUpdatesWithAct();
