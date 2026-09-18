@@ -108,17 +108,6 @@ type ApprovalWorkflowRuleMatch = {
     forwardsTo?: string;
 };
 
-type VendorSearchAvailability = {
-    /** Whether at least one workspace the user can see has the vendor feature, so Search can offer the vendor filter and column. */
-    isAvailable: boolean;
-
-    /** Whether every eligible workspace takes its vendors from Xero, which calls them suppliers. */
-    shouldUseSupplierLabel: boolean;
-
-    /** IDs of the workspaces that have the vendor feature. */
-    eligiblePolicyIDs: string[];
-};
-
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
  */
@@ -2559,6 +2548,16 @@ function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: str
     }));
 }
 
+function getSageIntacctExpenseAccounts(policy: Policy | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.intacct?.data?.expenseAccounts ?? [];
+    return expenseAccounts.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
 function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
     const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
@@ -2717,9 +2716,9 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, Rillet, and DualEntry branches but not on QBO:
+ * `isVendorMatchingBetaEnabled` is consulted on the Xero, Rillet, and DualEntry branches but not on QBO or Sage Intacct:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
- *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
+ *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
  *   - Rillet (R4) configured connection. Beta required
  *   - DualEntry configured connection. Beta required
@@ -2728,33 +2727,30 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy)) {
+    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy)) {
         return true;
     }
-    return (
-        isVendorMatchingBetaEnabled &&
-        (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy))
-    );
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy));
 }
 
 /**
- * Search spans every workspace at once, so the vendor filter and column are offered when any workspace has the vendor
- * feature, and the "Supplier" wording is only used when no eligible workspace would call them vendors.
+ * Search spans every workspace at once, so the vendor filter and column are offered when any workspace has the vendor feature.
  */
-function getVendorSearchAvailability(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): VendorSearchAvailability {
-    const eligiblePolicyIDs: string[] = [];
-    let areAllEligiblePoliciesXero = true;
+function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
+}
+
+/**
+ * IDs of the workspaces that have the vendor feature, so the Search vendor filter only offers their vendor lists.
+ */
+function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): string[] {
+    const policyIDs: string[] = [];
     for (const policy of Object.values(policies ?? {})) {
-        if (!policy?.id || !hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
-            continue;
-        }
-        eligiblePolicyIDs.push(policy.id);
-        if (!isXeroActiveMatchingSource(policy)) {
-            areAllEligiblePoliciesXero = false;
+        if (policy?.id && hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
+            policyIDs.push(policy.id);
         }
     }
-    const isAvailable = eligiblePolicyIDs.length > 0;
-    return {isAvailable, shouldUseSupplierLabel: isAvailable && areAllEligiblePoliciesXero, eligiblePolicyIDs};
+    return policyIDs;
 }
 
 /**
@@ -3534,7 +3530,8 @@ export {
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
-    getVendorSearchAvailability,
+    hasVendorFeatureOnAnyPolicy,
+    getVendorFeaturePolicyIDs,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -3648,6 +3645,7 @@ export {
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
+    getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,

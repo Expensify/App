@@ -8,7 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getVendorSearchAvailability} from '@libs/PolicyUtils';
+import {getVendorFeaturePolicyIDs} from '@libs/PolicyUtils';
 import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -18,7 +18,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 import MultiSelect from './MultiSelect';
@@ -34,12 +34,14 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
     const {isLoadingInitialVendors} = useLoadSearchVendorData({shouldRefresh: true});
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [vendorAvailability] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled),
-    });
+    const vendorFeaturePolicyIDsSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>) => getVendorFeaturePolicyIDs(allPolicies, isVendorMatchingBetaEnabled),
+        [isVendorMatchingBetaEnabled],
+    );
+    const [vendorFeaturePolicyIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: vendorFeaturePolicyIDsSelector});
     const [allPolicyVendors = getEmptyObject<NonNullable<OnyxCollection<PolicyVendors>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_VENDORS);
 
-    const noVendorLabel = translate(vendorAvailability?.shouldUseSupplierLabel ? 'search.noSupplier' : 'search.noVendor');
+    const noVendorLabel = translate('search.noVendor');
     const selectedVendorItems = value.map((vendor) => {
         if (vendor === CONST.SEARCH.VENDOR_EMPTY_VALUE) {
             return {text: noVendorLabel, value: vendor};
@@ -49,7 +51,7 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
 
     // Vendor lists are only offered for the workspaces where the vendor feature is on, so stale lists left behind by a
     // disconnected integration never surface in the picker.
-    const eligiblePolicyIDs = new Set(vendorAvailability?.eligiblePolicyIDs ?? []);
+    const eligiblePolicyIDs = new Set(vendorFeaturePolicyIDs);
     const eligiblePolicyVendors: OnyxCollection<PolicyVendors> = Object.fromEntries(
         Object.entries(allPolicyVendors).filter(([key]) => eligiblePolicyIDs.has(key.replace(ONYXKEYS.COLLECTION.POLICY_VENDORS, ''))),
     );

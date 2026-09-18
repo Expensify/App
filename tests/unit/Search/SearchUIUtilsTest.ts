@@ -31,6 +31,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
@@ -13986,17 +13987,9 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('vendor column and filter labels', () => {
-        test('Should label the vendor column and filter as Vendor by default and as Supplier for Xero-only workspaces', () => {
+    describe('vendor column label', () => {
+        test('Should label the vendor column as Vendor', () => {
             expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');
-            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR, true)).toBe('common.supplier');
-            expect(SearchUIUtils.getSearchFilterLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR)).toBe('common.vendor');
-            expect(SearchUIUtils.getSearchFilterLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR, true)).toBe('common.supplier');
-        });
-
-        test('Should leave other labels untouched when the supplier wording is on', () => {
-            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.CATEGORY, true)).toBe('common.category');
-            expect(SearchUIUtils.getSearchFilterLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, true)).toBe('common.category');
         });
     });
 
@@ -14249,84 +14242,6 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('isExistingSearchKey', () => {
-        const suggestedSearchKeys = [CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS];
-        const savedSearchIDs = ['12345'];
-
-        it('accepts a suggested search key that is currently visible', () => {
-            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SEARCH_KEYS.EXPENSES, suggestedSearchKeys, savedSearchIDs)).toBe(true);
-        });
-
-        it('rejects a valid search key that is not among the visible suggested searches', () => {
-            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SEARCH_KEYS.STATEMENTS, suggestedSearchKeys, savedSearchIDs)).toBe(false);
-        });
-
-        it('accepts a saved search key whose ID exists', () => {
-            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`, suggestedSearchKeys, savedSearchIDs)).toBe(true);
-        });
-
-        it('rejects a saved search key whose ID no longer exists', () => {
-            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}99999`, suggestedSearchKeys, savedSearchIDs)).toBe(false);
-        });
-
-        it('rejects a saved search key when the user has no saved searches', () => {
-            expect(SearchUIUtils.isExistingSearchKey(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`, suggestedSearchKeys, [])).toBe(false);
-        });
-
-        it('rejects the bare saved search prefix', () => {
-            expect(SearchUIUtils.isExistingSearchKey(CONST.SEARCH.SAVED_SEARCH_PREFIX, suggestedSearchKeys, savedSearchIDs)).toBe(false);
-        });
-
-        it.each([undefined, ''])('rejects %p', (value) => {
-            expect(SearchUIUtils.isExistingSearchKey(value, suggestedSearchKeys, savedSearchIDs)).toBe(false);
-        });
-
-        it('rejects an unknown string', () => {
-            expect(SearchUIUtils.isExistingSearchKey('someUnknownKey', suggestedSearchKeys, savedSearchIDs)).toBe(false);
-        });
-    });
-
-    describe('searchKeyToSavedSearchID', () => {
-        it('strips the prefix to recover the saved search ID', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`)).toBe('12345');
-        });
-
-        it('returns undefined for a non saved-search key', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(CONST.SEARCH.SEARCH_KEYS.EXPENSES)).toBeUndefined();
-        });
-
-        it('returns undefined when the key is undefined', () => {
-            expect(SearchUIUtils.searchKeyToSavedSearchID(undefined)).toBeUndefined();
-        });
-    });
-
-    describe('savedSearchIDToSearchKey', () => {
-        it('prefixes a saved search ID to build a search key', () => {
-            expect(SearchUIUtils.savedSearchIDToSearchKey('12345')).toBe(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`);
-        });
-    });
-
-    describe('getSearchKeyForDataType', () => {
-        it('maps the expense type to the Expenses search', () => {
-            expect(SearchUIUtils.getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE)).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-        });
-
-        it('maps the expense report type to the Reports search', () => {
-            expect(SearchUIUtils.getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-        });
-
-        it.each([CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TASK, CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.DATA_TYPES.CHAT])(
-            'returns undefined for the "%s" type',
-            (type) => {
-                expect(SearchUIUtils.getSearchKeyForDataType(type)).toBeUndefined();
-            },
-        );
-
-        it('returns undefined when the type is undefined', () => {
-            expect(SearchUIUtils.getSearchKeyForDataType(undefined)).toBeUndefined();
-        });
-    });
-
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 
@@ -14535,7 +14450,7 @@ describe('splitGroupsIntoPairs', () => {
 
 describe('getLastSearchQuery', () => {
     const submitKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
-    const savedSearchKey = SearchUIUtils.savedSearchIDToSearchKey('100');
+    const savedSearchKey = savedSearchIDToSearchKey('100');
     const submitQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`;
     const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`;
 
@@ -14573,7 +14488,7 @@ describe('getLastSearchQuery', () => {
     });
 
     it('returns undefined when the search key has no filter', () => {
-        expect(SearchUIUtils.getLastSearchQuery(searchFilters, SearchUIUtils.savedSearchIDToSearchKey('200'))).toBeUndefined();
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, savedSearchIDToSearchKey('200'))).toBeUndefined();
     });
 
     it('returns undefined when there are no filters at all', () => {

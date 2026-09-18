@@ -112,6 +112,7 @@ export default {
     FAVICON: {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
+        CONCIERGE_UNREAD: '/favicon-concierge-unread.png',
     },
     CAPTURE_METRICS: get(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: get(Config, 'ONYX_METRICS', 'false') === 'true',

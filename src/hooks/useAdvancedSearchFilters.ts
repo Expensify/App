@@ -1,7 +1,7 @@
 import type {Filter} from '@components/Search/types';
 
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
-import {getVendorSearchAvailability, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {hasVendorFeatureOnAnyPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -14,6 +14,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import {emailSelector} from '@selectors/Session';
+import {useCallback} from 'react';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -329,9 +330,11 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: F
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});
     const {isBetaEnabled} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled).isAvailable,
-    });
+    const isVendorFilterAvailableSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled),
+        [isVendorMatchingBetaEnabled],
+    );
+    const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const selectedPolicyTagLists = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists) : [];
     const [hasTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: hasTagsSelector});

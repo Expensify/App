@@ -9,7 +9,7 @@ import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasVendorFeature, isPolicyTaxEnabled, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
 import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
@@ -129,7 +129,6 @@ function ReportDetailsColumnsPage() {
             defaultSelectedColumns={REPORT_DETAILS_DEFAULT_COLUMNS}
             currentColumns={currentColumns}
             requiredColumns={requiredColumns}
-            shouldUseSupplierLabel={isXeroActiveMatchingSource(policy)}
             onSave={handleSave}
         />
     );

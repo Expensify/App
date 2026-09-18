@@ -12,27 +12,23 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getVendorSearchAvailability} from '@libs/PolicyUtils';
 import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, removeNegation} from '@libs/SearchQueryUtils';
-import {getSearchFilterLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 
@@ -55,7 +51,6 @@ type FilterPopupProps = {
     baseFilterKey: SearchFilter['key'];
     isDefault: boolean;
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>;
-    shouldUseSupplierLabel: boolean;
     closeOverlay: () => void;
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
@@ -65,9 +60,9 @@ function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilter
     return `Search-Filter-${filterKey}`;
 }
 
-function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, shouldUseSupplierLabel, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
+function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
     const {translate} = useLocalize();
-    const label = translate(getSearchFilterLabelKey(baseFilterKey, shouldUseSupplierLabel));
+    const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
     const closeModalAndUpdateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         close(() => updateFilterForm(values));
@@ -155,11 +150,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
-    const {isBetaEnabled} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const [shouldUseSupplierLabel = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled).shouldUseSupplierLabel,
-    });
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
@@ -175,7 +165,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         baseFilterKey={removeNegation(filterKey)}
                         isDefault={isDefault}
                         searchAdvancedFiltersForm={searchAdvancedFiltersForm}
-                        shouldUseSupplierLabel={shouldUseSupplierLabel}
                         closeOverlay={closeOverlay}
                         setPopoverWidth={setPopoverWidth}
                         updateFilterForm={updateFilterQueryParams}
@@ -217,7 +206,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                       updateFilterQueryParams({[filterKey]: undefined});
                   },
         }),
-        shouldUseSupplierLabel,
     );
 
     const resetFilters = () => {
