@@ -101,6 +101,8 @@ import {
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isPending,
     isPerDiemRequest,
     isScanning,
@@ -531,8 +533,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const delegateAccountID = useDelegateAccountID();
     const {
         introSelected,
-        betas,
         isSelfTourViewed,
+        betas,
         activePolicyID,
         activePolicy,
         conciergeChat,
@@ -626,6 +628,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
@@ -1207,7 +1210,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -1251,7 +1253,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allReports,
         allTransactionViolations,
         isBetaEnabled,
-        betas,
         delegateEmail,
         currentSearchKey,
         isTrackIntentUser,
@@ -1626,6 +1627,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                        betas,
                         getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
@@ -1640,7 +1643,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentMethod: paymentItem.fundID ? CONST.PAYMENT_METHODS.DEBIT_CARD : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                         activePolicy,
                         conciergeChat,
-                        betas,
                         isSelfTourViewed,
                         defaultWorkspaceName,
                         additionalOnyxData,
@@ -1655,6 +1657,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                    betas,
                     getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
@@ -1665,7 +1669,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     activePolicy,
                     policy: reportPolicy,
                     chatReportPolicy,
-                    betas,
                     isSelfTourViewed,
                     userBillingGracePeriodEnds,
                     amountOwed,
@@ -1699,6 +1702,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             areAllMatchingItemsSelected,
             queryJSON,
             isOffline,
+            betas,
+            isBetaEnabled,
             isDelegateAccessRestricted,
             selectedReports.length,
             payableSelectedReports,
@@ -1722,7 +1727,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             defaultWorkspaceName,
             personalDetails,
             introSelected,
-            betas,
             isSelfTourViewed,
             activePolicy,
             activePolicyID,
@@ -2846,9 +2850,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
             if (typeof ownerAccountID === 'number') {
                 ownerAccountIDs.add(ownerAccountID);
-                if (ownerAccountIDs.size > 1) {
-                    break;
-                }
             } else {
                 hasUnknownOwner = true;
             }
@@ -2857,7 +2858,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
-        if (canAllTransactionsBeMoved && !hasMultipleOwners && !isExpenseReportType) {
+        // Across submitters the only destination the App can offer is "Auto report". Every other mixed-owner selection
+        // stays hidden as before, so there is no entry into a screen that could only offer one submitter's reports to
+        // everybody else's expenses. Requirements:
+        //   - every owner resolved, or the count below cannot tell one cardholder's bulk selection from a mixed one
+        //   - every expense on a managed card, because the backend resolves each destination through the card; one
+        //     expense without a card fails the whole request with "404 Card not found"
+        //   - nothing whose validity depends on the destination workspace, which the backend picks: per diem rates and
+        //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
+        // An expense we cannot read fails all three, so it withholds the flow rather than risking a rejected move.
+        const canAutoReportAcrossSubmitters =
+            ownerAccountIDs.size > 1 &&
+            !hasUnknownOwner &&
+            selectedTransactionsKeys.every((id) => {
+                const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                if (!transaction || !isManagedCardTransaction(transaction)) {
+                    return false;
+                }
+                return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
+            });
+
+        if (canAllTransactionsBeMoved && !isExpenseReportType && (!hasMultipleOwners || canAutoReportAcrossSubmitters)) {
             options.push({
                 text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,

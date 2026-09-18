@@ -163,6 +163,6 @@ describe('BaseConnectToQuickbooksOnlineFlow', () => {
             expect(mockEnablePolicyTaxes).toHaveBeenCalledTimes(1);
         });
 
-        expect(mockEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false);
+        expect(mockEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false, false);
     });
 });
