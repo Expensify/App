@@ -35,6 +35,8 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import openExternalLink from '@libs/openExternalLink';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
 import Pusher from '@libs/Pusher';
 import reauthenticate from '@libs/Reauthentication';
@@ -651,16 +653,12 @@ function beginSignIn(email: string) {
 /**
  * Create Onyx update to clean up anonymous user data
  */
-function buildOnyxDataToCleanUpAnonymousUser(): OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
+function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
     const data: Record<string, null> = {};
     if (deprecatedSession.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && deprecatedSession.accountID) {
         data[deprecatedSession.accountID] = null;
     }
-    return {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        value: data,
-    };
+    return buildPersonalDetailsUpdate(data);
 }
 
 /**
@@ -681,7 +679,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT> | PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -973,7 +971,7 @@ function signIn(
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS> | PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1049,7 +1047,7 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.SESSION>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.SESSION> | PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
