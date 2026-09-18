@@ -2439,6 +2439,9 @@ const CONST = {
         // Stamped on the navigate-to-inbox-tab span when the app-loading skeleton was shown instead of the
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
+        ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
+        ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SCENARIO: 'scenario',
         // Start type stamped on the navigate-to-reports spans: cold, warm_first, or warm_subsequent.
