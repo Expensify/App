@@ -1,31 +1,39 @@
 import ExportOnyxState from '@libs/ExportOnyxState';
-import ExportOnyxStateNative from '@libs/ExportOnyxState/index.native';
+import saveTextFile from '@libs/saveTextFile';
+
+import CONST from '@src/CONST';
 
 import Onyx from 'react-native-onyx';
 
+jest.mock('@libs/saveTextFile', () => jest.fn());
+
 describe('Onyx state export', () => {
-    it.each([
-        ['web', ExportOnyxState],
-        ['native', ExportOnyxStateNative],
-    ])('reads the %s state through Onyx', async (_platform, exporter) => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+        jest.clearAllMocks();
+    });
+
+    it('reads persisted state through Onyx', async () => {
         const state = {test: {value: 1}};
         const exportState = jest.spyOn(Onyx, 'exportState').mockResolvedValueOnce(state);
 
-        await expect(exporter.readOnyxState()).resolves.toBe(state);
+        await expect(ExportOnyxState.readOnyxState()).resolves.toBe(state);
         expect(exportState).toHaveBeenCalledTimes(1);
-
-        exportState.mockRestore();
     });
 
-    it.each([
-        ['web', ExportOnyxState],
-        ['native', ExportOnyxStateNative],
-    ])('propagates a %s storage error', async (_platform, exporter) => {
+    it('propagates storage errors', async () => {
         const error = new Error('Storage read failed');
-        const exportState = jest.spyOn(Onyx, 'exportState').mockRejectedValueOnce(error);
+        jest.spyOn(Onyx, 'exportState').mockRejectedValueOnce(error);
 
-        await expect(exporter.readOnyxState()).rejects.toBe(error);
+        await expect(ExportOnyxState.readOnyxState()).rejects.toBe(error);
+    });
 
-        exportState.mockRestore();
+    it('saves the exported state with its established filename', async () => {
+        const content = '{"test":1}';
+        jest.mocked(saveTextFile).mockResolvedValueOnce(undefined);
+
+        await ExportOnyxState.shareAsFile(content);
+
+        expect(saveTextFile).toHaveBeenCalledWith({fileName: CONST.DEFAULT_ONYX_DUMP_FILE_NAME, content});
     });
 });
