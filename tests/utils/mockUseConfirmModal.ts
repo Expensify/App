@@ -10,12 +10,30 @@ type ShowConfirmModalResult = Awaited<ReturnType<ShowConfirmModal>>;
 
 let lastShowConfirmModalOptions: ShowConfirmModalOptions | undefined;
 let resolvePendingShowConfirmModal: ((result: ShowConfirmModalResult) => void) | undefined;
+let lastPendingID: string | undefined;
+
+// Mirrors ModalProvider's `id` handling: while a prompt shown under an id is still unanswered, a repeat call for that
+// same id is handed back the promise the first call got instead of a new one, so every caller's handler runs on the
+// single answer the user gives.
+const pendingPromisesByID = new Map<string, Promise<ShowConfirmModalResult>>();
 
 const mockShowConfirmModal = jest.fn((options: ShowConfirmModalOptions) => {
     lastShowConfirmModalOptions = options;
-    return new Promise<ShowConfirmModalResult>((resolve) => {
+
+    const {id} = options;
+    const alreadyPending = id ? pendingPromisesByID.get(id) : undefined;
+    if (alreadyPending) {
+        return alreadyPending;
+    }
+
+    const promise = new Promise<ShowConfirmModalResult>((resolve) => {
         resolvePendingShowConfirmModal = resolve;
     });
+    lastPendingID = id;
+    if (id) {
+        pendingPromisesByID.set(id, promise);
+    }
+    return promise;
 });
 
 const mockCloseModal = jest.fn();
@@ -26,6 +44,8 @@ function resetMockConfirmModal() {
     mockCloseModal.mockClear();
     lastShowConfirmModalOptions = undefined;
     resolvePendingShowConfirmModal = undefined;
+    lastPendingID = undefined;
+    pendingPromisesByID.clear();
 }
 
 /** Type-safe read of an option passed to the most recent showConfirmModal(...) call. */
@@ -35,6 +55,10 @@ function getShowConfirmModalOption<K extends keyof ShowConfirmModalOptions>(key:
 
 /** Resolves the promise returned by the most recent showConfirmModal(...) call, simulating the user confirming (default) or cancelling the modal. */
 function resolveShowConfirmModal(result: ShowConfirmModalResult = {action: MockModalActions.CONFIRM}) {
+    if (lastPendingID) {
+        pendingPromisesByID.delete(lastPendingID);
+        lastPendingID = undefined;
+    }
     resolvePendingShowConfirmModal?.(result);
 }
 

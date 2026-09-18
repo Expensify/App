@@ -47,6 +47,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         policyRef.current = policy;
     }, [policy]);
 
+    const isDisconnectConfirmationPendingRef = useRef(false);
+
     const closeConfirmationModal = useCallback(() => {
         setActiveIntegration((prev) => {
             if (prev) {
@@ -137,13 +139,26 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 ? translate('workspace.accounting.intuitEnterpriseSuite')
                 : (CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[newActiveIntegration.name] ?? newActiveIntegration.name);
 
+            isDisconnectConfirmationPendingRef.current = true;
+
             showConfirmModal({
+                // `startIntegrationFlow` can run more than once for the same flow (the `useFocusEffect` in
+                // `PolicyAccountingPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
+                // repeat call updating this prompt in place instead of stacking a second copy behind it.
+                id: 'accountingConnectionConfirmation',
                 title: translate('workspace.accounting.connectTitle', connectionName),
                 prompt: translate('workspace.accounting.connectPrompt', connectionName),
                 confirmText: translate('workspace.accounting.setup'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             }).then((result) => {
+                // A repeat call for the same id is handed back the promise the first call got, so every call's handler
+                // runs on a single user answer. Only the first one may act, or the disconnect would be requested twice.
+                if (!isDisconnectConfirmationPendingRef.current) {
+                    return;
+                }
+                isDisconnectConfirmationPendingRef.current = false;
+
                 if (result.action !== ModalActions.CONFIRM) {
                     setActiveIntegration(undefined);
                     return;

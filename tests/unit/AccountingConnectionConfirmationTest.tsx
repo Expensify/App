@@ -151,6 +151,27 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
         expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
     });
 
+    it('should reuse one prompt when the flow is started again while the prompt is still unanswered', async () => {
+        const ref = renderProvider();
+
+        // `PolicyAccountingPage` starts the flow from a `useFocusEffect` that re-fires whenever `startIntegrationFlow`
+        // is re-created, so the same flow can be started twice before the user has answered.
+        await startFlowNeedingDisconnect(ref);
+        await startFlowNeedingDisconnect(ref);
+
+        expect(getShowConfirmModalOption('id')).toBe('accountingConnectionConfirmation');
+
+        await act(async () => {
+            resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+            await waitForBatchedUpdates();
+        });
+
+        // One prompt, one answer, one disconnect - not one request per time the flow was started.
+        expect(mockRemovePolicyConnection).toHaveBeenCalledTimes(1);
+        expect(mockRemovePolicyConnection).toHaveBeenCalledWith(policy, CONST.POLICY.CONNECTIONS.NAME.XERO);
+        expect(screen.getByTestId(SETUP_FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
     it('should use the Intuit Enterprise Suite display name when the integration is one', async () => {
         const ref = renderProvider();
 
