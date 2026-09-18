@@ -42,8 +42,9 @@ type TableSemanticContainerProps = {
     scrollWidth: number | undefined;
 
     /**
-     * Measures the width the table's columns have to share. Measured on the node that keeps the table's own width
-     * rather than growing with the scrolled content, so measuring it can't feed back into the widths it produced.
+     * Measures the width the table's columns have to share. This node is the right thing to measure because it keeps the
+     * table's own width even while its content overflows and scrolls, so measuring it can't feed back into the widths it
+     * produced.
      */
     onLayout: ((event: LayoutChangeEvent) => void) | undefined;
 
@@ -52,11 +53,11 @@ type TableSemanticContainerProps = {
 };
 
 /**
- * Wraps only the contiguous header/body run so that it can be measured when dynamic columns are enabled. The same
- * wrapper carries `role="table"` when table semantics are enabled, keeping surrounding controls (filter bar, empty
- * states, …) outside the ARIA table. When neither layout handling nor semantics are needed, the children render as-is
- * to avoid an extra layout node. Header and body are contiguous in every table, so grouping the consecutive run keeps
- * a single table container while preserving child order.
+ * Wraps only the contiguous header/body run so that it can be measured and scrolled horizontally when dynamic columns
+ * are enabled. The same wrapper carries `role="table"` when table semantics are enabled, keeping surrounding controls
+ * (filter bar, empty states, …) outside the ARIA table. When neither layout handling nor semantics are needed, the
+ * children render as-is to avoid an extra layout node. Header and body are contiguous in every table, so grouping the
+ * consecutive run keeps a single table container while preserving child order.
  *
  * Columns that don't fit are scrolled here by wrapping that run in a horizontal scroller, which carries header and
  * rows as one. Tables with an in-list filter bar can't use it — the scroller would drag that bar sideways too — so
@@ -94,9 +95,9 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, hasHea
             <View
                 key={`tableSemanticContainer-${renderedChildren.length}`}
                 style={[styles.flex1, styles.mnh0]}
-                // The columns are measured against this node while the table fits, and against the scroll view below
-                // once it doesn't. Either way the measured node keeps the table's own width rather than growing with
-                // the content, so measuring it can't feed back into the widths it produced.
+                // The columns are measured against this node while the table fits, and against the scroll view below once
+                // it doesn't. Either way the measured node keeps the table's own width rather than growing with the
+                // content, so measuring it can't feed back into the widths it produced.
                 onLayout={scrollWidth ? undefined : onLayout}
                 {...getTableContainerAccessibilityProps(isEnabled, title, rowCount, columnCount, hasHeaderRow)}
             >

@@ -51,22 +51,14 @@ type TableBodyListProps = TableBodyProps & {
 const columnScrollOverrideStyle = {overflowX: 'auto'};
 
 /**
- * Pins the page header and its filter bar to the scroller's left edge, so they stay put while the columns move under
- * them.
- *
- * Held at the measured table width rather than the scrolled content's: a box spanning the full scroll range has
- * nothing to be pinned within and would travel with the columns, and a percentage would resolve against that same
- * range, stretching the search input across it and pushing the pills out to its far end.
+ * Pins the page header to the scroller's left edge so it stays put while the columns move under it. Held at the
+ * measured table width: a box spanning the scroll range has nothing to pin within, and a percentage resolves to it.
  */
 const columnScrollPageHeaderStyle = {position: 'sticky', left: 0} as ViewStyle;
 
 /**
- * Holds the column header at the top of the scroller once the page header above it has scrolled past.
- *
- * Both share one list-header box, so sticking that box at minus the page header's height lets exactly that much
- * travel off the top and leaves the column header flush. Sticking the column header alone would confine it to the box
- * and it would scroll away with it. Offsets resolve against the content container, which spans the rows, so it stays
- * put for the whole scroll. `zIndex` is needed because the rows paint later in tree order.
+ * Sticks the shared list-header box at minus the page header's height, so exactly that much scrolls off and leaves the
+ * column header flush against the scroller. `zIndex` lifts it above the rows, which paint later in tree order.
  */
 function getColumnScrollListHeaderStyle(pageHeaderHeight: number): ViewStyle {
     return {position: 'sticky', top: -pageHeaderHeight, zIndex: 1} as ViewStyle;
@@ -140,8 +132,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const [isListLoaded, setIsListLoaded] = useState(false);
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const [activeStickyHeaderIndex, setActiveStickyHeaderIndex] = useState(-1);
-    // The page header is consumer content, so its height isn't known until it lays out. `0` keeps the list header
-    // unstuck until then.
+    // The page header is consumer content, so its height is only known after layout. `0` keeps the list header unstuck.
     const [pageHeaderHeight, setPageHeaderHeight] = useState(0);
     const {
         processedData: filteredAndSortedData,
@@ -204,10 +195,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const hasRows = filteredAndSortedData.length > 0;
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
 
-    // The columns are wider than the table, so this list's scroller takes the horizontal axis as well (see
-    // `columnScrollOverrideStyle`). Only tables that keep their filter bar in the list scroll here — the rest are
-    // scrolled by an ancestor (see `TableSemanticContainer`). Web-only: native can't measure text, so it never
-    // content-sizes columns and its tables always fit.
+    // Columns wider than the table, so this list's scroller takes the horizontal axis (see `columnScrollOverrideStyle`).
+    // Only tables keeping their filter bar in the list scroll here; the rest are scrolled by an ancestor (see
+    // `TableSemanticContainer`). Web-only: native can't measure text, so it never content-sizes columns.
     const isColumnScrollEnabled = !!scrollWidth && tableListMetadata.hasPageHeader;
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const shouldApplyPageHeaderTable = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && hasRows;
@@ -294,8 +284,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const pageHeaderElement = tableListMetadata.hasPageHeader ? (
         <View
             style={isColumnScrollEnabled && [columnScrollPageHeaderStyle, tableWidth > 0 && StyleUtils.getWidthStyle(tableWidth)]}
-            // Measured unconditionally, so the height is already known by the time the columns overflow and the
-            // column header has to be stacked against it.
+            // Measured unconditionally, so the height is known by the time the columns overflow and need it.
             onLayout={(event) => setPageHeaderHeight(event.nativeEvent.layout.height)}
         >
             {renderListComponent(ListHeaderComponent)}
@@ -303,9 +292,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         </View>
     ) : null;
 
-    // While the columns scroll, the column header lives in the list header rather than FlashList's sticky-row
-    // overlay, so the scroller carries it sideways with the columns it labels. One copy instead of the overlay's two,
-    // so there is no duplicate to hide from screen readers either.
+    // While the columns scroll the column header sits here rather than in FlashList's sticky-row overlay, so the
+    // scroller carries it sideways. Also one copy instead of the overlay's two, so no duplicate to hide from readers.
     const listHeaderContent = shouldRenderColumnHeaderInListHeader ? (
         <>
             {pageHeaderElement}
@@ -455,15 +443,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 ref={listRef}
                 data={listData}
                 style={[styles.flex1, styles.mnh0]}
-                // The web scroller hides both scrollbars at once, so the vertical one has to come back to get the
-                // horizontal one, the only affordance for scrolling sideways.
-                showsVerticalScrollIndicator={isColumnScrollEnabled ? undefined : false}
+                showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={listHeaderContent}
                 ListHeaderComponentStyle={[
                     ListHeaderComponentStyle,
-                    // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin the page
-                    // header itself. Better unstuck for that one layout pass.
+                    // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin it instead.
                     pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
                 ]}
                 ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
@@ -477,8 +462,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
-                    // The rows are absolutely positioned, so they don't widen the scroller's content. This holds
-                    // the scroll extent open for them.
+                    // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
                     isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,
                     shouldUseNarrowTableLayout &&
@@ -503,8 +487,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 }}
                 {...restListProps}
                 scrollEnabled={scrollEnabled}
-                // Merged after the spread, so a consumer's own `overrideProps` and the table's horizontal axis
-                // can't silently drop each other.
+                // Merged after the spread so a consumer's `overrideProps` and the table's horizontal axis coexist.
                 overrideProps={isColumnScrollEnabled ? {...overrideProps, style: [overrideProps?.style, columnScrollOverrideStyle]} : overrideProps}
             />
         </View>

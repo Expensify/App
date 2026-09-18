@@ -41,8 +41,8 @@ type ColumnHeaderPlacementParams = {
     isColumnHeaderHiddenInNarrowLayout: boolean;
 
     /**
-     * Whether the columns are wider than the table and so have to scroll. FlashList's sticky-row overlay sits outside
-     * the scroller and can't follow them, so the column header moves into the list header instead (see `TableBody`).
+     * Whether the columns are wider than the table and so have to scroll. FlashList's sticky-row overlay can't follow
+     * them, so the column header moves into the list header instead (see `TableBody`).
      */
     areColumnsScrollable: boolean;
 };
