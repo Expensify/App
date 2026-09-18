@@ -17,7 +17,7 @@ import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -109,7 +109,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             });
         }
 
-        if (isPolicyAdmin(policy)) {
+        if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy)) {
             data.push({
                 text: translate('iou.changeApprover.actions.reassignApprover'),
                 keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
@@ -121,7 +121,12 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         return data;
     }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !isPolicyAdmin(policy) ||
+        isPendingDeletePolicy(policy) ||
+        !isMoneyRequestReport(report) ||
+        isMoneyRequestReportPendingDeletion(report);
 
     const confirmButtonOptions = useMemo(
         () => ({

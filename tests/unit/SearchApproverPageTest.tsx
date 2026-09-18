@@ -175,4 +175,18 @@ describe('SearchApproverPage', () => {
 
         expect(mockApproverSelectionList).toHaveBeenLastCalledWith(expect.objectContaining({allApprovers: []}), undefined);
     });
+
+    it('shows a loading placeholder when a selected report is missing from Onyx', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELECTED_REPORT_ID}`, null);
+        await waitForBatchedUpdates();
+
+        render(
+            <OnyxListItemProvider>
+                <SearchReassignApproverPage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(mockApproverSelectionList).toHaveBeenLastCalledWith(expect.objectContaining({isLoadingReportData: true, shouldShowLoadingPlaceholder: true}), undefined);
+    });
 });

@@ -50,6 +50,9 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
     const {isLoading, startWithLoading} = usePressLoading();
 
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const isLoadingReportData = selectedReports.some(
+        (selectedReport) => !allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`] || !allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`],
+    );
 
     // Get all possible approvers from all selected reports' policies
     // An approver must be able to approve ALL selected reports
@@ -119,7 +122,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
                     login: email,
                     value: accountID,
                     icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
-                    rightElement: employee.role === CONST.REPORT.ROLE.ADMIN ? <Badge text={translate('common.admin')} /> : undefined,
+                    rightElement: employee.role === CONST.POLICY.ROLE.ADMIN ? <Badge text={translate('common.admin')} /> : undefined,
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
@@ -214,7 +217,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
             headerTitle={translate(isReassignment ? 'iou.changeApprover.actions.reassignApprover' : 'iou.changeApprover.actions.addApprover')}
             onBackButtonPress={Navigation.goBack}
             subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate(subtitleKey)}</Text>}
-            isLoadingReportData={false}
+            isLoadingReportData={isLoadingReportData}
             policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports.at(0)?.policyID}`]}
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={isReassignment && !canReassignAllReports}
@@ -223,6 +226,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
             allowMultipleSelection={false}
             onSelectApprover={toggleApprover}
             footerContent={button}
+            shouldShowLoadingPlaceholder={isLoadingReportData}
         />
     );
 }
