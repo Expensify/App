@@ -27,6 +27,14 @@ const defaultStyles = styles(defaultTheme);
 
 const STORYBOOK_FORM_ID = ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM;
 
+/** Flows shorter than this are single-screen forms and get no step indicator */
+const STEP_INDICATOR_MIN_PAGES = 3;
+
+const ACCOUNT_USE_GROUP = 'Account use';
+
+/** The fixture's two groups plus a third, so the paged story is a real multi-step flow */
+const threeGroupFields: WiseField[] = allFieldTypes.map((field) => (['useCases', 'isSourceOfFund'].includes(field.key) ? {...field, group: ACCOUNT_USE_GROUP} : field));
+
 type DynamicFormStoryProps = {
     fields: WiseField[];
 
@@ -105,7 +113,7 @@ function PageByPage({fields, draftValues}: LayoutProps) {
             key={page.name}
             wrapperID="DynamicFormStory"
             headerTitle="Add bank account"
-            stepNames={pages.length > 1 ? pages.map((item) => item.name) : undefined}
+            stepNames={pages.length >= STEP_INDICATOR_MIN_PAGES ? pages.map((item) => item.name) : undefined}
             startStepIndex={pageIndex}
             handleBackButtonPress={() => setPageIndex(Math.max(0, pageIndex - 1))}
         >
@@ -165,8 +173,8 @@ AllFieldTypes.args = {
 
 const PageByPageFlow: DynamicFormStory = Template.bind({});
 PageByPageFlow.args = {
-    fields: allFieldTypes,
-    draftValues: {legalType: 'PRIVATE', accountNumber: '12345678', accountType: 'CHECKING', annualVolume: '1000'},
+    fields: threeGroupFields,
+    draftValues: {legalType: 'PRIVATE', accountNumber: '12345678', accountType: 'CHECKING', annualVolume: '1000', dateOfBirth: '1990-01-31', country: 'GB', address: '1 High Street'},
     layout: 'pages',
 };
 
