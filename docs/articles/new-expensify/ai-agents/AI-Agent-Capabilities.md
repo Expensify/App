@@ -235,7 +235,7 @@ To accomplish this, include phrases like:
 - Send each employee a reminder to submit their expenses at the end of the month
 - Message the submitter directly when their report is rejected
 - Notify individual workspace members of a policy change
-- DM each person with outstanding reports a personalised nudge
+- DM each person with outstanding reports a personalized nudge
 - Send a private message to the submitter when a receipt is missing
 - Reach out to each team member individually with their spending summary
 
