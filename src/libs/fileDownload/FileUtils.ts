@@ -168,6 +168,23 @@ function getDownloadFileName(displayName: string, source: string): string {
 }
 
 /**
+ * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
+ * Falls back to `defaultFileName` only when the URI has no extension either, as with Android's `content://` URIs.
+ */
+function getFileNameWithFallback(fileName: string | null | undefined, uri: string, defaultFileName: string): string {
+    if (fileName) {
+        return fileName;
+    }
+
+    const fileNameFromURI = getFileName(uri);
+    if (!splitExtensionFromFileName(fileNameFromURI).fileExtension) {
+        return defaultFileName;
+    }
+
+    return fileNameFromURI;
+}
+
+/**
  * Returns the MIME type for a given file extension.
  * Falls back to 'application/octet-stream' for unrecognized extensions.
  */
@@ -955,6 +972,7 @@ export {
     getMimeType,
     getFileName,
     getDownloadFileName,
+    getFileNameWithFallback,
     getFileType,
     cleanFileName,
     getExportFileName,
