@@ -126,7 +126,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
         openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     });
-    const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
+    const {isOffline} = useNetwork({onReconnect: () => getWorkspaceMembers()});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
