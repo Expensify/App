@@ -42,6 +42,8 @@ To set up a commercial card feed, you must:
 
 The setup instructions for your card issuer explain what to request from your bank and what information you'll need to complete the setup in Expensify. In most cases, your bank must first set up the feed and provide you with the required enablement details before you can finish connecting it in Expensify.
 
+![Company Cards page with Add cards highlighted]({{site.url}}/assets/images/company-cards-add-cards.png){:width="100%"}
+
 ---
 
 ## How to enable a Mastercard commercial card feed (CDF)
