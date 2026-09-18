@@ -31,7 +31,7 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 const mockWrite = jest.mocked(write);
 const mockGoBack = jest.mocked(Navigation.goBack);
-const mockMerge = jest.spyOn(Onyx, 'merge');
+const mockUpdate = jest.spyOn(Onyx, 'update');
 
 type CapturedUpdate = Omit<AnyOnyxUpdate<OnyxKey>, 'value'> & {value?: unknown};
 type WriteOptions = {optimisticData: CapturedUpdate[]; successData: CapturedUpdate[]; failureData: CapturedUpdate[]};
@@ -84,8 +84,8 @@ function getPersonalDetailEntry(updates: CapturedUpdate[], accountID: number): R
 }
 
 function getOptimisticPersonalDetails(): Record<string, unknown> {
-    const personalDetailMerge = mockMerge.mock.calls.find(([key]) => key === ONYXKEYS.PERSONAL_DETAILS_LIST);
-    return requireRecord(personalDetailMerge?.[1], 'No optimistic personal detail merge');
+    const personalDetailUpdate = mockUpdate.mock.calls.flatMap(([updates]) => updates).find((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+    return requireRecord(personalDetailUpdate?.value, 'No optimistic personal detail update');
 }
 
 function getOptimisticAccountID(): number {
@@ -102,7 +102,7 @@ const OWNER_LOGIN = 'owner@test.com';
 describe('createAgent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockMerge.mockResolvedValue(undefined);
+        mockUpdate.mockResolvedValue(undefined);
     });
 
     it('calls write with CREATE_AGENT command and provided params', () => {

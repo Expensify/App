@@ -7,6 +7,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction, generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -64,7 +65,7 @@ function createAgent(
         isOptimisticPersonalDetail: true,
         ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
     };
-    const optimisticPersonalDetailPromise = Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: optimisticPersonalDetail});
+    const optimisticPersonalDetailPromise = Onyx.update([buildPersonalDetailsUpdate({[optimisticAccountID]: optimisticPersonalDetail})]);
 
     // Generate the DM report ID client-side so it can be written to Onyx and opened immediately.
     const optimisticReportID = generateReportID();
@@ -121,11 +122,7 @@ function createAgent(
     ];
 
     const failureData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[optimisticAccountID]: optimisticPersonalDetail},
-        },
+        buildPersonalDetailsUpdate({[optimisticAccountID]: optimisticPersonalDetail}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
@@ -175,7 +172,7 @@ function clearNewAgentTemplate() {
 }
 
 function clearAgentError(optimisticAccountID: number) {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
+    Onyx.update([buildPersonalDetailsUpdate({[optimisticAccountID]: null})]);
     Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
 }
 
@@ -199,11 +196,7 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
     const optimisticData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[agentAccountID]: {displayName: firstName}},
-        },
+        buildPersonalDetailsUpdate({[agentAccountID]: {displayName: firstName}}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
@@ -220,11 +213,7 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
     ];
 
     const failureData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[agentAccountID]: {displayName: originalFirstName}},
-        },
+        buildPersonalDetailsUpdate({[agentAccountID]: {displayName: originalFirstName}}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
@@ -280,18 +269,14 @@ function updateAgentAvatar(
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
     const optimisticData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [agentAccountID]: {
-                    avatar: update.uri,
-                    avatarThumbnail: update.uri,
-                    pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    errorFields: {avatar: null},
-                },
+        buildPersonalDetailsUpdate({
+            [agentAccountID]: {
+                avatar: update.uri,
+                avatarThumbnail: update.uri,
+                pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {avatar: null},
             },
-        },
+        }),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
@@ -300,16 +285,12 @@ function updateAgentAvatar(
     ];
 
     const successData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [agentAccountID]: {
-                    pendingFields: {avatar: null},
-                    errorFields: {avatar: null},
-                },
+        buildPersonalDetailsUpdate({
+            [agentAccountID]: {
+                pendingFields: {avatar: null},
+                errorFields: {avatar: null},
             },
-        },
+        }),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
@@ -318,18 +299,14 @@ function updateAgentAvatar(
     ];
 
     const failureData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [agentAccountID]: {
-                    avatar: currentAvatar,
-                    avatarThumbnail: typeof currentAvatar === 'string' ? currentAvatar : undefined,
-                    pendingFields: {avatar: null},
-                    errorFields: {avatar: null},
-                },
+        buildPersonalDetailsUpdate({
+            [agentAccountID]: {
+                avatar: currentAvatar,
+                avatarThumbnail: typeof currentAvatar === 'string' ? currentAvatar : undefined,
+                pendingFields: {avatar: null},
+                errorFields: {avatar: null},
             },
-        },
+        }),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
@@ -359,11 +336,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[agentAccountID]: null},
-        },
+        buildPersonalDetailsUpdate({[agentAccountID]: null}),
     ];
 
     const failureData: AnyOnyxUpdate[] = [
