@@ -2122,6 +2122,7 @@ describe('Transaction', () => {
                 };
 
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
                     transactionIDs: [transaction.transactionID],
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
@@ -2170,6 +2171,7 @@ describe('Transaction', () => {
                 };
 
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
                     transactionIDs: [transaction.transactionID],
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
@@ -2215,6 +2217,7 @@ describe('Transaction', () => {
                     await Onyx.merge(destinationReportKey, destinationReport);
 
                     changeTransactionsReport({
+                        isVendorMatchingBetaEnabled: false,
                         transactionIDs: [],
                         isASAPSubmitBetaEnabled: false,
                         accountID: CURRENT_USER_ID,
@@ -2256,6 +2259,7 @@ describe('Transaction', () => {
                 mockFetch.pause();
                 try {
                     changeTransactionsReport({
+                        isVendorMatchingBetaEnabled: false,
                         transactionIDs: [transaction.transactionID],
                         isASAPSubmitBetaEnabled: false,
                         accountID: CURRENT_USER_ID,
@@ -2292,6 +2296,7 @@ describe('Transaction', () => {
                 };
 
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
                     transactionIDs: [transaction.transactionID],
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
