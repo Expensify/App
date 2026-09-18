@@ -9,4 +9,3 @@ type UseRemeasureOnScrollParams = {
 type UseRemeasureOnScroll = (params: UseRemeasureOnScrollParams) => void;
 
 export default UseRemeasureOnScroll;
-export type {UseRemeasureOnScrollParams};

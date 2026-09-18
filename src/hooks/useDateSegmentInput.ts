@@ -279,4 +279,4 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     };
 }
 
-export type {DateSegmentProps, SegmentFocusRequest, UseDateSegmentInputParams, UseDateSegmentInputResult};
+export type {UseDateSegmentInputParams, UseDateSegmentInputResult};

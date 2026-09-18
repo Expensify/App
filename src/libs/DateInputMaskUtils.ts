@@ -157,6 +157,12 @@ function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digi
             return {value: combined, shouldAdvance: true};
         }
 
+        // Finishing the segment early only works while what it already holds can stand on its own. A leading zero
+        // cannot, so the keystroke is dropped and the segment keeps waiting for a digit that completes it.
+        if (Number(current) < FIRST_MONTH) {
+            return {value: current, shouldAdvance: false};
+        }
+
         return {value: current.padStart(SEGMENT_LENGTH, '0'), shouldAdvance: true, carry: digit};
     }
 
@@ -310,4 +316,4 @@ export {
     removeLastDigit,
     typeDigitIntoSegments,
 };
-export type {DateMaskPart, DateSegmentName, DateSegments};
+export type {DateSegmentName, DateSegments};
