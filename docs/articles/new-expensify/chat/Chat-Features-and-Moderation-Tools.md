@@ -1,8 +1,9 @@
 ---
 
 title: Chat Features and Moderation Tools
-description: Learn how to send, format, edit, delete, report, and manage messages and chat membership in New Expensify.
-keywords: [New Expensify, chat, edit messages, report chat, add members, leave room, thread]
+description: Learn how to send, format, edit, delete, report, and manage messages and chat membership in New Expensify, including how to download a file attachment.
+keywords: [New Expensify, chat, edit messages, report chat, add members, leave room, thread, download attachment, rename attachment, file attachment]
+internalScope: Audience is any New Expensify member using chat. Covers sending, formatting, editing, deleting, downloading attachments from, and moderating chat messages, plus chat membership. Does not cover receipts attached to expenses or Expensify Chat room administration.
 ---
 
 
@@ -42,6 +43,18 @@ You can send messages, attach files, and add emojis from the message bar at the 
 * Mention user: `@username`
 * Mention room: `#room-name`
 
+## How to download a file attachment from a chat message
+
+**Desktop:**
+1. Open a chat.
+2. Click the file card in the message, or right-click the message and select **Download**.
+
+**Mobile:**
+1. Open a chat.
+2. Tap the file card in the message, or long-press the message and select **Download**.
+
+The file is saved under the name shown on the file card. If the name shown on the card has no file extension, Expensify adds the original file's extension back so the file still opens correctly.
+
 ---
 
 # Edit or Delete Messages
@@ -59,6 +72,8 @@ You can send messages, attach files, and add emojis from the message bar at the 
 4. If editing, the message text appears in the composer at the bottom of the screen. Edit the text and tap the **Send** icon to save.
 
 ✏️ **Note:** You can only edit or delete your own messages. Deleted messages are permanently removed.
+
+📎 **Note:** Editing a message changes only its text. Any file attached to the message stays attached and keeps showing as a downloadable file card, including when you edit the message while the file is still uploading.
 
 ---
 
@@ -136,6 +151,12 @@ No, members must remove themselves.
 
 ## Will others see when I edit a message?
 Yes, an “edited” label will appear.
+
+## Will my file attachment stay attached if I edit the message?
+Yes. Editing changes only the message text, so the file stays attached and continues to show as a downloadable file card. This also applies when you edit the message before the upload finishes, or while you are offline.
+
+## Can I rename a file attachment?
+Yes. Select **Edit comment** on the message and change the file name in the composer. If you leave off the file extension, Expensify adds the original extension back when you download the file.
 
 ## Why can’t I message in some rooms?
 Rooms may have restricted posting permissions for Admins only. In other cases, the conversation may be read-only, and you’ll see a "This conversation is read-only" banner at the bottom of the chat.
