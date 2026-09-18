@@ -74,6 +74,7 @@ import type {GetReportTableColumnStylesParams} from '@styles/utils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1109,6 +1110,16 @@ function Search({
 
     if (hasErrors) {
         const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
+        // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy.
+        const isStale = responseStatusCode === CONST.JSON_CODE.NO_RESPONSE;
+        let subtitleKey: TranslationPaths = 'errorPage.subtitle';
+        if (isStale) {
+            subtitleKey = 'search.searchResults.staleResults.subtitle';
+        } else if (isInvalidQuery) {
+            subtitleKey = 'errorPage.wrongTypeSubtitle';
+        }
+
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
@@ -1117,20 +1128,21 @@ function Search({
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
                     title={
-                        isInvalidQuery
-                            ? translate('errorPage.title', {
+                        isStale
+                            ? translate('search.searchResults.staleResults.title')
+                            : translate('errorPage.title', {
                                   isBreakLine: shouldUseNarrowLayout,
                               })
-                            : translate('search.searchResults.staleResults.title')
                     }
-                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'search.searchResults.staleResults.subtitle')}
-                    // A failed request leaves results that are out of date rather than broken, so that case gets the
-                    // refresh copy and illustration. An invalid query keeps the error copy, since it really did fail.
-                    {...(!isInvalidQuery && {
+                    subtitle={translate(subtitleKey)}
+                    {...(isStale && {
                         illustration: 'FolderSync',
                         illustrationWidth: variables.iconSizeUltraLarge,
                         illustrationHeight: variables.iconSizeUltraLarge,
-                        buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
+                    })}
+                    // Retrying an invalid query won't help, so the retry button is only offered for other failures.
+                    {...(!isInvalidQuery && {
+                        buttonTranslationKey: isStale ? 'search.searchResults.staleResults.buttonText' : 'common.tryAgain',
                         onButtonPress: () => {
                             // A response replaces the snapshot's results rather than appending to them, so retrying at
                             // the paginated offset would leave only that later page behind. Retry from the first page.
