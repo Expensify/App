@@ -205,8 +205,10 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         goBack();
     };
 
-    // Linking a feed from another workspace needs the network, which is why those rows are also disabled offline.
-    const isSaveDisabled = !currentSelectedFundID || currentSelectedFundID === lastSelectedExpensifyCardFeedID || (isOtherWorkspaceFeedStaged && isOffline);
+    // Any row on the page is a valid thing to submit, matching the pre-Save behaviour where tapping any row committed
+    // it. Re-saving the active feed is a no-op, and an offline link attempt surfaces its own error on the row. This
+    // also keeps Save usable for a fallback feed that lands in otherFeeds while still resolving as the default fund.
+    const isSaveDisabled = !currentSelectedFundID;
 
     const confirmButtonOptions = {
         showButton: true,

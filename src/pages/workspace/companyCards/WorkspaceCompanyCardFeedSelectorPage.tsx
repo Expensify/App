@@ -200,8 +200,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         goBack();
     };
 
-    // Linking a feed from another workspace needs the network, which is why those rows are also disabled offline.
-    const isSaveDisabled = !currentSelectedFeed || currentSelectedFeed === selectedFeedName || (!!stagedOtherWorkspaceFeed && isOffline);
+    // Any row on the page is a valid thing to submit, matching the pre-Save behaviour where tapping any row committed
+    // it. Re-saving the active feed is a no-op, and an offline link attempt surfaces its own error on the row.
+    const isSaveDisabled = !currentSelectedFeed;
 
     const confirmButtonOptions = {
         showButton: true,
