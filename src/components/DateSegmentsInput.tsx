@@ -46,7 +46,21 @@ const SIZED_TO_CONTENT = {flexGrow: 0, flexShrink: 0, flexBasis: 'auto', width: 
 /** Holds a copy of a segment's text purely to be measured, so it must not take part in the layout it is measuring */
 const MEASURED_OFF_LAYOUT = {position: 'absolute', opacity: 0} as const;
 
-function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, disabled, onPressOut, forwardedFSClass, ref}: BaseTextInputProps) {
+function DateSegmentsInput({
+    dateSegmentsConfig,
+    style,
+    placeholderTextColor,
+    disabled,
+    onPressOut,
+    onFocus,
+    onBlur,
+    readOnly,
+    forwardedFSClass,
+    accessibilityLabel,
+    'aria-describedby': ariaDescribedBy,
+    'aria-invalid': ariaInvalid,
+    ref,
+}: BaseTextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const segmentRefs = useRef<Partial<Record<DateSegmentName, AnimatedTextInputRef | null>>>({});
@@ -77,15 +91,26 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
 
     const {mask, getSegmentProps, requestInitialFocus, onFieldBlur} = dateSegmentsConfig;
 
-    const handleSegmentBlur = () => {
+    /**
+     * The field's own blur handler is what a form hangs its validation on, so it has to wait for the whole field to be
+     * left rather than run on every hop between segments.
+     */
+    const handleSegmentBlur: NonNullable<BaseTextInputProps['onBlur']> = (event) => {
         clearTimeout(blurTimeoutRef.current);
-        blurTimeoutRef.current = setTimeout(onFieldBlur, 0);
+        blurTimeoutRef.current = setTimeout(() => {
+            onFieldBlur();
+            onBlur?.(event);
+        }, 0);
     };
 
     // The segments stretch down the row as a single input would, so the padding they inherit lands their text in the
     // same place as any other text field's
     return (
-        <View style={[styles.flexRow, styles.flex1]}>
+        <View
+            style={[styles.flexRow, styles.flex1]}
+            role="group"
+            accessibilityLabel={accessibilityLabel}
+        >
             {getDateMaskParts(mask).map((part) => {
                 const segmentProps = getSegmentProps(part.name);
                 const measuredText = segmentProps.value || part.placeholder;
@@ -124,16 +149,20 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
                             placeholderTextColor={placeholderTextColor}
                             onKeyPress={segmentProps.onKeyPress}
                             onChangeText={segmentProps.onChangeText}
-                            onFocus={() => {
+                            onFocus={(event) => {
                                 clearTimeout(blurTimeoutRef.current);
                                 segmentProps.onFocus();
+                                onFocus?.(event);
                             }}
                             onBlur={handleSegmentBlur}
                             onPressOut={onPressOut}
                             accessibilityLabel={translate(`common.dateSegments.${part.name}`)}
                             inputMode="numeric"
                             disabled={disabled}
+                            readOnly={readOnly}
                             forwardedFSClass={forwardedFSClass}
+                            aria-describedby={ariaDescribedBy}
+                            aria-invalid={ariaInvalid}
                         />
                         {!!part.separator && <Text style={[style, NO_HORIZONTAL_PADDING, styles.pointerEventsNone, SIZED_TO_CONTENT]}>{part.separator}</Text>}
                     </React.Fragment>

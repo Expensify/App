@@ -185,14 +185,15 @@ function DatePicker({
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
-            // Preventing the press would also stop focus from landing in the segment the user clicked.
-            if (!shouldAllowTyping && 'preventDefault' in event) {
+            // The field focuses its own input on any press it is not told to leave alone, which would be the year
+            // whichever segment was actually pressed. The segments are focused by the press itself instead.
+            if ('preventDefault' in event) {
                 event.preventDefault();
             }
 
             showDatePickerModal();
         },
-        [shouldAllowTyping, showDatePickerModal],
+        [showDatePickerModal],
     );
 
     // Reaching the field by keyboard never fires a press, so focus is what opens the calendar once typing is allowed.
