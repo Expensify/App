@@ -13,11 +13,11 @@ import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType, DynamicFormKeyboard} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldType, DynamicFormKeyboard} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import type {DynamicFieldContext, DynamicFieldFactory, DynamicFieldInput, DynamicFormValues} from './types';
+import type {DynamicFieldContext, DynamicFieldFactory, DynamicFieldInput} from './types';
 
 import addressAdapter from './adapters/addressAdapter';
 import AmountWithCurrencyAdapter from './adapters/AmountWithCurrencyAdapter';
@@ -26,6 +26,7 @@ import InlineSelectionListAdapter from './adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from './adapters/ListFieldAdapter';
 import MultiSelectPushRowAdapter from './adapters/MultiSelectPushRowAdapter';
 import YesNoAdapter from './adapters/YesNoAdapter';
+import {getFieldOptions, getOptionLabel} from './getFieldOptions';
 
 const SELECT_MODAL_THRESHOLD = 8;
 const DIGITS_ONLY_REGEX = /^\^?(?:\\d|\[0-9\])(?:\{\d+(?:,\d*)?\}|[+*])?\$?$/;
@@ -54,18 +55,6 @@ function getInputMode(field: DynamicFormField): ValueOf<typeof CONST.INPUT_MODE>
         return INPUT_MODE_BY_KEYBOARD[field.keyboard];
     }
     return field.regex && DIGITS_ONLY_REGEX.test(field.regex) ? CONST.INPUT_MODE.NUMERIC : undefined;
-}
-
-function getOptionLabel(option: DynamicFormFieldOption, translate: LocalizedTranslate): string {
-    return option.labelKey ? translate(option.labelKey) : (option.label ?? option.key);
-}
-
-function getFieldOptions(field: DynamicFormField, values: DynamicFormValues): DynamicFormFieldOption[] {
-    if (!field.dependsOn) {
-        return field.values ?? [];
-    }
-    const controllingValue = values[field.dependsOn.key];
-    return typeof controllingValue === 'string' ? (field.dependsOn.valuesBy[controllingValue] ?? []) : [];
 }
 
 function getChoices(field: DynamicFormField, {values, translate}: DynamicFieldContext) {
@@ -194,4 +183,4 @@ function getInputComponentForField(field: DynamicFormField, context: DynamicFiel
 }
 
 export default getInputComponentForField;
-export {getFieldDescription, getFieldLabel, getFieldOptions, getOptionLabel, isCountryCode};
+export {getFieldDescription, getFieldLabel, isCountryCode};

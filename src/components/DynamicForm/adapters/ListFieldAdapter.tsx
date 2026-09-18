@@ -174,4 +174,3 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
 }
 
 export default ListFieldAdapter;
-export {summarizeItem};
