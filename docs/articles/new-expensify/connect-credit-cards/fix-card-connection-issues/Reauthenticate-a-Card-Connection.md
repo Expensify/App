@@ -22,7 +22,7 @@ If you're not sure whether you need to reauthenticate or fix a broken connection
 ## Who can reauthenticate a connection
 
 - **Personal cards:** the cardholder reauthenticates their own card in **Account > Wallet**.
-- **Company card feeds:** a workspace admin or card admin reauthenticates the feed under **Workspace > Company cards**. Individual members can't reauthenticate a company card feed.
+- **Company card feeds:** a workspace admin or card admin reauthenticates the feed under **Workspaces > [workspace name] > Company cards**. Individual members can't reauthenticate a company card feed.
 
 ---
 
@@ -43,7 +43,7 @@ Purpose: Show where the cardholder starts the reauthentication flow.
 
 ## How to reauthenticate a company card feed
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Company cards**.
 3. Locate the feed showing the reauthentication message.
 4. Select the message under the feed name and follow the prompts to log into your bank and re-approve the connection.
