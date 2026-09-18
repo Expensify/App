@@ -112,6 +112,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+        translationKey: 'common.violations',
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
         translationKey: 'common.tagGLCode',
         sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
@@ -452,6 +457,15 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
                     translationKey: 'common.tag',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
+                    translationKey: 'search.filters.groupBy.day',
                     isColumnSortable: true,
                 },
                 ...commonGroupHeaders,

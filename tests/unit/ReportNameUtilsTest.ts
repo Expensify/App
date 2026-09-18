@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
@@ -19,6 +18,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -30,7 +30,7 @@ import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createReg
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const currentUserLogin = 'lagertha2@vikings.net';
@@ -48,6 +48,9 @@ describe('ReportNameUtils', () => {
     ) =>
         computeReportNameOriginal({
             dateFnsLocale: undefined,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
+            getCurrencySymbol: getCurrencySymbolLocal,
             conciergeReportID: undefined,
             report,
             reports,
@@ -62,6 +65,7 @@ describe('ReportNameUtils', () => {
             translate: translateLocal,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            rules: undefined,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -307,6 +311,9 @@ describe('ReportNameUtils', () => {
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: undefined,
                 report,
                 reports: emptyCollections.reports,
@@ -320,6 +327,7 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 reportTransactions: {},
                 formatPhoneNumber,
+                rules: undefined,
             });
             // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
             expect(name).toBe('Lagertha Lothbrok (you marker)');
@@ -403,6 +411,77 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
             );
             expect(name).toBe('');
+        });
+    });
+
+    describe('computeReportName - Concierge threads', () => {
+        const conciergeReportID = '777';
+        const parentReportActionID = '888';
+        const question = 'How do I set up QuickBooks?';
+
+        const computeConciergeThreadName = (threadReportName: string, parentMessage: Message = {type: 'COMMENT', html: question, text: question}) => {
+            const conciergeDM = {...createRegularChat(90, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]), reportID: conciergeReportID};
+            const thread: Report = {
+                ...createRegularChat(91, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                reportName: threadReportName,
+                parentReportID: conciergeReportID,
+                parentReportActionID,
+            };
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: parentReportActionID,
+                message: [parentMessage],
+                created: '',
+                lastModified: '',
+                actorAccountID: currentUserAccountID,
+                person: [],
+            });
+
+            return computeReportNameOriginal({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                conciergeReportID,
+                report: thread,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`]: conciergeDM},
+                policies: emptyCollections.policies,
+                transactions: undefined,
+                allReportNameValuePairs: undefined,
+                personalDetailsList: participantsPersonalDetails,
+                reportActions: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`]: {[parentReportActionID]: parentAction}},
+                currentUserAccountID,
+                currentUserLogin,
+                reportTransactions: buildTransactionsByReportID(undefined),
+                translate: translateLocal,
+                isTrackIntentUser: false,
+                rules: undefined,
+            });
+        };
+
+        test('uses the generated title once Concierge has titled the thread', () => {
+            expect(computeConciergeThreadName('QuickBooks setup')).toBe('QuickBooks setup');
+        });
+
+        test('falls back to the question while the thread still has the default name', () => {
+            expect(computeConciergeThreadName(CONST.REPORT.DEFAULT_REPORT_NAME)).toBe(question);
+        });
+
+        test('localizes an attachment thread named after its parent message', async () => {
+            // A thread opened by hand is named after the parent message, so an attachment stores the literal "[Attachment]".
+            const attachmentMessage: Message = {
+                type: 'COMMENT',
+                html: `<img src="https://example.com/receipt.png" ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="https://example.com/receipt.png" />`,
+                text: CONST.ATTACHMENT_MESSAGE_TEXT,
+                translationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            };
+
+            await IntlStore.load(CONST.LOCALES.ES);
+            const threadName = computeConciergeThreadName(CONST.ATTACHMENT_MESSAGE_TEXT, attachmentMessage);
+            expect(threadName).not.toBe(CONST.ATTACHMENT_MESSAGE_TEXT);
+            expect(threadName).toBe(`[${translateLocal('common.attachment')}]`);
+
+            await IntlStore.load(CONST.LOCALES.EN);
         });
     });
 
@@ -696,6 +775,9 @@ describe('ReportNameUtils', () => {
 
             const name = computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: undefined,
                 report: thread,
                 reports: emptyCollections.reports,
@@ -710,6 +792,7 @@ describe('ReportNameUtils', () => {
                 reportTransactions: {},
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(name).toContain('Cost Center');
@@ -920,6 +1003,77 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
             );
             expect(employeePaysName).toBe('updated the currency conversion fee setting to "Employee pays"');
+        });
+
+        test('UPDATE_OVER_LIMIT_FORWARDS_TO parent action', () => {
+            const thread: Report = createWorkspaceThread(153);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const member = {email: 'member@example.com', name: 'Member', accountID: 100};
+            const approver = {email: 'approver@example.com', name: 'Approver', accountID: 200};
+            const setParentAction: ReportAction = {
+                ...createRandomReportAction(153),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: actionId,
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 10000, currency: 'USD'},
+            };
+
+            const setName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: setParentAction}},
+                currentUserAccountID,
+            );
+            expect(setName).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+
+            const removedParentAction: ReportAction = {
+                ...setParentAction,
+                originalMessage: {member, previousOverLimitForwardsTo: approver, previousLimit: 10000, currency: 'USD'},
+            };
+            const removedName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: removedParentAction}},
+                currentUserAccountID,
+            );
+            expect(removedName).toBe('changed the approval workflow for member@example.com to stop forwarding reports over $100.00 (previously forwarded to approver@example.com)');
+        });
+
+        test('UPDATE_APPROVAL_LIMIT parent action', () => {
+            const thread: Report = createWorkspaceThread(154);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const parentAction: ReportAction = {
+                ...createRandomReportAction(154),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                reportActionID: actionId,
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    limit: 20000,
+                    previousLimit: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction}},
+                currentUserAccountID,
+            );
+            expect(name).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
         });
 
         test('UPDATE_CUSTOM_UNIT_RATE parent action', () => {
@@ -1547,7 +1701,7 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
             });
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Ragnar, floki@vikings.net');
         });
 
@@ -1556,7 +1710,7 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1001, [currentUserAccountID, 1]),
             });
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Ragnar Lothbrok');
         });
 
@@ -1571,6 +1725,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}},
                 currentUserAccountID,
                 translate: translateWithHiddenMarker,
+                formatPhoneNumber,
             });
             expect(name).toBe('HiddenMarker');
         });
@@ -1938,6 +2093,7 @@ describe('ReportNameUtils', () => {
             const reportName = getMoneyRequestReportName({
                 report: iouReport,
                 translate: translateWithHiddenMarker,
+                convertToDisplayString,
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 formatPhoneNumber,
@@ -1970,6 +2126,7 @@ describe('ReportNameUtils', () => {
                 linkedTransactions: [],
                 translate: translateLocal,
                 formatPhoneNumber,
+                convertToDisplayString,
             });
             expect(reportName?.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok');
         });
@@ -2001,6 +2158,7 @@ describe('ReportNameUtils', () => {
                 linkedTransactions: [],
                 translate: translateLocal,
                 formatPhoneNumber,
+                convertToDisplayString,
             });
 
             // Then it should return "New Report"
@@ -2050,6 +2208,7 @@ describe('ReportNameUtils', () => {
                 linkedTransactions: [],
                 translate: translateLocal,
                 formatPhoneNumber,
+                convertToDisplayString,
             });
 
             // Then it should NOT return empty string — it should fall through to dynamic name computation
@@ -2113,6 +2272,7 @@ describe('ReportNameUtils', () => {
                 linkedTransactions: [nonReimbursableTransaction],
                 translate: translateLocal,
                 formatPhoneNumber,
+                convertToDisplayString,
             });
 
             // Then it should use the "spent" wording with the owner's display name
@@ -2170,6 +2330,7 @@ describe('ReportNameUtils', () => {
                 linkedTransactions: [],
                 translate: translateWithUnavailableMarker,
                 formatPhoneNumber,
+                convertToDisplayString,
             });
 
             expect(reportName).toContain('UnavailableWorkspaceMarker');
@@ -2313,6 +2474,9 @@ describe('ReportNameUtils', () => {
             // When the threaded conciergeReportID matches the report
             const nameWithMatchingID = computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: 'concierge-name-1',
                 report,
                 transactions: undefined,
@@ -2322,12 +2486,16 @@ describe('ReportNameUtils', () => {
                 reportTransactions: {},
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
 
             // And an identical report with a non-matching conciergeReportID keeps its regular name
             const nameWithDifferentID = computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: 'a-different-report-id',
                 report,
                 transactions: undefined,
@@ -2336,7 +2504,7 @@ describe('ReportNameUtils', () => {
                 translate: translateLocal,
                 reportTransactions: {},
                 isTrackIntentUser: false,
-                formatPhoneNumber,
+                rules: undefined,
             });
             expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });

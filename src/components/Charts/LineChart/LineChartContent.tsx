@@ -45,7 +45,6 @@ const DOT_HOVER_EXTRA_RADIUS = 2;
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
 type LineChartProps = CartesianChartProps & {
-    /** Callback when a data point is pressed */
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 

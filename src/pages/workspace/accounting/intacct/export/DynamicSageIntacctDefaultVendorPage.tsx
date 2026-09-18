@@ -35,7 +35,7 @@ const CLEAR_DEFAULT_VENDOR = '';
 
 function DynamicSageIntacctDefaultVendorPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR>>();
     const policyID = route.params.policyID;
@@ -67,15 +67,13 @@ function DynamicSageIntacctDefaultVendorPage() {
         settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
     }
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor, localeCompare), [defaultVendor, localeCompare, policy]);
 
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
                 <Text style={[styles.pb5, styles.textNormal]}>
-                    {isReimbursable
-                        ? translate('workspace.sageIntacct.defaultVendorDescription', true)
-                        : translate('workspace.accounting.defaultVendorSelectHeader', translate('workspace.accounting.connectionName', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT))}
+                    {isReimbursable ? translate('workspace.sageIntacct.defaultVendorDescription', true) : translate('workspace.accounting.defaultVendorSelectHeader')}
                 </Text>
             </View>
         ),

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -18,6 +18,7 @@ import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTags
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -67,7 +68,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type DynamicIOURequestStepDistanceManualProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 
@@ -87,7 +87,8 @@ function DynamicIOURequestStepDistanceManual({
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
     const isArchived = useReportIsArchived(report?.reportID);
@@ -107,7 +108,7 @@ function DynamicIOURequestStepDistanceManual({
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -118,7 +119,7 @@ function DynamicIOURequestStepDistanceManual({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -131,6 +132,7 @@ function DynamicIOURequestStepDistanceManual({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -160,6 +162,7 @@ function DynamicIOURequestStepDistanceManual({
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
+        isEditingExistingDistanceRequest: isEditing,
     });
 
     // to make sure the correct distance amount and unit will be shown we use distance unit
@@ -269,6 +272,7 @@ function DynamicIOURequestStepDistanceManual({
 
             if (shouldUpdateTransaction) {
                 updateMoneyRequestDistance({
+                    isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
@@ -288,8 +292,10 @@ function DynamicIOURequestStepDistanceManual({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`],
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             }
             Navigation.goBack(backTo);
@@ -302,10 +308,12 @@ function DynamicIOURequestStepDistanceManual({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             iouType,
             action,
             report,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,
@@ -350,6 +358,7 @@ function DynamicIOURequestStepDistanceManual({
             getCurrencySymbol,
             participants,
             participantsPolicyTags,
+            rules,
         });
     };
 

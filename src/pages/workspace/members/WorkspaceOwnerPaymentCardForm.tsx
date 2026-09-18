@@ -28,7 +28,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceOwnerPaymentCardFormProps = {
-    /** The policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
@@ -38,7 +37,6 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
-    const policyID = policy?.id;
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
 
     const checkIfCanBeRendered = useCallback(() => {
@@ -78,9 +76,9 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                 addressZip: values.addressZipCode,
                 currency: values.currency,
             };
-            addBillingCardAndRequestPolicyOwnerChange(policyID, currentUserAccountID, currentUserEmail, cardData);
+            addBillingCardAndRequestPolicyOwnerChange(policy, currentUserAccountID, currentUserEmail, cardData);
         },
-        [currentUserAccountID, currentUserEmail, policyID],
+        [currentUserAccountID, currentUserEmail, policy],
     );
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
