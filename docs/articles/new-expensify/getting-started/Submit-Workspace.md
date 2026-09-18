@@ -137,9 +137,38 @@ If you have a free Submit workspace, you can upgrade it to a paid Collect or Con
 Workspace Editors and anyone who approves a report on a Submit workspace can upgrade the workspace:
 
  - Workspace Editors can switch the **Plan type** in the workspace **Overview** tab.
+ - Workspace Editors can turn on a premium feature in the workspace settings and upgrade when prompted.
  - Anyone who approves a report can upgrade the workspace by clicking **Approve** on a report submitted to them. 
 
 You can’t downgrade a Collect or Control workspace back to a Submit workspace after upgrading.
+
+---
+
+## What plan a Submit workspace upgrades to when you turn on a premium feature
+
+When you turn on a premium feature in a Submit workspace, an upgrade page opens and names the plan that feature requires. Click **Upgrade** to move the workspace to that plan.
+
+Features that are only available on the Control plan upgrade the workspace to **Control**, including:
+
+ - **Report fields**
+ - **Prevent members from changing custom report titles**
+ - **GL codes**, **GL & Payroll codes**, and **Tax codes**
+ - **Multi-level tags**
+ - **Multiple approval levels** and **Prevent self-approvals**
+ - **Per diem**
+ - **Rules**
+
+Features that are included in the Collect plan upgrade the workspace to **Collect**, including:
+
+ - **Categories**
+ - **Travel**
+ - **Company cards**
+ - **Approvals**
+ - **Payments**
+
+After the upgrade finishes, the feature you turned on stays on. If you turn that feature off later, the workspace stays on its new plan, and you can turn the feature back on without upgrading again.
+
+To move a workspace between the Collect and Control plans afterward, [learn how to change your workspace plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan).
 
 ---
 
