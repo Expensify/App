@@ -22,4 +22,4 @@ type ScrollTappedLineIntoViewParams = {
 
 type ScrollTappedLineIntoView = (params: ScrollTappedLineIntoViewParams) => void;
 
-export type {ScrollTappedLineIntoView, ScrollTappedLineIntoViewParams};
+export default ScrollTappedLineIntoView;

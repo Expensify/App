@@ -2,7 +2,7 @@ import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputF
 
 import variables from '@styles/variables';
 
-import type {ScrollTappedLineIntoView} from './types';
+import type ScrollTappedLineIntoView from './types';
 
 /** Gap kept between the tapped line and the keyboard, so the line doesn't sit flush against it. */
 const TAPPED_LINE_BOTTOM_MARGIN = variables.lineHeightXLarge;
