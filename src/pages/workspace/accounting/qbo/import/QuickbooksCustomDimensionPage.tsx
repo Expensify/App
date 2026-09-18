@@ -1,8 +1,6 @@
-import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
-import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -40,8 +38,7 @@ function QuickbooksCustomDimensionPage({policy, route}: QuickbooksCustomDimensio
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const dimension = policy?.connections?.quickbooksOnline?.data?.customDimensions?.find((customDimension) => customDimension.id === dimensionID && customDimension.active);
     const isSwitchOn = qboConfig?.syncCustomDimensions?.[dimensionID] === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
-    const pendingAction = settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS], qboConfig?.pendingFields);
-    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isSwitchOn);
+    const dimensionSetting = `${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_${dimensionID}`;
 
     return (
         <ConnectionLayout
@@ -68,22 +65,18 @@ function QuickbooksCustomDimensionPage({policy, route}: QuickbooksCustomDimensio
                         qboConfig?.syncCustomDimensions,
                     )
                 }
-                disabled={!!pendingAction}
-                pendingAction={pendingAction}
-                errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS)}
-                onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS)}
+                pendingAction={settingsPendingAction([dimensionSetting], qboConfig?.pendingFields)}
+                errors={getLatestErrorField(qboConfig, dimensionSetting)}
+                onCloseError={() => clearQBOErrorField(policyID, dimensionSetting)}
+                subMenuItems={
+                    <MenuItemWithTopDescription
+                        title={translate('workspace.common.tags')}
+                        description={translate('workspace.common.displayedAs')}
+                        interactive={false}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
+                    />
+                }
             />
-            <Accordion
-                isExpanded={isAccordionExpanded}
-                isToggleTriggered={shouldAnimateAccordionSection}
-            >
-                <MenuItemWithTopDescription
-                    title={translate('workspace.common.tags')}
-                    description={translate('workspace.common.displayedAs')}
-                    interactive={false}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                />
-            </Accordion>
         </ConnectionLayout>
     );
 }
