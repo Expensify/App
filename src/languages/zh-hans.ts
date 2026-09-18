@@ -367,6 +367,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: '降级工作区',
         companyID: '公司 ID',
         userID: '用户 ID',
+        tenantID: '租户 ID',
+        environmentName: '环境名称',
+        clientID: '客户端 ID',
+        clientSecret: '客户端密码',
         disable: '禁用',
         export: '导出',
         initialValue: '初始值',
@@ -526,12 +530,14 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: '在LinkedIn上关注我们',
     },
     concierge: {
+        hasAnAnswer: 'Concierge 已有答案！',
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
         enableNotifications: {
             prompt: '希望在Concierge回复时收到通知吗？',
             cta: '通知',
         },
+        feedback: {prompt: '这个回复有用吗？', useful: '有用回复', notUseful: '无用回复', thanks: '感谢你的反馈！'},
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1236,6 +1242,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '随它去',
         dropMessage: '将文件拖放到此处',
         flash: '闪光',
+        flipCamera: '翻转摄像头',
         multiScan: '多重扫描',
         shutter: '快门',
         gallery: '图库',
@@ -1736,6 +1743,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: '无法拒绝该报销，因为它可能已被移动或已被拒绝。',
         },
         moveExpenses: '移动到报告',
+        autoReport: '自动报告',
+        autoReportDescription: '代表员工添加到草稿报告',
         moveExpensesMaxTransactionsError: `每个报告最多可包含 ${CONST.REPORT.MAX_TRANSACTIONS} 笔支出。请将部分支出移动到其他报告。`,
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         submitReportTo: {
@@ -2451,7 +2460,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
         copyCodes: '复制代码',
-        twoFactorAuthIsRequiredNetSuiteDescription: '出于安全考虑，NetSuite 要求使用双重身份验证来连接此集成。',
     },
     recoveryCodeForm: {
         error: {
@@ -5120,6 +5128,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自掏腰包的报销在支付时会导出',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct 货币转换手续费科目',
+            fxExpenseAccountDescription: '当您公司承担境外付款的货币兑换成本时，我们会在 Sage Intacct 中将该成本作为一条日记账分录记入此科目。',
         },
         certinia: {
             title: 'Certinia',
@@ -5371,6 +5381,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noSubsidiariesFoundDescription: '请在 NetSuite 中添加一个子公司，然后再次同步连接',
             tokenInput: {
                 title: 'NetSuite 设置',
+                connectWithTokenAuthentication: '改为使用基于令牌的身份验证（SOAP）连接',
                 formSteps: {
                     installBundle: {
                         title: '安装 Expensify 插件包',
@@ -6869,6 +6880,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7101,6 +7114,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在同步信用卡结算';
                         case 'campfireSyncTravelSettlements':
                             return '正在同步差旅结算';
+                        case 'businessCentralSyncTitle':
+                            return '同步 Dynamics 365 Business Central 数据';
+                        case 'businessCentralSyncConnection':
+                            return '正在初始化与 Dynamics 365 Business Central 的连接';
+                        case 'businessCentralSyncImportData':
+                            return '正在加载数据';
                         default: {
                             return `阶段缺少翻译：${stage}`;
                         }
@@ -7139,6 +7158,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -7440,6 +7460,12 @@ ${reportName}`,
                 description: `通过 Expensify 与 Campfire 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Campfire 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 Campfire 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `通过 Expensify 与 Dynamics 365 Business Central 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Dynamics 365 Business Central 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Dynamics 365 Business Central 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',
@@ -8348,6 +8374,17 @@ ${reportName}`,
             enableNewAccountsDescription: '新的 Campfire 账户将可用作类别。',
             dimensionsImport: '所有 Campfire 维度都会作为标签导入',
         },
+        businessCentral: {
+            businessCentralSetup: 'Dynamics 365 Business Central 设置',
+            prerequisitesTitle: '在你连接之前…',
+            followSteps: '请按照我们的《操作指南：连接到 Dynamics 365 Business Central》中的步骤进行操作',
+            enterCredentials: '输入你的 Dynamics 365 Business Central 详细信息',
+            helpArticle: `<muted-text>请参阅此<a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">帮助文章</a>以查找该信息。</muted-text>`,
+            subsidiary: '子公司',
+            subsidiarySelectDescription: '选择要与此工作区同步的 Dynamics 365 Business Central 子公司。',
+            noCompaniesFound: '未找到公司',
+            noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加一家公司并重新同步连接',
+        },
     },
     getAssistancePage: {
         title: '获取帮助',
@@ -9236,6 +9273,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '商户',
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
+                [CONST.SEARCH.GROUP_BY.DAY]: '天',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
                 [CONST.SEARCH.GROUP_BY.WEEK]: '周',
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年份',
@@ -9273,6 +9311,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: '商家',
             [CONST.SEARCH.GROUP_BY.TAG]: '标签',
+            [CONST.SEARCH.GROUP_BY.DAY]: '天',
             [CONST.SEARCH.GROUP_BY.MONTH]: '月数',
             [CONST.SEARCH.GROUP_BY.WEEK]: '周',
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',

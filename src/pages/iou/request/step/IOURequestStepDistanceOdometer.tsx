@@ -20,6 +20,8 @@ import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -102,6 +104,8 @@ function IOURequestStepDistanceOdometer({
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {translate, fromLocaleDigit, numberFormat} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -122,14 +126,14 @@ function IOURequestStepDistanceOdometer({
     const userHasUnsavedTypingRef = useRef(false);
 
     const isArchived = useReportIsArchived(report?.reportID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const reportAttributesDerived = useReportAttributes();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const policy = usePolicy(report?.policyID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
@@ -427,6 +431,7 @@ function IOURequestStepDistanceOdometer({
             if (hasChanges) {
                 // Update distance (which will also update amount and merchant)
                 updateMoneyRequestDistance({
+                    isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
                     parentReport,

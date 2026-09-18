@@ -15,7 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 
-import updateUnread from './updateUnread';
+import updateUnread, {setUnreadUpdateCallback} from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
@@ -100,7 +100,8 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             report,
             chatReport,
             currentReportId: currentReportID,
-            betas: [],
+            // This list never had the beta, it used to pass an empty betas array, so it stays off on purpose
+            isDefaultRoomsBetaEnabled: false,
             doesReportHaveViolations: false,
             isInFocusMode: false,
             excludeEmptyChats: false,
@@ -128,8 +129,13 @@ const triggerUnreadUpdate = debounce(() => {
     // We want to keep notification count consistent with what can be accessed from the LHN list
     const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID, draftComment);
 
-    updateUnread(unreadReports.length);
+    updateUnread(
+        unreadReports.length,
+        unreadReports.map((report) => report?.reportID).filter((reportID): reportID is string => !!reportID),
+    );
 }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
+
+setUnreadUpdateCallback(triggerUnreadUpdate);
 
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
