@@ -5,7 +5,7 @@ import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs, useDynamicYDomain} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
 import {calculateMinDomainPadding, getFontLineMetrics, measureTextWidth} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -106,7 +106,30 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
     // Text is drawn from its top-left, so the label top sits one label gap below the plot's bottom edge.
     const labelTop = chartBottom + VictoryTheme.axis.labelGap;
 
+    // Labels are centered on their tick; when the widest one is wider than the tick spacing, show every Nth so they don't collide.
+    const skipInterval = (() => {
+        if (xTicks.length <= 1) {
+            return 1;
+        }
+        let minTickSpacing = Infinity;
+        for (let i = 1; i < xTicks.length; i++) {
+            const gap = Math.abs(xScale(xTicks.at(i) ?? 0) - xScale(xTicks.at(i - 1) ?? 0));
+            if (gap > 0) {
+                minTickSpacing = Math.min(minTickSpacing, gap);
+            }
+        }
+        const widestLabel = Math.max(0, ...paragraphs.map((item) => item.width));
+        const required = widestLabel + LABEL_PADDING;
+        if (!Number.isFinite(minTickSpacing) || minTickSpacing >= required) {
+            return 1;
+        }
+        return Math.ceil(required / minTickSpacing);
+    })();
+
     return xTicks.map((tick, i) => {
+        if (i % skipInterval !== 0) {
+            return null;
+        }
         const paraData = paragraphs.at(i);
         if (!paraData) {
             return null;
@@ -287,6 +310,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     formatValue={(yValue: number) => data.at(lastIndex - yValue)?.label ?? ''}
                     labelGap={CATEGORY_LABEL_GAP}
                     leftAlign
+                    avoidOverlap
                 />
             </>
         );
