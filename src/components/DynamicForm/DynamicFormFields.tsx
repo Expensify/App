@@ -43,7 +43,7 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
                             key={field.key}
                             style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
                         >
-                            {!!shouldRenderLabelAbove && <Text style={[styles.textLabelSupporting, styles.mb2, isMenuRow && styles.ph5]}>{label}</Text>}
+                            {!!shouldRenderLabelAbove && <Text style={[styles.mutedTextLabel, styles.mb3, isMenuRow && styles.ph5]}>{label}</Text>}
                             <InputWrapper
                                 InputComponent={InputComponent}
                                 inputID={field.key}

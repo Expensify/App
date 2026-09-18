@@ -1,9 +1,9 @@
-import Button from '@components/Button';
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
 import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
 import groupFieldsIntoPages from '@components/DynamicForm/groupFieldsIntoPages';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import FormProvider from '@components/Form/FormProvider';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +33,7 @@ type DynamicFormStoryProps = {
     /** Answers seeded into the form draft before the first render */
     draftValues: Record<string, string | boolean | string[]>;
 
-    /** One group per page with Next and Back, or every group on one page */
+    /** One group per step inside InteractiveStepWrapper, or every group on one page for screenshots */
     layout: 'pages' | 'single';
 };
 
@@ -72,7 +72,7 @@ function SinglePage({fields, draftValues}: LayoutProps) {
             {({inputValues}) =>
                 pages.map((page) => (
                     <View key={page.name}>
-                        <Text style={[defaultStyles.textHeadlineH2, defaultStyles.mt5, defaultStyles.mb2]}>{page.name}</Text>
+                        <Text style={[defaultStyles.textHeadlineLineHeightXXL, defaultStyles.mt5, defaultStyles.mb3]}>{page.name}</Text>
                         <DynamicFormFields
                             fields={page.fields}
                             values={inputValues}
@@ -101,15 +101,17 @@ function PageByPage({fields, draftValues}: LayoutProps) {
     const withDraft = (inputValues: DynamicFormValues): DynamicFormValues => ({...draft, ...inputValues});
 
     return (
-        <View style={defaultStyles.flex1}>
-            <View style={[defaultStyles.ph5, defaultStyles.mt5]}>
-                <Text style={defaultStyles.textHeadlineH2}>{page.name}</Text>
-                <Text style={[defaultStyles.mutedTextLabel, defaultStyles.mb2]}>{`Step ${pageIndex + 1} of ${pages.length}`}</Text>
-            </View>
+        <InteractiveStepWrapper
+            wrapperID="DynamicFormStory"
+            headerTitle="Add bank account"
+            stepNames={pages.map((item) => item.name)}
+            startStepIndex={pageIndex}
+            handleBackButtonPress={() => setPageIndex(Math.max(0, pageIndex - 1))}
+        >
             <FormProvider
                 key={page.name}
                 formID={STORYBOOK_FORM_ID}
-                submitButtonText={isLastPage ? 'Submit' : 'Next'}
+                submitButtonText={isLastPage ? translate('common.confirm') : translate('common.next')}
                 validate={(values) => getDynamicFieldErrors(page.fields, withDraft(values), translate)}
                 onSubmit={(values) => {
                     if (isLastPage) {
@@ -118,24 +120,21 @@ function PageByPage({fields, draftValues}: LayoutProps) {
                     }
                     setPageIndex(pageIndex + 1);
                 }}
-                style={defaultStyles.ph5}
+                style={[defaultStyles.mh5, defaultStyles.flexGrow1]}
+                submitButtonStyles={defaultStyles.mb0}
             >
                 {({inputValues}) => (
-                    <DynamicFormFields
-                        fields={page.fields}
-                        values={withDraft(inputValues)}
-                        currency="USD"
-                    />
+                    <>
+                        <Text style={[defaultStyles.textHeadlineLineHeightXXL, defaultStyles.mb3]}>{page.name}</Text>
+                        <DynamicFormFields
+                            fields={page.fields}
+                            values={withDraft(inputValues)}
+                            currency="USD"
+                        />
+                    </>
                 )}
             </FormProvider>
-            {pageIndex > 0 && (
-                <View style={[defaultStyles.ph5, defaultStyles.mt3]}>
-                    <Button onPress={() => setPageIndex(pageIndex - 1)}>
-                        <Button.Text>Back</Button.Text>
-                    </Button>
-                </View>
-            )}
-        </View>
+        </InteractiveStepWrapper>
     );
 }
 

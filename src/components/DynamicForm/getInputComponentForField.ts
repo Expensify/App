@@ -20,7 +20,7 @@ import type {DynamicFieldContext, DynamicFieldFactory, DynamicFieldInput, Dynami
 
 import addressAdapter from './adapters/addressAdapter';
 import FileUploadAdapter from './adapters/FileUploadAdapter';
-import MultiSelectListAdapter from './adapters/MultiSelectListAdapter';
+import MultiSelectPushRowAdapter from './adapters/MultiSelectPushRowAdapter';
 
 const SELECT_MODAL_THRESHOLD = 8;
 const ACCEPTED_FILE_TYPES: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>> = ['png', 'jpg', 'pdf'];
@@ -67,12 +67,14 @@ const REGISTRY = {
         }
         return {InputComponent: ValuePicker, isMenuRow: true, inputProps: {items: choices}};
     },
-    multiselect: (field, context) => ({
-        InputComponent: MultiSelectListAdapter,
-        isMenuRow: true,
-        shouldRenderLabelAbove: true,
-        inputProps: {items: getChoices(field, context), valueType: 'stringList'},
-    }),
+    multiselect: (field, context) => {
+        const label = getFieldLabel(field, context.translate);
+        return {
+            InputComponent: MultiSelectPushRowAdapter,
+            isMenuRow: true,
+            inputProps: {items: getChoices(field, context), description: label, modalHeaderTitle: label, valueType: 'stringList'},
+        };
+    },
     radio: (field, context) => ({
         InputComponent: RadioButtons,
         isMenuRow: true,
