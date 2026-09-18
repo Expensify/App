@@ -34,6 +34,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -50,7 +51,6 @@ import {
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
     isTransactionSearchType,
-    searchKeyToSavedSearchID,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -71,6 +71,7 @@ import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -86,6 +87,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
@@ -102,6 +104,7 @@ import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
@@ -158,6 +161,8 @@ function Search({
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    // Wide layout floats the bulk action bar over the end of the list, so the list has to leave room for it.
+    const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON);
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -1104,35 +1109,58 @@ function Search({
     }
 
     if (hasErrors) {
-        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelNavigationSpans();
+        const retrySearch = () => {
+            // A response replaces the snapshot's results rather than appending to them, so retrying at
+            // the paginated offset would leave only that later page behind. Retry from the first page.
+            setOffset(0);
+            handleSearch({
+                queryJSON,
+                searchKey: currentSearchKey,
+                offset: 0,
+                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
+                prevReportsLength: filteredDataLength,
+                isLoading: !!searchResults?.search?.isLoading,
+            });
+        };
+        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
+        // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
+        // and an invalid query gets no button because re-sending it cannot succeed.
+        let failureKind: ValueOf<typeof CONST.SEARCH.FAILURE_KIND> = CONST.SEARCH.FAILURE_KIND.FAILED;
+        if (responseStatusCode === CONST.JSON_CODE.NO_RESPONSE) {
+            failureKind = CONST.SEARCH.FAILURE_KIND.STALE;
+        } else if (responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) {
+            failureKind = CONST.SEARCH.FAILURE_KIND.INVALID_QUERY;
+        }
+        const errorTitle = translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout});
+        const errorViewByKind = {
+            [CONST.SEARCH.FAILURE_KIND.STALE]: {
+                title: translate('search.searchResults.staleResults.title'),
+                subtitle: translate('search.searchResults.staleResults.subtitle'),
+                illustration: 'FolderSync',
+                illustrationWidth: variables.iconSizeUltraLarge,
+                illustrationHeight: variables.iconSizeUltraLarge,
+                buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
+                onButtonPress: retrySearch,
+            },
+            [CONST.SEARCH.FAILURE_KIND.INVALID_QUERY]: {
+                title: errorTitle,
+                subtitle: translate('errorPage.wrongTypeSubtitle'),
+            },
+            [CONST.SEARCH.FAILURE_KIND.FAILED]: {
+                title: errorTitle,
+                subtitle: translate('errorPage.subtitle'),
+                buttonTranslationKey: 'common.tryAgain',
+                onButtonPress: retrySearch,
+            },
+        } as const;
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {
-                        isBreakLine: shouldUseNarrowLayout,
-                    })}
-                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
-                    // Retrying an invalid query won't help, so the retry button is only offered for other errors.
-                    {...(!isInvalidQuery && {
-                        buttonTranslationKey: 'common.tryAgain',
-                        onButtonPress: () => {
-                            // A response replaces the snapshot's results rather than appending to them, so retrying at
-                            // the paginated offset would leave only that later page behind. Retry from the first page.
-                            setOffset(0);
-                            handleSearch({
-                                queryJSON,
-                                searchKey: currentSearchKey,
-                                offset: 0,
-                                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
-                                prevReportsLength: filteredDataLength,
-                                isLoading: !!searchResults?.search?.isLoading,
-                            });
-                        },
-                    })}
+                    {...errorViewByKind[failureKind]}
                 />
             </View>
         );
@@ -1286,7 +1314,7 @@ function Search({
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,
         tableHeaderVisible,
-        contentContainerStyle: [styles.pb3, contentContainerStyle],
+        contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
         onScroll: onSearchListScroll,
         onEndReached: fetchMoreResults,

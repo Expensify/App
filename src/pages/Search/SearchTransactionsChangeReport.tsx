@@ -18,7 +18,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {createNewReport} from '@libs/actions/Report';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Transaction';
 import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -28,6 +28,7 @@ import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     isDistanceRequest as isDistanceRequestUtil,
+    isManagedCardTransaction,
     isManualDistanceRequest as isManualDistanceRequestUtil,
     isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
     isUnreportedManagedCardTransaction,
@@ -84,7 +85,6 @@ function SearchTransactionsChangeReport() {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
@@ -95,7 +95,8 @@ function SearchTransactionsChangeReport() {
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
@@ -142,6 +143,29 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+    // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds. Counting needs them all.
+    // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
+    // unreported expense the report lookup can never resolve one (its reportID is `0`), so a search snapshot missing
+    // the money-request action would otherwise file one cardholder's bulk selection as mixed and strip its report list.
+    // "Auto report" has the backend resolve each destination through the expense's card, so one expense without a card
+    // fails the whole request with "404 Card not found".
+    const areAllManagedCardTransactions = selectedTransactionsKeys.length > 0 && transactions.length === selectedTransactionsKeys.length && transactions.every(isManagedCardTransaction);
+    const hasMultipleSubmitters = useMemo(() => {
+        const ownerAccountIDs = new Set<number>();
+
+        for (const transactionKey of selectedTransactionsKeys) {
+            const selection = selectedTransactions[transactionKey];
+            const reportID = selection?.reportID;
+            const ownerAccountID =
+                selection?.ownerAccountID ?? getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])?.ownerAccountID;
+
+            if (typeof ownerAccountID === 'number') {
+                ownerAccountIDs.add(ownerAccountID);
+            }
+        }
+
+        return ownerAccountIDs.size > 1;
+    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 
@@ -151,7 +175,6 @@ function SearchTransactionsChangeReport() {
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
-            betas,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
@@ -166,6 +189,7 @@ function SearchTransactionsChangeReport() {
         };
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -268,6 +292,7 @@ function SearchTransactionsChangeReport() {
               }
             : reports;
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -291,6 +316,14 @@ function SearchTransactionsChangeReport() {
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
 
+    const autoReport = () => {
+        if (selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        autoReportTransactions(selectedTransactionsKeys);
+        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
+    };
+
     const removeFromReport = () => {
         if (selectedTransactionsKeys.length === 0) {
             return;
@@ -301,6 +334,7 @@ function SearchTransactionsChangeReport() {
         }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -341,6 +375,9 @@ function SearchTransactionsChangeReport() {
                 transactionPolicyID={selectedReportPolicyID}
                 isPerDiemRequest={hasPerDiemTransactions}
                 isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
+                hasMultipleSubmitters={hasMultipleSubmitters}
+                areAllManagedCardTransactions={areAllManagedCardTransactions}
+                autoReport={autoReport}
             />
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}

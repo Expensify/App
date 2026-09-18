@@ -75,7 +75,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -142,6 +143,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             const allMatchingQueryParams = isOffline ? {} : getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled,
                     transactionIDs,
                     isASAPSubmitBetaEnabled,
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
