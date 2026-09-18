@@ -1,4 +1,5 @@
 import InputWrapper from '@components/Form/InputWrapper';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,16 +36,18 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
             {fields
                 .filter((field) => isFieldVisible(field, values))
                 .map((field) => {
-                    const {InputComponent, inputProps, isMenuRow} = getInputComponentForField(field, {values, translate, currency});
+                    const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove} = getInputComponentForField(field, {values, translate, currency});
+                    const label = getFieldLabel(field, translate);
                     return (
                         <View
                             key={field.key}
                             style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
                         >
+                            {!!shouldRenderLabelAbove && <Text style={[styles.textLabelSupporting, styles.mb2, isMenuRow && styles.ph5]}>{label}</Text>}
                             <InputWrapper
                                 InputComponent={InputComponent}
                                 inputID={field.key}
-                                label={getFieldLabel(field, translate)}
+                                label={label}
                                 shouldSaveDraft={shouldSaveDraft}
                                 forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                                 {...inputProps}
