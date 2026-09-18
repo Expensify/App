@@ -102,6 +102,7 @@ function PageByPage({fields, draftValues}: LayoutProps) {
 
     return (
         <InteractiveStepWrapper
+            key={page.name}
             wrapperID="DynamicFormStory"
             headerTitle="Add bank account"
             stepNames={pages.map((item) => item.name)}
@@ -109,7 +110,6 @@ function PageByPage({fields, draftValues}: LayoutProps) {
             handleBackButtonPress={() => setPageIndex(Math.max(0, pageIndex - 1))}
         >
             <FormProvider
-                key={page.name}
                 formID={STORYBOOK_FORM_ID}
                 submitButtonText={isLastPage ? translate('common.confirm') : translate('common.next')}
                 validate={(values) => getDynamicFieldErrors(page.fields, withDraft(values), translate)}
