@@ -54,7 +54,7 @@ function OnboardingHeader({onBackButtonPress, onCloseButtonPress, shouldShowBack
                     <Text style={styles.createMenuHeaderText}>{translate('common.back')}</Text>
                 </PressableWithoutFeedback>
             ) : null}
-            {shouldShowCloseButton && onCloseButtonPress ? (
+            {shouldShowCloseButton ? (
                 <View style={styles.mlAuto}>
                     <HeaderCloseButton onPress={onCloseButtonPress} />
                 </View>
