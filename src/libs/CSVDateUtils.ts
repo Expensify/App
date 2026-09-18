@@ -30,13 +30,8 @@ function parseCSVDate(input: string): string | null {
 
     const trimmedInput = input.trim();
 
-    // Try native Date parsing first (handles ISO and some other formats)
-    let date = new Date(trimmedInput);
-    if (isValid(date) && !Number.isNaN(date.getTime())) {
-        return format(date, CONST.DATE.FNS_FORMAT_STRING);
-    }
-
-    // Try parsing with common date formats using date-fns
+    // Try the explicit formats first. The native `Date` constructor parses ISO dates
+    // as UTC midnight, which shifts to the previous day in west-UTC zones after formatting.
     for (const dateFormat of CSV_DATE_FORMATS) {
         const parsedDate = parse(trimmedInput, dateFormat, new Date());
         if (isValid(parsedDate)) {
@@ -44,13 +39,16 @@ function parseCSVDate(input: string): string | null {
         }
     }
 
+    // Fall back to the native Date constructor for anything not covered above
+    // (ISO 8601 date-time strings, RFC 2822, invalid dates like `2026-02-30`, etc).
+    const date = new Date(trimmedInput);
+    if (isValid(date) && !Number.isNaN(date.getTime())) {
+        return format(date, CONST.DATE.FNS_FORMAT_STRING);
+    }
+
     // If the date didn't parse, try taking just the first 10 characters
     if (trimmedInput.length > 10) {
         const shortInput = trimmedInput.substring(0, 10);
-        date = new Date(shortInput);
-        if (isValid(date) && !Number.isNaN(date.getTime())) {
-            return format(date, CONST.DATE.FNS_FORMAT_STRING);
-        }
 
         // Also try format parsing on the shortened input
         for (const dateFormat of CSV_DATE_FORMATS) {
@@ -58,6 +56,11 @@ function parseCSVDate(input: string): string | null {
             if (isValid(parsedDate)) {
                 return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
             }
+        }
+
+        const shortDate = new Date(shortInput);
+        if (isValid(shortDate) && !Number.isNaN(shortDate.getTime())) {
+            return format(shortDate, CONST.DATE.FNS_FORMAT_STRING);
         }
     }
 
