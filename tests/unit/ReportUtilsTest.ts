@@ -5618,30 +5618,30 @@ describe('ReportUtils', () => {
 
         it('should return true for the current manager', () => {
             const report = submittedExpenseReport(2001, currentUserAccountID);
-            const policy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.USER});
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.USER});
 
-            expect(canRejectReportAction(report, currentUserAccountID, policy)).toBe(true);
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(true);
         });
 
         it('should return true for a policy admin who is not the manager', () => {
             const report = submittedExpenseReport(2002, 99998);
-            const policy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN});
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN});
 
-            expect(canRejectReportAction(report, currentUserAccountID, policy)).toBe(true);
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(true);
         });
 
         it('should return false for a non-manager, non-admin member', () => {
             const report = submittedExpenseReport(2003, 99998);
-            const policy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.USER});
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.USER});
 
-            expect(canRejectReportAction(report, currentUserAccountID, policy)).toBe(false);
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(false);
         });
 
         it('should return false for an admin on an archived or pending-delete policy', () => {
             const report = submittedExpenseReport(2004, 99998);
-            const policy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
 
-            expect(canRejectReportAction(report, currentUserAccountID, policy)).toBe(false);
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(false);
         });
 
         it('should return false for an admin on a report that is not being processed', () => {
@@ -5650,9 +5650,9 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            const policy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN});
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN});
 
-            expect(canRejectReportAction(report, currentUserAccountID, policy)).toBe(false);
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(false);
         });
     });
 
