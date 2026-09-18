@@ -6,11 +6,17 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+
+import searchOptions from '@libs/searchOptions';
+import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
+
+const SEARCHABLE_FROM = 8;
 
 type MultiSelectPushRowAdapterProps = {
     items: Array<{value: string; label: string}>;
@@ -35,6 +41,7 @@ type MultiSelectPushRowAdapterProps = {
 function MultiSelectPushRowAdapter({items, value, onInputChange = () => {}, errorText, description, modalHeaderTitle, onBlur = () => {}}: MultiSelectPushRowAdapterProps) {
     const {translate} = useLocalize();
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [pendingSelection, setPendingSelection] = useState<string[]>([]);
     const selected = Array.isArray(value) ? value : [];
     const title = items
@@ -49,6 +56,7 @@ function MultiSelectPushRowAdapter({items, value, onInputChange = () => {}, erro
 
     const closeModal = () => {
         setIsModalVisible(false);
+        setSearchValue('');
         onBlur();
     };
 
@@ -61,7 +69,15 @@ function MultiSelectPushRowAdapter({items, value, onInputChange = () => {}, erro
         closeModal();
     };
 
-    const data: ListItem[] = items.map((item) => ({keyForList: item.value, text: item.label, isSelected: pendingSelection.includes(item.value)}));
+    const options = items.map((item) => ({
+        value: item.value,
+        keyForList: item.value,
+        text: item.label,
+        isSelected: pendingSelection.includes(item.value),
+        searchValue: StringUtils.sanitizeString(item.label),
+    }));
+    const isSearchable = items.length > SEARCHABLE_FROM;
+    const data: ListItem[] = isSearchable ? searchOptions(debouncedSearchValue, options) : options;
 
     return (
         <>
@@ -95,7 +111,8 @@ function MultiSelectPushRowAdapter({items, value, onInputChange = () => {}, erro
                         ListItem={MultiSelectListItem}
                         onSelectRow={toggle}
                         onSelectionButtonPress={toggle}
-                        shouldShowTextInput={false}
+                        shouldShowTextInput={isSearchable}
+                        textInputOptions={isSearchable ? {label: description, value: searchValue, onChangeText: setSearchValue} : undefined}
                         confirmButtonOptions={{showButton: true, text: translate('common.save'), onConfirm: confirm}}
                     />
                 </ScreenWrapper>

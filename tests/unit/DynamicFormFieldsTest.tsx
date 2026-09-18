@@ -3,7 +3,6 @@ import {render} from '@testing-library/react-native';
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
@@ -79,7 +78,7 @@ const EXPECTED_COMPONENT_BY_TYPE: Record<WiseFieldType, ComponentType | ((...arg
     multiselect: MultiSelectPushRowAdapter,
     radio: RadioButtons,
     date: DatePicker,
-    country: CountrySelector,
+    country: PushRowWithModal,
     address: AddressSearch,
     boolean: CheckboxWithLabel,
     file: FileUploadAdapter,
@@ -121,6 +120,14 @@ describe('DynamicFormFields', () => {
 
         expect(rendered?.InputComponent).toBe(PushRowWithModal);
         expect(Object.keys(rendered?.optionsList ?? {})).toHaveLength(9);
+    });
+
+    it('offers every country in a searchable push row', () => {
+        const country = renderFields(allFieldTypes).get('country');
+
+        expect(country?.InputComponent).toBe(PushRowWithModal);
+        expect(country?.optionsList?.GB).toBe('allCountries.GB');
+        expect(Object.keys(country?.optionsList ?? {}).length).toBeGreaterThan(200);
     });
 
     it('passes maxFiles and accepted types to UploadFile', () => {
