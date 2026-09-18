@@ -140,6 +140,7 @@ columnsValues
   / groupCategory
   / groupTag
   / groupMerchant
+  / groupDay
   / groupMonth
   / groupWeek
   / groupYear
@@ -178,6 +179,7 @@ amountReimbursedColumn  = "amount-reimbursed"i &wordBoundary        { return "am
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
+groupDay                = "group-day"i &wordBoundary               { return "groupday"; }
 groupMonth              = "group-month"i &wordBoundary              { return "groupmonth"; }
 groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
 groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
@@ -207,7 +209,7 @@ escapedChar = "\\" c:[,"”“\\] { return c; }
 
 alphanumeric "word" = chars:(escapedChar / [^ ,\t\n\r\xA0])+ { return chars.join("").trim(); } //handle no-breaking space
 
-logicalAnd = _ { 
+logicalAnd = _ {
   isColumnsContext = false;
   return "and";
 }

@@ -147,7 +147,7 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         expect(handleOnPress).toHaveBeenCalledWith(TRANSACTION_ID);
     });
 
-    it('should drop the stale expense when the reject error is dismissed', async () => {
+    it('should clear the reject error when it is dismissed', async () => {
         // Given: An expense left behind by a reject the server refused
         await renderTransactionItem(buildTransactionWithRejectError());
 
@@ -155,8 +155,10 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         fireEvent.press(screen.getByLabelText('Dismiss'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then: The stale local copy is gone, so it stops showing on a report it is no longer on
+        // Then: The error is cleared and the transaction is preserved, so the expense will reappear in
+        // the report it was actually moved to once the report pin is dropped
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
-        expect(transaction).toBeFalsy();
+        expect(transaction?.errorFields?.reject).toBeFalsy();
+        expect(transaction).toBeTruthy();
     });
 });
