@@ -52,8 +52,8 @@ const categoryGroup = {
 /** The children as they look once the group has been expanded and its snapshot has loaded. */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
 const loadedChildren = [
-    {transactionID: '1', keyForList: '1', currency: 'USD', amount: -642, report: {reportID: '11'}},
-    {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
+    {transactionID: '1', keyForList: '1', currency: 'USD', amount: -642, report: {reportID: '11'}, selectionGroupKey: GROUP_KEY},
+    {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}, selectionGroupKey: GROUP_KEY},
 ] as unknown as TransactionListItemType[];
 
 const FLAT_TRANSACTION_ID = 'flat-1';
@@ -95,6 +95,22 @@ let flatExpense = makeFlatExpense(-3000);
 let flatFilteredData: TransactionListItemType[] = [flatExpense];
 let flatSearchResults = makeFlatSearchResults(flatExpense);
 
+const makeLoadedChild = (id: string) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
+    ({
+        transactionID: id,
+        keyForList: id,
+        currency: 'USD',
+        amount: -642,
+        report: {reportID: '11'},
+        selectionGroupKey: GROUP_KEY,
+    }) as unknown as TransactionListItemType;
+
+let expandedGroup: TransactionCategoryGroupListItemType = {
+    ...categoryGroup,
+    transactions: loadedChildren,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
@@ -135,6 +151,36 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
     );
 }
 
+function ExpandedGroupWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[expandedGroup]}
+                totalSelectableItemsCount={expandedGroup.count ?? expandedGroup.transactions.length}
+                searchResults={undefined}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+const renderExpandedGroupSelection = () =>
+    renderHook(
+        () => ({
+            ...useSearchSelectionContext(),
+            ...useSearchSelectionActions(),
+            ...useSearchRowSelectionActions(),
+        }),
+        {wrapper: ExpandedGroupWrapper},
+    );
+
 const renderSelection = () =>
     renderHook(
         () => ({
@@ -174,6 +220,11 @@ describe('Lazily loaded group selection', () => {
         flatExpense = makeFlatExpense(-3000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
+        expandedGroup = {
+            ...categoryGroup,
+            count: 2,
+            transactions: loadedChildren,
+        };
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -227,6 +278,84 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('marks isEntireGroupSelected when every child is selected individually', async () => {
+        const {result} = renderSelection();
+        const firstChild = loadedChildren.at(0);
+        const secondChild = loadedChildren.at(1);
+        if (!firstChild || !secondChild) {
+            throw new Error('Expected two loaded children');
+        }
+
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+
+        await act(async () => {
+            result.current.toggle(secondChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('does not mark isEntireGroupSelected when the group checkbox selects fewer children than the group count', async () => {
+        const {result} = renderSelection();
+        const truncatedGroup = {...categoryGroup, count: 5};
+
+        await act(async () => {
+            result.current.toggle(truncatedGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
+    });
+
+    it('clears isEntireGroupSelected when a new child lands in a fully selected group', async () => {
+        const {result, rerender} = renderExpandedGroupSelection();
+        const firstChild = loadedChildren.at(0);
+        const secondChild = loadedChildren.at(1);
+        if (!firstChild || !secondChild) {
+            throw new Error('Expected two loaded children');
+        }
+
+        await act(async () => {
+            result.current.toggle(firstChild);
+            result.current.toggle(secondChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+
+        expandedGroup = {
+            ...categoryGroup,
+            count: 3,
+            transactions: [...loadedChildren, makeLoadedChild('3')],
+        };
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['3']).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
     });
 
     it('clears the parent exclusion when an expanded group is reselected', async () => {
