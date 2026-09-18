@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -32,6 +33,7 @@ function ConciergePage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     useFocusEffect(
@@ -48,6 +50,7 @@ function ConciergePage() {
                         currentUserAccountID: session.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         isSelfTourViewed,
                         betas,
+                        personalDetails: conciergePersonalDetails,
                         shouldDismissModal: true,
                         checkIfCurrentPageActive: () => !isUnmounted.current,
                     });
@@ -55,7 +58,7 @@ function ConciergePage() {
             } else {
                 Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, betas]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, betas, conciergePersonalDetails]),
     );
 
     useEffect(() => {

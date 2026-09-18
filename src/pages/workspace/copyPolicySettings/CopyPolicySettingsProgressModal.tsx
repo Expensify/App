@@ -4,6 +4,7 @@ import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCopyPolicySettings, requestCopyPolicySettingsNotification, setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
@@ -27,6 +28,7 @@ function useCopyPolicySettingsProgressModal() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const copyInProgressStep = copyPolicySettings?.currentStep === CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING;
@@ -123,7 +125,15 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: true,
             onConfirm: () => {
                 clearCopyPolicySettings();
-                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+                navigateToConciergeChat({
+                    conciergeReportID,
+                    introSelected,
+                    currentUserAccountID,
+                    isSelfTourViewed,
+                    betas,
+                    personalDetails: conciergePersonalDetails,
+                    shouldDismissModal: false,
+                });
             },
             onCancel: () => {
                 clearCopyPolicySettings();

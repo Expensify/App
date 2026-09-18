@@ -8,6 +8,7 @@ import type {Route} from './ROUTES';
 import CONST from './CONST';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useOnyx from './hooks/useOnyx';
+import {usePersonalDetailsByIDs} from './hooks/usePersonalDetails';
 import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
@@ -43,6 +44,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+    // Only Concierge's personal detail is needed to create the Concierge chat when a deep link points to a missing report.
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const isAuthenticated = useIsAuthenticated();
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
@@ -114,6 +117,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         guidedSetupAndTourStatus?.isSelfTourViewed,
                         betas,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        conciergePersonalDetails,
                     );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
@@ -157,6 +161,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 guidedSetupAndTourStatus?.isSelfTourViewed,
                 betas,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                conciergePersonalDetails,
             );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
@@ -171,6 +176,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         conciergeReportID,
         introSelected,
         betas,
+        conciergePersonalDetails,
         allReportsMetadata.status,
         sessionMetadata.status,
         conciergeReportIDMetadata.status,
