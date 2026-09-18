@@ -5,6 +5,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
+import type {TripData} from './TripData';
 
 /**
  * Model for scheduled called on the report
@@ -61,6 +62,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Original reportID that spawned the current report */
     originalID?: string;
 
+    /** Set on a thread the backend opened to collect feedback on a Concierge answer, naming the rated action */
+    conciergeFeedbackForReportActionID?: string;
+
     /** Scheduled calls for the user on #admin rooms */
     calendlyCalls?: CalendlyCall[];
 
@@ -88,6 +92,20 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     agentZeroProcessingRequestIndicator?: Record<string, string | null> | string;
 
     parentReportID?: string;
+
+    /** The trip data for a trip room */
+    tripData?: {
+        /** The start date of a trip */
+        startDate?: string;
+
+        /** The end date of a trip */
+        endDate?: string;
+
+        /** The trip ID in Spotnana */
+        tripID: string;
+
+        payload?: TripData;
+    };
 
     /** Title field configuration copied from policy - presence indicates auto-generated names are allowed */
     // eslint-disable-next-line @typescript-eslint/naming-convention

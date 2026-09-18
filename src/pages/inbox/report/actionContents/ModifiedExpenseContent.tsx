@@ -51,6 +51,7 @@ function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpe
         currentUserAccountID,
         currentUserLogin: currentUserEmail ?? '',
         formatPhoneNumber,
+        movedFromReportName: undefined,
     });
 
     return (

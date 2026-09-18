@@ -7,6 +7,7 @@ import {
     createAdminPoliciesSelector,
     createCopySettingsEligibleTargetsSelector,
     createIOURequestStartPoliciesSelector,
+    createPoliciesByIDsSelector,
     createWorkspaceListPoliciesSelector,
     isAdminForPolicyByIDSelector,
     lastWorkspaceNumberSelector,
@@ -138,6 +139,60 @@ describe('createAdminPoliciesSelector', () => {
     });
 });
 
+describe('createPoliciesByIDsSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+
+    const policy1 = buildPolicy({id: '1', name: 'Workspace 1'});
+    const policy2 = buildPolicy({id: '2', name: 'Workspace 2'});
+    const policy3 = buildPolicy({id: '3', name: 'Workspace 3'});
+    const allPolicies = {
+        [`${P}1`]: policy1,
+        [`${P}2`]: policy2,
+        [`${P}3`]: policy3,
+    };
+
+    it('returns an empty object for an empty ID list without touching the collection', () => {
+        // Given a selector built with no policy IDs to select
+        // When it runs against a populated policy collection
+        // Then it short-circuits to an empty object instead of iterating a collection it has nothing to pick from
+        expect(createPoliciesByIDsSelector([])(allPolicies)).toEqual({});
+    });
+
+    it('returns an empty object when the collection is undefined', () => {
+        // Given requested IDs but a policies collection that has not loaded into Onyx yet
+        // When the selector runs against that undefined collection
+        // Then it returns an empty object rather than throwing on the missing collection
+        expect(createPoliciesByIDsSelector(['1', '2'])(undefined)).toEqual({});
+    });
+
+    it('returns only the requested keys and drops policies that were not requested', () => {
+        // Given a collection with policies beyond the ones being requested
+        // When the selector is built for a subset of the IDs in that collection
+        // Then only the requested keys come back, so callers get exactly the policies they asked for and nothing more
+        const result = createPoliciesByIDsSelector(['1', '3'])(allPolicies);
+        expect(Object.keys(result).sort()).toEqual([`${P}1`, `${P}3`]);
+    });
+
+    it('omits a requested ID that has no policy in the collection', () => {
+        // Given a requested ID with no matching entry in the collection, alongside one that does exist
+        // When the selector runs
+        // Then the missing ID is left out entirely rather than appearing with an undefined/null value
+        const result = createPoliciesByIDsSelector(['1', 'missing'])(allPolicies);
+        expect(Object.keys(result)).toEqual([`${P}1`]);
+        expect(`${P}missing` in result).toBe(false);
+    });
+
+    it('returns the same object references as the input, without copying or narrowing', () => {
+        // Given policy objects already stored in the collection
+        // When the selector picks a subset of them
+        // Then it hands back the exact same references, since copying here would break callers relying on
+        // reference equality (e.g. memoized components) to skip unnecessary re-renders
+        const result = createPoliciesByIDsSelector(['1', '2'])(allPolicies);
+        expect(result[`${P}1`]).toBe(policy1);
+        expect(result[`${P}2`]).toBe(policy2);
+    });
+});
+
 describe('isAdminForPolicyByIDSelector', () => {
     const P = ONYXKEYS.COLLECTION.POLICY;
 
@@ -266,6 +321,36 @@ describe('createWorkspaceListPoliciesSelector', () => {
         const policy = makePolicy({id: 'p1', role: CONST.POLICY.ROLE.ADMIN});
         const result = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
         expect(result).toHaveLength(1);
+    });
+
+    it('excludes a policy whose id has not been merged in yet', () => {
+        // A `policy_` record is merged field-by-field, so a freshly joined workspace can pass shouldShowPolicy
+        // before its `id` arrives. Such a row has no key, no avatar seed and nothing to navigate to.
+        const policies = {
+            [`${P}p1`]: makePolicy({id: undefined}),
+        };
+        expect(createWorkspaceListPoliciesSelector(userLogin)(policies)).toEqual([]);
+    });
+
+    it('still includes an id-less policy when it is a pending join request', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({
+                id: undefined,
+                isJoinRequestPending: true,
+                policyDetailsForNonMembers: {
+                    p1: {
+                        name: 'Pending Workspace',
+                        type: CONST.POLICY.TYPE.TEAM,
+                        ownerAccountID: 1,
+                        ownerEmail: 'owner@example.com',
+                    },
+                },
+            }),
+        };
+        const [item] = createWorkspaceListPoliciesSelector(userLogin)(policies);
+        expect(item?.isJoinRequestPending).toBe(true);
+        expect(item?.id).toBeUndefined();
+        expect(item?.nonMemberDetails?.policyID).toBe('p1');
     });
 
     it('projects only the expected fields onto each result item', () => {

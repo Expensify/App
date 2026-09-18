@@ -97,6 +97,8 @@ import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
+import type InsightsDashboard from './InsightsDashboard';
+import type {InsightsDashboardID, InsightsGraphKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -113,6 +115,7 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -177,6 +180,7 @@ import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
+import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
@@ -207,6 +211,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
+import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type VerifyValidateCodeAction from './VerifyValidateCodeAction';
@@ -267,6 +272,9 @@ export type {
     FundList,
     GovernmentMileageRate,
     GpsDraftDetails,
+    InsightsDashboard,
+    InsightsDashboardID,
+    InsightsGraphKey,
     IntroSelected,
     IssueNewCard,
     AssignCardData,
@@ -358,6 +366,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MerchantRuleSuggestion,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,
@@ -404,6 +413,7 @@ export type {
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
+    SearchFilters,
     RecentSearchItem,
     SearchContext,
     SearchFooterConversion,
@@ -440,6 +450,7 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
+    VacationDelegatePolicyDiff,
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,

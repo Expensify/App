@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -86,7 +86,8 @@ function DynamicIOURequestStepDistanceManual({
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
     const isArchived = useReportIsArchived(report?.reportID);
@@ -130,6 +131,7 @@ function DynamicIOURequestStepDistanceManual({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -159,6 +161,7 @@ function DynamicIOURequestStepDistanceManual({
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
+        isEditingExistingDistanceRequest: isEditing,
     });
 
     // to make sure the correct distance amount and unit will be shown we use distance unit
@@ -268,6 +271,7 @@ function DynamicIOURequestStepDistanceManual({
 
             if (shouldUpdateTransaction) {
                 updateMoneyRequestDistance({
+                    isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
@@ -290,6 +294,7 @@ function DynamicIOURequestStepDistanceManual({
                     violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`],
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             }
             Navigation.goBack(backTo);
@@ -302,6 +307,7 @@ function DynamicIOURequestStepDistanceManual({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             iouType,
             action,
@@ -351,6 +357,7 @@ function DynamicIOURequestStepDistanceManual({
             getCurrencySymbol,
             participants,
             participantsPolicyTags,
+            rules,
         });
     };
 

@@ -35,6 +35,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportNameValuePairs,
+    Rule,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -88,6 +89,8 @@ type TransactionEditPermissionsParams = {
 
     /** Actions of the parent (money request) report, used by canEditMoneyRequest to check whether the report was forwarded since the last submit */
     parentReportActions: OnyxEntry<ReportActions>;
+
+    rules: OnyxCollection<Rule>;
 
     policy?: OnyxEntry<Policy>;
 
@@ -155,6 +158,9 @@ type GetIouParamsInput = {
 
     /** The current user's email/login. */
     currentUserEmail: string;
+
+    rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -196,6 +202,7 @@ function getIouParamsForTransaction({
     introSelected,
     currentUserAccountID,
     currentUserEmail,
+    rules,
 }: GetIouParamsInput) {
     // transaction is passed in by the caller; only the violations scoped to this transaction are derived here.
     const transactionViolationsForTransaction = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -238,6 +245,7 @@ function getIouParamsForTransaction({
         getCurrencyDecimals,
         getCurrencySymbol,
         reportPolicyTags,
+        rules,
         violations: transactionViolationsForTransaction,
         // Field-specific extras
         transaction,
@@ -252,6 +260,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
     const iouParams = getIouParamsForTransaction(params);
 
     updateMoneyRequestDate({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
         policyTags: iouParams.policyTagList,
@@ -277,6 +286,7 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
     const iouParams = getIouParamsForTransaction(params);
 
     updateMoneyRequestMerchant({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         hash: params.hash,
@@ -288,9 +298,11 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
 function editTransactionDescriptionInline(params: TransactionInlineEditParams, newDescription: string) {
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestDescription({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         comment: newDescription,
         hash: params.hash,
+        isEditedFromExpenseList: true,
     });
 }
 
@@ -298,9 +310,11 @@ function editTransactionDescriptionInline(params: TransactionInlineEditParams, n
 function editTransactionCategoryInline(params: TransactionInlineEditParams, newCategory: string) {
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestCategory({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         category: newCategory,
         hash: params.hash,
+        isEditedFromExpenseList: true,
     });
 }
 
@@ -327,6 +341,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     const decimals = params.getCurrencyDecimals(getCurrency(iouParams.transaction));
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
     updateMoneyRequestAmountAndCurrency({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         amount: newAmount,
         currency,
@@ -345,11 +360,13 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
 function editTransactionTagInline(params: TransactionInlineEditParams, newTag: string) {
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestTag({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         tag: newTag,
         policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
         hash: params.hash,
         isOffline: params.isOffline,
+        isEditedFromExpenseList: true,
     });
 }
 
@@ -376,6 +393,7 @@ function getTransactionEditPermissions({
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
+    rules,
 }: TransactionEditPermissionsParams): TransactionEditPermissions {
     if (disabled || !transaction) {
         return NO_EDIT;
@@ -400,7 +418,8 @@ function getTransactionEditPermissions({
     // For unreported expenses, parentReportAction may not be loaded; they are
     // always editable by the owner.
     const canEdit =
-        isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy, parentReportActions));
+        isUnreported ||
+        (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, rules, isChatReportArchived, parentReport, policy, parentReportActions));
     if (!canEdit) {
         return NO_EDIT;
     }
@@ -466,12 +485,14 @@ function getTransactionEditPermissions({
             isUnreported ||
             canEditFieldOfMoneyRequest({
                 reportAction: parentReportAction,
+                reportActions: parentReportActions,
                 fieldToEdit: field,
                 isChatReportArchived,
                 reportNameValuePairs,
                 transaction,
                 report: parentReport,
                 policy,
+                rules,
             })
         );
     };
