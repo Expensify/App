@@ -1,12 +1,12 @@
 import SkeletonRect from '@components/SkeletonRect';
 
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getPlatform from '@libs/getPlatform';
 
+import {resolveLayoutSpacing} from '@styles/layoutSpacing';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -58,13 +58,13 @@ function SearchRowSkeleton({
     shouldUseNarrowLayout: shouldUseNarrowLayoutProp,
 }: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
-    const {values, pageGutterMargin} = useLayoutSpacing();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
     // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
     // global responsive breakpoint - useful when the skeleton is rendered in a context
     // whose container width doesn't match the window (e.g. inside a split pane).
     const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutResponsive;
+    const {values, pageGutterMargin} = resolveLayoutSpacing(shouldUseNarrowLayout);
 
     if (shouldUseNarrowLayout) {
         const containerWidth = windowWidth - values.pageGutter * 2;
