@@ -26,7 +26,6 @@ import type {TextInputKeyPressEvent} from 'react-native';
 
 import {useState} from 'react';
 
-const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
 const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 
 const BACKSPACE_KEY = 'Backspace';
@@ -279,7 +278,8 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             onChangeText: handleChangeText,
             onFocus: handleSegmentFocus,
         }),
-        requestInitialFocus: () => enterSegment(getFirstUnfilledSegmentName(getSegmentsFromISODate(value)) ?? FIRST_SEGMENT_NAME),
+        // A date with no gaps in it has no segment waiting to be filled, so the last one takes the focus
+        requestInitialFocus: () => enterSegment(getFirstUnfilledSegmentName(displayedSegments) ?? LAST_SEGMENT_NAME),
         onFieldBlur: handleFieldBlur,
     };
 }

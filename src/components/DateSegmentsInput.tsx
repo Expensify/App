@@ -80,7 +80,14 @@ function DateSegmentsInput({
         }
 
         appliedFocusVersionRef.current = focusRequest.version;
-        segmentRefs.current[focusRequest.name]?.focus();
+
+        const element = segmentRefs.current[focusRequest.name];
+        element?.focus();
+
+        // Arriving by keystroke rests the caret after the digits already there, rather than wherever it was last left
+        // in this segment, so a half typed month reads as 02 and not 0 followed by a caret and a 2.
+        const caretPosition = element?.value?.length ?? 0;
+        element?.setSelectionRange?.(caretPosition, caretPosition);
     }, [focusRequest]);
 
     useEffect(() => () => clearTimeout(blurTimeoutRef.current), []);
@@ -175,7 +182,7 @@ function DateSegmentsInput({
                 accessibilityLabel={translate('common.date')}
                 onPress={requestInitialFocus}
                 sentryLabel="DateSegmentsInput-EmptySpace"
-                style={styles.flex1}
+                style={[styles.flex1, styles.cursorText]}
             />
         </View>
     );
