@@ -130,6 +130,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
@@ -144,6 +145,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarSizeXxSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarSizeXSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.avatarSizeMidSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
@@ -160,6 +162,7 @@ const avatarFontSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.fontSizeSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
     [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeMedium,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.fontSizeMedium,
@@ -174,6 +177,7 @@ const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarBorderWidthDefault,
@@ -181,6 +185,10 @@ const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarBorderWidthLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarBorderWidthLarge,
 } satisfies Record<AvatarSizeName, number>;
+
+const selectedAvatarRingBorderWidth = 2;
+const selectedAvatarRingPadding = 1;
+const selectedAvatarRingOffset = selectedAvatarRingBorderWidth + selectedAvatarRingPadding;
 
 /**
  * Converts a color in hexadecimal notation into RGB notation.
@@ -854,6 +862,24 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
 }
 
 /**
+ * Get the vertical space the auto grow height input's ancestors take up inside the input container (borders, padding and the multiline label padding)
+ */
+function getAutoGrowHeightInputVerticalInset(textInputContainerStyles: StyleProp<ViewStyle>, hasMultilineLabelPadding: boolean): number {
+    const flatStyle = StyleSheet.flatten(textInputContainerStyles);
+
+    // Safely extract values only if they are numbers
+    const getNumericValue = (value: string | number | Animated.AnimatedNode | null | undefined): number => (typeof value === 'number' ? value : 0);
+
+    const borderWidth = getNumericValue(flatStyle?.borderWidth);
+    const borderTopWidth = getNumericValue(flatStyle?.borderTopWidth ?? borderWidth);
+    const borderBottomWidth = getNumericValue(flatStyle?.borderBottomWidth ?? borderWidth);
+    const paddingTop = getNumericValue(flatStyle?.paddingTop ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+    const paddingBottom = getNumericValue(flatStyle?.paddingBottom ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+
+    return borderTopWidth + borderBottomWidth + paddingTop + paddingBottom + (hasMultilineLabelPadding ? variables.inputPaddingTop : 0);
+}
+
+/**
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
@@ -1077,6 +1103,17 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
 function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
     return {
         transform: [{scale: scaleValue}],
+    };
+}
+
+/**
+ * Scales a view about its top-left corner, e.g. to display high-resolution content
+ * at a smaller size inside a clipping box without re-rendering it.
+ */
+function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle {
+    return {
+        transform: [{scale: scaleValue}],
+        transformOrigin: 'top left',
     };
 }
 
@@ -1436,6 +1473,7 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
+    getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1461,6 +1499,7 @@ const staticStyleUtils = {
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
     getTransformScaleStyle,
+    getTopLeftTransformScaleStyle,
     getCodeFontSize,
     getFontSizeStyle,
     getLineHeightStyle,
@@ -1546,8 +1585,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns auto grow height text input style
      */
-    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number): ViewStyle => {
-        if (textInputHeight > maxHeight) {
+    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number): ViewStyle => {
+        // textInputHeight comes from the hidden measurement, which also includes the input's own vertical padding,
+        // so flip as soon as it no longer fits the fixed height below. Otherwise content can be clipped at some font scales.
+        if (textInputHeight > maxHeight - verticalInset) {
             return {
                 ...styles.pr0,
                 ...styles.overflowAuto,
@@ -1557,9 +1598,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {
             ...styles.pr0,
             ...styles.overflowHidden,
-            // maxHeight is not of the input only but the of the whole input container
-            // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
+            // maxHeight is not of the input only but of the whole input container, so the inset has to be subtracted.
+            // It must match the height the input gets once it flips to overflow: auto, otherwise the box resizes at the
+            // flip and the scroll offset the browser picked while growing stops short of the end of the content.
+            height: maxHeight - verticalInset,
         };
     },
 
@@ -1598,6 +1640,23 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             marginTop: -(verticalPaddingDiff / 2),
             height: '100%',
             justifyContent: 'center',
+        };
+    },
+
+    /**
+     * Ring drawn around an avatar while its navigation entry is selected
+     */
+    getSelectedAvatarRingStyle: (size: AvatarSizeName): ViewStyle => {
+        const ringSize = getAvatarSize(size) + selectedAvatarRingOffset * 2;
+        return {
+            height: ringSize,
+            width: ringSize,
+            borderRadius: ringSize / 2,
+            padding: selectedAvatarRingPadding,
+            borderWidth: selectedAvatarRingBorderWidth,
+            borderColor: theme.success,
+            right: -selectedAvatarRingOffset,
+            top: -selectedAvatarRingOffset,
         };
     },
 
@@ -1995,6 +2054,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:

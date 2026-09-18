@@ -78,15 +78,11 @@ function updatePronouns(pronouns: string, currentUserAccountID: number) {
 
     API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
         optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        pronouns,
-                    },
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                [currentUserAccountID]: {
+                    pronouns,
                 },
-            },
+            }),
         ],
     });
 }
@@ -124,9 +120,11 @@ function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: 
         return;
     }
 
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [currentUserPersonalDetails.accountID]: buildOptimisticDisplayNameDetails(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails),
-    });
+    Onyx.update([
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: buildOptimisticDisplayNameDetails(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails),
+        }),
+    ]);
 }
 
 function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserPersonalDetails: DisplayNamePersonalDetails) {
@@ -139,27 +137,19 @@ function updateDisplayName(firstName: string, lastName: string, formatPhoneNumbe
 
     API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
         optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserPersonalDetails.accountID]: optimisticDetails,
-                },
-            },
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                [currentUserPersonalDetails.accountID]: optimisticDetails,
+            }),
         ],
         failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserPersonalDetails.accountID]: {
-                        firstName: currentUserPersonalDetails.firstName ?? null,
-                        lastName: currentUserPersonalDetails.lastName ?? null,
-                        displayName: currentUserPersonalDetails.displayName ?? null,
-                        ...(optimisticDetails.avatar && {avatar: currentUserPersonalDetails.avatar}),
-                    },
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                [currentUserPersonalDetails.accountID]: {
+                    firstName: currentUserPersonalDetails.firstName ?? null,
+                    lastName: currentUserPersonalDetails.lastName ?? null,
+                    displayName: currentUserPersonalDetails.displayName ?? null,
+                    ...(optimisticDetails.avatar && {avatar: currentUserPersonalDetails.avatar}),
                 },
-            },
+            }),
         ],
     });
 }
@@ -172,7 +162,7 @@ function updateLegalName(
     shouldGoBack = true,
 ) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
@@ -184,10 +174,8 @@ function updateLegalName(
     ];
     // In case the user does not have a display name, we will update the display name based on the legal name
     if (!currentUserPersonalDetail?.firstName && !currentUserPersonalDetail?.lastName) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
+        optimisticData.push(
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
                 [currentUserPersonalDetail.accountID]: {
                     displayName: PersonalDetailsUtils.createDisplayName(
                         currentUserPersonalDetail.email ?? '',
@@ -200,8 +188,8 @@ function updateLegalName(
                     firstName: legalFirstName,
                     lastName: legalLastName,
                 },
-            },
-        });
+            }),
+        );
     }
     API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
         optimisticData,
@@ -271,15 +259,11 @@ function updateAutomaticTimezone(timezone: Timezone, currentUserAccountID: numbe
 
     API.write(WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE, parameters, {
         optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        timezone: formattedTimezone,
-                    },
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                [currentUserAccountID]: {
+                    timezone: formattedTimezone,
                 },
-            },
+            }),
         ],
     });
 }
@@ -300,15 +284,11 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone, currentUserA
     if (currentUserAccountID) {
         API.write(WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE, parameters, {
             optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone,
-                        },
+                PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                    [currentUserAccountID]: {
+                        timezone,
                     },
-                },
+                }),
             ],
         });
     }
@@ -391,54 +371,42 @@ function updateAvatar(
         return;
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatar: file.uri,
-                    avatarThumbnail: file.uri,
-                    originalFileName: file.name,
-                    errorFields: {
-                        avatar: null,
-                    },
-                    pendingFields: {
-                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        originalFileName: null,
-                    },
-                    fallbackIcon: file.uri,
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatar: file.uri,
+                avatarThumbnail: file.uri,
+                originalFileName: file.name,
+                errorFields: {
+                    avatar: null,
+                },
+                pendingFields: {
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    originalFileName: null,
+                },
+                fallbackIcon: file.uri,
+            },
+        }),
+    ];
+    const successData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                pendingFields: {
+                    avatar: null,
                 },
             },
-        },
+        }),
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    pendingFields: {
-                        avatar: null,
-                    },
+    const failureData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatar: currentUserPersonalDetails?.avatar,
+                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail ?? currentUserPersonalDetails?.avatar,
+                pendingFields: {
+                    avatar: null,
                 },
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatar: currentUserPersonalDetails?.avatar,
-                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail ?? currentUserPersonalDetails?.avatar,
-                    pendingFields: {
-                        avatar: null,
-                    },
-                } as OnyxEntry<Partial<PersonalDetails>>,
-            },
-        },
+            } as OnyxEntry<Partial<PersonalDetails>>,
+        }),
     ];
 
     const parameters: UpdateUserAvatarParams = isDefaultAvatarResult(file) ? {customExpensifyAvatarID: file.customExpensifyAvatarID} : {file};
@@ -465,59 +433,47 @@ function updateAvatarStyle(
     // The backend clears any stored avatar on a color pick; a generated letter URL is the materialized form of "no stored avatar".
     const willClearAvatar = !!currentUserPersonalDetails.avatar && !UserAvatarUtils.isGeneratedLetterAvatarURL(currentUserPersonalDetails.avatar);
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatarStyle: {color},
-                    pendingFields: {
-                        avatarStyle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                    ...(willClearAvatar && {
-                        avatar: UserAvatarUtils.getDefaultAvatarURL({
-                            accountID: currentUserPersonalDetails.accountID,
-                            accountEmail: currentUserPersonalDetails.email,
-                            firstName: currentUserPersonalDetails.firstName,
-                            lastName: currentUserPersonalDetails.lastName,
-                        }),
-                        fallbackIcon: null,
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatarStyle: {color},
+                pendingFields: {
+                    avatarStyle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                ...(willClearAvatar && {
+                    avatar: UserAvatarUtils.getDefaultAvatarURL({
+                        accountID: currentUserPersonalDetails.accountID,
+                        accountEmail: currentUserPersonalDetails.email,
+                        firstName: currentUserPersonalDetails.firstName,
+                        lastName: currentUserPersonalDetails.lastName,
                     }),
-                },
+                    fallbackIcon: null,
+                }),
             },
-        },
+        }),
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    pendingFields: {
-                        avatarStyle: null,
-                    },
+    const successData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                pendingFields: {
+                    avatarStyle: null,
                 },
             },
-        },
+        }),
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatarStyle: currentUserPersonalDetails.avatarStyle ?? null,
-                    pendingFields: {
-                        avatarStyle: null,
-                    },
-                    ...(willClearAvatar && {
-                        avatar: currentUserPersonalDetails.avatar,
-                        fallbackIcon: currentUserPersonalDetails.fallbackIcon,
-                    }),
+    const failureData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatarStyle: currentUserPersonalDetails.avatarStyle ?? null,
+                pendingFields: {
+                    avatarStyle: null,
                 },
+                ...(willClearAvatar && {
+                    avatar: currentUserPersonalDetails.avatar,
+                    fallbackIcon: currentUserPersonalDetails.fallbackIcon,
+                }),
             },
-        },
+        }),
     ];
 
     const parameters: UpdateUserAvatarParams = {color};
@@ -545,29 +501,21 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
         lastName: currentUserPersonalDetails.lastName,
     });
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatar: defaultAvatar,
-                    fallbackIcon: null,
-                },
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatar: defaultAvatar,
+                fallbackIcon: null,
             },
-        },
+        }),
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatar: currentUserPersonalDetails?.avatar,
-                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-                },
+    const failureData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatar: currentUserPersonalDetails?.avatar,
+                fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
             },
-        },
+        }),
     ];
 
     API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {

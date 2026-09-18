@@ -1,7 +1,7 @@
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -9,6 +9,7 @@ import BareUserListItem from '@components/SelectionList/ListItem/BareUserListIte
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -31,7 +32,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT>;
@@ -40,13 +42,16 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [showExpensifyCardErrorModal, setShowExpensifyCardErrorModal] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [unsharedBankAccountData] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
-    const [unshareUser, setUnshareUser] = useState<{login?: string | null; text?: string | null} | undefined>(undefined);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
+    const {showConfirmModal, closeModal} = useConfirmModal();
+    const isFocused = useIsFocused();
+
+    // The error modal is shown from two call sites, so this keeps a second copy off the stack while one is already open.
+    const isErrorModalShownRef = useRef(false);
     const admins = bankAccountList?.[bankAccountID]?.accountData?.sharees;
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
     const adminEmails = admins?.filter((admin) => admin !== currentUserPersonalDetails?.email) ?? [];
@@ -79,6 +84,11 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const isLoading = unsharedBankAccountData?.isLoading ?? false;
     const shouldShowSuccess = unsharedBankAccountData?.shouldShowSuccess ?? false;
 
+    const isExpensifyCardSettlementAccountRef = useRef(isExpensifyCardSettlementAccount);
+    useEffect(() => {
+        isExpensifyCardSettlementAccountRef.current = isExpensifyCardSettlementAccount;
+    }, [isExpensifyCardSettlementAccount]);
+
     useEffect(() => {
         if (!shouldShowSuccess) {
             return;
@@ -88,36 +98,76 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         }
     }, [totalAdmins, shouldShowSuccess]);
 
+    const showUnshareErrorModal = useCallback(() => {
+        if (isErrorModalShownRef.current) {
+            return;
+        }
+
+        // Leave the error set while the page is in the background so the effect below retries once it regains focus.
+        if (!isFocused) {
+            return;
+        }
+
+        isErrorModalShownRef.current = true;
+        showConfirmModal({
+            title: translate('walletPage.unshareErrorModalTitle'),
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    {/* Concierge navigates away, so the modal has to be closed explicitly or it would stay on the stack over the chat. */}
+                    <RenderHTML
+                        html={translate('walletPage.reachOutForHelp')}
+                        onConciergeLinkPress={closeModal}
+                    />
+                </View>
+            ),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            // Clearing on CLOSE as well as CONFIRM is what lets the modal be shown again after a backdrop/ESC dismissal.
+        }).then(() => {
+            isErrorModalShownRef.current = false;
+            clearUnshareBankAccountErrors(Number(bankAccountID));
+        });
+    }, [bankAccountID, isFocused, showConfirmModal, closeModal, styles.flexRow, styles.renderHTML, translate]);
+
     useEffect(() => {
         if (!isExpensifyCardError) {
             return;
         }
-        setUnshareUser(undefined);
-        setShowExpensifyCardErrorModal(true);
-    }, [isExpensifyCardError]);
+        showUnshareErrorModal();
+    }, [isExpensifyCardError, showUnshareErrorModal]);
 
-    const handleUnshare = () => {
+    const handleUnshare = (unshareUser: {login?: string | null; text?: string | null}) => {
         if (!bankAccountID || !unshareUser?.login) {
             return;
         }
 
         // Unsharing a bank account isn’t possible if the selected user’s copy of the bank account is set as an Expensify Card settlement account.
-        if (isExpensifyCardSettlementAccount) {
-            setUnshareUser(undefined);
-            setShowExpensifyCardErrorModal(true);
+        // Read through the ref because the flag can change while the confirmation modal is open.
+        if (isExpensifyCardSettlementAccountRef.current) {
+            showUnshareErrorModal();
             return;
         }
         unshareBankAccount(Number(bankAccountID), unshareUser.login);
-        setUnshareUser(undefined);
-    };
-
-    const hideUnshareErrorModal = () => {
-        clearUnshareBankAccountErrors(Number(bankAccountID));
-        setShowExpensifyCardErrorModal(false);
     };
 
     const itemRightSideComponent = (item: ListItem) => {
-        const promptUnshare = () => setUnshareUser({login: item?.login, text: item?.text});
+        const promptUnshare = () => {
+            showConfirmModal({
+                title: translate('common.areYouSure'),
+                prompt: translate('walletPage.unshareBankAccountWarning', {admin: item?.text}),
+                confirmText: translate('common.unshare'),
+                cancelText: translate('common.cancel'),
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+
+                // Chained here so this modal is off the stack before the error modal can be pushed on top of it.
+                handleUnshare({login: item?.login, text: item?.text});
+            });
+        };
         const isUnshareButtonLoading = isLoading && unsharedBankAccountData?.email === item?.login;
 
         return (
@@ -172,29 +222,6 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     ListItem={BareUserListItem}
                 />
             </>
-            <ConfirmModal
-                title={translate('walletPage.unshareErrorModalTitle')}
-                isVisible={showExpensifyCardErrorModal}
-                onConfirm={hideUnshareErrorModal}
-                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
-                prompt={
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('walletPage.reachOutForHelp')} />
-                    </View>
-                }
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('common.areYouSure')}
-                onConfirm={handleUnshare}
-                onCancel={() => setUnshareUser(undefined)}
-                isVisible={!!unshareUser}
-                prompt={translate('walletPage.unshareBankAccountWarning', {admin: unshareUser?.text})}
-                confirmText={translate('common.unshare')}
-                cancelText={translate('common.cancel')}
-                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
-            />
         </ScreenWrapper>
     );
 }
