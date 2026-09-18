@@ -7,6 +7,7 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -27,7 +28,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
+import type {PersonalDetails, ReportAction, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -49,14 +50,14 @@ function parseReportActionJSON(draftReportAction: string): ReportAction | null {
     }
 }
 
-const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, currentUserPersonalDetail: PersonalDetails | undefined) =>
     DebugUtils.stringifyJSON({
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         reportID,
         reportActionID: rand64(),
         created: DateUtils.getDBTime(),
         actorAccountID: session?.accountID,
-        avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
+        avatar: currentUserPersonalDetail?.avatar ?? '',
         message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello world!', text: 'Hello world!'}],
     } satisfies ReportAction);
 
@@ -68,8 +69,8 @@ function DebugReportActionCreatePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
+    const [currentUserPersonalDetail] = usePersonalDetail(session?.accountID);
+    const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, currentUserPersonalDetail));
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 

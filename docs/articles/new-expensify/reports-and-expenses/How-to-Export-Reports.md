@@ -1,7 +1,7 @@
 ---
 title: How to Export Reports
 description: Learn how to export reports to CSV, download them as PDFs, or download their receipts.
-keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
+keywords: [New Expensify, export reports, CSV export, PDF download, download report, download reports, download receipt, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
 internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
@@ -72,7 +72,7 @@ While an export is being prepared, either wait for it to download automatically 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Open the report you want to download.
 3. Select **More**.
-4. Select **Download as PDF**.
+4. Select **Download report**.
 
 The PDF includes all expenses, attached receipts, and report notes.
 
@@ -83,7 +83,7 @@ For reports on a Submit workspace, the PDF also includes an **Approve or Pay** b
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Select the checkbox next to each report you want to download, or use the top checkbox to select all.
 3. Select **Selected** at the top.
-4. Select **Download as PDF**.
+4. Select **Download reports**.
 5. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
 
 Each report downloads as its own PDF, including all expenses, attached receipts, and report notes.
@@ -95,10 +95,10 @@ You can download every receipt attached to a report in a single ZIP file.
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Open the report whose receipts you want to download.
 3. Select **More**.
-4. Select **Download receipts**.
+4. Select **Download receipts**, or **Download receipt** if the report has only one receipt.
 5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
-**Note:** **Download receipts** only appears when at least one expense on the report has a receipt.
+**Note:** This action only appears when at least one expense on the report has a receipt. It reads **Download receipt** when the report has exactly one receipt, and **Download receipts** when it has more than one.
 
 ## How to download the receipts on multiple reports
 
@@ -107,10 +107,10 @@ You can download the receipts on several reports at once in a single ZIP file.
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select the checkbox next to each report whose receipts you want to download, or use the top checkbox to select all.
 3. Select **Selected** at the top.
-4. Select **Download receipts**.
+4. Select **Download receipts**, or **Download receipt** if the selected reports hold only one receipt in total.
 5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
-**Note:** **Download receipts** only appears when at least one selected report has an expense with a receipt.
+**Note:** This action only appears when at least one selected report has an expense with a receipt. It reads **Download receipt** when the selected reports hold exactly one receipt in total, and **Download receipts** when they hold more than one.
 
 ---
 
@@ -128,17 +128,21 @@ When you download multiple reports as PDFs, a message tells you how many of the 
 
 Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
 
-This applies to the downloads that show a preparing status window, whether you start them from the **Reports** page or from a report's **More** menu: **Export** with any template other than **Basic export**, **Download receipts**, and **Download as PDF** when you selected more than one report.
+This applies to the downloads that show a preparing status window, whether you start them from the **Reports** page or from a report's **More** menu: **Export** with any template other than **Basic export**, **Download receipt** or **Download receipts**, and **Download reports** when you selected more than one report.
 
 It does not apply to:
 
 - **Basic export**, which downloads straight to your device without a status window.
-- **Download as PDF** for a single report, which uses its own window that does not reappear after a refresh. Start the download again to get a new PDF.
+- **Download report** for a single report, which uses its own window that does not reappear after a refresh. Start the download again to get a new PDF.
 - **Send me the file when it's ready** — Concierge sends that file to you in a chat message instead, so no status window reappears.
 
-## Why don't I see Download receipts on a report?
+## Why don't I see Download receipt or Download receipts on a report?
 
-**Download receipts** only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports and open **Selected**, it appears only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
+This action only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports and open **Selected**, it appears only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
+
+## Why does the receipt download option sometimes read Download receipt instead of Download receipts?
+
+The label follows the number of receipts the download will include. It reads **Download receipt** when exactly one receipt will be included, and **Download receipts** when more than one will be. The download itself is the same either way.
 
 ## What happens if some receipts fail to download?
 
@@ -171,4 +175,4 @@ Excel may remove leading zeros automatically. To prevent this:
 
 You can download PDF receipts and receipt image files. You can't download eReceipts or receipts created from a map.
 
-If you select **Download receipts** for a report that doesn't contain any downloadable receipts, you'll see the message **No receipts to download**. 
+If you select **Download receipt** or **Download receipts** for a report that doesn't contain any downloadable receipts, you'll see the message **No receipts to download**. 
