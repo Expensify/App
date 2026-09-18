@@ -55,9 +55,9 @@ function UserPill({avatar, displayName, accountID, email, style, isCopyable = fa
                     />
                 </View>
                 <Text
-                    style={[styles.userPillText, isCopyable && styles.userSelectText]}
+                    style={styles.userPillText}
                     numberOfLines={1}
-                    selectable={isCopyable}
+                    selectable={isCopyable || undefined}
                     dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
                 >
                     {formattedDisplayName}
