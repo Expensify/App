@@ -18,16 +18,18 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useCallback} from 'react';
 
 function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {currentSearchKey} = useSearchQueryContext();
     const {isBetaEnabled} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const [isVendorColumnAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled),
-    });
+    const isVendorColumnAvailableSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled),
+        [isVendorMatchingBetaEnabled],
+    );
+    const [isVendorColumnAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorColumnAvailableSelector});
 
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
