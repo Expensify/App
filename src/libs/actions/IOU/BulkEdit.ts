@@ -327,10 +327,10 @@ function updateMultipleMoneyRequests({
         if (changes.category !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
             transactionChanges.category = changes.category;
         }
-        // bulkEditTagChanges is the single source of truth for the tag write; the flattened changes.tag is display-only.
+        // bulkEditTagChanges is the single source of truth for the tag write. The flattened changes.tag is display-only.
         const editedTagIndexes = bulkEditTagChanges ? Object.keys(bulkEditTagChanges) : [];
         if (editedTagIndexes.length > 0 && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
-            // Rebuild from this transaction's own tag so untouched levels are kept; apply edits in order with an empty currentTag.
+            // Rebuild from this transaction's own tag so untouched levels are kept. Apply edits in order with an empty currentTag.
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
             const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
             const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;

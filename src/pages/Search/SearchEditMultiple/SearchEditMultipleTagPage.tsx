@@ -62,7 +62,7 @@ function SearchEditMultipleTagPage() {
             hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
         });
 
-        // Deselecting a pick made in this same draft drops the intent (net no-op); any other deselect stays '' as a real clear.
+        // Deselecting a pick made in this same draft drops the intent (net no-op). Any other deselect stays '' as a real clear.
         const isUndoingOwnPick = isDeselecting && recordedTagChanges[tagListIndex] === currentTag;
         const deselectValue = isUndoingOwnPick ? null : '';
         const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? deselectValue : selectedTagName};
@@ -77,7 +77,7 @@ function SearchEditMultipleTagPage() {
         }
 
         updateBulkEditDraftTransaction({
-            // The flattened tag is display-only; bulkEditTagChanges is the single source of truth for the save.
+            // The flattened tag is display-only. bulkEditTagChanges is the single source of truth for the save.
             tag: updatedTag,
             bulkEditTagChanges,
         });
