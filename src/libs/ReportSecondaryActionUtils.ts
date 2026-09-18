@@ -37,6 +37,7 @@ import {
     isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    wasPaidWithPolicyBankAccount,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -444,11 +445,17 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
 }
 
 // The bank account a payment was funded from. A paying admin picks the account and the pay action records it as
-// `bankAccountID`; automatic and older payments don't name one and were always funded by the workspace account.
+// `bankAccountID`. Automatic and older payments don't name one.
 function getPayActionBankAccountID(action: ReportAction | undefined, policy: OnyxEntry<Policy>): number | undefined {
     const originalMessage = action ? getOriginalMessage(action) : undefined;
     const actionBankAccountID = originalMessage && 'bankAccountID' in originalMessage ? originalMessage.bankAccountID : undefined;
-    return actionBankAccountID ?? policy?.achAccount?.bankAccountID;
+
+    if (actionBankAccountID) {
+        return actionBankAccountID;
+    }
+
+    // Only assume the workspace account for a payment the designated payer made, same rule as the paid-with messages.
+    return wasPaidWithPolicyBankAccount(policy, action?.actorAccountID) ? policy?.achAccount?.bankAccountID : undefined;
 }
 
 function hasPayActionPassedNachaCutoff(action: ReportAction | undefined): boolean {
@@ -504,7 +511,7 @@ function isCancelPaymentAction(
 
     // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
     // A non-payer admin can always cancel a manual (paid elsewhere) payment, but a bank payment only when the account
-    // it was funded from is shared with them — same as Classic, since cancelling reverses a debit on that account.
+    // it was funded from is shared with them. This matches Classic, since cancelling reverses a debit on that account.
     const paymentBankAccountID = isPaidViaBankAccount ? getPayActionBankAccountID(latestPayAction, policy) : undefined;
     const canAccessPaymentBankAccount = !!paymentBankAccountID && !!bankAccountList?.[paymentBankAccountID];
     const canCancelPayment = isPayer || (canAdminPayReport(policy, currentUserEmail) && (!isPaidViaBankAccount || canAccessPaymentBankAccount));

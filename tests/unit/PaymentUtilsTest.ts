@@ -629,18 +629,27 @@ describe('getBankAccountLastFourDigits', () => {
     });
 
     it('uses the account stored on the payment action over anything resolved locally', () => {
-        expect(getBankAccountLastFourDigits(undefined, {}, policy, 'XXXXXX0000', NON_PAYER_ADMIN_ACCOUNT_ID)).toBe('0000');
+        expect(getBankAccountLastFourDigits({bankAccountID: undefined, bankAccountList: {}, policy, accountNumber: 'XXXXXX0000', payerAccountID: NON_PAYER_ADMIN_ACCOUNT_ID})).toBe('0000');
     });
 
     it('falls back to the workspace account for a payment made by the designated payer', () => {
-        expect(getBankAccountLastFourDigits(undefined, {}, policy, undefined, PAYER_ACCOUNT_ID)).toBe('1111');
+        expect(getBankAccountLastFourDigits({bankAccountID: undefined, bankAccountList: {}, policy, payerAccountID: PAYER_ACCOUNT_ID})).toBe('1111');
     });
 
     it('does not attribute the workspace account to a payment made by a non-payer admin', () => {
-        expect(getBankAccountLastFourDigits(undefined, {}, policy, undefined, NON_PAYER_ADMIN_ACCOUNT_ID)).toBe('');
+        expect(getBankAccountLastFourDigits({bankAccountID: undefined, bankAccountList: {}, policy, payerAccountID: NON_PAYER_ADMIN_ACCOUNT_ID})).toBe('');
     });
 
     it('does not attribute the workspace account to a payment that names another bank account', () => {
-        expect(getBankAccountLastFourDigits(2222, {}, policy, undefined, PAYER_ACCOUNT_ID)).toBe('');
+        expect(getBankAccountLastFourDigits({bankAccountID: 2222, bankAccountList: {}, policy, payerAccountID: PAYER_ACCOUNT_ID})).toBe('');
+    });
+
+    it('keeps the workspace account when the reimburser cannot be resolved from personal details', async () => {
+        // Given a viewer who has never interacted with the designated payer, so their personal details aren't loaded
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[NON_PAYER_ADMIN_ACCOUNT_ID]: {accountID: NON_PAYER_ADMIN_ACCOUNT_ID, login: 'wsadmin@test.com'}});
+        await waitForBatchedUpdates();
+
+        // Then the payer can't be ruled out, so the pre-existing workspace account fallback is kept
+        expect(getBankAccountLastFourDigits({bankAccountID: undefined, bankAccountList: {}, policy, payerAccountID: PAYER_ACCOUNT_ID})).toBe('1111');
     });
 });

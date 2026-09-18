@@ -12,6 +12,7 @@ import type {ReportAction} from '@src/types/onyx';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
+import {policyPaymentAttributionSelector} from '@selectors/Policy';
 import React from 'react';
 
 import ReportActionMessageContent from './ReportActionMessageContent';
@@ -37,13 +38,13 @@ function IouReportActionMessage({action, displayAsGroup, reportID, style, isHidd
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [policyPaymentAttribution] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyPaymentAttributionSelector});
 
     let iouMessage: string | undefined;
     const isIOUAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU);
     const originalMessageType = isIOUAction ? getOriginalMessage(action)?.type : undefined;
     if (isIOUAction && originalMessageType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, policy, transaction, bankAccountList);
+        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, policyPaymentAttribution, transaction, bankAccountList);
     }
 
     return (

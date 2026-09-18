@@ -109,7 +109,6 @@ import Onyx from 'react-native-onyx';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import type AdditionalPayOnyxData from './IOU/types/AdditionalPayOnyxData';
 
-import {getBankAccountList} from './BankAccounts';
 import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
@@ -283,6 +282,7 @@ type HandleActionButtonPressParams = {
     rules: OnyxCollection<Rule>;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function handleActionButtonPress({
@@ -326,6 +326,7 @@ function handleActionButtonPress({
     rules,
     conciergeChat,
     getCurrencyDecimals,
+    bankAccountList,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -381,6 +382,7 @@ function handleActionButtonPress({
                 conciergeChat,
                 getCurrencyDecimals,
                 rules,
+                bankAccountList,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -624,6 +626,7 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function getPayActionCallback({
@@ -655,6 +658,7 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
     rules,
+    bankAccountList,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -667,13 +671,13 @@ function getPayActionCallback({
         return;
     }
 
-    const paymentPolicy = policy ?? snapshotPolicy;
+    const paymentPolicy = snapshotPolicy ?? policy;
 
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
         // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
         // them pick it instead of silently paying with (and reporting) the workspace one.
-        if (!canAccessPolicyBankAccount(paymentPolicy, getBankAccountList())) {
+        if (!canAccessPolicyBankAccount(paymentPolicy, bankAccountList)) {
             goToItem();
             return;
         }

@@ -1001,8 +1001,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
             // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
-            // counts here if the workspace account is actually shared with the current user. Anyone else — including a
-            // payer the account was never shared with — has to open the report and pick an account of their own.
+            // counts here if the workspace account is actually shared with the current user. Anyone else has to open the
+            // report and pick an account of their own. That includes a payer the account was never shared with.
             if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
                 continue;
             }

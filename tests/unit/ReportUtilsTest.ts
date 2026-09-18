@@ -585,11 +585,16 @@ describe('ReportUtils', () => {
     describe('getIOUReportActionDisplayMessage', () => {
         const iouReportID = '1234567890';
         const policyID = 332;
+        const reimburserEmail = 'reimburser@example.com';
+        const reimburserAccountID = 332001;
 
+        // The workspace account is only a valid fallback for a payment made by the designated payer, so the pay action
+        // has to come from the reimburser for these messages to name it.
         const reportAction = {
             ...createRandomReportAction(44),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             reportID: iouReportID,
+            actorAccountID: reimburserAccountID,
             originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
         };
 
@@ -603,11 +608,17 @@ describe('ReportUtils', () => {
                 routingNumber: '011401533',
                 addressName: 'Bank Workspace',
                 bankName: 'Test Bank',
-                // No designated payer, so every admin pays out of the workspace account and these cases can fall
-                // back to the policy's default reimbursement account.
-                reimburser: '',
+                reimburser: reimburserEmail,
             },
         };
+
+        beforeAll(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
+        });
+
+        afterAll(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
+        });
 
         it('should return the right message when payment type is ACH', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
@@ -730,6 +741,27 @@ describe('ReportUtils', () => {
 
             expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank, undefined)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
+            );
+        });
+
+        it('should not attribute a non-payer admin VBBA payment to the workspace bank account', () => {
+            // Given a VBBA pay action with no account on it, made by an admin who is not the designated payer
+            const nonPayerAdminAction = {...reportAction, actorAccountID: reimburserAccountID + 1};
+
+            // Then the message does not guess the workspace account, since the admin paid from an account of their own
+            expect(getIOUReportActionDisplayMessage(translateLocal, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''),
+            );
+        });
+
+        it('should keep the workspace bank account when the reimburser is not in personal details', () => {
+            // Given a policy whose reimburser this viewer has never interacted with (no personal details loaded)
+            const policyWithUnknownReimburser: Policy = {...policyWithBank, reimburser: 'unknown-reimburser@example.com'};
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+
+            // Then the payer can't be ruled out, so the message keeps the workspace account instead of blanking the digits
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithUnknownReimburser, undefined)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits),
             );
         });
 
@@ -19212,7 +19244,7 @@ describe('ReportUtils', () => {
             describe('when the payment names the bank account it came from', () => {
                 // A paying admin picks the account to pay from, so a workspace payment now carries a bankAccountID the
                 // same way an invoice payment does. That must not turn the preview into the invoice wording
-                // ("paid $100.00 with personal account 6281") — it is a workspace payment and reads "paid with bank
+                // ("paid $100.00 with personal account 6281"). It is a workspace payment and reads "paid with bank
                 // account 6281", which is also what PaymentContent renders on the action itself.
                 const actionNamingAccount: ReportAction = {
                     ...payReportAction,
@@ -19239,6 +19271,18 @@ describe('ReportUtils', () => {
                     );
 
                     expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
+                });
+
+                it('resolves the account through bankAccountList when the action only carries its ID', () => {
+                    // Given the payer paid from an account other than the workspace one, and the action recorded only its ID
+                    const actionNamingAccountID: ReportAction = {...payReportAction, originalMessage: {...payOriginalMessage, bankAccountID: 5678001}};
+                    const bankAccountList = createMock<BankAccountList>({5678001: {accountData: {accountNumber: 'XXXXXX5678'}}});
+                    const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                    const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
+
+                    // Then both previews name that account, matching PaymentContent, rather than the workspace default
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
+                    expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
                 });
             });
 
