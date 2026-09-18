@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type * as OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useSearchSelectorBase from '@hooks/useSearchSelector/base';
 
 import type {SearchOption} from '@libs/OptionsListUtils';
@@ -51,6 +53,7 @@ jest.mock('@hooks/useFilteredOptions', () => ({
 }));
 
 jest.mock('@components/OnyxListItemProvider', () => ({
+    ...jest.requireActual<typeof OnyxListItemProvider>('@components/OnyxListItemProvider'),
     usePersonalDetails: () => ({}),
 }));
 

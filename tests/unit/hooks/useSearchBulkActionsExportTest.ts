@@ -163,7 +163,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -860,7 +860,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportPartialModal.title',
                 subtitle: 'workspace.exportPartialModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -905,7 +905,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportPartialModal.title',
                 subtitle: 'workspace.exportPartialModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -990,7 +990,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportAgainModal.title',
                 subtitle: 'workspace.exportAgainModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -1029,7 +1029,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportAgainModal.title',
                 subtitle: 'workspace.exportAgainModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -1273,9 +1273,11 @@ describe('useSearchBulkActions - export options', () => {
     });
 
     it('opens directly onto the single export option when Export is the only bulk action', async () => {
-        // Export is the only bulk action offered under select all, so there is no main menu to go back to. The one
-        // export option is surfaced directly instead of behind an "Export" row whose submenu would render a back
-        // arrow leading nowhere, with "Export" kept as a plain dropdown header so the option still has context.
+        // Export is the only bulk action offered under select all, so the dropdown has no main menu to go back to.
+        // The one export option is surfaced directly instead of behind an "Export" row whose submenu would render a
+        // back arrow leading nowhere, with "Export" kept as a plain dropdown header so the option still has context.
+        // This only applies to the dropdown: the bar renders each action as its own button, so `headerButtonsOptions`
+        // keeps the nested shape regardless.
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({
@@ -1287,10 +1289,10 @@ describe('useSearchBulkActions - export options', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
-            expect(result.current.headerButtonsOptions.map((option) => option.text)).toEqual(['export.currentView']);
+            expect(result.current.dropdownButtonsOptions.map((option) => option.text)).toEqual(['export.currentView']);
         });
 
-        const soleOption = result.current.headerButtonsOptions.at(0);
+        const soleOption = result.current.dropdownButtonsOptions.at(0);
         expect(soleOption?.value).toBe(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         expect(soleOption?.subMenuItems).toBeUndefined();
         expect(soleOption?.backButtonText).toBeUndefined();
@@ -1304,13 +1306,13 @@ describe('useSearchBulkActions - export options', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(1);
+            expect(result.current.dropdownButtonsOptions.length).toBeGreaterThan(1);
         });
 
         // Every entry is an export option itself — there is no "Export" row wrapping them and so no back arrow.
-        expect(result.current.headerButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
-        expect(result.current.headerButtonsOptions.some((option) => option.text === 'common.export')).toBe(false);
-        expect(result.current.headerButtonsOptions.some((option) => !!option.subMenuItems)).toBe(false);
+        expect(result.current.dropdownButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        expect(result.current.dropdownButtonsOptions.some((option) => option.text === 'common.export')).toBe(false);
+        expect(result.current.dropdownButtonsOptions.some((option) => !!option.subMenuItems)).toBe(false);
         // "Export" moves to the dropdown header instead, so the options are still labeled without a back caret.
         expect(result.current.bulkActionsMenuHeaderText).toBe('common.export');
     });

@@ -94,7 +94,8 @@ function DynamicIOURequestStepTaxRatePage({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const navigateBack = () => {
@@ -111,6 +112,7 @@ function DynamicIOURequestStepTaxRatePage({
 
     const updateTaxRates = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
         const updateTaxRateParams = {
+            isVendorMatchingBetaEnabled,
             transactionID: currentTransaction?.transactionID,
             transactionThreadReport: report,
             parentReport,
@@ -118,6 +120,7 @@ function DynamicIOURequestStepTaxRatePage({
             taxCode: '',
             taxValue: '',
             taxAmount: 0,
+            transaction: currentTransaction,
             policy,
             policyTagList: policyTags,
             policyCategories,
