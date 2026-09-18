@@ -1918,6 +1918,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             // Server-side count of every report matching the query, larger than the loaded page the client can act on.
             const allMatchingReportsCount = currentSearchResults?.search?.reportCount;
+
             // The server has matching reports beyond the loaded page. True whenever more pages exist, even when the total
             // count itself is unavailable (offline with a stale snapshot, or a failed totals request).
             const hasMoreMatchingReports = !!currentSearchResults?.search?.hasMoreResults;
@@ -1937,15 +1938,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     connectionNameFriendly: string,
                 ) =>
                 (exportAction: () => void) => {
-                    // Interim safeguard: Mark as exported / Export to integration act on a client-built report ID list, so
-                    // under Reports-tab "select all matching" they would silently cover only the loaded page (~50) while the
-                    // header shows every match. Until a query-based backend command exists, warn instead of exporting a
-                    // page-sized subset without any indication. See https://github.com/Expensify/App/issues/101106.
-                    // Fire whenever reports are unloaded: either more pages exist (`hasMoreMatchingReports`, which also
-                    // covers an unavailable total offline/on error) or the known total exceeds the whole loaded selection.
-                    // Compare against the full loaded selection, not this integration's eligible subset: a smaller
-                    // `integrationReportIDs` (reports split across integrations, or some ineligible) is a partial export the
-                    // existing partial-export modal already handles, not unloaded reports.
+                    // Interim safeguard for Reports-tab "select all matching": these actions build a client-side ID list, so
+                    // they'd silently cover only the loaded page. Warn while reports are unloaded (more pages exist, or the total
+                    // exceeds the whole loaded selection, not this integration's subset). See https://github.com/Expensify/App/issues/101106.
                     if (
                         areAllMatchingItemsSelected &&
                         isExpenseReportType &&
