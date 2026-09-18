@@ -6,8 +6,8 @@ import {search} from '@libs/actions/Search';
 import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/actions/Transaction';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
