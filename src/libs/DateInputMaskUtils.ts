@@ -36,11 +36,6 @@ type DateSegmentName = TupleToUnion<typeof DATE_SEGMENT_NAMES>;
 /** The digits typed into each segment, empty when the segment has not been filled in yet */
 type DateSegments = Record<DateSegmentName, string>;
 
-type DateSegmentRange = {
-    start: number;
-    end: number;
-};
-
 type DateMaskPart = {
     name: DateSegmentName;
 
@@ -49,14 +44,6 @@ type DateMaskPart = {
 
     /** The characters the mask puts after this segment, such as a dash */
     separator: string;
-};
-
-type DateDisplay = {
-    /** The text to show in the input */
-    value: string;
-
-    /** Where each segment sits inside that text, so a segment can be selected as a whole */
-    ranges: Record<DateSegmentName, DateSegmentRange>;
 };
 
 const EMPTY_SEGMENTS: DateSegments = {year: '', month: '', day: ''};
@@ -109,43 +96,17 @@ function isZeroPaddedSegment(name: DateSegmentName): name is keyof typeof SEGMEN
 }
 
 /**
- * How far into a segment the caret may sit. A zero padded segment displays its digits at the end, so one typed digit
- * puts the caret at the end of the segment rather than one place into it.
+ * The text one segment shows. A zero padded segment fills from the right, so a day part way through reads as 02 and
+ * becomes 23 on the next digit. An empty segment renders nothing and lets its own placeholder show through.
  */
-function getCaretOffsetLimit(segments: DateSegments, name: DateSegmentName): number {
-    const typedLength = segments[name].length;
+function getSegmentDisplay(segments: DateSegments, name: DateSegmentName): string {
+    const digits = segments[name].slice(0, getSegmentLength(name));
 
-    if (!typedLength) {
-        return 0;
+    if (!digits) {
+        return '';
     }
 
-    return isZeroPaddedSegment(name) ? getSegmentLength(name) : Math.min(typedLength, getSegmentLength(name));
-}
-
-function getDateDisplay(segments: DateSegments, mask: string): DateDisplay {
-    let value = '';
-    const ranges: Record<DateSegmentName, DateSegmentRange> = {year: {start: 0, end: 0}, month: {start: 0, end: 0}, day: {start: 0, end: 0}};
-
-    for (const part of getDateMaskParts(mask)) {
-        // Typed digits take the place of the mask letters, so a half typed year reads as 2YYY rather than 2. A zero
-        // padded segment fills from the right instead, so a day part way through reads as 02 and becomes 23 on the
-        // next digit. Either way the segment keeps the width of its mask, which is what lets a caret position mean
-        // the same thing twice.
-        const digits = segments[part.name].slice(0, part.placeholder.length);
-        const text = digits && isZeroPaddedSegment(part.name) ? digits.padStart(part.placeholder.length, '0') : `${digits}${part.placeholder.slice(digits.length)}`;
-
-        ranges[part.name] = {start: value.length, end: value.length + text.length};
-        value += `${text}${part.separator}`;
-    }
-
-    return {value, ranges};
-}
-
-/** Which segment a caret position falls in, so clicking into the text selects the segment that was clicked */
-function getSegmentNameAtPosition(position: number, ranges: Record<DateSegmentName, DateSegmentRange>): DateSegmentName {
-    const name = DATE_SEGMENT_NAMES.find((segmentName) => position <= ranges[segmentName].end);
-
-    return name ?? DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
+    return isZeroPaddedSegment(name) ? digits.padStart(getSegmentLength(name), '0') : digits;
 }
 
 /** The segment that follows this one, or undefined for the last one, which has nowhere to hand a finished value on to */
@@ -331,11 +292,11 @@ export {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
-    getCaretOffsetLimit,
-    getDateDisplay,
+    getDateMaskParts,
     getFirstUnfilledSegmentName,
     getISODateFromSegments,
-    getSegmentNameAtPosition,
+    getSegmentDisplay,
+    getSegmentLength,
     getSegmentsFromISODate,
     getSegmentsFromText,
     getViewDateFromSegments,
@@ -343,4 +304,4 @@ export {
     removeLastDigit,
     typeDigitIntoSegments,
 };
-export type {DateSegmentName, DateSegmentRange, DateSegments};
+export type {DateMaskPart, DateSegmentName, DateSegments};

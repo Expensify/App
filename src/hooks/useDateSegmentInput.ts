@@ -1,16 +1,17 @@
 /**
- * Drives the guided date input, where the year, month and day are selected and edited one segment at a time. Every
- * keystroke is handled here and the raw keystroke is prevented, so the field can only ever hold a date shaped value.
+ * Drives the guided date input, where the year, month and day are edited in one input each. Every keystroke is handled
+ * here and the raw keystroke is prevented, so a segment can only ever hold digits it is allowed to hold.
+ *
+ * Focus belongs to the browser. Each segment reports its own focus, and this hook only ever asks for a move when a
+ * keystroke calls for one, which is why nothing here has to arbitrate against a caret it does not control.
  */
 import {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
-    getCaretOffsetLimit,
-    getDateDisplay,
     getFirstUnfilledSegmentName,
     getISODateFromSegments,
-    getSegmentNameAtPosition,
+    getSegmentDisplay,
     getSegmentsFromISODate,
     getSegmentsFromText,
     getViewDateFromSegments,
@@ -18,12 +19,12 @@ import {
     removeLastDigit,
     typeDigitIntoSegments,
 } from '@libs/DateInputMaskUtils';
-import type {DateSegmentName, DateSegmentRange, DateSegments} from '@libs/DateInputMaskUtils';
+import type {DateSegmentName, DateSegments} from '@libs/DateInputMaskUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 
-import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 
-import {useRef, useState} from 'react';
+import {useState} from 'react';
 
 const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
 const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
@@ -39,9 +40,6 @@ type UseDateSegmentInputParams = {
     /** The committed date in the format the app stores, shown whenever the field is not being edited */
     value: string;
 
-    /** The localized mask, such as YYYY-MM-DD, which decides the segment order and the text shown for empty segments */
-    mask: string;
-
     /** Whether this platform lets the user type a date at all */
     isEnabled: boolean;
 
@@ -55,12 +53,29 @@ type UseDateSegmentInputParams = {
     onCommit: (isoDate: string) => void;
 };
 
+/** A request for a segment to take focus. The count is what carries it, so asking twice for the same segment works */
+type SegmentFocusRequest = {
+    name: DateSegmentName;
+    version: number;
+};
+
+/** Everything one segment's input needs. The segment itself is stateless and reports back through these */
+type DateSegmentProps = {
+    value: string;
+    onKeyPress: (event: TextInputKeyPressEvent) => void;
+    onChangeText: (text: string) => void;
+    onFocus: () => void;
+};
+
 type UseDateSegmentInputResult = {
-    /** The text to render in the input */
+    /** The committed date, shown while the field is not being edited */
     displayValue: string;
 
-    /** The range covering the segment being edited, which selects it as a whole */
-    selection: DateSegmentRange | undefined;
+    /** Whether the user is inside the field, so the segments rather than the committed date are what to render */
+    isEditing: boolean;
+
+    /** The segment the caller should move focus to, or undefined when no move has been asked for */
+    focusRequest: SegmentFocusRequest | undefined;
 
     /** The month the calendar should show, so it follows the date being typed. Undefined leaves the calendar alone */
     viewDate: Date | undefined;
@@ -71,31 +86,29 @@ type UseDateSegmentInputResult = {
     /** Whether any digit has been typed, so the field is showing more than an untouched mask */
     hasTypedDigits: boolean;
 
-    onKeyPress: (event: TextInputKeyPressEvent) => void;
-    onSelectionChange: (event: TextInputSelectionChangeEvent) => void;
-    onChangeText: (text: string) => void;
-    onFocus: () => void;
-    onBlur: () => void;
+    getSegmentProps: (name: DateSegmentName) => DateSegmentProps;
+
+    /** Sends focus to the first segment still to be filled in, for a press that landed on the field but not on a segment */
+    requestInitialFocus: () => void;
+
+    /** Called once focus has left the field altogether rather than moved between segments */
+    onFieldBlur: () => void;
 };
 
 function isMoveKey(key: string): key is keyof typeof MOVE_KEYS {
     return key in MOVE_KEYS;
 }
 
-export default function useDateSegmentInput({value, mask, isEnabled, minDate, maxDate, onCommit}: UseDateSegmentInputParams): UseDateSegmentInputResult {
+export default function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: UseDateSegmentInputParams): UseDateSegmentInputResult {
     // The segments only describe an edit in progress, so they are seeded on focus rather than synced with the value
     const [segments, setSegments] = useState<DateSegments>(EMPTY_SEGMENTS);
-    const [activeSegmentName, setActiveSegmentName] = useState<DateSegmentName>(FIRST_SEGMENT_NAME);
-    const [caretOffset, setCaretOffset] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
+    const [focusRequest, setFocusRequest] = useState<SegmentFocusRequest | undefined>(undefined);
     // The month the calendar should show, which follows the typed date once the year is complete
     const [viewDate, setViewDate] = useState<Date | undefined>(undefined);
     const [viewDateVersion, setViewDateVersion] = useState(0);
-    // Re-rendering with a new value makes the browser report a caret of its own choosing. Honouring that would drag
-    // the active segment around, so the first report after a keystroke is discarded as an echo of our own update.
-    const hasPendingCaretEchoRef = useRef(false);
-    // Whether the next digit replaces the active segment instead of extending it, set on arriving at a segment
-    const shouldOverwriteRef = useRef(false);
+    // Whether the next digit replaces the segment instead of extending it, set on arriving at a segment
+    const [shouldOverwrite, setShouldOverwrite] = useState(false);
     const [appliedValue, setAppliedValue] = useState(value);
 
     // A date set from outside, by the calendar or by a restored draft, has to reach the segments as well. Without this
@@ -108,26 +121,14 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
         }
     }
 
-    const {value: editingValue, ranges} = getDateDisplay(segments, mask);
-    const activeRange = ranges[activeSegmentName];
-    // A caret parked on a digit place reads as three fields sharing one box. Selecting the whole segment instead would
-    // highlight it as a block, which is not what the design asks for.
-    const caretPosition = activeRange.start + caretOffset;
-
-    const moveCaret = (name: DateSegmentName, offset: number, nextSegments: DateSegments = segments) => {
-        hasPendingCaretEchoRef.current = true;
-        setActiveSegmentName(name);
-        setCaretOffset(Math.min(Math.max(offset, 0), getCaretOffsetLimit(nextSegments, name)));
+    const requestFocus = (name: DateSegmentName) => {
+        setFocusRequest((previous) => ({name, version: (previous?.version ?? 0) + 1}));
     };
 
-    /**
-     * Landing on a segment always rests the caret after whatever it already holds, so an empty one reads from its
-     * start and a filled one is ready to be typed over. `shouldOverwriteRef` is what makes that typing replace the
-     * segment rather than extend it.
-     */
-    const enterSegment = (name: DateSegmentName, nextSegments: DateSegments = segments) => {
-        shouldOverwriteRef.current = true;
-        moveCaret(name, getCaretOffsetLimit(nextSegments, name), nextSegments);
+    /** Landing on a segment arms the overwrite, so the next digit replaces what is there rather than extending it */
+    const enterSegment = (name: DateSegmentName) => {
+        setShouldOverwrite(true);
+        requestFocus(name);
     };
 
     const commitIfComplete = (newSegments: DateSegments) => {
@@ -162,43 +163,39 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
         commitIfComplete(newSegments);
     };
 
-    const handleKeyPress = (event: TextInputKeyPressEvent) => {
+    const handleKeyPress = (name: DateSegmentName, event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
 
         if (isNumeric(key)) {
             event.preventDefault();
-            const result = typeDigitIntoSegments(segments, activeSegmentName, key, shouldOverwriteRef.current);
-            shouldOverwriteRef.current = false;
+            const result = typeDigitIntoSegments(segments, name, key, shouldOverwrite);
+            setShouldOverwrite(false);
             applySegments(result.segments);
 
             if (result.nextSegmentName) {
-                enterSegment(result.nextSegmentName, result.segments);
-                return;
+                enterSegment(result.nextSegmentName);
             }
-
-            moveCaret(activeSegmentName, getCaretOffsetLimit(result.segments, activeSegmentName), result.segments);
             return;
         }
 
         if (isMoveKey(key)) {
             event.preventDefault();
-            enterSegment(getAdjacentSegmentName(activeSegmentName, MOVE_KEYS[key]));
+            enterSegment(getAdjacentSegmentName(name, MOVE_KEYS[key]));
             return;
         }
 
         if (key === BACKSPACE_KEY || key === DELETE_KEY) {
             event.preventDefault();
-            const trimmedSegments = removeLastDigit(segments, activeSegmentName);
+            const trimmedSegments = removeLastDigit(segments, name);
 
             // An empty segment has nothing to delete, so the keystroke falls back to leaving it
             if (!trimmedSegments) {
-                enterSegment(getAdjacentSegmentName(activeSegmentName, -1));
+                enterSegment(getAdjacentSegmentName(name, -1));
                 return;
             }
 
             applySegments(trimmedSegments);
-            shouldOverwriteRef.current = false;
-            moveCaret(activeSegmentName, getCaretOffsetLimit(trimmedSegments, activeSegmentName), trimmedSegments);
+            setShouldOverwrite(false);
             return;
         }
 
@@ -212,33 +209,7 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
 
         // A separator means the user is finished with this segment even if they only typed one digit into it
         event.preventDefault();
-        enterSegment(getAdjacentSegmentName(activeSegmentName, 1));
-    };
-
-    // Clicking into the text lands the caret anywhere, so snap it onto the digit place that was clicked
-    const handleSelectionChange = (event: TextInputSelectionChangeEvent) => {
-        if (hasPendingCaretEchoRef.current) {
-            hasPendingCaretEchoRef.current = false;
-            return;
-        }
-
-        const position = event.nativeEvent.selection.start;
-
-        // The caret is already here, so this is the browser reporting our own position back rather than the user
-        // aiming somewhere. Acting on it is what let a stray report drag the active segment around.
-        if (position === caretPosition) {
-            return;
-        }
-
-        // Landing past the end of the text means the empty space in the field was clicked rather than a segment, so
-        // the first segment still to be filled in takes it, and a date with no gaps in it starts again from the year.
-        const clickedSegmentName = position >= editingValue.length ? (getFirstUnfilledSegmentName(segments) ?? FIRST_SEGMENT_NAME) : getSegmentNameAtPosition(position, ranges);
-        const clickedOffset = position - ranges[clickedSegmentName].start;
-
-        // Clicking is aiming at a digit place rather than arriving at a segment, so the next digit extends what is
-        // there instead of replacing it
-        shouldOverwriteRef.current = false;
-        moveCaret(clickedSegmentName, clickedOffset);
+        enterSegment(getAdjacentSegmentName(name, 1));
     };
 
     // Every keystroke is prevented, so this only runs for text the user pasted in
@@ -249,60 +220,65 @@ export default function useDateSegmentInput({value, mask, isEnabled, minDate, ma
         }
 
         applySegments(pastedSegments);
-        enterSegment(LAST_SEGMENT_NAME, pastedSegments);
+        enterSegment(LAST_SEGMENT_NAME);
     };
 
-    const handleFocus = () => {
-        const seededSegments = getSegmentsFromISODate(value);
-        const firstSegmentName = getFirstUnfilledSegmentName(seededSegments) ?? FIRST_SEGMENT_NAME;
+    /**
+     * A segment reporting that it now holds focus, whether the user clicked it or a keystroke sent them there. Arriving
+     * at a segment always arms the overwrite, so the first digit replaces what is already in it.
+     */
+    const handleSegmentFocus = () => {
+        setShouldOverwrite(true);
 
+        if (isEditing) {
+            return;
+        }
+
+        const seededSegments = getSegmentsFromISODate(value);
         setSegments(seededSegments);
         assertViewDate(getViewDateFromSegments(seededSegments, new Date().getMonth(), minDate, maxDate));
-        shouldOverwriteRef.current = false;
-        setActiveSegmentName(firstSegmentName);
-        setCaretOffset(getCaretOffsetLimit(seededSegments, firstSegmentName));
-
-        // Deliberately not arming the caret echo guard. The click that brought focus here reports its own position
-        // next, and that report is what moves the caret off the end of the text and onto a segment.
         setIsEditing(true);
     };
 
     // An unfinished edit is dropped rather than cleared, so leaving the field restores the last committed date
-    const handleBlur = () => {
+    const handleFieldBlur = () => {
         setIsEditing(false);
         setSegments(EMPTY_SEGMENTS);
-        setCaretOffset(0);
         setViewDate(undefined);
-        shouldOverwriteRef.current = false;
+        setFocusRequest(undefined);
+        setShouldOverwrite(false);
     };
 
     if (!isEnabled) {
         return {
             displayValue: value,
-            selection: undefined,
+            isEditing: false,
+            focusRequest: undefined,
             viewDate: undefined,
             viewDateVersion: 0,
             hasTypedDigits: false,
-            onKeyPress: () => {},
-            onSelectionChange: () => {},
-            onChangeText: () => {},
-            onFocus: () => {},
-            onBlur: () => {},
+            getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}}),
+            requestInitialFocus: () => {},
+            onFieldBlur: () => {},
         };
     }
 
     return {
-        displayValue: isEditing ? editingValue : value,
-        selection: isEditing ? {start: caretPosition, end: caretPosition} : undefined,
+        displayValue: value,
+        isEditing,
+        focusRequest,
         viewDate: isEditing ? viewDate : undefined,
         viewDateVersion,
         hasTypedDigits: isEditing && hasAnySegment(segments),
-        onKeyPress: handleKeyPress,
-        onSelectionChange: handleSelectionChange,
-        onChangeText: handleChangeText,
-        onFocus: handleFocus,
-        onBlur: handleBlur,
+        getSegmentProps: (name: DateSegmentName) => ({
+            value: getSegmentDisplay(segments, name),
+            onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),
+            onChangeText: handleChangeText,
+            onFocus: handleSegmentFocus,
+        }),
+        requestInitialFocus: () => enterSegment(getFirstUnfilledSegmentName(getSegmentsFromISODate(value)) ?? FIRST_SEGMENT_NAME),
+        onFieldBlur: handleFieldBlur,
     };
 }
 
-export type {UseDateSegmentInputParams, UseDateSegmentInputResult};
+export type {DateSegmentProps, SegmentFocusRequest, UseDateSegmentInputParams, UseDateSegmentInputResult};

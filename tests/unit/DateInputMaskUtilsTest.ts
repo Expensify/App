@@ -1,10 +1,10 @@
 import {
     getAdjacentSegmentName,
-    getCaretOffsetLimit,
-    getDateDisplay,
+    getDateMaskParts,
     getFirstUnfilledSegmentName,
     getISODateFromSegments,
-    getSegmentNameAtPosition,
+    getSegmentDisplay,
+    getSegmentLength,
     getSegmentsFromISODate,
     getSegmentsFromText,
     getViewDateFromSegments,
@@ -121,77 +121,49 @@ describe('DateInputMaskUtils', () => {
         });
     });
 
-    describe('getDateDisplay', () => {
-        it('shows the mask while every segment is empty', () => {
-            expect(getDateDisplay(EMPTY, MASK).value).toBe(MASK);
+    describe('getSegmentDisplay', () => {
+        it('shows nothing for an empty segment, leaving its own placeholder to show through', () => {
+            expect(getSegmentDisplay(EMPTY, 'year')).toBe('');
+            expect(getSegmentDisplay(EMPTY, 'month')).toBe('');
         });
 
-        it('keeps the mask for the segments still to be filled in', () => {
-            expect(getDateDisplay(segments('2026', '', ''), MASK).value).toBe('2026-MM-DD');
-            expect(getDateDisplay(segments('2026', '09', ''), MASK).value).toBe('2026-09-DD');
-            expect(getDateDisplay(segments('2026', '09', '18'), MASK).value).toBe('2026-09-18');
-        });
-
-        it('keeps the mask letters of the digit places a half typed year has not reached', () => {
-            expect(getDateDisplay(segments('2', '', ''), MASK).value).toBe('2YYY-MM-DD');
-            expect(getDateDisplay(segments('20', '', ''), MASK).value).toBe('20YY-MM-DD');
+        it('shows the year as far as it has been typed', () => {
+            expect(getSegmentDisplay(segments('2', '', ''), 'year')).toBe('2');
+            expect(getSegmentDisplay(segments('20', '', ''), 'year')).toBe('20');
+            expect(getSegmentDisplay(segments('2026', '', ''), 'year')).toBe('2026');
         });
 
         it('zero pads a half typed month or day, which fill from the right', () => {
-            expect(getDateDisplay(segments('2026', '1', ''), MASK).value).toBe('2026-01-DD');
-            expect(getDateDisplay(segments('2026', '09', '2'), MASK).value).toBe('2026-09-02');
+            expect(getSegmentDisplay(segments('2026', '1', ''), 'month')).toBe('01');
+            expect(getSegmentDisplay(segments('2026', '09', '2'), 'day')).toBe('02');
         });
 
-        it('reports where each segment sits in the text', () => {
-            expect(getDateDisplay(segments('2026', '09', '18'), MASK).ranges).toEqual({
-                year: {start: 0, end: 4},
-                month: {start: 5, end: 7},
-                day: {start: 8, end: 10},
-            });
+        it('shows a finished month or day as typed', () => {
+            expect(getSegmentDisplay(segments('2026', '09', '18'), 'month')).toBe('09');
+            expect(getSegmentDisplay(segments('2026', '09', '18'), 'day')).toBe('18');
         });
+    });
 
-        it('holds the ranges still while a segment is half typed, so a caret position keeps its meaning', () => {
-            const {ranges} = getDateDisplay(segments('2026', '1', ''), MASK);
-
-            expect(ranges.month).toEqual({start: 5, end: 7});
-            expect(ranges.day).toEqual({start: 8, end: 10});
+    describe('getDateMaskParts', () => {
+        it('reads the segment order, placeholders and separators out of the mask', () => {
+            expect(getDateMaskParts(MASK)).toEqual([
+                {name: 'year', placeholder: 'YYYY', separator: '-'},
+                {name: 'month', placeholder: 'MM', separator: '-'},
+                {name: 'day', placeholder: 'DD', separator: ''},
+            ]);
         });
 
         it('uses the letters and separators of the localized mask', () => {
-            expect(getDateDisplay(segments('2026', '', ''), 'AAAA-MM-JJ').value).toBe('2026-MM-JJ');
+            expect(getDateMaskParts('AAAA/MM/JJ').map((part) => part.placeholder)).toEqual(['AAAA', 'MM', 'JJ']);
+            expect(getDateMaskParts('AAAA/MM/JJ').map((part) => part.separator)).toEqual(['/', '/', '']);
         });
     });
 
-    describe('getCaretOffsetLimit', () => {
-        it('keeps the caret at the start of an empty segment', () => {
-            expect(getCaretOffsetLimit(EMPTY, 'year')).toBe(0);
-            expect(getCaretOffsetLimit(EMPTY, 'day')).toBe(0);
-        });
-
-        it('follows the typed digits through the year, which fills from the left', () => {
-            expect(getCaretOffsetLimit(segments('2', '', ''), 'year')).toBe(1);
-            expect(getCaretOffsetLimit(segments('202', '', ''), 'year')).toBe(3);
-            expect(getCaretOffsetLimit(segments('2026', '', ''), 'year')).toBe(4);
-        });
-
-        it('rests at the end of a zero padded segment, since 02 shows the 2 last', () => {
-            expect(getCaretOffsetLimit(segments('2026', '1', ''), 'month')).toBe(2);
-            expect(getCaretOffsetLimit(segments('2026', '12', ''), 'month')).toBe(2);
-        });
-    });
-
-    describe('getSegmentNameAtPosition', () => {
-        const {ranges} = getDateDisplay(segments('2026', '09', '18'), MASK);
-
-        it('maps a position to the segment that covers it', () => {
-            expect(getSegmentNameAtPosition(0, ranges)).toBe('year');
-            expect(getSegmentNameAtPosition(4, ranges)).toBe('year');
-            expect(getSegmentNameAtPosition(6, ranges)).toBe('month');
-            expect(getSegmentNameAtPosition(9, ranges)).toBe('day');
-        });
-
-        it('falls back to the last segment past the end of the text', () => {
-            expect(getSegmentNameAtPosition(99, ranges)).toBe('day');
+    describe('getSegmentLength', () => {
+        it('gives the year twice the digits of the others', () => {
+            expect(getSegmentLength('year')).toBe(4);
+            expect(getSegmentLength('month')).toBe(2);
+            expect(getSegmentLength('day')).toBe(2);
         });
     });
 

@@ -480,6 +480,11 @@ const translations: TranslationDeepObject<typeof en> = {
         amountDebited: 'Importe debitado',
         amountReimbursed: 'Importe reembolsado',
         opensInNewTab: 'Se abre en una nueva pestaña',
+        dateSegments: {
+            year: 'Año',
+            month: 'Mes',
+            day: 'Día',
+        },
         locked: 'Bloqueado',
         month: 'Monat',
         week: 'Semana',

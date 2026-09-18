@@ -1,3 +1,4 @@
+import DateSegmentsInput from '@components/DateSegmentsInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import RNMaskedTextInput from '@components/RNMaskedTextInput';
 import RNTextInput from '@components/RNTextInput';
@@ -10,6 +11,7 @@ const InputComponentMap = new Map<InputType, InputComponentType>([
     ['default', RNTextInput as InputComponentType],
     ['mask', RNMaskedTextInput as InputComponentType],
     ['markdown', RNMarkdownTextInput as InputComponentType],
+    ['dateSegments', DateSegmentsInput as InputComponentType],
 ]);
 
 export default InputComponentMap;

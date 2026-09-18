@@ -84,7 +84,7 @@ function DatePicker({
 
     // The hook is the single gate on typing. When the platform does not allow it, the handlers it returns are no-ops
     // and the value passes straight through, so the call sites below do not have to check again.
-    const segmentInput = useDateSegmentInput({value: selectedDate, mask: dateMask, isEnabled: shouldAllowTyping, minDate, maxDate, onCommit: commitDate});
+    const segmentInput = useDateSegmentInput({value: selectedDate, isEnabled: shouldAllowTyping, minDate, maxDate, onCommit: commitDate});
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
@@ -185,19 +185,24 @@ function DatePicker({
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
-            // Preventing the press would also stop the caret from landing in the segment the user clicked.
+            // Preventing the press would also stop focus from landing in the segment the user clicked.
             if (!shouldAllowTyping && 'preventDefault' in event) {
                 event.preventDefault();
             }
 
+            // A press that landed on the field but not on a segment leaves nothing focused, so send it somewhere useful
+            if (shouldAllowTyping && !segmentInput.isEditing) {
+                segmentInput.requestInitialFocus();
+            }
+
             showDatePickerModal();
         },
-        [shouldAllowTyping, showDatePickerModal],
+        [shouldAllowTyping, showDatePickerModal, segmentInput],
     );
 
     // Reaching the field by keyboard never fires a press, so focus is what opens the calendar once typing is allowed.
+    // The segments report their own focus to the hook, so there is nothing to seed here.
     const handleFocus = () => {
-        segmentInput.onFocus();
         showDatePickerModal();
     };
 
@@ -278,8 +283,18 @@ function DatePicker({
                     accessibilityLabel={label}
                     role={CONST.ROLE.COMBOBOX}
                     accessibilityState={{expanded: isModalVisible}}
+                    type={shouldAllowTyping ? 'dateSegments' : 'default'}
+                    dateSegmentsConfig={
+                        shouldAllowTyping
+                            ? {
+                                  mask: dateMask,
+                                  getSegmentProps: segmentInput.getSegmentProps,
+                                  focusRequest: segmentInput.focusRequest,
+                                  onFieldBlur: segmentInput.onFieldBlur,
+                              }
+                            : undefined
+                    }
                     value={segmentInput.displayValue}
-                    selection={segmentInput.selection}
                     placeholder={placeholder ?? dateMask}
                     errorText={errorText}
                     inputStyle={shouldAllowTyping ? undefined : styles.pointerEventsNone}
@@ -288,10 +303,7 @@ function DatePicker({
                     onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
                     onFocus={shouldAllowTyping ? handleFocus : undefined}
-                    onBlur={segmentInput.onBlur}
-                    onChangeText={segmentInput.onChangeText}
-                    onSelectionChange={segmentInput.onSelectionChange}
-                    onKeyPress={shouldAllowTyping ? segmentInput.onKeyPress : handleInputKeyPress}
+                    onKeyPress={shouldAllowTyping ? undefined : handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
