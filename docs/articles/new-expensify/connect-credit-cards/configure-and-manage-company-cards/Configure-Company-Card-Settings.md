@@ -18,27 +18,19 @@ To set up a commercial card file feed on a workspace, see [Set up a Commercial F
 
 ## How to configure settings for company card feeds
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace name]**.
-2. Select **Company cards** and choose the relevant company card feed.
-3. Select **Settings**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Company cards**.
+4. Select **Settings**.
 
-You can manage the following options:
+You can manage the following company card feed settings:
 
-- **Card feed name**  
-  Update the name of the card feed to help identify it.
-
-- **Allow deleting transactions**  
-  Enable this setting to allow cardholders to delete card transactions.
-   
-  **Note:** This setting only applies to transactions imported after the setting is enabled.
-
-- **Assign new cards** (direct feeds only)  
-  Reconnects to your bank to refresh the card list so newly issued cards appear in the assignment UI.
-
-- **Remove card feed**  
-  Remove the card feed from the workspace and unassign all cards. If the feed is not connected to another workspace, it is permanently deleted.
-  
-  **Note:** Removing the feed or unassigning a card deletes all imported expenses in the **Unreported** and **Draft** states.
+- **Card feed name**: Update the name of the card feed to help identify it.
+- **Statement close date**: Enter the date when your card statement closes so Expensify can create a matching statement under **Card statements** on the Spend page.
+- **Allow deleting transactions**: Allow cardholders to delete imported company card transactions. 
+  - **Note:** When this setting is enabled, it applies only to new transactions. It does not apply to transactions imported before the setting was enabled.
+- **Assign new cards** (direct feeds only): Reconnects to your bank to refresh the card list so newly issued cards appear for assignment.
+- **Remove card feed**: Remove the card feed from the workspace and unassign all cards. If the feed is not connected to another workspace, it is permanently deleted.
+  - **Note:** Removing the feed or unassigning a card deletes all imported expenses in the **Unreported** and **Draft** states.
 
 ![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
 
@@ -52,14 +44,14 @@ If you’ve connected accounting software (like **QuickBooks**, **NetSuite**, or
 
 To apply this setting to all card expenses in the workspace:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting > Connections > Export**.
+1. Go to **Workspaces > [Workspace name] > Accounting > Connections > Export**.
 2. Under **Export company card expenses as**, choose **Central account**.
 
 ## How to export to individual accounts
 
 To override the central export account per card:
 
-1. Go to **Workspaces > [Workspace Name] > Company Cards**.
+1. Go to **Workspaces > [workspace name] > Company Cards**.
 2. Click on an assigned card to open the **Card Details** page.
 3. Select a specific **export account** for that card.
 
@@ -71,7 +63,7 @@ To override the central export account per card:
 
 **eReceipts** are digital receipts that replace paper ones for many USD transactions of $75 or less on commercial and direct card feeds.
 
-1. Go to **Workspaces > [Workspace Name] > More Features** and toggle on **Rules**.
+1. Go to **Workspaces > [workspace name] > More Features** and toggle on **Rules**.
 2. Navigate to the **Rules** section.
 3. Enable **eReceipts**.
 
