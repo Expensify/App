@@ -261,7 +261,7 @@ describe('SearchBulkActionsButton all-matching count', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:49', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 49, isSelectedCountLoading: false});
     });
 
     it('falls back to the loaded report count for expense reports offline before the report count arrives', () => {
