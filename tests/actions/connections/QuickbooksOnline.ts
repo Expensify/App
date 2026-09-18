@@ -131,7 +131,6 @@ describe('actions/connections/QuickbooksOnline', () => {
                 connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 settingName: CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS,
                 settingValue: JSON.stringify({project: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}),
-                idempotencyKey: CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS,
             });
             expect(readSpy).not.toHaveBeenCalled();
             expect(getRequiredQuickBooksConfig(onyxData?.optimisticData?.at(0))).toMatchObject({
