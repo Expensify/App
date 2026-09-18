@@ -24,7 +24,13 @@ import RNTextInput from './RNTextInput';
 import Text from './Text';
 
 /** Leaves the caret somewhere to sit, since a segment sized to its text exactly would clip it at the end */
-const CARET_ALLOWANCE = 2;
+const CARET_ALLOWANCE = 1;
+
+/**
+ * Only the horizontal padding is dropped. The vertical padding that the field hands down is what sits the text below
+ * the floating label, so the segments keep it and stay in line with any other text field.
+ */
+const NO_HORIZONTAL_PADDING = {paddingHorizontal: 0} as const;
 
 /** Used until the real text has been measured, so the first paint is close rather than collapsed */
 const ESTIMATED_CHARACTER_WIDTH = CONST.CHARACTER_WIDTH;
@@ -75,8 +81,10 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
         blurTimeoutRef.current = setTimeout(onFieldBlur, 0);
     };
 
+    // The segments stretch down the row as a single input would, so the padding they inherit lands their text in the
+    // same place as any other text field's
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+        <View style={[styles.flexRow, styles.flex1]}>
             {getDateMaskParts(mask).map((part) => {
                 const segmentProps = getSegmentProps(part.name);
                 const measuredText = segmentProps.value || part.placeholder;
@@ -85,7 +93,7 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
                 return (
                     <React.Fragment key={part.name}>
                         <Text
-                            style={[style, styles.p0, SIZED_TO_CONTENT, MEASURED_OFF_LAYOUT]}
+                            style={[style, NO_HORIZONTAL_PADDING, SIZED_TO_CONTENT, MEASURED_OFF_LAYOUT]}
                             onLayout={(event) => {
                                 const layoutWidth = event.nativeEvent.layout.width;
 
@@ -109,7 +117,7 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
                                     ref.current = element;
                                 }
                             }}
-                            style={[style, styles.p0, SIZED_TO_CONTENT, {width}]}
+                            style={[style, NO_HORIZONTAL_PADDING, SIZED_TO_CONTENT, {width}]}
                             value={segmentProps.value}
                             placeholder={part.placeholder}
                             placeholderTextColor={placeholderTextColor}
@@ -126,7 +134,7 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
                             disabled={disabled}
                             forwardedFSClass={forwardedFSClass}
                         />
-                        {!!part.separator && <Text style={[style, styles.p0, styles.pointerEventsNone, SIZED_TO_CONTENT]}>{part.separator}</Text>}
+                        {!!part.separator && <Text style={[style, NO_HORIZONTAL_PADDING, styles.pointerEventsNone, SIZED_TO_CONTENT]}>{part.separator}</Text>}
                     </React.Fragment>
                 );
             })}

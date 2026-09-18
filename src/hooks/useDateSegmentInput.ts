@@ -263,6 +263,9 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         };
     }
 
+    // The segments describe an edit in progress, so outside of one the committed date is what the field has to show
+    const displayedSegments = isEditing ? segments : getSegmentsFromISODate(value);
+
     return {
         displayValue: value,
         isEditing,
@@ -271,7 +274,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         viewDateVersion,
         hasTypedDigits: isEditing && hasAnySegment(segments),
         getSegmentProps: (name: DateSegmentName) => ({
-            value: getSegmentDisplay(segments, name),
+            value: getSegmentDisplay(displayedSegments, name),
             onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),
             onChangeText: handleChangeText,
             onFocus: handleSegmentFocus,
