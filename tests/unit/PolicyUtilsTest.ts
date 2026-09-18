@@ -4346,12 +4346,13 @@ describe('PolicyUtils', () => {
                     },
                 });
 
-            it('requires a configured connection and the matching beta', () => {
+            it('requires a configured connection but not the matching beta', () => {
                 const policy = buildDualEntryPolicy(vendors);
                 expect(isDualEntryVendorMatchingActive(policy)).toBe(true);
                 expect(hasVendorFeature(policy, true)).toBe(true);
-                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(policy, false)).toBe(true);
                 expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), true)).toBe(false);
+                expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), false)).toBe(false);
                 expect(isDualEntryVendorMatchingActive(undefined)).toBe(false);
             });
 

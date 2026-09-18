@@ -98,7 +98,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const shouldPrefetchTargetPolicyConnections = isVendorMatchingBetaEnabled && !!targetAdminPolicyID && targetAdminPolicyID !== activePolicyID;
+    const shouldPrefetchTargetPolicyConnections = !!targetAdminPolicyID && targetAdminPolicyID !== activePolicyID;
     const {isFetchNeeded, isLoadingFetchedFlag, hasBeenFetched} = usePolicyConnectionsPrefetch(targetAdminPolicy, shouldPrefetchTargetPolicyConnections);
     const isAdminCtaPending = shouldPrefetchTargetPolicyConnections && (isLoadingFetchedFlag || (isFetchNeeded && hasBeenFetched === undefined));
     const isAdminPolicyConnectionDataAvailable = !shouldPrefetchTargetPolicyConnections || hasBeenFetched === true;

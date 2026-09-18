@@ -959,7 +959,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_VENDORS.getRoute(POLICY_ID));
     });
 
-    it('uses More Features without fetching fallback workspace connections when Vendor Matching beta is disabled', async () => {
+    it('waits for fallback workspace connections, then uses the hydrated DualEntry Vendors route when Vendor Matching beta is disabled', async () => {
         await act(async () => {
             await setupOnyxBaseline({
                 isAdmin: true,
@@ -975,12 +975,30 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockOpenPolicyAccountingPage).not.toHaveBeenCalled();
+        expect(mockOpenPolicyAccountingPage).toHaveBeenCalledWith(POLICY_ID);
+        expect(screen.getByText(adminCtaLabel)).toBeDisabled();
+        fireEvent.press(screen.getByText(adminCtaLabel));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                ...buildAdminPolicy(),
+                areConnectionsEnabled: true,
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {config: {isConfigured: true}},
+                }),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${POLICY_ID}`, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
         expect(screen.getByText(adminCtaLabel)).not.toBeDisabled();
         fireEvent.press(screen.getByText(adminCtaLabel));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(POLICY_ID));
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_VENDORS.getRoute(POLICY_ID));
     });
 
     it.each([
