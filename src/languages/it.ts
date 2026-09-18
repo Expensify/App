@@ -5415,6 +5415,11 @@ ${amount} per ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Assegnazioni',
                 },
             },
+            fxExpenseAccount: 'Conto commissioni di conversione valuta',
+            fxExpenseAccountDescription:
+                'Quando la tua azienda copre il costo di conversione valuta su un pagamento effettuato all’estero, aggiungeremo tale costo alla Fattura da pagare come voce contabilizzata su questo conto.',
+            noExpenseAccountsFound: 'Nessun conto trovato',
+            noExpenseAccountsFoundDescription: 'Sincronizza di nuovo la connessione dopo che i conti del libro mastro generale sono stati aggiunti in Certinia.',
         },
         netsuite: {
             subsidiary: 'Filiale',

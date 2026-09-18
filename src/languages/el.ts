@@ -5538,6 +5538,11 @@ ${amount} για ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Αναθέσεις',
                 },
             },
+            fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής συναλλάγματος',
+            fxExpenseAccountDescription:
+                'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή που έγινε στο εξωτερικό, θα προσθέσουμε αυτό το κόστος στο πληρωτέο τιμολόγιο ως γραμμή που κωδικοποιείται σε αυτόν τον λογαριασμό.',
+            noExpenseAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noExpenseAccountsFoundDescription: 'Παρακαλούμε συγχρονίστε ξανά τη σύνδεση αφού προστεθούν οι λογαριασμοί γενικής λογιστικής στο Certinia.',
         },
         netsuite: {
             subsidiary: 'Θυγατρική',
