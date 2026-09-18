@@ -133,27 +133,19 @@ describe('CreateReportMenuItem', () => {
         setupUseOnyx();
     });
 
-    it('passes only report-creation workspaces to useCreateReport', () => {
+    it.each([
+        ['the personal workspace is active', 'personal-1'],
+        ['a workspace beyond the first two eligible ones is active', 'corporate-1'],
+    ])('passes every report-creation workspace to useCreateReport when %s', (_description, activePolicyID) => {
+        setupUseOnyx(activePolicyID);
+
         render(<CreateReportMenuItem />);
 
         const params = mockUseCreateReport.mock.calls.at(0)?.at(0);
-        expect(params?.groupPoliciesWithChatEnabled).toHaveLength(2);
         expect(params?.groupPoliciesWithChatEnabled).toEqual([
             expect.objectContaining({id: 'team-1', type: CONST.POLICY.TYPE.TEAM}),
             expect.objectContaining({id: 'submit-1', type: CONST.POLICY.TYPE.SUBMIT}),
-        ]);
-    });
-
-    it('keeps the active workspace in the sliced list when it is not among the first two eligible policies', () => {
-        setupUseOnyx('corporate-1');
-
-        render(<CreateReportMenuItem />);
-
-        const params = mockUseCreateReport.mock.calls.at(0)?.at(0);
-        expect(params?.groupPoliciesWithChatEnabled).toHaveLength(2);
-        expect(params?.groupPoliciesWithChatEnabled).toEqual([
             expect.objectContaining({id: 'corporate-1', type: CONST.POLICY.TYPE.CORPORATE}),
-            expect.objectContaining({id: 'team-1', type: CONST.POLICY.TYPE.TEAM}),
         ]);
     });
 });

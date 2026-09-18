@@ -31,17 +31,10 @@ import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
-// Returns up to 2 matching policies. The active policy is moved to the front so it survives the slice,
-// otherwise useCreateReport can't resolve it as the default and opens the workspace selector instead of creating directly.
-const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined, activePolicyID: string | undefined) => {
-    const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
-    const activePolicy = eligiblePolicies.find((policy) => policy.id === activePolicyID);
-    const otherPolicy = eligiblePolicies.find((policy) => policy.id !== activePolicyID);
-    return activePolicy && otherPolicy ? [activePolicy, otherPolicy] : eligiblePolicies.slice(0, 2);
-};
+const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined) =>
+    getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
 
 function CreateReportMenuItem() {
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
@@ -53,7 +46,7 @@ function CreateReportMenuItem() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email, activePolicyID),
+        selector: (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email),
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);

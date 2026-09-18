@@ -3163,17 +3163,6 @@ function hasAnyPaidPolicy(policies: OnyxCollection<Policy> | null) {
     return getGroupPaidPolicies(policies).length > 0;
 }
 
-/** Whether the user can create a report on this workspace; the per-policy rule behind `getGroupPoliciesWhereReportCanBeCreated`. */
-function canCreateReportOnPolicy(policy: OnyxEntry<Policy>, currentUserLogin?: string): policy is Policy {
-    return (
-        !!policy &&
-        !policy.isJoinRequestPending &&
-        (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
-        shouldShowPolicy(policy, false, currentUserLogin) &&
-        !isTeachersUnitePolicyID(policy.id)
-    );
-}
-
 /**
  * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
  * plus Submit workspaces. Submit workspaces are free but still support report creation, so they belong
@@ -3183,7 +3172,14 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
-    return Object.values(policies).filter((policy): policy is Policy => canCreateReportOnPolicy(policy, currentUserLogin));
+    return Object.values(policies).filter(
+        (policy): policy is Policy =>
+            !!policy &&
+            !policy.isJoinRequestPending &&
+            (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
+            shouldShowPolicy(policy, false, currentUserLogin) &&
+            !isTeachersUnitePolicyID(policy.id),
+    );
 }
 
 /**
@@ -3660,7 +3656,6 @@ export {
     areSettingsInErrorFields,
     settingsPendingAction,
     getGroupPaidPolicies,
-    canCreateReportOnPolicy,
     getGroupPoliciesWhereReportCanBeCreated,
     getDefaultChatEnabledPolicy,
     getDefaultChatEnabledPolicySelection,

@@ -55,9 +55,6 @@ jest.mock('@libs/PolicyUtils', () => {
         isGroupPolicy: jest.fn(
             (policy: OnyxEntry<Policy>) => policy?.type === CONSTANTS.POLICY.TYPE.TEAM || policy?.type === CONSTANTS.POLICY.TYPE.CORPORATE || policy?.type === CONSTANTS.POLICY.TYPE.SUBMIT,
         ),
-        canCreateReportOnPolicy: jest.fn(
-            (policy: OnyxEntry<Policy>) => policy?.type === CONSTANTS.POLICY.TYPE.TEAM || policy?.type === CONSTANTS.POLICY.TYPE.CORPORATE || policy?.type === CONSTANTS.POLICY.TYPE.SUBMIT,
-        ),
     };
 });
 
@@ -107,20 +104,13 @@ function makeSubmitPolicy(id = POLICY_ID): Policy {
     return {...policy, type: CONST.POLICY.TYPE.SUBMIT};
 }
 
-function setupUseCreateReportOnyx({
-    activePolicy,
-    preferredPolicy,
-    emptyReportsConfirmationDismissed,
-}: {activePolicy?: OnyxEntry<Policy>; preferredPolicy?: OnyxEntry<Policy>; emptyReportsConfirmationDismissed?: boolean} = {}) {
+function setupUseCreateReportOnyx({activePolicy, emptyReportsConfirmationDismissed}: {activePolicy?: OnyxEntry<Policy>; emptyReportsConfirmationDismissed?: boolean} = {}) {
     mockUseOnyx.mockImplementation((key) => {
         if (key === ONYXKEYS.NVP_ACTIVE_POLICY_ID) {
             return [activePolicy?.id, {status: 'loaded'}];
         }
         if (activePolicy && key === `${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`) {
             return [activePolicy, {status: 'loaded'}];
-        }
-        if (preferredPolicy && key === `${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.id}`) {
-            return [preferredPolicy, {status: 'loaded'}];
         }
         if (key === ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED) {
             return [emptyReportsConfirmationDismissed, {status: 'loaded'}];
@@ -143,24 +133,22 @@ describe('useCreateReport', () => {
 
     describe('domain preferred workspace restriction', () => {
         const personalPolicy: OnyxEntry<Policy> = {...makePaidPolicy('personal-1'), type: CONST.POLICY.TYPE.PERSONAL};
-        const preferredPolicy = makePaidPolicy('preferred-1');
-        const ineligiblePreferredPolicy: OnyxEntry<Policy> = {...makePaidPolicy('preferred-1'), type: CONST.POLICY.TYPE.PERSONAL};
 
         it.each([
-            ['creates on the preferred workspace instead of the active one', makePaidPolicy('p1'), preferredPolicy, false, 'create'],
-            ['creates on the preferred workspace when the active one is personal and multiple workspaces exist', personalPolicy, preferredPolicy, false, 'create'],
-            ['shows the billing restriction page instead of the selector when the preferred workspace is billing-restricted', makePaidPolicy('p1'), preferredPolicy, true, 'restricted'],
-            ['falls back to the normal rules when the preferred workspace cannot take reports', personalPolicy, ineligiblePreferredPolicy, false, 'selector'],
-        ])('%s', (_description, activePolicy, restrictedPolicy, isBillingRestricted, expected) => {
-            setupUseCreateReportOnyx({activePolicy, preferredPolicy: restrictedPolicy});
+            ['creates on the preferred workspace instead of the active one', makePaidPolicy('p1'), 'preferred-1', false, 'create'],
+            ['creates on the preferred workspace when the active one is personal and multiple workspaces exist', personalPolicy, 'preferred-1', false, 'create'],
+            ['shows the billing restriction page instead of the selector when the preferred workspace is billing-restricted', makePaidPolicy('p1'), 'preferred-1', true, 'restricted'],
+            ['falls back to the normal rules when the preferred workspace is not one the user can create reports on', personalPolicy, 'not-eligible', false, 'selector'],
+        ])('%s', (_description, activePolicy, preferredPolicyID, isBillingRestricted, expected) => {
+            setupUseCreateReportOnyx({activePolicy});
             mockUsePreferredPolicy.mockReturnValue({
                 isRestrictedToPreferredPolicy: true,
-                preferredPolicyID: restrictedPolicy?.id,
+                preferredPolicyID,
                 isRestrictedPolicyCreation: false,
             });
             mockShouldRestrictUserBillableActions.mockReturnValue(isBillingRestricted);
             const onCreateReport = jest.fn();
-            const policies = [makePaidPolicy('p1'), makePaidPolicy('p2'), makePaidPolicy('p3')];
+            const policies = [makePaidPolicy('p1'), makePaidPolicy('p2'), makePaidPolicy('preferred-1')];
 
             const {result} = renderHook(() =>
                 useCreateReport({
