@@ -7,6 +7,7 @@ import {
     isCardConnectionBroken,
     isLastScrapePastDismissThreshold,
     isPersonalCard,
+    isPersonalCardBrokenConnection,
 } from '@libs/CardUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -85,7 +86,7 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isPastDismissThreshold;
+            const isFeedConnectionBroken = isPersonalCardBrokenConnection(card) && !isPastDismissThreshold;
             // Track personal cards with broken feed connection
             if (isFeedConnectionBroken) {
                 personalCardsWithBrokenConnection[card.cardID] = card;
