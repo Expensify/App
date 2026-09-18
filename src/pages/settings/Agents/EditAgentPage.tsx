@@ -51,7 +51,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const switchToDelegator = useSwitchToDelegator();
     const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const shouldShowNotFoundPage = isLoadingApp !== false && isOnyxLoaded && !agent && !personalDetails;
+    const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
 
     const agentLogin = personalDetails?.login ?? '';
     const handleBackPress = () => Navigation.goBack();
