@@ -22,6 +22,9 @@ type DynamicFieldInput = {
 
     /** Rendered edge to edge like a menu row instead of inside the page padding */
     isMenuRow?: boolean;
+
+    /** The component has no label of its own, so the renderer draws the field label above it */
+    shouldRenderLabelAbove?: boolean;
 };
 
 type DynamicFieldFactory = (field: WiseField, context: DynamicFieldContext) => DynamicFieldInput;
