@@ -119,11 +119,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Plus']);
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
 
     const isSmartLimitEnabled = policy?.areApprovalsLockedByExpensifyCard ?? false;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -159,10 +158,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const confirmDisableApprovals = useCallback(() => {
         setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, rulesCollection, {
             transactionViolations,
-            betas,
+            isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
             personalDetailsList: personalDetails,
         });
-    }, [betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
+    }, [isBetaEnabledOrUnknown, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
@@ -355,7 +354,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     rulesCollection,
                     {
                         transactionViolations,
-                        betas,
+                        isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
                         personalDetailsList: personalDetails,
                     },
                 );

@@ -21,6 +21,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -183,6 +184,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {showLockedAccountModal} = useLockedAccountActions();
     const [pendingRulesDocumentFile, setPendingRulesDocumentFile] = useState<FileObject | undefined>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isApproverOfOutstandingReports = useIsApproverOfOutstandingPolicyReports(policyID);
 
     const rulesDocumentSourceURL = useMemo(
         () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
@@ -313,7 +315,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const handleLeave = () => {
         const userEmail = session?.email ?? '';
         const ownerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate);
+        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, isApproverOfOutstandingReports);
         const isReimburser = policy?.achAccount?.reimburser === userEmail;
 
         if (isReimburser) {
