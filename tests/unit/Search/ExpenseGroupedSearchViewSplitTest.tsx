@@ -107,6 +107,7 @@ jest.mock('@components/Search/primitives/SelectionTopBar', () => ({__esModule: t
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchRowSelectionActions: () => ({toggle: jest.fn(), toggleAll: jest.fn()}),
     useSearchSelectionContext: () => ({selectedTransactions: {}}),
+    useSearchShiftRangeGroups: () => ({addGroupToRange: jest.fn(), removeGroupFromRange: jest.fn()}),
 }));
 
 const STABLE_QUERY_JSON: SearchQueryJSON = {
