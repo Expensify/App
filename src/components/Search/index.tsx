@@ -103,6 +103,7 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import useSearchDataType from './hooks/useSearchDataType';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
@@ -194,7 +195,7 @@ function Search({
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
-    const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
+    const searchDataType = useSearchDataType(searchResults);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
     const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);

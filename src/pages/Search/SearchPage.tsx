@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
-import usePrevious from '@hooks/usePrevious';
 import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchOverlay from '@hooks/useSearchOverlay';
@@ -21,14 +20,12 @@ import {searchInServer} from '@libs/actions/Report';
 import {clearFooterConversion, search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {SearchResults} from '@src/types/onyx';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import Animated from 'react-native-reanimated';
 
 import SearchPageNarrow from './SearchPageNarrow';
@@ -41,28 +38,19 @@ function SearchPage({route}: SearchPageProps) {
     useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {lastSearchType, currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    // `displayedSearchResults` is derived in SearchResultsProvider so this screen and the Edit columns picker
+    // read the exact same snapshot — see its comment there.
+    const {lastSearchType, currentSearchResults, displayedSearchResults: searchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {setLastSearchType} = useSearchResultsActions();
+    const {setLastSearchType, setIsSorting} = useSearchResultsActions();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
 
-    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
-
     useSearchPageSetup(currentSearchQueryJSON);
     useSeedMyExpensesSearch();
     useReleaseOptionListCaches();
-
-    // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
-    // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
-    // commit one stale render before catching up. The reference equality check
-    // (`currentSearchResults !== lastNonEmptySearchResults`) bounds the re-render loop to a single
-    // extra pass — see https://react.dev/reference/react/useState#storing-information-from-previous-renders.
-    if (currentSearchResults?.data && !shouldUseLiveData && currentSearchResults !== lastNonEmptySearchResults) {
-        setLastNonEmptySearchResults(currentSearchResults);
-    }
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -73,18 +61,6 @@ function SearchPage({route}: SearchPageProps) {
     }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults?.search?.type]);
 
     const {resetVideoPlayerData} = usePlaybackActionsContext();
-
-    const [isSorting, setIsSorting] = useState(false);
-
-    const isCurrentSearchResolved = isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
-    let searchResults: SearchResults | undefined;
-    if (isCurrentSearchResolved && currentSearchResults?.search && currentSearchResults.data === undefined) {
-        searchResults = {...currentSearchResults, data: {}};
-    } else if (currentSearchResults?.data != null || currentSearchResults?.errors) {
-        searchResults = currentSearchResults;
-    } else if (isSorting) {
-        searchResults = lastNonEmptySearchResults;
-    }
 
     useEffect(() => {
         if (shouldUseNarrowLayout) {
@@ -103,16 +79,6 @@ function SearchPage({route}: SearchPageProps) {
     // Converted footer totals are ephemeral, session-scoped display data, so drop them when leaving Search.
     useEffect(() => () => clearFooterConversion(), []);
 
-    const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
-
-    useEffect(() => {
-        if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
-            return;
-        }
-
-        setIsSorting(false);
-    }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
-
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
             searchInServer(value);
@@ -123,7 +89,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
-    }, []);
+    }, [setIsSorting]);
 
     const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
     const overlayEndSubmitSpans = useEndSubmitNavigationSpans();

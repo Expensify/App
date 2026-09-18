@@ -21,8 +21,11 @@ import React from 'react';
 function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const {currentSearchResults} = useSearchResultsContext();
-    const searchDataType = useSearchDataType(currentSearchResults);
+    // Read the snapshot the table is rendering, not the raw one: `currentSearchResults` has no `data` while a
+    // sort is in flight and when a search resolves empty, and seeding off that made this picker fall back to
+    // the static defaults while the table still showed the old columns.
+    const {displayedSearchResults} = useSearchResultsContext();
+    const searchDataType = useSearchDataType(displayedSearchResults);
     const {accountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
@@ -79,7 +82,7 @@ function SearchColumnsPage() {
         // search either: getColumnsToShow returns only GROUP_* columns there, none of which are selectable
         // in this picker, so the result would always be empty. Returning [] keeps ColumnsSettingsList on its
         // own group-defaults fallback instead of handing it an empty type-column selection.
-        if (savedColumns.length > 0 || seedGroupBy || !currentSearchResults?.data) {
+        if (savedColumns.length > 0 || seedGroupBy || !displayedSearchResults?.data) {
             return [];
         }
 
@@ -87,7 +90,7 @@ function SearchColumnsPage() {
 
         return getColumnsToShow({
             currentAccountID: accountID,
-            data: currentSearchResults.data,
+            data: displayedSearchResults.data,
             type: searchDataType,
             shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!currentSearchQueryJSON && isDefaultExpensesQuery(currentSearchQueryJSON),
             fallbackPolicyID: policyForMovingExpensesID,
