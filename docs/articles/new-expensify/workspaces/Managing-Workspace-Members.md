@@ -68,11 +68,13 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 **Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
 
+**Note:** You can’t remove the member set as the workspace’s authorized payer. A message asks you to set a new reimburser first. To remove them, go to **Workspaces > [Workspace Name] > Workflows**, open **Payments**, set a different admin as the **Payer**, then try again.
+
 ## Remove a Single Member
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
-3. In the right-hand panel, click **Remove from Workspace**.
+3. In the right-hand panel, click **Remove from workspace**.
 4. Confirm by clicking **Remove**.
 
 ## Remove Multiple Members
@@ -104,8 +106,10 @@ To transfer ownership to another admin:
 
 1. Go to **Workspaces > Members**.
 2. Click the current **Owner** (identified with a tag).
-3. Click **Transfer Owner** in the right-hand panel.
+3. Click **Transfer owner** in the right-hand panel.
 4. Click **Continue** to confirm.
+
+**Note:** If the previous owner was the **Payer** and the workspace has no business bank account connected, the new owner becomes the **Payer**. If a business bank account is connected, the previous owner stays the **Payer** until an admin assigns a new one in **Workflows > Payments**.
 
 After the transfer, the initiating user becomes the new **Owner**.
 
