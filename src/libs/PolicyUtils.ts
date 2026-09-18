@@ -7,6 +7,8 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
+    BankAccount,
+    BankAccountList,
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
@@ -746,6 +748,89 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     const canPayOnPolicy = isAdmin || (!!currentUserLogin && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
+}
+
+/**
+ * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
+ * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos).
+ * Those stay payer-only.
+ */
+function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
+    if (!isGroupPolicy(policy)) {
+        return false;
+    }
+
+    // Mirrors `isPolicyPayer`: reimbursement must be explicitly configured. Checking `arePaymentsEnabled` here would also
+    // match an unset `reimbursementChoice`, surfacing Pay on a policy whose payments aren't configured yet.
+    const isReimbursementConfigured =
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    return isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+}
+
+/**
+ * The policy fields that identify the workspace bank account and who pays from it. Components that only attribute a
+ * payment subscribe to this shape (see `policyPaymentAttributionSelector`) instead of the whole policy.
+ */
+type PolicyPaymentAttribution = Pick<Policy, 'achAccount' | 'reimburser'>;
+
+/**
+ * The workspace's connected bank account as it appears in the current user's own `bankAccountList`, or undefined when
+ * the account is not shared with them.
+ *
+ * Membership in `bankAccountList` is the only reliable signal, and it is deliberately not softened for the designated
+ * payer. The backend only enumerates an account for the users it is shared with, and it debits some other account when
+ * asked to pay from one it did not share. Being the payer (or even the workspace owner) does not imply that share.
+ *
+ * Read the account number off the returned account rather than off `policy.achAccount`. The two disagree in practice.
+ * `achAccount.accountNumber` goes stale while `achAccount.bankAccountID` already points at a different account, and
+ * printing the stale number is how the button ends up naming an account other than the one that gets debited.
+ */
+function getAccessiblePolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, bankAccountList: OnyxEntry<BankAccountList>): BankAccount | undefined {
+    const policyBankAccountID = policy?.achAccount?.bankAccountID;
+
+    if (!policyBankAccountID) {
+        return undefined;
+    }
+
+    return bankAccountList?.[policyBankAccountID];
+}
+
+/**
+ * Whether the user can actually pay from the workspace's connected bank account. This gates every place that would
+ * otherwise default a payment to `policy.achAccount`. Paying with, or displaying, an account the user has no access to
+ * is always wrong. See `getAccessiblePolicyBankAccount` for why `bankAccountList` is the authority.
+ */
+function canAccessPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, bankAccountList: OnyxEntry<BankAccountList>): boolean {
+    return !!getAccessiblePolicyBankAccount(policy, bankAccountList);
+}
+
+/**
+ * Whether a payment made by `payerAccountID` can be assumed to have been funded by the workspace's connected bank
+ * account.
+ *
+ * Only the designated payer pays out of the workspace account. Any other admin pays from an account of their own, and
+ * their payment must never be attributed to the workspace account, because that account is what every other viewer
+ * would otherwise fall back to. That is how the same payment ends up showing two different accounts to two people.
+ */
+function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, payerAccountID: number | undefined): boolean {
+    const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
+
+    // With no designated payer, every admin pays out of the workspace account, so any payer qualifies.
+    if (!reimburserEmail) {
+        return true;
+    }
+
+    const reimburserAccountID = getKnownAccountIDByLogin(reimburserEmail);
+
+    // The reimburser's details aren't loaded for this viewer (most submitters have never interacted with them), so we
+    // can't rule the workspace account out. Keep the pre-existing fallback rather than blanking the digits for them.
+    if (reimburserAccountID === undefined) {
+        return true;
+    }
+
+    return !!payerAccountID && reimburserAccountID === payerAccountID;
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
@@ -3569,6 +3654,10 @@ export {
     isPolicyOwner,
     isPolicyMember,
     isPolicyPayer,
+    canAdminPayReport,
+    canAccessPolicyBankAccount,
+    getAccessiblePolicyBankAccount,
+    wasPaidWithPolicyBankAccount,
     getReimburserEmail,
     PAYER_ROLES,
     canRolePay,
@@ -3710,4 +3799,4 @@ export {
     isMergeHRCompleteSetupNeededSelector,
 };
 
-export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess, PolicyPaymentAttribution};

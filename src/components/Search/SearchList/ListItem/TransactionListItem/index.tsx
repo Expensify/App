@@ -161,6 +161,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -267,6 +268,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             allViolations,
             rules,
             conciergeChat,
+            bankAccountList,
         });
     };
 

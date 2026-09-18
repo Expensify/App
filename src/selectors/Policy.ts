@@ -19,6 +19,7 @@ import {
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
+import type {PolicyPaymentAttribution} from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -507,7 +508,9 @@ const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
-const policyACHAccountNumberSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.accountNumber;
+/** The policy fields that attribute a payment to a bank account (see `getBankAccountLastFourDigits`). */
+const policyPaymentAttributionSelector = (policy: OnyxEntry<Policy>): PolicyPaymentAttribution | undefined =>
+    policy ? {achAccount: policy.achAccount, reimburser: policy.reimburser} : undefined;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
@@ -569,7 +572,7 @@ export {
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
-    policyACHAccountNumberSelector,
+    policyPaymentAttributionSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
