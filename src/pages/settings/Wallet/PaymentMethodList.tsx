@@ -329,7 +329,9 @@ function PaymentMethodList({
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
+                // A row showing a connection message doesn't repeat the card's own errors, unless the card has a pending action.
+                // A pending wallet approval hides them too, because that flow shows its errors on its own confirmation screen.
+                const shouldShowCardErrorMessages = (!shouldShowCardConnectionMessage && !isCardPendingDigitalWalletApproval(card)) || !!card.pendingAction;
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {

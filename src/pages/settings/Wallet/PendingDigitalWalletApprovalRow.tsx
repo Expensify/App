@@ -1,7 +1,10 @@
 import Button from '@components/Button';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import Icon from '@components/Icon';
+import Text from '@components/Text';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToAddCardToDigitalWallet} from '@libs/actions/Card';
@@ -26,20 +29,27 @@ type PendingDigitalWalletApprovalRowProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-/** Prompts the cardholder to review a wallet addition. Rendered on the Wallet page's card row and on the card details page. */
+/**
+ * Prompts the cardholder to review a wallet addition. Rendered on the Wallet page's card row and on the card details
+ * page, and laid out like the other call-to-action rows in the Wallet list so the two read as the same kind of prompt.
+ */
 function PendingDigitalWalletApprovalRow({cardID, walletProvider, style}: PendingDigitalWalletApprovalRowProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const walletName = translate(`addCardToDigitalWallet.${getWalletProviderNameKey(walletProvider, true)}`);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, style]}>
-            <DotIndicatorMessage
-                style={[styles.flex1, styles.mr3]}
-                textStyles={styles.textSuccess}
-                messages={{pendingDigitalWalletApproval: translate('addCardToDigitalWallet.approvalNeeded', {walletName})}}
-                type="success"
-            />
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, style]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
+                <Icon
+                    src={icons.DotIndicator}
+                    fill={theme.success}
+                    additionalStyles={[styles.mr2]}
+                />
+                <Text style={[styles.mutedNormalTextLabel, styles.label, styles.textSuccess, styles.flexShrink1]}>{translate('addCardToDigitalWallet.approvalNeeded', {walletName})}</Text>
+            </View>
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
