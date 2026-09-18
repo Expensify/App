@@ -73,19 +73,16 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
             | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
             | PlatformStackNavigationProp<RightModalNavigatorParamList>;
 
-        /** A unique ID to find the screen wrapper in tests */
         testID: string;
 
         /** Returns a function as a child to pass insets to or a node to render without insets */
         children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
-        /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
 
         /** Whether to disable the safe area padding for (nested) offline indicators */
         disableOfflineIndicatorSafeAreaPadding?: boolean;
 
-        /** Settings for the focus trap */
         focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */

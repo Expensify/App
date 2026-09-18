@@ -24,7 +24,6 @@ type OnfidoProps = {
     /** Called when Onfido throws an error */
     onError: (error?: string) => void;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<OnfidoElement>;
 };
 

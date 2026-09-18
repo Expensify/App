@@ -15,13 +15,11 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type MonthPickerModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Currently selected month (0-indexed) */
     currentMonth?: number;
 
-    /** Function to call when the user selects a month */
     onMonthChange?: (month: number) => void;
 
     /** Function to call when the user closes the month picker */

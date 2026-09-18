@@ -34,7 +34,6 @@ type FeatureTrainingModalProps = {
     /** Modal content width */
     width?: number;
 
-    /** Style for the modal inner container */
     modalInnerContainerStyle?: ViewStyle;
 
     /** Composed feature training content */

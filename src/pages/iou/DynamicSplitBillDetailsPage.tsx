@@ -55,7 +55,8 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const theme = useTheme();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.path);
     const reportID = report?.reportID;
@@ -70,10 +71,10 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportAttributesDerived = useReportAttributes();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -89,6 +90,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                 policy,
                 {translate, dateFnsLocale, convertToDisplayString},
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                rules,
                 reportAttributesDerived,
             ),
         ];
@@ -113,6 +115,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
         completeSplitBill({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             chatReportID: reportID,
             reportAction,
@@ -121,16 +124,17 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
-            betas,
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
             sessionEmail: session?.email,
             formatPhoneNumber,
+            rules,
         });
         cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
     }, [
+        isVendorMatchingBetaEnabled,
         chatReportTransactions.length,
         reportID,
         reportAction,
@@ -140,12 +144,12 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         isASAPSubmitBetaEnabled,
         quickAction,
         transactionViolations,
-        betas,
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     ]);
 
     return (
@@ -178,6 +182,8 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 payeePersonalDetails={payeePersonalDetails}
                                 selectedParticipants={participantsExcludingPayee}
                                 shouldDisplayReceipt
+                                // Split bill details never render an editable participant row (the transaction is not from global create), so there is nothing to open.
+                                onOpenParticipantPicker={() => {}}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
