@@ -473,8 +473,8 @@ describe('ImportedMerchantRulesPage', () => {
             jest.restoreAllMocks();
         });
 
-        it('reports skipped vendors with vendor wording by default', async () => {
-            const importFinalModal = await Rules.importMerchantRulesSpreadsheet('policyID', RULES, 0, 2, false);
+        it('reports skipped vendors', async () => {
+            const importFinalModal = await Rules.importMerchantRulesSpreadsheet('policyID', RULES, 0, 2);
 
             expect(importFinalModal).toMatchObject({
                 secondaryPendingMessageKey: 'spreadsheet.importMerchantRulesSkippedVendors',
@@ -482,17 +482,8 @@ describe('ImportedMerchantRulesPage', () => {
             });
         });
 
-        it('reports skipped vendors with supplier wording on Xero', async () => {
-            const importFinalModal = await Rules.importMerchantRulesSpreadsheet('policyID', RULES, 0, 1, true);
-
-            expect(importFinalModal).toMatchObject({
-                secondaryPendingMessageKey: 'spreadsheet.importMerchantRulesSkippedSuppliers',
-                secondaryPendingMessageKeyParams: {count: 1},
-            });
-        });
-
         it('omits the secondary message when no vendor was skipped', async () => {
-            const importFinalModal = await Rules.importMerchantRulesSpreadsheet('policyID', RULES, 0, 0, false);
+            const importFinalModal = await Rules.importMerchantRulesSpreadsheet('policyID', RULES, 0, 0);
 
             expect(importFinalModal).not.toHaveProperty('secondaryPendingMessageKey');
         });
