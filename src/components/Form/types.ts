@@ -8,7 +8,7 @@ import type CountrySelector from '@components/CountrySelector';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
-import type MultiSelectListAdapter from '@components/DynamicForm/adapters/MultiSelectListAdapter';
+import type MultiSelectPushRowAdapter from '@components/DynamicForm/adapters/MultiSelectPushRowAdapter';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
@@ -89,7 +89,7 @@ type ValidInputs =
     | typeof PushRowWithModal
     | typeof TimeModalPicker
     | typeof FileUploadAdapter
-    | typeof MultiSelectListAdapter;
+    | typeof MultiSelectPushRowAdapter;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart' | 'stringList' | 'files';
 type ValueTypeMap = {
