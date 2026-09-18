@@ -1,9 +1,14 @@
 {
+    "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
+        "tsBuildInfoFile": "./tsconfig.node.ts7.tsbuildinfo",
         "types": ["node"],
         "lib": ["ESNext"]
     },
+    // `prompts` is deliberately not listed even though the Proposal Police action imports it: the Bun
+    // program owns those files, and listing them in two referenced projects would give editors two
+    // candidate owners for one file. The action's imports still pull them into this program.
     "include": [".github/**/*", "web/proxy.ts", "config/**/*", "config/**/*.d.mts"],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"]
 }

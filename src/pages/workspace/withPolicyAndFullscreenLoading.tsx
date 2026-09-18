@@ -1,6 +1,7 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -16,10 +17,7 @@ import type {WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
 import withPolicy, {policyDefaultProps} from './withPolicy';
 
 type WithPolicyAndFullscreenLoadingOnyxProps = {
-    /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
-
-    /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
@@ -41,7 +39,7 @@ function WithPolicyAndFullscreenLoadingImpl<TProps extends WithPolicyAndFullscre
     ...rest
 }: WithPolicyAndFullscreenLoadingImplProps<TProps>) {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
 
     if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
         return <FullscreenLoadingIndicator />;

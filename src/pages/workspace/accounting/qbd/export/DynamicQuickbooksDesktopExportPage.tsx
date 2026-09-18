@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 
@@ -117,8 +118,6 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.qbd.exportExpensifyCard'),
             title: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
-            shouldShowRightIcon: false,
-            interactive: false,
         },
     ];
 
@@ -140,14 +139,13 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
                     key={menuItem.description}
                     pendingAction={settingsPendingAction(menuItem?.subscribedSettings, qbdConfig?.pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={menuItem.title}
-                        interactive={menuItem?.interactive ?? true}
-                        description={menuItem.description}
-                        shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                    <MenuItemField
+                        name={menuItem.description}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                        value={menuItem.title}
+                    >
+                        {areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.mt2]}>

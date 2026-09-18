@@ -1,7 +1,7 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
 
-import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
@@ -11,6 +11,16 @@ import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTyp
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
 import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
+
+const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+];
 
 /**
  * Parses given query using the autocomplete parser.
@@ -130,6 +140,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
@@ -164,6 +175,7 @@ function filterOutRangesWithCorrectValue(
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = userFriendlyExpenseTypeList;
     const receiptTypeList = userFriendlyReceiptTypeList;
+    const transactionStatusList = userFriendlyTransactionStatusList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const withdrawalStatusList = Object.values(CONST.SEARCH.SETTLEMENT_STATUS) as string[];
     const paidStatusList = Object.values(CONST.SEARCH.PAID_STATUS) as string[];
@@ -207,6 +219,8 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
             return receiptTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
+            return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
@@ -344,6 +358,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 }
 
 export {
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,

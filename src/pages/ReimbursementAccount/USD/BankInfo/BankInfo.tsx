@@ -32,7 +32,6 @@ type BankInfoProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Current Policy ID */
     policyID?: string;
 };
 
@@ -60,6 +59,11 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const submit = (submitData: unknown) => {
         const data = submitData as ReimbursementAccountForm;
+
+        // Deferred navigation must only be armed when a bank account request was actually sent. The new Chase
+        // Plaid flow sends nothing and switches to manual entry instead, so advancing there would move the user
+        // to the next step with no bank account created.
+        let didStartRequest = false;
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             connectBankAccountManually(
                 bankAccountID,
@@ -74,6 +78,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
                 },
                 policyID,
             );
+            didStartRequest = true;
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
             const previousPlaidAccountID = reimbursementAccount?.achData?.plaidAccountID;
             const newPlaidAccountID = data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID];
@@ -81,7 +86,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             if (plaidAccountIDChanged) {
                 deletePaymentBankAccount(bankAccountID, undefined);
             }
-            connectBankAccountWithPlaid(
+            didStartRequest = connectBankAccountWithPlaid(
                 plaidAccountIDChanged ? CONST.DEFAULT_NUMBER_ID : bankAccountID,
                 {
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
@@ -95,6 +100,11 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
                 policyID,
             );
         }
+
+        if (!didStartRequest) {
+            return;
+        }
+
         markSubmitting();
     };
 

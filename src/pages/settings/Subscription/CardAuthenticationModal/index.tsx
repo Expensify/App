@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,6 +34,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
+    const policy = usePolicy(policyID);
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
@@ -57,14 +59,14 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             const message = event.data;
             if (message === CONST.SCA_AUTHENTICATION_COMPLETE) {
                 if (policyID) {
-                    verifySetupIntentAndRequestPolicyOwnerChange(policyID, currentUserAccountID, currentUserEmail);
+                    verifySetupIntentAndRequestPolicyOwnerChange(policy, currentUserAccountID, currentUserEmail);
                 } else {
                     verifySetupIntent(currentUserAccountID, true);
                 }
                 onModalClose();
             }
         },
-        [currentUserAccountID, currentUserEmail, onModalClose, policyID],
+        [currentUserAccountID, currentUserEmail, onModalClose, policy, policyID],
     );
 
     useEffect(() => {

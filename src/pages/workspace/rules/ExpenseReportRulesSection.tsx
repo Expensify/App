@@ -77,7 +77,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 : translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
-            isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
+            isActive: (!!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit !== undefined && policy.autoApproval.limit > 0)) && !workflowApprovalsUnavailable,
             disabled: workflowApprovalsUnavailable || !canWriteApprovals,
             disabledAction: withApprovalsReadOnlyFallback(),
             showLockIcon: workflowApprovalsUnavailable || !canWriteApprovals,
@@ -90,7 +90,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     return;
                 }
 
-                enableAutoApprovalOptions(policyID, isEnabled, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
+                const effectiveIsActive = !!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit ?? 0) > 0;
+                enableAutoApprovalOptions(policyID, isEnabled, effectiveIsActive, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
             },
             subMenuItems: [
                 <OfflineWithFeedback

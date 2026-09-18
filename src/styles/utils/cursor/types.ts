@@ -8,6 +8,7 @@ type CursorStylesKeys =
     | 'cursorUnset'
     | 'cursorAuto'
     | 'cursorZoomIn'
+    | 'cursorGrab'
     | 'cursorGrabbing'
     | 'cursorZoomOut'
     | 'cursorInitial'
