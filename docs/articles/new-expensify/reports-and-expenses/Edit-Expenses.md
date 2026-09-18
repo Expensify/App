@@ -39,7 +39,9 @@ Use edit multiple to update the same field across several expenses simultaneousl
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Expenses**. 
 2. Select 2 or more expenses using the checkboxes.
-3. Click **Selected**. 
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Click **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 4. Choose **Edit multiple**.
 5. In the side panel, select the field you want to update. 
 6. Enter the new value.
@@ -63,7 +65,9 @@ Learn more about [dependent and independent multi-level Tags](/articles/new-expe
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Expenses**. 
 2. Select 2 or more expenses using the checkboxes.
-3. Click **Selected**. 
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Click **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 4. Choose **Edit multiple**.
 5. Click **Attendees**.
 6. Select attendees from **Recents**, **Contacts**, or enter a name, email, or phone number.
