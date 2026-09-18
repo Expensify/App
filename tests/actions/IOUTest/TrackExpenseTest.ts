@@ -168,7 +168,7 @@ describe('actions/IOU/TrackExpense', () => {
             const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: undefined,
                 reports: {[selfDMReportKey]: selfDMReport},
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
@@ -229,7 +229,7 @@ describe('actions/IOU/TrackExpense', () => {
             const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: 'different-report-id',
                 reports: {[selfDMReportKey]: optimisticSelfDMReport},
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
@@ -2898,6 +2898,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Call should not throw when personalDetails is provided
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [transaction],
                     iouReport,
@@ -2910,7 +2911,6 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
@@ -2975,6 +2975,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Even if no transactions are provided, it should not throw
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -2987,7 +2988,6 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
@@ -3022,6 +3022,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with empty personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -3034,7 +3035,6 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: undefined,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
@@ -3069,6 +3069,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with undefined personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -3081,7 +3082,6 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: undefined,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
