@@ -135,6 +135,11 @@ type ConflictRequestReplace = {
     index: number;
 
     /**
+     * The requestIndex of the queued request this replace targets.
+     */
+    requestIndex?: number;
+
+    /**
      * The new request to replace the existing request in the queue.
      */
     request?: AnyRequest;
@@ -162,7 +167,7 @@ type ConflictRequestDelete = {
     /**
      * The next action to execute after the current conflict is resolved.
      */
-    nextAction?: ConflictData;
+    nextAction?: ConflictRequestReplace;
 };
 
 /**

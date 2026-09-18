@@ -769,6 +769,19 @@ onPersistedRequestsInitialization(flush);
 // Flush the queue when another tab enqueues new requests
 onPersistedRequestsCrossTabMerge(flush);
 
+async function handleFollowUpConflictAction<TKey extends OnyxKey>(nextAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
+    if (nextAction.type !== 'replace' || nextAction.requestIndex === undefined) {
+        Log.alert('[SequentialQueue] Refusing a conflict follow-up that cannot be addressed by requestIndex', {
+            command: newRequest.command,
+            nextActionType: nextAction.type,
+            staleIndex: nextAction.type === 'replace' ? nextAction.index : undefined,
+        });
+        return;
+    }
+
+    await updatePersistedRequest(nextAction.index, nextAction.request ?? (newRequest as AnyRequest), nextAction.requestIndex);
+}
+
 async function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
     Log.info('[SequentialQueue] handleConflictActions', false, {
         conflictType: conflictAction.type,
@@ -787,7 +800,7 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
             replaceIndex: conflictAction.index,
             replacementRequest: conflictAction.request?.command ?? newRequest.command,
         });
-        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
+        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest), conflictAction.requestIndex);
     } else if (conflictAction.type === 'delete') {
         Log.info('[SequentialQueue] Conflict resolution: DELETE', false, {
             command: newRequest.command,
@@ -807,7 +820,7 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
                 command: newRequest.command,
                 nextActionType: conflictAction.nextAction.type,
             });
-            await handleConflictActions(conflictAction.nextAction, newRequest);
+            await handleFollowUpConflictAction(conflictAction.nextAction, newRequest);
         }
     } else {
         Log.info('[SequentialQueue] No action performed, request ignored', false, {
