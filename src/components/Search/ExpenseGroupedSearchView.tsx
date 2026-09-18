@@ -270,7 +270,7 @@ function ExpenseGroupedSearchView({
                     isFocused={isItemFocused}
                     isFirstItem={index === firstVisibleIndex}
                     // A collapsed group's children container is mounted but empty, so the header has to paint the table's bottom radius itself.
-                    // Split rows come in header/children pairs, hence the offset; `>=` also covers a trailing container that isn't visible.
+                    // Split rows come in header/children pairs, which is why there is an offset. `>=` also covers a trailing container that isn't visible.
                     isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
                     lastPaymentMethod={lastPaymentMethod}
                     personalPolicyID={personalPolicyID}

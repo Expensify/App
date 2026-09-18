@@ -81,7 +81,7 @@ jest.mock('@components/Search/SearchList/ListItem/GroupChildrenContainer', () =>
     },
 }));
 
-// Groups only render through TransactionGroupListItem off the split path; stub it so importing the view stays lightweight.
+// Groups only render through TransactionGroupListItem off the split path. Stub it so importing the view stays lightweight.
 jest.mock('@components/Search/SearchList/ListItem/TransactionGroupListItem', () => ({__esModule: true, default: () => null}));
 
 jest.mock('@react-navigation/native', () => ({
