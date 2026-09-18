@@ -15,7 +15,7 @@ import useOnyx from './useOnyx';
  */
 type UseSearchTagFiltersResult = {
     /** The paginated tag search results from Onyx */
-    searchResults: OnyxTypes.SearchTagFilterItem[] | null;
+    searchResults: OnyxTypes.SearchTagFilterItem[] | null | undefined;
 
     /** Whether a new search request is in flight */
     isSearching: boolean;

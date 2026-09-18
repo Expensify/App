@@ -1756,7 +1756,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1767,7 +1766,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             // Pending and posted are mutually exclusive, so the form holds a single value: the first valid one, with the invalid value discarded
             expect(result.transactionStatus).toEqual('pending');
@@ -1782,7 +1781,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
             expect(result.transactionStatus).toEqual('posted');
         });
@@ -1796,7 +1795,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
             expect(result.transactionStatusNot).toEqual('pending');
             expect(result.transactionStatus).toBeUndefined();
@@ -1920,7 +1919,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
             expect(result.hasNot).toBeUndefined();
         });
@@ -1939,7 +1938,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result.hasNot).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
             expect(result.has).toBeUndefined();
         });
