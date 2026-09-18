@@ -2670,6 +2670,14 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
     return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
 }
 
+function getAgentPromptUpdatedMessage(
+    translate: LocalizedTranslate,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>,
+): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    return originalMessage ? translate('agentPromptUpdated', originalMessage) : getReportActionMessageText(reportAction);
+}
+
 function getDismissedViolationMessageText(translate: LocalizedTranslate, originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {
     const reason = originalMessage?.reason;
     const violationName = originalMessage?.violationName;
@@ -5093,6 +5101,7 @@ export {
     isReportActionUnread,
     getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
+    getAgentPromptUpdatedMessage,
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,

@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import {
     getActionableCard3DSTransactionApprovalMessage,
+    getAgentPromptUpdatedMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getMarkedReimbursedMessage,
@@ -55,11 +56,7 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
-        const originalMessage = getOriginalMessage(action);
-        if (!originalMessage) {
-            return null;
-        }
-        return <ReportActionItemBasicMessage message={translate('agentPromptUpdated', originalMessage)} />;
+        return <ReportActionItemBasicMessage message={getAgentPromptUpdatedMessage(translate, action)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;

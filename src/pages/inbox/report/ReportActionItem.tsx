@@ -37,6 +37,7 @@ import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
 import {
     extractLinksFromMessageHtml,
+    getAgentPromptUpdatedMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getReportActionMessage,
@@ -500,13 +501,9 @@ function ReportActionItem({
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    let plainMessage = getReportActionText(action);
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
-        const originalMessage = getOriginalMessage(action);
-        if (originalMessage) {
-            plainMessage = translate('agentPromptUpdated', originalMessage);
-        }
-    }
+    const plainMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)
+        ? getAgentPromptUpdatedMessage(translate, action)
+        : getReportActionText(action);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (

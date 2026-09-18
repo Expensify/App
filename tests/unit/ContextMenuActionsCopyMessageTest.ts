@@ -209,4 +209,26 @@ describe('ContextMenuActions copy message', () => {
 
         expect(mockSetString).toHaveBeenCalledWith('agentPromptUpdated');
     });
+
+    it('copies the report action text when an agent prompt update has no original message', () => {
+        const actionText = "owner@expensify.com updated this agent's instructions.";
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            style: 'normal',
+                            text: actionText,
+                        },
+                    ],
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith(actionText);
+    });
 });
