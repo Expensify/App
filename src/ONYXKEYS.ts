@@ -770,12 +770,6 @@ const ONYXKEYS = {
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
-    /** Wise's outstanding onboarding requirements, for the KYC follow-up form */
-    WISE_KYC_REQUIREMENTS: 'wiseKYCRequirements',
-
-    /** The dynamic employee bank-account form for one country and currency */
-    WISE_BANK_ACCOUNT_FIELDS: 'wiseBankAccountFields',
-
     /** The user's session that will be preserved when using imported state */
     PRESERVED_USER_SESSION: 'preservedUserSession',
 
@@ -1858,8 +1852,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
-    [ONYXKEYS.WISE_KYC_REQUIREMENTS]: OnyxTypes.WiseKYCRequirements;
-    [ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS]: OnyxTypes.WiseBankAccountFields;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;

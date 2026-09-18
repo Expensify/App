@@ -1,6 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 
+// The alias points the package name at this file, so the real module has to be reached by path, which has no declaration
+// @ts-expect-error -- see above
 // eslint-disable-next-line import/no-relative-packages
 export * from '../../node_modules/@react-navigation/stack/lib/module/index.js';
 
