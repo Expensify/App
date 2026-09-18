@@ -12,6 +12,7 @@ import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -101,6 +102,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -201,6 +203,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isTrackIntentUser,
                 reportTransactions,
                 rules,
+                delegateAccountID,
             });
             refreshSearch();
             return;
@@ -223,6 +226,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             isTrackIntentUser,
             reportTransactions,
             rules,
+            delegateAccountID,
         });
         refreshSearch();
     };

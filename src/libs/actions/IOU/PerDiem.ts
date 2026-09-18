@@ -618,11 +618,11 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             chatReport,
             iouReport,
             getCurrencyDecimals,
+            delegateAccountID,
             comment,
             optimisticTransaction,
             undefined,
             optimisticReportPreviewActionID,
-            delegateAccountID,
         );
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
