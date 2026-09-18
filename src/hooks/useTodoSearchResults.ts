@@ -1,4 +1,4 @@
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getTodoReportsForSearchKey} from '@libs/TodosUtils';
 
 import CONST from '@src/CONST';

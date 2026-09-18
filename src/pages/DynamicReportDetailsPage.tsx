@@ -222,7 +222,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     // The report from which a tracked expense would be submitted/categorized/shared, and its actions -
     // createDraftTransactionAndNavigateToParticipantSelector uses them to find the linked track-expense action
-    const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
+    const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID, isOffline);
     const [actionReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`);
 
     const {removeTransaction} = useSearchSelectionActions();
@@ -574,7 +574,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 };
                 // "Submit to someone" splits into two destinations here too, matching the track-expense whisper:
                 // submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
-                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
+                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate);
 
                 // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
                 // just like it is on the track-expense whisper.

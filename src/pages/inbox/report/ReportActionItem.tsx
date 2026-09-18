@@ -15,6 +15,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -140,6 +141,10 @@ type ReportActionItemProps = {
 
     shouldUseThreadDividerLine?: boolean;
     shouldDisplayContextMenu?: boolean;
+
+    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    isLatestConciergeFeedbackAction?: boolean;
+
     linkedTransactionRouteError?: Errors;
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
@@ -167,6 +172,7 @@ function ReportActionItem({
     isThreadReportParentAction = false,
     shouldUseThreadDividerLine = false,
     shouldDisplayContextMenu = true,
+    isLatestConciergeFeedbackAction = false,
     parentReportActionForTransactionThread,
     linkedTransactionRouteError: linkedTransactionRouteErrorProp,
     shouldShowBorder,
@@ -175,6 +181,7 @@ function ReportActionItem({
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
     const originalReportID = useOriginalReportID(report?.reportID, action);
+    const {isOffline} = useNetwork();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
@@ -255,6 +262,7 @@ function ReportActionItem({
                 isChatIOUReportArchived: undefined,
                 originalReportID,
                 getCurrencyDecimals,
+                isOffline,
                 isSingleTransactionView: true,
                 policy: iouPolicy,
             });
@@ -266,7 +274,7 @@ function ReportActionItem({
         if (transactionIDToDismiss) {
             clearErrorWithOriginalTransactionError(transactionIDToDismiss);
         }
-        clearAllRelatedReportActionErrors(reportID, action, originalReportID);
+        clearAllRelatedReportActionErrors(reportID, action, originalReportID, isOffline);
     };
 
     const showDismissReceiptErrorModal = async () => {
@@ -633,6 +641,7 @@ function ReportActionItem({
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
                                                                 setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
+                                                                isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
                                                             />
                                                             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                                                                 <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>

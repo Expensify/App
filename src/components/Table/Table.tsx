@@ -280,6 +280,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     shouldFooterRenderAsLastRow,
     onRowSelectionChange,
     onSearchStringChange,
+    onSortingChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
@@ -329,6 +330,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         initialSortOrder,
         narrowLayoutSortColumn,
         shouldUseNarrowTableLayout,
+        onSortingChange,
     });
     const sortedData = sortMiddleware(searchedData);
 

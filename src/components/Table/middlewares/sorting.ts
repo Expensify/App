@@ -64,6 +64,7 @@ type UseSortingProps<T, ColumnKey extends string = string> = {
     initialSortOrder?: SortOrder;
     narrowLayoutSortColumn?: ColumnKey;
     shouldUseNarrowTableLayout?: boolean;
+    onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
 };
 
 /**
@@ -116,6 +117,7 @@ function useSorting<T, ColumnKey extends string = string>({
     initialSortOrder = 'asc',
     narrowLayoutSortColumn,
     shouldUseNarrowTableLayout,
+    onSortingChange,
 }: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
     const [userSorting, setUserSorting] = useState<ActiveSorting<ColumnKey>>({
         columnKey: initialSortColumn,
@@ -124,8 +126,14 @@ function useSorting<T, ColumnKey extends string = string>({
 
     const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting);
 
+    const updateSorting: SortingMethods<ColumnKey>['updateSorting'] = (value) => {
+        const newSorting = typeof value === 'function' ? value(userSorting) : value;
+        setUserSorting(newSorting);
+        onSortingChange?.(newSorting);
+    };
+
     const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
-        setUserSorting((previousSorting) => {
+        updateSorting((previousSorting) => {
             const columnKeyToUse = columnKey ?? previousSorting.columnKey;
             const orderToUse = previousSorting.order === 'asc' ? 'desc' : 'asc';
 
@@ -141,7 +149,7 @@ function useSorting<T, ColumnKey extends string = string>({
     const middleware: Middleware<T> = (data) => sort({data, activeSorting, compareItems});
 
     const methods: SortingMethods<ColumnKey> = {
-        updateSorting: setUserSorting,
+        updateSorting,
         toggleColumnSorting,
         getActiveSorting,
     };
