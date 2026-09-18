@@ -92,6 +92,10 @@ If you open Concierge another way—from **Account** > **Help**, the search bar,
 
 Yes! Concierge is available everywhere—desktop, mobile app, email, and even SMS. Wherever you start a chat, Concierge will follow the conversation across platforms.
 
+## How do I know when Concierge has replied?
+
+On web, your browser tab shows the Concierge icon and the title **Concierge has an answer!** while Concierge works on a question you sent, and it stays that way until you read the reply. [Learn more about seeing when Concierge has an answer in your browser tab](/articles/new-expensify/concierge-ai/How-to-See-When-Concierge-Has-an-Answer). This feature is not available on mobile.
+
 ## Is it safe to send receipts or sensitive info to Concierge?
 
 Yes. Concierge only sees what it needs to help with your request. Expensify doesn’t use your data to train public AI models, and we have zero-retention agreements with our partners.
