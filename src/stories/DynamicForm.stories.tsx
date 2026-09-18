@@ -41,19 +41,25 @@ type DynamicFormStory = StoryFn<DynamicFormStoryProps>;
 
 type LayoutProps = Omit<DynamicFormStoryProps, 'layout'>;
 
-/** Seeds the draft once per mount, before the form registers its inputs, as a real page would find it */
-function useSeededDraft(draftValues: DynamicFormStoryProps['draftValues']) {
+/** Seeds the draft once per mount and reports when Onyx holds it, so the form mounts with the draft as a real page would */
+function useSeededDraft(draftValues: DynamicFormStoryProps['draftValues']): boolean {
     useState(() => {
         clearDraftValues(STORYBOOK_FORM_ID);
         setDraftValues(STORYBOOK_FORM_ID, draftValues);
         return null;
     });
+    const [draft] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
+    return Object.keys(draftValues).every((key) => draft?.[key] !== undefined);
 }
 
 function SinglePage({fields, draftValues}: LayoutProps) {
     const {translate} = useLocalize();
-    useSeededDraft(draftValues);
+    const isDraftReady = useSeededDraft(draftValues);
     const pages = groupFieldsIntoPages(fields);
+
+    if (!isDraftReady) {
+        return null;
+    }
 
     return (
         <FormProvider
@@ -81,14 +87,14 @@ function SinglePage({fields, draftValues}: LayoutProps) {
 
 function PageByPage({fields, draftValues}: LayoutProps) {
     const {translate} = useLocalize();
-    useSeededDraft(draftValues);
+    const isDraftReady = useSeededDraft(draftValues);
     const [pageIndex, setPageIndex] = useState(0);
     const [draft] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const pages = groupFieldsIntoPages(fields);
     const page = pages.at(pageIndex) ?? pages.at(0);
     const isLastPage = pageIndex >= pages.length - 1;
 
-    if (!page) {
+    if (!page || !isDraftReady) {
         return null;
     }
 
