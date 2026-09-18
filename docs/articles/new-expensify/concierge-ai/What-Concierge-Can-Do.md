@@ -1,7 +1,7 @@
 ---
 title: What Concierge can help you do in Expensify
 description: A complete reference of what you can ask Concierge to do in Expensify, with real examples of questions and actions.
-keywords: [what can Concierge do, Concierge examples, Expensify AI capabilities, Concierge commands, expense assistant examples]
+keywords: [what can Concierge do, Concierge examples, Expensify AI capabilities, Concierge commands, expense assistant examples, Concierge chat thread, past Concierge questions]
 internalScope: Audience is all Expensify members. Covers a comprehensive capability reference for Concierge. Does not include step-by-step instructions for completing specific workflows.
 ---
 
@@ -165,10 +165,26 @@ If Concierge can't perform the exact action you're looking for, or if you want t
 
 ---
 
+## How Concierge organizes each question into its own chat thread
+
+When you ask Concierge a question from your **Expensify Concierge** chat, Concierge answers in a chat thread off that chat. Each question gets its own thread, so one conversation doesn’t run into the next and you can come back to an earlier answer later.
+
+Here’s what to expect:
+- The thread opens showing the question you asked.
+- Concierge renames the thread to a short summary of your question once it has read it.
+- The thread appears in your **Inbox** with the Concierge avatar next to it, not your own.
+- Sending a single receipt or file with your question opens its own thread. Sending several files at once keeps them in your **Expensify Concierge** chat instead.
+
+You can reply in the thread to follow up, and you can invite other people into it the same way you would any other chat.
+
+This is rolling out gradually, so you may still see Concierge reply directly in your **Expensify Concierge** chat.
+
+---
+
 ## What happens after you message Concierge
 
 After you send a message:
-- Concierge responds in the same chat  
+- Concierge responds in the same chat, or in a chat thread off your **Expensify Concierge** chat  
 - Actions are completed in real time when possible  
 - You’ll get confirmation of any changes  
 - If needed, your request is escalated to a human without restarting the conversation  
@@ -200,6 +216,14 @@ Yes. You can describe what you want, and Concierge will find the relevant expens
 ## Can I undo or correct something Concierge did?
 
 Yes. Just tell Concierge what to change, and it will update or fix the action. You can also ask it to explain what it did before making changes.
+
+## Why does my Concierge question open its own chat thread?
+
+Concierge answers each question in its own thread so separate conversations stay separate. Concierge names the thread after a short summary of your question, which makes an earlier answer easier to find later.
+
+## Where do I find my past Concierge questions?
+
+Go to **Inbox**. Each question you asked appears there as its own thread off your **Expensify Concierge** chat.
 
 ## Does Concierge understand context from previous messages?
 
