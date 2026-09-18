@@ -1,4 +1,4 @@
-import buildOldDotURL from '@libs/actions/buildOldDotURL';
+import buildOldDotURL from '@libs/buildOldDotURL';
 import {getCurrentUserEmail} from '@libs/CurrentUserStore';
 
 jest.mock('@libs/CurrentUserStore', () => ({

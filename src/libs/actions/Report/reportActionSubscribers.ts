@@ -10,8 +10,14 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
+// New action subscriber array for report pages
 let newActionSubscribers: ActionSubscriber[] = [];
 
+/**
+ * Enables the Report actions file to let the ReportActionsList know that a new comment has arrived in realtime for the current report
+ * Add subscriber for report id
+ * @returns Remove subscriber for report id
+ */
 function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallback): () => void {
     newActionSubscribers.push({callback, reportID});
     return () => {
@@ -19,6 +25,7 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
     };
 }
 
+/** Notify the ReportActionsList that a new comment has arrived */
 function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
     if (!reportID) {
         return;

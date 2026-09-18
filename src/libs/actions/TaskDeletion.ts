@@ -10,9 +10,6 @@ import {doesReportHaveVisibleActions} from '@libs/ReportActionsUtils';
 import type {Ancestor, OptimisticTaskReportAction} from '@libs/ReportUtils';
 import {buildOptimisticTaskReportAction, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, getOptimisticDataForAncestors} from '@libs/ReportUtils';
 
-import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, optimisticReportLastData} from '@userActions/Report';
-import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,11 +22,19 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, optimisticReportLastData} from './Report';
+import {notifyNewAction} from './Report/reportActionSubscribers';
+
 type DeleteTaskOptions = {
     ancestors?: Ancestor[];
     shouldNavigateBack?: boolean;
 };
 
+/**
+ * Calculate the URL to navigate to after a task deletion
+ * @param report - The task report being deleted
+ * @returns The URL to navigate to
+ */
 function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, reportActions: OnyxEntry<OnyxTypes.ReportActions>): string | undefined {
     if (!report) {
         return undefined;
@@ -44,6 +49,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conci
         return ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID);
     }
 
+    // If no parent report, try to navigate to most recent report
     const mostRecentReportID = getMostRecentReportID(report, conciergeReportID);
     if (mostRecentReportID) {
         return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
@@ -52,6 +58,9 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conci
     return undefined;
 }
 
+/**
+ * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
+ */
 function deleteTask(
     report: OnyxEntry<OnyxTypes.Report>,
     parentReport: OnyxEntry<OnyxTypes.Report>,
@@ -72,6 +81,7 @@ function deleteTask(
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
 
+    // If the task report is the last visible action in the parent report, we should navigate back to the parent report
     const shouldDeleteTaskReport = !doesReportHaveVisibleActions(report.reportID, reportActions, canUserPerformWriteAction);
     const optimisticReportAction: Partial<OptimisticTaskReportAction> = {
         pendingAction: shouldDeleteTaskReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -127,6 +137,7 @@ function deleteTask(
         },
     ];
 
+    // Update optimistic data for parent report action if the report is a child report and the task report has no visible child
     const childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
         optimisticData.push(...getOptimisticDataForAncestors(ancestors, parentReport?.lastVisibleActionCreated ?? '', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
@@ -211,6 +222,7 @@ function clearTaskErrors(
         return;
     }
 
+    // Delete the task preview in the parent report
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 

@@ -3,9 +3,9 @@
  * actions/Link so callers such as actions/Session skip the deep-link machinery.
  */
 
-import {getCurrentUserEmail} from '@libs/CurrentUserStore';
-import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
-import addTrailingForwardSlash from '@libs/UrlUtils';
+import {getCurrentUserEmail} from './CurrentUserStore';
+import {getOldDotEnvironmentURL} from './Environment/Environment';
+import addTrailingForwardSlash from './UrlUtils';
 
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
     const hashIndex = url.lastIndexOf('#');
@@ -26,6 +26,7 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
     return getOldDotEnvironmentURL().then((environmentURL) => {
         const oldDotDomain = addTrailingForwardSlash(environmentURL);
 
+        // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
         return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
     });
 }

@@ -127,7 +127,7 @@ import {
 } from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, reopenTask} from '@userActions/Task';
-import {deleteTask} from '@userActions/Task/TaskDeletion';
+import {deleteTask} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
