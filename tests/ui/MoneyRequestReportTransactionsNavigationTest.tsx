@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MoneyRequestReportTransactionList from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import MoneyRequestReportTransactionsNavigation from '@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type * as SearchContext from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 
 import * as ReportActions from '@libs/actions/Report';
@@ -22,8 +23,6 @@ import type {ReportActions as OnyxReportActions, Transaction} from '@src/types/o
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
-
-import type * as SearchContext from '@components/Search/SearchContext';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -70,7 +69,14 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportUnifiedList', ()
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false, isMediumScreenWidth: false, isLargeScreenWidth: true, isExtraLargeScreenWidth: true, onboardingIsMediumOrLargerScreenWidth: true}),
+    default: () => ({
+        shouldUseNarrowLayout: false,
+        isSmallScreenWidth: false,
+        isMediumScreenWidth: false,
+        isLargeScreenWidth: true,
+        isExtraLargeScreenWidth: true,
+        onboardingIsMediumOrLargerScreenWidth: true,
+    }),
 }));
 
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
