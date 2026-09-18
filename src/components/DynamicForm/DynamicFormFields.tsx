@@ -1,4 +1,5 @@
 import InputWrapper from '@components/Form/InputWrapper';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +13,7 @@ import {View} from 'react-native';
 
 import type {DynamicFormValues} from './types';
 
-import getInputComponentForField, {getFieldLabel} from './getInputComponentForField';
+import getInputComponentForField, {getFieldDescription, getFieldLabel} from './getInputComponentForField';
 import isFieldVisible from './isFieldVisible';
 
 type DynamicFormFieldsProps = {
@@ -33,23 +34,48 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
 
     const visibleFields = fields.filter((field) => isFieldVisible(field, values));
     const isAloneOnPage = visibleFields.length === 1;
+    const renderFields = (itemFields: DynamicFormField[], itemValues: DynamicFormValues) => (
+        <DynamicFormFields
+            fields={itemFields}
+            values={itemValues}
+            currency={currency}
+            shouldSaveDraft={false}
+        />
+    );
 
     return (
         <>
             {visibleFields.map((field) => {
-                const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove} = getInputComponentForField(field, {values, translate, currency, isAloneOnPage});
                 const label = getFieldLabel(field, translate);
+                if (field.readonly) {
+                    const answer = values[field.key];
+                    return (
+                        <View
+                            key={field.key}
+                            style={[styles.mhn5, styles.pv1]}
+                        >
+                            <MenuItemWithTopDescription
+                                interactive={false}
+                                description={label}
+                                title={typeof answer === 'string' ? answer : ''}
+                            />
+                        </View>
+                    );
+                }
+                const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove} = getInputComponentForField(field, {values, translate, currency, isAloneOnPage, renderFields});
+                const description = field.type === 'text' ? undefined : getFieldDescription(field, translate);
                 return (
                     <View
                         key={field.key}
                         style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
                     >
                         {!!shouldRenderLabelAbove && <Text style={[styles.mutedTextLabel, styles.mb3, isMenuRow && styles.ph5]}>{label}</Text>}
+                        {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
                         <InputWrapper
                             InputComponent={InputComponent}
                             inputID={field.key}
                             label={label}
-                            shouldSaveDraft={shouldSaveDraft}
+                            shouldSaveDraft={shouldSaveDraft && !field.sensitive}
                             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                             {...inputProps}
                         />

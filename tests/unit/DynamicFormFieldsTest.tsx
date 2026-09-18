@@ -1,16 +1,19 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
 import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
+import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
+import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import MultiSelectPushRowAdapter from '@components/DynamicForm/adapters/MultiSelectPushRowAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
+import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
@@ -38,6 +41,11 @@ type CapturedInputProps = {
     inputMode?: string;
     canSelectMultiple?: boolean;
     valueType?: string;
+    currency?: string;
+    currencyKey?: string;
+    itemFields?: DynamicFormField[];
+    shouldSaveDraft?: boolean;
+    multiline?: boolean;
 };
 
 const mockInputWrapper = jest.fn((props: CapturedInputProps) => props.inputID);
@@ -82,14 +90,18 @@ const EXPECTED_COMPONENT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | (
     address: AddressSearch,
     boolean: CheckboxWithLabel,
     file: FileUploadAdapter,
-    amount: AmountForm,
+    amount: AmountWithCurrencyAdapter,
+    percent: PercentageForm,
+    list: ListFieldAdapter,
 };
 
 describe('DynamicFormFields', () => {
     it('renders every field type with its registered component', () => {
         const rendered = renderFields(allFieldTypes, {legalType: 'BUSINESS'});
 
-        expect(new Set(allFieldTypes.map((field) => field.type)).size).toBe(Object.keys(EXPECTED_COMPONENT_BY_TYPE).length);
+        const fieldTypes = new Set(allFieldTypes.map((field) => field.type));
+        expect(fieldTypes.size).toBe(12);
+        expect(fieldTypes.size).toBe(Object.keys(EXPECTED_COMPONENT_BY_TYPE).length);
         for (const field of allFieldTypes) {
             expect(rendered.get(field.key)?.InputComponent).toBe(EXPECTED_COMPONENT_BY_TYPE[field.type]);
         }
@@ -182,6 +194,38 @@ describe('DynamicFormFields', () => {
 
         expect(renderFields([isSourceOfFund]).get('isSourceOfFund')?.InputComponent).toBe(YesNoAdapter);
         expect(renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('isSourceOfFund')?.InputComponent).toBe(CheckboxWithLabel);
+    });
+
+    it('pins the amount currency without a currencyKey and lets the user choose it with one', () => {
+        const pinned = renderFields([{key: 'volume', label: 'Volume', group: 'A', type: 'amount', required: true, refreshOnChange: false}]).get('volume');
+        expect(pinned?.InputComponent).toBe(AmountForm);
+        expect(pinned?.currency).toBe('USD');
+
+        const chosen = renderFields(allFieldTypes, {legalType: 'BUSINESS', annualVolumeCurrency: 'GBP'}).get('annualVolume');
+        expect(chosen?.InputComponent).toBe(AmountWithCurrencyAdapter);
+        expect(chosen?.currency).toBe('GBP');
+        expect(chosen?.currencyKey).toBe('annualVolumeCurrency');
+    });
+
+    it('passes the item schema to the list adapter', () => {
+        const list = renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('legalEntityShareholders');
+
+        expect(list?.InputComponent).toBe(ListFieldAdapter);
+        expect(list?.itemFields?.map((field) => field.key)).toEqual(['name', 'country', 'ownershipPercentage']);
+    });
+
+    it('renders a readonly field as a plain row, skips drafts for sensitive fields and grows multiline text', () => {
+        const fields: DynamicFormField[] = [
+            {key: 'legalName', label: 'Legal business name', group: 'Business', type: 'text', required: true, readonly: true, refreshOnChange: false},
+            {key: 'ssn', label: 'SSN', group: 'Business', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+            {key: 'about', label: 'About', group: 'Business', type: 'text', required: true, multiline: true, maxLength: 500, refreshOnChange: false},
+        ];
+        const rendered = renderFields(fields, {legalName: 'Acme Inc'});
+
+        expect(rendered.has('legalName')).toBe(false);
+        expect(screen.getByText('Acme Inc')).toBeOnTheScreen();
+        expect(rendered.get('ssn')?.shouldSaveDraft).toBe(false);
+        expect(rendered.get('about')?.multiline).toBe(true);
     });
 
     it('addressAdapter maps address.* keys to AddressSearch renamedInputKeys', () => {

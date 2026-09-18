@@ -1,6 +1,6 @@
 import type {DynamicFormField} from '@src/types/onyx';
 
-/** Ten fields, one per DynamicFormFieldType, shaped like Auth's translation of a Wise account-requirements response */
+/** One field per DynamicFormFieldType, drawn from both Wise schema sources so the renderer can be exercised end to end */
 const allFieldTypes: DynamicFormField[] = [
     {
         key: 'accountNumber',
@@ -65,6 +65,7 @@ const allFieldTypes: DynamicFormField[] = [
         group: 'Account details',
         type: 'amount',
         required: true,
+        currencyKey: 'annualVolumeCurrency',
         refreshOnChange: false,
     },
     {
@@ -113,6 +114,29 @@ const allFieldTypes: DynamicFormField[] = [
         group: 'Account holder details',
         type: 'boolean',
         required: false,
+        refreshOnChange: false,
+    },
+    {
+        key: 'legalEntityShareholders',
+        label: 'Legal entity shareholders',
+        description: 'Every business that owns 25% or more, directly or indirectly.',
+        group: 'Ownership',
+        type: 'list',
+        required: false,
+        maxItems: 10,
+        itemFields: [
+            {key: 'name', label: 'Name', group: 'Shareholder', type: 'text', required: true, maxLength: 255, refreshOnChange: false},
+            {key: 'country', label: 'Country', labelKey: 'common.country', group: 'Shareholder', type: 'country', required: true, refreshOnChange: false},
+            {key: 'ownershipPercentage', label: 'Ownership percentage', group: 'Shareholder', type: 'percent', required: true, refreshOnChange: false},
+        ],
+        refreshOnChange: false,
+    },
+    {
+        key: 'ownershipPercentage',
+        label: 'Your ownership percentage',
+        group: 'Ownership',
+        type: 'percent',
+        required: true,
         refreshOnChange: false,
     },
 ];

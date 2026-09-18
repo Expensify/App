@@ -3,6 +3,7 @@ import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
@@ -12,20 +13,28 @@ import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType, DynamicFormKeyboard} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
 import type {DynamicFieldContext, DynamicFieldFactory, DynamicFieldInput, DynamicFormValues} from './types';
 
 import addressAdapter from './adapters/addressAdapter';
+import AmountWithCurrencyAdapter from './adapters/AmountWithCurrencyAdapter';
 import FileUploadAdapter from './adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from './adapters/InlineSelectionListAdapter';
+import ListFieldAdapter from './adapters/ListFieldAdapter';
 import MultiSelectPushRowAdapter from './adapters/MultiSelectPushRowAdapter';
 import YesNoAdapter from './adapters/YesNoAdapter';
 
 const SELECT_MODAL_THRESHOLD = 8;
 const DIGITS_ONLY_REGEX = /^\^?(?:\\d|\[0-9\])(?:\{\d+(?:,\d*)?\}|[+*])?\$?$/;
+const INPUT_MODE_BY_KEYBOARD: Record<DynamicFormKeyboard, ValueOf<typeof CONST.INPUT_MODE>> = {
+    email: CONST.INPUT_MODE.EMAIL,
+    tel: CONST.INPUT_MODE.TEL,
+    url: CONST.INPUT_MODE.URL,
+    numeric: CONST.INPUT_MODE.NUMERIC,
+};
 const ACCEPTED_FILE_TYPES: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>> = ['png', 'jpg', 'pdf'];
 
 function isCountryCode(code: string): code is Country {
@@ -34,6 +43,17 @@ function isCountryCode(code: string): code is Country {
 
 function getFieldLabel(field: DynamicFormField, translate: LocalizedTranslate): string {
     return field.labelKey ? translate(field.labelKey) : (field.label ?? field.key);
+}
+
+function getFieldDescription(field: DynamicFormField, translate: LocalizedTranslate): string | undefined {
+    return field.descriptionKey ? translate(field.descriptionKey) : field.description;
+}
+
+function getInputMode(field: DynamicFormField): ValueOf<typeof CONST.INPUT_MODE> | undefined {
+    if (field.keyboard) {
+        return INPUT_MODE_BY_KEYBOARD[field.keyboard];
+    }
+    return field.regex && DIGITS_ONLY_REGEX.test(field.regex) ? CONST.INPUT_MODE.NUMERIC : undefined;
 }
 
 function getOptionLabel(option: DynamicFormFieldOption, translate: LocalizedTranslate): string {
@@ -57,9 +77,11 @@ const REGISTRY = {
         InputComponent: TextInput,
         inputProps: {
             maxLength: field.maxLength,
-            hint: field.example ? translate('common.exampleValue', {example: field.example}) : undefined,
-            inputMode: field.regex && DIGITS_ONLY_REGEX.test(field.regex) ? CONST.INPUT_MODE.NUMERIC : undefined,
-            ...getTextInputAutocorrectProps(),
+            hint: getFieldDescription(field, translate) ?? (field.example ? translate('common.exampleValue', {example: field.example}) : undefined),
+            inputMode: getInputMode(field),
+            multiline: field.multiline,
+            autoGrowHeight: field.multiline,
+            ...(field.multiline ? {} : getTextInputAutocorrectProps()),
         },
     }),
     select: (field, context) => {
@@ -141,13 +163,29 @@ const REGISTRY = {
             fileLimit: field.maxFiles ?? 1,
         },
     }),
-    amount: (field, {values, currency}) => ({
-        InputComponent: AmountForm,
-        inputProps: {
-            currency: typeof values.currency === 'string' && values.currency ? values.currency : currency,
-            displayAsTextInput: true,
-            isCurrencyPressable: false,
-        },
+    amount: (field, {values, currency}) => {
+        const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
+        const resolvedCurrency = (typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : undefined) ?? currency ?? CONST.CURRENCY.USD;
+        if (field.currencyKey) {
+            return {
+                InputComponent: AmountWithCurrencyAdapter,
+                inputProps: {currency: resolvedCurrency, currencyKey: field.currencyKey},
+            };
+        }
+        return {
+            InputComponent: AmountForm,
+            inputProps: {currency: resolvedCurrency, displayAsTextInput: true, isCurrencyPressable: false},
+        };
+    },
+    percent: () => ({
+        InputComponent: PercentageForm,
+        inputProps: {},
+    }),
+    list: (field, {isAloneOnPage, renderFields}) => ({
+        InputComponent: ListFieldAdapter,
+        isMenuRow: true,
+        shouldRenderLabelAbove: !isAloneOnPage,
+        inputProps: {itemFields: field.itemFields ?? [], maxItems: field.maxItems, renderFields, valueType: 'listItems'},
     }),
 } satisfies Record<DynamicFormFieldType, DynamicFieldFactory>;
 
@@ -156,4 +194,4 @@ function getInputComponentForField(field: DynamicFormField, context: DynamicFiel
 }
 
 export default getInputComponentForField;
-export {getFieldLabel, getFieldOptions, getOptionLabel};
+export {getFieldDescription, getFieldLabel, getFieldOptions, getOptionLabel};

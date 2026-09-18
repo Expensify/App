@@ -3,6 +3,8 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
+
 /** The current answers of a dynamic form, keyed by field key; the shape FormProvider hands to its children */
 type DynamicFormValues = Record<string, unknown>;
 
@@ -15,6 +17,9 @@ type DynamicFieldContext = {
 
     /** The field is the only one on its page, so choice inputs present as the page instead of as a row */
     isAloneOnPage?: boolean;
+
+    /** Renders a nested set of fields, so a list item's editor reuses the renderer without importing it */
+    renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
 };
 
 type DynamicFieldInput = {
