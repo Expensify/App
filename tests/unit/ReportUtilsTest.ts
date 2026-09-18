@@ -11954,7 +11954,7 @@ describe('ReportUtils', () => {
             const ownerA = 71001;
             const bystanderC = 71003;
 
-            /** Builds a SUBMITTED DEW expense report plus one active DEWAPPROVEFAILED action, passed in via the param. */
+            /** Builds a SUBMITTED DEW expense report plus one active DEW_APPROVE_FAILED action, passed in via the param. */
             const buildDEWReport = (reportID: number, managerID: number | undefined, automaticAction?: boolean) => {
                 const report: Report = {
                     ...createExpenseReport(reportID),
@@ -12044,7 +12044,9 @@ describe('ReportUtils', () => {
                 );
 
                 // Then the gate fails closed — nobody gets a dot, rather than everybody getting one
-                results.forEach((result) => expect(result?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED));
+                for (const result of results) {
+                    expect(result?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                }
             });
 
             it('should not return HAS_DEW_APPROVE_FAILED for the approver when the report is archived', async () => {
