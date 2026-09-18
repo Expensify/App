@@ -37,7 +37,7 @@ You can send messages, attach files, and add emojis from the message bar at the 
 1. Open any chat from your inbox.
 2. Tap the **plus icon**, then select **Add attachment**.
 3. Tap **Take photo**.
-4. If Expensify asks for camera access, tap **Continue**, then allow camera access on your device.
+4. The first time you do this, your device asks for camera access — allow it. If you declined earlier, Expensify shows a **Take photo** screen with a **Continue** button instead; tap **Continue** to ask for access again.
 5. Tap the **flash** icon on the left to turn the flash on or off, or the **flip camera** icon on the right to switch between the front and back cameras.
 6. Tap the **shutter** button in the center to capture the photo. The photo is sent to the chat immediately — there is no preview screen and no separate send step. If you already typed a message, it is sent along with the photo.
 
