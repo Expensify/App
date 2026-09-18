@@ -18,6 +18,8 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -895,15 +897,15 @@ function buildAddMembersToWorkspaceOnyxData(
     }
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT
+          >
+        | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -924,13 +926,8 @@ function buildAddMembersToWorkspaceOnyxData(
     );
 
     const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT
-        >
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT>
+        | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -949,15 +946,15 @@ function buildAddMembersToWorkspaceOnyxData(
     );
 
     const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-            | typeof ONYXKEYS.COLLECTION.REPORT
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+              | typeof ONYXKEYS.COLLECTION.REPORT
+          >
+        | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1235,9 +1232,7 @@ function clearAddMemberError(policyID: string, login: string, accountID: number)
             [login]: null,
         },
     });
-    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
-        [accountID]: null,
-    });
+    Onyx.update([buildPersonalDetailsUpdate({[accountID]: null})]);
 }
 
 /**
