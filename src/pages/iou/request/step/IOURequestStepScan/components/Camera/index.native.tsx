@@ -111,7 +111,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         HapticFeedback.press();
     };
 
-    const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
+    const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device, format});
 
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
