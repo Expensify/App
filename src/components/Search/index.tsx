@@ -74,7 +74,6 @@ import type {GetReportTableColumnStylesParams} from '@styles/utils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1109,54 +1108,58 @@ function Search({
     }
 
     if (hasErrors) {
-        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
-        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
-        // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy.
-        const isStale = responseStatusCode === CONST.JSON_CODE.NO_RESPONSE;
-        let subtitleKey: TranslationPaths = 'errorPage.subtitle';
-        if (isStale) {
-            subtitleKey = 'search.searchResults.staleResults.subtitle';
-        } else if (isInvalidQuery) {
-            subtitleKey = 'errorPage.wrongTypeSubtitle';
-        }
-
         cancelNavigationSpans();
+        const retrySearch = () => {
+            // A response replaces the snapshot's results rather than appending to them, so retrying at
+            // the paginated offset would leave only that later page behind. Retry from the first page.
+            setOffset(0);
+            handleSearch({
+                queryJSON,
+                searchKey: currentSearchKey,
+                offset: 0,
+                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
+                prevReportsLength: filteredDataLength,
+                isLoading: !!searchResults?.search?.isLoading,
+            });
+        };
+        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
+        // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
+        // and an invalid query gets no button because re-sending it cannot succeed.
+        let failureKind: 'stale' | 'invalidQuery' | 'failed' = 'failed';
+        if (responseStatusCode === CONST.JSON_CODE.NO_RESPONSE) {
+            failureKind = 'stale';
+        } else if (responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) {
+            failureKind = 'invalidQuery';
+        }
+        const errorTitle = translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout});
+        const errorViewByKind = {
+            stale: {
+                title: translate('search.searchResults.staleResults.title'),
+                subtitle: translate('search.searchResults.staleResults.subtitle'),
+                illustration: 'FolderSync',
+                illustrationWidth: variables.iconSizeUltraLarge,
+                illustrationHeight: variables.iconSizeUltraLarge,
+                buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
+                onButtonPress: retrySearch,
+            },
+            invalidQuery: {
+                title: errorTitle,
+                subtitle: translate('errorPage.wrongTypeSubtitle'),
+            },
+            failed: {
+                title: errorTitle,
+                subtitle: translate('errorPage.subtitle'),
+                buttonTranslationKey: 'common.tryAgain',
+                onButtonPress: retrySearch,
+            },
+        } as const;
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
-                    title={
-                        isStale
-                            ? translate('search.searchResults.staleResults.title')
-                            : translate('errorPage.title', {
-                                  isBreakLine: shouldUseNarrowLayout,
-                              })
-                    }
-                    subtitle={translate(subtitleKey)}
-                    {...(isStale && {
-                        illustration: 'FolderSync',
-                        illustrationWidth: variables.iconSizeUltraLarge,
-                        illustrationHeight: variables.iconSizeUltraLarge,
-                    })}
-                    // Retrying an invalid query won't help, so the retry button is only offered for other failures.
-                    {...(!isInvalidQuery && {
-                        buttonTranslationKey: isStale ? 'search.searchResults.staleResults.buttonText' : 'common.tryAgain',
-                        onButtonPress: () => {
-                            // A response replaces the snapshot's results rather than appending to them, so retrying at
-                            // the paginated offset would leave only that later page behind. Retry from the first page.
-                            setOffset(0);
-                            handleSearch({
-                                queryJSON,
-                                searchKey: currentSearchKey,
-                                offset: 0,
-                                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
-                                prevReportsLength: filteredDataLength,
-                                isLoading: !!searchResults?.search?.isLoading,
-                            });
-                        },
-                    })}
+                    {...errorViewByKind[failureKind]}
                 />
             </View>
         );
