@@ -1,24 +1,24 @@
 PODS:
-  - Airship (20.7.0):
-    - Airship/Automation (= 20.7.0)
-    - Airship/Basement (= 20.7.0)
-    - Airship/Core (= 20.7.0)
-    - Airship/FeatureFlags (= 20.7.0)
-    - Airship/MessageCenter (= 20.7.0)
-    - Airship/PreferenceCenter (= 20.7.0)
-  - Airship/Automation (20.7.0):
+  - Airship (20.8.1):
+    - Airship/Automation (= 20.8.1)
+    - Airship/Basement (= 20.8.1)
+    - Airship/Core (= 20.8.1)
+    - Airship/FeatureFlags (= 20.8.1)
+    - Airship/MessageCenter (= 20.8.1)
+    - Airship/PreferenceCenter (= 20.8.1)
+  - Airship/Automation (20.8.1):
     - Airship/Core
-  - Airship/Basement (20.7.0)
-  - Airship/Core (20.7.0):
+  - Airship/Basement (20.8.1)
+  - Airship/Core (20.8.1):
     - Airship/Basement
-  - Airship/FeatureFlags (20.7.0):
+  - Airship/FeatureFlags (20.8.1):
     - Airship/Core
-  - Airship/MessageCenter (20.7.0):
+  - Airship/MessageCenter (20.8.1):
     - Airship/Core
-  - Airship/PreferenceCenter (20.7.0):
+  - Airship/PreferenceCenter (20.8.1):
     - Airship/Core
-  - AirshipFrameworkProxy (15.8.0):
-    - Airship (= 20.7.0)
+  - AirshipFrameworkProxy (15.10.0):
+    - Airship (= 20.8.1)
   - AirshipServiceExtension (20.0.0)
   - AppAuth (1.7.6):
     - AppAuth/Core (= 1.7.6)
@@ -1890,8 +1890,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-airship (26.5.0):
-    - AirshipFrameworkProxy (= 15.8.0)
+  - react-native-airship (26.7.0):
+    - AirshipFrameworkProxy (= 15.10.0)
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3904,8 +3904,8 @@ CHECKOUT OPTIONS:
     :http: https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz
 
 SPEC CHECKSUMS:
-  Airship: 3784200c53ce56de9e7f9d4bd6b07234f0269f9c
-  AirshipFrameworkProxy: a755fc3fff26ae8d567f4c48019a88b69068ef2d
+  Airship: 857dad42a6594ed562181b0cb40b2ad187db7aac
+  AirshipFrameworkProxy: 64a4bb802af3a344201748907a89641588963feb
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
@@ -4003,7 +4003,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 354ab193a7ed66e42869c8a0c2c0d844e8e22f67
   React-mutationobservernativemodule: f53ad06cbe4b44d2a33df6aa3f01ca8e9b57e83b
   react-native-advanced-input-mask: d42c73e0d71141101fa74f16b6a7b55a8420c5a1
-  react-native-airship: 632b35ed25945efd18d20d75a84be5f128b8b327
+  react-native-airship: 25d3e960fb5eadb510682709175267c209f166ed
   react-native-app-logs: ddcfb542d3cfb4ab3210fcd52acf4e6f2e12e3e9
   react-native-blob-util: 91b174f9c6d6969d366a8cc79035288556062a05
   react-native-cameraroll: 8fd837cd3e2c96ca378d85eb4340134381797309

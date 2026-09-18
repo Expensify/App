@@ -16,6 +16,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -67,6 +68,8 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Checkmark', 'Trashcan']);
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
     const dropdownButtonRef = useRef<View>(null);
     const isFocused = useIsFocused();
@@ -114,9 +117,9 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 return;
             }
 
-            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, orderWeight);
+            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, orderWeight, isVendorMatchingBetaEnabled);
         },
-        [canWriteTags, policyData, orderWeight, showReadOnlyModal],
+        [canWriteTags, policyData, orderWeight, showReadOnlyModal, isVendorMatchingBetaEnabled],
     );
 
     const navigateToTagSettings = useCallback(
@@ -223,7 +226,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                         buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
-                        deletePolicyTags(policyData, selectedTags);
+                        deletePolicyTags(policyData, selectedTags, isVendorMatchingBetaEnabled);
                         setSelectedTags([]);
                     }
                 },
@@ -268,7 +271,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyData, tagsToDisable, orderWeight);
+                    setWorkspaceTagEnabled(policyData, tagsToDisable, orderWeight, isVendorMatchingBetaEnabled);
                 },
             });
         }
@@ -280,7 +283,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyData, tagsToEnable, orderWeight);
+                    setWorkspaceTagEnabled(policyData, tagsToEnable, orderWeight, isVendorMatchingBetaEnabled);
                 },
             });
         }
@@ -302,7 +305,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     };
 
     if (canWriteTags && !!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        setPolicyTagsRequired(policyData, false, orderWeight);
+        setPolicyTagsRequired(policyData, false, orderWeight, isVendorMatchingBetaEnabled);
     }
 
     const navigateToEditTag = () => {
