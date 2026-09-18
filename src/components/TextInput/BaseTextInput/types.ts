@@ -22,6 +22,7 @@ type DateSegmentsConfig = {
 
     getSegmentProps: UseDateSegmentInputResult['getSegmentProps'];
     focusRequest: UseDateSegmentInputResult['focusRequest'];
+    requestInitialFocus: UseDateSegmentInputResult['requestInitialFocus'];
     onFieldBlur: UseDateSegmentInputResult['onFieldBlur'];
 };
 

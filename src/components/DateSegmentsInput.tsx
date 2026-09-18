@@ -20,6 +20,7 @@ import {View} from 'react-native';
 import type {AnimatedTextInputRef} from './RNTextInput';
 import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
+import {PressableWithoutFeedback} from './Pressable';
 import RNTextInput from './RNTextInput';
 import Text from './Text';
 
@@ -74,7 +75,7 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
         return null;
     }
 
-    const {mask, getSegmentProps, onFieldBlur} = dateSegmentsConfig;
+    const {mask, getSegmentProps, requestInitialFocus, onFieldBlur} = dateSegmentsConfig;
 
     const handleSegmentBlur = () => {
         clearTimeout(blurTimeoutRef.current);
@@ -138,6 +139,15 @@ function DateSegmentsInput({dateSegmentsConfig, style, placeholderTextColor, dis
                     </React.Fragment>
                 );
             })}
+            {/* A single input filled the row, so clicking anywhere in the field focused it. This takes the space left
+            over after the day, so pressing it still lands somewhere useful rather than doing nothing. */}
+            <PressableWithoutFeedback
+                accessible={false}
+                accessibilityLabel={translate('common.date')}
+                onPress={requestInitialFocus}
+                sentryLabel="DateSegmentsInput-EmptySpace"
+                style={styles.flex1}
+            />
         </View>
     );
 }

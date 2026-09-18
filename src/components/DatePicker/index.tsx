@@ -190,14 +190,9 @@ function DatePicker({
                 event.preventDefault();
             }
 
-            // A press that landed on the field but not on a segment leaves nothing focused, so send it somewhere useful
-            if (shouldAllowTyping && !segmentInput.isEditing) {
-                segmentInput.requestInitialFocus();
-            }
-
             showDatePickerModal();
         },
-        [shouldAllowTyping, showDatePickerModal, segmentInput],
+        [shouldAllowTyping, showDatePickerModal],
     );
 
     // Reaching the field by keyboard never fires a press, so focus is what opens the calendar once typing is allowed.
@@ -290,6 +285,7 @@ function DatePicker({
                                   mask: dateMask,
                                   getSegmentProps: segmentInput.getSegmentProps,
                                   focusRequest: segmentInput.focusRequest,
+                                  requestInitialFocus: segmentInput.requestInitialFocus,
                                   onFieldBlur: segmentInput.onFieldBlur,
                               }
                             : undefined
