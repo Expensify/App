@@ -203,7 +203,7 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
  * How a selection on a grouped search has to be exported.
  *
  * Ticking a populated group row stores that group's loaded children stamped with `isSelectedViaGroup`, not the group
- * key itself — the group key is only stored when the group had no children loaded. So a group selection has to be
+ * key itself. The group key is only stored when the group had no children loaded. So a group selection has to be
  * detected with `isGroupSelection` rather than by looking for the group prefix, or a group whose children are
  * paginated exports only the loaded ones instead of everything the group's filter covers.
  *

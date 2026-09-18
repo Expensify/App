@@ -1274,7 +1274,7 @@ describe('useSearchBulkActions - export options', () => {
         /**
          * A selection made by ticking a populated card group's checkbox. `SearchWriteActionsProvider` stores the
          * group's loaded children stamped with `groupKey`/`isSelectedViaGroup` and does NOT store the group key
-         * itself — it only stores that when the group had no children loaded (see `selectEmptyCardGroup`).
+         * itself. It only stores that when the group had no children loaded (see `selectEmptyCardGroup`).
          */
         function selectCardGroup() {
             mockSelectedTransactions = {
