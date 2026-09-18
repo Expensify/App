@@ -1,3 +1,5 @@
+import type {HRConnectionName} from '@libs/merge/HRUtils';
+import type {RecruitingConnectionName} from '@libs/merge/RecruitingUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -26,8 +28,12 @@ function getSyncResultsRoutePath(connectionName: ConnectionName | undefined) {
 /**
  * Watches an HR or recruiting provider's sync progress and automatically opens that category's sync results
  * screen when the sync reaches the `JOB_DONE` stage with a result payload.
+ *
+ * Pass `connectionName` to watch one provider only, which a screen that knows which provider it is showing should do so
+ * that the sync of another integration of the same workspace never opens its results. Leave it out to watch whichever
+ * HR or recruiting provider syncs.
  */
-function useMergeSyncResultsPage(policyID: string) {
+function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnectionName | RecruitingConnectionName) {
     const isFocused = useIsFocused();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const pendingSyncResultRef = useRef<Pick<PolicyConnectionSyncProgress, 'connectionName' | 'result'> | null>(null);
@@ -39,9 +45,9 @@ function useMergeSyncResultsPage(policyID: string) {
     const didWatchSyncRunRef = useRef(false);
     const [isAnyModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
-    const connectionName = connectionSyncProgress?.connectionName;
-    const openSyncResultsScreen = useEffectEvent((syncResult: PolicyConnectionSyncProgress['result'], syncConnectionName: PolicyConnectionSyncProgress['connectionName']) => {
-        const routePath = getSyncResultsRoutePath(syncConnectionName);
+    const syncConnectionName = connectionSyncProgress?.connectionName;
+    const openSyncResultsScreen = useEffectEvent((syncResult: PolicyConnectionSyncProgress['result'], syncedConnectionName: PolicyConnectionSyncProgress['connectionName']) => {
+        const routePath = getSyncResultsRoutePath(syncedConnectionName);
         if (!syncResult || !routePath) {
             return;
         }
@@ -52,9 +58,14 @@ function useMergeSyncResultsPage(policyID: string) {
     });
 
     useEffect(() => {
+        // A workspace has a single sync progress entry, therefore a caller that watches one provider has to ignore the sync of any other integration.
+        if (connectionName && syncConnectionName !== connectionName) {
+            return;
+        }
+
         const syncResult = connectionSyncProgress?.result;
         const stageInProgress = connectionSyncProgress?.stageInProgress;
-        const hasResultsScreen = !!getSyncResultsRoutePath(connectionName);
+        const hasResultsScreen = !!getSyncResultsRoutePath(syncConnectionName);
         const isSyncRunning = hasResultsScreen && !!stageInProgress && stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
         if (isSyncRunning) {
@@ -64,8 +75,8 @@ function useMergeSyncResultsPage(policyID: string) {
         const isSyncDoneWithResult = hasResultsScreen && stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE && !!syncResult;
         const didSyncComplete = isFocused && isSyncDoneWithResult && didWatchSyncRunRef.current;
 
-        if (didSyncComplete && syncResult && connectionName) {
-            pendingSyncResultRef.current = {connectionName, result: syncResult};
+        if (didSyncComplete && syncResult && syncConnectionName) {
+            pendingSyncResultRef.current = {connectionName: syncConnectionName, result: syncResult};
             didWatchSyncRunRef.current = false;
         }
 
@@ -82,7 +93,7 @@ function useMergeSyncResultsPage(policyID: string) {
             waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
-    }, [connectionName, connectionSyncProgress?.result, connectionSyncProgress?.stageInProgress, connectionSyncProgress?.timestamp, isAnyModalActive, isFocused]);
+    }, [connectionName, syncConnectionName, connectionSyncProgress?.result, connectionSyncProgress?.stageInProgress, connectionSyncProgress?.timestamp, isAnyModalActive, isFocused]);
 }
 
 export default useMergeSyncResultsPage;

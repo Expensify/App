@@ -3,10 +3,14 @@ import {act, renderHook} from '@testing-library/react-native';
 import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 
 import type MergeSyncResult from '@libs/API/MergeSyncResult';
+import type {HRConnectionName} from '@libs/merge/HRUtils';
+import type {RecruitingConnectionName} from '@libs/merge/RecruitingUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ConnectionName, PolicyConnectionSyncProgress, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -43,6 +47,7 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 }));
 
 const mockNavigate = jest.mocked(Navigation.navigate);
+const mockCreateDynamicRoute = jest.mocked(createDynamicRoute);
 const RESULT = {addedEmployeesCount: 2, removedEmployeesCount: 1, skippedEmployees: [{id: '7', name: 'Al Ex', reason: 'No email address.'}]};
 const RUNNING = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE;
 const JOB_DONE = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
@@ -70,9 +75,12 @@ async function pushSyncProgress(...args: Parameters<typeof syncProgress>) {
     });
 }
 
-async function renderWith(...initialProgress: Parameters<typeof syncProgress>) {
+async function renderWith(
+    initialProgress: Parameters<typeof syncProgress>,
+    connectedConnectionName: HRConnectionName | RecruitingConnectionName | undefined = CONST.POLICY.CONNECTIONS.NAME.GUSTO,
+) {
     await pushSyncProgress(...initialProgress);
-    return renderHook(() => useMergeSyncResultsPage(POLICY_ID));
+    return renderHook(() => useMergeSyncResultsPage(POLICY_ID, connectedConnectionName));
 }
 
 describe('useMergeSyncResultsPage', () => {
@@ -82,6 +90,7 @@ describe('useMergeSyncResultsPage', () => {
 
     beforeEach(() => {
         mockNavigate.mockClear();
+        mockCreateDynamicRoute.mockClear();
     });
 
     afterEach(async () => {
@@ -89,7 +98,7 @@ describe('useMergeSyncResultsPage', () => {
     });
 
     it('opens the results screen when the result arrives in a later update than the JOB_DONE stage', async () => {
-        await renderWith(RUNNING, '2026-08-26 10:00:00.000');
+        await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
 
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000');
         expect(mockNavigate).not.toHaveBeenCalled();
@@ -100,14 +109,14 @@ describe('useMergeSyncResultsPage', () => {
     });
 
     it('opens the results screen when the result arrives with the JOB_DONE stage', async () => {
-        await renderWith(RUNNING, '2026-08-26 10:00:00.000');
+        await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
 
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
     it('opens the results screen one time when a result-less JOB_DONE update follows the result', async () => {
-        await renderWith(RUNNING, '2026-08-26 10:00:00.000');
+        await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
 
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
 
@@ -117,14 +126,14 @@ describe('useMergeSyncResultsPage', () => {
     });
 
     it('opens nothing for a sync that finished before the hook mounted', async () => {
-        await renderWith(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+        await renderWith([JOB_DONE, '2026-08-26 10:00:05.000', RESULT]);
 
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:06.000');
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('opens the results screen for each sync the user runs', async () => {
-        await renderWith(RUNNING, '2026-08-26 10:00:00.000');
+        await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
 
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
@@ -134,11 +143,38 @@ describe('useMergeSyncResultsPage', () => {
         expect(mockNavigate).toHaveBeenCalledTimes(2);
     });
 
-    it('opens nothing for a non-HR connection', async () => {
+    it('opens the recruiting results screen for the connected recruiting provider', async () => {
+        const mergeATS = CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS;
+        await renderWith([RUNNING, '2026-08-26 10:00:00.000', undefined, mergeATS], mergeATS);
+
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT, mergeATS);
+        expect(mockCreateDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_RECRUITING_SYNC_RESULTS.path);
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens nothing for a sync of a connection other than the connected one', async () => {
         const xero = CONST.POLICY.CONNECTIONS.NAME.XERO;
-        await renderWith(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.XERO_SYNC_STEP, '2026-08-26 10:00:00.000', undefined, xero);
+        await renderWith([CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.XERO_SYNC_STEP, '2026-08-26 10:00:00.000', undefined, xero]);
 
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT, xero);
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    describe('without a connection to watch', () => {
+        it('opens the results screen for whichever HR or recruiting provider syncs', async () => {
+            await renderWith([RUNNING, '2026-08-26 10:00:00.000'], undefined);
+
+            await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+            expect(mockCreateDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+        });
+
+        it('opens nothing for a non-HR connection', async () => {
+            const xero = CONST.POLICY.CONNECTIONS.NAME.XERO;
+            await renderWith([CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.XERO_SYNC_STEP, '2026-08-26 10:00:00.000', undefined, xero], undefined);
+
+            await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT, xero);
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
     });
 });
