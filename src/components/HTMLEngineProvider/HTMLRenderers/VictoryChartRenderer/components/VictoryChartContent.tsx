@@ -1,3 +1,4 @@
+import useSkiaCanvasRemountKey from '@components/Charts/hooks/useSkiaCanvasRemountKey';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 
@@ -16,10 +17,13 @@ type VictoryChartContentProps = {
 
 function VictoryChartContent({explicitSize, headless, shouldUseStaticCanvas}: VictoryChartContentProps) {
     const {type} = useVictoryChartContext();
+    // Android drops the Skia canvas surface while the app is backgrounded; remounting on resume repaints it
+    const remountKey = useSkiaCanvasRemountKey();
     switch (type) {
         case CHART_TYPE.CARTESIAN:
             return (
                 <VictoryChartCartesian
+                    key={remountKey}
                     explicitSize={explicitSize}
                     headless={headless}
                     shouldUseStaticCanvas={shouldUseStaticCanvas}
@@ -28,6 +32,7 @@ function VictoryChartContent({explicitSize, headless, shouldUseStaticCanvas}: Vi
         case CHART_TYPE.POLAR:
             return (
                 <VictoryChartPolar
+                    key={remountKey}
                     explicitSize={explicitSize}
                     headless={headless}
                     shouldUseStaticCanvas={shouldUseStaticCanvas}
