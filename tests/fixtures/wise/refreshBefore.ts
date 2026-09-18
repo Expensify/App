@@ -1,19 +1,16 @@
 import type {WiseField} from '@src/types/onyx';
 
-/** A GBP sort-code form before the user changes the refreshOnChange `currency` answer */
+/** A GBP sort-code form with a GB address, before the refreshOnChange `address.country` answer changes */
 const refreshBefore: WiseField[] = [
     {
-        key: 'currency',
-        label: 'Currency',
-        labelKey: 'common.currency',
+        key: 'accountHolderName',
+        label: 'Full name of the account holder',
         group: 'Account details',
-        type: 'select',
+        type: 'text',
         required: true,
-        values: [
-            {key: 'GBP', label: 'British pound'},
-            {key: 'EUR', label: 'Euro'},
-        ],
-        refreshOnChange: true,
+        minLength: 2,
+        maxLength: 255,
+        refreshOnChange: false,
     },
     {
         key: 'sortCode',
@@ -41,16 +38,6 @@ const refreshBefore: WiseField[] = [
         refreshOnChange: false,
     },
     {
-        key: 'accountHolderName',
-        label: 'Full name of the account holder',
-        group: 'Account holder details',
-        type: 'text',
-        required: true,
-        minLength: 2,
-        maxLength: 255,
-        refreshOnChange: false,
-    },
-    {
         key: 'address.country',
         label: 'Country',
         labelKey: 'common.country',
@@ -62,6 +49,16 @@ const refreshBefore: WiseField[] = [
     {
         key: 'address.city',
         label: 'City',
+        group: 'Account holder details',
+        type: 'text',
+        required: true,
+        maxLength: 255,
+        refreshOnChange: false,
+    },
+    {
+        key: 'address.firstLine',
+        label: 'Address',
+        labelKey: 'common.address',
         group: 'Account holder details',
         type: 'text',
         required: true,
