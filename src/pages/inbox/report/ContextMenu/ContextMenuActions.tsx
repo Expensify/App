@@ -44,6 +44,7 @@ import {
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
@@ -1057,7 +1058,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReportPreviewMessageForCopy({
                         reportOrID: iouReportID,
                         iouReportAction: reportAction,
-                        reportAttributes,
+                        derivedReportName: iouReportID ? reportAttributes?.[iouReportID]?.reportName : undefined,
                     });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
@@ -1075,6 +1076,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         policyTags,
                         currentUserAccountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                        movedFromReportName: undefined,
                     });
                     // Convert HTML to markdown for clipboard copy to preserve links and formatting
                     const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
@@ -1386,6 +1388,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedCardFeedStatementPeriodMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
                     setClipboardMessage(getTravelUpdateMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+                    // setClipboardMessage treats its argument as HTML, and the helper returns plain text, so encode it to copy a workspace name containing an entity literally.
+                    setClipboardMessage(Str.htmlEncode(getConciergeAutoSelectDistanceRateMessage(translate, reportAction)));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
                     setClipboardMessage(getUpdatedAuditRateMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE)) {
@@ -1573,9 +1578,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
         icon: 'Flag',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) =>
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID, currentUserAccountID}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            canFlagReportAction(reportAction, reportID) &&
+            canFlagReportAction(reportAction, reportID, currentUserAccountID) &&
             !isArchivedRoom &&
             !isChronosReport &&
             reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,

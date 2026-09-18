@@ -18,7 +18,6 @@ import type {
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
@@ -42,7 +41,7 @@ import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
 import {getIOUReportIDFromReportActionPreview, getReportAction} from './ReportActionsUtils';
 import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -144,7 +143,7 @@ type ShouldDisplayReportInLHNParams = {
     reports: OnyxCollection<Report>;
     currentReportId: string | undefined;
     isInFocusMode: boolean;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     draftComment: OnyxEntry<string>;
     transactions: OnyxCollection<Transaction>;
@@ -162,7 +161,7 @@ function shouldDisplayReportInLHN({
     reports,
     currentReportId,
     isInFocusMode,
-    betas,
+    isDefaultRoomsBetaEnabled,
     transactionViolations,
     draftComment,
     transactions,
@@ -235,7 +234,7 @@ function shouldDisplayReportInLHN({
         chatReport,
         currentReportId,
         isInFocusMode,
-        betas,
+        isDefaultRoomsBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         draftComment,
@@ -254,7 +253,7 @@ function shouldDisplayReportInLHN({
 function getReportsToDisplayInLHN({
     currentReportId,
     reports,
-    betas,
+    isDefaultRoomsBetaEnabled,
     priorityMode,
     draftComments,
     transactionViolations,
@@ -269,7 +268,7 @@ function getReportsToDisplayInLHN({
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
@@ -299,7 +298,7 @@ function getReportsToDisplayInLHN({
             reports,
             currentReportId,
             isInFocusMode,
-            betas,
+            isDefaultRoomsBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -329,7 +328,7 @@ type UpdateReportsToDisplayInLHNProps = {
     updatedReportsKeys: string[];
     currentReportId: string | undefined;
     isInFocusMode: boolean;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
@@ -348,7 +347,7 @@ function updateReportsToDisplayInLHN({
     updatedReportsKeys,
     currentReportId,
     isInFocusMode,
-    betas,
+    isDefaultRoomsBetaEnabled,
     transactionViolations,
     reportNameValuePairs,
     reportAttributes,
@@ -388,7 +387,7 @@ function updateReportsToDisplayInLHN({
             reports,
             currentReportId,
             isInFocusMode,
-            betas,
+            isDefaultRoomsBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -450,7 +449,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        const displayName = deprecatedGetReportName(report, reportAttributes);
+        const displayName = getReportName(report, reportAttributes?.[report.reportID]?.reportName);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -924,7 +923,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = deprecatedGetReportName(report, reportAttributesDerived);
+    const reportName = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
 
     if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
         loggedChatReportIDs.delete(report.reportID);

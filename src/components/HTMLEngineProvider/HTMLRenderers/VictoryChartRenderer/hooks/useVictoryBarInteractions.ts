@@ -16,10 +16,12 @@ import type {VictoryBarTooltipData} from '@components/HTMLEngineProvider/HTMLRen
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {useSearchQueryActions} from '@components/Search/SearchContext';
 
 import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import ROUTES from '@src/ROUTES';
 
@@ -149,6 +151,7 @@ function getActiveTooltipData(
 function useVictoryBarInteractions() {
     const {tnode, data, yKeys, pointMetadata, isHorizontal} = useVictoryChartContext();
     const {numberFormat} = useLocalize();
+    const {getSearchKeyForQuery} = useSearchQueryActions();
     const coordinateScale = useVictoryChartLayoutScale();
     const rows = Object.values(data).filter(isCartesianChartData);
     const barSeriesConfig = isHorizontal ? {} : collectVerticalBarSeries(tnode.children);
@@ -211,7 +214,8 @@ function useVictoryBarInteractions() {
         if (!searchQuery) {
             return;
         }
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+        // The bar carries an arbitrary query, so the key it belongs to has to be resolved from that query.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: getSearchKeyForQuery(buildSearchQueryJSON(searchQuery))}));
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({

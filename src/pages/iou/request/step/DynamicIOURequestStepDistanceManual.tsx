@@ -86,7 +86,8 @@ function DynamicIOURequestStepDistanceManual({
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
     const isArchived = useReportIsArchived(report?.reportID);
@@ -270,6 +271,7 @@ function DynamicIOURequestStepDistanceManual({
 
             if (shouldUpdateTransaction) {
                 updateMoneyRequestDistance({
+                    isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
@@ -305,6 +307,7 @@ function DynamicIOURequestStepDistanceManual({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             iouType,
             action,
