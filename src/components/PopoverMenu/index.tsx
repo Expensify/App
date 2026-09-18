@@ -711,6 +711,10 @@ function BasePopoverMenu({
         ...restContainerStyles
     } = StyleSheet.flatten(containerStyles) ?? {};
 
+    const menuWidth = StyleSheet.flatten([restMenuContainerStyle, restContainerStyles])?.width;
+    // Native popovers use bottom sheets. Keep their shell as wide as the menu instead of stretching across a tablet window.
+    const modalWidthStyle = !isWeb && !isSmallScreenWidth && typeof menuWidth === 'number' ? {...styles.alignSelfCenter, maxWidth: menuWidth} : undefined;
+
     const scrollViewPaddingStyles = useMemo(
         () => ({
             paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
@@ -756,7 +760,7 @@ function BasePopoverMenu({
             shouldEnableNewFocusManagement={shouldUseNewFocusManagement}
             shouldReturnFocus={shouldReturnFocus}
             restoreFocusType={effectiveRestoreFocusType}
-            innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
+            innerContainerStyle={{...styles.pv0, ...modalWidthStyle, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             testID={testID}

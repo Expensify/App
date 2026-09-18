@@ -17,6 +17,7 @@ const TOGGLE_BUTTON_COLLAPSED_TRANSLATE_X = -10;
 
 const layoutTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `width ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, margin-left ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
+const layoutPositionStyle: ViewStyle = Platform.OS === 'web' ? {} : {position: 'absolute', top: 0, bottom: 0, left: 0};
 const fadeTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `opacity ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, transform ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
 
@@ -89,7 +90,7 @@ function useSearchSidebarCollapse() {
 function useSearchSidebarLayoutWidthStyle() {
     const {isCollapsed: collapsed} = useSearchSidebarCollapse();
 
-    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, height: '100%', width: getSearchSidebarWidth(collapsed ? 1 : 0)}), [collapsed]);
+    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, ...layoutPositionStyle, height: '100%', width: getSearchSidebarWidth(collapsed ? 1 : 0)}), [collapsed]);
 }
 
 function useSearchSidebarVisualWidthStyle() {
