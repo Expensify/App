@@ -111,7 +111,6 @@ type UpdateSplitTransactionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
     /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
     shouldSkipReportHighlightRail?: boolean;
@@ -125,6 +124,7 @@ type UpdateSplitTransactionsParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /**
@@ -199,7 +199,6 @@ function updateSplitTransactions({
     policyRecentlyUsedCurrencies,
     isFromSplitExpensesFlow,
     shouldSkipReportHighlightRail,
-    betas,
     personalDetails,
     transactionReport,
     expenseReport: expenseReportFromParams,
@@ -210,6 +209,7 @@ function updateSplitTransactions({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -622,6 +622,7 @@ function updateSplitTransactions({
         const originalTransactionTaxCode = resolveCurrentTaxCode(policy, originalTransactionDetails?.taxCode ?? '');
 
         const requestMoneyInformation = {
+            isVendorMatchingBetaEnabled,
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
                 payeeEmail: currentUserPersonalDetails?.login ?? '',
@@ -682,7 +683,6 @@ function updateSplitTransactions({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
-            betas,
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
@@ -790,6 +790,7 @@ function updateSplitTransactions({
             onyxData: moneyRequestInformationOnyxData,
             iouAction,
         } = getMoneyRequestInformation({
+            isVendorMatchingBetaEnabled,
             participantParams,
             parentChatReport,
             policyParams: {...policyParams, policyTagList},
@@ -811,7 +812,6 @@ function updateSplitTransactions({
             quickAction,
             shouldGenerateTransactionThreadReport: true,
             policyRecentlyUsedCurrencies,
-            betas,
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
@@ -894,6 +894,7 @@ function updateSplitTransactions({
                 const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 const newTransactionReportID = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : (workspaceExpenseReportID ?? splitExpense?.reportID);
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
+                    isVendorMatchingBetaEnabled,
                     transactionID: existingTransactionID,
                     transactionThreadReport,
                     iouReport: transactionIOUReport,

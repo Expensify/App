@@ -1,6 +1,6 @@
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 
-import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -11,7 +11,7 @@ type LocalNotificationData = {
 };
 
 type LocalNotificationModule = {
-    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, reportAttributes?: ReportAttributesDerivedValue['reports']) => void;
+    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName: string | undefined) => void;
     showUpdateAvailableNotification: () => void;
     showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;
@@ -25,7 +25,7 @@ type LocalNotificationModifiedExpenseParams = {
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
-    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    derivedMovedFromReportName: string | undefined;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {

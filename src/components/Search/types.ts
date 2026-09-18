@@ -2,7 +2,8 @@ import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchSuggestionUtils';
 
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -19,6 +20,7 @@ import type {
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -105,6 +107,9 @@ type SelectedTransactionInfo = {
 
     /** Whether the transaction was selected through its group header */
     isSelectedViaGroup?: boolean;
+
+    /** Whether every transaction in the group is selected. False when a `limit:` left some of the group unloaded. */
+    isEntireGroupSelected?: boolean;
 };
 
 /** Model of selected transactions */
@@ -182,6 +187,7 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
@@ -200,8 +206,7 @@ type SearchQueryContextValue = {
 
 type SearchQueryActionsValue = {
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
-    setCurrentSearchKey: (searchKey: SearchKey, pendingQuery?: string) => void;
-    resetSearchKey: (queryJSON: SearchQueryJSON | undefined) => void;
+    getSearchKeyForQuery: (queryJSON: SearchQueryJSON | undefined) => SearchKey | undefined;
 };
 
 type SearchResultsContextValue = {
@@ -443,6 +448,7 @@ type GroupedItem =
     | TransactionCategoryGroupListItemType
     | TransactionMerchantGroupListItemType
     | TransactionTagGroupListItemType
+    | TransactionDayGroupListItemType
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
