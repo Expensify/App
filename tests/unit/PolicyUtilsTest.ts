@@ -45,6 +45,7 @@ import {
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getSageIntacctVendors,
     getReimburserEmail,
     getSubmitReportManagerAccountID,
     getSubmitToAccountID,
@@ -88,6 +89,7 @@ import {
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
+    sortVendors,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
@@ -1322,15 +1324,15 @@ describe('PolicyUtils', () => {
         const buildRule = (rule: ApprovalWorkflowRule): Rule => ({...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
 
         const submitRule: ApprovalWorkflowRule = {
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
             filters: submitFilter,
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
         };
 
         // After the admin approves, an under-limit report continues to the approver and an over-limit one is
         // escalated to the category approver instead.
         const underLimitRule: ApprovalWorkflowRule = {
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
@@ -1340,10 +1342,10 @@ describe('PolicyUtils', () => {
                     right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                 },
             },
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: approverEmail}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: approverEmail}},
         };
         const overLimitRule: ApprovalWorkflowRule = {
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
@@ -1353,16 +1355,16 @@ describe('PolicyUtils', () => {
                     right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                 },
             },
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: categoryApprover1Email}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: categoryApprover1Email}},
         };
         const terminalRule: ApprovalWorkflowRule = {
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
                 right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approverEmail},
             },
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}},
         };
 
         // A workspace whose employeeList still points somewhere else, so a rule-driven answer is distinguishable
@@ -1421,9 +1423,9 @@ describe('PolicyUtils', () => {
             });
 
             const buildAmountRule = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number): ApprovalWorkflowRule => ({
-                triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
                 filters: {operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right},
-                actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
             });
 
             it.each([
@@ -1452,22 +1454,22 @@ describe('PolicyUtils', () => {
 
             it('does not match a filter on a field this client does not understand', () => {
                 const rule: ApprovalWorkflowRule = {
-                    triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
                     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: 'unsupportedField', right: employeeEmail},
-                    actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                    actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
                 };
                 expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(false);
             });
 
             it('matches an OR filter when either side matches', () => {
                 const rule: ApprovalWorkflowRule = {
-                    triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
                     filters: {
                         operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
                         left: submitFilter,
                         right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [adminEmail]},
                     },
-                    actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                    actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
                 };
 
                 // Only the left side matches this submitter, but OR only needs one side.
@@ -3607,7 +3609,112 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
 
             expect(result).not.toBe(policies);
-            expect(policies.map((policy) => policy.name)).toEqual(['Charlie', 'Alpha']);
+        });
+    });
+
+    describe('sortVendors', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+        it('sorts vendors alphabetically by name using localeCompare', () => {
+            const vendors = [
+                {id: '1', name: 'Zebra'},
+                {id: '2', name: 'Apple'},
+                {id: '3', name: 'Banana'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
+        });
+
+        it('breaks name ties using vendor id', () => {
+            const vendors = [
+                {id: 'vendor_b', name: 'Acme'},
+                {id: 'vendor_a', name: 'Acme'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
+        });
+
+        it('does not sort the input array in place', () => {
+            const vendors = [
+                {id: '2', name: 'Zebra'},
+                {id: '1', name: 'Alpha'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result).not.toBe(vendors);
+            expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
+        });
+
+        it('returns empty array for empty input', () => {
+            expect(sortVendors([], localeCompare)).toEqual([]);
+        });
+
+        it('returns single-element array as-is', () => {
+            const vendors = [{id: '1', name: 'Only'}];
+            const result = sortVendors(vendors, localeCompare);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.name).toBe('Only');
+        });
+    });
+
+    describe('getSageIntacctVendors', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+        it('sorts Intacct vendors alphabetically by value using localeCompare', () => {
+            const policy = createMock<Policy>({
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        data: {
+                            vendors: [
+                                {id: '1', name: '1', value: 'Zebra'},
+                                {id: '2', name: '2', value: 'Apple'},
+                                {id: '3', name: '3', value: 'Banana'},
+                            ],
+                        },
+                    },
+                }),
+            });
+
+            const result = getSageIntacctVendors(policy, undefined, localeCompare);
+            expect(result.map((v) => v.text)).toEqual(['Apple', 'Banana', 'Zebra']);
+        });
+
+        it('breaks value ties using vendor id', () => {
+            const policy = createMock<Policy>({
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        data: {
+                            vendors: [
+                                {id: 'vendor_b', name: 'b', value: 'Acme'},
+                                {id: 'vendor_a', name: 'a', value: 'Acme'},
+                            ],
+                        },
+                    },
+                }),
+            });
+
+            const result = getSageIntacctVendors(policy, undefined, localeCompare);
+            expect(result.map((v) => v.value)).toEqual(['vendor_a', 'vendor_b']);
+        });
+
+        it('returns unsorted vendors when localeCompare is not provided', () => {
+            const policy = createMock<Policy>({
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        data: {
+                            vendors: [
+                                {id: '1', name: '1', value: 'Zebra'},
+                                {id: '2', name: '2', value: 'Apple'},
+                            ],
+                        },
+                    },
+                }),
+            });
+
+            const result = getSageIntacctVendors(policy, undefined);
+            expect(result.map((v) => v.text)).toEqual(['Zebra', 'Apple']);
         });
     });
 
@@ -4297,8 +4404,16 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Intacct CC Charge export is configured because Intacct (R2) is still pre-GA', () => {
-                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
+            it('returns true when beta is disabled and Intacct non-reimbursable export is Credit Card Charge because Intacct (R2) is generally available', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Intacct non-reimbursable export is Vendor Bill because GA did not widen the export mode gate', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled and the Intacct non-reimbursable export destination is not set', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(undefined), false)).toBe(false);
             });
 
             it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {

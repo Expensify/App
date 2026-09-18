@@ -50,6 +50,7 @@ function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpe
         policyCategories,
         currentUserAccountID,
         currentUserLogin: currentUserEmail ?? '',
+        movedFromReportName: undefined,
     });
 
     return (

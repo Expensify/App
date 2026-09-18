@@ -35,7 +35,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import Permissions from '@libs/Permissions';
 import {
     canAccessPolicyBankAccount,
     getAccountIDForSubmitManagerEmail,
@@ -62,9 +61,10 @@ import {
     isExpenseReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
-import {isTransactionGroupListItemType, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -269,6 +269,7 @@ type HandleActionButtonPressParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -311,6 +312,7 @@ function handleActionButtonPress({
     currentUserLogin,
     introSelected,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -363,6 +365,7 @@ function handleActionButtonPress({
                 currentUserLogin,
                 introSelected,
                 betas,
+                isASAPSubmitBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
                 chatReport,
@@ -402,7 +405,7 @@ function handleActionButtonPress({
                 currentSearchKey,
                 currentUserAccountID,
                 currentUserLogin,
-                betas,
+                isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
@@ -605,6 +608,7 @@ type GetPayActionCallbackParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -635,6 +639,7 @@ function getPayActionCallback({
     currentUserLogin,
     introSelected,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -693,6 +698,7 @@ function getPayActionCallback({
         policy: paymentPolicy,
         chatReportPolicy: chatReportPolicyForPayment,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -717,7 +723,7 @@ type GetApproveActionCallbackParams = {
     currentSearchKey: SearchKey | undefined;
     currentUserAccountID: number;
     currentUserLogin?: string;
-    betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -739,7 +745,7 @@ function getApproveActionCallback({
     currentSearchKey,
     currentUserAccountID,
     currentUserLogin,
-    betas,
+    isASAPSubmitBetaEnabled,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
@@ -757,7 +763,6 @@ function getApproveActionCallback({
 
     const reportPolicy = policy ?? snapshotPolicy;
     const hasViolations = hasViolationsReportUtils(item.reportID, allViolations, currentUserAccountID, currentUserLogin ?? '');
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
 
     approveMoneyRequest({
         expenseReport: snapshotReport,
@@ -767,7 +772,6 @@ function getApproveActionCallback({
         currentUserEmailParam: currentUserLogin ?? '',
         hasViolations,
         isASAPSubmitBetaEnabled,
-        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
@@ -1251,6 +1255,7 @@ function search({
             queryJSON,
             offset,
             allowPostSearchRecount: false,
+            searchKey,
         });
     }
 
@@ -1302,6 +1307,7 @@ function search({
                                 hasMoreResults: !!response?.search?.hasMoreResults,
                                 previousLengthOfResults: prevReportsLength,
                                 allowPostSearchRecount: false,
+                                searchKey,
                             });
                         }
                     } else {
@@ -1312,6 +1318,7 @@ function search({
                             hasMoreResults: !!response?.search?.hasMoreResults,
                             previousLengthOfResults: reports.length,
                             allowPostSearchRecount: true,
+                            searchKey,
                         });
                     }
                 }
@@ -1699,7 +1706,7 @@ function rejectMoneyRequestInBulk(
     transactionIDs: string[],
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
@@ -1729,7 +1736,7 @@ function rejectMoneyRequestInBulk(
             policy,
             currentUserAccountIDParam,
             currentUserLogin,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
             rules,
@@ -1772,7 +1779,7 @@ function rejectMoneyRequestsOnSearch(
     allReports: OnyxCollection<Report>,
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
@@ -1818,7 +1825,7 @@ function rejectMoneyRequestsOnSearch(
                 selectedTransactionIDs,
                 currentUserAccountIDParam,
                 currentUserLogin,
-                betas,
+                isASAPSubmitBetaEnabled,
                 delegateAccountID,
                 getCurrencyDecimals,
                 rules,
@@ -1832,7 +1839,7 @@ function rejectMoneyRequestsOnSearch(
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, {
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, isASAPSubmitBetaEnabled, delegateAccountID, getCurrencyDecimals, {
                     rules,
                     options: {
                         sharedRejectedToReportID,
@@ -1857,6 +1864,7 @@ function rejectMoneyRequestsOnSearch(
                         query: searchParams.q,
                         ...(searchParams?.rawQuery && {rawQuery: searchParams.rawQuery}),
                         ...(searchParams?.name && {name: searchParams.name}),
+                        ...(searchParams?.searchKey && {searchKey: searchParams.searchKey}),
                     });
                 } else {
                     urlToNavigateBack = undefined;
