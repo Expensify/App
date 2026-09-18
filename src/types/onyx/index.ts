@@ -80,6 +80,7 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType} from './DynamicFormField';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
@@ -221,7 +222,6 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
-import type {WiseField, WiseFieldOption, WiseFieldType} from './WiseField';
 
 export type {
     FileObject,
@@ -430,9 +430,9 @@ export type {
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
-    WiseField,
-    WiseFieldOption,
-    WiseFieldType,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,

@@ -1,12 +1,12 @@
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 type DynamicFormPage = {
     /** The fields' shared `group`, used as the sub page name */
     name: string;
-    fields: WiseField[];
+    fields: DynamicFormField[];
 };
 
-function groupFieldsIntoPages(fields: WiseField[]): DynamicFormPage[] {
+function groupFieldsIntoPages(fields: DynamicFormField[]): DynamicFormPage[] {
     const pages: DynamicFormPage[] = [];
     for (const field of fields) {
         const page = pages.find(({name}) => name === field.group);

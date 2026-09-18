@@ -1,7 +1,7 @@
 import type {ValidInputs} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 /** The current answers of a dynamic form, keyed by field key; the shape FormProvider hands to its children */
 type DynamicFormValues = Record<string, unknown>;
@@ -30,6 +30,6 @@ type DynamicFieldInput = {
     shouldRenderLabelAbove?: boolean;
 };
 
-type DynamicFieldFactory = (field: WiseField, context: DynamicFieldContext) => DynamicFieldInput;
+type DynamicFieldFactory = (field: DynamicFormField, context: DynamicFieldContext) => DynamicFieldInput;
 
 export type {DynamicFieldContext, DynamicFieldFactory, DynamicFieldInput, DynamicFormValues};

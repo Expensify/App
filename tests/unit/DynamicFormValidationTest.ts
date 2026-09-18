@@ -4,7 +4,7 @@ import groupFieldsIntoPages from '@components/DynamicForm/groupFieldsIntoPages';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
-import allFieldTypes from '../fixtures/wise/allFieldTypes';
+import allFieldTypes from '../fixtures/dynamicForm/allFieldTypes';
 import {translateLocal} from '../utils/TestHelper';
 
 const completeAnswers = {

@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -16,7 +16,7 @@ import getInputComponentForField, {getFieldLabel} from './getInputComponentForFi
 import isFieldVisible from './isFieldVisible';
 
 type DynamicFormFieldsProps = {
-    fields: WiseField[];
+    fields: DynamicFormField[];
 
     /** Current answers, from FormProvider's render-prop `inputValues`, so showWhen and dependsOn follow the user's typing */
     values: DynamicFormValues;

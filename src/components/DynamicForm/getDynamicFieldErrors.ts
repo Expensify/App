@@ -2,7 +2,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {isValidDate} from '@libs/ValidationUtils';
 
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 import type {DynamicFormValues} from './types';
 
@@ -23,7 +23,7 @@ function isAnswered(value: unknown): boolean {
     return value !== undefined && value !== null;
 }
 
-function getFieldError(field: WiseField, value: unknown, translate: LocalizedTranslate): string | undefined {
+function getFieldError(field: DynamicFormField, value: unknown, translate: LocalizedTranslate): string | undefined {
     if (field.required && !isAnswered(value)) {
         return translate('common.error.fieldRequired');
     }
@@ -45,7 +45,7 @@ function getFieldError(field: WiseField, value: unknown, translate: LocalizedTra
     return undefined;
 }
 
-function getDynamicFieldErrors(fields: WiseField[], values: DynamicFormValues, translate: LocalizedTranslate): DynamicFieldErrors {
+function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormValues, translate: LocalizedTranslate): DynamicFieldErrors {
     const errors: DynamicFieldErrors = {};
     for (const field of fields) {
         if (!isFieldVisible(field, values)) {

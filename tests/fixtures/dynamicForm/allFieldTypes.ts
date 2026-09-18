@@ -1,7 +1,7 @@
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
-/** Ten fields, one per WiseFieldType, shaped like Auth's translation of a Wise account-requirements response */
-const allFieldTypes: WiseField[] = [
+/** Ten fields, one per DynamicFormFieldType, shaped like Auth's translation of a Wise account-requirements response */
+const allFieldTypes: DynamicFormField[] = [
     {
         key: 'accountNumber',
         label: 'Account number',

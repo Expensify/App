@@ -12,7 +12,7 @@ import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {WiseField, WiseFieldOption, WiseFieldType} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
@@ -32,15 +32,15 @@ function isCountryCode(code: string): code is Country {
     return code in CONST.ALL_COUNTRIES;
 }
 
-function getFieldLabel(field: WiseField, translate: LocalizedTranslate): string {
+function getFieldLabel(field: DynamicFormField, translate: LocalizedTranslate): string {
     return field.labelKey ? translate(field.labelKey) : (field.label ?? field.key);
 }
 
-function getOptionLabel(option: WiseFieldOption, translate: LocalizedTranslate): string {
+function getOptionLabel(option: DynamicFormFieldOption, translate: LocalizedTranslate): string {
     return option.labelKey ? translate(option.labelKey) : (option.label ?? option.key);
 }
 
-function getFieldOptions(field: WiseField, values: DynamicFormValues): WiseFieldOption[] {
+function getFieldOptions(field: DynamicFormField, values: DynamicFormValues): DynamicFormFieldOption[] {
     if (!field.dependsOn) {
         return field.values ?? [];
     }
@@ -48,7 +48,7 @@ function getFieldOptions(field: WiseField, values: DynamicFormValues): WiseField
     return typeof controllingValue === 'string' ? (field.dependsOn.valuesBy[controllingValue] ?? []) : [];
 }
 
-function getChoices(field: WiseField, {values, translate}: DynamicFieldContext) {
+function getChoices(field: DynamicFormField, {values, translate}: DynamicFieldContext) {
     return getFieldOptions(field, values).map((option) => ({value: option.key, label: getOptionLabel(option, translate)}));
 }
 
@@ -149,9 +149,9 @@ const REGISTRY = {
             isCurrencyPressable: false,
         },
     }),
-} satisfies Record<WiseFieldType, DynamicFieldFactory>;
+} satisfies Record<DynamicFormFieldType, DynamicFieldFactory>;
 
-function getInputComponentForField(field: WiseField, context: DynamicFieldContext): DynamicFieldInput {
+function getInputComponentForField(field: DynamicFormField, context: DynamicFieldContext): DynamicFieldInput {
     return REGISTRY[field.type](field, context);
 }
 

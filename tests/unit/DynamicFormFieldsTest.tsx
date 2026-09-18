@@ -16,13 +16,13 @@ import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
-import type {WiseField, WiseFieldType} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
 
 import React from 'react';
 
-import allFieldTypes from '../fixtures/wise/allFieldTypes';
+import allFieldTypes from '../fixtures/dynamicForm/allFieldTypes';
 
 type CapturedInputProps = {
     InputComponent: ComponentType;
@@ -61,7 +61,7 @@ jest.mock('@hooks/useLocalize', () =>
 
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
-function renderFields(fields: WiseField[], values: DynamicFormValues = {}) {
+function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
@@ -72,7 +72,7 @@ function renderFields(fields: WiseField[], values: DynamicFormValues = {}) {
     return new Map(mockInputWrapper.mock.calls.map(([props]) => [props.inputID, props]));
 }
 
-const EXPECTED_COMPONENT_BY_TYPE: Record<WiseFieldType, ComponentType | ((...args: never[]) => unknown)> = {
+const EXPECTED_COMPONENT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...args: never[]) => unknown)> = {
     text: TextInput,
     select: ValuePicker,
     multiselect: MultiSelectPushRowAdapter,
@@ -113,8 +113,8 @@ describe('DynamicFormFields', () => {
 
     it('uses PushRowWithModal for a select with more than eight values', () => {
         const values = Array.from({length: 9}, (_, index) => ({key: `OPTION_${index}`, label: `Option ${index}`}));
-        const field: WiseField = {key: 'industry', label: 'Industry', group: 'Business', type: 'select', required: true, values, refreshOnChange: false};
-        const sibling: WiseField = {key: 'description', label: 'Description', group: 'Business', type: 'text', required: true, refreshOnChange: false};
+        const field: DynamicFormField = {key: 'industry', label: 'Industry', group: 'Business', type: 'select', required: true, values, refreshOnChange: false};
+        const sibling: DynamicFormField = {key: 'description', label: 'Description', group: 'Business', type: 'text', required: true, refreshOnChange: false};
 
         const rendered = renderFields([field, sibling]).get('industry');
 

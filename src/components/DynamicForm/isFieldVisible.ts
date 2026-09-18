@@ -1,8 +1,8 @@
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 import type {DynamicFormValues} from './types';
 
-function isFieldVisible(field: WiseField, values: DynamicFormValues): boolean {
+function isFieldVisible(field: DynamicFormField, values: DynamicFormValues): boolean {
     if (!field.showWhen) {
         return true;
     }

@@ -14,14 +14,14 @@ import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
-import type {WiseField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import allFieldTypes from '../../tests/fixtures/wise/allFieldTypes';
+import allFieldTypes from '../../tests/fixtures/dynamicForm/allFieldTypes';
 
 const defaultStyles = styles(defaultTheme);
 
@@ -33,10 +33,10 @@ const STEP_INDICATOR_MIN_PAGES = 3;
 const ACCOUNT_USE_GROUP = 'Account use';
 
 /** The fixture's two groups plus a third, so the paged story is a real multi-step flow */
-const threeGroupFields: WiseField[] = allFieldTypes.map((field) => (['useCases', 'isSourceOfFund'].includes(field.key) ? {...field, group: ACCOUNT_USE_GROUP} : field));
+const threeGroupFields: DynamicFormField[] = allFieldTypes.map((field) => (['useCases', 'isSourceOfFund'].includes(field.key) ? {...field, group: ACCOUNT_USE_GROUP} : field));
 
 type DynamicFormStoryProps = {
-    fields: WiseField[];
+    fields: DynamicFormField[];
 
     /** Answers seeded into the form draft before the first render */
     draftValues: Record<string, string | boolean | string[]>;

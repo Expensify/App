@@ -1,45 +1,45 @@
 import type {TranslationPaths} from '@src/languages/types';
 
-/** The closed set of input kinds every Wise-driven form renders through; the DynamicForm registry is exhaustive over it */
-type WiseFieldType = 'text' | 'select' | 'multiselect' | 'radio' | 'date' | 'country' | 'address' | 'boolean' | 'file' | 'amount';
+/** The closed set of input kinds every schema-driven form renders through; the DynamicForm registry is exhaustive over it */
+type DynamicFormFieldType = 'text' | 'select' | 'multiselect' | 'radio' | 'date' | 'country' | 'address' | 'boolean' | 'file' | 'amount';
 
 /** One allowed value of a select, multiselect or radio field */
-type WiseFieldOption = {
-    /** Value submitted to Wise */
+type DynamicFormFieldOption = {
+    /** Value submitted to the server */
     key: string;
 
-    /** Wise's wording; shown when no labelKey */
+    /** The schema author's wording; shown when no labelKey */
     label?: string;
 
-    /** Our translation; required for App-owned schemas, added by Auth for Wise keys it recognizes */
+    /** Our translation; required for App-owned schemas, added by the server for keys it recognizes */
     labelKey?: TranslationPaths;
 };
 
-/** One field of a Wise form, as Auth emits it or as an App-owned schema declares it */
-type WiseField = {
+/** One field of a schema-driven form, as the server emits it or as an App-owned schema declares it */
+type DynamicFormField = {
     /** Unique key within the form; also the Onyx draft key */
     key: string;
 
-    /** Wise's wording; shown when no labelKey */
+    /** The schema author's wording; shown when no labelKey */
     label?: string;
 
-    /** Our translation; required for App-owned schemas, added by Auth for Wise keys it recognizes */
+    /** Our translation; required for App-owned schemas, added by the server for keys it recognizes */
     labelKey?: TranslationPaths;
 
-    /** Wise's section name; pages are built from it */
+    /** Section name; pages are built from it */
     group: string;
 
-    type: WiseFieldType;
+    type: DynamicFormFieldType;
 
     required: boolean;
 
     /** Allowed values for select, multiselect and radio */
-    values?: WiseFieldOption[];
+    values?: DynamicFormFieldOption[];
 
     /** Options filtered by another answer, keyed by that answer's value */
     dependsOn?: {
         key: string;
-        valuesBy: Record<string, WiseFieldOption[]>;
+        valuesBy: Record<string, DynamicFormFieldOption[]>;
     };
 
     /** Maximum number of files for a file field */
@@ -66,4 +66,4 @@ type WiseField = {
     };
 };
 
-export type {WiseField, WiseFieldOption, WiseFieldType};
+export type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType};
