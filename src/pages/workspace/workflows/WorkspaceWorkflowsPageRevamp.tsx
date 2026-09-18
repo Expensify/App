@@ -19,10 +19,10 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {downloadMembersCSV} from '@libs/actions/Policy/Member';
 import {openPolicyWorkflowsPage} from '@libs/actions/Policy/Policy';
 import Tab from '@libs/actions/Tab';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canMemberRead, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -245,7 +245,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     // A Dynamic External Workflow with "Hide People Table Columns" keeps the approval workflows out of the customer's
     // hands entirely, so the importer that would edit them is blocked too.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy) || shouldHideApprovalWorkflows;
+    const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy) || shouldHideApprovalWorkflows;
 
     const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
     // Importing modifies the workflows, so only offer it when editing is allowed.
