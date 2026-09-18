@@ -6,7 +6,8 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {markAsManuallyExported} from '@libs/actions/Report';
-import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates} from '@libs/actions/Search';
+import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
@@ -198,9 +199,11 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
+    const actualCONSTForSearchUIUtils = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
         shouldShowDeleteOption: () => false,
         getSelectedGroupFilterEntry: jest.fn(),
+        isGroupEntry: (key: string) => key.startsWith(actualCONSTForSearchUIUtils.SEARCH.GROUP_PREFIX),
         navigateToSearchRHP: jest.fn(),
         getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
@@ -304,6 +307,13 @@ const groupedExpenseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense groupBy:category',
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+};
+
+/** The shape of the Card statements and Card accruals suggested searches: an expense search grouped by card. */
+const cardGroupedExpenseQueryJSON: SearchQueryJSON = {
+    ...groupedExpenseQueryJSON,
+    inputQuery: `type:expense groupBy:${CONST.SEARCH.GROUP_BY.CARD}`,
+    groupBy: CONST.SEARCH.GROUP_BY.CARD,
 };
 
 const groupedSubmittedViolationQueryJSON: SearchQueryJSON = {
@@ -1231,6 +1241,106 @@ describe('useSearchBulkActions - export options', () => {
 
         await waitFor(() => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+        });
+    });
+
+    describe('Reconciliation - All Expenses on a card group selection', () => {
+        const CARD_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}1234`;
+        // jest.clearAllMocks() only clears recorded calls, so the template list each test installs has to be undone by hand.
+        const defaultExportTemplates = mockGetExportTemplates.getMockImplementation();
+
+        afterEach(() => {
+            mockGetExportTemplates.mockImplementation(defaultExportTemplates);
+        });
+
+        /** Offer the Reconciliation template alongside the templates that stay hidden for a group selection. */
+        function mockTemplatesIncludingReconciliation() {
+            mockGetExportTemplates.mockReturnValue({
+                customTemplates: [{name: 'Custom template', templateName: 'customTemplate', type: 'in-app', policyID: undefined, description: ''}],
+                defaultTemplates: [
+                    {name: 'export.expenseLevelExport', templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, type: 'integrations', policyID: undefined, description: ''},
+                    {
+                        name: 'export.reconciliationAllExpenses',
+                        templateName: CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES,
+                        type: 'integrations',
+                        policyID: undefined,
+                        description: '',
+                    },
+                ],
+            });
+        }
+
+        /** A selection made by ticking a card group's checkbox: the group row plus the child it selected. */
+        function selectCardGroup() {
+            mockSelectedTransactions = {
+                [CARD_GROUP_KEY]: makeSelectedTransaction(),
+                tx1: makeSelectedTransaction({groupKey: CARD_GROUP_KEY, isSelectedViaGroup: true}),
+            };
+        }
+
+        it('offers the Reconciliation template, and only that template, for a card group selection', async () => {
+            mockTemplatesIncludingReconciliation();
+            selectCardGroup();
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
+            });
+        });
+
+        it('keeps every template hidden when the group selection is grouped by something other than card', async () => {
+            mockTemplatesIncludingReconciliation();
+            selectCardGroup();
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+            });
+        });
+
+        it('hides the Reconciliation template for a card group selection when the user is not a card-enabled admin', async () => {
+            // getExportTemplates leaves the template out entirely for a user who does not qualify for it.
+            selectCardGroup();
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+            });
+        });
+
+        it('scopes the Reconciliation export to the selected card groups instead of a transaction ID list', async () => {
+            mockTemplatesIncludingReconciliation();
+            selectCardGroup();
+            // An expense ticked on its own, alongside the card group, so it is not covered by the group's filter.
+            mockSelectedTransactions.tx2 = makeSelectedTransaction();
+            const searchResults = makeSearchResults([]);
+            // The card group row as it arrives in the search snapshot, which the group's filter entry is derived from.
+            Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
+            mockCurrentSearchResults = searchResults;
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            expect(parameters?.templateName).toBe(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+            // The card groups travel as a `cardID:` filter on the query, so neither the group row nor the children it
+            // selected are sent as IDs. The expense ticked on its own is kept, as "Current view" keeps it.
+            expect(parameters?.reportIDList).toEqual([]);
+            expect(parameters?.transactionIDList).toEqual(['tx2']);
+            expect(parameters?.jsonQuery).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
         });
     });
 

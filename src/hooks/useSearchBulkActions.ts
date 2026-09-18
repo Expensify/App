@@ -959,6 +959,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 );
             } else {
                 const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+                // The selected groups travel as a filter on the query, so the group rows themselves are dropped from the ID
+                // list. Rows picked individually alongside those groups are kept, matching how "Current view" exports them.
+                const transactionIDList = isGroupExport
+                    ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key]))
+                    : selectedTransactionsKeys;
                 queueExportSearchWithTemplate(
                     {
                         templateName,
@@ -970,7 +975,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               )
                             : '{}',
                         reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
-                        transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
+                        transactionIDList,
                         policyID,
                         exportName,
                     },
@@ -1957,6 +1962,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
+            // A group selection is sent to the backend as a filter on the query rather than a list of report/transaction IDs,
+            // which most templates can't be scoped by, so template exports are hidden for it. Reconciliation - All Expenses is
+            // the exception on a card-grouped search (Card statements and Card accruals): the selected card groups become a
+            // `cardID:` filter, which is exactly the card-spend scope that template reports on.
+            const includesCardGroupExport = includesGroupExport && getValidGroupBy(queryJSON?.groupBy) === CONST.SEARCH.GROUP_BY.CARD;
+            const customTemplatesToShow = includesCardGroupExport ? [] : availableCustomTemplates;
+            const defaultTemplatesToShow = includesCardGroupExport
+                ? availableDefaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)
+                : availableDefaultTemplates;
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -2215,7 +2229,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 addSeparatorBefore: true,
             });
 
-            if (!allSelectedAreDeleted && !includesGroupExport) {
+            if (!allSelectedAreDeleted && (!includesGroupExport || includesCardGroupExport)) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
                 const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
                     // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
@@ -2239,10 +2253,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
 
                 // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
-                for (const [index, template] of availableCustomTemplates.entries()) {
+                for (const [index, template] of customTemplatesToShow.entries()) {
                     exportOptions.push(buildExportOption(template, false, index === 0));
                 }
-                for (const [index, template] of availableDefaultTemplates.entries()) {
+                for (const [index, template] of defaultTemplatesToShow.entries()) {
                     exportOptions.push(buildExportOption(template, true, index === 0));
                 }
             } else if (!isGroupedSearch) {
