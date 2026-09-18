@@ -1,7 +1,7 @@
 ---
 title: Configure NetSuite
 description: Learn how to configure the import, export, and advanced settings for Expensify's integration with NetSuite.
-keywords: [New Expensify, NetSuite configuration, import settings, export settings, advanced sync, tags, corporate card export]
+keywords: [New Expensify, NetSuite configuration, import settings, export settings, advanced sync, tags, corporate card export, currency conversion fee account]
 order: 2
 ---
 
@@ -47,7 +47,7 @@ To control what data is imported from NetSuite:
   - Do not use the “Filtered by” feature in NetSuite Custom Segments
 - **Custom Lists** – Import as Tags or Report Fields
 
-3. Click the **three-dot icon** and choose **Sync Now** to apply changes
+3. Select the three dots **(⋮)** and choose **Sync now** to apply changes
 
 ---
 
@@ -79,7 +79,7 @@ To manage how reports are exported from Expensify to NetSuite:
 - **Export Expensify Travel Payable To** – If Expensify Travel's Consolidated Travel Billing feature is enabled, configure where travel card expenses are exported:
   - **Non-reimbursable journal posting account** – Select the payable account for Expensify Travel expenses
 
-3. Click the **three-dot icon** > **Sync Now** to apply changes
+3. Select the three dots **(⋮)** > **Sync now** to apply changes
 
 ---
 
@@ -91,18 +91,16 @@ For additional control:
 2. Configure the following options:
 
 - **Auto-sync** – Enable for daily syncing of NetSuite data
-- **Sync Reimbursed Reports** – Automatically updates status between systems
-- **Invite Employees & Set Approvals** – Imports employees and sets workflow
-- **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
-- **Enable Newly Imported Categories** – Activates newly synced Expense Categories
+- **Sync reimbursed reports** – Automatically updates status between systems
+- **Currency conversion fee account** – Choose the NetSuite account that currency conversion costs post to as a journal entry when your company covers those costs on a reimbursement paid abroad. This setting appears only when **Sync reimbursed reports** is enabled and your workspace reimburses through Expensify. Set who pays the cost in **Workspaces > [Workspace Name] > Workflows > Payments > Currency conversion fees**.
+- **Invite employees and set approvals** – Imports employees and sets workflow
+- **Auto-create employees/vendors** – Automatically creates a NetSuite record if one doesn’t exist
+- **Enable newly imported categories** – Activates newly synced Expense Categories
 - **Sync Consolidated Travel Billing settlements** – If Expensify Travel's [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) feature is enabled, turn on this toggle to continuously reconcile settlements through NetSuite. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
-- **Approval Levels** – Set approval levels for:
-  - Expense Reports
-  - Vendor Bills
-  - Journal Entries
-- **Custom Form ID** – Use a specific NetSuite form instead of the default
+- **Expense report approval level**, **Vendor bill approval level**, and **Journal entry approval level** – Set an additional level of approval in NetSuite before transactions post
+- **Custom form ID** – Use a specific NetSuite form instead of the default
 
-3. Click the **three-dot icon** > **Sync Now** to apply changes
+3. Select the three dots **(⋮)** > **Sync now** to apply changes
 
 ---
 
@@ -161,4 +159,21 @@ No. Auto-sync only applies to newly approved reports. Export older reports manua
 
 - The employee/vendor currency must match the subsidiary
 - The bank account currency must match the subsidiary for bill payments
+
+
+## How do currency conversion costs export to NetSuite?
+
+When your company covers the currency conversion cost on a reimbursement paid abroad, Expensify posts that cost to NetSuite as a separate journal entry alongside the bill payment. The journal entry debits the account you select in **Currency conversion fee account** on the **Advanced** tab.
+
+To choose who pays the cost, go to **Workspaces > [Workspace Name] > Workflows > Payments > Currency conversion fees** and select **Company pays** or **Employee pays**. The account you select is only used when you select **Company pays**.
+
+
+## Why don’t I see the Currency conversion fee account setting?
+
+The setting is hidden unless both of the following are true:
+
+- **Sync reimbursed reports** is enabled on the **Advanced** tab, since the cost posts alongside a bill payment
+- Your workspace reimburses through Expensify, set in **Workspaces > [Workspace Name] > Workflows > Payments**
+
+If the setting is visible but the account list is empty, sync the NetSuite connection so that your expense accounts are imported. Click the three dots **(⋮)** > **Sync now** on the **Accounting** page.
 
