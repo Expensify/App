@@ -21,6 +21,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -276,7 +277,13 @@ function TransactionGroupListItemImpl({
         });
     };
 
+    const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
+
     const onPress = (event?: ModifiedMouseEvent) => {
+        // A cash back row has no children to drill into.
+        if (isCashBackWithdrawal) {
+            return;
+        }
         const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
         if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
             onSelectRow(item, transactionPreviewData, event);
@@ -299,6 +306,9 @@ function TransactionGroupListItemImpl({
     };
 
     const onExpandIconPress = () => {
+        if (isCashBackWithdrawal) {
+            return;
+        }
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
             // onPress handles handleToggle() for us, so we return early to avoid calling it twice
@@ -346,7 +356,7 @@ function TransactionGroupListItemImpl({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onExpandIconPress}
+                    onDownArrowClick={isCashBackWithdrawal ? undefined : onExpandIconPress}
                     isExpanded={isExpanded}
                 />
             ),
@@ -529,7 +539,9 @@ function TransactionGroupListItemImpl({
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 isNested
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                interactive={!isCashBackWithdrawal}
+                pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
+                hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
@@ -554,7 +566,7 @@ function TransactionGroupListItemImpl({
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
                             expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
-                            shouldShowToggleButton={isLargeScreenWidth}
+                            shouldShowToggleButton={isLargeScreenWidth && !isCashBackWithdrawal}
                             borderBottomStyle={isLargeScreenWidth ? styles.borderNone : isItemSelected && {borderColor: theme.buttonHoveredBG}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
