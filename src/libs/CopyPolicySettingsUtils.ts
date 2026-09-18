@@ -309,13 +309,14 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
  * determined by `canPolicyAccessFeature` (the single source of truth for which features require a
  * Control plan). Returns empty when there are no Collect targets.
  */
-function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): Part[] {
+function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[], sourcePolicy?: Policy | null): Part[] {
     const collectTargets = targetPolicies.filter((policy): policy is Policy => isCollectPolicy(policy));
     if (collectTargets.length === 0) {
         return [];
     }
+    const hasInvoiceFields = !!sourcePolicy?.areInvoiceFieldsEnabled || Object.values(sourcePolicy?.fieldList ?? {}).some((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
     return selectedParts.filter((part) => {
-        const featureName = PART_TO_POLICY_FEATURE[part];
+        const featureName = part === 'invoices' && hasInvoiceFields ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED : PART_TO_POLICY_FEATURE[part];
         if (!featureName) {
             return false;
         }
@@ -328,16 +329,16 @@ function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | unde
  * Upgrade is required when at least one selected part is unavailable on the Collect targets; in that
  * case every selected Collect target is returned so the upgrade step can upgrade them all.
  */
-function getCollectTargetsToUpgrade(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): Policy[] {
-    if (getControlOnlySelectedParts(targetPolicies, selectedParts).length === 0) {
+function getCollectTargetsToUpgrade(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[], sourcePolicy?: Policy | null): Policy[] {
+    if (getControlOnlySelectedParts(targetPolicies, selectedParts, sourcePolicy).length === 0) {
         return [];
     }
     return targetPolicies.filter((policy): policy is Policy => isCollectPolicy(policy));
 }
 
 /** Whether the Upgrade step should be shown between Select Features and Confirm. */
-function shouldShowCopyPolicySettingsUpgradeStep(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): boolean {
-    return getCollectTargetsToUpgrade(targetPolicies, selectedParts).length > 0;
+function shouldShowCopyPolicySettingsUpgradeStep(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[], sourcePolicy?: Policy | null): boolean {
+    return getCollectTargetsToUpgrade(targetPolicies, selectedParts, sourcePolicy).length > 0;
 }
 
 /** Subtitle for the receipt partners row when Uber is connected on the source. */

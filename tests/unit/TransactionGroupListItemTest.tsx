@@ -1,4 +1,3 @@
-import '@libs/Middleware/register';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -13,6 +12,7 @@ import type {
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 
+import registerMiddlewares from '@libs/Middleware/register';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
@@ -29,6 +29,8 @@ import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext'
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+registerMiddlewares();
+
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
     handleActionButtonPress: jest.fn(),
@@ -39,8 +41,14 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isCorrectSearchUserName: jest.fn(() => true),
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
-    getSuggestedSearchesVisibility: jest.fn(() => ({topSpendersPolicyIDs: []})),
+    getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
+    isTodoSearch: jest.fn(() => false),
+    isExistingSearchKey: jest.fn(() => false),
+    getSearchKeyForDataType: jest.fn(() => undefined),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
+    getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
+    getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
+    getViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -415,6 +423,29 @@ describe('TransactionGroupListItem', () => {
         await collapse();
 
         expect(screen.getByLabelText('Expand')).toBeTruthy();
+    });
+
+    it('should collapse when every loaded transaction is pending delete and the group is not', async () => {
+        const {rerender} = renderTransactionGroupListItem();
+        await waitForBatchedUpdatesWithAct();
+        await expand();
+
+        rerender(
+            <TransactionGroupListItem
+                {...defaultProps}
+                item={{
+                    ...report,
+                    transactions: report.transactions.map((transaction) => ({
+                        ...transaction,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    })),
+                }}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByLabelText('Expand')).toBeTruthy();
+        expect(screen.queryByLabelText('Collapse')).toBeNull();
     });
 
     it(`should show only ${CONST.TRANSACTION.RESULTS_PAGE_SIZE} transactions when collapsed and expanded again`, async () => {

@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
+import {postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearSignInData, setAccountError, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
@@ -23,10 +23,12 @@ import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
+import handleSAMLLoginError from './handleSAMLLoginError';
+
 function SAMLSignInPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
@@ -69,9 +71,10 @@ function SAMLSignInPage() {
                 Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
             }
 
-            if (!account?.isLoading && credentials?.login && shortLivedAuthToken) {
+            // A forced re-auth leaves account.isLoading true until sign-in, so the token alone decides here.
+            if (credentials?.login && shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                signInWithShortLivedAuthToken(shortLivedAuthToken, session?.authToken, true);
+                signInWithShortLivedAuthToken(shortLivedAuthToken, session?.authToken, true, lastVisitedPath);
                 return;
             }
 
@@ -88,7 +91,7 @@ function SAMLSignInPage() {
                 Navigation.navigate(ROUTES.HOME);
             });
         },
-        [credentials?.login, account?.isLoading, translate, session?.authToken],
+        [credentials?.login, lastVisitedPath, translate, session?.authToken],
     );
 
     useEffect(() => {

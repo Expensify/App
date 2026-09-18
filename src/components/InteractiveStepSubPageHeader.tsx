@@ -9,7 +9,6 @@ import {View} from 'react-native';
 import InteractiveStepButton from './InteractiveStepButton';
 
 type InteractiveStepSubPageHeaderProps = {
-    /** List of step names to display */
     stepNames: readonly string[];
 
     /** Current step index (0-based) */
@@ -18,7 +17,6 @@ type InteractiveStepSubPageHeaderProps = {
     /** Description of the current step, appended to its accessibility label */
     currentStepAccessibilityDescription: string;
 
-    /** Function to call when a step is selected */
     onStepSelected?: (stepIndex: number) => void;
 };
 
