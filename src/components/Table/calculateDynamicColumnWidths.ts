@@ -137,7 +137,7 @@ function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], 
  * fixed-width columns.
  */
 function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], availableWidth: number): CalculatedDynamicColumnWidths {
-    if (constraints.length === 0 || availableWidth <= 0) {
+    if (constraints.length === 0) {
         return EQUAL_WIDTHS;
     }
 
@@ -164,6 +164,11 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
 
     // 4. Even squeezed to their minimums the columns don't fit, so they stop there and the table scrolls. Rounding up
     // rather than down, since a column a fraction of a px short would clip a character it is meant to show.
+    //
+    // A table whose fixed columns already need more room than it has lands here too, with a budget of zero or less for
+    // the dynamic ones to share. Sizing them to their own content is what keeps an empty column narrow in that case,
+    // rather than leaving every column an equal share of room the table never had. Whether the table has been measured
+    // at all is the caller's question, answered before it works out a budget.
     const minWidths = constraints.map((constraint, index) => Math.min(constraint.minWidth, maxWidths.at(index) ?? 0));
     const totalMinWidth = sum(minWidths);
     if (totalMinWidth >= availableWidth) {

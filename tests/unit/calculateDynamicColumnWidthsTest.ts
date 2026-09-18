@@ -23,10 +23,6 @@ describe('calculateDynamicColumnWidths', () => {
         it('keeps equal columns when there are no columns', () => {
             expect(calculateDynamicColumnWidths([], 900)).toEqual({widths: [], shouldScrollHorizontally: false});
         });
-
-        it('keeps equal columns when the table has not been measured yet', () => {
-            expect(calculateDynamicColumnWidths([buildConstraints(400), buildConstraints(100)], 0)).toEqual({widths: [], shouldScrollHorizontally: false});
-        });
     });
 
     describe('behavior 1: every column fits in an equal share', () => {
@@ -147,6 +143,19 @@ describe('calculateDynamicColumnWidths', () => {
             const result = calculateDynamicColumnWidths([buildFitContentConstraints(900.2), buildFitContentConstraints(300.7)], 700);
 
             expect(result).toEqual({widths: [901, 301], shouldScrollHorizontally: true});
+        });
+
+        it('stops at the minimum widths and scrolls when the fixed columns leave nothing to share', () => {
+            const result = calculateDynamicColumnWidths([buildConstraints(400), buildConstraints(100)], 0);
+
+            expect(result).toEqual({widths: [180, 100], shouldScrollHorizontally: true});
+        });
+
+        it('stops at the minimum widths and scrolls when the fixed columns need more room than the table has', () => {
+            // A table showing 38 columns, 18 of them fixed, measured 751px wide with 1294px of fixed columns.
+            const result = calculateDynamicColumnWidths([buildConstraints(400), buildConstraints(100)], -1119);
+
+            expect(result).toEqual({widths: [180, 100], shouldScrollHorizontally: true});
         });
     });
 
