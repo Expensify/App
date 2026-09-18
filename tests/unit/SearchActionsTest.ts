@@ -339,7 +339,7 @@ describe('SearchActions', () => {
                 allReports: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: baseReport},
                 currentUserAccountIDParam: 1,
                 currentUserLogin: 'test@example.com',
-                betas: [],
+                isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 getCurrencyDecimals: jest.fn(() => 2),
                 allReportsTransactionsAndViolations,
