@@ -57,7 +57,6 @@ type ReanimatedModalProps = ViewProps &
             }>,
         ) => void;
 
-        /** The presentation style of the modal */
         presentationStyle?: 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
 
         /** Enum for animation type when modal appears */
@@ -84,10 +83,7 @@ type ReanimatedModalProps = ViewProps &
         /** Whether the modal should have a backdrop */
         hasBackdrop?: boolean;
 
-        /** Color of the backdrop */
         backdropColor?: string;
-
-        /** Opacity of the backdrop */
         backdropOpacity?: number;
 
         /** Duration of backdrop transition when modal appears */
@@ -96,13 +92,8 @@ type ReanimatedModalProps = ViewProps &
         /** Duration of backdrop transition when modal disappears */
         backdropTransitionOutTiming?: number;
 
-        /** Custom component to use as the backdrop */
         customBackdrop?: ReactNode;
-
-        /** Whether to hide modal content during animations */
         hideModalContentWhileAnimating?: boolean;
-
-        /** Whether the modal is visible */
         isVisible?: boolean;
 
         /** Callback when modal has fully appeared */
@@ -117,7 +108,6 @@ type ReanimatedModalProps = ViewProps &
         /** Callback when modal is about to disappear */
         onModalWillHide?: () => void;
 
-        /** Callback when the backdrop is pressed */
         onBackdropPress?: () => void;
 
         /** Callback when the back button is pressed (on Android) */
@@ -130,11 +120,7 @@ type ReanimatedModalProps = ViewProps &
         supportedOrientations?: Array<'portrait' | 'portrait-upside-down' | 'landscape' | 'landscape-left' | 'landscape-right'>;
 
         navigationBarTranslucent?: boolean;
-
-        /** Modal type */
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
-
-        /** Whether to prevent scroll on focus */
         shouldPreventScrollOnFocus?: boolean;
 
         /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
@@ -157,7 +143,6 @@ type ReanimatedModalProps = ViewProps &
          */
         launcherRef?: RefObject<View | Text | HTMLElement | null>;
 
-        /** Whether to ignore the back handler during transition */
         shouldIgnoreBackHandlerDuringTransition?: boolean;
     };
 
@@ -165,25 +150,15 @@ type BackdropProps = {
     /** Style applied to the modal backdrop */
     style: StyleProp<ViewStyle>;
 
-    /** Custom backdrop component */
     customBackdrop?: ReactNode;
-
-    /** Callback fired when pressing the backdrop */
     onBackdropPress?: () => void;
-
-    /** Delay set to animation on enter */
     animationInDelay?: number;
-
-    /** Timing of animation on enter */
     animationInTiming?: number;
 
     /** Timing of animation on exit */
     animationOutTiming?: number;
 
-    /** Opacity of the backdrop */
     backdropOpacity?: number;
-
-    /** Shows backdrop content */
     isBackdropVisible: boolean;
 };
 

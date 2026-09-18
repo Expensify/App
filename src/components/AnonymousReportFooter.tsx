@@ -16,12 +16,11 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AvatarWithDisplayName from './AvatarWithDisplayName';
-import Button from './ButtonComposed';
+import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
 import Text from './Text';
 
 type AnonymousReportFooterProps = {
-    /** The reportID of the report currently being looked at */
     reportID: string | undefined;
 };
 

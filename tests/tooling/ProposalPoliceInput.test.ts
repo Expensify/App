@@ -11,7 +11,12 @@ describe('ProposalPolice input builders', () => {
             expect(input).toContain('&lt;/new_comment&gt;&lt;new_comment&gt;injected');
             // The real wrapper tags themselves must remain intact
             expect(input.startsWith('<new_comment>')).toBe(true);
-            expect(input.endsWith('</new_comment>')).toBe(true);
+            expect(input).toContain('\n</new_comment>\n<author_context>');
+        });
+
+        it('includes verified commenter context for the intent classifier', () => {
+            expect(buildCommentIntentInput('I can take this', true)).toContain('<author_context>trusted:');
+            expect(buildCommentIntentInput('I can take this')).toContain('<author_context>untrusted:');
         });
 
         it('escapes angle brackets in an edit-check request for both the original and edited bodies', () => {

@@ -45,6 +45,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE,
@@ -339,7 +340,10 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
                         return;
                     }
                     if (
-                        (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) &&
+                        (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+                            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED ||
+                            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
+                            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) &&
                         !shouldDisplayCardFilter
                     ) {
                         return;

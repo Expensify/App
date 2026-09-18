@@ -18,6 +18,7 @@ import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
+import type BetaOverrides from './BetaOverrides';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -51,11 +52,13 @@ import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
+import type CorpayPayModal from './CorpayPayModal';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
+import type DeferredAttachmentEdits from './DeferredAttachmentEdits';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
@@ -95,6 +98,8 @@ import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
+import type InsightsDashboard from './InsightsDashboard';
+import type {InsightsDashboardID, InsightsGraphKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -111,6 +116,7 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -137,6 +143,7 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
+import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchPolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -175,6 +182,7 @@ import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
+import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
@@ -206,6 +214,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
+import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type VerifyValidateCodeAction from './VerifyValidateCodeAction';
@@ -233,6 +242,7 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
+    BetaOverrides,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -265,6 +275,9 @@ export type {
     FundList,
     GovernmentMileageRate,
     GpsDraftDetails,
+    InsightsDashboard,
+    InsightsDashboardID,
+    InsightsGraphKey,
     IntroSelected,
     IssueNewCard,
     AssignCardData,
@@ -336,6 +349,7 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    DeferredAttachmentEdits,
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
@@ -358,6 +372,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MerchantRuleSuggestion,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,
@@ -388,6 +403,7 @@ export type {
     NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
+    PolicyRoomsMetadata,
     SearchResults,
     SearchTagFiltersPaginationState,
     ReviewDuplicates,
@@ -405,6 +421,7 @@ export type {
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
+    SearchFilters,
     RecentSearchItem,
     SearchContext,
     SearchFooterConversion,
@@ -423,6 +440,7 @@ export type {
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
+    CorpayPayModal,
     SidePanel,
     SidePanelContext,
     LastPaymentMethodType,
@@ -440,6 +458,7 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
+    VacationDelegatePolicyDiff,
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,

@@ -23,7 +23,6 @@ type ChartTooltipProps = {
     /** The width of the chart container */
     chartWidth: number;
 
-    /** The initial tooltip position */
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
 };
 

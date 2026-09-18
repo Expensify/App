@@ -16,8 +16,6 @@ type AttachmentViewImageProps = Pick<AttachmentViewProps, 'attachmentID' | 'isAu
     loadComplete: boolean;
 
     isImage: boolean;
-
-    /** Function for handle on error */
     onError?: () => void;
 };
 

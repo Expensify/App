@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -13,10 +13,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ShowPreviousMessagesButtonProps = {
-    /** The ID of the report this list item belongs to */
     reportID: string;
-
-    /** The action type of the report action being rendered for this list item */
     actionType: ReportAction['actionName'];
 
     /** Whether there are previous messages hidden before the session start */

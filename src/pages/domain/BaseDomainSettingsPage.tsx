@@ -14,7 +14,6 @@ import {View} from 'react-native';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainSettingsPageProps = {
-    /** The ID of the domain used for the not found wrapper */
     domainAccountID: number;
 
     /** Settings page content */

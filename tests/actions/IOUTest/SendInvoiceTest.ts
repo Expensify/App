@@ -786,6 +786,55 @@ describe('actions/SendInvoice', () => {
             writeSpy.mockRestore();
         });
 
+        it('should send a phone receiver as an SMS login and store it that way in the optimistic personal details', () => {
+            const phoneNumber = '+12025550123';
+            const smsLogin = `${phoneNumber}${CONST.SMS.DOMAIN}`;
+            const receiverAccountID = 456;
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- this it callback spies on API.write once; the rule's ancestor token scan combines otherwise independent tests
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            const transaction = createMock<Transaction>({
+                transactionID: 'transaction_phone_receiver',
+                reportID: 'report_phone_receiver',
+                amount: 100,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Phone Invoice',
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_test'},
+                    {accountID: receiverAccountID, isSender: false, login: phoneNumber},
+                ],
+            });
+
+            sendInvoice({
+                currentUserAccountID: 123,
+                transaction,
+                policyRecentlyUsedCurrencies: [],
+                senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SEND_INVOICE,
+                expect.objectContaining({
+                    receiverEmail: smsLogin,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {[receiverAccountID]: expect.objectContaining({login: smsLogin, displayName: formatPhoneNumber(phoneNumber)})},
+                        }),
+                    ]),
+                }),
+            );
+
+            writeSpy.mockRestore();
+        });
+
         it('should not clear transaction pending action when send invoice fails', async () => {
             const testCurrency = CONST.CURRENCY.EUR;
             const transaction: Transaction = {

@@ -21,7 +21,7 @@ jest.mock('@components/RenderHTML', () => ({
 }));
 
 jest.mock('@components/ReportActionItem/ActionableItemButtons', () => () => null);
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     function MockButton() {
         return null;
     }

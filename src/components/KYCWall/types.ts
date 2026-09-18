@@ -59,16 +59,12 @@ type KYCWallProps = {
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
 
-    /** Whether the option to add a debit card should be included */
     shouldIncludeDebitCard?: boolean;
-
-    /** Callback for when a payment method has been selected */
     onSelectPaymentMethod?: (paymentMethod: PaymentMethod) => void;
 
     /** Returns the route to continue into after adding a personal bank account */
     getPersonalBankAccountOnSuccessFallbackRoute?: (paymentMethod: PaymentMethod) => Route | undefined;
 
-    /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** Callback for the end of the onContinue trigger on option selection */

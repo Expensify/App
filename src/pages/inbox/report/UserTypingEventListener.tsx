@@ -16,7 +16,6 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
 type UserTypingEventListenerProps = {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 function UserTypingEventListener({report}: UserTypingEventListenerProps) {

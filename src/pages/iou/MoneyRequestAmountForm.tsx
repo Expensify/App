@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -47,13 +47,8 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
 
-    /** Whether the confirmation screen should be skipped */
     skipConfirmation?: boolean;
-
-    /** Type of the IOU */
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
-
-    /** The policyID of the request */
     policyID?: string;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
@@ -68,10 +63,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
-    /** Whether to allow flipping the amount */
     allowFlippingAmount?: boolean;
-
-    /** The chatReportID of the request */
     chatReportID?: string;
 
     /** Whether this is a P2P (1:1) request */

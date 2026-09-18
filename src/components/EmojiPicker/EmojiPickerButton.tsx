@@ -24,7 +24,6 @@ type EmojiPickerButtonProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean;
 
-    /** Unique id for emoji picker */
     emojiPickerID?: string;
 
     /** A callback function when the button is pressed */

@@ -74,7 +74,6 @@ type ConfirmationReceiptThumbnailProps = {
     /** Compact-mode container style (undefined when not in compact mode) */
     compactReceiptContainerStyle: StyleProp<ViewStyle> | undefined;
 
-    /** Callback for PDF load errors */
     onPDFLoadError?: () => void;
 
     /** Callback when the PDF requests a password */
