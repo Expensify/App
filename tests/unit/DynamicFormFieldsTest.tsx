@@ -7,7 +7,9 @@ import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
+import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import MultiSelectPushRowAdapter from '@components/DynamicForm/adapters/MultiSelectPushRowAdapter';
+import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import PushRowWithModal from '@components/PushRowWithModal';
@@ -33,7 +35,9 @@ type CapturedInputProps = {
     acceptedFileTypes?: string[];
     renamedInputKeys?: Record<string, string>;
     maxLength?: number;
-    placeholder?: string;
+    hint?: string;
+    inputMode?: string;
+    canSelectMultiple?: boolean;
     valueType?: string;
 };
 
@@ -111,8 +115,9 @@ describe('DynamicFormFields', () => {
     it('uses PushRowWithModal for a select with more than eight values', () => {
         const values = Array.from({length: 9}, (_, index) => ({key: `OPTION_${index}`, label: `Option ${index}`}));
         const field: WiseField = {key: 'industry', label: 'Industry', group: 'Business', type: 'select', required: true, values, refreshOnChange: false};
+        const sibling: WiseField = {key: 'description', label: 'Description', group: 'Business', type: 'text', required: true, refreshOnChange: false};
 
-        const rendered = renderFields([field]).get('industry');
+        const rendered = renderFields([field, sibling]).get('industry');
 
         expect(rendered?.InputComponent).toBe(PushRowWithModal);
         expect(Object.keys(rendered?.optionsList ?? {})).toHaveLength(9);
@@ -144,11 +149,32 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('legalType')?.items?.map((item) => item.label)).toEqual(['Person', 'Business']);
     });
 
-    it('passes text constraints and the example as placeholder', () => {
+    it('passes text constraints, the example as a hint and a numeric keyboard for digit-only fields', () => {
         const accountNumber = renderFields(allFieldTypes).get('accountNumber');
 
         expect(accountNumber?.maxLength).toBe(8);
-        expect(accountNumber?.placeholder).toBe('12345678');
+        expect(accountNumber?.hint).toBe('common.exampleValue');
+        expect(accountNumber?.inputMode).toBe('numeric');
+    });
+
+    it('presents a lone select, multiselect or boolean as the page instead of a row', () => {
+        const useCases = allFieldTypes.find((field) => field.key === 'useCases');
+        const accountType = allFieldTypes.find((field) => field.key === 'accountType');
+        const isSourceOfFund = allFieldTypes.find((field) => field.key === 'isSourceOfFund');
+        if (!useCases || !accountType || !isSourceOfFund) {
+            throw new Error('fixture changed');
+        }
+
+        const loneMultiselect = renderFields([useCases]).get('useCases');
+        expect(loneMultiselect?.InputComponent).toBe(InlineSelectionListAdapter);
+        expect(loneMultiselect?.canSelectMultiple).toBe(true);
+
+        const loneSelect = renderFields([accountType], {legalType: 'PRIVATE'}).get('accountType');
+        expect(loneSelect?.InputComponent).toBe(InlineSelectionListAdapter);
+        expect(loneSelect?.items?.map((item) => item.value)).toEqual(['CHECKING', 'SAVINGS']);
+
+        expect(renderFields([isSourceOfFund]).get('isSourceOfFund')?.InputComponent).toBe(YesNoAdapter);
+        expect(renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('isSourceOfFund')?.InputComponent).toBe(CheckboxWithLabel);
     });
 
     it('addressAdapter maps address.* keys to AddressSearch renamedInputKeys', () => {

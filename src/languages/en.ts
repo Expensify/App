@@ -63,6 +63,7 @@ const translations = {
         unshare: 'Unshare',
         yes: 'Yes',
         no: 'No',
+        exampleValue: ({example}: {example: string}) => `Example: ${example}`,
         approve: 'Approve',
         deny: 'Deny',
         dontChange: 'Don’t change',
