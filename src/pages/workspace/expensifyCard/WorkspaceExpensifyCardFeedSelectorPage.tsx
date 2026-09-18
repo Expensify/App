@@ -1,4 +1,6 @@
+import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -150,52 +152,67 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         clearIssueNewCardFormData();
     };
 
-    const selectOtherFeed = (feed: ExpensifyFeedListItem) => {
-        resetCardFlowState();
+    /**
+     * Links a feed owned by another workspace to this policy and then selects it. The user may first have to add or
+     * validate a work email, in which case that flow carries the fundID and finishes the selection on its own.
+     */
+    const linkOtherWorkspaceFeed = (fundID: number) => {
         const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
         if (!isUserValidated || isUserFromPublicDomain) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, fundID));
             return;
         }
 
         const primaryLoginKey = primaryContactMethod ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === primaryContactMethod.toLowerCase()) : undefined;
         const isPrimaryContactValidated = primaryLoginKey ? !!loginList?.[primaryLoginKey]?.validatedDate : !primaryContactMethod;
         if (!isPrimaryContactValidated) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
             return;
         }
 
-        linkCardFeedToPolicy(feed.value, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
+        linkCardFeedToPolicy(fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
             .then(() => {
-                updateSelectedExpensifyCardFeed(feed.value, policyID);
+                updateSelectedExpensifyCardFeed(fundID, policyID);
                 goBack();
             })
             .catch((error: TranslationPaths) => {
                 setFeedWithError({
-                    fundID: feed.value,
+                    fundID,
                     error: getMicroSecondOnyxErrorWithTranslationKey(error),
                 });
             });
     };
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
+        // Staging another row makes an error left over from a previous link attempt irrelevant.
+        setFeedWithError(undefined);
         setDraftFundID(feed.value);
     };
+
+    const isOtherWorkspaceFeedStaged = otherFeeds.some((entry) => entry.fundID === currentSelectedFundID);
 
     const saveFeed = () => {
         if (!currentSelectedFundID) {
             return;
         }
         resetCardFlowState();
+        // A feed from another workspace is not selectable until it has been linked to this policy.
+        if (isOtherWorkspaceFeedStaged) {
+            linkOtherWorkspaceFeed(currentSelectedFundID);
+            return;
+        }
         updateSelectedExpensifyCardFeed(currentSelectedFundID, policyID);
         goBack();
     };
+
+    // Linking a feed from another workspace needs the network, which is why those rows are also disabled offline.
+    const isSaveDisabled = !currentSelectedFundID || currentSelectedFundID === lastSelectedExpensifyCardFeedID || (isOtherWorkspaceFeedStaged && isOffline);
 
     const confirmButtonOptions = {
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveFeed,
-        isDisabled: !currentSelectedFundID || currentSelectedFundID === lastSelectedExpensifyCardFeedID,
+        isDisabled: isSaveDisabled,
     };
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
@@ -204,6 +221,10 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     // setting up a brand new program. Suppress that branch on workspaces with unsupported currencies, and for members
     // who cannot reach the bank account setup page.
     const shouldShowSetUpNewProgramButton = !hasIssueCardFundID && canEnrollNewCardProgram && canStartBankAccountSetup;
+
+    // Without a primary feed the page renders a plain ScrollView instead of a SelectionList, so it has to supply its
+    // own Save button for the "From other workspaces" rows — they are the only selectable rows in that state.
+    const shouldShowOtherFeedsSaveButton = canWriteExpensifyCard && otherFeeds.length > 0;
 
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
@@ -227,7 +248,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                                 key={item.keyForList}
                                 showTooltip={false}
                                 item={item}
-                                onSelectRow={selectOtherFeed}
+                                onSelectRow={selectFeed}
                                 isMultilineSupported
                                 isAlternateTextMultilineSupported
                                 alternateTextNumberOfLines={2}
@@ -270,13 +291,32 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                         onDismissError={onDismissError}
                     />
                 ) : (
-                    <ScrollView
-                        addBottomSafeAreaPadding
-                        style={styles.flex1}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {issueNewCardAndOtherFeedsFooter}
-                    </ScrollView>
+                    <>
+                        <ScrollView
+                            // The Save button below carries the bottom safe area padding whenever it is rendered.
+                            addBottomSafeAreaPadding={!shouldShowOtherFeedsSaveButton}
+                            style={styles.flex1}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            {issueNewCardAndOtherFeedsFooter}
+                        </ScrollView>
+                        {shouldShowOtherFeedsSaveButton && (
+                            <FixedFooter
+                                style={styles.mtAuto}
+                                addBottomSafeAreaPadding
+                            >
+                                <Button
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size="large"
+                                    style={styles.w100}
+                                    onPress={saveFeed}
+                                    isDisabled={isSaveDisabled}
+                                >
+                                    <Button.Text>{translate('common.save')}</Button.Text>
+                                </Button>
+                            </FixedFooter>
+                        )}
+                    </>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
