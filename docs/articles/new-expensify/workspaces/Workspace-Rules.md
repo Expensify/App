@@ -160,6 +160,8 @@ The **Agents** tab holds Agent Rules, which are written in plain language and ru
 
 Category-specific behavior is set as a rule on the **Rules** page, not on the category itself. Open a category to set its **Approver** and **Description hint**, and use the **Category rules** section at the bottom of the category to review the rules that already apply to it.
 
+A **Description hint** appears below the **Description** field on an expense once a member selects that category, both while creating and while editing the expense. [Learn how to add a Description hint to an expense category](/articles/new-expensify/workspaces/Create-expense-categories).
+
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Categories**.
