@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -104,6 +105,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {pageGutter} = useLayoutSpacing();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {backTo, policyID} = route.params;
@@ -247,9 +250,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 return;
             }
 
-            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0);
+            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0, isVendorMatchingBetaEnabled);
         },
-        [canWriteTags, policyData, showReadOnlyModal],
+        [canWriteTags, policyData, showReadOnlyModal, isVendorMatchingBetaEnabled],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
@@ -259,9 +262,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 return;
             }
 
-            setPolicyTagsRequired(policyData, value, orderWeight);
+            setPolicyTagsRequired(policyData, value, orderWeight, isVendorMatchingBetaEnabled);
         },
-        [canWriteTags, policyData, showReadOnlyModal],
+        [canWriteTags, policyData, showReadOnlyModal, isVendorMatchingBetaEnabled],
     );
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && Object.values(policyTagLists?.at(0)?.tags ?? {}).some((tag) => !!tag['GL Code']);
 
@@ -431,7 +434,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyData, selectedTagKeys);
+        deletePolicyTags(policyData, selectedTagKeys, isVendorMatchingBetaEnabled);
 
         clearTableSelection();
         if (isMobileSelectionModeEnabled && selectedTagKeys.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
@@ -650,7 +653,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     clearTableSelection();
 
                     // Disable the selected tags
-                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0);
+                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0, isVendorMatchingBetaEnabled);
                 },
             });
         }
@@ -662,7 +665,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     clearTableSelection();
-                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0);
+                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0, isVendorMatchingBetaEnabled);
                 },
             });
         }
