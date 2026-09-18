@@ -36,7 +36,7 @@ When you're ready to take back control of your reports:
 
 ## Can my admin assign a Vacation Delegate for me?
 
-No. In New Expensify, only you can assign your own Vacation Delegate.
+Yes. In New Expensify, domain admins can [assign a vacation delegate on your behalf](/articles/new-expensify/domains/Manage-Domain-Members#how-to-assign-a-vacation-delegate-on-behalf-of-a-domain-member) under Domain member settings.
 
 ## Why can't my Vacation Delegate reimburse reports?
 
