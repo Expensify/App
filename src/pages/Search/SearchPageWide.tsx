@@ -41,6 +41,9 @@ type SearchPageWideProps = {
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
+
+    /** Called when a footer selector re-runs the search, so the current results stay on screen while it loads */
+    onFooterDisplayChange: () => void;
     route: PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
@@ -54,6 +57,7 @@ function SearchPageWide({
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
+    onFooterDisplayChange,
     route,
     searchOverlayContent,
     onSearchContentReady,
@@ -146,7 +150,10 @@ function SearchPageWide({
                                     {/* Floats over the bottom of the list, which already ends above SearchSelectionFooter. */}
                                     <SearchBulkActionsBarWide queryJSON={queryJSON} />
                                 </View>
-                                <SearchSelectionFooter searchResults={searchResults} />
+                                <SearchSelectionFooter
+                                    searchResults={searchResults}
+                                    onDisplayChange={onFooterDisplayChange}
+                                />
                             </>
                         )}
                     </FullPageNotFoundView>
