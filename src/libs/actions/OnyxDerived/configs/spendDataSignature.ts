@@ -40,8 +40,7 @@ function rebuildFingerprints(transactions: OnyxCollection<Transaction> | undefin
 
 /**
  * Counters that move when spend data changes. Nothing patches the Home snapshots, so the cards watch
- * these instead of fetching on every screen focus. Only changed keys are visited, and only fields the
- * cards use count, so opening an expense costs nothing.
+ * these instead of fetching on every screen focus.
  */
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE,
