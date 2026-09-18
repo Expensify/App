@@ -80,15 +80,6 @@ describe('ExpenseReportRulesSection', () => {
         jest.clearAllMocks();
     });
 
-    /**
-     * Regression test for https://github.com/Expensify/App/issues/96975
-     *
-     * When a workspace admin sets "Manually approve all expenses over X" in Classic Expensify,
-     * the backend writes autoApproval.limit but never writes shouldShowAutoApprovalOptions
-     * (a NewDot-only flag). The "Auto-approve compliant reports" toggle reads only
-     * shouldShowAutoApprovalOptions for its active state, so the toggle shows OFF despite
-     * a non-zero limit being configured.
-     */
     it('shows the auto-approve toggle as active when autoApproval.limit is set by Classic and shouldShowAutoApprovalOptions is absent', () => {
         (mockedUsePolicy as jest.Mock).mockReturnValue({
             id: POLICY_ID,
