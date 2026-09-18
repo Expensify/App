@@ -88,12 +88,21 @@ function TroubleshootPage() {
         setShouldResetSearchQuery(true);
         clearOnyxAndResetApp();
     };
-    const exportOnyxState = useCallback(() => {
-        ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
+    const exportOnyxState = useCallback(async () => {
+        try {
+            const value = await ExportOnyxState.readOnyxState();
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
-            ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
-        });
-    }, [shouldMaskOnyxState]);
+            await ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
+        } catch (error) {
+            console.error('Unable to export Onyx state:', error);
+            await showConfirmModal({
+                title: translate('initialSettingsPage.aboutPage.troubleshoot'),
+                prompt: translate('common.genericErrorMessage'),
+                confirmText: translate('common.ok'),
+                shouldShowCancelButton: false,
+            });
+        }
+    }, [shouldMaskOnyxState, showConfirmModal, translate]);
 
     const getSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;

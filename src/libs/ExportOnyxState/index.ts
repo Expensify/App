@@ -1,40 +1,14 @@
 import CONST from '@src/CONST';
-import type OnyxState from '@src/types/onyx/OnyxState';
 
-import type {ExportOnyxStateModule, ReadFromOnyxDatabase, ShareAsFile} from './types';
+import Onyx from 'react-native-onyx';
+
+import type {ExportOnyxStateModule, ReadOnyxState, ShareAsFile} from './types';
 
 import {maskOnyxState} from './common';
 
-const readFromOnyxDatabase: ReadFromOnyxDatabase = () =>
-    new Promise((resolve) => {
-        let db: IDBDatabase;
-        const openRequest = indexedDB.open(CONST.DEFAULT_DB_NAME);
-        openRequest.onsuccess = () => {
-            db = openRequest.result;
-            const transaction = db.transaction(CONST.DEFAULT_TABLE_NAME);
-            const objectStore = transaction.objectStore(CONST.DEFAULT_TABLE_NAME);
-            const cursor = objectStore.openCursor();
+const readOnyxState: ReadOnyxState = () => Onyx.exportState();
 
-            const queryResult: OnyxState = {};
-
-            cursor.onerror = () => {
-                console.error('Error reading cursor');
-            };
-
-            cursor.onsuccess = (event) => {
-                const {result} = event.target as IDBRequest<IDBCursorWithValue>;
-                if (result) {
-                    queryResult[result.primaryKey as string] = result.value;
-                    result.continue();
-                } else {
-                    // no results mean the cursor has reached the end of the data
-                    resolve(queryResult);
-                }
-            };
-        };
-    });
-
-const shareAsFile: ShareAsFile = (fileContent) => {
+const shareAsFile: ShareAsFile = async (fileContent) => {
     const element = document.createElement('a');
     element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(fileContent)}`);
     element.setAttribute('download', CONST.DEFAULT_ONYX_DUMP_FILE_NAME);
@@ -49,7 +23,7 @@ const shareAsFile: ShareAsFile = (fileContent) => {
 
 const ExportOnyxState: ExportOnyxStateModule = {
     maskOnyxState,
-    readFromOnyxDatabase,
+    readOnyxState,
     shareAsFile,
 };
 

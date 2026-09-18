@@ -1,67 +1,38 @@
 import CONST from '@src/CONST';
-import type OnyxState from '@src/types/onyx/OnyxState';
-
-import type {OnyxSQLiteKeyValuePair} from 'react-native-onyx';
 
 import RNFS from 'react-native-fs';
-import {open} from 'react-native-nitro-sqlite';
+import Onyx from 'react-native-onyx';
 import Share from 'react-native-share';
 
-import type {ExportOnyxStateModule, ReadFromOnyxDatabase, ShareAsFile} from './types';
+import type {ExportOnyxStateModule, ReadOnyxState, ShareAsFile} from './types';
 
 import {maskOnyxState} from './common';
 
-let onyxDb: ReturnType<typeof open> | null = null;
+const readOnyxState: ReadOnyxState = () => Onyx.exportState();
 
-function getOnyxDb() {
-    if (!onyxDb) {
-        onyxDb = open({name: CONST.DEFAULT_DB_NAME});
-    }
-    return onyxDb;
-}
+const shareAsFile: ShareAsFile = async (fileContent) => {
+    // The dump only needs to live long enough to be shared, so it goes in Caches, which
+    // is never exposed to the user (unlike Documents, which the iOS Files app shows when
+    // file sharing is enabled) and which the OS can reclaim afterwards
+    const infoFilePath = `${RNFS.CachesDirectoryPath}/${CONST.DEFAULT_ONYX_DUMP_FILE_NAME}`;
+    const actualInfoFile = `file://${infoFilePath}`;
 
-const readFromOnyxDatabase: ReadFromOnyxDatabase = () =>
-    new Promise((resolve) => {
-        const db = getOnyxDb();
-        const query = `SELECT * FROM ${CONST.DEFAULT_TABLE_NAME}`;
-
-        db.executeAsync<OnyxSQLiteKeyValuePair>(query, []).then(({rows}) => {
-            const result =
-                // eslint-disable-next-line no-underscore-dangle
-                rows?._array.reduce<OnyxState>((acc, row) => {
-                    acc[row?.record_key] = JSON.parse(row?.valueJSON) as unknown;
-                    return acc;
-                }, {}) ?? {};
-            resolve(result);
-        });
-    });
-
-const shareAsFile: ShareAsFile = (fileContent) => {
+    await RNFS.writeFile(infoFilePath, fileContent, 'utf8');
     try {
-        // Define new filename and path for the app info file
-        const infoFileName = CONST.DEFAULT_ONYX_DUMP_FILE_NAME;
-        // The dump only needs to live long enough to be shared, so it goes in Caches, which
-        // is never exposed to the user (unlike Documents, which the iOS Files app shows when
-        // file sharing is enabled) and which the OS can reclaim afterwards
-        const infoFilePath = `${RNFS.CachesDirectoryPath}/${infoFileName}`;
-        const actualInfoFile = `file://${infoFilePath}`;
-
-        RNFS.writeFile(infoFilePath, fileContent, 'utf8').then(() => {
-            // Share targets copy the file while the share sheet is open, so once the promise
-            // settles (including cancel, since failOnCancel is false) the dump can be deleted
-            Share.open({
-                url: actualInfoFile,
-                failOnCancel: false,
-            }).finally(() => RNFS.unlink(infoFilePath).catch(() => {}));
+        // Share targets copy the file while the share sheet is open, so once the promise
+        // settles (including cancel, since failOnCancel is false) the dump can be deleted
+        await Share.open({
+            url: actualInfoFile,
+            failOnCancel: false,
         });
-    } catch (error) {
-        console.error('Error renaming and sharing file:', error);
+    } finally {
+        await RNFS.unlink(infoFilePath).catch(() => {});
     }
 };
 
 const ExportOnyxState: ExportOnyxStateModule = {
     maskOnyxState,
-    readFromOnyxDatabase,
+    readOnyxState,
     shareAsFile,
 };
 

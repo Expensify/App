@@ -1,13 +1,13 @@
 import type OnyxState from '@src/types/onyx/OnyxState';
 
 type MaskOnyxState = (data: OnyxState, isMaskingFragileDataEnabled?: boolean) => OnyxState;
-type ReadFromOnyxDatabase = () => Promise<OnyxState>;
-type ShareAsFile = (value: string) => void;
+type ReadOnyxState = () => Promise<OnyxState>;
+type ShareAsFile = (value: string) => Promise<void>;
 
 type ExportOnyxStateModule = {
     maskOnyxState: MaskOnyxState;
-    readFromOnyxDatabase: ReadFromOnyxDatabase;
+    readOnyxState: ReadOnyxState;
     shareAsFile: ShareAsFile;
 };
 
-export type {ExportOnyxStateModule, MaskOnyxState, ReadFromOnyxDatabase, ShareAsFile};
+export type {ExportOnyxStateModule, MaskOnyxState, ReadOnyxState, ShareAsFile};
