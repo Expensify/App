@@ -6,6 +6,7 @@ import {createContext, useContext, useState} from 'react';
 type ReportActionPosition = {
     index: number;
     isNewest: boolean;
+    /** LegendList reuses mounted rows for different actions; their item state must reset when the row is recycled. */
     isRecycling?: boolean;
 };
 

@@ -1,7 +1,8 @@
 import FlashList from '@components/FlashList';
-import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 
 import variables from '@styles/variables';
 
@@ -46,7 +47,7 @@ function unifiedListItemType(item: UnifiedListItem) {
 
 type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
     /** Ref to the underlying list, shared via the ActionList context (typed for the legacy FlatList). */
-    ref: FlatListRefType;
+    ref: ActionListRefType;
 };
 
 /**
@@ -90,7 +91,7 @@ type MoneyRequestReportUnifiedListProps = {
     newTransactionID?: string;
 
     /** Ref to the underlying list, shared via the ActionList context. */
-    listRef: FlatListRefType;
+    listRef: ActionListRefType;
 
     accessibilityLabel: string;
 

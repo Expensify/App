@@ -14,18 +14,22 @@ describe('allowLegendListItemOverflow', () => {
                 }),
         });
 
-        expect(allowLegendListItemOverflow(list, 3)).toBe(true);
+        allowLegendListItemOverflow(list, 3);
         expect(style.contain).toBe('layout style');
     });
 
     it('does nothing for a native item container', () => {
+        const setNativeProps = jest.fn();
+        const itemContainer = {setNativeProps};
         const list = createMock<LegendListRef>({
             getState: () =>
                 createMock<ReturnType<LegendListRef['getState']>>({
-                    elementAtIndex: () => ({setNativeProps: jest.fn()}),
+                    elementAtIndex: () => itemContainer,
                 }),
         });
 
-        expect(allowLegendListItemOverflow(list, 3)).toBe(false);
+        allowLegendListItemOverflow(list, 3);
+        expect(itemContainer).toEqual({setNativeProps});
+        expect(setNativeProps).not.toHaveBeenCalled();
     });
 });

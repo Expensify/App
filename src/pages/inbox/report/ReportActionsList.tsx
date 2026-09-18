@@ -7,6 +7,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useEnvironment from '@hooks/useEnvironment';
+import useInitial from '@hooks/useInitial';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
@@ -317,17 +318,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         return visibleReportActionsWithDraft;
     })();
 
-    const [initialReportActionsSnapshot, setInitialReportActionsSnapshot] = useState<{reportActions: OnyxTypes.ReportAction[]; reportID: string}>();
-    const hasInitialReportActionsSnapshot = initialReportActionsSnapshot?.reportID === reportID;
-
     // OpenReport starts with a tiny cached page before replacing it with the hydrated page. Keep that
     // already-visible page mounted until hydration finishes instead of exposing intermediate estimated
     // layouts. The hydrated list then mounts from scratch using the full dataset.
-    if (!hasOnceLoadedReportActions && !hasInitialReportActionsSnapshot && renderedVisibleReportActions.length > 0) {
-        setInitialReportActionsSnapshot({reportActions: renderedVisibleReportActions, reportID});
-    }
-
-    const reportActionsToRender = !hasOnceLoadedReportActions && hasInitialReportActionsSnapshot ? initialReportActionsSnapshot.reportActions : renderedVisibleReportActions;
+    const initialReportActionsSnapshot = useInitial(renderedVisibleReportActions.length > 0 ? renderedVisibleReportActions : undefined);
+    const reportActionsToRender = hasOnceLoadedReportActions ? renderedVisibleReportActions : (initialReportActionsSnapshot ?? renderedVisibleReportActions);
 
     // Report actions are stored newest-first. LegendList intentionally has no inverted mode, so
     // give it chronological data and use its normal start/end and scrolling semantics.
@@ -392,7 +387,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
     const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
 
-    const handleViewableItemsChanged = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
+    const updateVisibleItemOverflow = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
         onViewableItemsChanged(info);
         for (const item of info.changed) {
             if (!item.isViewable) {
@@ -626,7 +621,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     onScroll={trackScrollPositionAndThreshold}
                     onStartReached={loadOlderChatsOnStartReached}
                     onStartReachedThreshold={PAGINATION_THRESHOLD}
-                    onViewableItemsChanged={handleViewableItemsChanged}
+                    onViewableItemsChanged={updateVisibleItemOverflow}
                     extraData={extraData}
                     key={listID}
                     getItemType={getItemType}
