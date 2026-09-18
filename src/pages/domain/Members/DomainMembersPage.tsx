@@ -176,7 +176,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 continue;
             }
             const securityGroupData = selectSecurityGroupForAccount(accountID)(domain);
-            closeUserAccount(domainAccountID, domainName, memberLogin, securityGroupData, shouldForceCloseAccount);
+            closeUserAccount(domainAccountID, domainName, memberLogin, accountID, securityGroupData, shouldForceCloseAccount);
         }
 
         setShouldForceCloseAccount(undefined);
