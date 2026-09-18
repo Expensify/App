@@ -167,6 +167,17 @@ Open a report to see available actions.
 
 ---
 
+## How to move a report using Change workspace
+
+1. Open the report.
+2. Select **More > Change workspace**.
+3. Select the workspace you want to move the report to. The checkmark moves to that workspace, and the report is not moved yet.
+4. Select **Save**.
+
+**Save** stays disabled until you select a workspace that is different from the report’s current one. To leave the report where it is, select the back arrow instead of **Save**.
+
+---
+
 ## What happens after you take a report action
 
 - **Submit** → moves report to approval
@@ -175,6 +186,7 @@ Open a report to see available actions.
 - **Export** → sends report data externally
 - **Reject** → sends report back for updates
 - **Unapprove** → reopens the report before payment
+- **Change workspace** → moves the report once you select a workspace and select **Save**
 
 ---
 

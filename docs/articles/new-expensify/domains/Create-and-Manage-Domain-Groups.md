@@ -61,13 +61,29 @@ Enable this to require members to use their company email address to access Expe
 
 Enable this to prevent members from creating or removing workspaces. Restrict expense workspace creation/removal ensures centralized workspace management and prevents employees from creating additional workspaces outside the company’s approved setup.
 
-## What Preferred workspace does
+## What Preferred Workspace does
 
-Set a preferred workspace to automatically route a group’s expenses and reports to a specific workspace. This is helpful if different members use different workspaces and you want to reduce manual workspace selection. If you have multiple workspaces, use this to route a group’s expenses to the right workspace by default.
+Set a Preferred Workspace to automatically route a group’s expenses and reports to a specific workspace. This is helpful if different members use different workspaces and you want to reduce manual workspace selection. If you have multiple workspaces, use this to route a group’s expenses to the right workspace by default.
 
 ## What Expensify Card preferred workspace does
 
-If a preferred workspace is set, enable this option to automatically post **Expensify Card** transactions to that workspace. This ensures transactions are routed correctly and reconciliation is simplified.
+If a Preferred Workspace is set, enable this option to automatically post **Expensify Card** transactions to that workspace. This ensures transactions are routed correctly and reconciliation is simplified.
+
+---
+
+## How to change the Preferred Workspace for an existing Domain Group
+
+Follow the steps in **Where to find Domain Groups** above, then:
+
+1. Click the group you want to update.
+2. Turn on **Preferred Workspace**.
+3. Click the **Preferred Workspace** row to open the workspace list.
+4. Click the workspace you want. The checkmark moves to that workspace, and nothing is saved yet.
+5. Click **Save**.
+
+**Save** stays disabled until you click a workspace that is different from the one already set. To keep the current workspace, click the back arrow instead of **Save**.
+
+When you set a Preferred Workspace while creating a new group, there is no **Save** button on the workspace list. Your choice is applied to the group as soon as you click it, and you click **Save** once at the end to create the group.
 
 ---
 
@@ -85,8 +101,8 @@ No, each member can only belong to one Domain Group.
 
 New domain members are automatically assigned to that group, ensuring they receive the correct permissions immediately.
 
-## Does Preferred workspace move existing expenses?
+## Does Preferred Workspace move existing expenses?
 
-No. Preferred workspace applies to new expenses and reports going forward.
+No. Preferred Workspace applies to new expenses and reports going forward.
 
 </div>
