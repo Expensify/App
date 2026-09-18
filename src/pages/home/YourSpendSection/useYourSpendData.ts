@@ -408,8 +408,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
     const outstandingReportsSignature = reportsSignature?.outstandingReportIDs ?? '';
-    // The "Repaid last 30 days" snapshot is not patched when a report is reimbursed, so without this
-    // the row keeps the pre-payment total until something else fetches again it.
+    // Nothing patches the "Repaid last 30 days" snapshot when a report is paid, so without this the
+    // row keeps showing the old total.
     const reimbursedReportsSignature = reportsSignature?.reimbursedReportIDs ?? '';
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
@@ -543,10 +543,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const {state: approvalRowState, totals: approvalTotals} = useOfflineFrozenSpendRow(isOffline, isApprovalApplicable, approvalRowStateLive, approvalTotalsLive, approvalHash);
     const {state: paymentRowState, totals: paymentTotals} = useOfflineFrozenSpendRow(isOffline, isPaymentApplicable, paymentRowStateLive, paymentTotalsLive, paymentQueryJSON?.hash);
 
-    // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
-    // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    // Card charges move the grouped card totals without changing any query, and that snapshot is never
-    // patched, so the counter is what tells the row it is out of date.
+    // Everything that changes these numbers without changing the queries: applicability, the policy
+    // set, reports entering or leaving OUTSTANDING, payments, and card charges.
     const applicabilityKey = [
         isApprovalApplicable ? 1 : 0,
         isPaymentApplicable ? 1 : 0,

@@ -7,8 +7,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 const EMPTY_SIGNATURE = {expenses: 0, cardExpenses: 0};
 
-// Kept out of Onyx on purpose: it is a change detector, not data, and it would otherwise persist one
-// entry per transaction for a collection that holds tens of thousands of them.
+// Deliberately not in Onyx: this detects change, it is not data, and storing one entry per
+// transaction would persist tens of thousands of them.
 let lastSeenFingerprints: Record<string, string> = {};
 
 /**
@@ -39,10 +39,9 @@ function rebuildFingerprints(transactions: OnyxCollection<Transaction> | undefin
 }
 
 /**
- * Counters that move when spend data changes. The Home cards render server-computed snapshots that no
- * update ever patches, so they use these counters to know a refetch is owed instead of refetching on
- * every screen focus. Only the keys that changed are visited, and only a change to a field the cards
- * actually use counts, so merely opening an expense does not cost a search.
+ * Counters that move when spend data changes. Nothing patches the Home snapshots, so the cards watch
+ * these instead of fetching on every screen focus. Only changed keys are visited, and only fields the
+ * cards use count, so opening an expense costs nothing.
  */
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE,

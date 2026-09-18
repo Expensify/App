@@ -15,9 +15,8 @@ function useTabFocusedRefresh(tabName: string, refreshKey: string, refresh: () =
     const isScreenVisible = useIsFocused();
     const onRefresh = useEffectEvent(refresh);
 
-    // Values a screen cannot derive locally, such as currency conversion or totals over expenses that
-    // were never synced, only change while the user is away, so returning to the app is when they are
-    // worth re-reading. Counting the returns folds them into the same key the data signals use.
+    // Some values, like currency conversion, have nothing local to watch and only move while the user
+    // is away, so a return to the app is worth one re-read.
     const [appReturnCount, setAppReturnCount] = useState(0);
 
     const wasTabFocusedRef = useRef(false);
