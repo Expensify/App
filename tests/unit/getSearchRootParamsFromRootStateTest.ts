@@ -1,8 +1,10 @@
-import type {NavigationState} from '@react-navigation/native';
 import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import {buildSearchQueryString, getSearchRootParamsFromRootState} from '@libs/SearchQueryUtils';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 const CHAT_QUERY = 'sortBy:date sortOrder:desc type:chat';
 
