@@ -7,6 +7,8 @@ import type CountryPicker from '@components/CountryPicker';
 import type CountrySelector from '@components/CountrySelector';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
+import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
+import type MultiSelectListAdapter from '@components/DynamicForm/adapters/MultiSelectListAdapter';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
@@ -85,9 +87,11 @@ type ValidInputs =
     | typeof ConstantSelector
     | typeof UploadFile
     | typeof PushRowWithModal
-    | typeof TimeModalPicker;
+    | typeof TimeModalPicker
+    | typeof FileUploadAdapter
+    | typeof MultiSelectListAdapter;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart' | 'stringList' | 'files';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
@@ -96,6 +100,8 @@ type ValueTypeMap = {
     reportFields: string[];
     disabledListValues: boolean[];
     entityChart: FileObject[];
+    stringList: string[];
+    files: FileObject[];
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

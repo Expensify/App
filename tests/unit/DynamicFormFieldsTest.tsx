@@ -1,0 +1,167 @@
+import {render} from '@testing-library/react-native';
+
+import AddressSearch from '@components/AddressSearch';
+import AmountForm from '@components/AmountForm';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CountrySelector from '@components/CountrySelector';
+import DatePicker from '@components/DatePicker';
+import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
+import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
+import MultiSelectListAdapter from '@components/DynamicForm/adapters/MultiSelectListAdapter';
+import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
+import type {DynamicFormValues} from '@components/DynamicForm/types';
+import PushRowWithModal from '@components/PushRowWithModal';
+import RadioButtons from '@components/RadioButtons';
+import TextInput from '@components/TextInput';
+import ValuePicker from '@components/ValuePicker';
+
+import type {WiseField, WiseFieldType} from '@src/types/onyx';
+
+import type {ComponentType} from 'react';
+
+import React from 'react';
+
+import allFieldTypes from '../fixtures/wise/allFieldTypes';
+
+type CapturedInputProps = {
+    InputComponent: ComponentType;
+    inputID: string;
+    label?: string;
+    items?: Array<{value: string; label: string}>;
+    optionsList?: Record<string, string>;
+    fileLimit?: number;
+    acceptedFileTypes?: string[];
+    renamedInputKeys?: Record<string, string>;
+    maxLength?: number;
+    placeholder?: string;
+    valueType?: string;
+};
+
+const mockInputWrapper = jest.fn((props: CapturedInputProps) => props.inputID);
+const mockUploadFile = jest.fn<null, [props: unknown]>(() => null);
+
+jest.mock('@components/Form/InputWrapper', () => ({
+    __esModule: true,
+    default: (props: CapturedInputProps) => mockInputWrapper(props),
+}));
+
+jest.mock('@components/UploadFile', () => ({
+    __esModule: true,
+    default: (props: unknown) => mockUploadFile(props),
+}));
+
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: (key: string) => key,
+    })),
+);
+
+jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
+
+function renderFields(fields: WiseField[], values: DynamicFormValues = {}) {
+    mockInputWrapper.mockClear();
+    render(
+        <DynamicFormFields
+            fields={fields}
+            values={values}
+        />,
+    );
+    return new Map(mockInputWrapper.mock.calls.map(([props]) => [props.inputID, props]));
+}
+
+const EXPECTED_COMPONENT_BY_TYPE: Record<WiseFieldType, ComponentType | ((...args: never[]) => unknown)> = {
+    text: TextInput,
+    select: ValuePicker,
+    multiselect: MultiSelectListAdapter,
+    radio: RadioButtons,
+    date: DatePicker,
+    country: CountrySelector,
+    address: AddressSearch,
+    boolean: CheckboxWithLabel,
+    file: FileUploadAdapter,
+    amount: AmountForm,
+};
+
+describe('DynamicFormFields', () => {
+    it('renders every field type with its registered component', () => {
+        const rendered = renderFields(allFieldTypes, {legalType: 'BUSINESS'});
+
+        expect(new Set(allFieldTypes.map((field) => field.type)).size).toBe(Object.keys(EXPECTED_COMPONENT_BY_TYPE).length);
+        for (const field of allFieldTypes) {
+            expect(rendered.get(field.key)?.InputComponent).toBe(EXPECTED_COMPONENT_BY_TYPE[field.type]);
+        }
+    });
+
+    it('hides a field whose showWhen is not satisfied and shows it when it is', () => {
+        expect(renderFields(allFieldTypes, {legalType: 'PRIVATE'}).has('businessRegistrationDocument')).toBe(false);
+        expect(renderFields(allFieldTypes, {}).has('businessRegistrationDocument')).toBe(false);
+        expect(renderFields(allFieldTypes, {legalType: 'BUSINESS'}).has('businessRegistrationDocument')).toBe(true);
+    });
+
+    it('filters select options by dependsOn', () => {
+        const forPrivate = renderFields(allFieldTypes, {legalType: 'PRIVATE'}).get('accountType');
+        const forBusiness = renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('accountType');
+        const unanswered = renderFields(allFieldTypes, {}).get('accountType');
+
+        expect(forPrivate?.items?.map((item) => item.value)).toEqual(['CHECKING', 'SAVINGS']);
+        expect(forBusiness?.items?.map((item) => item.value)).toEqual(['CHECKING', 'SAVINGS', 'BUSINESS_CHECKING']);
+        expect(unanswered?.items).toEqual([]);
+    });
+
+    it('uses PushRowWithModal for a select with more than eight values', () => {
+        const values = Array.from({length: 9}, (_, index) => ({key: `OPTION_${index}`, label: `Option ${index}`}));
+        const field: WiseField = {key: 'industry', label: 'Industry', group: 'Business', type: 'select', required: true, values, refreshOnChange: false};
+
+        const rendered = renderFields([field]).get('industry');
+
+        expect(rendered?.InputComponent).toBe(PushRowWithModal);
+        expect(Object.keys(rendered?.optionsList ?? {})).toHaveLength(9);
+    });
+
+    it('passes maxFiles and accepted types to UploadFile', () => {
+        const fileField = renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('businessRegistrationDocument');
+
+        expect(fileField?.fileLimit).toBe(2);
+        expect(fileField?.acceptedFileTypes).toEqual(['png', 'jpg', 'pdf']);
+
+        mockUploadFile.mockClear();
+        render(
+            <FileUploadAdapter
+                buttonText="common.chooseFiles"
+                acceptedFileTypes={['png', 'jpg', 'pdf']}
+                fileLimit={2}
+                value={[]}
+            />,
+        );
+        expect(mockUploadFile).toHaveBeenCalledWith(expect.objectContaining({fileLimit: 2, acceptedFileTypes: ['png', 'jpg', 'pdf'], uploadedFiles: []}));
+    });
+
+    it('uses translate(labelKey) when present and falls back to label', () => {
+        const rendered = renderFields(allFieldTypes, {legalType: 'BUSINESS'});
+
+        expect(rendered.get('dateOfBirth')?.label).toBe('common.dob');
+        expect(rendered.get('legalType')?.label).toBe('Recipient type');
+        expect(rendered.get('legalType')?.items?.map((item) => item.label)).toEqual(['Person', 'Business']);
+    });
+
+    it('passes text constraints and the example as placeholder', () => {
+        const accountNumber = renderFields(allFieldTypes).get('accountNumber');
+
+        expect(accountNumber?.maxLength).toBe(8);
+        expect(accountNumber?.placeholder).toBe('12345678');
+    });
+
+    it('addressAdapter maps address.* keys to AddressSearch renamedInputKeys', () => {
+        expect(addressAdapter('representative.address')).toEqual({
+            street: 'representative.address',
+            street2: 'representative.address.street2',
+            city: 'representative.address.city',
+            state: 'representative.address.state',
+            zipCode: 'representative.address.zipCode',
+            country: 'representative.address.country',
+            lat: '',
+            lng: '',
+        });
+        expect(renderFields(allFieldTypes).get('address')?.renamedInputKeys).toEqual(addressAdapter('address'));
+    });
+});
