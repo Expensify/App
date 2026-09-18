@@ -7,8 +7,8 @@ import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {markAsManuallyExported} from '@libs/actions/Report';
 import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
-import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
+import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type CONSTType from '@src/CONST';

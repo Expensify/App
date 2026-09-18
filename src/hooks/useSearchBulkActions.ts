@@ -961,9 +961,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
                 // The selected groups travel as a filter on the query, so the group rows themselves are dropped from the ID
                 // list. Rows picked individually alongside those groups are kept, matching how "Current view" exports them.
-                const transactionIDList = isGroupExport
-                    ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key]))
-                    : selectedTransactionsKeys;
+                const transactionIDList = isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys;
                 queueExportSearchWithTemplate(
                     {
                         templateName,
