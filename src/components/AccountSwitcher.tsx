@@ -157,19 +157,22 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         measureDelegatorMenuPosition().then(setPopoverPosition);
     }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
 
+    // A landscape phone is still a narrow layout, but the tall stacked header would eat most of the screen height there.
+    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
+
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
         ? {
               shouldRender: shouldShowProductTrainingTooltip,
               renderTooltipContent: renderProductTrainingTooltip,
               anchorAlignment: {
-                  // Right-align so the tooltip opens leftward into the sidebar (matching the design mockup),
-                  // instead of overflowing past the Switch button into the central pane.
-                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                  horizontal: shouldStackHeader ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
               shiftVertical: variables.accountSwitcherTooltipShiftVertical,
-              shiftHorizontal: variables.accountSwitcherTooltipShiftHorizontal,
+              shiftHorizontal: shouldStackHeader ? 0 : variables.accountSwitcherTooltipShiftHorizontal,
+              // Native ignores the keep-on-screen clamp unless we opt in.
+              computeHorizontalShiftForNative: true,
               wrapperStyle: styles.productTrainingTooltipWrapper,
               onTooltipPress: onPressSwitcher,
               // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
@@ -270,8 +273,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
-    // A landscape phone is still a narrow layout, but the tall stacked header would eat most of the screen height there.
-    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
     const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
     const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
     const shouldReserveSwitchButtonRow = shouldStackHeader && wasAbleToSwitchAccounts && !canSwitchAccounts && isAccountSwitchInFlight;
