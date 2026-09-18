@@ -277,7 +277,11 @@ describe('SearchQueryUtils', () => {
         });
 
         test('threads the caller-supplied locale through to the display formatter', () => {
+            // Given a date range filter value
+            // When it is formatted for a Spanish reader
             const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10', CONST.LOCALES.ES);
+
+            // Then it matches the Spanish range and not the English one, because the filter label must follow the reader's language
             expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true, false, CONST.LOCALES.ES));
             expect(result).not.toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true, false, CONST.LOCALES.EN));
         });

@@ -55,15 +55,21 @@ function renderHeaderMenu(scrapeMinDate: string) {
 
 describe('PersonalCardDetailsHeaderMenu', () => {
     it('shows the transaction start date in the reader language rather than as stored', () => {
+        // Given a card whose transaction start date is stored in the machine format
+        // When its details header is shown to a Spanish reader
         renderHeaderMenu('2026-09-18');
 
+        // Then the row reads a Spanish date, because the stored value is not meant for display
         expect(screen.getByText('18 sept 2026')).toBeOnTheScreen();
         expect(screen.queryByText('2026-09-18')).not.toBeOnTheScreen();
     });
 
     it('leaves the transaction start date empty rather than throwing on an unparsable value', () => {
+        // Given a card whose stored start date cannot be parsed
+        // When its details header is shown
         renderHeaderMenu('not-a-date');
 
+        // Then the start date row is empty, because the old date-fns formatting threw on an invalid date
         expect(screen.getAllByTestId('menuItemFieldValue').at(1)).toHaveTextContent('');
     });
 });

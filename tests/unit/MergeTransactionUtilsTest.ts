@@ -1010,13 +1010,34 @@ describe('MergeTransactionUtils', () => {
 
     describe('getDisplayValue', () => {
         it('renders the expense date for the reader rather than the stored wire value', () => {
+            // Given an expense whose date is stored in the machine format
             const transaction = {...createRandomTransaction(0), created: '2026-09-03'};
-            expect(getDisplayValue('created', transaction, getTransactionDetails(transaction), undefined, translateLocal, CONST.LOCALES.EN, convertToDisplayString, mockLocaleCompare)).toBe(
-                'Sep 3, 2026',
+
+            // When the merge picker shows its date choice to an English and a Spanish reader
+            const englishValue = getDisplayValue(
+                'created',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                CONST.LOCALES.EN,
+                convertToDisplayString,
+                mockLocaleCompare,
             );
-            expect(getDisplayValue('created', transaction, getTransactionDetails(transaction), undefined, translateLocal, CONST.LOCALES.ES, convertToDisplayString, mockLocaleCompare)).toBe(
-                '3 sept 2026',
+            const spanishValue = getDisplayValue(
+                'created',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                CONST.LOCALES.ES,
+                convertToDisplayString,
+                mockLocaleCompare,
             );
+
+            // Then each reads a date in their own format, because the picker had no date case and showed the raw value
+            expect(englishValue).toBe('Sep 3, 2026');
+            expect(spanishValue).toBe('3 sept 2026');
         });
 
         it('should return empty string for empty values', () => {

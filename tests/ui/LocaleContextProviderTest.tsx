@@ -21,6 +21,7 @@ jest.mock('@src/languages/IntlStore', () => ({
 
 describe('LocaleContextProvider', () => {
     it('rebuilds translate when the translations land on a cold start in the same locale', async () => {
+        // Given a provider on a cold start, settled after its own Onyx reads, whose translate still returns raw keys
         const seen: LocaleContextProps[] = [];
         function Capture() {
             seen.push(useContext(LocaleContext));
@@ -32,18 +33,18 @@ describe('LocaleContextProvider', () => {
                 <Capture />
             </LocaleContextProvider>,
         );
-        // The provider's own Onyx reads settle first, so the pre-load render captured below is the steady state.
         await waitForBatchedUpdatesWithAct();
 
         const beforeLoad = seen.at(-1);
         expect(beforeLoad?.translate('common.close')).toBe('common.close');
 
+        // When the English translations land without the locale changing
         act(() => {
             IntlStore.seedForTests(CONST.LOCALES.EN, flattenObject(enTranslations));
         });
 
+        // Then translate is a new callback that translates, because the locale never left `en` and one keyed on it alone would still be the pre-load one
         const afterLoad = seen.at(-1);
-        // The locale never moved off `en`, so a callback keyed on it alone would still be the pre-load one.
         expect(afterLoad?.translate).not.toBe(beforeLoad?.translate);
         expect(afterLoad?.translate('common.close')).toBe('Close');
     });

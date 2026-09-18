@@ -20,7 +20,12 @@ describe('toLocaleDayOfMonth', () => {
         [CONST.LOCALES.PT_BR, '15'],
         [CONST.LOCALES.ZH_HANS, '15日'],
     ])('renders day 15 for %s as %s', (locale, expected) => {
-        expect(toLocaleDayOfMonth(locale, 15)).toBe(expected);
+        // Given the 15th, a day no locale treats as a special case
+        // When it is rendered as a date in the locale
+        const rendered = toLocaleDayOfMonth(locale, 15);
+
+        // Then it takes that locale's date form, which its next-step and settlement sentences are written around
+        expect(rendered).toBe(expected);
     });
 
     it.each([
@@ -36,7 +41,12 @@ describe('toLocaleDayOfMonth', () => {
         [23, '23rd'],
         [31, '31st'],
     ])('applies the English teen exception to day %i', (day, expected) => {
-        expect(toLocaleDayOfMonth(CONST.LOCALES.EN, day)).toBe(expected);
+        // Given an English day, including the 11th to 13th that break the last-digit rule
+        // When it is rendered as a date
+        const rendered = toLocaleDayOfMonth(CONST.LOCALES.EN, day);
+
+        // Then it takes the suffix English writes, so the teens read "th" rather than "st", "nd" or "rd"
+        expect(rendered).toBe(expected);
     });
 
     it.each([
@@ -46,11 +56,22 @@ describe('toLocaleDayOfMonth', () => {
         [CONST.LOCALES.PT_BR, '1º', '2'],
         [CONST.LOCALES.EL, '1η', '2'],
     ])('%s takes an ordinal only on the first of the month', (locale, firstDay, secondDay) => {
-        expect(toLocaleDayOfMonth(locale, 1)).toBe(firstDay);
-        expect(toLocaleDayOfMonth(locale, 2)).toBe(secondDay);
+        // Given a locale that marks only the first of the month as an ordinal
+        // When the first and second of the month are rendered
+        const first = toLocaleDayOfMonth(locale, 1);
+        const second = toLocaleDayOfMonth(locale, 2);
+
+        // Then only the first carries the marker, as that language writes dates
+        expect(first).toBe(firstDay);
+        expect(second).toBe(secondDay);
     });
 
     it('returns empty for a non-finite day rather than rendering NaN', () => {
-        expect(toLocaleDayOfMonth(CONST.LOCALES.EN, Number.NaN)).toBe('');
+        // Given a day read from an invalid Date, which is NaN
+        // When it is rendered as a date
+        const rendered = toLocaleDayOfMonth(CONST.LOCALES.EN, Number.NaN);
+
+        // Then it is empty rather than "NaNth", so a bad date leaves a gap instead of garbage text
+        expect(rendered).toBe('');
     });
 });

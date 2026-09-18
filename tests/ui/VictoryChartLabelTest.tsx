@@ -34,6 +34,7 @@ jest.mock('@src/languages/IntlStore', () => ({
 
 describe('VictoryChartLabel', () => {
     it('redraws the As of label when the translations land on a cold start in the same locale', async () => {
+        // Given a chart label drawn on a cold start, before the English translations load, so "at" is still a raw key
         render(
             <VictoryChartLabel
                 x={0}
@@ -46,11 +47,12 @@ describe('VictoryChartLabel', () => {
 
         expect(mockDrawnText.at(-1)).toBe('As of: Jun 12, 2026 common.conjunctionAt 5:48 PM');
 
+        // When the English translations land without the locale changing
         await act(async () => {
             IntlStore.seedForTests(CONST.LOCALES.EN, flattenObject(enTranslations));
         });
 
-        // The locale never moved off `en`, so a subscription to it alone would have skipped this update entirely.
+        // Then the label redraws with a translated "at", because the locale never left `en` and a subscription to it alone would have skipped this update
         expect(mockDrawnText.at(-1)).toBe('As of: Jun 12, 2026 at 5:48 PM');
     });
 });

@@ -55,9 +55,13 @@ function renderReadOnlyDateField() {
 
 describe('DateField', () => {
     it('shows a read-only expense date in the reader language rather than as stored', () => {
+        // Given an expense whose date is stored in the machine format
         mockTransaction = {...createRandomTransaction(1), created: '2026-09-03', modifiedCreated: ''};
+
+        // When split bill details show the date row read-only to a Spanish reader
         renderReadOnlyDateField();
 
+        // Then the row reads a Spanish date, because the read-only row used to print the stored value as is
         expect(screen.getByText('3 sept 2026')).toBeOnTheScreen();
         expect(screen.queryByText('2026-09-03')).not.toBeOnTheScreen();
     });

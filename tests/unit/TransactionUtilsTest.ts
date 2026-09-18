@@ -2153,25 +2153,46 @@ describe('TransactionUtils', () => {
         });
 
         it('should rebuild a per diem merchant in the readers locale', () => {
-            expect(TransactionUtils.getMerchantName(buildPerDiemTransaction(), translate, CONST.LOCALES.ES)).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
+            // Given a per diem expense whose merchant is stored in English
+            // When its merchant name is read for a Spanish list row
+            const merchantName = TransactionUtils.getMerchantName(buildPerDiemTransaction(), translate, CONST.LOCALES.ES);
+
+            // Then the range reads in Spanish, because rows outside Search have no pre-rendered merchant
+            expect(merchantName).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
         });
 
         it('should leave an already localized formattedMerchant alone rather than localizing it twice', () => {
-            // Search renders `formattedMerchant` for this reader, so it wins over the stored merchant.
+            // Given a Search row whose merchant Search already rendered for this reader
             const formattedMerchant = 'San Francisco, California, USA, 19 ago 2025 - 20 ago 2025';
             const transaction = {...buildPerDiemTransaction(), formattedMerchant};
-            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.ES)).toBe(formattedMerchant);
+
+            // When its merchant name is read
+            const merchantName = TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.ES);
+
+            // Then the rendered value wins over the stored merchant, so it is never localized twice
+            expect(merchantName).toBe(formattedMerchant);
         });
     });
 
     describe('getMerchantOrDescription', () => {
         it('returns the stored per diem merchant, because a persisted message must read the same for every viewer', () => {
-            expect(TransactionUtils.getMerchantOrDescription(buildPerDiemTransaction())).toBe(PER_DIEM_MERCHANT);
+            // Given a per diem expense whose merchant is stored in English
+            // When the value used for persisted messages is read
+            const merchant = TransactionUtils.getMerchantOrDescription(buildPerDiemTransaction());
+
+            // Then it is the stored merchant, because a saved message must not follow one reader's language
+            expect(merchant).toBe(PER_DIEM_MERCHANT);
         });
 
         it('falls back to the description when the merchant is missing', () => {
+            // Given an expense with no merchant but a description
             const transaction = generateTransaction({merchant: '', comment: {comment: 'Team lunch'}});
-            expect(TransactionUtils.getMerchantOrDescription(transaction)).toBe('Team lunch');
+
+            // When the value used for messages is read
+            const merchantOrDescription = TransactionUtils.getMerchantOrDescription(transaction);
+
+            // Then the description stands in, so the message still names the expense
+            expect(merchantOrDescription).toBe('Team lunch');
         });
     });
 

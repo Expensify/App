@@ -698,7 +698,6 @@ const CONST = {
     DATE: {
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
-        LOCAL_TIME_FORMAT: 'h:mm a',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
