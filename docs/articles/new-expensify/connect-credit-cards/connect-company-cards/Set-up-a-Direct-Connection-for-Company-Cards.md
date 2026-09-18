@@ -40,7 +40,7 @@ To set up a direct connection, you must:
 6. Choose your bank from the list, or select **Other** to see additional banks.
 7. Follow the prompts to authenticate the connection using the master online banking credentials for your organization.
 
-![Select Add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
+![Company Cards page with Add cards highlighted]({{site.url}}/assets/images/company-cards-add-cards.png){:width="100%"}
 
 ---
 
@@ -75,11 +75,16 @@ If you have trouble connecting American Express, Bank of America, Brex, Capital 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace name]**.
 2. Select **Company cards**.
-3. Select **Add cards**.
- - If you don't see **Add cards**, select your existing company card connection, then select **Add cards**.
+3. Select **Add cards** to set up your first connection.
+    - If you don't see **Add cards**, select your existing company card connection, then select **Add cards**.
 4. Choose the country your bank is located in and select **Next**.
-5. Select **Other**, then search for and select your bank or card provider.
-6. Follow the prompts to authenticate the connection using the master online banking credentials for your organization.
+5. Choose **Direct feed** and select **Next**.
+6. When asked **Who's your bank?**, select **Other**. Then select **Next**.
+7. In the window that opens, authenticate with Plaid or choose **Continue without a phone number**.
+8. Search for and select your bank or card provider.
+9. Follow the prompts to authenticate the connection using the master online banking credentials for your organization.
+
+![Company cards direct connection with Other option highlighted]({{site.url}}/assets/images/company-cards-add-cards-other.png){:width="100%"}
 
 If you're still unable to connect to your bank, you can [import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/connect-company-cards/Import-Company-Card-Transactions-From-a-Spreadsheet) instead.
 
