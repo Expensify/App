@@ -2729,7 +2729,7 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
-        ACCOUNT_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
+        SESSION_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
