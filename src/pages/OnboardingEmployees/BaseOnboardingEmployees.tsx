@@ -32,6 +32,25 @@ import type {BaseOnboardingEmployeesProps} from './types';
 type OnboardingListItem = ListItem & {
     keyForList: OnboardingCompanySize;
 };
+
+// A resumed onboarding session may hold a persisted company-size value that this PR
+// deprecated. The deprecated options are hidden from the list, so a user with one of
+// them saved would see no selection and could submit the hidden value. Map the two
+// newly deprecated ranges to their closest current equivalent so the prior choice
+// still shows up as a valid pre-selection.
+const normalizeLegacyCompanySize = (size: OnboardingCompanySize | null | undefined): OnboardingCompanySize | null | undefined => {
+    if (!size) {
+        return size;
+    }
+    if (size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM) {
+        return CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
+    }
+    if (size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL) {
+        return CONST.ONBOARDING_COMPANY_SIZE.SMALL;
+    }
+    return size;
+};
+
 function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingEmployeesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -40,7 +59,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.EMPLOYEES);
     const isEmployeesFirstStep = onboardingStep?.stepCounter.step === 1;
-    const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
+    const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(normalizeLegacyCompanySize(onboardingCompanySize));
     const [error, setError] = useState('');
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
