@@ -71,7 +71,7 @@ Single-screen forms (one group, a few fields) should not use the step indicator.
 
 ## Fixtures are the server contract
 
-The server is not required to exist for any of this to be tested. `tests/fixtures/wise/` holds one fixture per schema source, shaped as the server will emit it, and `tests/unit/DynamicFormCoverageTest.ts` asserts every field in every fixture maps to a registered input and that every type in the contract appears in a fixture. Add a fixture entry when Wise adds a shape; the test fails until the registry can render it.
+The server is not required to exist for any of this to be tested. Each flow that consumes the renderer checks in a fixture shaped as its server will emit it and asserts it with `expectSchemaRenders` from `tests/utils/dynamicFormCoverage.ts`, which walks every field, nested list items included, and fails when one has no registered input. `tests/unit/DynamicFormCoverageTest.ts` covers the generic fixture and asserts every type in the contract appears in it. When a server adds a shape, add it to that flow's fixture; the test fails until the registry can render it.
 
 ## Rules
 
@@ -81,4 +81,4 @@ The server is not required to exist for any of this to be tested. `tests/fixture
 - Pages consume `DynamicFormFields` or `DynamicFormFlow`; they never know a field name.
 - Existing Corpay pages are left as they are.
 
-Storybook: `Components/DynamicForm` shows every type, the paged flow, a lone question, an owners list and an amount with currency. Modal pickers open there because Storybook aliases `@react-navigation/stack` to a copy whose card animation reports a presented card (`.storybook/mocks`).
+Storybook: `Components/DynamicForm` shows every type, the paged flow, a lone question, a list of owners and an amount with currency. Modal pickers open there because Storybook aliases `@react-navigation/stack` to a copy whose card animation reports a presented card (`.storybook/mocks`).

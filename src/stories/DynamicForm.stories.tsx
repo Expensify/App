@@ -22,7 +22,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import allFieldTypes from '../../tests/fixtures/dynamicForm/allFieldTypes';
-import businessProfile from '../../tests/fixtures/wise/businessProfile';
 
 const defaultStyles = styles(defaultTheme);
 
@@ -171,16 +170,9 @@ PageByPageFlow.args = {
     layout: 'pages',
 };
 
-const BusinessIntake: DynamicFormStory = Template.bind({});
-BusinessIntake.args = {
-    fields: businessProfile,
-    draftValues: {legalName: 'Acme Logistics LLC', industry: 'TECHNOLOGY'},
-    layout: 'pages',
-};
-
 const OwnersList: DynamicFormStory = Template.bind({});
 OwnersList.args = {
-    fields: businessProfile.filter((field) => field.key === 'owners'),
+    fields: allFieldTypes.filter((field) => field.key === 'legalEntityShareholders'),
     draftValues: {},
     layout: 'pages',
 };
@@ -244,4 +236,4 @@ LargeSelect.args = {
 };
 
 export default story;
-export {AllFieldTypes, AmountWithCurrency, BusinessIntake, HiddenFileField, LargeSelect, OwnersList, PageByPageFlow, SingleQuestion, YesNoQuestion};
+export {AllFieldTypes, AmountWithCurrency, HiddenFileField, LargeSelect, OwnersList, PageByPageFlow, SingleQuestion, YesNoQuestion};
