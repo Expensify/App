@@ -52,4 +52,3 @@ function DynamicFormShell({children, testID, headerTitle, stepNames, stepIndex, 
 }
 
 export default DynamicFormShell;
-export {STEP_INDICATOR_MIN_PAGES};

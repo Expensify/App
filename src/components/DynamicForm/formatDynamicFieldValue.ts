@@ -4,7 +4,8 @@ import type {DynamicFormField} from '@src/types/onyx';
 
 import type {DynamicFormValues} from './types';
 
-import {getFieldOptions, getOptionLabel, isCountryCode} from './getInputComponentForField';
+import {getFieldOptions, getOptionLabel} from './getFieldOptions';
+import {isCountryCode} from './getInputComponentForField';
 
 /** Human-readable form of an answer for confirmation rows */
 function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormValues, translate: LocalizedTranslate): string {

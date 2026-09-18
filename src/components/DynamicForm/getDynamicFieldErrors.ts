@@ -7,6 +7,7 @@ import type {DynamicFormField} from '@src/types/onyx';
 
 import type {DynamicFormValues} from './types';
 
+import {getFieldOptions} from './getFieldOptions';
 import isFieldVisible from './isFieldVisible';
 
 type DynamicFieldErrors = Record<string, string>;
@@ -14,7 +15,10 @@ type DynamicFieldErrors = Record<string, string>;
 const PERCENT_MIN = 1;
 const PERCENT_MAX = 100;
 
-function isAnswered(value: unknown): boolean {
+const CHOICE_TYPES = new Set<DynamicFormField['type']>(['select', 'multiselect', 'radio']);
+
+/** A boolean alone on its page is a Yes/No question, so No is an answer; among other fields it is a consent box that must be ticked */
+function isAnswered(value: unknown, isAloneOnPage: boolean): boolean {
     if (Array.isArray(value)) {
         return value.length > 0;
     }
@@ -22,9 +26,18 @@ function isAnswered(value: unknown): boolean {
         return value.trim() !== '';
     }
     if (typeof value === 'boolean') {
-        return value;
+        return isAloneOnPage || value;
     }
     return value !== undefined && value !== null;
+}
+
+function hasStaleOption(field: DynamicFormField, value: unknown, values: DynamicFormValues): boolean {
+    if (!CHOICE_TYPES.has(field.type)) {
+        return false;
+    }
+    const allowed = new Set(getFieldOptions(field, values).map((option) => option.key));
+    const chosen: unknown[] = Array.isArray(value) ? value : [value];
+    return chosen.some((key) => typeof key === 'string' && key !== '' && !allowed.has(key));
 }
 
 function isAnswerRecord(item: unknown): item is DynamicFormValues {
@@ -55,12 +68,16 @@ function getListErrors(field: DynamicFormField, value: unknown, translate: Local
     return messages;
 }
 
-function getFieldErrors(field: DynamicFormField, value: unknown, translate: LocalizedTranslate): string[] {
-    if (field.required && !isAnswered(value)) {
+function getFieldErrors(field: DynamicFormField, values: DynamicFormValues, translate: LocalizedTranslate, isAloneOnPage: boolean): string[] {
+    const value = values[field.key];
+    if (field.required && !isAnswered(value, isAloneOnPage)) {
         return [translate('common.error.fieldRequired')];
     }
     if (field.type === 'list') {
         return getListErrors(field, value, translate);
+    }
+    if (hasStaleOption(field, value, values)) {
+        return [translate('dynamicForm.error.invalidOption')];
     }
     if (typeof value !== 'string' || value === '') {
         return [];
@@ -89,11 +106,10 @@ function getFieldErrors(field: DynamicFormField, value: unknown, translate: Loca
 
 function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormValues, translate: LocalizedTranslate): DynamicFieldErrors {
     const errors: DynamicFieldErrors = {};
-    for (const field of fields) {
-        if (field.readonly || !isFieldVisible(field, values)) {
-            continue;
-        }
-        for (const message of getFieldErrors(field, values[field.key], translate)) {
+    const visibleFields = fields.filter((field) => !field.readonly && isFieldVisible(field, values));
+    const isAloneOnPage = visibleFields.length === 1;
+    for (const field of visibleFields) {
+        for (const message of getFieldErrors(field, values, translate, isAloneOnPage)) {
             addErrorMessage(errors, field.key, message);
         }
     }
@@ -101,4 +117,3 @@ function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormVa
 }
 
 export default getDynamicFieldErrors;
-export type {DynamicFieldErrors};

@@ -12,8 +12,9 @@ import type {Route} from '@src/ROUTES';
 import type {DynamicFormField} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React from 'react';
+import React, {useState} from 'react';
 
+import type {DynamicFormPage as DynamicFormPageSchema} from './groupFieldsIntoPages';
 import type {DynamicFormValues} from './types';
 
 import DynamicFormPage from './DynamicFormPage';
@@ -58,12 +59,16 @@ function EmptyPage() {
 function DynamicFormFlow({fields, formID, headerTitle, testID, buildRoute, onSubmit, onBack, currency, confirmationTitle, isSubmitting = false, submitError}: DynamicFormFlowProps) {
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
+    const [pageAnswers, setPageAnswers] = useState<DynamicFormValues>({});
     const groupPages = groupFieldsIntoPages(fields);
     const pages = [...groupPages.map((page) => ({pageName: page.slug, component: EmptyPage})), {pageName: CONFIRM_PAGE, component: EmptyPage}];
-    const draftValues: DynamicFormValues = {...draft};
+    const draftValues: DynamicFormValues = {...draft, ...pageAnswers};
+    const hasVisibleField = (page: DynamicFormPageSchema) => page.fields.some((field) => isFieldVisible(field, draftValues));
+    const skipPages = groupPages.filter((page) => !hasVisibleField(page)).map((page) => page.slug);
 
     const {isEditing, nextPage, prevPage, pageIndex, moveTo, currentPageName, isRedirecting} = useSubPage({
         pages,
+        skipPages,
         onFinished: () => onSubmit(draftValues),
         buildRoute,
     });
@@ -82,7 +87,8 @@ function DynamicFormFlow({fields, formID, headerTitle, testID, buildRoute, onSub
         prevPage();
     };
 
-    const handleNext = () => {
+    const handleNext = (values: DynamicFormValues) => {
+        setPageAnswers((previous) => ({...previous, ...values}));
         if (isEditing) {
             goBackToConfirmation();
             return;
@@ -92,7 +98,9 @@ function DynamicFormFlow({fields, formID, headerTitle, testID, buildRoute, onSub
 
     const currentGroupPage = groupPages.find((page) => page.slug === currentPageName);
     const isConfirmationPage = currentPageName === CONFIRM_PAGE;
-    const stepNames = groupPages.map((page) => page.name);
+    const visibleGroupPages = groupPages.filter(hasVisibleField);
+    const stepNames = visibleGroupPages.map((page) => page.name);
+    const stepIndex = currentGroupPage ? Math.max(0, visibleGroupPages.indexOf(currentGroupPage)) : stepNames.length - 1;
 
     const summaryItems = groupPages.flatMap((page, index) =>
         page.fields
@@ -100,7 +108,7 @@ function DynamicFormFlow({fields, formID, headerTitle, testID, buildRoute, onSub
             .map((field) => ({
                 id: field.key,
                 description: getFieldLabel(field, translate),
-                title: formatDynamicFieldValue(field, draftValues, translate),
+                title: field.sensitive ? '••••' : formatDynamicFieldValue(field, draftValues, translate),
                 shouldShowRightIcon: !field.readonly,
                 onPress: () => moveTo(index),
             })),
@@ -141,7 +149,7 @@ function DynamicFormFlow({fields, formID, headerTitle, testID, buildRoute, onSub
             testID={testID}
             headerTitle={headerTitle}
             stepNames={stepNames}
-            stepIndex={Math.min(pageIndex, stepNames.length - 1)}
+            stepIndex={Math.min(stepIndex, Math.max(stepNames.length - 1, 0))}
             onBackButtonPress={handleBackButtonPress}
         >
             {content}
@@ -150,5 +158,3 @@ function DynamicFormFlow({fields, formID, headerTitle, testID, buildRoute, onSub
 }
 
 export default DynamicFormFlow;
-export {CONFIRM_PAGE};
-export type {DynamicFormFlowProps};

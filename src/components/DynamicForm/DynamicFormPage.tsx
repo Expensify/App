@@ -28,7 +28,8 @@ type DynamicFormPageProps = {
 
     submitButtonText: string;
 
-    onSubmit: () => void;
+    /** Receives the page's answers, including ones never written to the draft */
+    onSubmit: (values: DynamicFormValues) => void;
 };
 
 /** One group of a dynamic form: the page title, the group's fields and a Next or Confirm button */
@@ -43,7 +44,7 @@ function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSub
             formID={formID}
             submitButtonText={submitButtonText}
             validate={(values) => getDynamicFieldErrors(page.fields, withDraft(values), translate)}
-            onSubmit={onSubmit}
+            onSubmit={(values) => onSubmit({...values})}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={styles.mb0}
             keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
@@ -64,4 +65,3 @@ function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSub
 }
 
 export default DynamicFormPage;
-export type {DynamicFormPageProps};

@@ -102,6 +102,30 @@ describe('getDynamicFieldErrors for lists and percentages', () => {
     });
 });
 
+describe('getDynamicFieldErrors for choices and booleans', () => {
+    it('rejects a dependent answer that the current controlling answer no longer offers', () => {
+        const stale = getDynamicFieldErrors(allFieldTypes, {...completeAnswers, legalType: 'PRIVATE', accountType: 'BUSINESS_CHECKING'}, translateLocal);
+        expect(stale.accountType).toBe(translateLocal('dynamicForm.error.invalidOption'));
+
+        expect(getDynamicFieldErrors(allFieldTypes, {...completeAnswers, legalType: 'BUSINESS', accountType: 'BUSINESS_CHECKING'}, translateLocal).accountType).toBeUndefined();
+    });
+
+    it('accepts No for a required boolean asked alone on its page but not for a consent box among other fields', () => {
+        const consent = allFieldTypes.find((field) => field.key === 'isSourceOfFund');
+        if (!consent) {
+            throw new Error('fixture changed');
+        }
+        const requiredConsent = {...consent, required: true};
+
+        expect(getDynamicFieldErrors([requiredConsent], {isSourceOfFund: false}, translateLocal)).toEqual({});
+        expect(getDynamicFieldErrors([requiredConsent], {}, translateLocal)).toEqual({isSourceOfFund: translateLocal('common.error.fieldRequired')});
+
+        const withSibling = [requiredConsent, {...requiredConsent, key: 'other', type: 'text' as const}];
+        expect(getDynamicFieldErrors(withSibling, {isSourceOfFund: false, other: 'x'}, translateLocal)).toEqual({isSourceOfFund: translateLocal('common.error.fieldRequired')});
+        expect(getDynamicFieldErrors(withSibling, {isSourceOfFund: true, other: 'x'}, translateLocal)).toEqual({});
+    });
+});
+
 describe('groupFieldsIntoPages', () => {
     it('groups fields into pages in first-appearance order', () => {
         const pages = groupFieldsIntoPages(allFieldTypes);

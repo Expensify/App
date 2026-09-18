@@ -87,4 +87,3 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
 }
 
 export default DynamicFormFields;
-export type {DynamicFormFieldsProps};
