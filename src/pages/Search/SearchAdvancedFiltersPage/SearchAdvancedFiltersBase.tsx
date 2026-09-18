@@ -39,7 +39,7 @@ function SearchAdvancedFiltersBase() {
                 policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, currentDraftFilters)}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
-            <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5]}>
+            <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>
                 {shouldShowResetFilters && (
                     <Button
                         style={[isInLandscapeMode ? styles.flex1 : undefined]}
@@ -50,7 +50,7 @@ function SearchAdvancedFiltersBase() {
                     </Button>
                 )}
                 <Button
-                    style={[styles.pb5, isInLandscapeMode ? styles.flex1 : undefined]}
+                    style={[isInLandscapeMode ? styles.flex1 : undefined]}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={applyFilters}

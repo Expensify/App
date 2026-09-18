@@ -13,14 +13,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
-import {FILTER_VIEW_MAP, isAmountFilterKey, isReportFieldKey, isTextFilterKey} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -57,6 +56,8 @@ function SearchAdvancedFiltersContentBase() {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const validFilterKey = isFilterKeyValid(filterKey) ? filterKey : undefined;
+    // In direct-apply mode there is no draft to read from, the form holds the currently applied filters
+    const currentValues = shouldApplyFilterChangeDirectly ? searchAdvancedFiltersForm : currentDraftFilters;
 
     const goBack = () => {
         if (shouldApplyFilterChangeDirectly) {
@@ -66,22 +67,9 @@ function SearchAdvancedFiltersContentBase() {
         }
     };
 
+    // Every key that isn't amount/date/text/report-field falls through to the selection list branch of SearchAdvancedFiltersContent
     const isFilterWithSelectionList =
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG;
+        !!validFilterKey && !isAmountFilterKey(validFilterKey) && !isDateFilterKey(validFilterKey) && !isTextFilterKey(validFilterKey) && !isReportFieldKey(validFilterKey);
 
     const buttonText = shouldApplyFilterChangeDirectly ? translate('common.apply') : undefined;
 
@@ -122,7 +110,7 @@ function SearchAdvancedFiltersContentBase() {
 
                         <View style={[styles.filterContentContainer]}>
                             <SearchAdvancedFiltersContent
-                                values={shouldApplyFilterChangeDirectly ? searchAdvancedFiltersForm : currentDraftFilters}
+                                values={currentValues}
                                 baseFilterKey={validFilterKey}
                                 ready={didScreenTransitionEnd}
                                 components={{
@@ -138,7 +126,7 @@ function SearchAdvancedFiltersContentBase() {
                                     const selectedReceiptTypes = newValues.receiptType;
                                     // A positive receipt-type selection drops those values from the negated filter so the query can't emit both receiptType and -receiptType for the same value
                                     if (selectedReceiptTypes !== undefined) {
-                                        const remainingNegatedReceiptTypes = currentDraftFilters?.receiptTypeNot?.filter((receiptType) => !selectedReceiptTypes.includes(receiptType));
+                                        const remainingNegatedReceiptTypes = currentValues?.receiptTypeNot?.filter((receiptType) => !selectedReceiptTypes.includes(receiptType));
                                         updatedValues.receiptTypeNot = remainingNegatedReceiptTypes?.length ? remainingNegatedReceiptTypes : undefined;
                                     }
 
