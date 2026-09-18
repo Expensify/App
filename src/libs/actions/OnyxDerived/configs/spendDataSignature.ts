@@ -7,14 +7,10 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 const EMPTY_SIGNATURE = {expenses: 0, cardExpenses: 0};
 
-// Deliberately not in Onyx: this detects change, it is not data, and storing one entry per
-// transaction would persist tens of thousands of them.
+// Not in Onyx: it detects change rather than being data, and would persist tens of thousands of entries.
 let lastSeenFingerprints: Record<string, string> = {};
 
-/**
- * The fields the Home cards count or total. A write that leaves these alone cannot move a card.
- * Edits land in the `modified` fields rather than the originals, so both are read (see `getAmount`).
- */
+/** Fields the Home cards count or total. Edits land in the `modified` versions, so both are read. */
 function getFingerprint(transaction: Transaction | undefined): string {
     if (!transaction) {
         return '';
@@ -48,8 +44,6 @@ export default createOnyxDerivedValueConfig({
     compute: ([transactions, cardList], {sourceValues, currentValue}) => {
         const transactionUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
 
-        // A full compute has no delta to count, so record what exists and leave the counters alone.
-        // The cards fetch on mount anyway, so nothing is missed by not counting the initial load.
         if (!transactionUpdates) {
             rebuildFingerprints(transactions);
             return currentValue ?? EMPTY_SIGNATURE;

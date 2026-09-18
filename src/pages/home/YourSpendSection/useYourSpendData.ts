@@ -408,8 +408,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
     const outstandingReportsSignature = reportsSignature?.outstandingReportIDs ?? '';
-    // Nothing patches the "Repaid last 30 days" snapshot when a report is paid, so without this the
-    // row keeps showing the old total.
     const reimbursedReportsSignature = reportsSignature?.reimbursedReportIDs ?? '';
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
@@ -543,8 +541,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const {state: approvalRowState, totals: approvalTotals} = useOfflineFrozenSpendRow(isOffline, isApprovalApplicable, approvalRowStateLive, approvalTotalsLive, approvalHash);
     const {state: paymentRowState, totals: paymentTotals} = useOfflineFrozenSpendRow(isOffline, isPaymentApplicable, paymentRowStateLive, paymentTotalsLive, paymentQueryJSON?.hash);
 
-    // Everything that changes these numbers without changing the queries: applicability, the policy
-    // set, reports entering or leaving OUTSTANDING, payments, and card charges.
+    // The things that move these numbers without changing the queries themselves.
     const applicabilityKey = [
         isApprovalApplicable ? 1 : 0,
         isPaymentApplicable ? 1 : 0,

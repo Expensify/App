@@ -6,9 +6,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import useRootNavigationState from './useRootNavigationState';
 
 /**
- * Returns true when `tabName` is the active tab in the top-most TAB_NAVIGATOR.
- * Stays true when an RHP is pushed on top of that tab's screen, unlike `useIsFocused()`
- * which becomes false because the RHP is the leaf focused route.
+ * Returns true when `tabName` is the active tab. Unlike `useIsFocused()`, it stays true when an RHP
+ * is pushed on top of that tab's screen.
  */
 function useIsTabFocused(tabName: string): boolean {
     return useRootNavigationState((state) => {

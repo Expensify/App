@@ -7,16 +7,15 @@ import useIsTabFocused from './useIsTabFocused';
 
 /**
  * Calls `refresh` when the tab becomes active, when `refreshKey` changes, and when the app becomes
- * visible again, but never while an RHP covers the screen: a change landing behind an RHP is held
- * and flushed once the screen is visible again. Closing an RHP on its own refreshes nothing.
+ * visible again. A change landing behind an RHP waits until the screen is visible, so closing an RHP
+ * refreshes nothing on its own.
  */
 function useTabFocusedRefresh(tabName: string, refreshKey: string, refresh: () => void): void {
     const isTabFocused = useIsTabFocused(tabName);
     const isScreenVisible = useIsFocused();
     const onRefresh = useEffectEvent(refresh);
 
-    // Some values, like currency conversion, have nothing local to watch and only move while the user
-    // is away, so a return to the app is worth one re-read.
+    // Currency conversion and the like have nothing local to watch, so a return to the app re-reads them.
     const [appReturnCount, setAppReturnCount] = useState(0);
 
     const wasTabFocusedRef = useRef(false);
