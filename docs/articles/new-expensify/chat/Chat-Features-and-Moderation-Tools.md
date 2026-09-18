@@ -2,7 +2,7 @@
 
 title: Chat Features and Moderation Tools
 description: Learn how to send, format, edit, delete, report, and manage messages and chat membership in New Expensify.
-keywords: [New Expensify, chat, edit messages, report chat, add members, leave room, thread, add attachment, take photo, in-app camera]
+keywords: [New Expensify, chat, edit messages, report chat, add members, leave room, thread, add attachment, take photo]
 ---
 
 
@@ -30,9 +30,7 @@ You can send messages, attach files, and add emojis from the message bar at the 
 4. To add an emoji, tap the **emoji icon**.
 5. Tap the **Send** icon.
 
-## How to take a photo to attach to a chat message
-
-In the Expensify mobile app, **Take photo** opens a camera inside Expensify, so you stay in the app while you capture the photo. On web and mobile web, **Add attachment** opens your device's file picker instead, so there is no in-app camera.
+## How to take a photo to attach to a chat message (Mobile only)
 
 1. Open any chat from your inbox.
 2. Tap the **plus icon**, then select **Add attachment**.
