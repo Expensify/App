@@ -1,3 +1,4 @@
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -176,17 +177,13 @@ function TaxFields({
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
         />
     ) : (
-        <MenuItemWithTopDescription
+        <MenuItemField
             key={`${taxRates?.name}_amount`}
-            pressableTestID={`${taxRates?.name}_amount`}
-            shouldShowRightIcon={canModifyTaxFields}
-            title={formattedTaxAmount}
-            description={translate('iou.taxAmount')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={openTaxAmountPage}
-            disabled={didConfirm}
-            interactive={canModifyTaxFields}
+            testID={`${taxRates?.name}_amount`}
+            value={formattedTaxAmount}
+            name={translate('iou.taxAmount')}
+            onPress={canModifyTaxFields ? openTaxAmountPage : undefined}
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
         />
     );

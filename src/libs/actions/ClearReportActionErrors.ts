@@ -122,6 +122,7 @@ function clearAllRelatedReportActionErrors(
     reportID: string | undefined,
     reportAction: ReportAction | null | undefined,
     originalReportID: string | undefined,
+    isOffline: boolean,
     ignore?: IgnoreDirection,
     keys?: string[],
 ) {
@@ -137,17 +138,17 @@ function clearAllRelatedReportActionErrors(
         const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
         const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
-        const parentOriginalReportID = getOriginalReportID(report.parentReportID, parentReportAction, parentReportActions);
+        const parentOriginalReportID = getOriginalReportID(report.parentReportID, parentReportAction, parentReportActions, isOffline);
 
-        clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, parentOriginalReportID, 'child', parentErrorKeys);
+        clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, parentOriginalReportID, isOffline, 'child', parentErrorKeys);
     }
 
     if (reportAction.childReportID && ignore !== 'child') {
         const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
         for (const action of Object.values(childActions)) {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
-            const childOriginalReportID = getOriginalReportID(reportAction.childReportID, action, childActions);
-            clearAllRelatedReportActionErrors(reportAction.childReportID, action, childOriginalReportID, 'parent', childErrorKeys);
+            const childOriginalReportID = getOriginalReportID(reportAction.childReportID, action, childActions, isOffline);
+            clearAllRelatedReportActionErrors(reportAction.childReportID, action, childOriginalReportID, isOffline, 'parent', childErrorKeys);
         }
     }
 }

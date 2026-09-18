@@ -1,5 +1,5 @@
 import Clipboard from '@libs/Clipboard';
-import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 
 import ROUTES from '@src/ROUTES';
 
