@@ -14,9 +14,9 @@ Assigning company cards links company cards to workspace members so their transa
 
 ## Who can assign company cards
 
-Workspace admins, card admins, and their Copilots can assign company cards after a company card feed is connected.
+Workspace admins, card admins, and their copilots can assign company cards after a company card feed is connected.
 
-If you haven’t set up a feed yet, learn how to set one up:
+If you haven’t set up a company card feed yet, learn how to set one up:
 
 - [Learn how to set up a direct connection for company cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards).
 - [Learn how to set up a commercial feed for company cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards).
@@ -26,13 +26,15 @@ If you haven’t set up a feed yet, learn how to set one up:
 
 ## How to assign company cards
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Company cards**.
 3. Select the card connection name.
 4. Select **Assign card** on the card you want to assign.
 5. Enter the assignee's name, email address, or phone number.
 6. If needed, update the **Transaction start date** to choose the date from which Expensify starts importing transactions for the card.
 7. Select **Assign card** to finalize the assignment.
+
+![Company cards page showing list of cards for assignment]({{site.url}}/assets/images/company-cards-assign-cards.png){:width="100%"}
 
 ---
 
