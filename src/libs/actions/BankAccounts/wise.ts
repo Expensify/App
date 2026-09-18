@@ -1,3 +1,5 @@
+import type {DynamicFormValues} from '@components/DynamicForm/types';
+
 import {read, write} from '@libs/API';
 import type {SubmitWiseKYCRequirementParams} from '@libs/API/parameters';
 import type {WiseKYCFileParamKey} from '@libs/API/parameters/SubmitWiseKYCRequirementParams';
@@ -5,7 +7,6 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {WiseKYCRequirementForm} from '@src/types/form';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import Onyx from 'react-native-onyx';
@@ -18,8 +19,8 @@ function isFileList(value: unknown): value is FileObject[] {
     return Array.isArray(value) && value.every((item) => typeof item === 'object' && item !== null && 'name' in item);
 }
 
-function submitWiseKYCRequirement(bankAccountID: number, requirementKey: string, draft: Omit<WiseKYCRequirementForm, 'isLoading' | 'errors' | 'errorFields'>) {
-    const answers: Record<string, string | boolean | string[]> = {};
+function submitWiseKYCRequirement(bankAccountID: number, requirementKey: string, draft: DynamicFormValues) {
+    const answers: Record<string, unknown> = {};
     const files: Record<WiseKYCFileParamKey, FileObject> = {};
     for (const [key, value] of Object.entries(draft)) {
         if (isFileList(value)) {

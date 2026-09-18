@@ -226,6 +226,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENT_FORM]: {
         bankAccountID: string;
         requirementKey: string;
+        subPage?: string;
+        action?: 'edit';
     };
     [SCREENS.SETTINGS.WALLET.WISE_KYC_EMBEDDED]: {
         bankAccountID: string;

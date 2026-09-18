@@ -35,6 +35,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
+const mockRouteParams: {subPage?: string; action?: 'edit'} = {};
+
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@react-navigation/native');
@@ -42,8 +44,8 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actual,
         useIsFocused: () => true,
-        useRoute: jest.fn(() => ({name: '', key: '', params: {}})),
-        useNavigation: jest.fn(() => ({addListener: jest.fn(() => jest.fn()), getState: jest.fn(() => ({routes: []})), isFocused: () => true})),
+        useRoute: jest.fn(() => ({name: '', key: '', params: mockRouteParams})),
+        useNavigation: jest.fn(() => ({addListener: jest.fn(() => jest.fn()), getState: jest.fn(() => ({routes: []})), isFocused: () => true, setParams: jest.fn()})),
         useFocusEffect: jest.fn(),
     };
 });
@@ -120,6 +122,8 @@ describe('Wise KYC requirements pages', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        delete mockRouteParams.subPage;
+        delete mockRouteParams.action;
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.WISE_KYC_REQUIREMENTS, kycRequirements);
@@ -140,11 +144,22 @@ describe('Wise KYC requirements pages', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM_DRAFT, {accountPurpose: 'PAYING_BILLS'});
         });
+        mockRouteParams.subPage = 'account-purpose';
         await renderRequirementFormPage('ACCOUNT_PURPOSE');
 
         expect(screen.getByText('Paying bills')).toBeOnTheScreen();
 
-        fireEvent.press(screen.getByText('common.submit'));
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENT_FORM.getRoute(BANK_ACCOUNT_ID, 'ACCOUNT_PURPOSE', 'confirm'));
+
+        screen.unmount();
+        mockRouteParams.subPage = 'confirm';
+        await renderRequirementFormPage('ACCOUNT_PURPOSE');
+        expect(screen.getByText('wiseKYC.requirement.ACCOUNT_PURPOSE')).toBeOnTheScreen();
+        expect(screen.getByText('Paying bills')).toBeOnTheScreen();
+
+        fireEvent.press(screen.getByText('common.confirm'));
         await waitForBatchedUpdatesWithAct();
 
         expect(submitWiseKYCRequirement).toHaveBeenCalledTimes(1);
@@ -156,6 +171,7 @@ describe('Wise KYC requirements pages', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM_DRAFT, {documentType: 'PASSPORT'});
         });
+        mockRouteParams.subPage = 'identity-document';
         await renderRequirementFormPage('ID_DOCUMENT');
         expect(screen.getAllByTestId('upload-file')).toHaveLength(1);
 

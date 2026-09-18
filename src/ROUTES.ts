@@ -2464,8 +2464,14 @@ const ROUTES = {
         getRoute: (bankAccountID: number) => `settings/wallet/${bankAccountID}/wise-kyc` as const,
     },
     SETTINGS_WALLET_WISE_KYC_REQUIREMENT_FORM: {
-        route: 'settings/wallet/:bankAccountID/wise-kyc/requirement/:requirementKey',
-        getRoute: (bankAccountID: number, requirementKey: string) => `settings/wallet/${bankAccountID}/wise-kyc/requirement/${requirementKey}` as const,
+        route: 'settings/wallet/:bankAccountID/wise-kyc/requirement/:requirementKey/:subPage?/:action?',
+        getRoute: (bankAccountID: number, requirementKey: string, subPage?: string, action?: 'edit') => {
+            const base = `settings/wallet/${bankAccountID}/wise-kyc/requirement/${requirementKey}` as const;
+            if (!subPage) {
+                return base;
+            }
+            return action ? (`${base}/${subPage}/${action}` as const) : (`${base}/${subPage}` as const);
+        },
     },
     SETTINGS_WALLET_WISE_KYC_EMBEDDED: {
         route: 'settings/wallet/:bankAccountID/wise-kyc/wise',
