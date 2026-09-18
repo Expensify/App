@@ -597,7 +597,64 @@ describe('getSecondaryAction', () => {
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(false);
 
-        // DOWNLOAD_PDF is unaffected — only PRINT is gated on the OPEN state
+        // The report owner can still export their own draft, so DOWNLOAD_PDF stays
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(true);
+    });
+
+    it('does not include DOWNLOAD_PDF option when the report is in OPEN state and the current user is not the owner', () => {
+        // A report rejected back to the submitter returns to the OPEN state and is owned by the submitter again, so the
+        // approver who rejected it (or their vacation delegate) can no longer export it on the backend.
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        const policy = createMock<Policy>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: APPROVER_EMAIL,
+            currentUserAccountID: APPROVER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(false);
+    });
+
+    it('includes DOWNLOAD_PDF option when the report is not in OPEN state and the current user is not the owner', () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+        const policy = createMock<Policy>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: APPROVER_EMAIL,
+            currentUserAccountID: APPROVER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+        });
+
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(true);
     });
 
