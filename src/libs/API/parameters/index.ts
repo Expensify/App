@@ -254,6 +254,7 @@ export type {default as EditTaskParams} from './EditTaskParams';
 export type {default as ReopenTaskParams} from './ReopenTaskParams';
 export type {default as CompleteTaskParams} from './CompleteTaskParams';
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
+export type {default as SetPersonalExpenseRulesParams} from './SetPersonalExpenseRulesParams';
 export type {default as SetNameValuePairsParams} from './SetNameValuePairsParams';
 export type {default as SetReportFieldParams} from './SetReportFieldParams';
 export type {default as SetReportNameParams} from './SetReportNameParams';
@@ -599,6 +600,7 @@ export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams
 export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
+export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';

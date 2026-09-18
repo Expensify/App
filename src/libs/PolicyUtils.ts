@@ -44,7 +44,7 @@ import type Rule from '@src/types/onyx/Rule';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -707,6 +707,21 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
     }
 
     return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+}
+
+/**
+ * Payer fields to merge into the successData of an ownership transfer. The backend keeps the former payer when the
+ * workspace has a bank account, so only reassign when there is none and the outgoing owner is the resolved payer.
+ */
+function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin: string): NullishDeep<Policy> {
+    if (!policy || policy.achAccount?.bankAccountID || getReimburserEmail(policy) !== policy.owner) {
+        return {};
+    }
+
+    return {
+        ...(policy.reimburser ? {reimburser: newOwnerLogin} : {}),
+        ...(policy.achAccount?.reimburser ? {achAccount: {reimburser: newOwnerLogin}} : {}),
+    };
 }
 
 /**
@@ -2547,6 +2562,16 @@ function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: str
     }));
 }
 
+function getSageIntacctExpenseAccounts(policy: Policy | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.intacct?.data?.expenseAccounts ?? [];
+    return expenseAccounts.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
 function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
     const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
@@ -3560,6 +3585,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
+    getOwnerChangePayerSuccessData,
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
@@ -3599,6 +3625,7 @@ export {
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
+    getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
