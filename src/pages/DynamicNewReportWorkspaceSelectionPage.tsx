@@ -73,7 +73,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -90,7 +91,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
@@ -108,6 +109,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const policiesWithEmptyReportsForAccountSelector = policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID, !!hasDismissedEmptyReportsConfirmation);
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policiesWithEmptyReportsForAccountSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const navigateToNewReport = (optimisticReportID: string) => {
         if (isRHPOnReportInSearch) {
@@ -135,6 +137,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             };
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled,
                     transactionIDs,
                     isASAPSubmitBetaEnabled,
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -146,11 +149,13 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     transactions,
                     allTransactionViolation: transactionViolations,
                     reports: reportsForCall,
+                    rules,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     selfDMReportActions,
                     delegateAccountID,
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

@@ -1,14 +1,19 @@
 import {
+    getDistanceExpenseTypeForPolicy,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateUnmodified,
+    isMapOrGPSRequired,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
+import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
 describe('PolicyDistanceRatesUtils', () => {
@@ -101,6 +106,27 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isGovernmentRateUnmodified(buildRate({rate: Number('0.29') * 100}, governmentRate))).toBe(true);
         });
 
+        it('should return true when a kilometer-based government snapshot matches a mile-based stored rate', () => {
+            const governmentRate = {sourceRateID: 'CA_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.48}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
+        });
+
+        it('should return true when a mile-based government snapshot matches a kilometer-based stored rate', () => {
+            const governmentRate = {sourceRateID: 'US_2026-01-01', rate: 76, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 47.22}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)).toBe(true);
+        });
+
+        it('should return false when a converted government rate has been edited', () => {
+            const governmentRate = {sourceRateID: 'CA_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.49}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(false);
+        });
+
+        it('should fall back to the same-unit comparison when the source country is unknown', () => {
+            const governmentRate = {sourceRateID: 'NZ_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 73}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.48}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(false);
+        });
+
         it('should return false when the snapshot is malformed and has no rate amount', () => {
             // A snapshot missing its rate amount alongside an unset rate must not be reported as unmodified.
             expect(isGovernmentRateUnmodified(buildRate({rate: undefined}, {sourceRateID: 'US_2026-01-01', startDate: '2026-01-01', endDate: '2026-12-31'}))).toBe(false);
@@ -154,6 +180,66 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should return undefined for an unsupported currency', () => {
             expect(getGovernmentRateCountryPhraseTranslationKey('NZD')).toBeUndefined();
+        });
+    });
+
+    describe('isMapOrGPSRequired', () => {
+        const buildPolicy = (policy: Partial<Policy>): Policy => ({...createRandomPolicy(0), ...policy});
+
+        it('should return true when the workspace has the setting enabled', () => {
+            expect(isMapOrGPSRequired(buildPolicy({requireMapOrGPS: true}))).toBe(true);
+        });
+
+        it('should return true when the workspace excludes commutes, even with the setting off', () => {
+            const policy = buildPolicy({
+                requireMapOrGPS: false,
+                commuterExclusions: {method: 'fixedDistance', fixedDistance: 10, fixedDistanceUnit: 'mi'},
+            });
+
+            expect(isMapOrGPSRequired(policy)).toBe(true);
+        });
+
+        it('should return false when neither the setting nor commuter exclusions are set', () => {
+            expect(isMapOrGPSRequired(buildPolicy({}))).toBe(false);
+        });
+
+        it('should return false without a policy', () => {
+            expect(isMapOrGPSRequired(undefined)).toBe(false);
+        });
+    });
+
+    describe('getDistanceExpenseTypeForPolicy', () => {
+        const buildPolicy = (policy: Partial<Policy>): Policy => ({...createRandomPolicy(0), ...policy});
+
+        it('should keep the remembered type when the workspace does not require GPS or map entry', () => {
+            const policy = buildPolicy({requireMapOrGPS: false});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+        });
+
+        it('should fall back to map when the workspace starts requiring GPS or map entry', () => {
+            const policy = buildPolicy({requireMapOrGPS: true});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        });
+
+        it('should fall back to map when commuter exclusions require it', () => {
+            const policy = buildPolicy({commuterExclusions: {method: 'fixedDistance', fixedDistance: 10, fixedDistanceUnit: 'mi'}});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        });
+
+        it('should leave map and GPS types untouched', () => {
+            const policy = buildPolicy({requireMapOrGPS: true});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_GPS)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
+        });
+
+        it('should pass through an unset preference', () => {
+            expect(getDistanceExpenseTypeForPolicy(buildPolicy({requireMapOrGPS: true}), undefined)).toBeUndefined();
         });
     });
 });

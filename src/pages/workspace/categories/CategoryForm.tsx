@@ -22,16 +22,9 @@ import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 
 type CategoryFormProps = {
-    /** All policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
-
-    /** The name of the category */
     categoryName?: string;
-
-    /** Function to call when the form is submitted */
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => void;
-
-    /** Function to validate the edited values of the form */
     validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
 
     /** Whether to add bottom safe area padding to the form. Should be false when the parent wrapper already handles it. */

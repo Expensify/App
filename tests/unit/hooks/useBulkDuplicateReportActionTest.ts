@@ -16,7 +16,7 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../utils/createMock';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
-    bulkDuplicateReports: jest.fn(),
+    bulkDuplicateReports: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -28,7 +28,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 const CURRENT_USER_ACCOUNT_ID = 1;

@@ -134,7 +134,6 @@ function buildPolicy(rateCount: number): Policy {
         type: CONST.POLICY.TYPE.CORPORATE,
         owner: ACCOUNT_LOGIN,
         outputCurrency: CONST.CURRENCY.USD,
-        isPolicyExpenseChatEnabled: true,
         customUnits: {
             [CUSTOM_UNIT_ID]: {
                 attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},

@@ -344,16 +344,14 @@ describe('createAgent', () => {
         expect(failureData.some((u) => u.key === ONYXKEYS.FORMS.ADD_AGENT_FORM)).toBe(false);
     });
 
-    it('success data clears only the optimistic flag on the personal detail (keeping the avatar) and nulls the prompt entry', () => {
+    it('success data leaves both optimistic entries in place so replaceOptimisticAgentWithActualAgent can clear them after redirecting', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         const {successData} = getWriteOptions();
         const accountID = getOptimisticAccountID();
 
-        const promptRollback = findUpdate(successData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-
-        expect(getPersonalDetailValue(successData, accountID)).toStrictEqual({isOptimisticPersonalDetail: null});
-        expect(promptRollback?.value).toBeNull();
+        expect(findUpdate(successData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`)).toBeUndefined();
     });
 
     it('passes the optimistic accountID through to the server so it can echo a real-ID mapping', () => {

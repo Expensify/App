@@ -1,5 +1,4 @@
 import {createTransaction, getMoneyRequestParticipantOptions, setMoneyRequestCommuterExclusionFields} from '@libs/actions/IOU/MoneyRequest';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -30,7 +29,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -136,6 +135,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
@@ -159,7 +159,9 @@ describe('MoneyRequest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            isDraftChatReport: false,
             formatPhoneNumber,
+            rules: undefined,
         };
 
         beforeEach(async () => {
@@ -760,6 +762,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
             policy: fakePolicy,
@@ -786,6 +789,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
+            isDraftChatReport: false,
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
@@ -797,8 +801,22 @@ describe('MoneyRequest', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             delegateAccountID: undefined,
-            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal, undefined),
+            participants: getMoneyRequestParticipantOptions({
+                currentUserAccountID: 1,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: false,
+                rules: undefined,
+                reportAttributesDerived: {},
+                reportDraft: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            }),
             participantsPolicyTags: {},
+            rules: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -834,7 +852,7 @@ describe('MoneyRequest', () => {
                 backTo,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -847,7 +865,7 @@ describe('MoneyRequest', () => {
                 backTo,
                 draftTransactionIDs: undefined,
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -868,7 +886,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1, getCurrencyDecimalsLocal);
@@ -885,7 +903,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
@@ -900,7 +918,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -950,7 +968,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const transactionParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0)?.transactionParams;
@@ -989,7 +1007,7 @@ describe('MoneyRequest', () => {
                 optimisticTransactionID: 'optimistic-should-be-ignored',
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1013,7 +1031,7 @@ describe('MoneyRequest', () => {
                 optimisticTransactionID: 'optimistic-should-be-ignored',
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1073,7 +1091,7 @@ describe('MoneyRequest', () => {
                     } as OptionData,
                 ],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1141,7 +1159,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1186,7 +1204,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1230,7 +1248,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1255,11 +1273,6 @@ describe('MoneyRequest', () => {
         it('should navigate to confirmation page for CREATE flow from global menu', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            const defaultExpensePolicy = {
-                ...fakePolicy,
-                isPolicyExpenseChatEnabled: true,
-            };
-
             // getPolicyExpenseChat resolves reports via ReportUtils' internal Onyx cache, which isn't populated
             // in this bare unit-test harness, so return the policy expense chat report directly.
             jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
@@ -1268,12 +1281,12 @@ describe('MoneyRequest', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 report: undefined,
-                defaultExpensePolicy,
+                defaultExpensePolicy: fakePolicy,
                 isAutoReporting: true,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1306,7 +1319,6 @@ describe('MoneyRequest', () => {
             const defaultExpensePolicy = {
                 ...fakePolicy,
                 autoReporting: false,
-                isPolicyExpenseChatEnabled: true,
             };
 
             handleMoneyRequestStepDistanceNavigation({
@@ -1317,7 +1329,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1332,7 +1344,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1357,7 +1369,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 8010,
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1384,7 +1396,7 @@ describe('MoneyRequest', () => {
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1408,7 +1420,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: fakePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const lastCallArgs = jest.mocked(shouldUseDefaultExpensePolicy).mock.calls.at(-1) ?? [];
@@ -1424,7 +1436,7 @@ describe('MoneyRequest', () => {
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1446,7 +1458,7 @@ describe('MoneyRequest', () => {
                     capturedParticipants = participants;
                 },
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1469,7 +1481,7 @@ describe('MoneyRequest', () => {
                     capturedParticipants = participants;
                 },
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1492,7 +1504,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -1509,7 +1521,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -1535,7 +1547,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -1559,7 +1571,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1582,7 +1594,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1654,7 +1666,7 @@ describe('MoneyRequest', () => {
             distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             translate: translateLocal,
             toLocaleDigit: (digit: string) => digit,
-            getCurrencySymbol,
+            getCurrencySymbol: getCurrencySymbolLocal,
         };
 
         afterEach(async () => {
@@ -1719,39 +1731,56 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should return participants when conciergeReportID is provided', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                'concierge123',
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
-                undefined,
-            );
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: 'concierge123',
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                'concierge456',
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
-                undefined,
-            );
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: 'concierge456',
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            });
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
             expect(Array.isArray(participants)).toBe(true);
@@ -1759,7 +1788,20 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: true,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1768,29 +1810,81 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: dmReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: fakeReport,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: true});
         });
 
         it('should not mark participant as disabled when reportDraft is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
 
         it('should not mark participant as disabled when reportDrafts is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
-            // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly
+            // When reportDraft is undefined, getReportOrDraftReport falls back to the deprecatedAllReportsDraft collection,
             // and since no draft is set, isDisabled should be false
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
@@ -1799,11 +1893,10 @@ describe('MoneyRequest', () => {
     describe('shouldUseDefaultExpensePolicy', () => {
         const fakePolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
 
-        it('should return true when iouType is CREATE with a paid group policy that has expense chat enabled and no billing restrictions', () => {
+        it('should return true when iouType is CREATE with a paid group policy and no billing restrictions', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(true);
@@ -1813,7 +1906,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
@@ -1825,7 +1917,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.PERSONAL,
-                isPolicyExpenseChatEnabled: true,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
@@ -1835,7 +1926,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.PERSONAL,
-                isPolicyExpenseChatEnabled: false,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
@@ -1853,7 +1943,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, currentUserAccountID)).toBe(true);
@@ -1863,7 +1952,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
             };
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;

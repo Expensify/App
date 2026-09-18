@@ -150,11 +150,17 @@ const Logging: Middleware = (response, request) => {
                 // Expensify site is down completely OR
                 // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
                 Log.hmmm('[Network] API request error: Expensify service interrupted or timed out', logParams);
+            } else if (error.message === CONST.ERROR.SERVICE_UNAVAILABLE) {
+                // The server is shedding writes during instability and asked us to retry, so this is expected and handled.
+                Log.hmmm('[Network] API request error: Expensify API is temporarily unavailable', logParams);
             } else if (error.message === CONST.ERROR.THROTTLED) {
                 Log.hmmm('[Network] API request error: Expensify API throttled the request', logParams);
             } else if (error.message === CONST.ERROR.DUPLICATE_RECORD) {
                 // Duplicate records can happen when a large upload is interrupted and we need to retry to see if the original request completed
                 Log.info('[Network] API request error: A record already exists with this ID', false, logParams);
+            } else if (error.message === CONST.ERROR.ALREADY_CREATED) {
+                // The record already exists server side, e.g. a retry after a lost success response. It is treated as a success upstream.
+                Log.info('[Network] API request error: The resource was already created', false, logParams);
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
                 Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} unknown API request error caught while processing request`, logParams, false);

@@ -35,7 +35,6 @@ type PressableProps = {
     /** Whether the row is the currently focused/active option. Drives the focused background and accessibility metadata. */
     isOptionFocused: boolean;
 
-    /** Press handler invoked with the option data and the popover anchor ref. */
     onSelectRow: (optionItem: OptionData, popoverAnchor: React.RefObject<View | null>) => void;
 
     /** Layout handler forwarded to the underlying pressable. */

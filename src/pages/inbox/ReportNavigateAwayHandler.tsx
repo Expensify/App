@@ -143,7 +143,7 @@ function ReportNavigateAwayHandler() {
         }
 
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
         });
     });
 
@@ -172,11 +172,15 @@ function ReportNavigateAwayHandler() {
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
-        const userLeavingTriggered = !prevUserLeavingStatus && !!userLeavingStatus;
-        const deletedParentTriggered = prevDeletedParentAction && !deletedParentAction;
-        const shouldTrigger = userLeavingTriggered || didReportClose || isRemovalExpectedForReportType || isClosedTopLevelPolicyRoom || deletedParentTriggered;
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
-        if (shouldTrigger) {
+        if (
+            // non-optimistic case
+            (!prevUserLeavingStatus && !!userLeavingStatus) ||
+            didReportClose ||
+            isRemovalExpectedForReportType ||
+            isClosedTopLevelPolicyRoom ||
+            (prevDeletedParentAction && !deletedParentAction)
+        ) {
             navigateAwayFromReport(prevOnyxReportID, prevReport?.parentReportID);
         }
     }, [
@@ -230,7 +234,7 @@ function ReportNavigateAwayHandler() {
             }
 
             // Fallback to Concierge
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
         });
     }, [reportWasDeleted, previousReportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 

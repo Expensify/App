@@ -100,7 +100,7 @@ function CardSection() {
             confirmText: translate('subscription.cardSection.requestRefundModal.confirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
     };
@@ -121,7 +121,7 @@ function CardSection() {
             ],
         });
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
