@@ -2829,7 +2829,7 @@ function filteredPersonalDetailsOfRecentReports<T extends SearchOptionData>(rece
 /**
  * Filters options based on the search input value
  */
-function filterReports(reports: SearchOptionData[], searchTerms: string[], includeLogin = true): SearchOptionData[] {
+function filterReports(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
     const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term));
     // We search eventually for multiple whitespace separated search terms.
     // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
@@ -2843,7 +2843,7 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[], inclu
                     values.push(StringUtils.normalizeForMatch(item.text).replaceAll(/['-]/g, ''));
                 }
 
-                if (includeLogin && item.login) {
+                if (item.login) {
                     values.push(StringUtils.normalizeForMatch(item.login));
                     values.push(StringUtils.normalizeForMatch(item.login.replace(CONST.EMAIL_SEARCH_REGEX, '')));
                 }
