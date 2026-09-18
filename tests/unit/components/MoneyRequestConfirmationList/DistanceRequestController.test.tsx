@@ -123,7 +123,7 @@ describe('DistanceRequestController', () => {
         /** A workspace whose distance rates have not arrived from Onyx yet. */
         const policyWithoutRates = createMock<Policy>({id: 'workspaceB', customUnits: {}});
 
-        /** A loaded workspace whose only rate matches neither the selected rate ID nor its value/unit. */
+        /** A loaded workspace whose only rate matches neither the selected rate ID nor its value/unit (the unit comes from the custom unit attributes). */
         const policyWithUnrelatedRate = createMock<Policy>({
             id: 'workspaceB',
             customUnits: {
@@ -133,7 +133,7 @@ describe('DistanceRequestController', () => {
                     attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
                     enabled: true,
                     rates: {
-                        rateB: {customUnitRateID: 'rateB', rate: 999, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, currency: CONST.CURRENCY.USD, enabled: true, name: 'Other rate'},
+                        rateB: {customUnitRateID: 'rateB', rate: 999, currency: CONST.CURRENCY.USD, enabled: true, name: 'Other rate'},
                     },
                 },
             },
