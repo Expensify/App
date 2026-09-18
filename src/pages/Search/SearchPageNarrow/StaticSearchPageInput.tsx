@@ -1,7 +1,6 @@
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 // Static twin of SearchPageInput for narrow layout - used for fast perceived performance.
@@ -12,22 +11,12 @@ import {View} from 'react-native';
 
 function StaticSearchPageInput() {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
 
     return (
-        <View
-            style={[
-                styles.flex1,
-                styles.searchRouterTextInputContainer,
-                styles.searchAutocompleteInputResults,
-                styles.br2,
-                styles.justifyContentCenter,
-                styles.searchPageInputNarrowTouchableWrapper,
-            ]}
-        >
+        <View style={[styles.flex1, styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2, styles.justifyContentCenter, styles.h11]}>
             <Text
-                style={[{color: theme.textSupporting}]}
+                style={[styles.textLabel, styles.textSupporting]}
                 numberOfLines={1}
             >
                 {translate('search.searchPlaceholder')}
