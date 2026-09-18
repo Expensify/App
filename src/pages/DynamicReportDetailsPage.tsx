@@ -126,7 +126,8 @@ import {
     updateGroupChatAvatar,
 } from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions/Task';
+import {canActionTask, canModifyTask, reopenTask} from '@userActions/Task';
+import {deleteTask} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';

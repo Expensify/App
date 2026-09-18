@@ -14,14 +14,13 @@ import {
     completeTestDriveTask,
     createTaskAndNavigate,
     createTaskFromMarkdown,
-    deleteTask,
     editTask,
     editTaskAssignee,
     getAssignee,
     getFinishOnboardingTaskOnyxData,
-    getNavigationUrlOnTaskDelete,
     getShareDestination,
 } from '@libs/actions/Task';
+import {deleteTask, getNavigationUrlOnTaskDelete} from '@libs/actions/TaskDeletion';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
