@@ -85,7 +85,9 @@ This helps keep reports moving forward and ensures expenses are submitted and ap
 ## How Workspace Admins can create a report by moving multiple expenses
 
 1. Select two or more reported or unreported company card expenses, or reported reimbursable expenses.
-2. Select the **Selected** button.
+2. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 3. Select **Move expenses**.
 4. Select **Create report** to add the expenses to a report on the member's default workspace. 
    - You must be a Workspace Admin on that workspace.

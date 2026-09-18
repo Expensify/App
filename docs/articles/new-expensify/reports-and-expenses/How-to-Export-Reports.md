@@ -29,7 +29,9 @@ You'll receive the exported CSV file in a message from Concierge.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
-3. Select **Selected** at the top.
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 4. Select **Export**.
 5. Choose an export template from the menu that appears. 
 
@@ -42,7 +44,9 @@ Use **Export current view** to download a CSV that matches the columns currently
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
 3. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
-4. Select **Selected** at the top.
+4. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 5. Select **Export**.
 6. Select **Export current view**.
 
@@ -82,7 +86,9 @@ For reports on a Submit workspace, the PDF also includes an **Approve or Pay** b
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Select the checkbox next to each report you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 4. Select **Download reports**.
 5. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
 
@@ -106,7 +112,9 @@ You can download the receipts on several reports at once in a single ZIP file.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select the checkbox next to each report whose receipts you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 4. Select **Download receipts**, or **Download receipt** if the selected reports hold only one receipt in total.
 5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
@@ -138,7 +146,7 @@ It does not apply to:
 
 ## Why don't I see Download receipt or Download receipts on a report?
 
-This action only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports and open **Selected**, it appears only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
+This action only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports, it appears in the bulk actions only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
 
 ## Why does the receipt download option sometimes read Download receipt instead of Download receipts?
 

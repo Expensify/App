@@ -57,14 +57,17 @@ Each row represents an expense and includes:
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
   - **Delete:** To remove expenses from the expense report.
 
-**Note:** The bulk action menu appears after selecting at least one expense.
+**Note:** The bulk actions appear after you select at least one expense.
+
+- **On web:** They appear in a bar at the bottom of the list that shows how many rows you selected, for example **2 selected**. The bar shows the most common actions as buttons and puts the rest behind **More**, so select **More** if you don't see the action you want. The search box and filters stay visible while the bar is open. To clear your selection, select the close icon at the right of the bar or press the Escape key.
+- **On mobile:** Tap **Selected** to open the same list of actions.
 
 ## How to move expenses between reports
 
 **From the report table**
 
 1. Select the expense(s) using checkboxes.
-2. Click **Move to report** from the bulk action menu.
+2. Click **Move to report** from the bulk actions. On web, click **More** in the bar at the bottom of the list if you don't see it.
 3. In the right-hand panel, select from the following options:
    - Create report
    - An existing draft or submitted report

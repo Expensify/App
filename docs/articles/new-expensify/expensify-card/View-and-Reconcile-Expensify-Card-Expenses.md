@@ -58,7 +58,7 @@ The **Current balance** on the Expensify Card page reflects the card expenses th
 ## How to Export Expensify Card Expenses
 
 1. From the Expensify Card reconciliation view, select the expenses you want to export using the checkboxes.
-2. Click the **Selected** button that appears above the results.
+2. In the bar that appears at the bottom of the results, click **Export**. If you don't see it, click **More** first.
 3. Choose an export template to download the results as a CSV file.
 
 ---
@@ -68,9 +68,8 @@ The **Current balance** on the Expensify Card page reflects the card expenses th
 From the Expensify Card reconciliation view, you can download a PDF statement for one or more settlements. The statement includes the transactions and payments for each selected settlement.
 
 1. From the Expensify Card reconciliation view, select one or more whole settlements using the checkboxes. To select an entire settlement, either check a collapsed settlement row or expand the settlement and check every transaction within it.
-2. Click the **Selected** button that appears above the results.
-3. Click **Download statement**.
-4. Wait for the statement to generate, then the PDF downloads automatically.
+2. In the bar that appears at the bottom of the results, click **Download statement**. If you don't see it, click **More** first.
+3. Wait for the statement to generate, then the PDF downloads automatically.
 
 Keep the following in mind:
 

@@ -82,7 +82,9 @@ Workspace admins can bypass the approval workflow on a report to final approve i
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
 2. Select two or more reports using the checkboxes.
-3. Choose **Selected**, then **Change approver**.
+3. Choose **Change approver**:
+   - **On web:** Select **Change approver** in the bar that appears at the bottom of the list. If you don't see it, select **More** first.
+   - **On mobile:** Tap **Selected**, then select **Change approver**.
 4. Select **Add approver** or **Bypass approvers**.
 5. If you selected **Add approver**, choose the approver and click **Save**.
 
