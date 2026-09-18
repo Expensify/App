@@ -190,7 +190,13 @@ describe('ContextMenuActions copy message', () => {
             createReportActionPayload(
                 createMock<CopyMessagePayload['reportAction']>({
                     actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
-                    message: [{html: ''}],
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            style: 'normal',
+                            text: "owner@expensify.com updated this agent's instructions.",
+                        },
+                    ],
                     originalMessage: {
                         previousPrompt: 'Review every expense',
                         newPrompt: 'Review expenses over $100',
