@@ -42,7 +42,6 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Card layout that affects icon positioning, margins, sizes */
     cardLayout?: ValueOf<typeof CARD_LAYOUT>;
 
-    /** Whether the subtitle should have a muted style */
     subtitleMuted?: boolean;
 
     /** Customize the Section container */
@@ -60,10 +59,7 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Customize the Section container */
     childrenStyles?: StyleProp<ViewStyle>;
 
-    /** Customize the Icon container */
     iconContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Customize the Central pane container */
     centralPaneContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether the section is in the central pane of the layout */
@@ -75,13 +71,8 @@ type SectionProps = Partial<ChildrenProps> & {
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
-    /** Customize the Illustration container */
     illustrationContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
-
-    /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
 
     /** Overlay content to display on top of animation */
@@ -90,13 +81,8 @@ type SectionProps = Partial<ChildrenProps> & {
     /** The component to display in the title of the section */
     renderSubtitle?: () => ReactNode;
 
-    /** The component to display custom title */
     renderTitle?: () => ReactNode;
-
-    /** The width of the icon. */
     iconWidth?: number;
-
-    /** The height of the icon. */
     iconHeight?: number;
 
     /** Banner to display at the top of the section */

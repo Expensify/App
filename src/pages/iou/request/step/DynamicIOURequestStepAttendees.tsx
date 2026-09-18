@@ -1,3 +1,4 @@
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -9,7 +10,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
 import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -58,15 +58,17 @@ function DynamicIOURequestStepAttendees({
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const transactionViolations = useTransactionViolations(transactionID);
+    const allTransactionViolations = useAllTransactionViolations(transactionID);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
 
@@ -84,6 +86,7 @@ function DynamicIOURequestStepAttendees({
         if (!deepEqual(previousAttendees, attendees)) {
             if (isEditing) {
                 updateMoneyRequestAttendees({
+                    isVendorMatchingBetaEnabled,
                     transactionID,
                     transactionThreadReport: report,
                     parentReport,
@@ -92,7 +95,7 @@ function DynamicIOURequestStepAttendees({
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
-                    violations: transactionViolations ?? undefined,
+                    violations: allTransactionViolations,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
@@ -102,6 +105,7 @@ function DynamicIOURequestStepAttendees({
                     isTrackIntentUser,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             } else {
                 setMoneyRequestAttendees(transactionID, attendees, !isEditing);
@@ -110,6 +114,7 @@ function DynamicIOURequestStepAttendees({
 
         Navigation.goBack(backPathRef.current, {shouldSkipFocusRestore: true});
     }, [
+        isVendorMatchingBetaEnabled,
         attendees,
         previousAttendees,
         isEditing,
@@ -120,7 +125,7 @@ function DynamicIOURequestStepAttendees({
         policy,
         policyTags,
         policyCategories,
-        transactionViolations,
+        allTransactionViolations,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
@@ -130,6 +135,7 @@ function DynamicIOURequestStepAttendees({
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     ]);
 
     const navigateBack = () => {

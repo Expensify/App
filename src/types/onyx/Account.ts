@@ -13,13 +13,11 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The email of the delegate */
     email: string;
 
-    /** The role of the delegate */
     role?: DelegateRole;
 
     /** Whether the user validation code was sent */
     validateCodeSent?: boolean;
 
-    /** Whether the user is loading */
     isLoading?: boolean;
 
     /** The accountID of a delegate when they aren't in the personalDetails. */
@@ -100,43 +98,24 @@ type Account = {
     /** Whether the account 2FA setup is in progress, driven by the frontend */
     twoFactorAuthSetupInProgress?: boolean;
 
-    /** Whether the account is validated */
     validated?: boolean;
 
     /** The primaryLogin associated with the account */
     primaryLogin?: string;
 
-    /** The Report ID of the admins room */
     adminsRoomReportID?: string;
-
-    /** The Account ID of the account manager */
     accountManagerAccountID?: number;
-
-    /** The Report ID of the account manager */
     accountManagerReportID?: string;
-
-    /** The calendar link of the account manager */
     accountManagerCalendarLink?: string;
-
-    /** The account ID of the partner manager */
     partnerManagerAccountID?: number;
-
-    /** The email of the partner manager */
     partnerManagerEmail?: string;
-
-    /** The calendar link of the partner manager */
     partnerManagerCalendarLink?: string;
 
     /** The message to be displayed when code requested */
     message?: string;
 
-    /** Form that is being loaded */
     loadingForm?: ValueOf<typeof CONST.FORMS>;
-
-    /** Whether the user forgot their password */
     forgotPassword?: boolean;
-
-    /** Whether the account exists */
     accountExists?: boolean;
 
     /** Is the account / domain under domain control? */
@@ -160,13 +139,8 @@ type Account = {
     /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
 
-    /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
-
-    /** Indicates whether the user is an approved accountant */
     isApprovedAccountant?: boolean;
-
-    /** Indicates whether the user is a client of an approved accountant */
     isApprovedAccountantClient?: boolean;
 
     /** Indicates whether the user can downgrade current subscription plan */
@@ -181,10 +155,7 @@ type Account = {
     /** The users you can access as delegate and the users who can access your account as a delegate */
     delegatedAccess?: DelegatedAccess;
 
-    /** Indicates SMS delivery failure status and associated information */
     smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
-
-    /** The guide details of the account */
     guideDetails?: {
         /** The email of the guide details */
         email: string;
@@ -219,7 +190,6 @@ type Account = {
         errors: OnyxCommon.Errors;
     };
 
-    /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter?: boolean;
 
     /** Whether or not the user is on a public domain email account or not */
@@ -231,10 +201,7 @@ type Account = {
     /** Whether this account can start a supportal session */
     canSupportLogin?: boolean;
 
-    /** Whether or not the user uses expensify card */
     isUsingExpensifyCard?: boolean;
-
-    /** Whether or not the user has lounge access */
     hasLoungeAccess?: boolean;
 
     /** error associated with adding a secondary login */

@@ -4,6 +4,7 @@ import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
 import {useCallback, useMemo, useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
@@ -12,7 +13,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
 import useReportAttributes from './useReportAttributes';
-import useSortedActions from './useSortedActions';
+import useSortedReportActionsData from './useSortedReportActionsData';
 
 type UseFilteredOptionsConfig = {
     /** Maximum number of recent reports to pre-filter and process (default: 500). */
@@ -85,7 +86,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [pendingDeleteMemberAccountIDsByReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportAttributesDerived = useReportAttributes();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -95,7 +98,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -122,7 +126,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                           isSearching,
                           deferContactsUntilSearch,
                           locale: preferredLocale,
+                          pendingDeleteMemberAccountIDsByReportID,
                       },
+                      rules,
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -137,6 +143,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             privateIsArchivedMap,
             allPolicies,
             conciergeReportID,
+            rules,
             reportsLimit,
             includeP2P,
             isSearching,
@@ -145,6 +152,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             isTrackIntentUser,
             sortedActions,
             currentUserAccountID,
+            pendingDeleteMemberAccountIDsByReportID,
             dateFnsLocale,
             convertToDisplayString,
         ],

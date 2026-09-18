@@ -19,7 +19,6 @@ type BrokenConnectionDescriptionProps = {
     /** Transaction id of the corresponding report */
     transactionID: string | undefined;
 
-    /** Current report */
     report: OnyxEntry<Report>;
 
     /** Policy which the report is tied to */

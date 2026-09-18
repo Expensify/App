@@ -20,6 +20,7 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const shouldUseAllPolicies = !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Early return if no reports are available to prevent useless loop
     if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
@@ -34,7 +35,7 @@ export default function useOutstandingReports(selectedReportID: string | undefin
                 continue;
             }
 
-            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
+            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
             result.push(...reports);
         }
         return result;
@@ -44,5 +45,12 @@ export default function useOutstandingReports(selectedReportID: string | undefin
         return [];
     }
 
-    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isEditing);
+    return getOutstandingReportsForUser(
+        selectedPolicyID,
+        ownerAccountID,
+        rules,
+        reportNameValuePairs,
+        outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+        isEditing,
+    );
 }

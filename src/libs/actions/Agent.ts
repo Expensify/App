@@ -1,3 +1,4 @@
+import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
@@ -6,6 +7,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction, generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -81,11 +83,7 @@ function createAgent(
     });
 
     const optimisticData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[optimisticAccountID]: optimisticPersonalDetail},
-        },
+        buildPersonalDetailsUpdate({[optimisticAccountID]: optimisticPersonalDetail}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
@@ -108,17 +106,9 @@ function createAgent(
         },
     ];
 
+    // The optimistic personal detail and agent prompt are not cleared here: replaceOptimisticAgentWithActualAgent
+    // clears them after redirecting any open agent settings screen, so the cleanup can never beat the redirect.
     const successData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[optimisticAccountID]: null},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
-            value: null,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
@@ -132,11 +122,7 @@ function createAgent(
     ];
 
     const failureData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[optimisticAccountID]: optimisticPersonalDetail},
-        },
+        buildPersonalDetailsUpdate({[optimisticAccountID]: optimisticPersonalDetail}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
@@ -186,7 +172,7 @@ function clearNewAgentTemplate() {
 }
 
 function clearAgentError(optimisticAccountID: number) {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
+    Onyx.update([buildPersonalDetailsUpdate({[optimisticAccountID]: null})]);
     Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
 }
 
@@ -207,15 +193,13 @@ function clearAgentDeleteError(accountID: number) {
 }
 
 function updateAgentName(accountID: number, firstName: string, originalFirstName: string) {
+    // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
+    const agentAccountID = resolveAgentAccountID(accountID);
     const optimisticData: AnyOnyxUpdate[] = [
+        buildPersonalDetailsUpdate({[agentAccountID]: {displayName: firstName}}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[accountID]: {displayName: firstName}},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, nameErrors: null},
         },
     ];
@@ -223,29 +207,27 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
     const successData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: {pendingAction: null, nameErrors: null},
         },
     ];
 
     const failureData: AnyOnyxUpdate[] = [
+        buildPersonalDetailsUpdate({[agentAccountID]: {displayName: originalFirstName}}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[accountID]: {displayName: originalFirstName}},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: {pendingAction: null, nameErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updateName')},
         },
     ];
 
-    write(WRITE_COMMANDS.UPDATE_AGENT_NAME, {agentAccountID: accountID, firstName}, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.UPDATE_AGENT_NAME, {agentAccountID, firstName}, {optimisticData, successData, failureData});
 }
 
 function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: string) {
-    const onyxKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
+    // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
+    const agentAccountID = resolveAgentAccountID(accountID);
+    const onyxKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`;
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -270,7 +252,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
         },
     ];
 
-    write(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID: accountID, prompt}, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID, prompt}, {optimisticData, successData, failureData});
 }
 
 function clearAgentAvatarUpdateError(accountID: number) {
@@ -284,74 +266,66 @@ function updateAgentAvatar(
 ) {
     const isCustomExpensifyAvatar = 'customExpensifyAvatarID' in update;
 
+    // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
+    const agentAccountID = resolveAgentAccountID(accountID);
     const optimisticData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [accountID]: {
-                    avatar: update.uri,
-                    avatarThumbnail: update.uri,
-                    pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    errorFields: {avatar: null},
-                },
+        buildPersonalDetailsUpdate({
+            [agentAccountID]: {
+                avatar: update.uri,
+                avatarThumbnail: update.uri,
+                pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {avatar: null},
             },
-        },
+        }),
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, avatarErrors: null},
         },
     ];
 
     const successData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [accountID]: {
-                    pendingFields: {avatar: null},
-                    errorFields: {avatar: null},
-                },
+        buildPersonalDetailsUpdate({
+            [agentAccountID]: {
+                pendingFields: {avatar: null},
+                errorFields: {avatar: null},
             },
-        },
+        }),
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: {pendingAction: null, avatarErrors: null},
         },
     ];
 
     const failureData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [accountID]: {
-                    avatar: currentAvatar,
-                    avatarThumbnail: typeof currentAvatar === 'string' ? currentAvatar : undefined,
-                    pendingFields: {avatar: null},
-                    errorFields: {avatar: null},
-                },
+        buildPersonalDetailsUpdate({
+            [agentAccountID]: {
+                avatar: currentAvatar,
+                avatarThumbnail: typeof currentAvatar === 'string' ? currentAvatar : undefined,
+                pendingFields: {avatar: null},
+                errorFields: {avatar: null},
             },
-        },
+        }),
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: {pendingAction: null, avatarErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updateAvatar')},
         },
     ];
 
-    const params = isCustomExpensifyAvatar ? {agentAccountID: accountID, customExpensifyAvatarID: update.customExpensifyAvatarID} : {agentAccountID: accountID, file: update.file};
+    const params = isCustomExpensifyAvatar ? {agentAccountID, customExpensifyAvatarID: update.customExpensifyAvatarID} : {agentAccountID, file: update.file};
 
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
 function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true) {
+    // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
+    const agentAccountID = resolveAgentAccountID(accountID);
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         },
     ];
@@ -359,20 +333,16 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     const successData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[accountID]: null},
-        },
+        buildPersonalDetailsUpdate({[agentAccountID]: null}),
     ];
 
     const failureData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
             value: {
                 pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -405,7 +375,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
         }
     }
 
-    write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID}, {optimisticData, successData, failureData});
 
     // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
     // don't want the extra navigation, since the delegate transition resets navigation on its own.
