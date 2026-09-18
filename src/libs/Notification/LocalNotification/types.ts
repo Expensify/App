@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
@@ -26,6 +28,7 @@ type LocalNotificationModifiedExpenseParams = {
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
     derivedMovedFromReportName: string | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
