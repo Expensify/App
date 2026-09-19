@@ -61,6 +61,7 @@ const baseState = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    displayedSearchResults: undefined,
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
@@ -84,6 +85,7 @@ const baseState = {
 
 const baseActions = {
     setLastSearchType: jest.fn(),
+    setIsSorting: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     applySelection: jest.fn(),

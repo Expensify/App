@@ -29,6 +29,7 @@ import {useMemo} from 'react';
 
 import useLiveFilteredReportActions from './useLiveFilteredReportActions';
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
+import useSearchDataType from './useSearchDataType';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 type OptimisticTrackingReturn = ReturnType<typeof useOptimisticSearchTracking>;
@@ -165,7 +166,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     // There's a race condition in Onyx which makes it return data from the previous Search, so in
     // addition to checking that the data is loaded we also check that the snapshot matches the query.
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+    const searchDataType = useSearchDataType(searchResults);
 
     // Mirror the legacy `<Search>` gate: skip the heavy projection while deferring, before data is
     // loaded, or for the invalid group-by-on-chat/task combo. Drives every stage below.

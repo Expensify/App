@@ -50,6 +50,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn(() => ({})),
     getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
     isTodoSearch: jest.fn(() => false),
+    // SearchResultsProvider calls this on every render. This test renders no search snapshot,
+    // which is the case the real implementation resolves to false for.
+    isSearchDataLoaded: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
