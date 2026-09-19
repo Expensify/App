@@ -288,6 +288,10 @@ const compactPopoverMenuItemBaseStyle = {
 const COMPOSER_SIZE_BUTTON_SIZE = 40;
 const COMPOSER_SIZE_BUTTON_MARGIN = 3;
 
+// How far the receipt image row is inset from the edge of its preview card, shared by
+// reportActionItemImagesContainer and reportActionItemImages so the two corners stay concentric.
+const reportActionItemImagesInset = 4;
+
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
         ...spacing,
@@ -2748,13 +2752,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCardAndTable,
+            borderTopRightRadius: variables.componentBorderRadiusCardAndTable,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCardAndTable,
+            borderBottomRightRadius: variables.componentBorderRadiusCardAndTable,
         },
 
         tableBorder: {
@@ -3202,10 +3206,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        borderedContentCardLarge: {
+        borderedReportPreviewCard: {
             borderWidth: 1,
             borderColor: theme.border,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
         },
 
         sectionMenuItemTopDescription: {
@@ -3498,7 +3502,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         moneyRequestPreviewBox: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             maxWidth: variables.reportPreviewMaxWidth,
             width: '100%',
         },
@@ -4170,7 +4174,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -4180,7 +4184,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             overflow: 'hidden',
         },
 
@@ -5026,7 +5030,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportPreviewBox: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             maxWidth: variables.reportPreviewMaxWidth,
             width: '100%',
         },
@@ -5041,7 +5045,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportContainerBorderRadius: {
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
         },
 
         expenseAndReportPreviewBoxBody: {
@@ -5057,7 +5061,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportActionItemImagesContainer: {
-            margin: 4,
+            margin: reportActionItemImagesInset,
         },
 
         receiptPreviewAspectRatio: {
@@ -5066,7 +5070,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportActionItemImages: {
             flexDirection: 'row',
-            borderRadius: 12,
+            // The receipt row sits inside the preview card, inset by the margin on
+            // `reportActionItemImagesContainer`, so subtract that inset to stay concentric with the card corner.
+            borderRadius: variables.componentBorderRadiusCardAndTable - reportActionItemImagesInset,
             overflow: 'hidden',
         },
 
@@ -5362,7 +5368,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         transactionListItemStyle: {
-            borderRadius: 8,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             minHeight: variables.optionRowHeight,
             backgroundColor: theme.transparent,
             flex: 1,
@@ -5709,7 +5715,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         workspaceSectionMoreFeaturesItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             paddingHorizontal: 16,
             paddingVertical: 20,
             minWidth: 350,
@@ -6701,7 +6707,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: theme.highlightBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             padding: 20,
             minHeight: CHART_CONTENT_MIN_HEIGHT,
         },
@@ -6737,7 +6743,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderStyle: 'solid',
         },
         chartContainer: {
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
         },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,

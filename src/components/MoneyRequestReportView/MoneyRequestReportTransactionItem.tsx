@@ -318,7 +318,7 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
+        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadiusCardAndTable : 0,
         shouldHighlight: shouldBeHighlighted,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
