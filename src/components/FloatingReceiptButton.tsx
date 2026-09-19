@@ -20,13 +20,10 @@ import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
 type FloatingReceiptButtonProps = WithSentryLabel & {
-    /* Callback to fire on request to toggle the FloatingReceiptButton */
+    /** Callback to fire on request to toggle the FloatingReceiptButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
-    /* An accessibility label for the button */
     accessibilityLabel: string;
-
-    /* An accessibility role for the button */
     role: Role;
 };
 

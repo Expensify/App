@@ -1,5 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';

@@ -7,7 +7,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -27,6 +27,7 @@ import {isSafari} from '@libs/Browser';
 import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {
     canCreateTaskInReport,
@@ -68,40 +69,20 @@ type MoneyRequestOptions = Record<
 >;
 
 type AttachmentPickerWithMenuItemsProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The personal details of the current user */
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
-
-    /** Callback when the attachment is picked */
     onAttachmentPicked: (url: FileObject | FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
 
-    /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
-
-    /** Whether or not the attachment picker is disabled */
     disabled?: boolean;
-
-    /** Sets the menu visibility */
     setMenuVisibility: (isVisible: boolean) => void;
-
-    /** Whether or not the menu is visible */
     isMenuVisible: boolean;
-
-    /** Report ID */
     reportID: string;
-
-    /** Called when opening the attachment picker */
     onTriggerAttachmentPicker: () => void;
-
-    /** Called when cancelling the attachment picker */
     onCanceledAttachmentPicker?: () => void;
-
-    /** Called when the menu with the items is closed after it was open */
     onMenuClosed?: () => void;
 
     /** Called when the add action button is pressed */
@@ -110,7 +91,6 @@ type AttachmentPickerWithMenuItemsProps = {
     /** Called when the menu item is selected */
     onItemSelected: () => void;
 
-    /** A ref for the add action button */
     actionButtonRef: React.RefObject<HTMLDivElement | View | null>;
 
     /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
@@ -178,11 +158,10 @@ function AttachmentPickerWithMenuItems({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest: true,
-        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
-        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
     });
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
@@ -196,6 +175,7 @@ function AttachmentPickerWithMenuItems({
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const selectOption = useCallback(
@@ -223,12 +203,12 @@ function AttachmentPickerWithMenuItems({
                 () =>
                     createNewReport(
                         currentUserPersonalDetails,
-                        isASAPSubmitBetaEnabled,
                         hasViolations,
+                        isASAPSubmitBetaEnabled,
                         policy,
-                        betas,
                         isTrackIntentUser,
                         getCurrencyDecimals,
+                        rules,
                         true,
                         shouldDismissEmptyReportsConfirmation,
                     ),
@@ -240,7 +220,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, false);
+            createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
         }
     };
 
@@ -278,7 +258,7 @@ function AttachmentPickerWithMenuItems({
                             if (blockDistanceRequestIfNeeded()) {
                                 return;
                             }
-                            startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, lastDistanceExpenseType);
+                            startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, distanceExpenseType);
                         }, true),
                 },
             ],
@@ -317,7 +297,7 @@ function AttachmentPickerWithMenuItems({
                             if (blockDistanceRequestIfNeeded()) {
                                 return;
                             }
-                            startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, lastDistanceExpenseType);
+                            startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, distanceExpenseType);
                         }, true),
                 },
             ],
@@ -332,7 +312,7 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, isReportArchived, isRestrictedToPreferredPolicy).map(
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, rules, isReportArchived, isRestrictedToPreferredPolicy).map(
             (option) => options[option],
         );
 
@@ -343,7 +323,7 @@ function AttachmentPickerWithMenuItems({
         isDelegateAccessRestricted,
         isReportArchived,
         isRestrictedToPreferredPolicy,
-        lastDistanceExpenseType,
+        distanceExpenseType,
         policy,
         report,
         reportParticipantIDs,
@@ -354,6 +334,7 @@ function AttachmentPickerWithMenuItems({
         icons,
         betas,
         draftTransactionIDs,
+        rules,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
@@ -495,7 +476,7 @@ function AttachmentPickerWithMenuItems({
                                             }}
                                             style={({hovered, pressed}) => [
                                                 styles.composerSizeButton,
-                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && !disabled, pressed && !disabled)),
+                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered && !disabled, isPressed: pressed && !disabled})),
                                             ]}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
@@ -504,7 +485,7 @@ function AttachmentPickerWithMenuItems({
                                         >
                                             {({hovered, pressed}) => (
                                                 <Icon
-                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered && !disabled, pressed && !disabled))}
+                                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered && !disabled, isPressed: pressed && !disabled})})}
                                                     src={icons.Plus}
                                                 />
                                             )}
@@ -549,6 +530,7 @@ function AttachmentPickerWithMenuItems({
                             }}
                             menuItems={menuItems}
                             anchorRef={actionButtonRef}
+                            enableEdgeToEdgeBottomSafeAreaPadding
                         />
                     </>
                 );

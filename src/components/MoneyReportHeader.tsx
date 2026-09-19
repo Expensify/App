@@ -24,14 +24,12 @@ import {View} from 'react-native';
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
-import {ExportDownloadStatusProvider} from './MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
 import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
 import {useSearchSelectionActions} from './Search/SearchContext';
 
 type MoneyReportHeaderProps = {
-    /** The reportID of the report currently being looked at */
     reportID: string | undefined;
 
     /** Whether back button should be displayed in header */
@@ -44,15 +42,13 @@ type MoneyReportHeaderProps = {
 function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
-            <ExportDownloadStatusProvider>
-                <PaymentAnimationsProvider>
-                    <MoneyReportHeaderContent
-                        reportID={reportID}
-                        shouldDisplayBackButton={shouldDisplayBackButton}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                </PaymentAnimationsProvider>
-            </ExportDownloadStatusProvider>
+            <PaymentAnimationsProvider>
+                <MoneyReportHeaderContent
+                    reportID={reportID}
+                    shouldDisplayBackButton={shouldDisplayBackButton}
+                    onBackButtonPress={onBackButtonPress}
+                />
+            </PaymentAnimationsProvider>
         </MoneyReportHeaderModals>
     );
 }
@@ -81,7 +77,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const styles = useThemeStyles();
 
-    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
+    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
 
     const shouldShowHeaderButtonsInHeaderRow = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
     const isReportInRHP = route.name !== SCREENS.REPORT;
@@ -110,15 +106,19 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             turnOffMobileSelectionMode();
         }
 
-        return (
-            <HeaderWithBackButton
-                title={translate('common.selectMultiple')}
-                onBackButtonPress={() => {
-                    clearSelectedTransactions(true);
-                    turnOffMobileSelectionMode();
-                }}
-            />
-        );
+        // In a wide/super-wide RHP on a wide screen the header stays in its wide state and shows the "X selected"
+        // dropdown instead, matching the transaction list and the selection toolbar which are both wide-RHP aware.
+        if (shouldUseNarrowLayoutOnWideRHP) {
+            return (
+                <HeaderWithBackButton
+                    title={translate('common.selectMultiple')}
+                    onBackButtonPress={() => {
+                        clearSelectedTransactions(true);
+                        turnOffMobileSelectionMode();
+                    }}
+                />
+            );
+        }
     }
 
     return (

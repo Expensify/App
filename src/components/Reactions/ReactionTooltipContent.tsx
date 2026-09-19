@@ -33,9 +33,6 @@ type ReactionTooltipContentProps = {
      */
     accountIDs: number[];
 
-    /**
-     * The account ID of the current user.
-     */
     currentUserAccountID: number;
 };
 

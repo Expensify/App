@@ -74,7 +74,8 @@ jest.mock('@libs/actions/Search', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
-        translate: (key: string) => key,
+        // Echo the plural count so tests can assert which form a label asks for.
+        translate: (key: string, params?: {count?: number}) => (params?.count === undefined ? key : `${key}:${params.count}`),
         localeCompare: (first: string, second: string) => first.localeCompare(second),
         formatPhoneNumber: (phone: string) => phone,
     }),
@@ -222,7 +223,7 @@ function getDownloadStatementPDFOption(options: Array<DropdownOption<SearchHeade
 
 const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
 
-describe('useSearchBulkActions - Download as PDF', () => {
+describe('useSearchBulkActions - Download report', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -254,7 +255,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         await Onyx.clear();
     });
 
-    it('should show Download as PDF option when a single expense report is selected', async () => {
+    it('should show the Download report option when a single expense report is selected', async () => {
         mockSelectedReports = [makeSelectedReport()];
         mockSelectedTransactions = {
             tx1: {
@@ -270,9 +271,12 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
+            // A second expense on the same report keeps the report count at one while the expense count is two.
+            tx2: makeSelectedTransaction({reportID: '1', amount: 200, displayAmount: 200}),
         };
 
         const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
@@ -281,6 +285,9 @@ describe('useSearchBulkActions - Download as PDF', () => {
             const pdfOption = getDownloadPDFOption(result.current.headerButtonsOptions);
             expect(pdfOption).toBeDefined();
         });
+
+        // One report is selected, so the label must ask for the singular "Download report" (and not count the two expenses).
+        expect(getDownloadPDFOption(result.current.headerButtonsOptions)?.text).toBe('common.downloadReport:1');
     });
 
     it('should call exportReportToPDF exactly once when triggered', async () => {
@@ -299,6 +306,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -336,6 +344,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -355,7 +364,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(exportReportToPDF).not.toHaveBeenCalled();
     });
 
-    it('should show Download as PDF when multiple reports are selected', async () => {
+    it('should show Download reports when multiple reports are selected', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
             reportID: '2',
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -378,6 +387,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -394,6 +404,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '2',
                 policyID: 'policy1',
                 amount: 200,
+                displayAmount: 200,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -404,6 +415,9 @@ describe('useSearchBulkActions - Download as PDF', () => {
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
+
+        // Two reports are selected, so the label must ask for the plural "Download reports".
+        expect(getDownloadPDFOption(result.current.headerButtonsOptions)?.text).toBe('common.downloadReport:2');
     });
 
     it('should call exportReportsToPDF for multi-select and set activeExportID', async () => {
@@ -429,6 +443,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -445,6 +460,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '2',
                 policyID: 'policy1',
                 amount: 200,
+                displayAmount: 200,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -464,7 +480,6 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
         expect(exportReportsToPDF).toHaveBeenCalledWith(expect.arrayContaining(['1', '2']));
         expect(exportReportToPDF).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {

@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -70,7 +71,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
                         headerContentStyles={styles.agentsRulesEmptyStateIllustration}
                         title={translate('workspace.rules.agentRulesEmptyState.title')}
                         subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
-                        subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                        subtitleStyles={[styles.textSupporting]}
                         minModalHeight={0}
                         cardContentStyles={styles.ph0}
                         containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
@@ -78,7 +79,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
                             {
                                 buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
                                 buttonAction: handleAddAgentRule,
-                                success: true,
+                                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 icon: icons.Plus,
                                 isDisabled: !canWriteRules,
                             },

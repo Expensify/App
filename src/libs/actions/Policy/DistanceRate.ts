@@ -8,6 +8,7 @@ import type {
     SetPolicyCommuterExclusionsParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
+    SetPolicyRequireMapOrGPSParams,
     SetWorkspaceDistanceAutoUpdateParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
@@ -636,6 +637,58 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
 }
 
 /**
+ * Turn the "Require GPS or map entry" setting on or off for a policy. When it's on, the manual and odometer
+ * distance flows are unavailable because neither can produce a mapped route.
+ */
+function setPolicyRequireMapOrGPS(policyID: string, requireMapOrGPS: boolean, previousRequireMapOrGPS: boolean | undefined) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    requireMapOrGPS,
+                    pendingFields: {requireMapOrGPS: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {requireMapOrGPS: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {requireMapOrGPS: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    requireMapOrGPS: previousRequireMapOrGPS ?? false,
+                    pendingFields: {requireMapOrGPS: null},
+                    errorFields: {requireMapOrGPS: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyRequireMapOrGPSParams = {policyID, enabled: requireMapOrGPS};
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS, parameters, onyxData);
+}
+
+function clearPolicyRequireMapOrGPSErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {requireMapOrGPS: null},
+        pendingFields: {requireMapOrGPS: null},
+    });
+}
+
+/**
  * Turn the auto-updating of government distance rates on or off for a policy.
  *
  * On enable, government reference rates for `outputCurrency` are copied optimistically. `optimisticRateIDs` sends the
@@ -808,6 +861,8 @@ export {
     setPolicyCommuterExclusions,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
+    setPolicyRequireMapOrGPS,
+    clearPolicyRequireMapOrGPSErrors,
     setWorkspaceDistanceAutoUpdate,
     clearWorkspaceDistanceAutoUpdateErrors,
 };

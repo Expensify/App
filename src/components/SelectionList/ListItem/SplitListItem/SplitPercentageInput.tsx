@@ -19,7 +19,6 @@ type SplitPercentageInputProps = {
     contentWidth: number;
     /** The draft percentage value while the user is editing. */
     percentageDraft: string | undefined;
-    /** Callback invoked when the split expense value changes. */
     onSplitExpenseValueChange: (value: string) => void;
     /** State setter for the percentage draft value. */
     setPercentageDraft: React.Dispatch<React.SetStateAction<string | undefined>>;

@@ -27,13 +27,8 @@ import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTab
 type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
 
 type WorkspaceCompanyCardsTableControlsProps = {
-    /** Current policy id */
     policyID: string;
-
-    /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
-
-    /** Bank name */
     bankName: UseCompanyCardsResult['bankName'];
 
     /** Whether the current member can edit company cards */
@@ -125,7 +120,7 @@ function WorkspaceCompanyCardsTableControls({
             prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (action !== ModalActions.CONFIRM) {

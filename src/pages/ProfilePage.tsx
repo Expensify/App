@@ -5,6 +5,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -17,6 +18,7 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -46,7 +48,7 @@ import {openAgentsPage} from '@userActions/Agent';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -104,6 +106,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const [report] = useOnyx(reportKey);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const isSupportalSession = useIsSupportalSession();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
 
     const styles = useThemeStyles();
@@ -211,6 +215,8 @@ function ProfilePage({route}: ProfilePageProps) {
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                 betas,
                 hasReportActions,
+                conciergeChat,
+                isSupportalSession,
             }),
         );
     }
@@ -322,13 +328,12 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {shouldShowNotificationPreference && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={notificationPreference}
-                                description={translate('notificationPreferencesPage.label')}
+                            <MenuItemField
+                                name={translate('notificationPreferencesPage.label')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
                                 }}
+                                value={notificationPreference}
                             />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
@@ -343,13 +348,12 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {isConcierge && !!guideCalendarLink && (
-                            <MenuItem
+                            <MenuItemAction
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={expensifyIcons.Phone}
-                                isAnonymousAction={false}
-                                onPress={callFunctionIfActionIsAllowed(() => {
+                                onPress={() => {
                                     openExternalLink(guideCalendarLink);
-                                })}
+                                }}
                             />
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (

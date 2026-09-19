@@ -14,6 +14,7 @@ import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 import NumberWithSymbolForm from './NumberWithSymbolForm';
+import NumericField from './NumericField';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -46,10 +47,7 @@ type AmountFormProps = {
     /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
 
-    /** Number of decimals to display */
     decimals?: number;
-
-    /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
     /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */
@@ -64,21 +62,19 @@ type AmountFormProps = {
     /** Whether the input should be disabled */
     disabled?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference to the number form for imperative updates */
     numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
-    /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
 
     /** Callback when the input is focused */
     onFocus?: () => void;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'onBlur'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'onBlur'>;
 
 /**
- * Wrapper around NumberWithSymbolForm with currency handling.
+ * Wrapper around the numeric form components with currency handling.
  */
 function AmountForm({
     value,
@@ -97,8 +93,6 @@ function AmountForm({
     currencyButtonAccessibilityLabel,
     disabled = false,
     autoFocus,
-    autoGrowExtraSpace,
-    autoGrowMarginSide,
     onSubmitEditing,
     onFocus,
     onBlur,
@@ -109,6 +103,33 @@ function AmountForm({
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
+    const symbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
+
+    // Use NumericField for standard text input. Currency-button variants still use the legacy form.
+    if (displayAsTextInput && !shouldShowCurrencyButton) {
+        return (
+            <NumericField
+                value={value ?? ''}
+                onInputChange={onInputChange}
+                decimals={decimals}
+                maxLength={amountMaxLength}
+                errorText={errorText}
+                ref={numberFormRef}
+            >
+                <NumericField.TextInput
+                    prefixCharacter={hideCurrencySymbol ? '' : symbol}
+                    accessibilityLabel={label}
+                    label={label}
+                    disabled={disabled}
+                    autoFocus={autoFocus}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                    onSubmitEditing={onSubmitEditing}
+                    ref={ref}
+                />
+            </NumericField>
+        );
+    }
 
     return (
         <NumberWithSymbolForm
@@ -128,7 +149,7 @@ function AmountForm({
                 }
             }}
             numberFormRef={numberFormRef}
-            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+            symbol={symbol}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}
@@ -141,8 +162,6 @@ function AmountForm({
             containerStyle={displayAsTextInput ? undefined : styles.iouAmountTextInputContainer}
             touchableInputWrapperStyle={displayAsTextInput ? undefined : styles.heightUndefined}
             autoFocus={autoFocus}
-            autoGrowExtraSpace={autoGrowExtraSpace}
-            autoGrowMarginSide={autoGrowMarginSide}
             onSubmitEditing={onSubmitEditing}
             disabled={disabled}
             onFocus={onFocus}

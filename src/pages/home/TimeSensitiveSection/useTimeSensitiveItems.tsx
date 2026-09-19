@@ -3,11 +3,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useOnyx from '@hooks/useOnyx';
 
+import {getExpensifyCardPendingWalletApproval} from '@libs/actions/Card';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {useFocusEffect} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
@@ -20,6 +22,7 @@ import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveHomeAddress from './hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
+import useTimeSensitiveOverdueInvoice from './hooks/useTimeSensitiveOverdueInvoice';
 import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import ActivateCard from './items/ActivateCard';
 import AddBankAccount from './items/AddBankAccount';
@@ -27,11 +30,13 @@ import AddHomeAddress from './items/AddHomeAddress';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
+import ConfirmDigitalWalletAddition from './items/ConfirmDigitalWalletAddition';
 import EnterSignerInfo from './items/EnterSignerInfo';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import FixPolicyConnection from './items/FixPolicyConnection';
+import PayOverdueInvoice from './items/PayOverdueInvoice';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
 import ValidateAccount from './items/ValidateAccount';
@@ -57,12 +62,24 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         shouldShowActivateCard,
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
+        shouldShowConfirmDigitalWalletAddition,
+        hasActiveExpensifyCard,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
         virtualCardsNeedingPersonalDetails,
+        cardsPendingDigitalWalletApproval,
     } = useTimeSensitiveCards();
+
+    // Only cardholders can have a pending wallet addition. Refresh on Home focus so new ones still show up.
+    useFocusEffect(() => {
+        if (!hasActiveExpensifyCard) {
+            return;
+        }
+        getExpensifyCardPendingWalletApproval();
+    });
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
+    const {shouldShowOverdueInvoiceReminder, isOverdue: isInvoiceOverdue, invoiceGracePeriodEndUnixSeconds} = useTimeSensitiveOverdueInvoice();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
@@ -98,33 +115,37 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
     const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
 
-    // Priority order:
-    // 1. Validate account
-    // 2. Fix failed billing (existing customers with declined cards)
-    // 3. Potential card fraud
-    // 4. Add payment card (trial ended, no payment card)
-    // 5. Add bank account for a queued reimbursement
-    // 6. Broken bank connections (company cards)
-    // 7. Broken bank connections (personal cards)
-    // 8. Locked bank accounts (workspace VBAs and personal)
-    // 9. Enter signer info for global bank accounts
-    // 10. Broken policy connections (accounting + HR)
-    // 11. Expensify card shipping
-    // 12. Expensify card activation
-    // 13. Virtual Expensify card needs personal details
+    // Priority order (RBR / urgent-error rows first, then GBR / setup nudges):
+    // 1. Fix failed billing (existing customers with declined cards)
+    // 2. Potential card fraud
+    // 3. Broken bank connections (company cards)
+    // 4. Broken bank connections (personal cards)
+    // 5. Locked bank accounts (workspace VBAs and personal)
+    // 6. Broken policy connections (accounting + HR)
+    // 7. Validate account
+    // 8. Add home address (commuter exclusions, homeAndOffice method)
+    // 9. Add payment card (trial ended, no payment card)
+    // 10. Add bank account for a queued reimbursement
+    // 11. Enter signer info for global bank accounts
+    // 12. Expensify card shipping
+    // 13. Expensify card activation
+    // 14. Virtual Expensify card needs personal details
+    // 15. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
-    // Priority 1: Validate account
-    if (shouldShowValidateAccount) {
-        items.push(<ValidateAccount key="validate-account" />);
-    }
-    // Priority 1b: Add home address (commuter exclusions, homeAndOffice method)
-    if (shouldShowAddHomeAddress) {
-        items.push(<AddHomeAddress key="add-home-address" />);
-    }
-    // Priority 2: Failed billing for existing customers
+    // Priority 1: Failed billing for existing customers
     if (shouldShowFixFailedBilling) {
         items.push(<FixFailedBilling key="fix-failed-billing" />);
+    }
+    // Priority 2: Overdue subscription invoice for the billing owner
+    if (shouldShowOverdueInvoiceReminder) {
+        items.push(
+            <PayOverdueInvoice
+                key="pay-overdue-invoice"
+                gracePeriodEndUnixSeconds={invoiceGracePeriodEndUnixSeconds}
+                isOverdue={isInvoiceOverdue}
+            />,
+        );
     }
     // Priority 3: Card fraud alerts
     if (shouldShowReviewCardFraud) {
@@ -140,15 +161,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 4: Add payment card (trial ended, no payment card)
-    if (shouldShowAddPaymentCard) {
-        items.push(<AddPaymentCard key="add-payment-card" />);
-    }
-    // Priority 5: Add bank account for a queued reimbursement
-    if (shouldShowAddBankAccount) {
-        items.push(<AddBankAccount key="add-bank-account" />);
-    }
-    // Priority 6: Broken company card connections
+    // Priority 4: Broken company card connections
     for (const connection of brokenCompanyCardConnections) {
         const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
         if (!card) {
@@ -163,7 +176,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 7: Broken personal card connections
+    // Priority 5: Broken personal card connections
     for (const connection of brokenPersonalCardConnections) {
         const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
         if (!card) {
@@ -176,7 +189,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 8: Locked bank accounts
+    // Priority 6: Locked bank accounts
     for (const lockedBankAccount of lockedBankAccounts) {
         items.push(
             <UnlockBankAccount
@@ -186,18 +199,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 9: Enter signer info for global bank accounts
-    for (const item of pendingSignerInfo) {
-        items.push(
-            <EnterSignerInfo
-                key={`signer-${item.policyID}-${item.bankAccountID}`}
-                policyID={item.policyID}
-                bankAccountID={item.bankAccountID}
-                bankAccountLastFour={item.bankAccountLastFour}
-            />,
-        );
-    }
-    // Priority 10: Broken policy connections (accounting + HR)
+    // Priority 7: Broken policy connections (accounting + HR)
     for (const connection of brokenPolicyConnections) {
         items.push(
             <FixPolicyConnection
@@ -209,7 +211,34 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 11: Expensify card shipping
+    // Priority 8: Validate account
+    if (shouldShowValidateAccount) {
+        items.push(<ValidateAccount key="validate-account" />);
+    }
+    // Priority 9: Add home address (commuter exclusions, homeAndOffice method)
+    if (shouldShowAddHomeAddress) {
+        items.push(<AddHomeAddress key="add-home-address" />);
+    }
+    // Priority 10: Add payment card (trial ended, no payment card)
+    if (shouldShowAddPaymentCard) {
+        items.push(<AddPaymentCard key="add-payment-card" />);
+    }
+    // Priority 11: Add bank account for a queued reimbursement
+    if (shouldShowAddBankAccount) {
+        items.push(<AddBankAccount key="add-bank-account" />);
+    }
+    // Priority 12: Enter signer info for global bank accounts
+    for (const item of pendingSignerInfo) {
+        items.push(
+            <EnterSignerInfo
+                key={`signer-${item.policyID}-${item.bankAccountID}`}
+                policyID={item.policyID}
+                bankAccountID={item.bankAccountID}
+                bankAccountLastFour={item.bankAccountLastFour}
+            />,
+        );
+    }
+    // Priority 13: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -220,7 +249,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 12: Expensify card activation
+    // Priority 14: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -231,12 +260,23 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 13: Virtual Expensify card needs personal details before reveal
+    // Priority 15: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
                 <AddVirtualCardPersonalDetails
                     key={`virtual-card-details-${card.cardID}`}
+                    card={card}
+                />,
+            );
+        }
+    }
+    // Priority 15: Confirm a digital wallet addition
+    if (shouldShowConfirmDigitalWalletAddition) {
+        for (const card of cardsPendingDigitalWalletApproval) {
+            items.push(
+                <ConfirmDigitalWalletAddition
+                    key={`confirm-digital-wallet-${card.cardID}`}
                     card={card}
                 />,
             );

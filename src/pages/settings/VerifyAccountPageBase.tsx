@@ -110,6 +110,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
             descriptionSecondary={translate('contacts.enterSecurityCode', contactMethod)}
             sendValidateCode={sendValidateCode}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}

@@ -1,12 +1,10 @@
-import Avatar from '@components/Avatar';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {ListItem, MultiSelectListItemProps} from './types';
 
@@ -38,16 +36,19 @@ function MultiSelectListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
-    const itemWithAvatar = {
-        ...item,
-        leftElement: icon ? <AvatarLeftElement icon={icon} /> : item.leftElement,
-    };
     const computedWrapperStyle = [icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle];
 
     return (
         <BaseSelectListItem
-            item={itemWithAvatar}
-            keyForList={item.keyForList}
+            item={item}
+            leftElement={
+                icon ? (
+                    <ListItemComposed.CompactAvatar
+                        icon={icon}
+                        style={styles.mr3}
+                    />
+                ) : undefined
+            }
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}
@@ -67,23 +68,6 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             titleNumberOfLines={titleNumberOfLines}
         />
-    );
-}
-
-function AvatarLeftElement({icon}: {icon: Icon}) {
-    const styles = useThemeStyles();
-
-    return (
-        <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
-            <Avatar
-                source={icon.source}
-                size={CONST.AVATAR_SIZE.X_SMALL}
-                name={icon.name}
-                avatarID={icon.id}
-                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
-                fallbackIcon={icon.fallbackIcon}
-            />
-        </View>
     );
 }
 

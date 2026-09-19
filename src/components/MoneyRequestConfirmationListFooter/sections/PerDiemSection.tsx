@@ -5,7 +5,6 @@ import useTransactionSelector from '@components/MoneyRequestConfirmationList/sec
 
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,26 +22,7 @@ type PerDiemSectionProps = {
     formError: string;
 };
 
-/**
- * Two-level guard: the outer component checks the context-level gate (`isPerDiemRequest` + action)
- * without subscribing to anything. The inner component is the only place that subscribes to the
- * transaction slice, so non-per-diem flows avoid the extra Onyx subscriptions.
- */
 function PerDiemSection({policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
-    const {action, isPerDiemRequest} = useConfirmationFields();
-    if (!isPerDiemRequest || action === CONST.IOU.ACTION.SUBMIT) {
-        return null;
-    }
-    return (
-        <PerDiemSectionContent
-            policy={policy}
-            shouldDisplayFieldError={shouldDisplayFieldError}
-            formError={formError}
-        />
-    );
-}
-
-function PerDiemSectionContent({policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
     const {transactionID, isReadOnly, didConfirm} = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, perDiemSliceSelector);
 

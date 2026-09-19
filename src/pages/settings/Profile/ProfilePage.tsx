@@ -2,7 +2,8 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemGroup from '@components/MenuItemGroup';
@@ -26,6 +27,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -125,7 +127,7 @@ function ProfilePage() {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
-            brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            brickRoadIndicator: isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
@@ -205,20 +207,22 @@ function ProfilePage() {
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('common.profile')}
-                onBackButtonPress={() => {
-                    if (route.params?.backTo) {
-                        Navigation.goBack(route.params?.backTo);
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                shouldUseHeadlineHeader
-            />
+            <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('common.profile')}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.goBack(route.params?.backTo);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    shouldUseHeadlineHeader
+                />
+            </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}
                 style={styles.pt3}

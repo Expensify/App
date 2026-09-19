@@ -10,10 +10,7 @@ type Address = {
     /** Street line 2 */
     street2?: string;
 
-    /** City */
     city?: string;
-
-    /** State */
     state?: string;
 
     /** Zip post code */
@@ -22,7 +19,6 @@ type Address = {
     /** Country code */
     country?: Country | '';
 
-    /** Zip post code */
     zipPostCode?: string;
 
     /** Street line 1 */
@@ -49,16 +45,12 @@ type Address = {
 
 /** Model of user private personal details */
 type PrivatePersonalDetails = {
-    /** User's legal first name */
     legalFirstName?: string;
-
-    /** User's legal last name */
     legalLastName?: string;
 
     /** User's date of birth */
     dob?: string;
 
-    /** User's phone number */
     phoneNumber?: string;
 
     /** @deprecated User's home address */

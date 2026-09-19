@@ -31,7 +31,9 @@ import {
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isExpiredCard,
+    isLastScrapePastDismissThreshold,
     isPersonalCard,
+    isPersonalCardBrokenConnection,
     isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -96,16 +98,12 @@ type PaymentMethodListProps = {
     /** List container style */
     style?: StyleProp<ViewStyle>;
 
-    /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
 
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
-    /** Additional style for the add bank account item */
     addBankAccountItemStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
     /** Whether connection statuses and sync details should be shown */
@@ -126,22 +124,14 @@ type PaymentMethodListProps = {
     /** Whether the bank accounts should be displayed in private and business sections */
     shouldShowBankAccountSections?: boolean;
 
-    /** The policy ID associated with the workspace, if component is rendered in workspace context */
-    policyID?: string;
-
     /** Function to be called when the user presses the add bank account button */
     onAddBankAccountPress?: () => void;
 
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
 
-    /** Type of payment method to filter by */
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
-
-    /* Currency of payment method to filter by */
     filterCurrency?: string;
-
-    /** Account states to exclude from the list */
     excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
 
     /** Bank account ID of an account that we do not want to show (i.e. it's already connected) */
@@ -150,10 +140,7 @@ type PaymentMethodListProps = {
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
-    /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
 };
 
@@ -194,7 +181,6 @@ function PaymentMethodList({
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
     shouldShowBankAccountSections = false,
-    policyID = '',
     onAddBankAccountPress = () => {},
     itemIconRight,
     filterType,
@@ -246,12 +232,15 @@ function PaymentMethodList({
         status: BankAccountConnectionStatus,
         onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        isPendingDelete = false,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
+        // An account queued for deletion is struck through, so its action is disabled rather than hidden.
+        isActionDisabled: isPendingDelete,
         onActionPress: () => {
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
@@ -279,6 +268,7 @@ function PaymentMethodList({
             const hasMissingPersonalDetails = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const isUserExpensifyCard = isExpensifyCard(card);
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
@@ -305,27 +295,33 @@ function PaymentMethodList({
 
                 let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
                 if (!card.errors) {
-                    if (shouldShowRBR) {
+                    // An Expensify Card has no bank connection, so its feed's RBR is never something the cardholder can
+                    // fix and it is the RBR this card is not supposed to show. Fraud and the pending-action prompt below
+                    // are still theirs to act on, so those keep their indicator.
+                    if (shouldShowRBR && !isUserExpensifyCard) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                    } else if (isUserExpensifyCard && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                     }
                 }
 
-                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
+                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isPersonalCardBrokenConnection(card))) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
                 const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
-                const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+                const isCardBroken = isUserPersonalCard
+                    ? isPersonalCardBrokenConnection(card) && !isLastScrapePastDismissThreshold(card)
+                    : isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
                     shouldShowConnectionStatus,
                     isCardBroken,
                     shouldShowRBR,
                     isCardInactive: isCardInactiveState,
+                    isExpensifyCard: isUserExpensifyCard,
                     isPersonalCard: isUserPersonalCard,
                     isAdminForCardPolicy,
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
@@ -333,7 +329,7 @@ function PaymentMethodList({
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
                 const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
-                const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
+                const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
                     if (card.lastScrape) {
@@ -378,7 +374,7 @@ function PaymentMethodList({
                     };
                 }
 
-                if (!isExpensifyCard(card)) {
+                if (!isUserExpensifyCard) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
@@ -625,7 +621,14 @@ function PaymentMethodList({
                 canDismissError: true,
                 isMissingPersonalInfo,
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
-                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress) : undefined,
+                connectionStatus: bankConnectionStatus
+                    ? mapBankStatusToRowStatus(
+                          bankConnectionStatus,
+                          paymentMethodPress,
+                          paymentMethodThreeDotsPress,
+                          paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      )
+                    : undefined,
             };
         });
         return combinedPaymentMethods;
@@ -635,12 +638,7 @@ function PaymentMethodList({
 
     const onPressItem = () => {
         if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
-            const path = Navigation.getActiveRoute();
-            if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
-                Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
-            } else {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
-            }
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
         }
         onAddBankAccountPress();

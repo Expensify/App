@@ -10,7 +10,6 @@ import type {TransactionQuarterGroupListItemType} from './types';
 import BaseListItemHeader from './BaseListItemHeader';
 
 type QuarterListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
-    /** The quarter group currently being looked at */
     quarter: TransactionQuarterGroupListItemType;
 };
 

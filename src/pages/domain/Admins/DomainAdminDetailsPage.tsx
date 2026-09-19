@@ -17,6 +17,7 @@ import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDeta
 
 import {revokeDomainAdminAccess} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -62,7 +63,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             cancelText: translate('common.cancel'),
 
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (confirmResult.action !== ModalActions.CONFIRM) {
             return;

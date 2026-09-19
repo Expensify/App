@@ -12,6 +12,8 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
@@ -52,10 +54,12 @@ function useNavigateToTransactionThread() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
     return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, backTo}: NavigateToTransactionThreadParams) => {
         const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
-        const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
+        const routeAtPress = Navigation.getActiveRoute();
+        const resolvedBackTo = backTo ?? routeAtPress;
         let reportIDToNavigate = iouAction?.childReportID;
 
         const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string} = {
@@ -67,6 +71,8 @@ function useNavigateToTransactionThread() {
             const transactionThreadReport = createTransactionThreadReport({
                 introSelected,
                 conciergeChat,
+                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                 currentUserLogin: currentUserDetails.email ?? '',
                 currentUserAccountID: currentUserDetails.accountID,
                 betas,
@@ -86,6 +92,10 @@ function useNavigateToTransactionThread() {
         // Single transaction report opens in RHP. We seed every sibling transaction ID so the RHP can
         // display prev/next arrows for navigation between expenses.
         setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+            // A second press made before this resolves would stack its expense on top of the first.
+            if (Navigation.getActiveRoute() !== routeAtPress) {
+                return;
+            }
             if (reportIDToNavigate) {
                 markReportRHPWidth(reportIDToNavigate, 'wide');
             }
