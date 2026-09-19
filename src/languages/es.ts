@@ -1099,6 +1099,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Revisa 1 gasto',
                 other: `Revisa ${count} gastos`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Revisa 1 solicitud de administrador de dominio',
+                other: `Revisa ${count} solicitudes de administrador de dominio`,
+            }),
         },
         gettingStartedSection: {
             title: 'Primeros pasos',

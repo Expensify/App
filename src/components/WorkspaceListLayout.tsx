@@ -1,12 +1,17 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getDomainsWithErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
+import useReviewDomainAdminRequests from '@pages/home/ForYouSection/useReviewDomainAdminRequests';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -41,6 +46,18 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
+    const {domainAccountIDs: pendingDomainAdminRequestAccountIDs} = useReviewDomainAdminRequests();
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const errorDomainAccountIDs = getDomainsWithErrors(allDomainErrors, allDomains).map(([key]) => Number(key.replace(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, '')));
+
+    // Domains tab badge: counts the domain rows needing attention (a pending admin request or an error).
+    // A domain with both is counted once so the badge matches the number of marked rows in the list.
+    // The count is colored red when any marked row has an error, otherwise green.
+    const hasDomainErrors = errorDomainAccountIDs.length > 0;
+    const markedDomainAccountIDs = new Set([...pendingDomainAdminRequestAccountIDs, ...errorDomainAccountIDs]);
+    const domainsBadgeCount = markedDomainAccountIDs.size;
+    const domainsBadgeText = domainsBadgeCount > 0 ? domainsBadgeCount.toString() : undefined;
     const navigationOptions = [
         {
             key: 'workspaces',
@@ -55,6 +72,9 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             icon: icons.Globe,
             route: ROUTES.DOMAINS_LIST.getRoute(),
             screenName: SCREENS.DOMAINS_LIST,
+            badgeText: domainsBadgeText,
+            isBadgeCondensed: true,
+            isBadgeError: hasDomainErrors,
         },
     ];
 

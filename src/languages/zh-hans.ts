@@ -1044,6 +1044,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `审核 ${count} 笔费用`,
                 other: `审核 ${count} 笔费用`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: `审核 ${count} 个域管理员请求`,
+                other: `审核 ${count} 个域管理员请求`,
+            }),
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {
