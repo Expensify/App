@@ -68,6 +68,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 **Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
 
+**Note:** Members can also remove themselves. When someone leaves a workspace, Expensify warns them first if reports are waiting for their approval. Learn how to [leave a workspace](/articles/new-expensify/workspaces/Leave-a-Workspace).
+
 ## Remove a Single Member
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
