@@ -25,6 +25,13 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {
+    CAROUSEL_SOURCE,
+    clearActiveTransactionIDsForSource,
+    disownActiveTransactionIDs,
+    setActiveTransactionIDs,
+    shouldRefreshActiveTransactionIDs,
+} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -63,7 +70,7 @@ import {
     getNavigateToReportsSpans,
 } from '@libs/telemetry/navigateToReportsSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -591,6 +598,39 @@ function Search({
         }, 0);
     }, [areItemsGrouped, filteredData]);
 
+    const carouselSiblingTransactionIDs = useMemo(
+        () =>
+            (filteredData as SearchListItem[])
+                .filter(
+                    (t): t is TransactionListItemType => !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedTransaction(t),
+                )
+                .map((t) => t.transactionID),
+        [filteredData],
+    );
+
+    // This search results list owns the carousel it seeds. Drilling into a report hands ownership over to that
+    // report's own list; the refresh effect below then leaves the carousel alone until the user comes back out.
+    const carouselSource = CAROUSEL_SOURCE.search(hash);
+    const hasSeededCarouselRef = useRef(false);
+
+    // Hands this list's expenses to the carousel for the expense the user is opening in *this* tab.
+    //
+    // It is called at each in-tab navigation rather than once at the top of `onSelectRow`, because a Cmd/Ctrl+click
+    // opens a background tab without navigating here: seeding up front rewrote the carousel of whatever was already
+    // open in the RHP, which then paged through unrelated Spend results. Releasing is scoped to this source for the
+    // same reason - the unscoped clear used to wipe a carousel another screen owned.
+    const seedCarouselForOpenedExpense = useCallback(() => {
+        if (carouselSiblingTransactionIDs.length > 1) {
+            setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+            // Mark the seed so the release effect below knows this instance owns a carousel. Without it an instance
+            // that only ever seeded from a row press skipped its own cleanup and stranded `search:<hash>` behind.
+            hasSeededCarouselRef.current = true;
+            return;
+        }
+        clearActiveTransactionIDsForSource(carouselSource);
+        hasSeededCarouselRef.current = false;
+    }, [carouselSiblingTransactionIDs, carouselSource, hash]);
+
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -599,11 +639,17 @@ function Search({
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
+
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
+                // When opening an expense from the Spend page (flat transaction list), populate the carousel
+                // with all sibling transactions so prev/next navigation works in the RHP transaction view.
+                if (shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab) {
+                    seedCarouselForOpenedExpense();
+                }
                 const targetReportID = createAndOpenSearchTransactionThread({
                     conciergeChat,
                     getCurrencyDecimals,
@@ -620,7 +666,7 @@ function Search({
                     shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
-                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: item.transactionID}), event);
                 }
                 if (shouldOpenTransactionThread) {
                     return;
@@ -750,9 +796,12 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, transactionItem?.reportAction?.childReportID);
             }
 
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo, anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined});
             if (openInternalRouteInNewTab(route, event)) {
                 return;
+            }
+            if (isTransactionItem) {
+                seedCarouselForOpenedExpense();
             }
             requestAnimationFrame(() => Navigation.navigate(route));
         },
@@ -771,10 +820,79 @@ function Search({
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
+            seedCarouselForOpenedExpense,
             getCurrencyDecimals,
             conciergeChat,
         ],
     );
+
+    const carouselSiblingsKey = carouselSiblingTransactionIDs.join(',');
+    const [activeCarouselTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+
+    // This list stays mounted behind the RHP, so it keeps the carousel in step with the results (an expense
+    // deleted from the list has to leave the carousel too). The active IDs are a dependency, not just a guard, so
+    // that it re-runs and stands down when another screen takes ownership - see TransactionThreadNavigation.ts.
+    useEffect(() => {
+        if (shouldShowLoadingState) {
+            return;
+        }
+        // The release below clears the carousel on the way out, which flips the active IDs and re-runs this effect.
+        // Without this guard that re-run would immediately re-seed the carousel the user just left behind.
+        if (!isSearchTopmostFullScreenRoute()) {
+            return;
+        }
+        if (!shouldRefreshActiveTransactionIDs(carouselSource, carouselSiblingTransactionIDs)) {
+            return;
+        }
+        setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+        hasSeededCarouselRef.current = true;
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
+    }, [carouselSiblingsKey, activeCarouselTransactionIDs, carouselSource, hash, shouldShowLoadingState, isFocused]);
+
+    // The effect above seeds the carousel with no row press, so this list has to release it when the user leaves
+    // for another tab - otherwise the Spend page's expenses page on inside any one-transaction report opened later.
+    //
+    // Blur, not unmount: the Spend tab uses `freezeOnBlur` without `unmountOnBlur`, so leaving it for the Inbox
+    // never unmounts this component. Hence `isFocused` as a dependency. Opening the RHP over Search also blurs it,
+    // so the release stands down while Search is still the topmost full-screen route, which also keeps a re-sort
+    // from stripping the arrows of an expense open in the RHP.
+    //
+    // Teardown is deliberately separate from the seeding effect: folding it in would run the cleanup on every
+    // re-seed, and a run that then bailed at one of the guards would leave the carousel cleared.
+    useEffect(() => {
+        return () => {
+            if (!hasSeededCarouselRef.current) {
+                return;
+            }
+            if (isSearchTopmostFullScreenRoute()) {
+                return;
+            }
+            hasSeededCarouselRef.current = false;
+            clearActiveTransactionIDsForSource(carouselSource);
+        };
+    }, [carouselSource, isFocused]);
+
+    // An unmounting instance always gives up ownership, even while Search is still the topmost full-screen route.
+    // This page is keyed by the query hash, so sorting, filtering or switching Spend tabs unmounts this instance
+    // and mounts a new one under `search:<newHash>`. The blur-time release above stands down in that moment
+    // (Search is still topmost), which left `search:<oldHash>` owning the carousel with no mounted screen able to
+    // refresh or release it, so the replacement list could never seed and the stale one kept driving the arrows.
+    //
+    // It hands ownership over rather than clearing: the expense open in the RHP keeps its arrows while the new
+    // results load, instead of losing them for the duration - and for good, when the new results no longer hold
+    // that expense. The header already drops the arrows on its own once the open expense isn't in the list.
+    //
+    // `carouselSource` is constant for an instance's lifetime (the hash is its React key), so this runs on
+    // unmount only.
+    useEffect(() => {
+        return () => {
+            if (!hasSeededCarouselRef.current) {
+                return;
+            }
+            hasSeededCarouselRef.current = false;
+            disownActiveTransactionIDs(carouselSource);
+        };
+    }, [carouselSource]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn

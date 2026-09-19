@@ -830,7 +830,14 @@ describe('MoneyRequestReportPreview', () => {
             await pressSecondTransaction();
 
             // Online, delete-pending rows are already filtered upstream, so the seed must equal the full visible list.
-            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(defaultPreviewTransactions.map((transaction) => transaction.transactionID));
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(
+                defaultPreviewTransactions.map((transaction) => transaction.transactionID),
+                {
+                    // Stamped so the press owns the carousel it seeds: an unowned list can't be released by any screen
+                    // and any other writer is free to overwrite it while the expense is still open.
+                    source: TransactionThreadNavigation.CAROUSEL_SOURCE.reportPreview(mockIOUReport.reportID),
+                },
+            );
         });
 
         it('still renders an offline-deleted expense card in the carousel', async () => {
@@ -1229,8 +1236,8 @@ describe('MoneyRequestReportPreview', () => {
             fireEvent.press(screen.getByText(getTransactionDisplayAmountAndMetadataText(olderTransaction).transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
 
-            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith([olderTransaction.transactionID, newerTransaction.transactionID]);
-            expect(setActiveTransactionIDsSpy).not.toHaveBeenCalledWith([newerTransaction.transactionID, olderTransaction.transactionID]);
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith([olderTransaction.transactionID, newerTransaction.transactionID], expect.anything());
+            expect(setActiveTransactionIDsSpy).not.toHaveBeenCalledWith([newerTransaction.transactionID, olderTransaction.transactionID], expect.anything());
         });
 
         it('does not open the pressed expense over the report when "View" is tapped during the cascade delay', async () => {
@@ -1287,7 +1294,10 @@ describe('MoneyRequestReportPreview', () => {
             fireEvent.press(screen.getByText(getTransactionDisplayAmountAndMetadataText(many.at(0) ?? mockTransaction).transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
 
-            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(many.map((transaction) => transaction.transactionID));
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(
+                many.map((transaction) => transaction.transactionID),
+                expect.anything(),
+            );
         });
 
         it('opens the report instead of the lone expense for a single-expense report', async () => {

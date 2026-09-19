@@ -112,6 +112,62 @@ describe('getReportIDToOpenForExpense', () => {
         expect(getReportIDToOpenForExpense(expense, CONTEXT)).toBe('parent4');
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
     });
+
+    /**
+     * An unreported (tracked) expense keeps its IOU action in the self-DM, since report "0" is a placeholder rather
+     * than a report. Resolving from there is the only way such an expense opens at all.
+     */
+    describe('unreported (tracked) expenses', () => {
+        const buildUnreportedExpense = (transactionID: string, reportAction?: ReportAction): TransactionThreadNavigationDescriptor => ({
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            transaction: buildTransaction(transactionID, CONST.REPORT.UNREPORTED_REPORT_ID),
+            reportAction,
+        });
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, 'selfDM');
+            await waitForBatchedUpdates();
+        });
+
+        it("resolves the thread from the self-DM's report actions when the snapshot has no thread", async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}selfDM`, {a1: buildIOUAction('a1', 'self_dm_thread')});
+            await waitForBatchedUpdates();
+
+            expect(getReportIDToOpenForExpense(buildUnreportedExpense(transactionR14932.transactionID), CONTEXT)).toBe('self_dm_thread');
+            expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+        });
+
+        /**
+         * Regression guard: this used to fall through to report "0", which is not a report that can be opened. The
+         * prev/next carousel enabled the arrow from the transaction alone and then had nowhere to navigate, so the
+         * press did nothing at all.
+         */
+        it("creates the thread when the self-DM's IOU action has none yet", async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}selfDM`, {a1: buildIOUAction('a1')});
+            await waitForBatchedUpdates();
+
+            expect(getReportIDToOpenForExpense(buildUnreportedExpense(transactionR14932.transactionID), CONTEXT)).toBe('created_thread');
+            expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    // Report "0" is a placeholder, so there is no parent expense report to build the thread from;
+                    // createTransactionThreadReport parents it to the self-DM off the transaction instead.
+                    iouReport: undefined,
+                    iouReportAction: expect.objectContaining({reportActionID: 'a1'}),
+                    transaction: expect.objectContaining({transactionID: transactionR14932.transactionID}),
+                }),
+            );
+        });
+
+        it('creates the thread from the snapshot action when the self-DM actions were never fetched', () => {
+            expect(getReportIDToOpenForExpense(buildUnreportedExpense('t5', buildIOUAction('a5')), CONTEXT)).toBe('created_thread');
+            expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({iouReportAction: expect.objectContaining({reportActionID: 'a5'})}));
+        });
+
+        it('falls back to the unreported placeholder when no IOU action exists anywhere', () => {
+            expect(getReportIDToOpenForExpense(buildUnreportedExpense('t6'), CONTEXT)).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+            expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+        });
+    });
 });
 
 describe('getOrCreateTransactionThreadReportID', () => {
