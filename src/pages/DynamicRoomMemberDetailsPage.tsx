@@ -21,7 +21,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -59,7 +59,10 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
-    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
+    // Check the selected member's own role on the policy, not the viewer's, and fail closed when their login is missing.
+    // Kept in sync with the members list through the shared helper.
+    const isSelectedMemberProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
+    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const askForConfirmationToRemove = () => {
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,

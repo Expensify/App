@@ -177,9 +177,33 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
 
 /**
  * Checks if the current user is an admin of the policy.
+ *
+ * By default this answers "is the *viewing* user an admin?", because `getPolicyRole` short-circuits on the global
+ * `policy.role`. When `login` belongs to somebody other than the current user you must pass
+ * `shouldCheckGlobalPolicyRole = false`, otherwise the `login` argument is silently ignored.
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
+
+/**
+ * Checks if the current user is an owner (creator) of the policy.
+ */
+const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
+
+/**
+ * Whether a room member's own policy role protects them from being removed from a policy expense chat.
+ *
+ * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
+ * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
+ * agree on this, so it lives here rather than being spelled out at each call site.
+ *
+ * The policy owner is checked by `accountID` rather than by role. `ownerAccountID` is a required top-level field, so
+ * unlike `employeeList` it resolves even when the employee roster has not loaded, and the owner is only protected
+ * incidentally by `role: admin` otherwise. Note the callers' `report.ownerAccountID` is the *report* owner — the
+ * employee whose expense chat it is — which is a different person from the policy owner.
+ */
+const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID?: number): boolean =>
+    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false);
 
 const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
     PolicyFeature,
@@ -649,7 +673,13 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
         return;
     }
 
-    return policy?.employeeList?.[currentUserLogin]?.role;
+    // `employeeList` is keyed by the canonical lowercase login, but a login read off personal details is not
+    // guaranteed to be lowercase, so fall back to a normalized lookup when the exact key misses. Both lookups are
+    // O(1), unlike a case-insensitive scan of every employee, which would run per participant on member lists.
+    // Pick the employee entry first and read `role` off whichever matched: `role` is optional, so falling back on the
+    // role itself would resolve one account's role from a different account's entry when the exact entry has no role.
+    const employeeList = policy?.employeeList;
+    return (employeeList?.[currentUserLogin] ?? employeeList?.[currentUserLogin.toLowerCase()])?.role;
 }
 
 /**
@@ -864,11 +894,6 @@ const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: st
 const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
     return !!policyID && policyID === policy?.id;
 };
-
-/**
- * Checks if the current user is an owner (creator) of the policy.
- */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -3570,6 +3595,7 @@ export {
     isGroupPolicyByType,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isRoomMemberProtectedByPolicyRole,
     isPolicyUser,
     isPolicyAuditor,
     isAdminOfCardEnabledPolicy,
