@@ -14,7 +14,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
-        // useInitialSelection calls useFocusEffect; no-op it so the modal renders without a navigator.
+        // useInitialSelection calls useFocusEffect. No-op it so the modal renders without a navigator.
         useFocusEffect: jest.fn(),
     };
 });
@@ -78,7 +78,7 @@ describe('MonthPickerModal', () => {
             />,
         );
 
-        // "j" matches January, June and July; January sorts first, so July leading proves the pin held.
+        // "j" matches January, June and July. January sorts first, so July leading proves the pin held.
         act(() => {
             getSelectionListProps()?.textInputOptions?.onChangeText?.('j');
         });

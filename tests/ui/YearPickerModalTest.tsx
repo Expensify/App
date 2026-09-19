@@ -12,7 +12,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
-        // useInitialSelection calls useFocusEffect; no-op it so the modal renders without a navigator.
+        // useInitialSelection calls useFocusEffect. No-op it so the modal renders without a navigator.
         useFocusEffect: jest.fn(),
     };
 });
@@ -78,7 +78,7 @@ describe('YearPickerModal', () => {
             />,
         );
 
-        // "202" matches 2020-2027; 2027 sorts first, so 2020 leading proves the pin held.
+        // "202" matches 2020-2027. 2027 sorts first, so 2020 leading proves the pin held.
         act(() => {
             getSelectionListProps()?.textInputOptions?.onChangeText?.('202');
         });
