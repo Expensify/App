@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import {
     getActionableCard3DSTransactionApprovalMessage,
+    getAgentPromptUpdatedMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getMarkedReimbursedMessage,
@@ -27,6 +28,7 @@ type SimpleMessageContentProps = {
 };
 
 const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
+    CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
     CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
     CONST.REPORT.ACTIONS.TYPE.HOLD,
     CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT,
@@ -53,6 +55,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        return <ReportActionItemBasicMessage message={getAgentPromptUpdatedMessage(translate, action)} />;
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
     }

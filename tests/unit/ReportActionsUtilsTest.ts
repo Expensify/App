@@ -2873,6 +2873,29 @@ describe('ReportActionsUtils', () => {
         });
     });
     describe('isDeletedAction', () => {
+        it('should keep an agent prompt update with a text fragment visible', () => {
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                reportActionID: '1',
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        style: 'normal',
+                        text: "owner@expensify.com updated this agent's instructions.",
+                    },
+                ],
+                originalMessage: {
+                    previousPrompt: 'Review every expense',
+                    newPrompt: 'Review expenses over $100',
+                    updatedByAccountID: 1,
+                    updatedBy: 'owner@expensify.com',
+                },
+            });
+
+            expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
+
         it('should return false if the action is a hold or unhold action', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
                 ...createRandomReportAction(0),
