@@ -12,6 +12,7 @@ import ReimbursementAccountPage from '@pages/ReimbursementAccount/ReimbursementA
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 
@@ -251,6 +252,59 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             expect(draft?.amount1).toBeUndefined();
             expect(draft?.amount2).toBeUndefined();
             expect(draft?.amount3).toBeUndefined();
+        });
+
+        it('preserves Wallet resume fields but clears validation amounts when redirected', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    amount1: '1.11',
+                    amount2: '2.22',
+                    amount3: '3.33',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await seedOnyx(PENDING_ACCOUNT);
+            const {unmount} = await renderPage({policyID: POLICY_ID, backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(await getReimbursementAccount()).toEqual(PENDING_ACCOUNT);
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.country).toBe(CONST.COUNTRY.US);
+            expect(draft?.currency).toBe(CONST.CURRENCY.USD);
+            expect(draft?.amount1).toBeUndefined();
+            expect(draft?.amount2).toBeUndefined();
+            expect(draft?.amount3).toBeUndefined();
+        });
+
+        it('clears the Wallet setup when pending validation is explicitly abandoned', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    amount1: '1.11',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await seedOnyx(PENDING_ACCOUNT);
+            const {unmount} = await renderPage({policyID: POLICY_ID, backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+            pressLoaderBackButton();
+
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(await getReimbursementAccount()).toEqual(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.country).toBeUndefined();
+            expect(draft?.currency).toBeUndefined();
+            expect(draft?.amount1).toBeUndefined();
         });
 
         it('clears the account once the user has left the flow from the loader', async () => {
