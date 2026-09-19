@@ -10,7 +10,7 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 
 import type {NavigationAction} from '@react-navigation/native';
 
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
 import type {DiscardChangesConfirmation} from './types';
@@ -33,16 +33,19 @@ function useDiscardChangesConfirmation({
     shouldEnableNewFocusManagement,
     onConfirm,
     onTabSwitchDiscard,
+    shouldPromptWhenUnfocused = false,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
 
+    // Only the focused screen should prompt unless configured to prompt when unfocused (e.g. parent screens in embedded flows) — a flow-leave reset fires `beforeRemove` for hidden siblings too.
+    const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
     });
-    const hasUnsavedChanges = () => !isSavingRef.current && getHasUnsavedChanges();
+    const hasUnsavedChanges = () => (shouldPromptWhenUnfocused || isFocused) && !isSavingRef.current && getHasUnsavedChanges();
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 

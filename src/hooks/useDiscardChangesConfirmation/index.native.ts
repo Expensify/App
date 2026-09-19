@@ -25,6 +25,7 @@ function useDiscardChangesConfirmation({
     shouldEnableNewFocusManagement,
     onConfirm,
     onTabSwitchDiscard,
+    shouldPromptWhenUnfocused = false,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
@@ -33,16 +34,17 @@ function useDiscardChangesConfirmation({
     const isDiscardModalOpen = useRef(false);
     const isReplayingBlockedNavigation = useRef(false);
 
+    // Only the focused screen should prompt unless configured to prompt when unfocused (e.g. parent screens in embedded flows) — a flow-leave reset fires `beforeRemove` for hidden siblings too.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
     });
-    const hasUnsavedChanges = () => !isSavingRef.current && getHasUnsavedChanges();
+    const hasUnsavedChanges = () => (shouldPromptWhenUnfocused || isFocused) && !isSavingRef.current && getHasUnsavedChanges();
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
     // The save suppression stays out of it because `isSavingRef` is a ref: the callback below applies that.
-    const shouldPreventRemove = getHasUnsavedChanges();
+    const shouldPreventRemove = (shouldPromptWhenUnfocused || isFocused) && getHasUnsavedChanges();
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 

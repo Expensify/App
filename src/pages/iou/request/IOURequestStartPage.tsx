@@ -281,6 +281,7 @@ function IOURequestStartPage({
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
         shouldEnableNewFocusManagement: shouldEmbedConfirmation,
+        shouldPromptWhenUnfocused: shouldEmbedConfirmation,
         onCancel: restoreLastFocusedInput,
         onVisibilityChange: (isVisible) => {
             isDiscardModalOpenRef.current = isVisible;
