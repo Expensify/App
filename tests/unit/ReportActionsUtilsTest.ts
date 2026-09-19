@@ -6775,6 +6775,22 @@ describe('ReportActionsUtils', () => {
             expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [exportAction]})).toEqual([null, -1]);
         });
 
+        it('advances a filtered offline boundary to the oldest eligible action', () => {
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [comment, exportAction],
+                    earliestReceivedOfflineMessageIndex: 1,
+                }),
+            ).toEqual(['comment', 0]);
+        });
+
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];
             expect(

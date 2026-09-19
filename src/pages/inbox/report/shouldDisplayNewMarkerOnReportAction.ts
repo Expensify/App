@@ -215,8 +215,18 @@ const getUnreadMarkerReportAction = ({
     const canActionTriggerMarker = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction =>
         !!action && (isReversed || action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(action, currentUserAccountID);
 
-    const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
-    const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
+    let earliestEligibleReceivedOfflineMessageIndex = earliestReceivedOfflineMessageIndex;
+    if (!isReversed && earliestEligibleReceivedOfflineMessageIndex !== undefined) {
+        while (earliestEligibleReceivedOfflineMessageIndex >= 0 && !canActionTriggerMarker(visibleReportActions.at(earliestEligibleReceivedOfflineMessageIndex))) {
+            earliestEligibleReceivedOfflineMessageIndex--;
+        }
+        if (earliestEligibleReceivedOfflineMessageIndex < 0) {
+            return [null, -1];
+        }
+    }
+
+    const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestEligibleReceivedOfflineMessageIndex ?? 0);
+    const endIndex = isReversed ? (earliestEligibleReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
     const step = isReversed ? -1 : 1;
 
     for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
@@ -236,7 +246,7 @@ const getUnreadMarkerReportAction = ({
             }
         }
 
-        const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
+        const isEarliestReceivedOfflineMessage = index === earliestEligibleReceivedOfflineMessageIndex;
 
         const shouldShowMarker = shouldDisplayNewMarkerOnReportAction({
             message: reportAction,
