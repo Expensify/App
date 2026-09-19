@@ -4,18 +4,16 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getPlatform from '@libs/getPlatform';
-
-import CONST from '@src/CONST';
-
 import React from 'react';
 import {View} from 'react-native';
 
 import type AddToWalletStatusTextProps from './types';
 
-const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
+type BaseAddToWalletStatusTextProps = AddToWalletStatusTextProps & {
+    platform: 'Apple' | 'Google';
+};
 
-function AddToWalletStatusText({card, style}: AddToWalletStatusTextProps) {
+function BaseAddToWalletStatusText({card, style, platform}: BaseAddToWalletStatusTextProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
@@ -31,4 +29,4 @@ function AddToWalletStatusText({card, style}: AddToWalletStatusTextProps) {
     );
 }
 
-export default AddToWalletStatusText;
+export default BaseAddToWalletStatusText;
