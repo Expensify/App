@@ -103,7 +103,7 @@ function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItems
                 isIndeterminate={isIndeterminate}
                 onPress={handleSelectAllPress}
                 disabled={totalItems === 0}
-                containerStyle={styles.m0}
+                containerStyle={styles.checkboxContainerTableRow}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
             />
             {shouldShowTextButton && (

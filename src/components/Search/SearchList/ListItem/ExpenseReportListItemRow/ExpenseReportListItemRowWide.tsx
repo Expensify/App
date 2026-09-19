@@ -313,7 +313,7 @@ function ExpenseReportListItemRowWide({
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={styles.m0}
+                        containerStyle={styles.checkboxContainerTableRow}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.reportName ?? ''}
                         shouldStopMouseDownPropagation
