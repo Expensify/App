@@ -1372,11 +1372,9 @@ function shouldReportActionBeVisible(
         if (originalMessage?.isNewDot || reportAction.shouldShow === false) {
             return false;
         }
-        // The isNewDot/shouldShow flags are baked at write time and can be stale when a MARKED_REIMBURSED
-        // action is created outside a NewDot request (e.g. a background job), which lets the redundant row
-        // leak through alongside the IOU PAY action. Since NewDot shows the IOU PAY action instead, hide
-        // MARKED_REIMBURSED when the same payment attempt has a sibling IOU PAY action. Scoped to
-        // MARKED_REIMBURSED: REIMBURSED can carry bank-account and arrival details that PAY does not replace.
+
+        // The isNewDot/shouldShow are baked at write time and can be stale for actions created outside NewDot (e.g OldDot or a background job).
+        // Not applied to REIMBURSED, which carries bank account details PAY doesn't replace.
         if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction, reportAction.reportID ?? reportID)) {
             return false;
         }

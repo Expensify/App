@@ -12,7 +12,6 @@ import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValu
  * such as write permissions, policy settings, or sibling actions.
  */
 function shouldSkipCachingAction(action: ReportAction): boolean {
-    // A sibling PAY can arrive without updating MARKED_REIMBURSED, so its visibility must be checked at runtime.
     return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
 }
 
