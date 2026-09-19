@@ -1438,8 +1438,8 @@ type FinancialForceSyncedEntity = {
 
 /** Data synced from Certinia (parent sync service); arrays may be empty until sync completes */
 type FinancialForceConnectionData = {
-    /** Salesforce Accounts used as Default Vendor options (FFA) */
-    vendors: FinancialForceSyncedEntity[];
+    /** Salesforce Accounts used as Default Vendor options (FFA); undefined means the sync has not written the list yet */
+    vendors?: FinancialForceSyncedEntity[];
 
     /** Certinia companies (c2g__codaCompany__c); FFA validates presence when applicable */
     companies: FinancialForceSyncedEntity[];
@@ -3821,6 +3821,7 @@ export type {
     DualEntryExport,
     DualEntryAutoSync,
     DualEntrySync,
+    FinancialForceSyncedEntity,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,

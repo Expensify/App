@@ -174,6 +174,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // When no source is active, keep the connected integration's discovery row.
     // QBO (R1), Sage Intacct (R2), and DualEntry are GA. Xero and Rillet require the vendorMatching beta.
+    // Certinia is deliberately not in the discovery list — it reaches the row only through
+    // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [

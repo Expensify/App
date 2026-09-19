@@ -2712,9 +2712,19 @@ function isDualEntryVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * True when a Certinia FFA connection is configured. Only FFA qualifies — a PSA connection's
+ * account dimension is a PSA project rather than a vendor, and a missing `hasPSA` flag fails
+ * closed. Mirrors `FinancialForce::hasVendorFeature` on the PHP side.
+ */
+function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
+    return config?.isConfigured === true && config?.hasPSA === false;
+}
+
+/**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Certinia) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
@@ -2736,6 +2746,7 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
  *   - Rillet (R4) configured connection. Beta required
  *   - DualEntry configured connection. GA, so no beta required
+ *   - Certinia FFA configured connection. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -2744,12 +2755,12 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy));
 }
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, Rillet, or DualEntry) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, DualEntry, or Certinia) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2789,6 +2800,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isDualEntryVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
+    }
+    if (isCertiniaVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
     }
     return undefined;
 }
@@ -2834,12 +2848,15 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     if (isDualEntryVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.data?.vendors === undefined ? undefined : getDualEntryVendors(policy);
     }
+    if (isCertiniaVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, or DualEntry). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, or Certinia). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
@@ -2929,7 +2946,11 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             email: rilletVendor.email ?? '',
         };
     }
-    return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
+    const dualEntryVendor = getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (dualEntryVendor) {
+        return dualEntryVendor;
+    }
+    return getCertiniaVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
 /**
@@ -2979,6 +3000,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
                 title: translate('workspace.dualEntry.noVendorsFound'),
                 subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+            return {
+                title: translate('workspace.certinia.noVendorsFound'),
+                subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
+            };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
             const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
@@ -3012,6 +3038,16 @@ function getDualEntryVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return (connection?.data?.vendors ?? [])
         .filter((vendor) => !!vendor.id && vendor.isActive === true && (!vendor.companyID || vendor.companyID === companyID))
         .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
+}
+
+/**
+ * Certinia-scoped vendor list, normalized to the shared `Vendor` shape. Bound strictly to the FFA
+ * connection's synced Salesforce vendor Accounts so Certinia-only controls stay on Certinia data
+ * regardless of which integration is the active matching source.
+ */
+function getCertiniaVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors;
+    return (vendors ?? []).map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: ''}));
 }
 
 /**
@@ -3506,8 +3542,10 @@ export {
     getXeroSupplierByID,
     getXeroSuppliers,
     getDualEntryVendors,
+    getCertiniaVendors,
     isRilletVendorMatchingActive,
     isDualEntryVendorMatchingActive,
+    isCertiniaVendorMatchingActive,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,

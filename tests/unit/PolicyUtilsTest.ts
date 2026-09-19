@@ -27,6 +27,7 @@ import {
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
     getDualEntryVendors,
+    getCertiniaVendors,
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
@@ -74,6 +75,7 @@ import {
     hasVendorFeature,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
+    isCertiniaVendorMatchingActive,
     isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
@@ -99,7 +101,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
-import type {Connections, DualEntryVendor, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
+import type {Connections, DualEntryVendor, FinancialForceSyncedEntity, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
@@ -4406,6 +4408,79 @@ describe('PolicyUtils', () => {
                 expect(getVendorEmptyState(buildDualEntryPolicy([]), translate)).toEqual({
                     title: translate('workspace.dualEntry.noVendorsFound'),
                     subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
+                });
+            });
+        });
+
+        describe('Certinia vendors', () => {
+            const vendors: FinancialForceSyncedEntity[] = [
+                {id: 'certinia-1', name: 'Acme Supplies'},
+                {id: 'certinia-2', name: 'Globex'},
+            ];
+            const buildCertiniaPolicy = (
+                vendorList: FinancialForceSyncedEntity[] | undefined,
+                config: {isConfigured?: boolean; hasPSA?: boolean} = {isConfigured: true, hasPSA: false},
+            ): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                            config,
+                            data: {vendors: vendorList},
+                        },
+                    },
+                });
+
+            it('requires a configured FFA connection and the matching beta', () => {
+                const policy = buildCertiniaPolicy(vendors);
+                expect(isCertiniaVendorMatchingActive(policy)).toBe(true);
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(isCertiniaVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it('fails closed for PSA, missing hasPSA, and unconfigured connections', () => {
+                expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: true, hasPSA: true}))).toBe(false);
+                expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: true}))).toBe(false);
+                expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: false, hasPSA: false}))).toBe(false);
+                expect(hasVendorFeature(buildCertiniaPolicy(vendors, {isConfigured: true, hasPSA: true}), true)).toBe(false);
+            });
+
+            it('normalizes synced vendors and resolves them by ID', () => {
+                const policy = buildCertiniaPolicy(vendors);
+                const expected = [
+                    {id: 'certinia-1', name: 'Acme Supplies', currency: '', email: ''},
+                    {id: 'certinia-2', name: 'Globex', currency: '', email: ''},
+                ];
+                expect(getMatchingVendors(policy)).toEqual(expected);
+                expect(getCertiniaVendors(policy)).toEqual(expected);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
+                expect(getMatchingVendorByID(policy, 'certinia-2')?.name).toBe('Globex');
+                expect(findVendorByID(policy, 'certinia-1')?.name).toBe('Acme Supplies');
+            });
+
+            it('distinguishes an unloaded list from a loaded-empty list', () => {
+                expect(isMatchingVendorListLoaded(buildCertiniaPolicy(undefined))).toBe(false);
+                expect(isMatchingVendorListLoaded(buildCertiniaPolicy([]))).toBe(true);
+                expect(getMatchingVendors(buildCertiniaPolicy(undefined))).toEqual([]);
+            });
+
+            it('stays last in precedence behind DualEntry', () => {
+                const policy = buildCertiniaPolicy(vendors);
+                policy.connections = {
+                    ...policy.connections,
+                    dualEntry: {config: {isConfigured: true, subsidiaryID: '10'}, data: {vendors: [{id: '1', name: 'DualEntry vendor', isActive: true}]}},
+                };
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['1']);
+                expect(getCertiniaVendors(policy).map((vendor) => vendor.id)).toEqual(['certinia-1', 'certinia-2']);
+            });
+
+            it('uses the existing Certinia empty state', () => {
+                const translate = TestHelper.translateLocal;
+                expect(getVendorEmptyState(buildCertiniaPolicy([]), translate)).toEqual({
+                    title: translate('workspace.certinia.noVendorsFound'),
+                    subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
                 });
             });
         });

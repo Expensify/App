@@ -526,5 +526,21 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}}, false);
             expect(vendorsSwitchQuery()).toBeNull();
         });
+
+        // Certinia FFA is beta-gated, so the row follows the vendorMatching beta.
+        it('shows the Vendors row for a configured Certinia FFA connection when the beta is enabled', async () => {
+            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}}, true);
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('hides the Vendors row for a configured Certinia FFA connection when the beta is disabled', async () => {
+            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}}, false);
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a Certinia PSA connection even when the beta is enabled', async () => {
+            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: true}}}, true);
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
     });
 });
