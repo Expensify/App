@@ -4806,6 +4806,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 title: 'ChatGPT',
                 subtitle: 'OpenAI 提供',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: 'xAI 提供',
+            },
         },
         receiptPartners: {
             uber: {
