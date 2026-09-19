@@ -4542,6 +4542,9 @@ type NavigateToConciergeChatParams = {
     /** Whether the user has already viewed the self tour. */
     isSelfTourViewed: boolean | undefined;
 
+    /** Whether the user has completed the guided setup (onboarding) flow. */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
     /** The betas the current user is on. */
     betas: OnyxEntry<Beta[]>;
 
@@ -4576,6 +4579,7 @@ function navigateToConciergeChat({
     introSelected,
     currentUserAccountID,
     isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     betas,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
@@ -4604,8 +4608,7 @@ function navigateToConciergeChat({
                 // The Concierge chat does not exist yet on this path (it is being created here), so there is no report to thread.
                 conciergeChat: undefined,
                 isSelfTourViewed,
-                // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 // Not gated: this is the Concierge fallback, not the Start chat flow. Concierge is a core report reached while
                 // simply navigating around, so blocking it for support agents would pop the denied modal during plain navigation.
@@ -5096,6 +5099,8 @@ function navigateToConciergeChatAndDeleteReport(
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
+        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        hasCompletedGuidedSetupFlow: undefined,
         betas,
         shouldDismissModal: false,
         linkToOptions: {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
@@ -5410,7 +5415,17 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false, linkToOptions: {forceReplace: true}});
+        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        navigateToConciergeChat({
+            conciergeReportID,
+            introSelected,
+            currentUserAccountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: undefined,
+            betas,
+            shouldDismissModal: false,
+            linkToOptions: {forceReplace: true},
+        });
     }
 }
 
