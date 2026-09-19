@@ -22,18 +22,15 @@ import {
     getCardFeedWithDomainID,
     getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
+    hasCardConnectionIssue,
     isActionableVirtualExpensifyCard,
-    isBrokenConnectionPastDismissThreshold,
-    isCardConnectionBroken,
     doesCardConnectionNeedReauthentication,
     isCardFrozen,
     isCardInactive,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isExpiredCard,
-    isLastScrapePastDismissThreshold,
     isPersonalCard,
-    isPersonalCardBrokenConnection,
     isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -307,14 +304,14 @@ function PaymentMethodList({
                     }
                 }
 
-                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isPersonalCardBrokenConnection(card))) {
+                if (isUserPersonalCard && (!isEmptyObject(card.errors) || hasCardConnectionIssue(card))) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
                 const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
-                const isCardBroken = isUserPersonalCard
-                    ? isPersonalCardBrokenConnection(card) && !isLastScrapePastDismissThreshold(card)
-                    : isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+                // The grace period and the ignored scrape statuses only stop us from prompting the user. The status itself
+                // stays truthful, so a card reporting a connection error still reads as Inactive with a way to fix it.
+                const isCardBroken = hasCardConnectionIssue(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
                     shouldShowConnectionStatus,
@@ -327,8 +324,12 @@ function PaymentMethodList({
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
                     policyID: policyIDForCard,
                 });
-                const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
+                // The connection message is the row's one line about a card we cannot import from, so it stands in for
+                // every error the card carries. The server's own connection error says the same thing in words we do
+                // not control and without a way to fix it, and nothing tells it apart from an error a user action left
+                // behind, so both wait until the connection is working again.
+                const cardErrors = cardConnectionStatusDisplay?.messageKey ? undefined : card.errors;
+                const shouldShowCardErrorMessages = !isEmptyObject(cardErrors);
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
@@ -424,7 +425,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard,
-                        errors: isUserPersonalCard ? undefined : card.errors,
+                        errors: isUserPersonalCard ? undefined : cardErrors,
                         shouldShowErrorMessages: !isUserPersonalCard && shouldShowCardErrorMessages,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
@@ -502,7 +503,7 @@ function PaymentMethodList({
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
-                    errors: card.errors,
+                    errors: cardErrors,
                     shouldShowErrorMessages: shouldShowCardErrorMessages,
                     canDismissError: true,
                     pendingAction: card.pendingAction,
