@@ -8793,6 +8793,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subsidiarySelectDescription: 'Sélectionnez la filiale Dynamics 365 Business Central à synchroniser avec cet espace de travail.',
             noCompaniesFound: 'Aucune entreprise trouvée',
             noCompaniesFoundDescription: 'Veuillez ajouter une société dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            importDescription: 'Choisissez quelles configurations de codage importer depuis Dynamics 365 Business Central.',
+            items: 'Articles',
+            enableNewCategories: 'Activer les nouvelles catégories importées',
         },
     },
     getAssistancePage: {

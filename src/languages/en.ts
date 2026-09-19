@@ -6221,6 +6221,9 @@ const translations = {
             subsidiarySelectDescription: 'Select the Dynamics 365 Business Central subsidiary to sync with this workspace.',
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
+            importDescription: 'Choose which coding configurations to import from Dynamics 365 Business Central.',
+            items: 'Items',
+            enableNewCategories: 'Enable newly imported categories',
         },
         type: {
             free: 'Free',

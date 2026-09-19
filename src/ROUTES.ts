@@ -5037,6 +5037,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/business-central/company-selector',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/company-selector` as const,
     },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_IMPORT: {
+        route: 'workspaces/:policyID/accounting/business-central/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/import` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,
