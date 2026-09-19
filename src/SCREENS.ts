@@ -729,6 +729,7 @@ const SCREENS = {
             BUSINESS_CENTRAL_PREREQUISITES: 'Policy_Accounting_Business_Central_Prerequisites',
             BUSINESS_CENTRAL_SETUP: 'Policy_Accounting_Business_Central_Setup',
             BUSINESS_CENTRAL_COMPANY_SELECTOR: 'Policy_Accounting_Business_Central_Company_Selector',
+            BUSINESS_CENTRAL_IMPORT: 'Policy_Accounting_Business_Central_Import',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',

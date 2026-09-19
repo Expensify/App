@@ -2583,23 +2583,6 @@ type BusinessCentralBankAccount = {
 };
 
 /**
- * VAT posting setup retrieved from Business Central. VAT posting setups are imported as tax rates.
- */
-type BusinessCentralVATPostingSetup = {
-    /** VAT business posting group the setup applies to */
-    vatBusinessPostingGroup: string;
-
-    /** VAT product posting group the setup applies to */
-    vatProductPostingGroup: string;
-
-    /** Identifier of the VAT rate */
-    vatIdentifier: string;
-
-    /** VAT percentage the setup applies */
-    vatPercentage: number;
-};
-
-/**
  * Connection data retrieved from Business Central.
  */
 type BusinessCentralConnectionData = {
@@ -2618,8 +2601,8 @@ type BusinessCentralConnectionData = {
     /** Bank accounts of the selected company */
     bankAccounts?: BusinessCentralBankAccount[];
 
-    /** VAT posting setups of the selected company */
-    vatPostingSetups?: BusinessCentralVATPostingSetup[];
+    /** Whether the selected company has VAT posting setups that can be imported as tax rates. A US company has none, so it gets no tax row */
+    hasVATPostingSetups?: boolean;
 };
 
 /**
@@ -3825,4 +3808,6 @@ export type {
     CampfireSubsidiary,
     CampfireCoding,
     BusinessCentralCompany,
+    BusinessCentralCoding,
+    BusinessCentralCodingOfflineFeedbackKeys,
 };

@@ -3924,6 +3924,9 @@ const CONST = {
 
     BUSINESS_CENTRAL_CONFIG: {
         COMPANY_ID: 'companyID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        SYNC_ITEMS: 'syncItems',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
     },
 
