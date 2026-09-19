@@ -430,4 +430,137 @@ describe('useSearchSnapshot', () => {
         expect(result.current.chartData).toBe(firstChartData);
         expect(result.current.data).toBe(firstData);
     });
+
+    it('caps data at visibleRowLimit while leaving chartData and the row count untouched', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const rows = Array.from({length: 5}, (_value, index) => ({transactionID: `${index}`, keyForList: `${index}`}));
+        mockGetSections.mockReturnValue([rows, rows.length, false]);
+        mockGetSortedSections.mockReturnValue(rows);
+
+        const {result, rerender} = renderHook((visibleRowLimit?: number) =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit,
+            }),
+        );
+
+        expect(result.current.data).toHaveLength(5);
+
+        rerender(2);
+
+        expect(result.current.data.map((item) => item.keyForList)).toEqual(['0', '1']);
+        expect(result.current.chartData).toHaveLength(5);
+        expect(result.current.filteredDataLength).toBe(5);
+
+        rerender(10);
+
+        // a fresh array here re-renders the list on every pass
+        expect(result.current.data).toBe(result.current.chartData);
+    });
+
+    it('caps filteredData to the rendered rows so bulk actions cannot reach unrendered ones', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const rows = Array.from({length: 5}, (_value, index) => ({transactionID: `${index}`, keyForList: `${index}`}));
+        mockGetSections.mockReturnValue([rows, rows.length, false]);
+        // sorted order reverses the section order, so slicing `filteredData` on its own would select the wrong rows
+        mockGetSortedSections.mockReturnValue([...rows].reverse());
+
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 2,
+            }),
+        );
+
+        expect(result.current.data.map((item) => item.keyForList)).toEqual(['4', '3']);
+        expect(result.current.filteredData).toBe(result.current.data);
+        // uncapped, or the offline reveal would never know there are more cached rows
+        expect(result.current.filteredDataLength).toBe(5);
+    });
+
+    it('leaves filteredData as the unsorted sections when the limit exactly matches the row count', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const rows = Array.from({length: 3}, (_value, index) => ({transactionID: `${index}`, keyForList: `${index}`}));
+        mockGetSections.mockReturnValue([rows, rows.length, false]);
+        mockGetSortedSections.mockReturnValue([...rows].reverse());
+
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 3,
+            }),
+        );
+
+        // cap only engages above the limit, so filteredData stays the pre-sort sections
+        expect(result.current.data.map((item) => item.keyForList)).toEqual(['2', '1', '0']);
+        expect(result.current.filteredData).toBe(rows);
+    });
+
+    it('keeps the capped data reference across a rerender at the same limit', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const rows = Array.from({length: 5}, (_value, index) => ({transactionID: `${index}`, keyForList: `${index}`}));
+        mockGetSections.mockReturnValue([rows, rows.length, false]);
+        mockGetSortedSections.mockReturnValue(rows);
+
+        const {result, rerender} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 2,
+            }),
+        );
+
+        const firstData = result.current.data;
+
+        rerender({});
+
+        // slice is a fresh array per call, so losing the memo re-renders the whole list every pass
+        expect(result.current.data).toBe(firstData);
+    });
+
+    it('caps grouped rows by group, keeping unrendered groups out of selection', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const groups = Array.from({length: 3}, (_value, index) => ({
+            groupID: `group${index}`,
+            keyForList: `group${index}`,
+            transactions: [{transactionID: `${index}-a`}, {transactionID: `${index}-b`}],
+        }));
+        mockGetSections.mockReturnValue([groups, groups.length, false]);
+        mockGetSortedSections.mockReturnValue(groups);
+
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 2,
+            }),
+        );
+
+        expect(result.current.data.map((item) => item.keyForList)).toEqual(['group0', 'group1']);
+        // cap slices whole groups, so group2's transactions must be unreachable for bulk actions
+        expect(result.current.filteredData).toEqual(groups.slice(0, 2).map((group) => expect.objectContaining({keyForList: group.keyForList, transactions: group.transactions})));
+    });
 });

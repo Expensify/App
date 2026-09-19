@@ -103,6 +103,7 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import useLiveRowLimit from './hooks/useLiveRowLimit';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
@@ -193,6 +194,8 @@ function Search({
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+
+    const liveRowLimit = useLiveRowLimit(searchResults?.search?.offset, searchResults?.search?.isLoading);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
@@ -291,6 +294,7 @@ function Search({
         newSearchResultKeys,
         transactions,
         reportActions,
+        visibleRowLimit: shouldUseLiveData ? liveRowLimit : undefined,
     });
 
     // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
@@ -847,7 +851,8 @@ function Search({
             return;
         }
 
-        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        // the cursor rewinds but the cap doesn't, so serverOffset + 1 page can re-request rows already on screen
+        const nextOffset = shouldUseLiveData ? Math.max(serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, liveRowLimit) : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
         wantedOffsetRef.current = nextOffset;
         // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
         if (searchResults?.search?.isLoading || isOffline) {
@@ -868,6 +873,8 @@ function Search({
     }, [
         isFocused,
         isOffline,
+        shouldUseLiveData,
+        liveRowLimit,
         searchResults?.search?.hasMoreResults,
         searchResults?.search?.isLoading,
         searchResults?.search?.offset,

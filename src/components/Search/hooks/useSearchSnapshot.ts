@@ -46,7 +46,7 @@ type SearchSnapshotResult = {
     data: SearchListItem[];
     /** Sorted row items BEFORE optimistic stabilization. The chart view consumes this, not `data`. */
     chartData: SearchListItem[];
-    /** Group-enriched sections before sort. Consumed for selection counts and bulk-action wiring. */
+    /** Group-enriched sections before sort, capped to `visibleRowLimit`. Consumed for selection counts and bulk-action wiring. */
     filteredData: SearchData;
     /** Length of the base (pre-sort) sections (used as `prevReportsLength` when firing the next search). */
     filteredDataLength: number;
@@ -84,6 +84,8 @@ type UseSearchSnapshotParams = {
      *  full-collection reads. */
     transactions: OptimisticTrackingParams['transactions'];
     reportActions: OptimisticTrackingParams['reportActions'];
+    /** Row cap for `data`. Live searches page on this instead of a server cursor. */
+    visibleRowLimit?: number;
 };
 
 const EMPTY_DATA: SearchListItem[] = [];
@@ -101,7 +103,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * per-group sub-snapshots, and absorbs the optimistic-row resilience. Returns the sorted rows plus the
  * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
  */
-function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
+function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, visibleRowLimit}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -410,10 +412,17 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
               return item.transactions.length === 0 || !subSnapshot || !subSnapshot?.search?.hasMoreResults;
           });
 
+    // slice after the sort so page 2 continues the order on screen
+    const isRowLimitApplied = visibleRowLimit !== undefined && stableSortedData.length > visibleRowLimit;
+    const visibleData = isRowLimitApplied ? stableSortedData.slice(0, visibleRowLimit) : stableSortedData;
+    // selection runs off this, so cap it too or "select all" reaches rows that were never rendered
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `visibleData` is a sorted slice of the same rows
+    const visibleFilteredData = isRowLimitApplied ? (visibleData as SearchData) : filteredData;
+
     return {
-        data: stableSortedData,
+        data: visibleData,
         chartData,
-        filteredData,
+        filteredData: visibleFilteredData,
         filteredDataLength,
         allDataLength,
         hasDeletedTransaction,

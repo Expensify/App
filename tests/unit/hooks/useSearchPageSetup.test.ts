@@ -11,10 +11,11 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 const mockSearch = jest.fn<void, unknown[]>();
 let mockCurrentSearchResults: SearchResults | undefined;
+let mockShouldUseLiveData = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchKey: 'expenses'}),
-    useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults, shouldUseLiveData: false}),
+    useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults, shouldUseLiveData: mockShouldUseLiveData}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
     useSearchSelectionContext: () => ({areAllMatchingItemsSelected: false}),
 }));
@@ -88,6 +89,7 @@ function getQueryJSON() {
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
         mockSearch.mockClear();
+        mockShouldUseLiveData = false;
     });
 
     it('retries an unresolved search when temporary search prevention clears', async () => {
@@ -121,6 +123,59 @@ describe('useSearchPageSetup', () => {
     it('does not restart the first page while a later page is loading', async () => {
         const queryJSON = getQueryJSON();
         mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('resumes a stranded page on a live to-do tab', async () => {
+        const queryJSON = getQueryJSON();
+        mockShouldUseLiveData = true;
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, isLoading: false}));
+    });
+
+    it('does not fetch a first page for a live to-do tab with nothing stranded', async () => {
+        const queryJSON = getQueryJSON();
+        mockShouldUseLiveData = true;
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('keeps asking for a stranded live page, leaving it to search() to drop the duplicate', async () => {
+        const queryJSON = getQueryJSON();
+        mockShouldUseLiveData = true;
+
+        const {rerender} = renderHook(
+            ({isLoading}) => {
+                mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, isLoading, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {isLoading: true}},
+        );
+
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+
+        rerender({isLoading: false});
+
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(2));
+        expect(mockSearch).toHaveBeenLastCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+    });
+
+    it('does not resume a live stranded page belonging to a different query', async () => {
+        const queryJSON = getQueryJSON();
+        mockShouldUseLiveData = true;
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash + 1, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
 
         renderHook(() => useSearchPageSetup(queryJSON));
 
