@@ -13,9 +13,10 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import {getAllPersonalDetailLogins} from '@libs/ShortMentionLogins';
@@ -243,7 +244,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
 
     // FOR TASK REPORT
     const successData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -277,7 +279,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     // task report/action on API failure so the task stays visible until the user dismiss the
     // error from chat.
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE>
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [];
 
     if (assigneeChatReport && assigneeChatReportID) {
@@ -465,7 +468,7 @@ function createTaskFromMarkdown({text, parentReport, currentUserPersonalDetails,
     let assigneeChatReport;
     if (mentionWithDomain) {
         if (isValidMention) {
-            assignee = PersonalDetailsUtils.getPersonalDetailByEmail(mentionWithDomain);
+            assignee = getPersonalDetailByLogin(mentionWithDomain);
             if (!assignee) {
                 const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
                     accountID: generateAccountID(mentionWithDomain),
@@ -962,7 +965,8 @@ function editTaskAssignee({
     ];
 
     const successData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -976,7 +980,7 @@ function editTaskAssignee({
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
@@ -1131,7 +1135,7 @@ function setNewOptimisticAssignee(currentUserAccountID: number, assigneePersonal
         login: assigneePersonalDetails?.login,
         isOptimisticPersonalDetail: assigneePersonalDetails.isOptimisticPersonalDetail,
     };
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneePersonalDetails.accountID]: optimisticPersonalDetailsListAction});
+    Onyx.update([PersonalDetailsUtils.buildPersonalDetailsUpdate({[assigneePersonalDetails.accountID]: optimisticPersonalDetailsListAction})]);
     return {assignee: optimisticPersonalDetailsListAction, assigneeReport: report};
 }
 
@@ -1279,7 +1283,7 @@ function getShareDestination(
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
     rules: OnyxCollection<OnyxTypes.Rule>,
-    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    reportName: string | undefined,
     pendingDeleteMemberAccountIDs?: string[],
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
@@ -1318,8 +1322,9 @@ function getShareDestination(
             undefined,
             undefined,
             pendingDeleteMemberAccountIDs,
+            conciergeReportID,
         ),
-        displayName: deprecatedGetReportName(report, reportAttributes),
+        displayName: getReportName(report, reportName),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

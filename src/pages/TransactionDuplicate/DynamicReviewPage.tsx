@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -50,6 +51,7 @@ function DynamicReviewPage() {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
@@ -234,7 +236,7 @@ function DynamicReviewPage() {
         return (
             <ScreenWrapper testID="DynamicReviewPage">
                 <View style={[styles.flex1]}>
-                    <View style={[styles.appContentHeader, styles.borderBottom]}>
+                    <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom]}>
                         <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
                     </View>
                     <ReportActionsSkeletonView />

@@ -190,6 +190,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
+                        delegateAccountID: undefined,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -214,6 +215,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -239,7 +241,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             existingTransactionDraft: undefined,
                             isSelfTourViewed: false,
                             quickAction: undefined,
-                            betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
@@ -295,7 +296,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
-                            betas: [CONST.BETAS.ASAP_SUBMIT],
                             userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
@@ -413,7 +413,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -539,7 +538,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -650,7 +648,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -762,7 +759,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -822,10 +818,11 @@ describe('actions/IOU/ReportWorkflow', () => {
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
+                        delegateAccountID: undefined,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -845,6 +842,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -870,7 +868,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             existingTransactionDraft: undefined,
                             isSelfTourViewed: false,
                             quickAction: undefined,
-                            betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
@@ -912,6 +909,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             hasActiveAdminPolicies: false,
                             hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
+                            delegateAccountID: undefined,
                         });
                         return waitForBatchedUpdates();
                     })
@@ -931,6 +929,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
@@ -957,7 +956,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 existingTransactionDraft: undefined,
-                                betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
@@ -983,6 +981,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
@@ -1009,7 +1008,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 existingTransactionDraft: undefined,
-                                betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
@@ -1090,7 +1088,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 currentUserEmailParam: CARLOS_EMAIL,
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
-                                betas: [CONST.BETAS.ASAP_SUBMIT],
                                 userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
@@ -1215,6 +1212,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             hasActiveAdminPolicies: false,
                             hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
+                            delegateAccountID: undefined,
                         });
                         return waitForBatchedUpdates();
                     })
@@ -1234,6 +1232,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
@@ -1260,7 +1259,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 existingTransactionDraft: undefined,
-                                betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
@@ -1286,6 +1284,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
@@ -1312,7 +1311,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 existingTransactionDraft: undefined,
-                                betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
@@ -1391,7 +1389,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 currentUserEmailParam: CARLOS_EMAIL,
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
-                                betas: [CONST.BETAS.ASAP_SUBMIT],
                                 userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
@@ -1448,11 +1445,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             return waitForBatchedUpdates()
                 .then(async () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                        isASAPSubmitBetaEnabled: false,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1488,6 +1488,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -1514,7 +1515,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             existingTransactionDraft: undefined,
                             isSelfTourViewed: false,
                             quickAction: undefined,
-                            betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
@@ -1570,7 +1570,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
-                            betas: [CONST.BETAS.ASAP_SUBMIT],
                             userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
@@ -1646,7 +1645,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
@@ -1693,9 +1691,10 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -1708,6 +1707,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             if (chatReport) {
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -1733,7 +1733,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                     existingTransactionDraft: undefined,
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
@@ -1768,7 +1767,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     hasViolations: false,
                     isASAPSubmitBetaEnabled: true,
-                    betas: [CONST.BETAS.ASAP_SUBMIT],
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd,
@@ -1833,7 +1831,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1913,7 +1910,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1988,7 +1984,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2042,7 +2037,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasViolations: false,
                 isTrackIntentUser: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2099,7 +2093,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasViolations: false,
                 isTrackIntentUser: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2172,7 +2165,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2265,7 +2257,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2360,7 +2351,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2437,7 +2427,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2510,7 +2499,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2582,7 +2570,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2648,7 +2635,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2694,7 +2680,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: 'submitter@example.com',
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -3049,7 +3034,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -3089,7 +3073,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -3180,7 +3163,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -3224,7 +3206,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -3279,7 +3260,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -4227,7 +4207,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -4282,7 +4261,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -4336,7 +4314,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -4354,11 +4331,11 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(report?.nextStep).toBeDefined();
 
             // Since the report is fully approved when admin takes control and approves,
-            // the next step should be about payment,
+            // the next step should be about payment, naming the policy owner as the fallback reimburser
             expect(report?.nextStep).toEqual({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: -1,
+                actorAccountID: adminAccountID,
             });
         });
     });
@@ -4464,7 +4441,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -4498,7 +4474,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -4530,7 +4505,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -4592,7 +4566,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -4654,7 +4627,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                         currentUserEmailParam: managerEmail,
                         hasViolations: false,
                         isASAPSubmitBetaEnabled: false,
-                        betas: [CONST.BETAS.ALL],
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         ownerBillingGracePeriodEnd: undefined,
@@ -4787,7 +4759,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 full: false,

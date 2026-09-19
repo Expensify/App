@@ -225,7 +225,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
                         <TextCell text={getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
                     </View>

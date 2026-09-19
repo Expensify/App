@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
 import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
@@ -74,7 +74,7 @@ function InsightsSectionContent() {
                             {
                                 text: translate('common.view'),
                                 icon: icons.Expand,
-                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery})),
+                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key})),
                                 shouldCallAfterModalHide: true,
                             },
                         ]}
