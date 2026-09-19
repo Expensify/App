@@ -6756,23 +6756,23 @@ describe('ReportActionsUtils', () => {
             expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [reimbursement]})).toEqual(['reimbursement', 0]);
         });
 
-        it('skips a NetSuite export when finding the oldest eligible unread action', () => {
+        it('skips an export when finding the oldest eligible unread action', () => {
             const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
-            const netSuiteExport = makeAction({
+            const exportAction = makeAction({
                 actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
-                reportActionID: 'netsuite-export',
-                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
             });
-            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [comment, netSuiteExport]})).toEqual(['comment', 0]);
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [comment, exportAction]})).toEqual(['comment', 0]);
         });
 
-        it('keeps exports to other integrations eligible for a marker', () => {
+        it('does not show a marker when an export is the only unread action', () => {
             const exportAction = makeAction({
                 actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
                 reportActionID: 'qbo-export',
                 originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
             });
-            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [exportAction]})).toEqual(['qbo-export', 0]);
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [exportAction]})).toEqual([null, -1]);
         });
 
         it('short-circuits to [null, -1] for an anonymous user', () => {

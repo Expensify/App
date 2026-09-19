@@ -131,12 +131,7 @@ function canReportActionTriggerUnreadMarker(reportAction: OnyxTypes.ReportAction
         return !actionableForAccountIDs || actionableForAccountIDs.includes(currentUserAccountID);
     }
 
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
-        const originalMessage = getOriginalMessage(reportAction);
-        return originalMessage?.label !== CONST.EXPORT_LABELS.NETSUITE;
-    }
-
-    return true;
+    return !isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION);
 }
 
 export default shouldDisplayNewMarkerOnReportAction;
