@@ -1,4 +1,4 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
@@ -180,7 +180,7 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -191,14 +191,20 @@ function SearchAutocompleteList({
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
+    const cardList = useCardList();
+    const workspaceCardList = useWorkspaceCardList();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -221,7 +227,9 @@ function SearchAutocompleteList({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const {
         options: listOptions,
@@ -260,6 +268,7 @@ function SearchAutocompleteList({
         return getSearchOptions({
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             options: listOptions,
             draftComments,
             isDefaultRoomsBetaEnabled,
@@ -279,7 +288,15 @@ function SearchAutocompleteList({
             currentUserEmail,
             policyCollection: policies,
             personalDetails,
+            reportAttributesDerived: reportAttributes,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserLogin: currentUserEmail,
+            cardList,
+            workspaceCardList,
+            localeCompare,
+            formatPhoneNumber,
             conciergeReportID,
             isTrackIntentUser,
             translate,
@@ -297,12 +314,20 @@ function SearchAutocompleteList({
         currentUserEmail,
         policies,
         personalDetails,
+        reportAttributes,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
+        cardList,
+        workspaceCardList,
+        localeCompare,
+        formatPhoneNumber,
         conciergeReportID,
         isTrackIntentUser,
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         rules,
     ]);
 
@@ -511,7 +536,10 @@ function SearchAutocompleteList({
         };
 
         if (searchQueryItems && searchQueryItems.length > 0) {
-            pushSection({data: searchQueryItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
+            pushSection({
+                data: searchQueryItems as AutocompleteListItem[],
+                sectionIndex: sectionIndex++,
+            });
         }
 
         const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
@@ -524,7 +552,11 @@ function SearchAutocompleteList({
         }
 
         if (!hasEffectiveInputQuery && recentSearchesData && recentSearchesData.length > 0) {
-            pushSection({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
+            pushSection({
+                title: translate('search.recentSearches'),
+                data: recentSearchesData as AutocompleteListItem[],
+                sectionIndex: sectionIndex++,
+            });
         }
 
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
@@ -553,7 +585,11 @@ function SearchAutocompleteList({
             // No active (debounced) query yet: single "Recent chats" section. This also covers the debounce window
             // right after the user starts typing, so we keep recent chats visible instead of flashing search rows.
             if (!isLoadingOptions) {
-                pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
+                pushSection({
+                    title: translate('search.recentChats'),
+                    data: nextStyledRecentReports,
+                    sectionIndex: sectionIndex++,
+                });
             } else {
                 pushSection({
                     title: translate('search.recentChats'),
@@ -579,7 +615,11 @@ function SearchAutocompleteList({
             localRows.sort((a, b) => (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0));
 
             if (localRows.length > 0 || !isLoadingOptions) {
-                pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
+                pushSection({
+                    title: translate('search.recentChats'),
+                    data: localRows,
+                    sectionIndex: sectionIndex++,
+                });
             } else {
                 // Options are still loading and no local results matched — show a skeleton so the
                 // user sees feedback instead of a bare section header.
@@ -622,10 +662,18 @@ function SearchAutocompleteList({
                 };
             });
 
-            pushSection({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
+            pushSection({
+                title: translate('search.suggestions'),
+                data: autocompleteData,
+                sectionIndex: sectionIndex++,
+            });
         }
 
-        return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
+        return {
+            sections: nextSections,
+            styledRecentReports: nextStyledRecentReports,
+            suggestionsCount: nextSuggestionsCount,
+        };
     }, [
         hasEffectiveInputQuery,
         hasActiveSearchResults,
