@@ -5,8 +5,6 @@ import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import type {MaskOnyxState} from './types';
-
 const MASKING_PATTERN = '***';
 
 type ExportRule = {
@@ -798,7 +796,7 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
     return newState;
 };
 
-const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
+const maskOnyxState = (data: OnyxState, isMaskingFragileDataEnabled?: boolean): OnyxState => {
     const emailMap = new Map<string, string>();
 
     try {

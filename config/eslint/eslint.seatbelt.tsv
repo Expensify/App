@@ -734,9 +734,8 @@
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/ExpenseRuleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/ExportOnyxState/common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
-"../../src/libs/ExportOnyxState/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	1
+"../../src/libs/ExportOnyxState/masking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
+"../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	2
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/fileDownload/getImageManipulator/index.native.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
 "../../src/libs/fileDownload/getImageManipulator/index.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1

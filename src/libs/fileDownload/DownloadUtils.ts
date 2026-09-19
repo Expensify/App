@@ -20,12 +20,14 @@ const createDownloadLink = (href: string, fileName: string) => {
     // Append to html link element page
     document.body.appendChild(link);
 
-    // Start download
-    link.click();
-
-    // Clean up and remove the link
-    URL.revokeObjectURL(link.href);
-    link.parentNode?.removeChild(link);
+    try {
+        // Start download
+        link.click();
+    } finally {
+        // The browser reads the Blob URL asynchronously after click(), so wait until the current task finishes before revoking it.
+        setTimeout(() => URL.revokeObjectURL(href), 0);
+        link.remove();
+    }
 };
 
 /**
@@ -94,3 +96,4 @@ const fetchFileDownload: FileDownload = (
 };
 
 export default fetchFileDownload;
+export {createDownloadLink};
