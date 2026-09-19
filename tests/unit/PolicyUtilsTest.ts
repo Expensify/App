@@ -535,7 +535,7 @@ describe('PolicyUtils', () => {
             // Given a policy viewed by an admin, holding another admin in its employee list
             // When that member's protection is resolved
             // Then they are protected, because removing a workspace admin from the chat is not allowed
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), adminLogin)).toBe(true);
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), adminLogin, undefined)).toBe(true);
         });
 
         it('does not protect a regular member even when the viewing user is an admin', () => {
@@ -543,7 +543,7 @@ describe('PolicyUtils', () => {
             // When that member's protection is resolved
             // Then they are not protected, because the listed member's own role is what counts. This is the bug that
             // made every member of a workspace chat un-removable to a viewing admin
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), memberLogin)).toBe(false);
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), memberLogin, undefined)).toBe(false);
         });
 
         it('fails closed for a member whose login is missing', () => {
@@ -552,23 +552,23 @@ describe('PolicyUtils', () => {
             // Then they are protected, because a role we cannot resolve must not be treated as "not an admin".
             // Both the members list and the member details page depend on this branch to avoid offering removal
             // for a member who may well be a workspace admin
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), undefined)).toBe(true);
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), '')).toBe(true);
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), undefined, undefined)).toBe(true);
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), '', undefined)).toBe(true);
         });
 
         it('does not protect a member who is absent from the employee list', () => {
             // Given a login that the policy does not list as an employee
             // When their protection is resolved
             // Then they are not protected, since a resolvable login that holds no policy role is not an admin
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'stranger@test.com')).toBe(false);
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'stranger@test.com', undefined)).toBe(false);
         });
 
         it('protects an admin whose login is not lowercase', () => {
             // Given an employee list keyed by canonical lowercase logins
             // When a mixed-case login read off personal details is resolved
             // Then the normalized fallback still matches the admin entry and protects them
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Admin@Test.com')).toBe(true);
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Member@Test.com')).toBe(false);
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Admin@Test.com', undefined)).toBe(true);
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Member@Test.com', undefined)).toBe(false);
         });
 
         it('protects the policy owner by accountID even when the employee list does not list them', () => {

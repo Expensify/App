@@ -186,9 +186,12 @@ const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldC
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
 
 /**
- * Checks if the current user is an owner (creator) of the policy.
+ * Checks if the given account is the owner (creator) of the policy.
+ *
+ * The account is whoever you pass in, not necessarily the current user — callers resolving another member's role rely
+ * on that.
  */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, accountID: number | undefined): boolean => !!accountID && policy?.ownerAccountID === accountID;
 
 /**
  * Whether a room member's own policy role protects them from being removed from a policy expense chat.
@@ -201,8 +204,11 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: n
  * unlike `employeeList` it resolves even when the employee roster has not loaded, and the owner is only protected
  * incidentally by `role: admin` otherwise. Note the callers' `report.ownerAccountID` is the *report* owner — the
  * employee whose expense chat it is — which is a different person from the policy owner.
+ *
+ * `accountID` is deliberately a required position rather than optional: omitting it silently drops the owner
+ * protection, so every caller must state it even when it is `undefined`.
  */
-const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID?: number): boolean =>
+const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
     isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false);
 
 const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
