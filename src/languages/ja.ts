@@ -2517,7 +2517,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: '2要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '2要素認証を有効にしてください',
         twoFactorAuthIsRequiredXero: 'Xero 会計連携には二要素認証が必要です。',
-        twoFactorAuthIsRequiredCompany: 'あなたの会社では、2 要素認証が必須です。',
+        twoFactorAuthIsRequiredCompany: 'お客様の会社では、2 要素認証（2FA）が必須です。',
         twoFactorAuthCannotDisable: '2要素認証を無効にできません',
         twoFactorAuthRequired: 'Xero 連携には二要素認証（2FA）が必須で、無効にすることはできません。',
         replaceDevice: 'デバイスを交換',
@@ -2529,6 +2529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
         copyCodes: 'コードをコピー',
+        enable2FA: '有効にする',
     },
     recoveryCodeForm: {
         error: {
@@ -10778,6 +10779,8 @@ ${reportName}`,
         removeCopilotAccessConfirmation: (delegatorName: string) => `${delegatorName}のExpensifyアカウントへのコパイロットアクセスを削除してもよろしいですか？この操作は元に戻せません。`,
         removeCopilotAccessConfirm: 'アクセスを削除',
         copilotAccess: 'Copilot へのアクセス',
+        leaveAccount: 'アカウントを退出',
+        leaveAccountConfirmationText: 'ご自身のアカウントに戻りますが、完全にはサインアウトされません。',
     },
     debug: {
         debug: 'デバッグ',

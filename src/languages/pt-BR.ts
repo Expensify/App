@@ -2529,7 +2529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticação em duas etapas obrigatória',
         twoFactorAuthIsRequiredForAdminsTitle: 'Ative a autenticação em duas etapas',
         twoFactorAuthIsRequiredXero: 'Sua conexão contábil com o Xero exige autenticação em duas etapas.',
-        twoFactorAuthIsRequiredCompany: 'Sua empresa exige autenticação em duas etapas.',
+        twoFactorAuthIsRequiredCompany: 'Sua empresa exige autenticação de dois fatores (2FA).',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação em duas etapas (2FA) é obrigatória para sua conexão com o Xero e não pode ser desativada.',
         replaceDevice: 'Substituir dispositivo',
@@ -2541,6 +2541,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e depois insira o código para concluir a configuração.',
         downloadCodes: 'Baixar códigos',
         copyCodes: 'Copiar códigos',
+        enable2FA: 'Ativar',
     },
     recoveryCodeForm: {
         error: {
@@ -10891,6 +10892,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `Tem certeza de que deseja remover seu acesso de copiloto à conta Expensify de ${delegatorName}? Esta ação não pode ser desfeita.`,
         removeCopilotAccessConfirm: 'Remover acesso',
         copilotAccess: 'Acesso ao Copilot',
+        leaveAccount: 'Sair da conta',
+        leaveAccountConfirmationText: 'Você voltará para a sua própria conta. Você não será totalmente desconectado.',
     },
     debug: {
         debug: 'Depurar',

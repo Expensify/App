@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
+import useSignOut from '@hooks/useSignOut';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
@@ -58,6 +59,7 @@ function RequireTwoFactorAuthenticationOverlay() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
+    const {signOut, leaveDelegateAccount, isActingAsDelegate} = useSignOut();
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -90,7 +92,7 @@ function RequireTwoFactorAuthenticationOverlay() {
         snapshotOnboardingResumePathIfNeeded();
     }, [shouldShowRequire2FAPage, isIn2FASetupFlow, snapshotOnboardingResumePathIfNeeded]);
 
-    const handleOnPress = () => {
+    const enableTwoFactorAuth = () => {
         snapshotOnboardingResumePathIfNeeded();
         Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
     };
@@ -121,14 +123,22 @@ function RequireTwoFactorAuthenticationOverlay() {
                                     {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
                                 </Text>
                             </View>
-                            <Button
-                                size={CONST.BUTTON_SIZE.LARGE}
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                onPress={handleOnPress}
-                            >
-                                <Button.KeyboardShortcut />
-                                <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
-                            </Button>
+                            <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
+                                <Button
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                    onPress={isActingAsDelegate ? () => leaveDelegateAccount() : () => signOut({shouldAlwaysConfirm: true})}
+                                >
+                                    <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
+                                </Button>
+                                <Button
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    onPress={enableTwoFactorAuth}
+                                >
+                                    <Button.KeyboardShortcut />
+                                    <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
+                                </Button>
+                            </View>
                         </View>
                     </View>
                 </View>
