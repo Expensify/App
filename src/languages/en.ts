@@ -10903,6 +10903,10 @@ const translations = {
                     one: 'Trial: 1 day left!',
                     other: `Trial: ${count} days left!`,
                 }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: '1 day left!',
+                    other: `${count} days left!`,
+                }),
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
             trialEnded: {

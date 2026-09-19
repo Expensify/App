@@ -10646,6 +10646,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     one: `Teste: resta ${count} dia!`,
                     other: `Teste: restam ${count} dias!`,
                 }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `Resta ${count} dia!`,
+                    other: `Restam ${count} dias!`,
+                }),
                 subtitle: 'Adicione um cartão de pagamento para continuar usando todos os seus recursos favoritos.',
             },
             trialEnded: {

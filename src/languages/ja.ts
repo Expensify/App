@@ -10534,6 +10534,10 @@ ${reportName}`,
                     one: `トライアル：残り ${count} 日！`,
                     other: `トライアル：残り ${count} 日！`,
                 }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `残り ${count} 日！`,
+                    other: `残り ${count} 日！`,
+                }),
                 subtitle: 'すべてのお気に入り機能を引き続き利用するには、支払い用カードを追加してください。',
             },
             trialEnded: {
