@@ -44,7 +44,7 @@ import type {SearchResults} from '@src/types/onyx';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {clamp, FadeIn, LayoutAnimationConfig, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, FadeIn, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
@@ -355,35 +355,33 @@ function SearchPageNarrow({
                             )}
                             {!useStaticRendering && (
                                 <>
-                                    {/* skipEntering keeps the fade off the very first mount, so opening Search cold paints immediately. */}
-                                    <LayoutAnimationConfig skipEntering>
-                                        {/* A resolved query change remounts this layer and fades the new results in. The hold in SearchPage
-                                            keeps the previous results on screen until the new ones resolve, so there's no skeleton mid-swap and
-                                            the outgoing layer needs no fade. Deliberately no reanimated `exiting`: on web it fades by detaching
-                                            and re-inserting the DOM node, throwing `NotFoundError: removeChild` and breaking Skia canvases. */}
-                                        <Animated.View
-                                            key={contentQueryJSON.hash}
-                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                            style={StyleSheet.absoluteFill}
-                                        >
-                                            {shouldShowLoadingSkeleton ? (
-                                                <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
-                                            ) : (
-                                                <SearchWithNavigationDeferredMount
-                                                    isReplacingContent={isReplacingPreviousContent}
-                                                    searchResults={contentSearchResults}
-                                                    queryJSON={contentQueryJSON}
-                                                    onSearchListScroll={scrollHandler}
-                                                    contentContainerStyle={contentContainerStyle}
-                                                    handleSearch={handleSearchAction}
-                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                    onDestinationVisible={endSubmitNavigationSpans}
-                                                    onContentReady={onSearchContentReady}
-                                                    hasFilterBars={hasFilterBars}
-                                                />
-                                            )}
-                                        </Animated.View>
-                                    </LayoutAnimationConfig>
+                                    {/* A query change remounts this layer, fading in whatever it shows first so a skeleton never pops
+                                        in at full opacity. The results carry their own fade (see SearchWithNavigationDeferredMount)
+                                        because they hydrate after this layer mounts. Deliberately no reanimated `exiting` anywhere in
+                                        this subtree: on web it fades by detaching and re-inserting the DOM node, throwing
+                                        `NotFoundError: removeChild` and breaking Skia canvases. */}
+                                    <Animated.View
+                                        key={contentQueryJSON.hash}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                        ) : (
+                                            <SearchWithNavigationDeferredMount
+                                                isReplacingContent={isReplacingPreviousContent}
+                                                searchResults={contentSearchResults}
+                                                queryJSON={contentQueryJSON}
+                                                onSearchListScroll={scrollHandler}
+                                                contentContainerStyle={contentContainerStyle}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                                hasFilterBars={hasFilterBars}
+                                            />
+                                        )}
+                                    </Animated.View>
                                     {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                     {!!searchOverlayContent && (
                                         <View

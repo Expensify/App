@@ -34,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
+import Animated, {FadeIn} from 'react-native-reanimated';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
@@ -143,34 +143,32 @@ function SearchPageWide({
                                     onSort={onSortPressedCallback}
                                 />
                                 <View style={styles.flex1}>
-                                    {/* skipEntering keeps the fade off the very first mount, so opening Search cold paints immediately. */}
-                                    <LayoutAnimationConfig skipEntering>
-                                        {/* A resolved query change remounts this layer and fades the new results in. The hold in SearchPage
-                                            keeps the previous results on screen until the new ones resolve, so there's no skeleton mid-swap and
-                                            the outgoing layer needs no fade. Deliberately no reanimated `exiting`: on web it fades by detaching
-                                            and re-inserting the DOM node, throwing `NotFoundError: removeChild` and breaking Skia canvases. */}
-                                        <Animated.View
-                                            key={contentQueryJSON.hash}
-                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                            style={StyleSheet.absoluteFill}
-                                        >
-                                            {shouldShowLoadingSkeleton ? (
-                                                <SearchLoadingSkeleton />
-                                            ) : (
-                                                <SearchWithNavigationDeferredMount
-                                                    isReplacingContent={isReplacingPreviousContent}
-                                                    queryJSON={contentQueryJSON}
-                                                    searchResults={contentSearchResults}
-                                                    handleSearch={handleSearchAction}
-                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                    onSearchListScroll={scrollHandler}
-                                                    onSortPressedCallback={onSortPressedCallback}
-                                                    onDestinationVisible={endSubmitNavigationSpans}
-                                                    onContentReady={onSearchContentReady}
-                                                />
-                                            )}
-                                        </Animated.View>
-                                    </LayoutAnimationConfig>
+                                    {/* A query change remounts this layer, fading in whatever it shows first so a skeleton never pops
+                                        in at full opacity. The results carry their own fade (see SearchWithNavigationDeferredMount)
+                                        because they hydrate after this layer mounts. Deliberately no reanimated `exiting` anywhere in
+                                        this subtree: on web it fades by detaching and re-inserting the DOM node, throwing
+                                        `NotFoundError: removeChild` and breaking Skia canvases. */}
+                                    <Animated.View
+                                        key={contentQueryJSON.hash}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton />
+                                        ) : (
+                                            <SearchWithNavigationDeferredMount
+                                                isReplacingContent={isReplacingPreviousContent}
+                                                queryJSON={contentQueryJSON}
+                                                searchResults={contentSearchResults}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onSearchListScroll={scrollHandler}
+                                                onSortPressedCallback={onSortPressedCallback}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                            />
+                                        )}
+                                    </Animated.View>
                                     {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
                                     {/* Floats over the bottom of the list, which already ends above SearchSelectionFooter. */}
                                     <SearchBulkActionsBarWide queryJSON={queryJSON} />

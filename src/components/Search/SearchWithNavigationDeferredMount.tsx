@@ -14,6 +14,7 @@ import type {ComponentProps} from 'react';
 
 import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn} from 'react-native-reanimated';
 
 import Search from './index';
 
@@ -61,7 +62,15 @@ function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: Searc
                 </View>
             }
         >
-            <Search {...props} />
+            {/* The fade lives here rather than on the parent layer because NavigationDeferredMount hydrates a frame or
+                more after that layer mounts. Animating the layer would run the fade against the placeholder and leave
+                the results to pop in at full opacity once they finally mount. */}
+            <Animated.View
+                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                style={styles.flex1}
+            >
+                <Search {...props} />
+            </Animated.View>
         </NavigationDeferredMount>
     );
 }
