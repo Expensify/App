@@ -185,6 +185,15 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
 
+/**
+ * Whether a room member's own policy role protects them from being removed from a policy expense chat.
+ *
+ * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
+ * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
+ * agree on this, so it lives here rather than being spelled out at each call site.
+ */
+const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined): boolean => !login || isPolicyAdmin(policy, login, false);
+
 const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
     PolicyFeature,
     PolicyFeatureAccess
@@ -656,7 +665,10 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
     // `employeeList` is keyed by the canonical lowercase login, but a login read off personal details is not
     // guaranteed to be lowercase, so fall back to a normalized lookup when the exact key misses. Both lookups are
     // O(1), unlike a case-insensitive scan of every employee, which would run per participant on member lists.
-    return policy?.employeeList?.[currentUserLogin]?.role ?? policy?.employeeList?.[currentUserLogin.toLowerCase()]?.role;
+    // Pick the employee entry first and read `role` off whichever matched: `role` is optional, so falling back on the
+    // role itself would resolve one account's role from a different account's entry when the exact entry has no role.
+    const employeeList = policy?.employeeList;
+    return (employeeList?.[currentUserLogin] ?? employeeList?.[currentUserLogin.toLowerCase()])?.role;
 }
 
 /**
@@ -3577,6 +3589,7 @@ export {
     isGroupPolicyByType,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isRoomMemberProtectedByPolicyRole,
     isPolicyUser,
     isPolicyAuditor,
     isAdminOfCardEnabledPolicy,

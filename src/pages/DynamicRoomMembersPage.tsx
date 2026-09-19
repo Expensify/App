@@ -34,7 +34,7 @@ import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
+import {isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
@@ -214,12 +214,12 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 continue;
             }
             const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            // Check the listed member's own role on the policy, not the viewer's. `shouldCheckGlobalPolicyRole` must stay
-            // false here, otherwise this short-circuits on `policy.role` (the viewing admin) and every member looks like an admin.
-            const isAdmin = isPolicyAdmin(policy, details.login, false);
+            // Check the listed member's own role on the policy, not the viewer's, and fail closed when their login is
+            // missing. Kept in sync with the member details page through the shared helper.
+            const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login);
             const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
             const isSelectionDisabled =
-                (isPolicyExpenseChat && isAdmin) ||
+                (isPolicyExpenseChat && isProtectedByPolicyRole) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                 details.accountID === report.ownerAccountID;
