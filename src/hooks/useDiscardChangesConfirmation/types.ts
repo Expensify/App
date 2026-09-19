@@ -3,6 +3,8 @@ type UseDiscardChangesConfirmationOptions = {
     getHasUnsavedChanges: () => boolean;
     onCancel?: () => void;
     onVisibilityChange?: (visible: boolean) => void;
+    shouldEnableNewFocusManagement?: boolean;
+    shouldPromptWhenUnfocused?: boolean;
     onConfirm?: () => void | Promise<void>;
     onTabSwitchDiscard?: () => void | Promise<void>;
 };

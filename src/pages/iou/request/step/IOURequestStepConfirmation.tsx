@@ -6,6 +6,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {RestoreFocus} from '@components/MoneyRequestConfirmationFields/context';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ParticipantPicker from '@components/ParticipantPicker';
@@ -127,6 +128,18 @@ type StepConfirmationParams = MoneyRequestNavigatorParamList[typeof SCREENS.MONE
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> &
     WithFullTransactionOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> & {
         shouldHideHeader?: boolean;
+
+        /** Reports whether the inline amount sign differs from its initial value (new manual expense flow) */
+        onSignDirtyChange?: (isSignDirty: boolean) => void;
+
+        /** Registers the inline field that should regain focus when the discard confirmation is cancelled */
+        onInputFocus?: (restoreFocus: RestoreFocus) => void;
+
+        /** Clears the registered inline field when it blurs */
+        onInputBlur?: () => void;
+
+        /** Suppresses the parent discard prompt when the embedded confirmation starts a successful submit */
+        suppressDiscardPrompt?: () => void;
     };
 
 function IOURequestStepConfirmationContent({
@@ -137,6 +150,10 @@ function IOURequestStepConfirmationContent({
     isLoadingTransaction,
     shouldHideHeader = false,
     navigation,
+    onSignDirtyChange,
+    onInputFocus,
+    onInputBlur,
+    suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
@@ -1137,8 +1154,14 @@ function IOURequestStepConfirmationContent({
                                         setManuallyOpenedParticipantPickerForTransactionID(activeTransactionID);
                                     }}
                                     onToggleBillable={setBillable}
-                                    onConfirm={onConfirm}
-                                    onSendMoney={handleSendMoney}
+                                    onConfirm={() => {
+                                        suppressDiscardPrompt?.();
+                                        onConfirm();
+                                    }}
+                                    onSendMoney={(paymentMethod) => {
+                                        suppressDiscardPrompt?.();
+                                        handleSendMoney(paymentMethod);
+                                    }}
                                     showRemoveExpenseConfirmModal={() => {
                                         confirmRemoveCurrentTransaction();
                                     }}
@@ -1167,6 +1190,9 @@ function IOURequestStepConfirmationContent({
                                     isReceiptEditable
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
+                                    onSignDirtyChange={onSignDirtyChange}
+                                    onInputFocus={onInputFocus}
+                                    onInputBlur={onInputBlur}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>

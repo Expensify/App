@@ -42,6 +42,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {RestoreFocus} from './MoneyRequestConfirmationFields/context';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
 
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
@@ -90,6 +91,15 @@ type MoneyRequestConfirmationListProps = {
 
     /** Payee of the expense with login */
     payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails> | null;
+
+    /** Reports whether the inline amount sign differs from its initial value (new manual expense flow). */
+    onSignDirtyChange?: (isSignDirty: boolean) => void;
+
+    /** Registers the inline field that should regain focus when the discard confirmation is cancelled. */
+    onInputFocus?: (restoreFocus: RestoreFocus) => void;
+
+    /** Clears the registered inline field when it blurs. */
+    onInputBlur?: () => void;
 
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
@@ -211,6 +221,9 @@ function MoneyRequestConfirmationList({
     showRemoveExpenseConfirmModal,
     isTimeRequest = false,
     shouldHideToSection = false,
+    onSignDirtyChange,
+    onInputFocus,
+    onInputBlur,
 }: MoneyRequestConfirmationListProps) {
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
@@ -580,6 +593,9 @@ function MoneyRequestConfirmationList({
             scrollFocusedInputIntoView={scrollFocusedInputIntoView}
             onSubmitForm={confirm}
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
+            onSignDirtyChange={onSignDirtyChange}
+            onInputFocus={onInputFocus}
+            onInputBlur={onInputBlur}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <MoneyRequestConfirmationListFooter

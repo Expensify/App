@@ -5,6 +5,8 @@ import type CONST from '@src/CONST';
 
 import {createContext, useContext} from 'react';
 
+type RestoreFocus = () => void;
+
 /**
  * Cross-cutting state for the money-request confirmation surface. Anything that
  * every block reads or that is part of "what surface am I" lives here so it
@@ -45,6 +47,15 @@ type ConfirmationFieldsContextValue = {
 
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty (new manual expense flow). */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
+
+    /** Reports whether the inline amount sign differs from its initial value (new manual expense flow). */
+    onSignDirtyChange?: (isSignDirty: boolean) => void;
+
+    /** Registers the inline field that should regain focus when the discard confirmation is cancelled. */
+    onInputFocus?: (restoreFocus: RestoreFocus) => void;
+
+    /** Clears the registered inline field when it blurs. */
+    onInputBlur?: () => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);
@@ -59,3 +70,4 @@ function useConfirmationFields(): ConfirmationFieldsContextValue {
 
 export default ConfirmationFieldsContext;
 export {useConfirmationFields};
+export type {RestoreFocus};
