@@ -3,13 +3,13 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react-native'
 import useConfirmModal from '@hooks/useConfirmModal';
 
 import {maskOnyxState, readOnyxState, shareAsFile} from '@libs/ExportOnyxState';
-import Log from '@libs/Log';
 
 import TroubleshootPage from '@pages/settings/Troubleshoot/TroubleshootPage';
 
 import React from 'react';
 
 const mockShowConfirmModal = jest.fn();
+const mockLogAlert = jest.fn<void, [string, Record<string, unknown>]>();
 
 jest.mock('@hooks/useConfirmModal', () => jest.fn());
 jest.mock('@hooks/useDocumentTitle', () => jest.fn());
@@ -113,7 +113,7 @@ jest.mock('@libs/ExportOnyxState', () => ({
 }));
 jest.mock('@libs/Log', () => ({
     __esModule: true,
-    default: {alert: jest.fn()},
+    default: {alert: (message: string, extraData: Record<string, unknown>) => mockLogAlert(message, extraData)},
 }));
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => jest.fn());
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -148,7 +148,7 @@ describe('TroubleshootPage Onyx export', () => {
         jest.clearAllMocks();
     });
 
-    async function expectExportFailureModal() {
+    async function expectExportFailureModal(error: Error) {
         render(React.createElement(TroubleshootPage));
 
         fireEvent.press(screen.getByRole('button', {name: exportButtonName}));
@@ -161,26 +161,29 @@ describe('TroubleshootPage Onyx export', () => {
                 shouldShowCancelButton: false,
             });
         });
-        expect(Log.alert).toHaveBeenCalledWith('[Troubleshoot] Unable to export Onyx state', {error: expect.any(Error)});
+        expect(mockLogAlert).toHaveBeenCalledWith('[Troubleshoot] Unable to export Onyx state', {error});
     }
 
     it('shows an error when reading Onyx state fails', async () => {
-        jest.mocked(readOnyxState).mockRejectedValueOnce(new Error('Storage read failed'));
+        const error = new Error('Storage read failed');
+        jest.mocked(readOnyxState).mockRejectedValueOnce(error);
 
-        await expectExportFailureModal();
+        await expectExportFailureModal(error);
     });
 
     it('shows an error when masking Onyx state fails', async () => {
+        const error = new Error('Masking failed');
         jest.mocked(maskOnyxState).mockImplementationOnce(() => {
-            throw new Error('Masking failed');
+            throw error;
         });
 
-        await expectExportFailureModal();
+        await expectExportFailureModal(error);
     });
 
     it('shows an error when sharing Onyx state fails', async () => {
-        jest.mocked(shareAsFile).mockRejectedValueOnce(new Error('Sharing failed'));
+        const error = new Error('Sharing failed');
+        jest.mocked(shareAsFile).mockRejectedValueOnce(error);
 
-        await expectExportFailureModal();
+        await expectExportFailureModal(error);
     });
 });

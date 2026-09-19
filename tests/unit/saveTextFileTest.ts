@@ -2,8 +2,10 @@ import localFileCreate from '@libs/localFileCreate';
 import saveTextFileNative from '@libs/saveTextFile/index.native';
 import type SaveTextFile from '@libs/saveTextFile/types';
 
-import RNFetchBlob from 'react-native-blob-util';
-import Share from 'react-native-share';
+type ShareOptions = {url: string; failOnCancel: boolean};
+
+const mockUnlink = jest.fn<Promise<void>, [string]>();
+const mockShareOpen = jest.fn<Promise<{success: boolean; message: string}>, [ShareOptions]>();
 
 jest.mock('@libs/localFileCreate', () => jest.fn());
 jest.mock('@libs/ApiUtils', () => ({
@@ -17,9 +19,9 @@ jest.mock('@libs/tryResolveUrlFromApiRoot', () => jest.fn((url: string) => url))
 jest.mock('@userActions/Link', () => ({openExternalLink: jest.fn()}));
 jest.mock('react-native-blob-util', () => ({
     __esModule: true,
-    default: {fs: {unlink: jest.fn()}},
+    default: {fs: {unlink: (path: string) => mockUnlink(path)}},
 }));
-jest.mock('react-native-share', () => ({open: jest.fn()}));
+jest.mock('react-native-share', () => ({open: (options: ShareOptions) => mockShareOpen(options)}));
 
 const saveTextFileWeb = jest.requireActual<{default: SaveTextFile}>('@libs/saveTextFile/index.ts').default;
 const file = {
@@ -80,28 +82,28 @@ describe('saveTextFile', () => {
     });
 
     it('shares a temporary file on native and removes it after sharing', async () => {
-        jest.mocked(Share.open).mockResolvedValueOnce({success: true, message: ''});
-        jest.mocked(RNFetchBlob.fs.unlink).mockResolvedValueOnce(undefined);
+        mockShareOpen.mockResolvedValueOnce({success: true, message: ''});
+        mockUnlink.mockResolvedValueOnce(undefined);
         jest.mocked(localFileCreate).mockResolvedValueOnce({...file, path: '/cache/onyx-state.txt'});
 
         await saveTextFileNative(options);
 
         expect(localFileCreate).toHaveBeenCalledWith(options.fileName, options.content, false);
-        expect(Share.open).toHaveBeenCalledWith({
+        expect(mockShareOpen).toHaveBeenCalledWith({
             url: 'file:///cache/onyx-state.txt',
             failOnCancel: false,
         });
-        expect(RNFetchBlob.fs.unlink).toHaveBeenCalledWith('/cache/onyx-state.txt');
+        expect(mockUnlink).toHaveBeenCalledWith('/cache/onyx-state.txt');
     });
 
     it('removes the native temporary file and propagates a share failure', async () => {
         const error = new Error('Share failed');
-        jest.mocked(Share.open).mockRejectedValueOnce(error);
-        jest.mocked(RNFetchBlob.fs.unlink).mockResolvedValueOnce(undefined);
+        mockShareOpen.mockRejectedValueOnce(error);
+        mockUnlink.mockResolvedValueOnce(undefined);
         jest.mocked(localFileCreate).mockResolvedValueOnce({...file, path: '/cache/onyx-state.txt'});
 
         await expect(saveTextFileNative(options)).rejects.toBe(error);
 
-        expect(RNFetchBlob.fs.unlink).toHaveBeenCalledWith('/cache/onyx-state.txt');
+        expect(mockUnlink).toHaveBeenCalledWith('/cache/onyx-state.txt');
     });
 });
