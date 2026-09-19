@@ -8,9 +8,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React, {useImperativeHandle} from 'react';
-import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import type * as MockUseConfirmModalUtil from '../../utils/mockUseConfirmModal';
+
+import {getShowConfirmModalOption, MockModalActions, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../../utils/mockUseConfirmModal';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type GuardHandle = {
@@ -18,27 +20,18 @@ type GuardHandle = {
     wouldBlockDeletion: boolean;
 };
 
-type MockConfirmModalProps = {
-    isVisible?: boolean;
-    onConfirm?: () => void;
-    onCancel?: () => void;
-    title?: string;
-    prompt?: string;
-    confirmText?: string;
-    cancelText?: string;
-};
-
-let lastModalProps: MockConfirmModalProps | undefined;
-
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
 
-jest.mock('@components/ConfirmModal', () => {
-    return (props: MockConfirmModalProps) => {
-        lastModalProps = props;
-        return null;
-    };
+jest.mock('@hooks/useConfirmModal', () => {
+    const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../../utils/mockUseConfirmModal');
+    return mockUseConfirmModal;
+});
+
+jest.mock('@components/Modal/Global/ModalContext', () => {
+    const {createMockModalContextModule} = jest.requireActual<typeof MockUseConfirmModalUtil>('../../utils/mockUseConfirmModal');
+    return createMockModalContextModule();
 });
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -48,18 +41,18 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 /**
- * Test wrapper component that uses the hook and renders the modal element.
- * Exposes guard methods via ref for test assertions.
+ * Test wrapper component that uses the hook and exposes the guard values via ref for test assertions.
+ * The hook no longer returns an element, so there is nothing for it to render.
  */
-const TestGuardComponent = React.forwardRef<GuardHandle, {ownedPaidPoliciesCount: number}>(({ownedPaidPoliciesCount}, ref) => {
-    const {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(ownedPaidPoliciesCount);
+const TestGuardComponent = React.forwardRef<GuardHandle, {ownedPaidPoliciesCount: number; onModalDismissed?: () => void}>(({ownedPaidPoliciesCount, onModalDismissed}, ref) => {
+    const {shouldBlockDeletion, wouldBlockDeletion} = useOutstandingBalanceGuard(ownedPaidPoliciesCount, onModalDismissed);
 
     useImperativeHandle(ref, () => ({
         shouldBlockDeletion,
         wouldBlockDeletion,
     }));
 
-    return <View>{outstandingBalanceModal}</View>;
+    return null;
 });
 
 describe('useOutstandingBalanceGuard', () => {
@@ -68,7 +61,7 @@ describe('useOutstandingBalanceGuard', () => {
     });
 
     beforeEach(async () => {
-        lastModalProps = undefined;
+        resetMockConfirmModal();
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
@@ -153,7 +146,7 @@ describe('useOutstandingBalanceGuard', () => {
     });
 
     describe('shouldBlockDeletion', () => {
-        it('should return true and open modal when deletion would be blocked', async () => {
+        it('should return true and show the modal when deletion would be blocked', async () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
@@ -171,10 +164,10 @@ describe('useOutstandingBalanceGuard', () => {
             });
 
             expect(blocked).toBe(true);
-            expect(lastModalProps?.isVisible).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
-        it('should return false and not open modal when no amount owed', () => {
+        it('should return false and not show the modal when no amount owed', () => {
             const ref = React.createRef<GuardHandle>();
             render(
                 <TestGuardComponent
@@ -189,7 +182,7 @@ describe('useOutstandingBalanceGuard', () => {
             });
 
             expect(blocked).toBe(false);
-            expect(lastModalProps?.isVisible).toBeFalsy();
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
         it('should return false when multiple paid policies exist even with amount owed', async () => {
@@ -210,19 +203,22 @@ describe('useOutstandingBalanceGuard', () => {
             });
 
             expect(blocked).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
     });
 
     describe('modal interactions', () => {
-        it('should navigate to subscription settings on confirm', async () => {
+        it('should navigate to subscription settings and notify the caller on confirm', async () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
+            const onModalDismissed = jest.fn();
             const ref = React.createRef<GuardHandle>();
             render(
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
+                    onModalDismissed={onModalDismissed}
                 />,
             );
 
@@ -230,25 +226,24 @@ describe('useOutstandingBalanceGuard', () => {
                 ref.current?.shouldBlockDeletion();
             });
 
-            expect(lastModalProps?.isVisible).toBe(true);
-
-            act(() => {
-                lastModalProps?.onConfirm?.();
-            });
+            resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+            await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION.route);
-            expect(lastModalProps?.isVisible).toBe(false);
+            expect(onModalDismissed).toHaveBeenCalledTimes(1);
         });
 
-        it('should close modal on cancel without navigating', async () => {
+        it('should notify the caller without navigating on cancel', async () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
+            const onModalDismissed = jest.fn();
             const ref = React.createRef<GuardHandle>();
             render(
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
+                    onModalDismissed={onModalDismissed}
                 />,
             );
 
@@ -256,31 +251,33 @@ describe('useOutstandingBalanceGuard', () => {
                 ref.current?.shouldBlockDeletion();
             });
 
-            expect(lastModalProps?.isVisible).toBe(true);
-
-            act(() => {
-                lastModalProps?.onCancel?.();
-            });
+            resolveShowConfirmModal({action: MockModalActions.CLOSE});
+            await waitForBatchedUpdates();
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
-            expect(lastModalProps?.isVisible).toBe(false);
+            expect(onModalDismissed).toHaveBeenCalledTimes(1);
         });
 
         it('should pass correct translation keys to the modal', async () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
+            const ref = React.createRef<GuardHandle>();
             render(
                 <TestGuardComponent
-                    ref={React.createRef()}
+                    ref={ref}
                     ownedPaidPoliciesCount={1}
                 />,
             );
 
-            expect(lastModalProps?.title).toBe('workspace.common.delete');
-            expect(lastModalProps?.prompt).toBe('workspace.common.outstandingBalanceWarning');
-            expect(lastModalProps?.confirmText).toBe('workspace.common.settleBalance');
-            expect(lastModalProps?.cancelText).toBe('common.cancel');
+            act(() => {
+                ref.current?.shouldBlockDeletion();
+            });
+
+            expect(getShowConfirmModalOption('title')).toBe('workspace.common.delete');
+            expect(getShowConfirmModalOption('prompt')).toBe('workspace.common.outstandingBalanceWarning');
+            expect(getShowConfirmModalOption('confirmText')).toBe('workspace.common.settleBalance');
+            expect(getShowConfirmModalOption('cancelText')).toBe('common.cancel');
         });
     });
 });
