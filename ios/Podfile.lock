@@ -405,7 +405,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroFetch (1.5.4):
+  - NitroFetch (1.6.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -435,7 +435,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NitroModules (0.36.3):
+  - NitroModules (0.37.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2971,7 +2971,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-skia (2.4.18):
+  - react-native-skia (2.11.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -5002,8 +5002,8 @@ SPEC CHECKSUMS:
   MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
   MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroFetch: 4941ca1e41fc72ebdad33c50c85fee59a3dd6871
-  NitroModules: 1961fff19baf1f4a5221dd2fea7d4de95941f9e4
+  NitroFetch: 0f353a00b92d23e8b32f5d91ca625e00d35762ff
+  NitroModules: f2a165630c12aed5793d6b42b9002c6a649ea04e
   NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
@@ -5066,7 +5066,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
   react-native-quick-base64: eca82f83cc5fd9e8615d50e789788877ff3f8401
   react-native-safe-area-context: 0a3b034bb63a5b684dd2f5fffd3c90ef6ed41ee8
-  react-native-skia: fc9a3f146755fa51c66ae09a19b86d11f499251f
+  react-native-skia: 48a41fc5d4f1e04d19bb8bd25e8a09fc3a0139a3
   react-native-view-shot: 1a01c96f6fb09b99539142749cd93f685af7fe48
   react-native-wallet: 2ea467e76031a61105416df760bfd591b602cd17
   react-native-webview: cdce419e8022d0ef6f07db21890631258e7a9e6e
