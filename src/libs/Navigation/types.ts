@@ -138,6 +138,9 @@ type SettingsNavigatorParamList = {
               shouldSetUpUSBankAccount?: 'true';
           }
         | undefined;
+    [SCREENS.SETTINGS.DYNAMIC_FIX_BANK_ACCOUNT]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;

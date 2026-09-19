@@ -19,6 +19,7 @@ type BankAccountConnectionStatus = {
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;
+    requiresFixHandler?: boolean;
     tooltipKey?: TranslationPaths;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
@@ -46,7 +47,12 @@ function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>
 }
 
 function isBankAccountPartiallySetup(state: string | undefined) {
-    return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
+    return (
+        state === CONST.BANK_ACCOUNT.STATE.SETUP ||
+        state === CONST.BANK_ACCOUNT.STATE.VERIFYING ||
+        state === CONST.BANK_ACCOUNT.STATE.PENDING ||
+        state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED
+    );
 }
 
 function getBankAccountState(accountData: AccountData | undefined): string | undefined {
@@ -63,6 +69,20 @@ function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean
     }
 
     return !!accountData.allowDebit;
+}
+
+function hasInsufficientFundsError(accountData: AccountData | undefined): boolean {
+    if (!accountData?.additionalData?.lastNocCode) {
+        return false;
+    }
+    return CONST.BANK_ACCOUNT.NOC_CODE.INSUFFICIENT_FUNDS.includes(accountData.additionalData.lastNocCode);
+}
+
+function hasDebitBlockedError(accountData: AccountData | undefined): boolean {
+    if (!accountData?.additionalData?.lastNocCode) {
+        return false;
+    }
+    return CONST.BANK_ACCOUNT.NOC_CODE.DEBIT_BLOCKED.includes(accountData.additionalData.lastNocCode);
 }
 
 function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
@@ -84,7 +104,9 @@ function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
  * ReimbursementAccountPage, which routes a PENDING account to the validation (test transaction) step only when the
  * currency is USD. An absent currency is treated as USD, matching BankAccount.getCurrency().
  */
-function getBankAccountConnectionStatus(state: string | undefined, currency?: string): BankAccountConnectionStatus | undefined {
+function getBankAccountConnectionStatus(accountData: AccountData | undefined, currency?: string): BankAccountConnectionStatus | undefined {
+    const state = getBankAccountState(accountData);
+
     if (state === CONST.BANK_ACCOUNT.STATE.PENDING && !!currency && currency !== CONST.CURRENCY.USD) {
         return getIncompleteBankAccountStatus();
     }
@@ -120,10 +142,39 @@ function getBankAccountConnectionStatus(state: string | undefined, currency?: st
                 tone: 'danger',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
+        case CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED: {
+            if (hasInsufficientFundsError(accountData)) {
+                return {
+                    labelKey: 'walletPage.bankAccountStatus.pending',
+                    messageKey: 'walletPage.bankAccountStatus.insufficientFunds',
+                    actionKey: 'common.actionBadge.fix',
+                    requiresFixHandler: true,
+                    tone: 'danger',
+                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                };
+            }
+            if (hasDebitBlockedError(accountData)) {
+                return {
+                    labelKey: 'walletPage.bankAccountStatus.pending',
+                    messageKey: 'walletPage.bankAccountStatus.debitBlocked',
+                    actionKey: 'common.actionBadge.fix',
+                    requiresFixHandler: true,
+                    tone: 'danger',
+                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                };
+            }
+            return {
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.validationFailedFallback',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        }
         default:
             return undefined;
     }
 }
+
 /**
  * A BUSINESS account in a state that has actually been usable for paying expenses (anything other than SETUP / VERIFYING / PENDING).
  * Used by the search picker, the autocomplete suggestions, and the advanced-filter visibility gate so all three surfaces accept and count the same set of accounts.
@@ -145,6 +196,10 @@ function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<Onyx
 
 function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
+}
+
+function hasValidationFailedBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED);
 }
 
 const PERSONAL_INFO_STEP = {
@@ -290,10 +345,13 @@ export {
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
+    hasInsufficientFundsError,
+    hasDebitBlockedError,
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
+    hasValidationFailedBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isUserAddressVerificationRequired,
