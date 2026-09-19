@@ -2372,9 +2372,21 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
     return buildSearchQueryJSON(params.q, params.rawQuery);
 }
 
-function getCurrentSearchQueryJSON() {
-    const rootState = navigationRef.getRootState();
-    const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+/**
+ * Resolves the params of the Search root route that the app is currently showing (or would return to),
+ * from a navigation state tree.
+ *
+ * This deliberately does NOT look at the focused route: when an RHP (e.g. a report) is stacked on top of
+ * the Search tab, the focused route is the RHP and carries no `q`, but the Search root route underneath
+ * still does. It also does not walk the live tree only — a non-focused tab navigator has its nested state
+ * dropped from the tree, so the preserved-state map is consulted as well (see `usePreserveNavigatorState`).
+ *
+ * Note: `getPreservedNavigatorState` reads a module-level map. That is safe to read from a render-path
+ * selector because entries are written by an effect while the navigator is still mounted, and the map only
+ * ever changes on navigation changes — which is exactly when this is re-evaluated.
+ */
+function getSearchRootParamsFromRootState(rootState: unknown): SearchRootParams | undefined {
+    const lastTabNavigator = getLastRouteByName(rootState, NAVIGATORS.TAB_NAVIGATOR);
     const tabStateFromParams = getParamsState(lastTabNavigator?.params);
     const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
     const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
@@ -2390,22 +2402,19 @@ function getCurrentSearchQueryJSON() {
 
     // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
     // neither .state nor the preserved state map will have an entry. Use nested route params when
-    // React Navigation provided them, otherwise fall back to the default initialParams query.
+    // React Navigation provided them and they parse, otherwise fall back to the default initialParams query.
     if (!lastSearchNavigatorState) {
-        const nestedQueryJSON = getSearchQueryJSONFromRouteParams(nestedSearchRootParams);
-        if (nestedQueryJSON) {
-            return nestedQueryJSON;
+        if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
+            return nestedSearchRootParams;
         }
-        return buildSearchQueryJSON(buildSearchQueryString());
+        return {q: buildSearchQueryString()};
     }
 
-    const lastSearchRoute = getLastRouteByName(lastSearchNavigatorState, SCREENS.SEARCH.ROOT);
-    const queryJSON = getSearchQueryJSONFromRouteParams(lastSearchRoute?.params);
-    if (!queryJSON) {
-        return;
-    }
+    return getSearchRootParamsFromSearchNavigatorState(lastSearchNavigatorState);
+}
 
-    return queryJSON;
+function getCurrentSearchQueryJSON() {
+    return getSearchQueryJSONFromRouteParams(getSearchRootParamsFromRootState(navigationRef.getRootState()));
 }
 
 /**
@@ -2741,6 +2750,7 @@ export {
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
+    getSearchRootParamsFromRootState,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
     isDefaultExpenseReportsQuery,
