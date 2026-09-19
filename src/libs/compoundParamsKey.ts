@@ -24,7 +24,8 @@ function normalizeForKey(value: unknown): unknown {
     }
     if (typeof value === 'object') {
         // Recursively sort so differently-ordered nested keys produce the same compound.
-        const entries = Object.entries(value as Record<string, unknown>)
+        const objectEntries: Array<[string, unknown]> = Object.entries(value);
+        const entries = objectEntries
             .sort(([a], [b]) => {
                 if (a < b) {
                     return -1;
@@ -49,7 +50,8 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
         return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(normalizeForKey(params))}`;
     }
     // Explicit-undefined fields must match path-rehydrated (omitted) params.
-    const entries = Object.entries(params as Record<string, unknown>)
+    const objectEntries: Array<[string, unknown]> = Object.entries(params);
+    const entries = objectEntries
         .filter(([, value]) => value !== undefined)
         .map(([k, v]) => [k, normalizeForKey(v)] as const)
         .sort(([a], [b]) => {
