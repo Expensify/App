@@ -2701,6 +2701,7 @@ function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+/**
  * True when Rillet is connected AND configured. Mirrors `Rillet::hasVendorFeature` on the PHP side.
  */
 function isRilletVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
@@ -2709,6 +2710,14 @@ function isRilletVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 
 function isDualEntryVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config?.isConfigured;
+}
+
+/**
+ * True when Campfire is connected AND configured. Mirrors `Campfire::hasVendorFeature` on the PHP side.
+ * Campfire has no export-destination enum, so `config.isConfigured` is the configuration gate.
+ */
+function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config?.isConfigured;
 }
 
 /**
@@ -2730,12 +2739,13 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Xero and Rillet branches but not on QBO, Sage Intacct, or DualEntry:
+ * `isVendorMatchingBetaEnabled` is consulted on the Xero, Rillet, and Campfire branches but not on QBO, Sage Intacct, or DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
  *   - Rillet (R4) configured connection. Beta required
  *   - DualEntry configured connection. GA, so no beta required
+ *   - Campfire has no export destination enum, so a configured connection is enough. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -2744,7 +2754,7 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy));
 }
 
 /**
@@ -2790,6 +2800,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isDualEntryVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
     }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+    }
     return undefined;
 }
 
@@ -2817,7 +2830,12 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         if (!xeroContacts) {
             return undefined;
         }
-        return Object.values(xeroContacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+        return Object.values(xeroContacts).map((contact) => ({
+            id: contact.id,
+            name: contact.name,
+            currency: '',
+            email: contact.email,
+        }));
     }
     if (isRilletVendorMatchingActive(policy)) {
         const rilletVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.data?.vendors;
@@ -2833,6 +2851,20 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     }
     if (isDualEntryVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.data?.vendors === undefined ? undefined : getDualEntryVendors(policy);
+    }
+    if (isCampfireVendorMatchingActive(policy)) {
+        const campfireVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors;
+        if (campfireVendors === undefined) {
+            return undefined;
+        }
+        return campfireVendors
+            .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
+            .map((vendor) => ({
+                id: vendor.id,
+                name: vendor.name,
+                currency: '',
+                email: vendor.email ?? '',
+            }));
     }
     return undefined;
 }
@@ -2918,7 +2950,12 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     }
     const xeroContact = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[vendorID];
     if (xeroContact) {
-        return {id: xeroContact.id, name: xeroContact.name, currency: '', email: xeroContact.email};
+        return {
+            id: xeroContact.id,
+            name: xeroContact.name,
+            currency: '',
+            email: xeroContact.email,
+        };
     }
     const rilletVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
     if (rilletVendor) {
@@ -3002,7 +3039,12 @@ function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
     if (!contacts) {
         return [];
     }
-    return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+    return Object.values(contacts).map((contact) => ({
+        id: contact.id,
+        name: contact.name,
+        currency: '',
+        email: contact.email,
+    }));
 }
 
 /** DualEntry export settings and expense matching must use vendors available to the selected company */
