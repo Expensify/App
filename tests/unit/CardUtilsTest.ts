@@ -4864,6 +4864,7 @@ describe('getCardConnectionStatusDisplay', () => {
         isCardBroken: false,
         shouldShowRBR: false,
         isCardInactive: false,
+        isCardPending: false,
         isExpensifyCard: false,
         isPersonalCard: false,
         isAdminForCardPolicy: false,
@@ -4944,6 +4945,29 @@ describe('getCardConnectionStatusDisplay', () => {
     // otherwise read as Inactive with a connection to fix.
     it('keeps an active Expensify Card active when its feed reports an error', () => {
         expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, shouldShowRBR: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.active',
+            statusTone: 'success',
+        });
+    });
+
+    // A card waiting to be issued or activated is not spendable yet, so it reads neither Active nor Inactive.
+    it('reports a pending status for an Expensify Card waiting to be issued or activated', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, isCardPending: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.pending',
+            statusTone: 'danger',
+        });
+    });
+
+    // Suspended outranks pending, so a card the back end turned off never reads as merely waiting.
+    it('keeps an inactive Expensify Card inactive even while it is pending', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, isCardPending: true, isCardInactive: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'default',
+        });
+    });
+
+    it('leaves a non-pending Expensify Card active', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true})).toEqual({
             statusKey: 'walletPage.cardStatus.active',
             statusTone: 'success',
         });

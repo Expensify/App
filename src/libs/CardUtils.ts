@@ -136,6 +136,7 @@ type CardConnectionStatusDisplayParams = {
     isCardBroken: boolean;
     shouldShowRBR: boolean;
     isCardInactive: boolean;
+    isCardPending: boolean;
     isExpensifyCard: boolean;
     isPersonalCard: boolean;
     isAdminForCardPolicy: boolean;
@@ -1439,6 +1440,7 @@ function getCardConnectionStatusDisplay({
     isCardBroken,
     shouldShowRBR,
     isCardInactive: isCardInactiveStatus,
+    isCardPending: isCardPendingStatus,
     isExpensifyCard: isExpensifyCardStatus,
     isPersonalCard: isPersonalCardStatus,
     isAdminForCardPolicy,
@@ -1454,10 +1456,15 @@ function getCardConnectionStatusDisplay({
     // is right for it in any state. It still reports its status so the row keeps the background, hover and press
     // styling every other row in the list gets, which hangs off the status being present rather than the message.
     if (isExpensifyCardStatus) {
-        return {
-            statusKey: isCardInactiveStatus ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active',
-            statusTone: isCardInactiveStatus ? 'default' : 'success',
-        };
+        if (isCardInactiveStatus) {
+            return {statusKey: 'walletPage.cardStatus.inactive', statusTone: 'default'};
+        }
+        // A card waiting to be issued or activated cannot be spent on yet. It shares the tone with a pending bank
+        // account, so the wallet reads the same way whichever kind of row the status is on.
+        if (isCardPendingStatus) {
+            return {statusKey: 'walletPage.cardStatus.pending', statusTone: 'danger'};
+        }
+        return {statusKey: 'walletPage.cardStatus.active', statusTone: 'success'};
     }
 
     const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
