@@ -75,6 +75,12 @@ function AddAgentRulePage({
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
 
+    const [didOpenTabForDraft, setDidOpenTabForDraft] = useState(false);
+    if (!didOpenTabForDraft && hasDraftPrompt) {
+        setDidOpenTabForDraft(true);
+        setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
+    }
+
     // Reset the active tab to Suggestions when the workspace changes.
     if (activeTabPolicyID !== policyID) {
         setActiveTabPolicyID(policyID);

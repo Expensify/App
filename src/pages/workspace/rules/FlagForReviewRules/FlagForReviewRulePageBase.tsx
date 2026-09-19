@@ -49,6 +49,8 @@ type FlagForReviewRulePageBaseProps = {
     isCategoryLocked?: boolean;
     /** When true, nested create pages use category dynamic routes (keeps Categories underlay). */
     isCategoryScopedFlow?: boolean;
+    /** Whether the draft is already seeded */
+    isPrefilled?: boolean;
     testID: string;
 };
 
@@ -66,6 +68,7 @@ function FlagForReviewRulePageBase({
     initialCategoryName,
     isCategoryLocked: isCategoryLockedProp,
     isCategoryScopedFlow = false,
+    isPrefilled = false,
     testID,
 }: FlagForReviewRulePageBaseProps) {
     const {translate} = useLocalize();
@@ -100,7 +103,9 @@ function FlagForReviewRulePageBase({
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                if (!isPrefilled) {
+                    setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                }
             }
             return;
         }
@@ -124,7 +129,7 @@ function FlagForReviewRulePageBase({
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
+    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, initialCategoryName, isEditing, isPrefilled, policyCurrency, selectedCategoryName]);
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
