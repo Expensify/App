@@ -249,6 +249,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
                     isTrackIntentUser,
+                    currentUserAccountID,
                 });
                 reportForContextualSearch = option;
             }
@@ -319,6 +320,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             reportAttributes,
             isTrackIntentUser,
             dateFnsLocale,
+            currentUserAccountID,
             convertToDisplayString,
             rules,
         ],
