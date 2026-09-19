@@ -54,6 +54,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Delen stoppen',
         yes: 'Ja',
         no: 'Nee',
+        exampleValue: ({example}: {example: string}) => `Voorbeeld: ${example}`,
         approve: 'Goedkeuren',
         deny: 'Weigeren',
         dontChange: 'Niet wijzigen',
@@ -3902,6 +3903,18 @@ ${amount} voor ${merchant} - ${date}`,
             deletePaymentBankAccount:
                 'Deze bankrekening kan niet worden verwijderd omdat hij wordt gebruikt voor betalingen met de Expensify Kaart. Als je deze rekening toch wilt verwijderen, neem dan contact op met Concierge.',
             sameDepositAndWithdrawalAccount: 'De stortings- en opname­rekeningen zijn hetzelfde.',
+        },
+    },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Mag maximaal ${maxLength} tekens bevatten`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
+            invalidDate: 'Voer een geldige datum in',
+            invalidOption: 'Kies een van de beschikbare opties',
+            tooFewItems: ({min}: {min: number}) => `Voeg er minimaal ${min} toe`,
+            tooManyItems: ({max}: {max: number}) => `Voeg er maximaal ${max} toe`,
+            outOfRange: ({min, max}: {min: number; max: number}) => `Voer een waarde in tussen ${min} en ${max}`,
         },
     },
     addPersonalBankAccount: {

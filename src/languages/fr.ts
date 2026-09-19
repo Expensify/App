@@ -54,6 +54,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Arrêter le partage',
         yes: 'Oui',
         no: 'Non',
+        exampleValue: ({example}: {example: string}) => `Exemple : ${example}`,
         approve: 'Approuver',
         deny: 'Refuser',
         dontChange: 'Ne pas modifier',
@@ -3927,6 +3928,18 @@ ${amount} pour ${merchant} - ${date}`,
             deletePaymentBankAccount:
                 'Ce compte bancaire ne peut pas être supprimé car il est utilisé pour les paiements par Carte Expensify. Si vous souhaitez tout de même supprimer ce compte, veuillez contacter Concierge.',
             sameDepositAndWithdrawalAccount: 'Les comptes de dépôt et de retrait sont identiques.',
+        },
+    },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Doit contenir au moins ${minLength} caractères`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Doit contenir au plus ${maxLength} caractères`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Format invalide. Exemple : ${example}` : 'Format invalide'),
+            invalidDate: 'Veuillez saisir une date valide',
+            invalidOption: "Choisissez l'une des options disponibles",
+            tooFewItems: ({min}: {min: number}) => `Ajoutez au moins ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Ajoutez au plus ${max}`,
+            outOfRange: ({min, max}: {min: number; max: number}) => `Saisissez une valeur entre ${min} et ${max}`,
         },
     },
     addPersonalBankAccount: {

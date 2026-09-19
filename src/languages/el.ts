@@ -53,6 +53,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
         no: 'Όχι',
+        exampleValue: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
         approve: 'Έγκριση',
         deny: 'Άρνηση',
         dontChange: 'Να μην αλλάξει',
@@ -3975,6 +3976,18 @@ ${amount} για ${merchant} - ${date}`,
             deletePaymentBankAccount:
                 'Αυτός ο τραπεζικός λογαριασμός δεν μπορεί να διαγραφεί επειδή χρησιμοποιείται για πληρωμές με την Κάρτα Expensify. Αν εξακολουθείτε να θέλετε να διαγράψετε αυτόν τον λογαριασμό, παρακαλούμε επικοινωνήστε με το Concierge.',
             sameDepositAndWithdrawalAccount: 'Οι λογαριασμοί κατάθεσης και ανάληψης είναι οι ίδιοι.',
+        },
+    },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
+            tooLong: ({maxLength}: {maxLength: number}) => `Πρέπει να έχει το πολύ ${maxLength} χαρακτήρες`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
+            invalidDate: 'Εισαγάγετε μια έγκυρη ημερομηνία',
+            invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
+            tooFewItems: ({min}: {min: number}) => `Προσθέστε τουλάχιστον ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Προσθέστε το πολύ ${max}`,
+            outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
         },
     },
     addPersonalBankAccount: {

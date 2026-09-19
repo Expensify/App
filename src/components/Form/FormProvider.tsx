@@ -46,7 +46,7 @@ import isNumericKeyboard from './isNumericKeyboard';
 const VALIDATE_DELAY = 200;
 
 type GenericFormInputErrors = Partial<Record<string, string>>;
-type InitialDefaultValue = false | Date | '';
+type InitialDefaultValue = false | Date | '' | [];
 
 function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
     switch (valueType) {
@@ -56,6 +56,10 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
             return false;
         case 'date':
             return new Date();
+        case 'stringList':
+        case 'files':
+        case 'listItems':
+            return [];
         default:
             return '';
     }
