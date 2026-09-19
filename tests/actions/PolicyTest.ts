@@ -7582,6 +7582,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7639,6 +7640,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy,
                 currentUserDisplayName: undefined,
             });
@@ -7675,6 +7677,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             expect(result).toBeUndefined();
@@ -7735,6 +7738,7 @@ describe('actions/Policy', () => {
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
 
@@ -7791,6 +7795,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7863,6 +7868,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [transaction],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
