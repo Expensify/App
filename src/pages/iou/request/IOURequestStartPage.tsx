@@ -224,8 +224,8 @@ function IOURequestStartPage({
     const isDiscardModalOpenRef = useRef(false);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const hasAmountChanged = transaction?.isAmountSet === true;
+    const [initialIsAmountSet] = useState(() => transaction?.isAmountSet === true);
+    const hasAmountChanged = (transaction?.isAmountSet === true) !== initialIsAmountSet;
 
     useFocusEffect(
         useCallback(() => {
