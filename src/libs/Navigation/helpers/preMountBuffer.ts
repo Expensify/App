@@ -179,7 +179,7 @@ function removeBufferRouteOnly() {
 function canNativeSwipeDismissRHP(): boolean {
     const rootState = navigationRef.getRootState();
     const rhpRoute = rootState?.routes.at(-1);
-    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && rhpRoute?.name !== NAVIGATORS.SHARE_MODAL_NAVIGATOR) {
         return true;
     }
 
@@ -238,7 +238,7 @@ function removePreInsertedFullscreenIfNeeded() {
     }
 
     const topRoute = rootState.routes.at(-1);
-    const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || topRoute?.name === NAVIGATORS.SHARE_MODAL_NAVIGATOR;
 
     if (isRHPStillOnTop && routeNameToRemove) {
         // Call this before dispatching below, so its listener teardown happens before this dispatch

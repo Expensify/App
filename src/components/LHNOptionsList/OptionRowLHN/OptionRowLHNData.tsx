@@ -64,27 +64,48 @@ function OptionRowLHNData({
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
 
-    // Scoped VISIBLE_REPORT_ACTIONS selector
-    const visibleActionsSelector = useCallback(
-        (data: VisibleReportActionsDerivedValue | undefined) => {
+    // Scoped VISIBLE_REPORT_ACTIONS selector with memoized return value to preserve snapshot cache identity
+    const visibleActionsSelector = useMemo(() => {
+        let prevReportEntry: Record<string, boolean> | undefined;
+        let prevTxThreadEntry: Record<string, boolean> | undefined;
+        let cachedResult: VisibleReportActionsDerivedValue | undefined;
+        let hasRun = false;
+
+        return (data: VisibleReportActionsDerivedValue | undefined) => {
             if (!data) {
+                prevReportEntry = undefined;
+                prevTxThreadEntry = undefined;
+                cachedResult = undefined;
+                hasRun = true;
                 return undefined;
             }
-            const result: VisibleReportActionsDerivedValue = {};
             const reportEntry = data[reportID];
+            const txThreadEntry = oneTransactionThreadReportID ? data[oneTransactionThreadReportID] : undefined;
+
+            if (hasRun && reportEntry === prevReportEntry && txThreadEntry === prevTxThreadEntry) {
+                return cachedResult;
+            }
+
+            hasRun = true;
+            prevReportEntry = reportEntry;
+            prevTxThreadEntry = txThreadEntry;
+
+            if (!reportEntry && !txThreadEntry) {
+                cachedResult = undefined;
+                return undefined;
+            }
+
+            const result: VisibleReportActionsDerivedValue = {};
             if (reportEntry) {
                 result[reportID] = reportEntry;
             }
-            if (oneTransactionThreadReportID) {
-                const txThreadEntry = data[oneTransactionThreadReportID];
-                if (txThreadEntry) {
-                    result[oneTransactionThreadReportID] = txThreadEntry;
-                }
+            if (oneTransactionThreadReportID && txThreadEntry) {
+                result[oneTransactionThreadReportID] = txThreadEntry;
             }
+            cachedResult = result;
             return result;
-        },
-        [reportID, oneTransactionThreadReportID],
-    );
+        };
+    }, [reportID, oneTransactionThreadReportID]);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleActionsSelector});
 
     // Per-item NVP subscription instead of collection-level subscription in parent

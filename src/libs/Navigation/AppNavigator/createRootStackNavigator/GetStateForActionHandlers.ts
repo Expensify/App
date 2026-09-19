@@ -511,7 +511,7 @@ function handleReplaceFullscreenUnderRHP(
         return null;
     }
 
-    const routesWithoutRHP = state.routes.slice(0, -1);
+    const routesWithoutRHP = state.routes.slice(0, -1).filter((r) => r.name !== SCREENS.PRE_MOUNT_BUFFER);
 
     // When the target is a TAB_NAVIGATOR screen, switch tabs within the existing instance
     // rather than pushing a duplicate navigator.
@@ -559,11 +559,6 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     // For non-tab fullscreen targets: push the route underneath the RHP (existing behavior).
-    const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
-    if (!stateAfterPop) {
-        return null;
-    }
-
     let pushParams = targetRoute.params as Record<string, unknown> | undefined;
     const nestedRoute = getFocusedRouteFromNavigatorState(targetRoute.state);
     if (nestedRoute) {
@@ -574,8 +569,21 @@ function handleReplaceFullscreenUnderRHP(
         };
     }
 
-    const rehydratedStateAfterPop = stackRouter.getRehydratedState(stateAfterPop, configOptions);
-    const stateAfterPush = stackRouter.getStateForAction(rehydratedStateAfterPop, StackActions.push(targetRoute.name, pushParams), configOptions);
+    const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
+    if (!stateAfterPop) {
+        return null;
+    }
+
+    const routesWithoutBuffer = stateAfterPop.routes.filter((route) => route.name !== SCREENS.PRE_MOUNT_BUFFER);
+    const rehydratedBaseState = stackRouter.getRehydratedState(
+        {
+            ...stateAfterPop,
+            routes: routesWithoutBuffer,
+            index: routesWithoutBuffer.length - 1,
+        },
+        configOptions,
+    );
+    const stateAfterPush = stackRouter.getStateForAction(rehydratedBaseState, StackActions.push(targetRoute.name, pushParams), configOptions);
     if (!stateAfterPush) {
         return null;
     }
@@ -614,7 +622,7 @@ function handleRemoveFullscreenUnderRHP(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
     const rhpRoute = state.routes.at(-1);
-    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && rhpRoute?.name !== NAVIGATORS.SHARE_MODAL_NAVIGATOR) {
         return null;
     }
 
