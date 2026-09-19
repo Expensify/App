@@ -47,6 +47,7 @@ import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
 import pointerEventsNone from './utils/pointerEventsNone';
 import positioning from './utils/positioning';
+import scrollbarGutterStable from './utils/scrollbarGutterStable';
 import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
@@ -4185,7 +4186,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemButton: {
-            minWidth: 68,
+            minWidth: variables.widgetItemButtonMinWidth,
         },
 
         gettingStartedRowIconContainer: {
@@ -4276,6 +4277,11 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
+        },
+
+        // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
+        homePageScrollView: {
+            ...scrollbarGutterStable,
         },
 
         homePageContentContainer: {
@@ -7076,7 +7082,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+        getWidgetRowGroupStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
@@ -7371,6 +7377,8 @@ const plainStyles = (theme: ThemeColors) =>
                 color,
             }) satisfies TextStyle,
 
+        getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
+
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: 'row',
@@ -7406,6 +7414,14 @@ const plainStyles = (theme: ThemeColors) =>
             right: 0,
             opacity: 0,
             paddingRight: 24,
+        },
+
+        conciergePromptBoxPlaceholderSkeleton: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: variables.composerTextInputPaddingLeft,
+            justifyContent: 'center',
         },
 
         widgetItemIconContainer: {
