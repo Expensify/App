@@ -583,7 +583,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         transactionTags: tag,
     });
     const optimisticPolicyRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
-    // `recentlyUsedDestinations` is written by the server and can arrive as an object instead of an array, so check the shape instead of relying on `??`.
     const recentlyUsedDestinationsArray = Array.isArray(recentlyUsedDestinations) ? recentlyUsedDestinations : [];
     const optimisticPolicyRecentlyUsedDestinations = customUnit.customUnitRateID ? [...new Set([customUnit.customUnitRateID, ...recentlyUsedDestinationsArray])] : [];
 

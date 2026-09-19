@@ -4179,7 +4179,6 @@ function updateReportField({
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
-    // The stored list is written by the server and can arrive as an object instead of an array, so check the shape instead of relying on `??`.
     const recentlyUsedValuesForField = recentlyUsedReportFields?.[fieldKey];
     const recentlyUsedValues = Array.isArray(recentlyUsedValuesForField) ? recentlyUsedValuesForField : [];
 
