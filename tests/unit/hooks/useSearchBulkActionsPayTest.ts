@@ -1,6 +1,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
@@ -296,7 +297,7 @@ describe('useSearchBulkActions - Pay option', () => {
         // Given a payable selected transaction while the user is online (set up in beforeEach)
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then the Pay option should be offered because the selection is payable and nothing blocks the payment
         await waitFor(() => {
@@ -309,7 +310,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockIsOffline = true;
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then the Pay option should still be offered because being offline only defers the payment
         await waitFor(() => {
@@ -321,7 +322,7 @@ describe('useSearchBulkActions - Pay option', () => {
         // Given a payable selected transaction while the user is offline
         mockIsOffline = true;
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
@@ -344,7 +345,7 @@ describe('useSearchBulkActions - Pay option', () => {
         // Mark as paid is the only option offered in this mode
         mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
@@ -374,7 +375,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered, because eligibility for a select-all is decided server-side from the query
         await waitFor(() => {
@@ -391,7 +392,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: true})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered
         await waitFor(() => {
@@ -407,7 +408,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: false}), makeSelectedReport({reportID: '2', canPay: false})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -422,7 +423,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockShouldEnableBulkPayOption = false;
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -442,7 +443,7 @@ describe('useSearchBulkActions - Pay option', () => {
         };
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered, because the hold is scoped to the reports that will actually be paid
         await waitFor(() => {
@@ -456,7 +457,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: '1', isHeld: true})};
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -504,7 +505,7 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
     });
 
     async function selectBulkPay() {
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
         });

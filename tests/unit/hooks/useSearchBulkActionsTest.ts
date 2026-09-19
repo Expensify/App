@@ -1,5 +1,6 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
@@ -280,7 +281,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockExcludedTransactions = {tx2: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -309,7 +310,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -361,7 +362,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: filteredGroupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: filteredGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -400,7 +401,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -420,7 +421,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {};
         mockExcludedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
@@ -432,7 +433,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {};
         mockExcludedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         expect(result.current.headerButtonsOptions).toEqual([]);
     });
@@ -442,7 +443,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockExcludedTransactions = {tx2: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -463,7 +464,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockAreAllMatchingItemsSelected = false;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -480,7 +481,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             defaultTemplates: [],
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -514,7 +515,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             ],
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
