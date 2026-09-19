@@ -1772,7 +1772,11 @@ function isCardPendingReplace(card?: Card) {
  * @param card personal card to check
  */
 function isPersonalCardBrokenConnection(card?: Card) {
-    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
+    if (card?.pendingFields?.lastScrape) {
+        return false;
+    }
+
+    return !!card?.lastScrapeResult && (isCardConnectionBroken(card) || card.lastScrapeResult === CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS);
 }
 
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {

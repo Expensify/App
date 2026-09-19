@@ -161,9 +161,9 @@ function ReportActionItemSingle({
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
-                        singleAvatarContainerStyle={[styles.actionAvatar]}
+                        singleAvatarContainerStyle={styles.actionAvatar}
+                        subscriptAvatarContainerStyle={styles.mr0}
                         backdropColor={getBackgroundColor()}
-                        noRightMarginOnSubscriptContainer
                         isInReportAction
                         reportID={iouReportID}
                         chatReportID={source.iouReport?.chatReportID ?? reportID}

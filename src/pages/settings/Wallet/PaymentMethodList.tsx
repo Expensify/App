@@ -33,7 +33,9 @@ import {
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isExpiredCard,
+    isLastScrapePastDismissThreshold,
     isPersonalCard,
+    isPersonalCardBrokenConnection,
     isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -307,12 +309,14 @@ function PaymentMethodList({
                     }
                 }
 
-                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
+                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isPersonalCardBrokenConnection(card))) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
                 const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
-                const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+                const isCardBroken = isUserPersonalCard
+                    ? isPersonalCardBrokenConnection(card) && !isLastScrapePastDismissThreshold(card)
+                    : isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
                     shouldShowConnectionStatus,

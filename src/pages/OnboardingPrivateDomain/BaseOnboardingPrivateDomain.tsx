@@ -118,7 +118,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         }
     }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
 
-    if (shouldBlockPublicDomain) {
+    const willNavigateAway = shouldBlockPublicDomain || (isValidated && (joinablePoliciesLength > 0 || getAccessiblePoliciesAction?.loading === false));
+    if (willNavigateAway) {
         return null;
     }
 

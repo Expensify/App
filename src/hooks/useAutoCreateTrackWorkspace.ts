@@ -82,7 +82,7 @@ function useAutoCreateTrackWorkspace() {
                 ? createWorkspace({
                       policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
+                      policyName: generateDefaultWorkspaceName(currentUserEmail, displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice,
                       currency: localCurrencyCode,

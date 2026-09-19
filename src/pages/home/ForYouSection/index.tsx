@@ -11,8 +11,8 @@ import useTodoCounts from '@hooks/useTodoCounts';
 
 import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 
 import HomeTaskGroup from '@pages/home/HomeTaskGroup';
 import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
