@@ -1,4 +1,3 @@
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
@@ -12,6 +11,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -60,6 +60,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
     const [, policyCollectionResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: () => null});
 
     const accountID = currentUserPersonalDetails.accountID;
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
 
     const isLoading = !accountID || isLoadingSelfDMReport || isLoadingOnyxValue(policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult);
 
@@ -84,7 +85,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
         }
 
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-        const defaultTargetReport = shouldAutoReport ? getPolicyExpenseChat(accountID, defaultExpensePolicy?.id) : selfDMReport;
+        const defaultTargetReport = shouldAutoReport ? activePolicyExpenseChat : selfDMReport;
         return getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
     }, [
         sourceReport,
@@ -98,6 +99,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
         ownerBillingGracePeriodEnd,
         personalPolicy?.autoReporting,
         selfDMReport,
+        activePolicyExpenseChat,
     ]);
 
     return useMemo(() => ({participants, isLoading}), [participants, isLoading]);
