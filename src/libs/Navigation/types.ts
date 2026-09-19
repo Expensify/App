@@ -337,6 +337,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: {
         policyID: string;

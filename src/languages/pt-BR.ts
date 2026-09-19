@@ -6319,6 +6319,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             csvColumnType: 'Tipo',
             csvColumnLimitType: 'Tipo de limite',
             csvColumnLimit: 'Limite',
+            noCardFeedsAvailable: 'Nenhum feed de cartão disponível',
+            noCardFeedsAvailableDescription: 'Não há feeds de cartão disponíveis para este workspace.',
         },
         categories: {
             deleteCategories: 'Excluir categorias',
