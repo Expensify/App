@@ -13638,8 +13638,9 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = !!currentUserAccountID && report?.managerID === currentUserAccountID;
     const isCurrentUserAdmin = isPolicyAdmin(policy);
+    const isCurrentUserSubmitter = !!currentUserAccountID && report?.ownerAccountID === currentUserAccountID;
 
-    if (!isCurrentUserManager && !isCurrentUserAdmin) {
+    if (!isCurrentUserManager && !(isCurrentUserAdmin && !isCurrentUserSubmitter)) {
         return false;
     }
 

@@ -5641,6 +5641,13 @@ describe('ReportUtils', () => {
             expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(true);
         });
 
+        it('should return false for an admin who is the submitter of the report', () => {
+            const report = {...submittedExpenseReport(2006, 99998), ownerAccountID: currentUserAccountID};
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN});
+
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(false);
+        });
+
         it('should return false for a non-manager, non-admin member', () => {
             const report = submittedExpenseReport(2003, 99998);
             const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.USER});
