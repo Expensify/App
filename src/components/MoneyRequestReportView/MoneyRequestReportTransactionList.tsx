@@ -365,9 +365,9 @@ function MoneyRequestReportTransactionList({
 
     const {sortBy, sortOrder} = sortConfig;
 
-    // transactionID → transaction-thread report ID, so each row can pass it to the RBR, letting rows without RBR
-    // content early-return instead of mounting the heavy RBR inner (6 Onyx subscriptions). Without this, the per-row
-    // alternative would re-scan every report action (O(transactions × actions)).
+    // Maps each transactionID to its transaction-thread report ID, so each row can pass it to the RBR, letting rows
+    // without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx subscriptions). Without this,
+    // the per-row alternative would re-scan every report action (O(transactions x actions)).
     const transactionThreadReportIDByTransactionID = useMemo(() => {
         const threadReportIDByTransactionID = new Map<string, string>();
         for (const action of reportActions) {

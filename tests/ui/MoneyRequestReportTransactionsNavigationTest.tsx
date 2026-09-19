@@ -52,7 +52,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-// The unified list is a FlashList; the tests below only need the controller it is handed, which carries the rendered
+// The unified list is a FlashList. The tests below only need the controller it is handed, which carries the rendered
 // row order and the real column-header element.
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportUnifiedList', () => ({
     __esModule: true,
