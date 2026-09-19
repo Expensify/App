@@ -1,7 +1,7 @@
 ---
 title: Admin Rooms in Expensify Chat
 description: Use the announce and admins chat rooms to share updates and collaborate with your team.
-keywords: [New Expensify, chat rooms, announce room, admins room, workspace chat, admin permissions]
+keywords: [New Expensify, chat rooms, announce room, admins room, workspace chat, admin permissions, admins room pinned]
 ---
 
 Expensify Chat includes two automatically generated rooms for every workspace: **#announce** and **#admins**. These rooms help teams stay informed and allow Workspace Admins to collaborate behind the scenes.
@@ -47,4 +47,10 @@ The **#admins** room is only visible to Workspace Admins. It’s designed for se
 ## Why is someone I don’t recognize in my #admins room?
 
 If you're seeing an unfamiliar name in your **#admins** room, it’s likely your **Expensify Account Executive** or **Account Manager**. These team members are added automatically to help you onboard and provide product support.
+
+## Why is my #admins room pinned to the top of my inbox?
+
+Expensify pins the **#admins** room of the first workspace you create when you sign up, because that room holds your onboarding tasks. Workspaces you create later do not get their **#admins** room pinned.
+
+To unpin it, open the room, click the room header, and select **Unpin**. Learn more about [how to pin and unpin chats](/articles/new-expensify/chat/Prioritize-and-Pin-Chats).
 
