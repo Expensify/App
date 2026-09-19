@@ -63,6 +63,12 @@ function BaseEducationalTooltip({
 
         getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
             updateTargetBounds(bounds);
+
+            if (!shouldHideOnScroll) {
+                showTooltip();
+                return;
+            }
+
             const {x, y, width: elementWidth, height} = bounds;
 
             const offset = 10; // Tooltip hides when content moves 10px past header/footer.
@@ -91,7 +97,7 @@ function BaseEducationalTooltip({
                 showTooltip();
             }
         });
-    }, [contentHeaderHeight, insets.top, insets.bottom, insets.left, shouldShowTooltip, shouldSuppressTooltip]);
+    }, [contentHeaderHeight, insets.top, insets.bottom, insets.left, shouldHideOnScroll, shouldShowTooltip, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
