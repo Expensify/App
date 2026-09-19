@@ -2504,28 +2504,15 @@ type BusinessCentralCompany = {
 };
 
 /**
- * Value of a dimension retrieved from Business Central.
- */
-type BusinessCentralDimensionValue = {
-    /** Code identifying the value within its dimension */
-    code: string;
-
-    /** Name of the value */
-    name: string;
-};
-
-/**
  * Dimension retrieved from Business Central. Dimensions are imported as tags.
+ * Integration-Server caches only the code and the name, which is all the Import page needs to list a row per dimension.
  */
 type BusinessCentralDimension = {
-    /** Code identifying the dimension */
-    code: string;
+    /** Code identifying the dimension, also the key of its entry in `fieldMappings` */
+    id: string;
 
     /** Name of the dimension */
     name: string;
-
-    /** Values the dimension can take */
-    values: BusinessCentralDimensionValue[];
 };
 
 /**

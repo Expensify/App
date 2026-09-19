@@ -89,12 +89,12 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <Text style={sectionTitleStyle}>{translate('workspace.common.tags')}</Text>
                     {businessCentralData?.dimensions?.map((dimension) => {
-                        const mapping = businessCentralConfig?.coding?.fieldMappings?.[dimension.code];
+                        const mapping = businessCentralConfig?.coding?.fieldMappings?.[dimension.id];
                         const isImported = mapping === CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG;
-                        const pendingField = `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.code}` as const;
+                        const pendingField = `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.id}` as const;
                         return (
                             <ToggleSettingOptionRow
-                                key={dimension.code}
+                                key={dimension.id}
                                 title={dimension.name}
                                 switchAccessibilityLabel={dimension.name}
                                 wrapperStyle={[styles.mv3, styles.mh5]}
@@ -103,7 +103,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                                     policyID &&
                                     updateBusinessCentralFieldMapping(
                                         policyID,
-                                        dimension.code,
+                                        dimension.id,
                                         isImported ? CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE : CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG,
                                         mapping,
                                     )

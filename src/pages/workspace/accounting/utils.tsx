@@ -653,7 +653,7 @@ function getAccountingIntegrationData(
                     CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS,
                     CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES,
-                    ...(policy?.connections?.businessCentral?.data?.dimensions?.map((dimension) => `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.code}`) ?? []),
+                    ...(policy?.connections?.businessCentral?.data?.dimensions?.map((dimension) => `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.id}`) ?? []),
                 ],
                 onExportPagePress: () => null,
                 subscribedExportSettings: [],
