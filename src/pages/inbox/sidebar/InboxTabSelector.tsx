@@ -142,6 +142,8 @@ function InboxTabSelector() {
                 },
                 shiftVertical: 8,
                 wrapperStyle: styles.productTrainingTooltipWrapper,
+                computeHorizontalShiftForNative: true,
+                maxWidth: 335,
             },
         },
         {
