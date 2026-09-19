@@ -7426,6 +7426,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             defaultApprover: 'Aprobador predeterminado',
             approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
             subtitle: 'Conecta herramientas de selección y mantén sincronizadas las aprobaciones de candidatos.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidato',
+                    other: (count: number) => `${count} candidatos`,
+                }),
+            },
         },
         merge: {
             connections: 'Conexiones',
@@ -7456,7 +7462,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
             syncResults: {
                 title: (provider: string) => `Sincronización de ${provider} completada`,
-                successTitle: (provider: string) => `¡Se sincronizó correctamente tu conexión de ${provider}!`,
+                successTitle: (provider: string) => `¡Se ha sincronizado correctamente tu conexión con ${provider}!`,
                 added: 'Añadido',
                 removed: 'Eliminado',
                 skipped: 'Omitido',

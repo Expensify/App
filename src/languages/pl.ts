@@ -8658,6 +8658,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             defaultApprover: 'Domyślny zatwierdzający',
             approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji'},
             subtitle: 'Połącz narzędzia rekrutacyjne i utrzymuj zgody kandydatów w synchronizacji.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 kandydat',
+                    other: (count: number) => `${count} kandydatów`,
+                }),
+            },
         },
         merge: {
             connections: 'Połączenia',
@@ -8687,7 +8693,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             syncingModalDescription: 'Pierwsze połączenie może chwilę potrwać. Zostaniesz powiadomiony o wszelkich błędach.',
             syncLimitReached: {title: 'Spróbuj ponownie jutro', prompt: 'Osiągnąłeś dzienny limit synchronizacji.'},
             syncResults: {
-                title: (provider: string) => `Synchronizacja z ${provider} zakończona`,
+                title: (provider: string) => `Zsynchronizowano z ${provider}`,
                 successTitle: (provider: string) => `Pomyślnie zsynchronizowano twoje połączenie z ${provider}!`,
                 added: 'Dodano',
                 removed: 'Usunięto',

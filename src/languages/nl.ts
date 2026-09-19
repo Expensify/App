@@ -8640,6 +8640,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
             subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 kandidaat',
+                    other: (count: number) => `${count} kandidaten`,
+                }),
+            },
         },
         merge: {
             connections: 'Verbindingen',

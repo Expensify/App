@@ -8330,6 +8330,12 @@ ${reportName}`,
             defaultApprover: '默认审批人',
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
             subtitle: '连接招聘工具并保持候选人审批同步。',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 名候选人',
+                    other: (count: number) => `${count} 名候选人`,
+                }),
+            },
         },
         merge: {
             connections: '连接',

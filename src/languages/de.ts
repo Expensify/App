@@ -8714,6 +8714,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 Kandidat',
+                    other: (count: number) => `${count} Kandidat:innen`,
+                }),
+            },
         },
         merge: {
             connections: 'Verbindungen',

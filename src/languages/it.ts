@@ -8661,6 +8661,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             defaultApprover: 'Approvatore predefinito',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
             subtitle: 'Collega gli strumenti di recruiting e mantieni sincronizzate le approvazioni dei candidati.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidato',
+                    other: (count: number) => `${count} candidati`,
+                }),
+            },
         },
         merge: {
             connections: 'Connessioni',
