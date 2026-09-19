@@ -1,3 +1,4 @@
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -39,6 +40,11 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ArmWithCardPos']);
     const {translate} = useLocalize();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: shouldUseNarrowLayout,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: styles.m5,
+    });
 
     return (
         <Modal
@@ -49,6 +55,7 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={[styles.alignItemsCenter, styles.wAuto, styles.trialReminderIllustrationContainer, styles.pb7]}>
                 <ImageSVG
@@ -56,7 +63,7 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
                     contentFit="contain"
                 />
             </View>
-            <View style={[styles.m5]}>
+            <View style={bottomSafeAreaPaddingStyle}>
                 {variant === CONST.TRIAL_REMINDER_VARIANT.NEAR_END && daysRemaining !== undefined && (
                     <Text style={[styles.textSuccess, styles.textStrong, styles.mb2]}>{translate('trialPaymentReminder.trialEndsInDays', {count: daysRemaining})}</Text>
                 )}

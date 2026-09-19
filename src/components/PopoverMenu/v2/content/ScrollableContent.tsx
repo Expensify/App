@@ -19,6 +19,7 @@ import type {BasePopoverProps} from './BaseContent';
 
 import BaseContent from './BaseContent';
 import useMaxHeightStyle from './useMaxHeightStyle';
+import useShouldAddBottomSafeAreaPadding from './useShouldAddBottomSafeAreaPadding';
 
 type ScrollableContentProps = BasePopoverProps & {
     contentContainerStyle?: StyleProp<ViewStyle>;
@@ -32,6 +33,7 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
     useRootVisibility(ScrollableContent.displayName);
+    const shouldAddBottomSafeAreaPadding = useShouldAddBottomSafeAreaPadding();
     if (__DEV__) {
         const childCount = React.Children.count(children);
         if (childCount > VIRTUALIZATION_RECOMMENDED_THRESHOLD) {
@@ -53,7 +55,12 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
             maxHeightStyle={maxHeightStyle}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <ScrollView contentContainerStyle={[isSmallScreenWidth ? styles.pv4 : styles.pv2, contentContainerStyle]}>{children}</ScrollView>
+            <ScrollView
+                contentContainerStyle={[isSmallScreenWidth ? styles.pv4 : styles.pv2, contentContainerStyle]}
+                addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
+            >
+                {children}
+            </ScrollView>
         </BaseContent>
     );
 }

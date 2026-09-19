@@ -310,6 +310,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                         },
                                                     ]}
                                                     anchorRef={actionButtonRef}
+                                                    enableEdgeToEdgeBottomSafeAreaPadding
                                                 />
                                             </>
                                         );

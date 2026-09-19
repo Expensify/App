@@ -1,8 +1,8 @@
 import ScrollView from '@components/ScrollView';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -25,10 +25,18 @@ function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = fa
     const StyleUtils = useStyleUtils();
     const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
-    const insets = useSafeAreaInsets();
     const {isKeyboardActive} = useKeyboardState();
 
     const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
+
+    // The modal runs in edge-to-edge mode, so the bottom inset belongs on the content. It is only needed while the modal is
+    // bottom-docked — which is exactly when `onboardingIsMediumOrLargerScreenWidth` is false — and must be dropped while the
+    // keyboard is up, otherwise a gap appears above it.
+    const shouldAddBottomSafeAreaPadding = !onboardingIsMediumOrLargerScreenWidth && !isKeyboardActive;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: !shouldUseScrollView && shouldAddBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+    });
 
     const scrollViewRef = useRef<RNScrollView>(null);
     const [containerHeight, setContainerHeight] = useState(0);
@@ -42,14 +50,13 @@ function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = fa
     }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView]);
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
-    const wrapperStyles = shouldUseScrollView
-        ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive)
-        : ({} as {style?: StyleProp<ViewStyle>; containerStyle?: StyleProp<ViewStyle>});
+    const wrapperStyles = shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles() : ({} as {style?: StyleProp<ViewStyle>; containerStyle?: StyleProp<ViewStyle>});
 
     const style: StyleProp<ViewStyle> = [
         onboardingIsMediumOrLargerScreenWidth && width !== undefined && StyleUtils.getWidthStyle(width),
         wrapperStyles.style,
         isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
+        bottomSafeAreaPaddingStyle,
     ];
 
     const onLayout = shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined;
@@ -62,6 +69,7 @@ function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = fa
             style,
             contentContainerStyle: wrapperStyles.containerStyle,
             keyboardShouldPersistTaps: shouldUseScrollView ? ('handled' as const) : undefined,
+            addBottomSafeAreaPadding: shouldUseScrollView ? shouldAddBottomSafeAreaPadding : undefined,
             ref: shouldUseScrollView ? scrollViewRef : undefined,
             onLayout,
             onContentSizeChange,
