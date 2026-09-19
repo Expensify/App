@@ -132,7 +132,7 @@
     "@sbaiahmed1/react-native-biometrics": "0.15.0",
     "@sentry/core": "10.73.0",
     "@sentry/react-native": "8.25.0",
-    "@shopify/flash-list": "2.3.0",
+    "@shopify/flash-list": "2.3.2",
     "@shopify/react-native-skia": "^2.11.2",
     "@ua/react-native-airship": "26.7.0",
     "array.prototype.tosorted": "^1.1.4",
