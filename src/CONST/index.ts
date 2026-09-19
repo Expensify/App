@@ -7247,6 +7247,8 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        // Null byte can't appear in a query, so it's safe to join query parts with it
+        QUERY_PARAMS_SEPARATOR: '\x00',
         /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
         HOVER_INTENT_REST_RADIUS_PX: 8,
         DATA_TYPES: {
