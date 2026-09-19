@@ -48,12 +48,9 @@ function SearchEditMultipleTagPage() {
 
     const saveTag = (item: Partial<OptionData>) => {
         const selectedTagName = item.searchText ?? '';
-        // Tapping the value already committed in this draft means the user is clearing the level.
-        // getUpdatedTransactionTag resolves the same thing internally for the displayed tag, but the
-        // intent has to be resolved again here because apply time replays each recorded intent with an
-        // empty currentTag. A raw tag name would read as a fresh selection there and re-add the level
-        // the user just cleared, so record an empty value to carry the clear through.
+        // Tapping the level's own committed value deselects it.
         const isDeselecting = selectedTagName === currentTag;
+        const recordedTagChanges = draftTransaction?.bulkEditTagChanges ?? {};
 
         const updatedTag = getUpdatedTransactionTag({
             transactionTag,
@@ -65,14 +62,13 @@ function SearchEditMultipleTagPage() {
             hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
         });
 
-        // Record the per-level edit intent. For dependent tags, editing this level invalidates every
-        // deeper (child) level, so drop any child intents previously recorded in the same draft. The
-        // draft is merged, so without this a stale child edit would be replayed after this parent change
-        // at apply time and re-add a child that no longer belongs under the newly selected parent, even
-        // though the displayed updatedTag above already cleared it. Independent tags keep every level.
-        const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? '' : selectedTagName};
+        // Deselecting a pick made in this same draft drops the intent (net no-op). Any other deselect stays '' as a real clear.
+        const isUndoingOwnPick = isDeselecting && recordedTagChanges[tagListIndex] === currentTag;
+        const deselectValue = isUndoingOwnPick ? null : '';
+        const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? deselectValue : selectedTagName};
+        // Dependent tags: editing a level invalidates deeper ones, so drop any stale child intents (merged draft would replay them).
         if (hasDependentTags) {
-            for (const recordedIndex of Object.keys(draftTransaction?.bulkEditTagChanges ?? {})) {
+            for (const recordedIndex of Object.keys(recordedTagChanges)) {
                 if (Number(recordedIndex) <= tagListIndex) {
                     continue;
                 }
@@ -81,8 +77,7 @@ function SearchEditMultipleTagPage() {
         }
 
         updateBulkEditDraftTransaction({
-            // Keep the flattened tag for the summary display, and record the per-level edit intent so
-            // apply time can merge it into each transaction's own tag instead of overwriting all levels.
+            // The flattened tag is display-only. bulkEditTagChanges is the single source of truth for the save.
             tag: updatedTag,
             bulkEditTagChanges,
         });
