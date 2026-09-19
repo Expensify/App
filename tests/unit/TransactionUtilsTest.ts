@@ -5594,6 +5594,56 @@ describe('hasAllManuallyEnteredScanFields', () => {
     });
 });
 
+describe('isFailedScanAmountPlaceholder for zero-amount Scans', () => {
+    const openScan = {
+        amount: 0,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        modifiedAmount: '',
+        receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+    } as const;
+
+    it('shows an explicitly entered zero after the submitted transaction is reloaded without draft flags', () => {
+        const transaction = generateTransaction({...openScan, merchant: 'Test Merchant', created: '2026-09-17'});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(false);
+        expect(TransactionUtils.isAmountMissing(transaction)).toBe(false);
+    });
+
+    it('still treats a failed Scan with no entered amount as missing', () => {
+        const transaction = generateTransaction({...openScan, receipt: {...openScan.receipt, state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
+    });
+
+    it.each([
+        ['merchant', {modifiedMerchant: 'Updated Merchant'}],
+        ['created', {modifiedCreated: '2026-09-18'}],
+        ['currency', {modifiedCurrency: 'EUR'}],
+    ])('keeps an existing failed Scan missing while its %s edit makes the receipt OPEN', (field, changes) => {
+        const transaction = generateTransaction({...openScan, ...changes, pendingFields: {[field]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
+    });
+
+    it('keeps an entered zero visible after a later merchant edit is confirmed', () => {
+        const transaction = generateTransaction({...openScan, modifiedMerchant: 'Updated Merchant'});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(false);
+    });
+
+    it('keeps a partially filled Scan draft missing when the merchant is entered before the amount', () => {
+        const transaction = generateTransaction({...openScan, isMerchantSet: true});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
+    });
+
+    it('keeps a cleared Scan amount missing while its receipt is OPEN', () => {
+        const transaction = generateTransaction({...openScan, isAmountSet: false});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
+    });
+});
+
 describe('hasAnyManuallyEnteredScanField / isPartiallyEnteredScanExpense', () => {
     function generateScanDraft(values: Partial<Transaction> = {}): Transaction {
         return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...values});
