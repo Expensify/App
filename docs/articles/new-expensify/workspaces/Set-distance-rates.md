@@ -15,7 +15,7 @@ Distance rates determine how much members are reimbursed for distance-based trav
 
 Workspace admins can configure distance rates for a workspace.
 
-Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
+Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, or AUD.
 
 ---
 
@@ -94,7 +94,7 @@ Expensify can automatically update distance rates in your workspace when the sta
 
 When **Auto-update government rate** is enabled, Expensify adds a new effective-dated distance rate when a supported government publishes a new rate. This means admins don't need to manually update the standard rate each time it changes.
 
-Automatic updates are available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
+Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, or AUD.
 
 To enable automatic updates:
 
@@ -161,4 +161,4 @@ Yes. When **Distance rates** is enabled, the workspace must always have at least
 
 ## Why isn't Auto-update government rate turned on for my workspace?
 
-**Auto-update government rate** is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
+**Auto-update government rate** is turned on by default only for new Control workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for Control workspaces with a default currency of USD, CAD, GBP, or AUD.
