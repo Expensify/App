@@ -4,8 +4,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 
@@ -31,13 +34,18 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
+    // Freeze the year selected when the picker opened so it stays pinned to the top for the whole open cycle, even as the live selection changes.
+    const initialYear = useInitialSelection(currentYear, {isVisible});
     const {data, headerMessage} = useMemo(() => {
-        const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
+        // Pin the frozen initial year to the top of the full sorted list before search filtering, so it stays pinned while searching.
+        const sortedYears = [...years].sort((a, b) => b.value - a.value);
+        const orderedYears = moveInitialSelectionToTop(sortedYears, [String(initialYear)]);
+        const yearsList = searchText === '' ? orderedYears : orderedYears.filter((year) => year.text?.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
-            data: yearsList.sort((a, b) => b.value - a.value),
+            data: yearsList,
         };
-    }, [years, searchText, translate]);
+    }, [years, searchText, translate, initialYear]);
 
     useEffect(() => {
         if (isVisible) {
@@ -88,7 +96,9 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                         onYearChange?.(option.value);
                     }}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={currentYear.toString()}
+                    initiallyFocusedItemKey={initialYear.toString()}
+                    shouldScrollToFocusedIndexOnMount={false}
+                    shouldUpdateFocusedIndex
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     shouldStopPropagation

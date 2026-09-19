@@ -4,10 +4,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 
@@ -36,14 +38,18 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
     const monthNames = DateUtils.getMonthNames(dateFnsLocale);
 
     const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentMonth), [monthNames, currentMonth]);
+    // Freeze the month selected when the picker opened so it stays pinned to the top for the whole open cycle, even as the live selection changes.
+    const initialMonth = useInitialSelection(currentMonth, {isVisible});
 
     const {data, headerMessage} = useMemo(() => {
-        const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
+        // Pin the frozen initial month to the top of the full list before search filtering, so it stays pinned while searching.
+        const orderedMonths = moveInitialSelectionToTop(allMonths, [String(initialMonth)]);
+        const filteredMonths = searchText === '' ? orderedMonths : orderedMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
         return {
             headerMessage: !filteredMonths.length ? translate('common.noResultsFound') : '',
             data: filteredMonths,
         };
-    }, [allMonths, searchText, translate]);
+    }, [allMonths, searchText, translate, initialMonth]);
 
     useEffect(() => {
         if (isVisible) {
@@ -92,7 +98,9 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
                         onMonthChange?.(option.value);
                     }}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={currentMonth.toString()}
+                    initiallyFocusedItemKey={initialMonth.toString()}
+                    shouldScrollToFocusedIndexOnMount={false}
+                    shouldUpdateFocusedIndex
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     shouldStopPropagation
