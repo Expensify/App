@@ -14,7 +14,7 @@ describe('Onyx state export', () => {
     });
 
     it('reads persisted state through Onyx', async () => {
-        const state = {test: {value: 1}};
+        const state = {test: 'value'};
         const exportState = jest.spyOn(Onyx, 'exportState').mockResolvedValueOnce(state);
 
         await expect(readOnyxState()).resolves.toBe(state);
