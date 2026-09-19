@@ -8143,7 +8143,7 @@ const CONST = {
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
-            FADE_DURATION: 120,
+            FADE_DURATION: 150,
 
             // How long the results area may keep showing the previous query's results while a new query loads. Past
             // this, a slow query gives up the stale results and swaps to the skeleton so the wait is visible.

@@ -13,6 +13,7 @@ import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavi
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
+import usePrevious from '@hooks/usePrevious';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {FadeIn, FadeOut, LayoutAnimationConfig} from 'react-native-reanimated';
+import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
@@ -68,6 +69,12 @@ function SearchPageWide({
     onSearchContentReady,
 }: SearchPageWideProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
+
+    // A hash change swaps the content layer while the previous results are still painted, so the incoming layer's
+    // deferred-mount placeholder must not flash a skeleton over them.
+    // The first render has no previous hash, and that mount genuinely has nothing to cover, so it keeps its skeleton.
+    const previousContentHash = usePrevious(contentQueryJSON?.hash);
+    const isReplacingPreviousContent = previousContentHash !== undefined && previousContentHash !== contentQueryJSON?.hash;
     const styles = useThemeStyles();
     const {currentSearchKey} = useSearchQueryContext();
     const {hasSelectedTransactions} = useSearchSelectionContext();
@@ -136,21 +143,22 @@ function SearchPageWide({
                                     onSort={onSortPressedCallback}
                                 />
                                 <View style={styles.flex1}>
-                                    {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
+                                    {/* skipEntering keeps the fade off the very first mount, so opening Search cold paints immediately. */}
                                     <LayoutAnimationConfig skipEntering>
-                                        {/* A resolved query change remounts this layer: the outgoing one fades out and the incoming one waits
-                                            for it to finish before fading in. Both layers are absolutely filled so the outgoing fade overlays
-                                            the incoming layer instead of sharing the column layout. */}
+                                        {/* A resolved query change remounts this layer and fades the new results in. The hold in SearchPage
+                                            keeps the previous results on screen until the new ones resolve, so there's no skeleton mid-swap and
+                                            the outgoing layer needs no fade. Deliberately no reanimated `exiting`: on web it fades by detaching
+                                            and re-inserting the DOM node, throwing `NotFoundError: removeChild` and breaking Skia canvases. */}
                                         <Animated.View
                                             key={contentQueryJSON.hash}
-                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                            exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                             style={StyleSheet.absoluteFill}
                                         >
                                             {shouldShowLoadingSkeleton ? (
                                                 <SearchLoadingSkeleton />
                                             ) : (
                                                 <SearchWithNavigationDeferredMount
+                                                    isReplacingContent={isReplacingPreviousContent}
                                                     queryJSON={contentQueryJSON}
                                                     searchResults={contentSearchResults}
                                                     handleSearch={handleSearchAction}
