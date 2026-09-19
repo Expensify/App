@@ -64,21 +64,30 @@ describe('WorkspaceCompanyCardsTableHeaderButtons view transactions link', () =>
     });
 
     it('opens every expense on the feed, keyed the way the Search feed filter expects', async () => {
+        // Given a browsable feed identified on this page as `<feed>#<domainID>`, which is a different key format
+        // than the `<fundID>_<feed>` the Search feed filter uses — converting between the two is the whole point of this link
         renderHeaderButtons(true);
 
         await waitForBatchedUpdates();
 
-        // TextLink cancels the default anchor navigation before it calls onPress.
+        // When the admin taps the link. TextLink cancels the default anchor navigation before it calls onPress,
+        // so the event needs a preventDefault stub or the press never reaches our handler
         fireEvent.press(screen.getByText('View transactions'), {preventDefault: jest.fn()});
 
+        // Then navigation must receive the Search-shaped key, because a raw `<feed>#<domainID>` would leave Spend
+        // showing an unresolved filter pill and no results
         expect(mockNavigateToFeedTransactions).toHaveBeenCalledWith(`${DOMAIN_OR_WORKSPACE_ACCOUNT_ID}_${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}`);
     });
 
     it('hides the link while the feed is not browsable', async () => {
+        // Given a feed that is still loading, pending, missing, or errored, so there are no transactions to navigate to yet
         renderHeaderButtons(false);
 
+        // When the header renders in that state
         await waitForBatchedUpdates();
 
+        // Then the link must be absent rather than disabled, because offering navigation into an empty
+        // or not-yet-loaded Search view reads as a broken page
         expect(screen.queryByText('View transactions')).toBeNull();
     });
 });
