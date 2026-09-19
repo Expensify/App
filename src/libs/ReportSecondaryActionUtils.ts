@@ -16,8 +16,6 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {fromZonedTime} from 'date-fns-tz';
-
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -444,18 +442,6 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
     return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
 }
 
-function hasPayActionPassedNachaCutoff(action: ReportAction | undefined): boolean {
-    if (!action) {
-        return false;
-    }
-    const now = new Date();
-    // created is a UTC datetime with no offset, so parsing it as local time shifts the cutoff by up to a day.
-    const paymentDatetime = fromZonedTime(action.created, 'UTC');
-    const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
-    const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-    return nowUTC.getTime() > cutoffTimeUTC.getTime();
-}
-
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -510,17 +496,8 @@ function isCancelPaymentAction(
         return true;
     }
 
-    const hasCutoffPassed = hasPayActionPassedNachaCutoff(latestPayAction);
-
-    // A queued payment only goes out in the daily batch, so it stays cancellable until the cutoff.
-    if (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
-        return !hasCutoffPassed;
-    }
-
-    // Only Auth knows whether the money has moved (fast ACH posts the credit right away), and it only allows cancelling in BILLING + REIMBURSED.
-    const isReimbursementSubmitted = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-
-    return isPaidViaBankAccount && isReimbursementSubmitted && !hasCutoffPassed && !!report.canCancelReimbursement;
+    // Only Auth knows whether a bank reimbursement, queued or in flight, can still be cancelled (fast ACH posts the credit right away).
+    return !!report.canCancelReimbursement;
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
