@@ -80,10 +80,10 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const hasCompleteEmptyQueryCache = hasCachedData && !hasMore && (searchQuery === '' || isFilteringLocally);
 
     // Keep ref updated with latest values for use in stable callbacks
-    const stateRef = useRef({hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore});
+    const stateRef = useRef({hasMore, nextCursor, searchQuery, searchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore});
     useEffect(() => {
-        stateRef.current = {hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore};
-    }, [hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore]);
+        stateRef.current = {hasMore, nextCursor, searchQuery, searchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore};
+    }, [hasMore, nextCursor, searchQuery, searchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore]);
 
     // Incremented on every new search so a cancelled request doesn't clear the loading state of its successor
     const requestSeqRef = useRef(0);
@@ -95,13 +95,20 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const prevWasOfflineRef = useRef(isOffline);
 
     const loadMore = () => {
-        const {hasMore: currentHasMore, nextCursor: currentCursor, searchQuery: currentQuery, isSearching: currentIsSearching, isLoadingMore: currentIsLoadingMore} = stateRef.current;
+        const {
+            hasMore: currentHasMore,
+            nextCursor: currentCursor,
+            searchQuery: currentQuery,
+            searchResults: currentResults,
+            isSearching: currentIsSearching,
+            isLoadingMore: currentIsLoadingMore,
+        } = stateRef.current;
         if (currentIsSearching || currentIsLoadingMore || !currentHasMore || isOffline) {
             return;
         }
         const requestSeq = requestSeqRef.current;
         setIsLoadingMore(true);
-        openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs})
+        openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, false, currentResults ?? [])
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, currentQuery);
             })

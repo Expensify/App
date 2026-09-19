@@ -137,6 +137,8 @@ describe('useSearchTagFilters', () => {
         await waitFor(() => {
             expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(
                 expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID, cursor: 'cursor-2', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE}),
+                false,
+                [],
             );
         });
     });

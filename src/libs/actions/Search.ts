@@ -1096,20 +1096,17 @@ type OpenSearchTagFiltersPageResponse = {
     tags?: SearchTagFilterItem[];
 };
 
-let currentSearchTagFiltersResults: SearchTagFilterItem[] = [];
-Onyx.connect({
-    key: ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
-    callback: (val) => {
-        currentSearchTagFiltersResults = val ?? [];
-    },
-});
-
 /**
  * Fetches a page of tag filter search results from the server.
  * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
  * A new search passes `shouldCancelPendingRequests` so a superseded in-flight request cannot overwrite the fresh results.
+ * `currentResults` is the already-loaded tag list, used to append the next page when a cursor is passed.
  */
-function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string}> {
+function openSearchTagFiltersPage(
+    params: OpenSearchTagFiltersPageParams,
+    shouldCancelPendingRequests = false,
+    currentResults: SearchTagFilterItem[] = [],
+): Promise<{hasMore: boolean; nextCursor: string}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
@@ -1130,7 +1127,7 @@ function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, should
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         const newTags = tagFiltersResponse?.tags ?? [];
         if (params.cursor && newTags.length > 0) {
-            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, [...currentSearchTagFiltersResults, ...newTags]);
+            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, [...currentResults, ...newTags]);
         }
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
