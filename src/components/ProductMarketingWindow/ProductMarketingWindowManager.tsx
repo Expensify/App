@@ -9,6 +9,7 @@ import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import {dismissMarketingWindow} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+import openExternalLink from '@libs/openExternalLink';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
@@ -98,7 +99,9 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const shouldPrefetchTargetPolicyConnections = !!targetAdminPolicyID && targetAdminPolicyID !== activePolicyID;
+    // Only announcements whose CTA destination depends on connection data pay for the prefetch, which also
+    // keeps the CTA disabled until it resolves.
+    const shouldPrefetchTargetPolicyConnections = !!variant?.shouldPrefetchAdminPolicyConnections && !!targetAdminPolicyID && targetAdminPolicyID !== activePolicyID;
     const {isFetchNeeded, isLoadingFetchedFlag, hasBeenFetched} = usePolicyConnectionsPrefetch(targetAdminPolicy, shouldPrefetchTargetPolicyConnections);
     const isAdminCtaPending = shouldPrefetchTargetPolicyConnections && (isLoadingFetchedFlag || (isFetchNeeded && hasBeenFetched === undefined));
     const isAdminPolicyConnectionDataAvailable = !shouldPrefetchTargetPolicyConnections || hasBeenFetched === true;
@@ -151,15 +154,18 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         if (isAdminCtaPending) {
             return;
         }
-        // Record the dismissal before navigating so the window doesn't flash again during navigation.
+        // Record the dismissal before leaving so the window doesn't flash again during navigation.
         persistDismissal();
-        Navigation.navigate(
-            variant.getCtaRoute({
-                adminPolicy: targetAdminPolicy,
-                isVendorMatchingBetaEnabled,
-                isAdminPolicyConnectionDataAvailable,
-            }),
-        );
+        const destination = variant.getCtaDestination({
+            adminPolicy: targetAdminPolicy,
+            isVendorMatchingBetaEnabled,
+            isAdminPolicyConnectionDataAvailable,
+        });
+        if (destination.type === 'externalLink') {
+            openExternalLink(destination.url);
+            return;
+        }
+        Navigation.navigate(destination.route);
     };
 
     return (

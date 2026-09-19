@@ -1,19 +1,15 @@
-import August2026PromoAdminsImage from '@assets/images/august2026-promo-admins.png';
-import August2026PromoEmployeesImage from '@assets/images/august2026-promo-employees.png';
+import September2026PromoImage from '@assets/images/september2026-promo.png';
 
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-
-import {hasVendorFeature} from './PolicyUtils';
 
 type ProductMarketingAnnouncementVisual =
     | {
@@ -36,6 +32,17 @@ type ProductMarketingCtaContext = {
     isAdminPolicyConnectionDataAvailable: boolean;
 };
 
+/** Where the primary CTA sends the user: an in-app route, or an external page opened in a new tab. */
+type ProductMarketingCtaDestination =
+    | {
+          type: 'route';
+          route: Route;
+      }
+    | {
+          type: 'externalLink';
+          url: string;
+      };
+
 /** One audience-specific content variant of a product marketing announcement. All content is authored by marketing per release. */
 type ProductMarketingAnnouncementVariant = {
     /** Marketing-supplied product screenshot or fallback illustration shown at the top of the window. */
@@ -50,8 +57,14 @@ type ProductMarketingAnnouncementVariant = {
     /** Label of the primary CTA button. */
     ctaLabel: TranslationPaths;
 
-    /** Builds the route the primary CTA navigates to using the selected audience and workspace context. */
-    getCtaRoute: (context: ProductMarketingCtaContext) => Route;
+    /**
+     * Whether this variant's CTA destination depends on the selected admin workspace's connections.
+     * Only such variants pay for the connections prefetch, which also disables the CTA until it resolves.
+     */
+    shouldPrefetchAdminPolicyConnections?: boolean;
+
+    /** Builds the destination the primary CTA sends the user to using the selected audience and workspace context. */
+    getCtaDestination: (context: ProductMarketingCtaContext) => ProductMarketingCtaDestination;
 };
 
 type ProductMarketingAnnouncementUpdateKey = ValueOf<typeof CONST.MARKETING_WINDOW_UPDATE_KEYS>;
@@ -68,32 +81,24 @@ type ProductMarketingAnnouncement = {
     member?: ProductMarketingAnnouncementVariant;
 };
 
+/** September 2026 targets everyone, so both audiences share one variant instead of duplicating identical content. */
+const september2026Variant: ProductMarketingAnnouncementVariant = {
+    visual: {type: 'image', source: September2026PromoImage},
+    heading: 'productMarketingWindow.heading',
+    body: 'productMarketingWindow.body',
+    ctaLabel: 'common.learnMore',
+    getCtaDestination: () => ({type: 'externalLink', url: CONST.CLAUDE_MCP_HELP_URL}),
+};
+
 /**
  * The single active product marketing announcement, or null when no window should be shown.
  * Only one announcement can be active at a time — there is no stacking or queueing. When the active
  * announcement is dismissed, nothing is shown until a later release replaces it with a new update key.
  */
 const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null = {
-    updateKey: CONST.MARKETING_WINDOW_UPDATE_KEYS.PRODUCT_UPDATE_AUGUST_2026,
-    admin: {
-        visual: {type: 'image', source: August2026PromoAdminsImage},
-        heading: 'productMarketingWindow.roleTypes.admin.heading',
-        body: 'productMarketingWindow.roleTypes.admin.body',
-        ctaLabel: 'productMarketingWindow.roleTypes.admin.cta',
-        getCtaRoute: ({adminPolicy, isVendorMatchingBetaEnabled, isAdminPolicyConnectionDataAvailable}) => {
-            if (isAdminPolicyConnectionDataAvailable && hasVendorFeature(adminPolicy, isVendorMatchingBetaEnabled)) {
-                return ROUTES.WORKSPACE_VENDORS.getRoute(adminPolicy?.id);
-            }
-            return ROUTES.WORKSPACE_MORE_FEATURES.getRoute(adminPolicy?.id);
-        },
-    },
-    member: {
-        visual: {type: 'image', source: August2026PromoEmployeesImage},
-        heading: 'productMarketingWindow.roleTypes.member.heading',
-        body: 'productMarketingWindow.roleTypes.member.body',
-        ctaLabel: 'productMarketingWindow.roleTypes.member.cta',
-        getCtaRoute: () => ROUTES.SETTINGS_AGENTS_NEW.getRoute(),
-    },
+    updateKey: CONST.MARKETING_WINDOW_UPDATE_KEYS.PRODUCT_UPDATE_SEPTEMBER_2026,
+    admin: september2026Variant,
+    member: september2026Variant,
 };
 
 /**
@@ -123,4 +128,4 @@ function getProductMarketingAnnouncementVariant(
 }
 
 export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed, getProductMarketingAnnouncementVariant};
-export type {ProductMarketingAnnouncement, ProductMarketingAnnouncementVariant};
+export type {ProductMarketingAnnouncement, ProductMarketingAnnouncementVariant, ProductMarketingCtaDestination};

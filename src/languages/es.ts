@@ -11291,18 +11291,8 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Asignación de proveedores mejorada',
-                body: 'Crea proveedores y reglas personalizadas para facilitar la asignación a los principales paquetes de contabilidad.',
-                cta: 'Pruébalo',
-            },
-            member: {
-                heading: 'Agentes preconfigurados para ti',
-                body: 'Usa agentes prediseñados o personalizados para clasificar, dividir y enviar gastos automáticamente en tu nombre.',
-                cta: 'Pruébalo',
-            },
-        },
+        heading: 'Conecta Expensify con Claude',
+        body: 'Busca, analiza y resume los datos de tus gastos directamente en Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',

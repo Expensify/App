@@ -4,20 +4,20 @@ import type {ProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUti
 import ROUTES from '@src/ROUTES';
 
 const activeAnnouncement: ProductMarketingAnnouncement = {
-    updateKey: 'productUpdateAugust2026',
+    updateKey: 'productUpdateSeptember2026',
     admin: {
         visual: {type: 'illustration', name: 'Rules'},
-        heading: 'productMarketingWindow.roleTypes.admin.heading',
-        body: 'productMarketingWindow.roleTypes.admin.body',
-        ctaLabel: 'productMarketingWindow.roleTypes.admin.cta',
-        getCtaRoute: () => ROUTES.WORKSPACES_LIST.getRoute(),
+        heading: 'productMarketingWindow.heading',
+        body: 'productMarketingWindow.body',
+        ctaLabel: 'common.learnMore',
+        getCtaDestination: () => ({type: 'route', route: ROUTES.WORKSPACES_LIST.getRoute()}),
     },
     member: {
         visual: {type: 'illustration', name: 'MultiScan'},
-        heading: 'productMarketingWindow.roleTypes.admin.heading',
-        body: 'productMarketingWindow.roleTypes.admin.body',
-        ctaLabel: 'productMarketingWindow.roleTypes.admin.cta',
-        getCtaRoute: () => ROUTES.HOME,
+        heading: 'productMarketingWindow.heading',
+        body: 'productMarketingWindow.body',
+        ctaLabel: 'common.learnMore',
+        getCtaDestination: () => ({type: 'externalLink', url: 'https://help.expensify.com'}),
     },
 };
 const adminOnlyAnnouncement: ProductMarketingAnnouncement = {
@@ -25,8 +25,9 @@ const adminOnlyAnnouncement: ProductMarketingAnnouncement = {
     admin: activeAnnouncement.admin,
 };
 
-const OLDER_UPDATE_KEY = 'productUpdateJuly2026';
-const UNKNOWN_UPDATE_KEY = 'productUpdateSeptember2026';
+const OLDER_UPDATE_KEY = 'productUpdateAugust2026';
+// A key a future release will add that this client has never heard of, which marks the client as stale.
+const UNKNOWN_UPDATE_KEY = 'productUpdateOctober2026';
 
 describe('ProductMarketingWindowUtils', () => {
     describe('isProductMarketingAnnouncementDismissed', () => {
