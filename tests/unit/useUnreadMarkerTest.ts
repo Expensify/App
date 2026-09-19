@@ -115,6 +115,21 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
+    it('ignores a filtered oldestUnread pagination anchor', () => {
+        const exportAction = makeAction('export', {
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+        });
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [exportAction],
+            oldestUnreadReportActionID: exportAction.reportActionID,
+            hasOnceLoadedReportActions: false,
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
     it('clears the marker when an unreadAction event advances the unread marker time past the message', () => {
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
         expect(result.current.unreadMarkerReportActionID).toBe('m1');

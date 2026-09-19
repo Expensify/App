@@ -1,7 +1,7 @@
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
-import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import {canReportActionTriggerUnreadMarker, getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -120,7 +120,8 @@ function useUnreadMarker({
     let oldestUnreadReportActionMarker: [string, number] | undefined;
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
         const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
-        if (visibleIndex >= 0) {
+        const visibleAction = visibleIndex >= 0 ? sortedVisibleReportActions.at(visibleIndex) : undefined;
+        if (visibleAction && canReportActionTriggerUnreadMarker(visibleAction, currentUserAccountID)) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }

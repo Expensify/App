@@ -264,4 +264,4 @@ const getUnreadMarkerReportAction = ({
     return [null, -1];
 };
 
-export {getUnreadMarkerReportAction};
+export {canReportActionTriggerUnreadMarker, getUnreadMarkerReportAction};
