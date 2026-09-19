@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,6 +37,7 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
+import useDebouncedSaveReportActionDraft from '@pages/inbox/report/useDebouncedSaveReportActionDraft';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -205,6 +207,7 @@ function ComposerWithSuggestions({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
+    const {isOffline} = useNetwork();
     const {isSidePanelHiddenOrLargeScreen, shouldHideSidePanel} = useSidePanelState();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -232,7 +235,7 @@ function ComposerWithSuggestions({
     });
 
     // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
-    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveDraft(saveReportActionDraft);
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveReportActionDraft();
 
     // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -534,7 +537,7 @@ function ComposerWithSuggestions({
                     return;
                 }
 
-                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted, isOffline);
                 return;
             }
 
@@ -569,6 +572,7 @@ function ComposerWithSuggestions({
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,
+            isOffline,
         ],
     );
 
@@ -607,7 +611,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''), isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -659,6 +663,7 @@ function ComposerWithSuggestions({
             reportActions,
             updateComment,
             setCurrentEditMessageSelection,
+            isOffline,
         ],
     );
 

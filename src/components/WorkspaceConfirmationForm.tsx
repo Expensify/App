@@ -132,7 +132,7 @@ function WorkspaceConfirmationForm({
     const email = policyOwnerEmail || (session?.email ?? '');
     const userDisplayName = usePersonalDetailByLogin(email, displayNameSelector);
     const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDisplayName);
-    const defaultWorkspaceName = generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDisplayName);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email, userDisplayName, lastWorkspaceNumber, translate);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;

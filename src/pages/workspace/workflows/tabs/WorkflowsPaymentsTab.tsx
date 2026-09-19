@@ -179,7 +179,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         // User who is reimburser can initiate unlocking process
         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
             pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas});
             return;
         }
 
