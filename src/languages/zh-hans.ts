@@ -942,12 +942,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: '添加银行账户以接收报销'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName} 卡添加需要您的批准`,
                 subtitle: 'Expensify 卡',
-                cta: '审核',
-                appleWallet: 'Apple 钱包',
-                googleWallet: 'Google 钱包',
-                digitalWallet: '数字钱包',
             },
             reviewCardFraud: {
                 title: '审查您 Expensify 卡上的潜在欺诈交易',
@@ -2668,6 +2663,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple 钱包',
         googleWallet: 'Google 钱包',
         digitalWallet: '数字钱包',
+        digitalWalletCapitalized: '数字钱包',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName} 卡添加需要您的批准`,
+        review: '审核',
         confirmHeading: '确认你的请求',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) => `是否要将尾号为 ${lastFourDigits} 的 Expensify 卡添加到您的 ${walletName}？`,
         deny: '拒绝',

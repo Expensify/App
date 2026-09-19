@@ -2517,7 +2517,9 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
         route: 'settings/wallet/card/:cardID/add-to-digital-wallet',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/add-to-digital-wallet` as const,
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
+        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/add-to-digital-wallet`, backTo),
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
