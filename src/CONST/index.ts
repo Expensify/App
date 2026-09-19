@@ -4977,6 +4977,9 @@ const CONST = {
             CAD: 'CA',
             GBP: 'GB',
             AUD: 'AU',
+            NOK: 'NO',
+            SEK: 'SE',
+            ZAR: 'ZA',
         },
         // Unit each country publishes its rates in
         GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
@@ -4984,6 +4987,9 @@ const CONST = {
             GB: 'mi',
             CA: 'km',
             AU: 'km',
+            NO: 'km',
+            SE: 'km',
+            ZA: 'km',
         },
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
