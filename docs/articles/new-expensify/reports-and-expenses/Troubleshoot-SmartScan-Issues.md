@@ -86,6 +86,10 @@ Improving image quality helps prevent most SmartScan issues.
 
 The receipt image may be too low quality for SmartScan to process. Try taking a new photo with better lighting and ensure the full receipt is in frame. If it continues to fail, the receipt may be too faded, damaged, or in a non-standard format — in that case, enter the expense manually instead.
 
+## Can I enter the merchant, date, and amount instead of waiting for SmartScan?
+
+Yes. On the confirmation screen of the **Scan** flow, click or tap **Show more** and fill in the **Merchant**, **Date**, and **Amount** fields. Expensify keeps what you entered and won't replace it with the scanned values. Filling in one of the three makes the other two required. Learn how to [enter the merchant, date, and amount yourself when scanning a receipt](/articles/new-expensify/reports-and-expenses/Create-an-Expense#how-to-enter-the-merchant-date-and-amount-yourself-when-scanning-a-receipt).
+
 ## What file types does SmartScan support?
 
 SmartScan works with common image formats (JPG, PNG) and PDF files. For best results on mobile, use the in-app camera to take a photo directly.
