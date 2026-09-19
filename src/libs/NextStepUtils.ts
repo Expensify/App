@@ -12,7 +12,8 @@ import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
