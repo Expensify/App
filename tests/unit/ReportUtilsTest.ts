@@ -184,6 +184,7 @@ import {
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,
     isDeprecatedGroupDM,
+    isEmptyReport,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
@@ -8235,6 +8236,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8260,6 +8262,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8290,6 +8293,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8355,6 +8359,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8379,6 +8384,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8403,6 +8409,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8427,6 +8434,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8464,6 +8472,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8496,6 +8505,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8528,6 +8538,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8554,6 +8565,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8582,6 +8594,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8603,6 +8616,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8627,6 +8641,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8681,6 +8696,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8702,6 +8718,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8731,6 +8748,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -8759,6 +8777,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     conciergeReportID,
                     hasGuidesEmails: false,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -8786,6 +8805,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     conciergeReportID: 'some-other-report-id',
                     hasGuidesEmails: false,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeNull();
         });
@@ -8814,6 +8834,7 @@ describe('ReportUtils', () => {
                 isReportArchived: undefined,
                 isDefaultRoomsBetaEnabled: false,
                 hasGuidesEmails: false,
+                derivedIsEmptyReport: undefined,
             };
 
             // When the param identifies this report as Concierge, the empty chat is kept in the option list...
@@ -8841,6 +8862,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8888,6 +8910,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8909,6 +8932,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8945,6 +8969,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8978,6 +9003,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
         });
@@ -9009,6 +9035,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9033,6 +9060,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -9079,6 +9107,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9132,6 +9161,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -9156,6 +9186,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeNull();
         });
@@ -9179,6 +9210,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -9202,6 +9234,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9225,6 +9258,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9248,6 +9282,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9267,6 +9302,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9336,6 +9372,7 @@ describe('ReportUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -10105,7 +10142,74 @@ describe('ReportUtils', () => {
                 lastVisibleActionCreated: '2024-03-01 12:00:00.000',
             };
 
-            expect(isUnread(report, transactionThreadReport, false)).toBe(false);
+            expect(isUnread(report, transactionThreadReport, false, undefined)).toBe(false);
+        });
+
+        it('returns false when derivedIsEmptyReport is true (empty report is never unread)', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+            };
+
+            expect(isUnread(report, undefined, false, true)).toBe(false);
+        });
+
+        it('does not short-circuit when derivedIsEmptyReport is false', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+            };
+
+            // derivedIsEmptyReport=false means report is not empty, so isUnread proceeds to check lastReadTime
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
+
+        it('falls through to generateIsEmptyReport when derivedIsEmptyReport is undefined', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+            };
+
+            // report has lastMessageText so generateIsEmptyReport returns false, isUnread proceeds
+            expect(isUnread(report, undefined, false, undefined)).toBe(true);
+            expect(isUnread(report, undefined, false, undefined)).toBe(true);
+        });
+    });
+
+    describe('isEmptyReport', () => {
+        const report = {
+            ...LHNTestUtils.getFakeReport(),
+            reportID: '1',
+            lastMessageText: 'Hello',
+        };
+
+        it('returns the passed value when derivedIsEmptyReport is true', () => {
+            expect(isEmptyReport(report, false, true)).toBe(true);
+        });
+
+        it('returns the passed value when derivedIsEmptyReport is false', () => {
+            // Verifies ?? (not ||) — false is a valid cache hit, must NOT fall through
+            expect(isEmptyReport(report, false, false)).toBe(false);
+        });
+
+        it('falls through to generateIsEmptyReport when derivedIsEmptyReport is undefined', () => {
+            // report has lastMessageText so generateIsEmptyReport returns false
+            expect(isEmptyReport(report, false, undefined)).toBe(false);
+            expect(isEmptyReport(report, false, undefined)).toBe(false);
+        });
+
+        it('returns true when report is undefined', () => {
+            expect(isEmptyReport(undefined, false, false)).toBe(true);
+            expect(isEmptyReport(undefined, false, true)).toBe(true);
         });
     });
 
@@ -17179,6 +17283,7 @@ describe('ReportUtils', () => {
 
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -17240,6 +17345,7 @@ describe('ReportUtils', () => {
 
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -17434,6 +17540,7 @@ describe('ReportUtils', () => {
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -17480,6 +17587,7 @@ describe('ReportUtils', () => {
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -18603,6 +18711,7 @@ describe('ReportUtils', () => {
 
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
             currentUserAccountID: adminAccountID,
         });
 
@@ -18787,6 +18896,7 @@ describe('ReportUtils', () => {
             isReportArchived: undefined,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -18983,6 +19093,7 @@ describe('ReportUtils', () => {
             isReportArchived: archiveState.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -19007,6 +19118,7 @@ describe('ReportUtils', () => {
             isReportArchived: archiveState.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -19109,6 +19221,7 @@ describe('ReportUtils', () => {
             isReportArchived: isReportArchivedBefore.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -19151,6 +19264,7 @@ describe('ReportUtils', () => {
             isReportArchived: isReportArchivedAfter.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -20335,6 +20449,7 @@ describe('ReportUtils', () => {
                 draftComment: '',
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -20390,6 +20505,7 @@ describe('ReportUtils', () => {
                 draftComment: '',
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
 
@@ -22773,6 +22889,7 @@ describe('ReportUtils', () => {
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -22845,6 +22962,7 @@ describe('ReportUtils', () => {
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
