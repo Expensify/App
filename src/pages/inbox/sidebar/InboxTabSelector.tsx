@@ -15,6 +15,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -62,6 +63,7 @@ function InboxTabSelector() {
         [CONST.INBOX_TAB.UNREAD]: unreadTabRef,
         [CONST.INBOX_TAB.TODO]: todoTabRef,
     };
+    const {windowWidth} = useWindowDimensions();
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -143,7 +145,7 @@ function InboxTabSelector() {
                 shiftVertical: 8,
                 wrapperStyle: styles.productTrainingTooltipWrapper,
                 computeHorizontalShiftForNative: true,
-                maxWidth: 335,
+                maxWidth: windowWidth - 48,
             },
         },
         {
