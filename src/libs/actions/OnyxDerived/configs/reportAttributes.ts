@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -258,6 +258,9 @@ export default createOnyxDerivedValueConfig({
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
+        const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => {
+            return formatPhoneNumber(phoneNumber);
+        };
         // Non-React computation: there is no component to inject the currency formatters from CurrencyListContextProvider,
         // so mirror the provider's implementations here using the CURRENCY_LIST dependency and the preferred locale.
         const getCurrencyDecimals = (currencyCode: string): number => currencyList?.[currencyCode]?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
@@ -694,6 +697,7 @@ export default createOnyxDerivedValueConfig({
                               convertToDisplayStringWithoutCurrency,
                               getCurrencySymbol,
                               pendingDeleteMemberAccountIDs,
+                              formatPhoneNumber,
                               rules,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
