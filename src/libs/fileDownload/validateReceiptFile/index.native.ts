@@ -2,6 +2,7 @@ import checkFileExists from '@libs/fileDownload/checkFileExists';
 import ReceiptStorage from '@libs/ReceiptStorage';
 
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 /**
  * Validates a receipt file and processes it for upload
@@ -11,14 +12,14 @@ function validateReceiptFile(
     receiptFilename: string | undefined,
     receiptPath: ReceiptSource | undefined,
     receiptType: string | undefined,
-    onSuccess: (file: File) => void,
+    onSuccess: (file: FileObject) => void,
     onFailure: () => void,
 ): Promise<void> {
     const receiptPathString = receiptPath?.toString();
 
     // The number receiptPath type is the static image on native so we don't need to check file exists.
     if (typeof receiptPath === 'number') {
-        onSuccess({uri: receiptPathString, name: receiptFilename, type: receiptType, source: receiptPathString} as File);
+        onSuccess({uri: receiptPathString, name: receiptFilename, type: receiptType, source: receiptPathString});
         return Promise.resolve();
     }
 
@@ -30,7 +31,7 @@ function validateReceiptFile(
             return;
         }
 
-        onSuccess({uri: localPath, name: receiptFilename, type: receiptType, source: localPath} as File);
+        onSuccess({uri: localPath, name: receiptFilename, type: receiptType, source: localPath});
     });
 }
 
