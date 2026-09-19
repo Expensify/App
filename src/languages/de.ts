@@ -2271,6 +2271,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Anzeigename',
         isShownOnProfile: 'Dein Anzeigename wird in deinem Profil angezeigt.',
+        isShownOnMemberProfile: 'Der Anzeigename wird im Profil des Mitglieds angezeigt.',
     },
     timezonePage: {
         timezone: 'Zeitzone',
@@ -9436,6 +9437,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} Einreichungen`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `hat Ihren Anzeigenamen in ${newName} geändert (zuvor „${oldName}“). <a href="${editProfileURL}">Im Profil bearbeiten</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
