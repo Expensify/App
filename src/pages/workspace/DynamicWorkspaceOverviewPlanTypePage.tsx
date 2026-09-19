@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import DateUtils from '@libs/DateUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -29,7 +30,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import {format} from 'date-fns';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -48,7 +48,7 @@ type WorkspacePlanTypeItem = {
 function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
     const policyID = policy?.id;
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
@@ -91,8 +91,8 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const autoRenewalDate = privateSubscription?.endDate
-        ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale})
-        : CardSectionUtils.getNextBillingDate(dateFnsLocale);
+        ? DateUtils.formatToReadableString(privateSubscription.endDate, preferredLocale)
+        : CardSectionUtils.getNextBillingDate(preferredLocale);
 
     /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */
     const isPlanTypeLocked = isControl && isAnnual && !policy.canDowngrade;

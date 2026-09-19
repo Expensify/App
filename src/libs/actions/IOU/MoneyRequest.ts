@@ -58,11 +58,11 @@ import type {
 } from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
+import type Locale from '@src/types/onyx/Locale';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -290,7 +290,7 @@ type GetMoneyRequestParticipantOptionsParams = {
     reportDraft: OnyxEntry<Report> | undefined;
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
 };
 
 function getMoneyRequestParticipantOptions({
@@ -305,7 +305,7 @@ function getMoneyRequestParticipantOptions({
     reportDraft,
     translate,
     convertToDisplayString,
-    dateFnsLocale,
+    preferredLocale,
 }: GetMoneyRequestParticipantOptionsParams): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
@@ -323,7 +323,7 @@ function getMoneyRequestParticipantOptions({
                   currentUserAccountID,
                   localize: {
                       translate,
-                      dateFnsLocale,
+                      preferredLocale,
                       convertToDisplayString,
                   },
                   rules,

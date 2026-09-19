@@ -14,7 +14,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key), dateFnsLocale: undefined})));
+jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key), preferredLocale: 'en'})));
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({

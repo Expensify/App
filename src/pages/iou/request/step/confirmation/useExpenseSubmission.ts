@@ -218,7 +218,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
@@ -660,7 +660,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (!isEmptyObject(policy) && hasCompletePerDiemCustomUnit(transaction.comment?.customUnit)) {
                 const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
                 submitPerDiemExpenseForSelfDM({
-                    dateFnsLocale,
                     getCurrencyDecimals,
                     selfDMReport,
                     policy,
@@ -722,7 +721,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             };
             const result = submitPerDiemExpenseIOUActions({
                 isVendorMatchingBetaEnabled,
-                dateFnsLocale,
                 getCurrencyDecimals,
                 report,
                 participantParams: perDiemParticipantParams,

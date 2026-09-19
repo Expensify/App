@@ -231,9 +231,9 @@ describe('MergeUtils', () => {
             // Given a connection with no final approver configured
             // When the approver's display name is resolved
             // Then the missing approver is called out rather than left blank
-            expect(getMergeFinalApproverDisplayName(undefined, {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
-            expect(getMergeFinalApproverDisplayName(null, {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
-            expect(getMergeFinalApproverDisplayName('', {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
+            expect(getMergeFinalApproverDisplayName(undefined, {}, translateLocal, formatPhoneNumber)).toBe('Not set');
+            expect(getMergeFinalApproverDisplayName(null, {}, translateLocal, formatPhoneNumber)).toBe('Not set');
+            expect(getMergeFinalApproverDisplayName('', {}, translateLocal, formatPhoneNumber)).toBe('Not set');
         });
 
         it('returns the display name when the approver is a known workspace member', () => {
@@ -290,8 +290,8 @@ describe('MergeUtils', () => {
             expect(showConfirmModal).toHaveBeenCalledTimes(1);
             expect(showConfirmModal).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    title: 'workspace.merge.syncLimitReached.title',
-                    prompt: 'workspace.merge.syncLimitReached.prompt',
+                    title: 'Try again tomorrow',
+                    prompt: "You've reached your sync limit for the day.",
                     shouldShowCancelButton: false,
                 }),
             );

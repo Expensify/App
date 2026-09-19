@@ -4500,8 +4500,8 @@ describe('CardUtils', () => {
         it('returns undefined when validFrom or validThru is missing', () => {
             const translate: LocalizedTranslate = jest.fn();
 
-            expect(getCardHintText(undefined, '2026-02-25 00:00:00', undefined, undefined, translate)).toBeUndefined();
-            expect(getCardHintText('2026-02-25 00:00:00', undefined, undefined, undefined, translate)).toBeUndefined();
+            expect(getCardHintText(undefined, '2026-02-25 00:00:00', undefined, CONST.LOCALES.EN, translate)).toBeUndefined();
+            expect(getCardHintText('2026-02-25 00:00:00', undefined, undefined, CONST.LOCALES.EN, translate)).toBeUndefined();
             expect(translate).not.toHaveBeenCalled();
         });
 
@@ -4509,7 +4509,7 @@ describe('CardUtils', () => {
             const translate: LocalizedTranslate = jest.fn();
             jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue('');
 
-            expect(getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, undefined, translate)).toBeUndefined();
+            expect(getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, CONST.LOCALES.EN, translate)).toBeUndefined();
             expect(translate).not.toHaveBeenCalled();
         });
 
@@ -4518,7 +4518,7 @@ describe('CardUtils', () => {
             jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue('2026-02-01');
             jest.spyOn(DateUtils, 'formatToReadableString').mockReturnValueOnce('Feb 1, 2026').mockReturnValueOnce('Feb 25, 2026');
 
-            const result = getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, undefined, translate);
+            const result = getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, CONST.LOCALES.EN, translate);
 
             expect(result).toBe('translated');
             expect(translate).toHaveBeenCalledWith('workspace.card.issueNewCard.validFromTo', {startDate: 'Feb 1, 2026', endDate: 'Feb 25, 2026'});

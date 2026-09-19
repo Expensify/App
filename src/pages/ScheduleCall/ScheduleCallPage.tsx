@@ -43,6 +43,7 @@ type TimeSlot = {
     guideEmail: string;
     startTime: string;
     scheduleURL: string;
+    startsAt: Date;
 };
 
 const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
@@ -51,7 +52,7 @@ const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -108,11 +109,16 @@ function ScheduleCallPage() {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
             if (guideSchedule) {
                 for (const timeSlot of guideSchedule.timeSlots) {
+                    // The API applies no runtime validation, and `toUTCDate` throws on a non-string.
+                    if (!timeSlot.startTime) {
+                        continue;
+                    }
                     allSlots.push({
                         guideAccountID: Number(guideAccountID),
                         guideEmail: guideSchedule.guideEmail,
                         startTime: timeSlot.startTime,
                         scheduleURL: timeSlot.schedulingURL,
+                        startsAt: DateUtils.toUTCDate(timeSlot.startTime),
                     });
                 }
             }
@@ -122,7 +128,12 @@ function ScheduleCallPage() {
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
-            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING, {locale: dateFnsLocale});
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(timeSlot.startsAt, userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            // Empty means the timezone could not be applied, so there is no day to file the slot under. Bucketing it
+            // would put an unsortable '' among the selectable days.
+            if (!timeSlotDate) {
+                continue;
+            }
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
@@ -131,11 +142,11 @@ function ScheduleCallPage() {
 
         // Sort time slots within each date array to have in chronological order
         for (const slots of Object.values(timeSlotMap)) {
-            slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+            slots.sort((a, b) => compareAsc(a.startsAt, b.startsAt));
         }
 
         return timeSlotMap;
-    }, [calendlySchedule?.data, userTimezone, dateFnsLocale]);
+    }, [calendlySchedule?.data, userTimezone]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
@@ -217,7 +228,7 @@ function ScheduleCallPage() {
                                 <Text style={[styles.mb5]}>
                                     <RenderHTML
                                         html={translate('scheduledCall.book.slots', {
-                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale}),
+                                            date: DateUtils.formatToReadableString(scheduleCallDraft.date, preferredLocale),
                                         })}
                                     />
                                 </Text>
@@ -242,9 +253,7 @@ function ScheduleCallPage() {
                                             enableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
                                         >
-                                            <Button.Text>
-                                                {DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}
-                                            </Button.Text>
+                                            <Button.Text>{DateUtils.formatInTimeZoneToShortTime(timeSlot.startsAt, userTimezone, preferredLocale)}</Button.Text>
                                         </Button>
                                     ))}
                                     {timeFillerItem}

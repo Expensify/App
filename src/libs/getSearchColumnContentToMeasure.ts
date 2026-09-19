@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -206,6 +207,7 @@ function getTransactionColumnContentToMeasure(
     column: SearchColumnType,
     item: TransactionListItemType,
     translate: LocalizedTranslate,
+    locale: Locale,
     context: SearchColumnMeasurementContext = {},
 ): SearchColumnContent[] {
     switch (column) {
@@ -218,7 +220,7 @@ function getTransactionColumnContentToMeasure(
                 },
             ];
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
-            return [{text: getMerchantName(item, translate)}];
+            return [{text: getMerchantName(item, translate, locale)}];
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return [{text: getDescription(item)}];
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
@@ -364,9 +366,15 @@ function getGroupNameColumnContentToMeasure(column: SearchColumnType, item: Sear
  * Each kind reads its own fields, so a column measured for one is not measured the same way for another: a transaction's
  * `from` is the person who spent, while a report's is the person who submitted, and they are stored differently.
  */
-function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchListItem, translate: LocalizedTranslate, context: SearchColumnMeasurementContext = {}): SearchColumnContent[] {
+function getSearchColumnContentToMeasure(
+    column: SearchColumnType,
+    item: SearchListItem,
+    translate: LocalizedTranslate,
+    locale: Locale,
+    context: SearchColumnMeasurementContext = {},
+): SearchColumnContent[] {
     if (isTransactionListItemType(item)) {
-        return getTransactionColumnContentToMeasure(column, item, translate, context);
+        return getTransactionColumnContentToMeasure(column, item, translate, locale, context);
     }
 
     if (isTransactionReportGroupListItemType(item)) {

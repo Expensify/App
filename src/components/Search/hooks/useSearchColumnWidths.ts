@@ -106,7 +106,7 @@ function useSearchColumnWidths({
     columnSizeOptions,
     measurementContext,
 }: UseSearchColumnWidthsParams): Partial<Record<SearchColumnType, SearchColumnSizing>> {
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -163,7 +163,7 @@ function useSearchColumnWidths({
 
     for (const item of data) {
         for (const [column, measurer] of measurersByColumn) {
-            for (const content of getSearchColumnContentToMeasure(column, item, translate, measurementContext)) {
+            for (const content of getSearchColumnContentToMeasure(column, item, translate, preferredLocale, measurementContext)) {
                 measurer.add(content.text, content.font);
             }
         }

@@ -233,6 +233,7 @@ import type {
     Card,
     Download as DownloadOnyx,
     IntroSelected,
+    Locale,
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
@@ -353,7 +354,7 @@ type ContextMenuActionPayload = {
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
-    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -1027,7 +1028,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 getLocalDateFromDatetime,
                 policyTags,
                 translate,
-                dateFnsLocale,
+                preferredLocale,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,
                 formatPhoneNumber,
@@ -1087,7 +1088,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID, convertToDisplayString);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy?.achAccount?.accountNumber, transaction, bankAccountList);
+                    const displayMessage = getIOUReportActionDisplayMessage(
+                        translate,
+                        preferredLocale,
+                        reportAction,
+                        convertToDisplayString,
+                        policy?.achAccount?.accountNumber,
+                        transaction,
+                        bankAccountList,
+                    );
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
@@ -1148,9 +1157,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES) {
                     Clipboard.setString(getWorkspaceCustomUnitRateImportedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
-                    Clipboard.setString(getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, reportAction));
+                    Clipboard.setString(getWorkspaceCustomUnitRateAddedMessage(translate, preferredLocale, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE) {
-                    Clipboard.setString(getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, reportAction));
+                    Clipboard.setString(getWorkspaceCustomUnitRateUpdatedMessage(translate, preferredLocale, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
                     Clipboard.setString(getWorkspaceCustomUnitRateDeletedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE) {
@@ -1164,7 +1173,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD) {
                     Clipboard.setString(getWorkspaceReportFieldDeleteMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
-                    setClipboardMessage(getWorkspaceUpdateFieldMessage(translate, reportAction));
+                    setClipboardMessage(getWorkspaceUpdateFieldMessage(translate, preferredLocale, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
                     Clipboard.setString(getWorkspaceFeatureEnabledMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
@@ -1238,7 +1247,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(
                         getReimbursedMessage(
                             translate,
-                            dateFnsLocale,
+                            preferredLocale,
                             reportAction,
                             report?.ownerAccountID,
                             getLoginByAccountID(report?.ownerAccountID, personalDetails),
@@ -1465,7 +1474,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
-                    setClipboardMessage(getActionableCardFraudAlertMessage(translate, dateFnsLocale, reportAction, getLocalDateFromDatetime, convertToDisplayString));
+                    setClipboardMessage(getActionableCardFraudAlertMessage(translate, preferredLocale, reportAction, getLocalDateFromDatetime, convertToDisplayString));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
                     setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction, convertToDisplayString, convertToDisplayStringWithoutCurrency));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {

@@ -21,9 +21,9 @@ import type {
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
@@ -114,7 +114,7 @@ type LazyHydrationContext = {
     currentUserAccountID: number;
 
     /** Date-fns locale used when the option list was built. */
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
 
     /** Locale used when the option list was built. */
     translate: LocalizedTranslate;
@@ -209,7 +209,7 @@ type GetValidOptionsSharedConfig = {
 };
 
 type GetValidReportsConfig = {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     isDefaultRoomsBetaEnabled?: boolean;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
@@ -266,7 +266,7 @@ type IsValidReportsConfig = Pick<
 };
 
 type GetOptionsConfig = {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
@@ -291,7 +291,7 @@ type GetOptionsConfig = {
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     searchValue: string | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     searchInputValue?: string;
@@ -349,7 +349,7 @@ type PreviewConfig = {
 };
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;

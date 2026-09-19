@@ -253,27 +253,37 @@ describe('SearchQueryUtils', () => {
 
     describe('getDateRangeDisplayValueFromFormValue', () => {
         test('returns full range display when both boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue(undefined, '2025-03-01,2025-03-10');
+            const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10', CONST.LOCALES.EN);
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', undefined, true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true, false, CONST.LOCALES.EN));
         });
 
         test('returns single boundary display when only one boundary exists', () => {
-            const result = getDateRangeDisplayValueFromFormValue(undefined, '2025-03-01');
+            const result = getDateRangeDisplayValueFromFormValue('2025-03-01', CONST.LOCALES.EN);
 
-            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01', undefined));
+            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01', CONST.LOCALES.EN));
         });
 
         test('falls back to inclusive boundaries when range value is invalid', () => {
-            const result = getDateRangeDisplayValueFromFormValue(undefined, 'invalid', '2025-03-01', '2025-03-10');
+            const result = getDateRangeDisplayValueFromFormValue('invalid', CONST.LOCALES.EN, '2025-03-01', '2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', undefined, true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true, false, CONST.LOCALES.EN));
         });
 
         test('returns empty string when no valid range boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue(undefined, 'invalid');
+            const result = getDateRangeDisplayValueFromFormValue('invalid', CONST.LOCALES.EN);
 
             expect(result).toBe('');
+        });
+
+        test('threads the caller-supplied locale through to the display formatter', () => {
+            // Given a date range filter value
+            // When it is formatted for a Spanish reader
+            const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10', CONST.LOCALES.ES);
+
+            // Then it matches the Spanish range and not the English one, because the filter label must follow the reader's language
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true, false, CONST.LOCALES.ES));
+            expect(result).not.toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true, false, CONST.LOCALES.EN));
         });
     });
 

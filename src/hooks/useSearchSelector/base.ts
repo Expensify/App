@@ -187,7 +187,7 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -287,7 +287,7 @@ function useSearchSelectorBase({
                 return getSearchOptions({
                     options: optionsWithContacts,
                     draftComments,
-                    dateFnsLocale,
+                    preferredLocale,
                     convertToDisplayString,
                     isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     isUsedInChatFinder: true,
@@ -318,7 +318,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
-                        dateFnsLocale,
+                        preferredLocale,
                         convertToDisplayString,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         searchString: computedSearchTerm,
@@ -355,7 +355,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
-                        dateFnsLocale,
+                        preferredLocale,
                         convertToDisplayString,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         selectedOptions,
@@ -394,7 +394,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
-                        dateFnsLocale,
+                        preferredLocale,
                         convertToDisplayString,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         includeP2P: true,

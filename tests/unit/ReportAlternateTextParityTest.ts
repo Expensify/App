@@ -97,7 +97,7 @@ function getAlternateText({
         card,
         lastAction,
         translate: translateLocal,
-        dateFnsLocale: undefined,
+        preferredLocale: CONST.LOCALES.EN,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         localeCompare,

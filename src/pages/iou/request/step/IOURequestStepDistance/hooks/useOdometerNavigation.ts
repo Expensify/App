@@ -161,11 +161,11 @@ function useOdometerNavigation({
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {formatPhoneNumber, preferredLocale} = useLocalize();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
-        dateFnsLocale,
+        preferredLocale,
         currentUserAccountID,
         report,
         policy,

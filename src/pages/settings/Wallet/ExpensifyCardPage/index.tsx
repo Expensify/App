@@ -124,7 +124,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {executeScenario} = useMultifactorAuthentication();
     const shouldDisplayCardDomain = !isTravelCard(cardList?.[cardID]) && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
@@ -442,7 +442,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 currentCard?.nameValuePairs?.validFrom,
                                 currentCard?.nameValuePairs?.validThru,
                                 personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                dateFnsLocale,
+                                preferredLocale,
                                 translate,
                             )}
                         />
@@ -506,7 +506,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                           card?.nameValuePairs?.validFrom,
                                                           card?.nameValuePairs?.validThru,
                                                           personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                                          dateFnsLocale,
+                                                          preferredLocale,
                                                           translate,
                                                       )
                                             }
