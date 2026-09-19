@@ -1,6 +1,6 @@
 import localFileCreate from '@libs/localFileCreate';
 
-import RNFS from 'react-native-fs';
+import RNFetchBlob from 'react-native-blob-util';
 import Share from 'react-native-share';
 
 import type SaveTextFile from './types';
@@ -14,7 +14,9 @@ const saveTextFile: SaveTextFile = async ({fileName, content}) => {
             failOnCancel: false,
         });
     } finally {
-        await RNFS.unlink(path).catch(() => {});
+        await RNFetchBlob.fs.unlink(path).catch(() => {
+            // A leftover cache file is harmless because the operating system can reclaim it.
+        });
     }
 };
 
