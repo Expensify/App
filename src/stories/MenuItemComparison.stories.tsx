@@ -18,6 +18,8 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+
 import PopoverReportActionContextMenu from '@pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
 import {contextMenuRef, showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -53,13 +55,15 @@ const STORY_POLICY_ID = 'menuItemComparisonStoryPolicy';
 /** Seeds the personal details, policy and report the ID-driven avatar cases read from */
 async function seedStoryOnyxData() {
     await Promise.all([
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [STORY_ACCOUNT_ID]: {
-                accountID: STORY_ACCOUNT_ID,
-                displayName: 'John Doe',
-                login: 'john@example.com',
-            },
-        }),
+        Onyx.update([
+            buildPersonalDetailsUpdate({
+                [STORY_ACCOUNT_ID]: {
+                    accountID: STORY_ACCOUNT_ID,
+                    displayName: 'John Doe',
+                    login: 'john@example.com',
+                },
+            }),
+        ]),
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${STORY_POLICY_ID}`, {
             id: STORY_POLICY_ID,
             name: 'Expensify Inc',
@@ -148,6 +152,136 @@ function Comparison() {
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
+            <SectionHeading title="Phase 4 — title styles">numberOfLinesTitle became numberOfLines on the text leaves.</SectionHeading>
+
+            <Card
+                title="description, numberOfLinesTitle, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Cancellation"
+                        title="Free until 24 hours before pickup, then the daily rate is charged"
+                        numberOfLinesTitle={2}
+                        interactive={false}
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Cancellation</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={2}>Free until 24 hours before pickup, then the daily rate is charged</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Cancellation"
+                        value="Free until 24 hours before pickup, then the daily rate is charged"
+                        numberOfLinesValue={2}
+                    />
+                }
+            />
+
+            <Card
+                title="description, numberOfLinesTitle, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="List values"
+                        title="Engineering, Design, Product, Marketing, Sales, Support, Finance"
+                        numberOfLinesTitle={5}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>List values</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={5}>Engineering, Design, Product, Marketing, Sales, Support, Finance</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="List values"
+                        onPress={noop}
+                        value="Engineering, Design, Product, Marketing, Sales, Support, Finance"
+                        numberOfLinesValue={5}
+                    />
+                }
+            />
+
+            <Card
+                title="description, numberOfLinesTitle={0}, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Invite message"
+                        title="Hello! You have been invited to join the workspace. Take a look around and add your first expense."
+                        numberOfLinesTitle={0}
+                        interactive={false}
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Invite message</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={0}>
+                                    Hello! You have been invited to join the workspace. Take a look around and add your first expense.
+                                </MenuItem.FieldValue>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Invite message"
+                        value="Hello! You have been invited to join the workspace. Take a look around and add your first expense."
+                        numberOfLinesValue={0}
+                    />
+                }
+            />
+
+            <Card
+                title="description, style, titleStyle, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Tax amount"
+                        title="$4.20"
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Tax amount</MenuItem.FieldName>
+                                <MenuItem.FieldValue>$4.20</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Tax amount"
+                        onPress={noop}
+                        value="$4.20"
+                    />
+                }
+            />
+
             <SectionHeading title="Trailing interactions — copy and external link">
                 Leaves that own a row-wide behaviour instead of a prop: MenuItem.Copy takes over the row&apos;s long press (and shows a copy button on a hovered read-only row),
                 MenuItem.ExternalLink marks the row as leaving the app and offers the URL through the context menu. Both make the row block text selection on their own.
