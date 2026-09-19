@@ -938,6 +938,17 @@ describe('TransactionPreviewUtils', () => {
             expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
         });
 
+        it('should return false for a duplicated transaction violation on an IOU report', () => {
+            const violations = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(false);
+        });
+
+        it('should return true for a duplicated transaction violation on an expense report', () => {
+            const expenseReport = {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            const violations = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, expenseReport, undefined, rbrPolicy)).toBe(true);
+        });
+
         it('should return true for a transaction with warning-type violations', () => {
             const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}];
             expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);

@@ -2320,7 +2320,7 @@ function shouldShowViolation(
         return false;
     }
 
-    return true;
+    return violationName !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION || !isIOUReport(iouReport);
 }
 
 /**
@@ -2483,7 +2483,7 @@ function isDuplicate(
     policy: OnyxEntry<Policy>,
     transactionViolation: OnyxEntry<TransactionViolations>,
 ): boolean {
-    if (!transaction) {
+    if (!transaction || !shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.DUPLICATED_TRANSACTION, currentUserEmail, currentUserAccountID, true, transaction)) {
         return false;
     }
 
@@ -2593,6 +2593,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
+            (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION || !isIOUReport(iouReport)) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
