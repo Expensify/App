@@ -132,8 +132,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
     }, [cardsList, policy?.employeeList]);
 
-    // Confirm callbacks close over the card from the row click. Keep the list in a ref so confirm
-    // still reads current spend and rollback values if Onyx refreshes while the modal is open.
+    // Row click handlers close over the card from that render. Read the live list from a ref so
+    // no-op/confirm checks use the same card persist will use, and so confirm still persists
+    // current spend and rollback values if Onyx refreshes while the modal is open.
     const cardsListRef = useRef(cardsList);
     useEffect(() => {
         cardsListRef.current = cardsList;
@@ -154,13 +155,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const changeCardLimitType = useCallback(
         (card: Card, newLimitType: CardLimitType) => {
-            if (newLimitType === card.nameValuePairs?.limitType) {
+            const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
+            if (newLimitType === latestCard.nameValuePairs?.limitType) {
                 return;
             }
 
-            const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? card, newLimitType, defaultLimitType);
+            const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? latestCard, newLimitType, defaultLimitType);
 
-            if (!shouldConfirmExpensifyCardLimitTypeChange(card, newLimitType, defaultLimitType)) {
+            if (!shouldConfirmExpensifyCardLimitTypeChange(latestCard, newLimitType, defaultLimitType)) {
                 persistLimitType();
                 return;
             }
@@ -168,8 +170,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimitType'),
                 prompt: translate(
-                    getExpensifyCardLimitTypeChangeWarningKey(card.nameValuePairs?.limitType ?? defaultLimitType),
-                    convertToDisplayString(card.nameValuePairs?.unapprovedExpenseLimit, settlementCurrency),
+                    getExpensifyCardLimitTypeChangeWarningKey(latestCard.nameValuePairs?.limitType ?? defaultLimitType),
+                    convertToDisplayString(latestCard.nameValuePairs?.unapprovedExpenseLimit, settlementCurrency),
                 ),
                 confirmText: translate('workspace.expensifyCard.changeLimitType'),
                 cancelText: translate('common.cancel'),
@@ -191,21 +193,22 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 return;
             }
 
+            const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
             const nextLimit = convertToBackendAmount(Number(newLimit));
-            if (nextLimit === (card.nameValuePairs?.unapprovedExpenseLimit ?? 0)) {
+            if (nextLimit === (latestCard.nameValuePairs?.unapprovedExpenseLimit ?? 0)) {
                 return;
             }
 
-            const persistLimit = () => updateExpensifyCardLimitInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? card, newLimit);
+            const persistLimit = () => updateExpensifyCardLimitInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? latestCard, newLimit);
 
-            if (getExpensifyCardNewAvailableSpend(card, nextLimit) > 0) {
+            if (getExpensifyCardNewAvailableSpend(latestCard, nextLimit) > 0) {
                 persistLimit();
                 return;
             }
 
             showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimit'),
-                prompt: translate(getExpensifyCardLimitChangeWarningKey(card.nameValuePairs?.limitType), convertToDisplayString(nextLimit, settlementCurrency)),
+                prompt: translate(getExpensifyCardLimitChangeWarningKey(latestCard.nameValuePairs?.limitType), convertToDisplayString(nextLimit, settlementCurrency)),
                 confirmText: translate('workspace.expensifyCard.changeLimit'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,
