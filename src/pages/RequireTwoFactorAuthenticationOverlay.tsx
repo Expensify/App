@@ -1,10 +1,8 @@
 import Button from '@components/Button';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Icon from '@components/Icon';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,7 +58,6 @@ function RequireTwoFactorAuthenticationOverlay() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {signOut, leaveDelegateAccount, isActingAsDelegate} = useSignOut();
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
@@ -100,40 +97,6 @@ function RequireTwoFactorAuthenticationOverlay() {
         Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
     };
 
-    const confirmSignOut = async () => {
-        const result = await showConfirmModal({
-            title: translate('common.areYouSure'),
-            prompt: translate('initialSettingsPage.signOutConfirmationText'),
-            confirmText: translate('initialSettingsPage.signOut'),
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        });
-
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        await signOut({hasConfirmedSignOut: true});
-    };
-
-    const confirmLeaveAccount = async () => {
-        const result = await showConfirmModal({
-            title: translate('common.areYouSure'),
-            prompt: translate('delegate.leaveAccountConfirmationText'),
-            confirmText: translate('delegate.leaveAccount'),
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        });
-
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        await leaveDelegateAccount({hasConfirmedLeave: true});
-    };
-
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
         return null;
     }
@@ -163,7 +126,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                             <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
                                 <Button
                                     size={CONST.BUTTON_SIZE.LARGE}
-                                    onPress={isActingAsDelegate ? confirmLeaveAccount : confirmSignOut}
+                                    onPress={isActingAsDelegate ? () => leaveDelegateAccount() : () => signOut({shouldAlwaysConfirm: true})}
                                 >
                                     <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
                                 </Button>
