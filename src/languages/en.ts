@@ -9748,6 +9748,12 @@ const translations = {
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
         saveView: 'Save view',
+        saveEdits: {
+            title: 'Save edits',
+            prompt: 'Update changes to this view, or create a new one?',
+            createNew: 'Create new',
+            updateExisting: 'Update existing',
+        },
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
