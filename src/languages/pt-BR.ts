@@ -1269,6 +1269,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Novos cartões e transações podem levar algum tempo para aparecer, aguarde um momento.',
         importMembersRolePermissionWarning: 'Você não tem permissão para atribuir alguns cargos de membro. Quaisquer novos membros afetados foram convidados como membros.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 fornecedor foi ignorado porque não existe neste workspace.',
+            other: `${count} fornecedores foram ignorados porque não existem neste workspace.`,
+        }),
     },
     receipt: {
         upload: 'Carregar recibo',
@@ -8107,6 +8111,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 importColumnUpdatedCategory: 'Categoria atualizada',
                 importColumnUpdatedTag: 'Tag atualizada',
                 importColumnUpdatedDescription: 'Descrição atualizada',
+                importColumnUpdatedVendor: 'Fornecedor atualizado',
                 expensesWith: 'Para despesas com:',
                 expensesExactlyMatching: 'Para despesas que correspondam exatamente:',
                 applyUpdates: 'Aplicar estas atualizações:',
@@ -9645,6 +9650,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
             filterType: {label: 'Tipo de filtro', has: {positive: 'tem', negative: 'não tem'}, is: {positive: 'é', negative: 'não é'}},
+            transactionStatus: {
+                label: 'Status da transação',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Pendente',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Postado',
+                hint: 'Aplica-se apenas a transações com cartão.',
+            },
         },
         display: {
             label: 'Exibir',

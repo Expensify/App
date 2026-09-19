@@ -140,6 +140,8 @@ function SearchEditMultiplePage() {
 
     const hasPartiallyEditableDateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.DATE);
 
+    const hasPartiallyEditableReimbursableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
+
     const areSelectedTransactionsBillable = selectedTransactionContexts.every(({transaction, transactionPolicy}) => {
         // Unreported expenses have no policy yet but billable is always applicable
         if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
@@ -375,7 +377,7 @@ function SearchEditMultiplePage() {
                       description: translate('common.reimbursable'),
                       title: getBooleanTitle(draftTransaction?.reimbursable),
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
-                      disabled: isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE),
+                      disabled: hasPartiallyEditableReimbursableTransaction,
                   },
               ]
             : []),

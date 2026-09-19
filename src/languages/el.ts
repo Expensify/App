@@ -1319,6 +1319,10 @@ const translations: TranslationDeepObject<typeof en> = {
         importMerchantRulesRequiredColumns:
             'Ουπς! Πρέπει να αντιστοιχίσετε τουλάχιστον μία στήλη «Ο έμπορος είναι» ή «Ο έμπορος περιέχει», καθώς και τουλάχιστον ένα πεδίο για ενημέρωση. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.',
         importMembersRolePermissionWarning: 'Δεν έχετε δικαίωμα να αναθέσετε ορισμένους ρόλους μέλους. Τυχόν επηρεαζόμενα νέα μέλη προσκλήθηκαν ως μέλη.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 προμηθευτής παραλήφθηκε επειδή δεν υπάρχει σε αυτόν τον χώρο εργασίας.',
+            other: `Παραλείφθηκαν ${count} προμηθευτές επειδή δεν υπάρχουν σε αυτόν τον χώρο εργασίας.`,
+        }),
     },
     receipt: {
         upload: 'Μεταφορτώστε απόδειξη',
@@ -8524,6 +8528,7 @@ ${reportName}`,
                 importColumnUpdatedCategory: 'Ενημερωμένη κατηγορία',
                 importColumnUpdatedTag: 'Ενημερωμένη ετικέτα',
                 importColumnUpdatedDescription: 'Ενημερωμένη περιγραφή',
+                importColumnUpdatedVendor: 'Ενημερώθηκε ο προμηθευτής',
                 vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 supplierUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία',
@@ -9933,6 +9938,12 @@ ${reportName}`,
                 label: 'Τύπος φίλτρου',
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
+            },
+            transactionStatus: {
+                label: 'Κατάσταση συναλλαγής',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Σε εκκρεμότητα',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Καταχωρίστηκε',
+                hint: 'Ισχύει μόνο για συναλλαγές με κάρτα.',
             },
         },
         display: {

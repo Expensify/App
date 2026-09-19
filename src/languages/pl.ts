@@ -1301,6 +1301,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Nowe karty i transakcje mogą potrzebować trochę czasu, aby się pojawić, prosimy o cierpliwość.',
         importMembersRolePermissionWarning: 'Nie masz uprawnień do przypisywania niektórych ról członków. Wszyscy nowi członkowie, których to dotyczy, zostali zaproszeni jako członkowie.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: 'Pominięto 1 kontrahenta, ponieważ nie istnieje w tej przestrzeni roboczej.',
+            other: `Pominięto ${count} dostawców, ponieważ nie istnieją w tym obszarze roboczym.`,
+        }),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -8122,6 +8126,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 importColumnUpdatedCategory: 'Zaktualizowana kategoria',
                 importColumnUpdatedTag: 'Zaktualizowany tag',
                 importColumnUpdatedDescription: 'Zaktualizowany opis',
+                importColumnUpdatedVendor: 'Zaktualizowano kontrahenta',
                 expensesWith: 'Dla wydatków z:',
                 expensesExactlyMatching: 'Dla wydatków dokładnie pasujących do:',
                 applyUpdates: 'Zastosuj te aktualizacje:',
@@ -9669,6 +9674,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
             filterType: {label: 'Typ filtra', has: {positive: 'ma', negative: 'nie ma'}, is: {positive: 'jest', negative: 'nie jest'}},
+            transactionStatus: {
+                label: 'Status transakcji',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Oczekujące',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Zaksięgowane',
+                hint: 'Dotyczy tylko transakcji kartą.',
+            },
         },
         display: {
             label: 'Wyświetl',

@@ -1,16 +1,18 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 
 import CONST from '@src/CONST';
-import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
+import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
@@ -18,8 +20,6 @@ import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
-import PropertyKeysOf = jest.PropertyKeysOf;
 
 const reportActions = [{[actionR14932.reportActionID]: actionR14932}];
 const transactions = [transactionR14932];
@@ -53,13 +53,12 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     })),
 }));
 
+function wrapper({children}: {children: React.ReactNode}) {
+    return <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider]}>{children}</ComposeProviders>;
+}
+
 describe('useReportPreviewSenderID', () => {
     const mockedDMChatRoom = {...chatReportR14932, chatType: undefined};
-
-    const mockedEmailToID: Record<string, PropertyKeysOf<typeof personalDetails>> = {
-        [personalDetails[15593135].login]: 15593135,
-        [personalDetails[51760358].login]: 51760358,
-    };
 
     beforeAll(() => {
         Onyx.init({
@@ -70,19 +69,12 @@ describe('useReportPreviewSenderID', () => {
         });
 
         initOnyxDerivedValues();
-        jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email?: string) => {
-            if (!email) {
-                return undefined;
-            }
-
-            const accountID = mockedEmailToID[email];
-            return accountID ? personalDetails[accountID] : undefined;
-        });
     });
 
     beforeEach(() => {
         return act(async () => {
             await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 ...reportActionCollectionDataSet,
                 ...transactionCollectionDataSet,
             });
@@ -105,7 +97,7 @@ describe('useReportPreviewSenderID', () => {
                     iouReport: iouReportR14932,
                     chatReport: mockedDMChatRoom,
                 }),
-            {wrapper: OnyxListItemProvider},
+            {wrapper},
         );
         await waitForBatchedUpdatesWithAct();
         expect(result.current).toBeUndefined();
@@ -119,7 +111,7 @@ describe('useReportPreviewSenderID', () => {
                     iouReport: iouReportR14932,
                     chatReport: mockedDMChatRoom,
                 }),
-            {wrapper: OnyxListItemProvider},
+            {wrapper},
         );
         await waitForBatchedUpdatesWithAct();
         expect(result.current).toBe(iouReportR14932.managerID);
@@ -147,7 +139,7 @@ describe('useReportPreviewSenderID', () => {
                     iouReport: iouReportR14932,
                     chatReport: mockedDMChatRoom,
                 }),
-            {wrapper: OnyxListItemProvider},
+            {wrapper},
         );
         await waitForBatchedUpdatesWithAct();
         expect(result.current).toBeUndefined();
@@ -171,7 +163,7 @@ describe('useReportPreviewSenderID', () => {
                     iouReport: iouReportR14932,
                     chatReport: mockedDMChatRoom,
                 }),
-            {wrapper: OnyxListItemProvider},
+            {wrapper},
         );
         await waitForBatchedUpdatesWithAct();
         expect(result.current).toBeUndefined();
@@ -185,7 +177,7 @@ describe('useReportPreviewSenderID', () => {
                     iouReport: iouReportR14932,
                     chatReport: mockedDMChatRoom,
                 }),
-            {wrapper: OnyxListItemProvider},
+            {wrapper},
         );
         await waitForBatchedUpdatesWithAct();
         expect(result.current).toBe(iouReportR14932.ownerAccountID);
@@ -203,7 +195,7 @@ describe('useReportPreviewSenderID', () => {
                     iouReport: MOCK_IOU_REPORT,
                     chatReport: mockedDMChatRoom,
                 }),
-            {wrapper: OnyxListItemProvider},
+            {wrapper},
         );
         await waitForBatchedUpdatesWithAct();
         expect(result.current).toBe(CURRENT_USER_ACCOUNT_ID);

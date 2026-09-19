@@ -1270,6 +1270,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Neue Karten und Transaktionen können etwas Zeit benötigen, bis sie erscheinen. Bitte haben Sie etwas Geduld.',
         importMembersRolePermissionWarning: 'Sie haben keine Berechtigung, einige Mitgliederrollen zuzuweisen. Alle betroffenen neuen Mitglieder wurden als Mitglieder eingeladen.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 Anbieter wurde übersprungen, weil er in diesem Workspace nicht existiert.',
+            other: `${count} Anbieter wurden übersprungen, weil sie in diesem Workspace nicht existieren.`,
+        }),
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -8168,6 +8172,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 importColumnUpdatedCategory: 'Aktualisierte Kategorie',
                 importColumnUpdatedTag: 'Aktualisiertes Tag',
                 importColumnUpdatedDescription: 'Aktualisierte Beschreibung',
+                importColumnUpdatedVendor: 'Lieferant aktualisiert',
                 expensesWith: 'Für Ausgaben mit:',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
@@ -9723,6 +9728,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
+            transactionStatus: {
+                label: 'Transaktionsstatus',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Ausstehend',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Gebucht',
+                hint: 'Gilt nur für Kartentransaktionen.',
+            },
         },
         display: {
             label: 'Anzeige',
