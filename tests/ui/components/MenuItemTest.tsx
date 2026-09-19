@@ -18,6 +18,12 @@ const mockNewWindowIcon: React.FC<SvgProps> = () => null;
 const mockLinkIcon: React.FC<SvgProps> = () => null;
 const mockDownloadIcon: React.FC<SvgProps> = () => null;
 const mockCheckmarkIcon: React.FC<SvgProps> = () => null;
+const mockRenderHTML = jest.fn<null, [{html: string; isSelectable?: boolean}]>(() => null);
+
+jest.mock('@components/RenderHTML', () => ({
+    __esModule: true,
+    default: (props: {html: string; isSelectable?: boolean}) => mockRenderHTML(props),
+}));
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -37,8 +43,71 @@ function Wrapper({children}: {children: React.ReactNode}) {
 
 describe('MenuItem', () => {
     beforeEach(() => {
+        mockRenderHTML.mockClear();
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
         mockedGetOperatingSystem.mockReturnValue(CONST.OS.WINDOWS);
+    });
+
+    it('forwards selectable HTML titles to RenderHTML on web', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+
+        render(
+            <Wrapper>
+                <MenuItem
+                    title="<strong>Formatted description</strong>"
+                    shouldRenderAsHTML
+                    isTitleSelectable
+                />
+            </Wrapper>,
+        );
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: true}));
+    });
+
+    it('renders an entity-only HTML title as plain text on web', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+
+        render(
+            <Wrapper>
+                <MenuItem
+                    title="A &amp; B"
+                    shouldRenderAsHTML
+                    isTitleSelectable
+                />
+            </Wrapper>,
+        );
+
+        expect(screen.getByText(/A & B/)).toBeOnTheScreen();
+        expect(mockRenderHTML).not.toHaveBeenCalled();
+    });
+
+    it('does not override HTML title selection when the title is not selectable', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+
+        render(
+            <Wrapper>
+                <MenuItem
+                    title="<strong>Formatted description</strong>"
+                    shouldRenderAsHTML
+                />
+            </Wrapper>,
+        );
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: undefined}));
+    });
+
+    it('does not override HTML title selection on native', () => {
+        render(
+            <Wrapper>
+                <MenuItem
+                    title="<strong>Formatted description</strong>"
+                    shouldRenderAsHTML
+                    isTitleSelectable
+                />
+            </Wrapper>,
+        );
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: undefined}));
     });
 
     describe('accessibility label with NewWindow icon', () => {

@@ -42,10 +42,11 @@ type DotIndicatorMessageProps = {
     style?: StyleProp<ViewStyle>;
 
     textStyles?: StyleProp<TextStyle>;
+    isSelectable?: boolean;
     dismissError?: () => void;
 };
 
-function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissError = () => {}}: DotIndicatorMessageProps) {
+function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectable, dismissError = () => {}}: DotIndicatorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -69,7 +70,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
 
-    const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const isTextSelectable = isSelectable ?? (!canUseTouchScreen() || !shouldUseNarrowLayout);
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
@@ -126,7 +127,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                     />
                 </View>
                 <Text
-                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1]}
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1, isSelectable === false && styles.userSelectNone]}
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >

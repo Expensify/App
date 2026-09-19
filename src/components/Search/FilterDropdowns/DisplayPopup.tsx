@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import Navigation from '@libs/Navigation/Navigation';
 import {getGroupBySections, getSearchColumnTranslationKey, getViewOptions} from '@libs/SearchUIUtils';
 
@@ -178,6 +179,9 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     onChange={(item) => {
                         const newValue = item?.value;
+                        if (newValue !== queryJSON.groupBy) {
+                            clearSelectedText();
+                        }
                         if (!newValue) {
                             updateFilterForm({groupBy: undefined, groupCurrency: undefined});
                         } else {

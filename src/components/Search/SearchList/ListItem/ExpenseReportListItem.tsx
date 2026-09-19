@@ -395,11 +395,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     );
 
     const listItemWrapperStyle = useMemo(
-        () => [
-            styles.flex1,
-            styles.userSelectNone,
-            isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
-        ],
+        () => [styles.flex1, isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch}],
         [styles, isLargeScreenWidth],
     );
 
@@ -442,7 +438,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const getDescription = useMemo(() => {
         if (reportItem?.isRejectedReport) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}
                         fill={theme.danger}
@@ -458,7 +454,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             return;
         }
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}>
                 <Icon
                     src={expensifyIcons.DotIndicator}
                     fill={theme.danger}
@@ -482,6 +478,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         styles.textMicro,
         styles.mutedNormalTextLabel,
         styles.textDanger,
+        styles.userSelectNone,
         isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
@@ -500,6 +497,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
             accessibilityLabel={rowAccessibilityLabel}
             shouldUseOptionRole={false}
+            shouldAllowTextSelection
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
             isFocused={isFocused}
