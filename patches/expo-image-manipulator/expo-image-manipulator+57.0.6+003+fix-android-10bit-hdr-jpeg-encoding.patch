@@ -1,0 +1,95 @@
+diff --git a/node_modules/expo-image-manipulator/android/src/main/java/expo/modules/imagemanipulator/ImageManipulatorModule.kt b/node_modules/expo-image-manipulator/android/src/main/java/expo/modules/imagemanipulator/ImageManipulatorModule.kt
+index a080c8a..b6a7191 100644
+--- a/node_modules/expo-image-manipulator/android/src/main/java/expo/modules/imagemanipulator/ImageManipulatorModule.kt
++++ b/node_modules/expo-image-manipulator/android/src/main/java/expo/modules/imagemanipulator/ImageManipulatorModule.kt
+@@ -1,9 +1,12 @@
+ package expo.modules.imagemanipulator
+ 
+ import android.graphics.Bitmap
++import android.graphics.Canvas
++import android.graphics.ColorSpace
+ import android.graphics.drawable.BitmapDrawable
+ import android.graphics.drawable.Drawable
+ import android.net.Uri
++import android.os.Build
+ import android.util.Base64
+ import expo.modules.imagemanipulator.transformers.CropTransformer
+ import expo.modules.imagemanipulator.transformers.FlipTransformer
+@@ -118,14 +121,29 @@ class ImageManipulatorModule : Module() {
+ 
+         var base64String: String? = null
+         appContext.backgroundCoroutineScope.async {
+-          FileOutputStream(path).use { fileOut ->
+-            val compressFormat = options.format.compressFormat
+-            resultBitmap.compress(compressFormat, compression, fileOut)
+-            if (options.base64) {
+-              ByteArrayOutputStream().use { byteOut ->
+-                resultBitmap.compress(compressFormat, compression, byteOut)
+-                base64String = Base64.encodeToString(byteOut.toByteArray(), Base64.NO_WRAP)
++          val encodableBitmap = resultBitmap.toEncodableBitmap()
++          try {
++            FileOutputStream(path).use { fileOut ->
++              val compressFormat = options.format.compressFormat
++              // `compress` reports an unsupported pixel format by returning `false` rather than throwing,
++              // which would otherwise leave an empty file behind that only fails once it is read back.
++              if (!encodableBitmap.compress(compressFormat, compression, fileOut)) {
++                File(path).delete()
++                throw ImageWriteFailedException(path)
+               }
++              if (options.base64) {
++                ByteArrayOutputStream().use { byteOut ->
++                  if (!encodableBitmap.compress(compressFormat, compression, byteOut)) {
++                    File(path).delete()
++                    throw ImageWriteFailedException(path)
++                  }
++                  base64String = Base64.encodeToString(byteOut.toByteArray(), Base64.NO_WRAP)
++                }
++              }
++            }
++          } finally {
++            if (encodableBitmap !== resultBitmap) {
++              encodableBitmap.recycle()
+             }
+           }
+         }.await()
+@@ -140,3 +158,40 @@ class ImageManipulatorModule : Module() {
+     }
+   }
+ }
++
++/**
++ * Whether `Bitmap.compress` is known to reject this bitmap's pixel format.
++ *
++ * `BitmapFactory` decodes 10-bit HEIC (what iPhones shoot by default) into `RGBA_1010102` on Android 13+,
++ * no matter that the image loader asked for `ARGB_8888`, and Skia's JPEG encoder has no scanline transform
++ * for that format on those releases. This is deliberately an allow-list of one: every other config either
++ * encodes fine, or (`HARDWARE`) is read back by `compress` itself and must not be drawn onto a software
++ * `Canvas`, which throws `IllegalStateException: Software rendering doesn't support hardware bitmaps`.
++ */
++private fun Bitmap.needsRedrawForEncoding(): Boolean {
++  if (config == Bitmap.Config.HARDWARE) {
++    return false
++  }
++  return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && config == Bitmap.Config.RGBA_1010102
++}
++
++/**
++ * Returns a bitmap that `Bitmap.compress` can encode in every supported format.
++ *
++ * Redrawing through a `Canvas` goes through Skia's rasterizer, which accepts any source pixel format and
++ * color space and converts the pixels to standard-range sRGB, so the saved file is encodable and renders
++ * the same everywhere. Bitmaps that `compress` already handles are returned as they are.
++ */
++private fun Bitmap.toEncodableBitmap(): Bitmap {
++  if (!needsRedrawForEncoding()) {
++    return this
++  }
++  // Redundant with the TIRAMISU check above, but kept inline so Android lint's NewApi check can see it.
++  val encodableBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++    Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888, hasAlpha(), ColorSpace.get(ColorSpace.Named.SRGB))
++  } else {
++    Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
++  }
++  Canvas(encodableBitmap).drawBitmap(this, 0f, 0f, null)
++  return encodableBitmap
++}
