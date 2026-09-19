@@ -405,7 +405,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroFetch (1.5.4):
+  - NitroFetch (1.6.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -435,7 +435,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NitroModules (0.36.3):
+  - NitroModules (0.37.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -5002,8 +5002,8 @@ SPEC CHECKSUMS:
   MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
   MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroFetch: 4941ca1e41fc72ebdad33c50c85fee59a3dd6871
-  NitroModules: 1961fff19baf1f4a5221dd2fea7d4de95941f9e4
+  NitroFetch: 0f353a00b92d23e8b32f5d91ca625e00d35762ff
+  NitroModules: f2a165630c12aed5793d6b42b9002c6a649ea04e
   NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
