@@ -13,6 +13,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 
 import registerMiddlewares from '@libs/Middleware/register';
+import type * as SearchKeyUtils from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
@@ -36,6 +37,12 @@ jest.mock('@libs/actions/Search', () => ({
     handleActionButtonPress: jest.fn(),
 }));
 
+jest.mock('@libs/SearchKeyUtils', () => ({
+    ...jest.requireActual<typeof SearchKeyUtils>('@libs/SearchKeyUtils'),
+    isExistingSearchKey: jest.fn(() => false),
+    getSearchKeyForDataType: jest.fn(() => undefined),
+}));
+
 jest.mock('@libs/SearchUIUtils', () => ({
     getSections: jest.fn(() => []),
     isCorrectSearchUserName: jest.fn(() => true),
@@ -47,6 +54,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
     getViolationsForTransaction: jest.fn(() => ''),
+    isTransactionDayGroupListItemType: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'day'),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -421,6 +429,29 @@ describe('TransactionGroupListItem', () => {
         await collapse();
 
         expect(screen.getByLabelText('Expand')).toBeTruthy();
+    });
+
+    it('should collapse when every loaded transaction is pending delete and the group is not', async () => {
+        const {rerender} = renderTransactionGroupListItem();
+        await waitForBatchedUpdatesWithAct();
+        await expand();
+
+        rerender(
+            <TransactionGroupListItem
+                {...defaultProps}
+                item={{
+                    ...report,
+                    transactions: report.transactions.map((transaction) => ({
+                        ...transaction,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    })),
+                }}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByLabelText('Expand')).toBeTruthy();
+        expect(screen.queryByLabelText('Collapse')).toBeNull();
     });
 
     it(`should show only ${CONST.TRANSACTION.RESULTS_PAGE_SIZE} transactions when collapsed and expanded again`, async () => {

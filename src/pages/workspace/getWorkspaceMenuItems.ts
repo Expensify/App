@@ -296,16 +296,6 @@ function getWorkspaceMenuItems({
             });
         }
 
-        if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS) && hasVendorFeature(policy, isVendorMatchingBetaEnabled) && isMatchingVendorListLoaded(policy)) {
-            items.push({
-                translationKey: 'workspace.common.vendors',
-                icon: icons.Briefcase,
-                getRoute: () => ROUTES.WORKSPACE_VENDORS.getRoute(policyID),
-                screenName: SCREENS.WORKSPACE.VENDORS,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS,
-            });
-        }
-
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.TAGS)) {
             items.push({
                 translationKey: 'workspace.common.tags',
@@ -326,6 +316,16 @@ function getWorkspaceMenuItems({
                 screenName: SCREENS.WORKSPACE.TAXES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.TAXES,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
+            });
+        }
+
+        if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS) && hasVendorFeature(policy, isVendorMatchingBetaEnabled) && isMatchingVendorListLoaded(policy)) {
+            items.push({
+                translationKey: 'workspace.common.vendors',
+                icon: icons.Briefcase,
+                getRoute: () => ROUTES.WORKSPACE_VENDORS.getRoute(policyID),
+                screenName: SCREENS.WORKSPACE.VENDORS,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS,
             });
         }
 

@@ -1,4 +1,8 @@
 {
+    "ignoreIssues": {
+        "src/hooks/usePersonalDetails.ts": ["exports"],
+        "src/libs/PersonalDetailsUtils.ts": ["exports"]
+    },
     "workspaces": {
         ".": {
             "entry": [
