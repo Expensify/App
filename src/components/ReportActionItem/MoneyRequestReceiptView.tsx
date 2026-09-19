@@ -39,6 +39,7 @@ import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
@@ -225,7 +226,7 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
+    const displayedReceiptSource = ReceiptStorage.resolve(transaction?.receipt?.localSource) ?? transaction?.receipt?.source;
     const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
     useEffect(() => {

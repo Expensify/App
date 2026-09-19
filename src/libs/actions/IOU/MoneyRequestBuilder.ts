@@ -13,6 +13,7 @@ import {rand64} from '@libs/NumberUtils';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -446,7 +447,9 @@ function buildOnyxDataForTestDriveIOU(
 
 function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Transaction, isScanRequest: boolean): OnyxTypes.Transaction {
     if (isScanRequest && isLocalFile(transaction.receipt?.source)) {
-        return {...transaction, receipt: {...transaction.receipt, localSource: String(transaction.receipt?.source)}};
+        const localSource = String(transaction.receipt?.source);
+        ReceiptStorage.retain(localSource);
+        return {...transaction, receipt: {...transaction.receipt, localSource}};
     }
     return transaction;
 }
