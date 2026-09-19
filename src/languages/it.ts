@@ -1584,6 +1584,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Questo rendiconto contiene un importo non valido',
         pendingConversionMessage: 'Il totale verrà aggiornato quando torni online',
         changedTheExpense: 'ha modificato la spesa',
+        addedReceipt: 'ha aggiunto una ricevuta',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} a ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `imposta ${translatedChangedField} su ${newMerchant}, che ha impostato l’importo su ${newAmountToDisplay}`,

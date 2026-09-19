@@ -1642,6 +1642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Αυτή η αναφορά έχει μη έγκυρο ποσό',
         pendingConversionMessage: 'Το σύνολο θα ενημερωθεί όταν είστε ξανά συνδεδεμένοι στο διαδίκτυο',
         changedTheExpense: 'τροποποίησε την δαπάνη',
+        addedReceipt: 'πρόσθεσε μια απόδειξη',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `η τιμή ${valueName} σε ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `ορίστηκε το ${translatedChangedField} σε ${newMerchant}, το οποίο όρισε το ποσό σε ${newAmountToDisplay}`,
