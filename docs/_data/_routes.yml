@@ -108,6 +108,8 @@ topics:
         href: /articles/new-expensify/chat/Chat-Features-and-Moderation-Tools
       - label: Organize your Inbox
         href: /articles/new-expensify/chat/Prioritize-and-Pin-Chats
+      - label: Mark chats as unread
+        href: /articles/new-expensify/chat/Mark-a-Chat-or-Message-as-Unread
 
   - title: Reporting
     icon: /assets/images/envelope-receipt.svg
