@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -100,7 +101,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     // Contextual selector — captures login/flags from closure.
     // Returns only IDs + flags (stable output) to prevent re-renders when unrelated policies change.
     const policyQualificationSelector = (policies: OnyxCollection<Policy>) => getPolicyQualificationResult(policies, login, isPerDiemRequest, isTimeRequest, expensePolicyID);
-    const [qualificationResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+    const [qualificationResult, policiesLoadStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: policyQualificationSelector,
     });
 
@@ -110,15 +111,28 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     const resolvedPolicyID = validExpensePolicyID ?? singlePolicyID;
     const [resolvedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`);
 
-    // User has no eligible policy
-    if (!resolvedPolicyID) {
-        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: true};
-    }
+    // Gate the upgrade path on policy hydration. Without this, during Onyx cold-start the collection reads
+    // empty and we'd report that a member of a group workspace has none, sending them to MONEY_REQUEST_UPGRADE.
+    // `useCreateReport` guards the same way.
+    const arePoliciesLoaded = !isLoadingOnyxValue(policiesLoadStatus);
 
     // If this is an employee's card transaction that we manage, then we should report it to their default policy
     // which we don't know. Sending an empty `policyID` instructs the backend to auto-select the preferred policy.
+    // This never depends on a locally resolved policy, so it has to be answered before the upgrade path below.
     if (isUnreportedManagedCardTransaction) {
         return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
+    }
+
+    // User has no eligible policy
+    if (!resolvedPolicyID) {
+        // The active workspace can still be a valid destination even when the qualification pass came back
+        // empty, so check it before giving up. This has to run ahead of the upgrade path below, otherwise a
+        // perfectly valid active workspace can never rescue the user.
+        if (isPolicyValidForMovingExpenses(activePolicy, login, isPerDiemRequest, isTimeRequest)) {
+            return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
+        }
+
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: arePoliciesLoaded};
     }
 
     // If an expense policy ID is provided and valid, prefer it over the active policy
