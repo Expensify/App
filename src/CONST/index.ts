@@ -3152,6 +3152,7 @@ const CONST = {
         IMPORT_ITEMS: 'importItems',
         AUTO_SYNC_ENABLED: 'enabled',
         ACCOUNTING_METHOD: 'accountingMethod',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     QUICKBOOKS_CONFIG: {

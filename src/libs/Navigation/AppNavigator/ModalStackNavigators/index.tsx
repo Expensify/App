@@ -700,6 +700,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopExportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/DynamicQuickbooksDesktopAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/DynamicQuickbooksDesktopFxExpenseAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD]: () =>

@@ -5107,6 +5107,9 @@ ${amount} για ${merchant} - ${date}`,
                 autoSyncDescription: 'Το Expensify θα συγχρονίζεται αυτόματα με το QuickBooks Desktop κάθε μέρα.',
                 createEntities: 'Αυτόματη δημιουργία οντοτήτων',
                 createEntitiesDescription: 'Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο QuickBooks Desktop, αν δεν υπάρχουν ήδη.',
+                fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής συναλλάγματος',
+                fxExpenseAccountDescription:
+                    'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος σε μια αποζημίωση που καταβάλλεται στο εξωτερικό, θα το προσθέτουμε στην εξαγωγή ως επιπλέον γραμμή που θα κωδικοποιείται σε αυτόν τον λογαριασμό.',
             },
             itemsDescription: 'Επιλέξτε πώς θέλετε να χειρίζεστε τα στοιχεία QuickBooks Desktop στο Expensify.',
             accountingMethods: {

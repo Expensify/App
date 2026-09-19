@@ -4991,6 +4991,9 @@ ${amount} para ${merchant} - ${date}`,
                 autoSyncDescription: 'O Expensify sincronizará automaticamente com o QuickBooks Desktop todos os dias.',
                 createEntities: 'Criar entidades automaticamente',
                 createEntitiesDescription: 'O Expensify criará automaticamente fornecedores no QuickBooks Desktop se eles ainda não existirem.',
+                fxExpenseAccount: 'Conta de taxa de conversão de moeda',
+                fxExpenseAccountDescription:
+                    'Quando sua empresa cobre o custo de conversão de moeda em um reembolso pago no exterior, nós o adicionaremos à exportação como uma linha extra lançada nesta conta.',
             },
             itemsDescription: 'Escolha como lidar com itens do QuickBooks Desktop no Expensify.',
             accountingMethods: {

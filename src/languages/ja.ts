@@ -4959,6 +4959,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 autoSyncDescription: 'Expensify は毎日、自動的に QuickBooks Desktop と同期します。',
                 createEntities: 'エンティティを自動作成',
                 createEntitiesDescription: 'Expensify は、存在しない場合は QuickBooks Desktop にベンダーを自動的に作成します。',
+                fxExpenseAccount: '為替換算手数料勘定',
+                fxExpenseAccountDescription: '海外で支払われる精算に対する為替手数料を会社が負担する場合、その金額をこの勘定科目にコードされた追加行としてエクスポートに含めます。',
             },
             itemsDescription: 'Expensify で QuickBooks Desktop の品目をどのように処理するかを選択してください。',
             accountingMethods: {
