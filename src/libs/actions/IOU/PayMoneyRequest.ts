@@ -693,6 +693,7 @@ function cancelPayment(
             value: {
                 ...expenseReport,
                 isWaitingOnBankAccount: false,
+                canCancelReimbursement: false,
                 lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: getReportActionText(optimisticReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticReportAction),
@@ -744,6 +745,7 @@ function cancelPayment(
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
+                canCancelReimbursement: expenseReport.canCancelReimbursement,
                 isCancelledIOU: false,
                 nextStep:
                     buildOptimisticNextStep({
