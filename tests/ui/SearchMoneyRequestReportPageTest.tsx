@@ -166,6 +166,7 @@ type RenderOptions = {
     reportActions?: OnyxTypes.ReportAction[];
     transactionThreadReportID?: string;
     snapshotData?: Record<string, unknown>;
+    report?: OnyxTypes.Report | undefined;
 };
 
 /** Seeds the real REPORT_ACTIONS collection so getReportAction()/getIOUActionForTransactionID() (both real,
@@ -176,7 +177,20 @@ async function seedReportActions(reportID: string, actions: OnyxTypes.ReportActi
     await waitForBatchedUpdatesWithAct();
 }
 
-function renderPage({allReportTransactions = {}, reportActions = [], transactionThreadReportID = undefined, snapshotData}: RenderOptions) {
+// Only the fields the page reads from `route` (and no `navigation`, which it never touches) are relevant to these tests.
+const pageProps = {
+    route: {
+        params: {reportID: REPORT_ID, backTo: undefined},
+        name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        key: 'route-key',
+    },
+} as unknown as React.ComponentProps<typeof SearchMoneyRequestReportPage>;
+
+function renderPage(options: RenderOptions) {
+    const {allReportTransactions = {}, reportActions = [], transactionThreadReportID = undefined, snapshotData} = options;
+    // `'report' in options` distinguishes "not passed" (default to mockReport) from an explicit
+    // `{report: undefined}` (the report-not-loaded-yet case) — a destructuring default would swallow the latter.
+    const report = 'report' in options ? options.report : mockReport;
     mockUseTransactionsAndViolationsForReport.mockReturnValue({transactions: allReportTransactions, violations: {}, isLoaded: true});
     mockUseTransactionThreadReportID.mockReturnValue({
         transactionThreadReportID,
@@ -186,17 +200,23 @@ function renderPage({allReportTransactions = {}, reportActions = [], transaction
     mockUseSearchResultsContext.mockReturnValue({
         currentSearchResults: snapshotData ? ({data: snapshotData, search: {}} as never) : undefined,
     } as ReturnType<typeof useSearchResultsContext>);
+    mockUseOnyx.mockImplementation((key: string) => {
+        if (key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`) {
+            return [mockReportLoadingState, {status: 'loaded'}];
+        }
+        if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
+            return [report, {status: 'loaded'}];
+        }
+        if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`) {
+            return [true, {status: 'loaded'}];
+        }
+        if (key === ONYXKEYS.IS_LOADING_APP) {
+            return [false, {status: 'loaded'}];
+        }
+        return [undefined, {status: 'loaded'}];
+    });
 
-    // Only the fields the page reads from `route` (and no `navigation`, which it never touches) are relevant to these tests.
-    const props = {
-        route: {
-            params: {reportID: REPORT_ID, backTo: undefined},
-            name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            key: 'route-key',
-        },
-    } as unknown as React.ComponentProps<typeof SearchMoneyRequestReportPage>;
-
-    return render(<SearchMoneyRequestReportPage {...props} />);
+    return render(<SearchMoneyRequestReportPage {...pageProps} />);
 }
 
 describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
@@ -230,22 +250,7 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
             isInLandscapeMode: false,
         });
         mockUseClearReportActionDraftsOnReportChange.mockReturnValue(undefined);
-
-        mockUseOnyx.mockImplementation((key: string) => {
-            if (key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`) {
-                return [mockReportLoadingState, {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
-                return [mockReport, {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`) {
-                return [true, {status: 'loaded'}];
-            }
-            if (key === ONYXKEYS.IS_LOADING_APP) {
-                return [false, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
+        // renderPage() sets the full useOnyx routing (including the report key, which some tests override).
     });
 
     afterEach(async () => {
@@ -320,5 +325,43 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({transaction: expect.objectContaining({transactionID: 'correctTxn'})}));
+    });
+
+    it('does not self-heal while the report has not loaded yet, and retries once it does (does not get stuck)', async () => {
+        const createdAction = buildReportAction({reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
+        const submittedAction = buildReportAction({reportActionID: 'a2', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED});
+        await seedReportActions(REPORT_ID, [createdAction, submittedAction]);
+        const transaction = buildTransaction('txn5', REPORT_ID);
+
+        const {rerender} = renderPage({
+            allReportTransactions: {[transaction.transactionID]: transaction},
+            reportActions: [createdAction, submittedAction],
+            report: undefined,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+
+        // The report finishes loading on a later render. If the effect had already marked itself as
+        // "created" while report was still undefined, this retry would never happen.
+        mockUseOnyx.mockImplementation((key: string) => {
+            if (key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`) {
+                return [mockReportLoadingState, {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
+                return [mockReport, {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`) {
+                return [true, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.IS_LOADING_APP) {
+                return [false, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+        rerender(<SearchMoneyRequestReportPage {...pageProps} />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({transaction: expect.objectContaining({transactionID: 'txn5'})}));
     });
 });
