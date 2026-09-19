@@ -292,6 +292,7 @@ function ActionContentRouter({
             <PaymentContent
                 action={action}
                 policyID={policyID}
+                reportID={reportID}
             />
         );
     }

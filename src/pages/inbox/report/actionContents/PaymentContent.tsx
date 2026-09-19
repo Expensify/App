@@ -4,8 +4,10 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import DateUtils from '@libs/DateUtils';
 import getBankAccountLastFourDigits from '@libs/getBankAccountLastFourDigits';
-import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -13,20 +15,36 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {policyACHAccountNumberSelector} from '@selectors/Policy';
 import React from 'react';
 
 type PaymentContentProps = {
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
     policyID: string | undefined;
+    reportID: string | undefined;
 };
 
-function PaymentContent({action, policyID}: PaymentContentProps) {
+function PaymentContent({action, policyID, reportID}: PaymentContentProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policyACHAccountNumber] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyACHAccountNumberSelector});
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const originalMessage = getOriginalMessage(action);
+    const reimbursedExpectedDateSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
+        let latestReimbursedAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> | undefined;
+        for (const reportAction of Object.values(reportActions ?? {})) {
+            if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || reportAction.created > action.created) {
+                continue;
+            }
+            if (!latestReimbursedAction || reportAction.created > latestReimbursedAction.created) {
+                latestReimbursedAction = reportAction;
+            }
+        }
+        return getOriginalMessage(latestReimbursedAction)?.expectedDate;
+    };
+    const [reimbursedExpectedDate] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: reimbursedExpectedDateSelector});
 
     if (!originalMessage) {
         return null;
@@ -42,15 +60,20 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         const last4Digits = originalMessage.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
+        const expectedDate = originalMessage.expectedDate ?? reimbursedExpectedDate;
+        const formattedExpectedDate = expectedDate ? DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale) : undefined;
+        const expectedDateMessage = formattedExpectedDate
+            ? `. ${translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME)}`
+            : '';
         if (wasAutoPaid) {
-            const translation = crossBorderMessage ?? translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
+            const translation = `${crossBorderMessage ?? translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits)}${expectedDateMessage}`;
             return (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${translation}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={crossBorderMessage ?? translate('iou.businessBankAccount', '', last4Digits)} />;
+        return <ReportActionItemBasicMessage message={`${crossBorderMessage ?? translate('iou.businessBankAccount', '', last4Digits)}${expectedDateMessage}`} />;
     }
 
     if (wasAutoPaid) {
