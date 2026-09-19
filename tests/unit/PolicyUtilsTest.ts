@@ -4469,7 +4469,7 @@ describe('PolicyUtils', () => {
                 const policy = buildCertiniaPolicy(vendors);
                 policy.connections = {
                     ...policy.connections,
-                    dualEntry: {config: {isConfigured: true, subsidiaryID: '10'}, data: {vendors: [{id: '1', name: 'DualEntry vendor', isActive: true}]}},
+                    dualEntry: {config: {isConfigured: true, subsidiaryID: '10', enableNewCategories: false}, data: {vendors: [{id: '1', name: 'DualEntry vendor', isActive: true}]}},
                 };
                 expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY);
                 expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['1']);
