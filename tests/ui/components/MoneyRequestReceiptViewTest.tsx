@@ -22,6 +22,9 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 type OpenPicker = Parameters<AttachmentPickerProps['children']>[0]['openPicker'];
 
 const mockOpenPicker = jest.fn<ReturnType<OpenPicker>, Parameters<OpenPicker>>();
+const mockReceiptImageController: {shouldAutoLoad: boolean; load?: () => void} = {
+    shouldAutoLoad: true,
+};
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -57,6 +60,10 @@ jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
     function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
         useEffect(() => {
+            mockReceiptImageController.load = onLoad;
+            if (!mockReceiptImageController.shouldAutoLoad) {
+                return;
+            }
             onLoad?.();
         }, [onLoad]);
         return null;
@@ -206,6 +213,15 @@ const transactionWithMultiPagePDFReceipt: Transaction = {
     },
 };
 
+const transactionWithLocalPDFReceipt: Transaction = {
+    ...transactionWithoutReceipt,
+    receipt: {
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+        source: 'https://example.com/local-receipt.pdf',
+        filename: 'receipt.pdf',
+    },
+};
+
 const transactionWithScanningReceipt: Transaction = {
     ...transactionWithoutReceipt,
     receipt: {
@@ -261,6 +277,8 @@ describe('MoneyRequestReceiptView', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockReceiptImageController.shouldAutoLoad = true;
+        mockReceiptImageController.load = undefined;
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
                 [TEST_ACTION_ID]: testParentReportAction,
@@ -400,6 +418,40 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
+
+        // The create response swaps source and pageCount together, so the badge has to wait for the new image.
+        it('does not show the page count until the remote image loads after a receipt source swap', async () => {
+            mockReceiptImageController.shouldAutoLoad = false;
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithLocalPDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                mockReceiptImageController.load?.();
+            });
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+
+            await act(async () => {
+                mockReceiptImageController.load?.();
+            });
+            expect(screen.getByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeTruthy();
         });
     });
 

@@ -26,7 +26,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePermissions from '@hooks/usePermissions';
-import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -158,7 +157,7 @@ function MoneyRequestReceiptView({
     const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(chatReport?.ownerAccountID)});
     const delegateAccountID = useDelegateAccountID();
 
-    const [isLoading, setIsLoading] = useState(true);
+    const [loadedReceiptSource, setLoadedReceiptSource] = useState<string | number | undefined>();
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
 
@@ -183,6 +182,9 @@ function MoneyRequestReceiptView({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
     const displayedTransaction = updatedTransaction ?? transaction;
+    const displayedReceiptSource = displayedTransaction?.receipt?.localSource ?? displayedTransaction?.receipt?.source;
+    // Overlays stay hidden until this exact source has loaded, including the render where the source first changes.
+    const isLoading = displayedReceiptSource == null || loadedReceiptSource !== displayedReceiptSource;
     const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
 
     // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
@@ -224,16 +226,6 @@ function MoneyRequestReceiptView({
             hoverBind.onMouseEnter();
         }
     }, [isLoading, hoverBind]);
-
-    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
-    const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
-
-    useEffect(() => {
-        if (!displayedReceiptSource || prevDisplayedReceiptSource === displayedReceiptSource) {
-            return;
-        }
-        setIsLoading(true);
-    }, [displayedReceiptSource, prevDisplayedReceiptSource]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -704,13 +696,13 @@ function MoneyRequestReceiptView({
                                                 image={receiptURIs?.image}
                                                 isLocalFile={receiptURIs?.isLocalFile}
                                                 filename={receiptURIs?.filename}
-                                                transaction={updatedTransaction ?? transaction}
+                                                transaction={displayedTransaction}
                                                 enablePreviewModal
                                                 readonly={readonly || !canEditReceipt}
                                                 mergeTransactionID={mergeTransactionID}
                                                 report={report}
-                                                onLoad={() => setIsLoading(false)}
-                                                onLoadFailure={() => setIsLoading(false)}
+                                                onLoad={() => setLoadedReceiptSource(displayedReceiptSource)}
+                                                onLoadFailure={() => setLoadedReceiptSource(displayedReceiptSource)}
                                             />
                                             {canShowDistanceEReceipt && isHovering && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
                                         </>
