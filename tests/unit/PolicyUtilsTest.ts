@@ -74,11 +74,13 @@ import {
     hasVendorFeature,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
+    isInvoiceFieldsEnabled,
     isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
+    isPolicyFeatureEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isRilletVendorMatchingActive,
@@ -3599,6 +3601,44 @@ describe('PolicyUtils', () => {
 
             it('returns false for an undefined policy', () => {
                 expect(isPerDiemEligiblePolicy(undefined)).toBe(false);
+            });
+        });
+
+        describe('isInvoiceFieldsEnabled', () => {
+            it('returns true for a control policy with areInvoiceFieldsEnabled explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(true);
+            });
+
+            it('returns false for a control policy with areInvoiceFieldsEnabled explicitly false', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
+            });
+
+            it('returns false for a collect policy even when areInvoiceFieldsEnabled is true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
+            });
+
+            it('returns false for an undefined policy', () => {
+                expect(isInvoiceFieldsEnabled(undefined)).toBe(false);
+            });
+        });
+
+        describe('isPolicyFeatureEnabled for ARE_INVOICE_FIELDS_ENABLED', () => {
+            it('returns true for a control policy with invoice fields enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(true);
+            });
+
+            it('returns false for a collect policy even with areInvoiceFieldsEnabled true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
+            });
+
+            it('returns false for a control policy with invoice fields disabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
             });
         });
 
