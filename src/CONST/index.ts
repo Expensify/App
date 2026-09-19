@@ -666,6 +666,37 @@ const CONST = {
         RIGHT: 'right',
     },
 
+    // HTML elements whose boundaries can represent whitespace when reconstructing pasted text.
+    HTML_BLOCK_ELEMENT_NAMES: new Set([
+        'ADDRESS',
+        'ARTICLE',
+        'ASIDE',
+        'BLOCKQUOTE',
+        'DIV',
+        'FOOTER',
+        'H1',
+        'H2',
+        'H3',
+        'H4',
+        'H5',
+        'H6',
+        'HEADER',
+        'LI',
+        'MAIN',
+        'NAV',
+        'OL',
+        'P',
+        'PRE',
+        'SECTION',
+        'TABLE',
+        'TR',
+        'UL',
+    ]),
+    // Private-use character inserted around each candidate image while matching HTML with plain text.
+    EMOJI_IMAGE_MARKER_PREFIX: '\uE000',
+    // Private-use character that closes an image marker during HTML and plain-text matching.
+    EMOJI_IMAGE_MARKER_SUFFIX: '\uE001',
+
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
     ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling
@@ -5643,6 +5674,12 @@ const CONST = {
         NON_BREAKING_SPACE: /\u00A0/g,
 
         EMOJI_NAME: /(?<=^|[\s\S]):[\p{L}0-9_+-]+:/gu,
+        // Match emoji image filenames from iOS Safari paste, e.g. "1f389@2x.png".
+        EMOJI_IMAGE_ALT: /^([a-f\d]{4,6}(?:-[a-f\d]{4,6})*)(?:@\d+x)?\.(?:png|gif|webp)$/i,
+        // Match one Slack shortcode with an optional skin-tone shortcode.
+        SLACK_EMOJI_SHORTCODE_PATTERN: String.raw`:[\p{L}\d_+-]+:(?::skin-tone-[2-6]:)?`,
+        // Validate a complete Slack shortcode and capture its name and optional skin-tone number.
+        SLACK_EMOJI_SHORTCODE: /^:([\p{L}\d_+-]+):(?::skin-tone-([2-6]):)?$/u,
         EMOJI_SUGGESTIONS: /(?<=^|[\s\S]):[\p{L}0-9_+-]{1,40}$/u,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
