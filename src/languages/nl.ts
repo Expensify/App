@@ -9531,6 +9531,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         bulkActions: {
             editMultiple: 'Meerdere bewerken',
             editMultipleTitle: 'Meerdere uitgaven bewerken',
+            editFinalizedExpensesTitle: 'Afgeronde uitgaven bewerken?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 van de ${total} uitgaven die je hebt geselecteerd staat op een goedgekeurd of betaald rapport. Je staat op het punt een afgeronde uitgave te bewerken. Weet je het zeker?`,
+                other: `${count} van de ${total} uitgaven die je hebt geselecteerd staan op goedgekeurde of betaalde rapporten. Je staat op het punt afgeronde uitgaven te bewerken. Weet je het zeker?`,
+            }),
             editMultipleDescription: 'Wijzigingen worden toegepast op alle geselecteerde uitgaven en overschrijven eerder ingestelde waarden.',
             approve: 'Goedkeuren',
             pay: 'Betalen',

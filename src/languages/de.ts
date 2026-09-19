@@ -9607,6 +9607,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         bulkActions: {
             editMultiple: 'Mehrere bearbeiten',
             editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
+            editFinalizedExpensesTitle: 'Abgeschlossene Ausgaben bearbeiten?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 der ${total} von Ihnen ausgewählten Ausgaben befindet sich in einem genehmigten oder bezahlten Bericht. Sie sind dabei, eine abgeschlossene Ausgabe zu bearbeiten. Sind Sie sicher?`,
+                other: `${count} der ${total} von Ihnen ausgewählten Ausgaben befinden sich in genehmigten oder bezahlten Berichten. Sie sind dabei, abgeschlossene Ausgaben zu bearbeiten. Sind Sie sicher?`,
+            }),
             editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben übernommen und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',

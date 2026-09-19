@@ -9759,6 +9759,11 @@ const translations = {
         bulkActions: {
             editMultiple: 'Edit multiple',
             editMultipleTitle: 'Edit multiple expenses',
+            editFinalizedExpensesTitle: 'Edit finalized expenses?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 of the ${total} expenses you selected is on an approved or paid report. You’re about to edit a finalized expense. Are you sure?`,
+                other: `${count} of the ${total} expenses you selected are on approved or paid reports. You’re about to edit finalized expenses. Are you sure?`,
+            }),
             // cspell:disable
             editMultipleDescription: 'Changes will be set for all selected expenses and will override any previously set values.',
             approve: 'Approve',

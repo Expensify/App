@@ -9471,6 +9471,11 @@ ${reportName}`,
         bulkActions: {
             editMultiple: 'Editar múltiples',
             editMultipleTitle: 'Editar múltiples gastos',
+            editFinalizedExpensesTitle: '¿Editar gastos finalizados?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 de los ${total} gastos que has seleccionado está en un informe aprobado o pagado. Estás a punto de editar un gasto finalizado. ¿Estás seguro?`,
+                other: `${count} de los ${total} gastos que has seleccionado están en informes aprobados o pagados. Estás a punto de editar gastos finalizados. ¿Estás seguro?`,
+            }),
             editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y sustituirán cualquier valor establecido previamente.',
             approve: 'Aprobar',
             pay: 'Pagar',
