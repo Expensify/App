@@ -18,7 +18,7 @@ index 66436ac..bca8b6e 100644
    auto revisionNumber = telemetry.getRevisionNumber();
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-index 73dfb70..ce87112 100644
+index 73dfb70..e1d3551 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
 @@ -635,15 +635,19 @@
@@ -44,13 +44,29 @@ index 73dfb70..ce87112 100644
        pendingTransaction->mergeWith(std::move(*mountingTransaction));
      } else {
        pendingTransactions_.push_back(std::move(*mountingTransaction));
-@@ -679,24 +683,53 @@
+@@ -679,24 +683,60 @@
        mountingManager->executeMount(transaction);
      }
    } else {
 -    std::vector<MountingTransaction> pendingTransactions;
 -
--    {
++    // Only one thread mounts the pending transactions at a time, and it mounts
++    // them in commit order.
++    //
++    // Upstream swaps the whole queue out and relies on "combining all the
++    // transactions for the same surface ID in a single transaction" to stay in
++    // order. `canMergeWith` can refuse a merge, so a surface can hold several
++    // pending transactions and that no longer holds:
++    // - This method is re-entered when the mounting manager triggers state
++    //   updates synchronously from the UI thread. A nested drain would mount
++    //   the new transaction ahead of the entries still waiting in the outer
++    //   call, so it returns and lets the outer call mount them in order.
++    // - It is also called from the JS thread (scheduled rendering updates) and
++    //   from the UI thread (synchronous mounts). A second thread waits for the
++    //   drain in progress instead of taking an entry from under it, which
++    //   keeps the order and still mounts everything this caller queued before
++    //   it returns, the way `commitMutex_` did before this patch.
+     {
 -      // Retain the lock to access the pending transactions but not to execute
 -      // the mount operations because that method can call into this method
 -      // again.
@@ -60,30 +76,15 @@ index 73dfb70..ce87112 100644
 -      // This is safe because we're already combining all the transactions for
 -      // the same surface ID in a single transaction in the pending transactions
 -      // list, so operations won't run out of order.
-+    // Only one call drains the queue at a time, and it mounts every queued
-+    // transaction in commit order.
-+    //
-+    // Upstream swaps the whole queue out and relies on "combining all the
-+    // transactions for the same surface ID in a single transaction" to stay in
-+    // order. `canMergeWith` can refuse a merge, so a surface can hold several
-+    // pending transactions and that no longer holds:
-+    // - This method is re-entered when the mounting manager triggers state
-+    //   updates synchronously from the UI thread. A nested drain would mount
-+    //   the new transaction ahead of the entries still waiting in the outer
-+    //   call.
-+    // - It is also called from the JS thread (scheduled rendering updates) and
-+    //   from the UI thread (synchronous mounts). Two concurrent drains could
-+    //   each take an entry and mount them in the opposite order.
-+    // A call that finds a drain in progress leaves its transaction queued; the
-+    // draining call mounts it after everything queued before it. The lock is
-+    // still released while mounting, because executeMount can re-enter here.
-+    {
        std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
 -      pendingTransactions_.swap(pendingTransactions);
-+      if (isDrainingPendingTransactions_) {
++      if (pendingTransactionsDrainer_ == std::this_thread::get_id()) {
 +        return;
 +      }
-+      isDrainingPendingTransactions_ = true;
++      pendingTransactionsDrained_.wait(lock, [&]() {
++        return !pendingTransactionsDrainer_.has_value();
++      });
++      pendingTransactionsDrainer_ = std::this_thread::get_id();
      }
  
 -    for (auto& transaction : pendingTransactions) {
@@ -94,7 +95,9 @@ index 73dfb70..ce87112 100644
 +      {
 +        std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
 +        if (pendingTransactions_.empty()) {
-+          isDrainingPendingTransactions_ = false;
++          pendingTransactionsDrainer_.reset();
++          lock.unlock();
++          pendingTransactionsDrained_.notify_all();
 +          break;
 +        }
 +        transaction = std::move(pendingTransactions_.front());
@@ -105,19 +108,34 @@ index 73dfb70..ce87112 100644
 +        mountingManager->executeMount(*transaction);
 +      } catch (...) {
 +        // Never leave the queue without a drainer, or no later transaction
-+        // would ever be mounted.
-+        std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
-+        isDrainingPendingTransactions_ = false;
++        // would ever be mounted and every waiting caller would block.
++        {
++          std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
++          pendingTransactionsDrainer_.reset();
++        }
++        pendingTransactionsDrained_.notify_all();
 +        throw;
 +      }
      }
    }
  }
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
-index e2f957e..2eb2bee 100644
+index e2f957e..7da21e6 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
-@@ -163,9 +163,13 @@
+@@ -7,8 +7,11 @@
+ 
+ #pragma once
+ 
++#include <condition_variable>
+ #include <memory>
+ #include <mutex>
++#include <optional>
++#include <thread>
+ #include <shared_mutex>
+ #include <unordered_map>
+ 
+@@ -163,9 +166,14 @@
        surfaceHandlerRegistry_{};
    std::shared_mutex surfaceHandlerRegistryMutex_; // Protects `surfaceHandlerRegistry_`.
  
@@ -126,9 +144,10 @@ index e2f957e..2eb2bee 100644
 +  // several when `MountingTransaction::canMergeWith` refuses a merge.
    std::mutex pendingTransactionsMutex_;
    std::vector<MountingTransaction> pendingTransactions_;
-+  // Guarded by pendingTransactionsMutex_. True while a call to
-+  // schedulerShouldRenderTransactions is mounting the pending transactions.
-+  bool isDrainingPendingTransactions_{false};
++  // Guarded by pendingTransactionsMutex_: the thread currently mounting the
++  // pending transactions, if any, and a signal for callers waiting on it.
++  std::optional<std::thread::id> pendingTransactionsDrainer_;
++  std::condition_variable pendingTransactionsDrained_;
  
    float pointScaleFactor_ = 1;
  
