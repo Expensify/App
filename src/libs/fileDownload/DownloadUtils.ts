@@ -1,7 +1,6 @@
 import * as ApiUtils from '@libs/ApiUtils';
+import openExternalLink from '@libs/openExternalLink';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-
-import * as Link from '@userActions/Link';
 
 import CONST from '@src/CONST';
 
@@ -61,7 +60,7 @@ const fetchFileDownload: FileDownload = (
     ) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
-        Link.openExternalLink(url);
+        openExternalLink(url);
         return Promise.resolve();
     }
 
@@ -91,7 +90,7 @@ const fetchFileDownload: FileDownload = (
                 onDownloadFailed();
             } else {
                 // file could not be downloaded, open sourceURL in new tab
-                Link.openExternalLink(url);
+                openExternalLink(url);
             }
         });
 };
