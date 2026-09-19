@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 
 import useOnyx from '@hooks/useOnyx';
@@ -70,7 +71,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
     __esModule: true,
-    default: jest.fn(() => ({isWideRHPDisplayedOnWideLayout: false, isSuperWideRHPDisplayedOnWideLayout: false})),
+    default: jest.fn(() => ({shouldUseNarrowLayout: true, isWideRHPDisplayedOnWideLayout: false, isSuperWideRHPDisplayedOnWideLayout: false})),
 }));
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
@@ -79,6 +80,7 @@ const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedUseTransactionsAndViolations = jest.mocked(useTransactionsAndViolationsForReport);
 const mockedTurnOffMobileSelectionMode = jest.mocked(turnOffMobileSelectionMode);
+const mockedHeaderWithBackButton = jest.mocked(HeaderWithBackButton);
 
 describe('MoneyReportHeader mobile selection mode', () => {
     beforeEach(() => {
@@ -116,5 +118,41 @@ describe('MoneyReportHeader mobile selection mode', () => {
         );
 
         expect(mockedTurnOffMobileSelectionMode).toHaveBeenCalled();
+    });
+
+    it('renders the normal report header, not the selection header, while unfocused with selection mode on', () => {
+        mockedUseIsFocused.mockReturnValue(false);
+
+        render(
+            <MoneyReportHeader
+                reportID={TEST_REPORT_ID}
+                onBackButtonPress={jest.fn()}
+            />,
+        );
+
+        const headerProps = mockedHeaderWithBackButton.mock.calls.at(0)?.[0];
+        expect(headerProps?.title).toBeUndefined();
+        expect(headerProps?.report).toEqual(report);
+    });
+
+    it('renders the selection header when focused with selection mode on and multiple transactions', () => {
+        mockedUseIsFocused.mockReturnValue(true);
+        mockedUseTransactionsAndViolations.mockReturnValue({
+            transactions: {t1: singleTransaction, t2: {...createRandomTransaction(2), reportID: TEST_REPORT_ID, pendingAction: undefined}},
+            violations: {},
+            isLoaded: true,
+        });
+
+        render(
+            <MoneyReportHeader
+                reportID={TEST_REPORT_ID}
+                onBackButtonPress={jest.fn()}
+            />,
+        );
+
+        const headerProps = mockedHeaderWithBackButton.mock.calls.at(0)?.[0];
+        expect(headerProps?.title).toBeDefined();
+        expect(headerProps?.report).toBeUndefined();
+        expect(mockedTurnOffMobileSelectionMode).not.toHaveBeenCalled();
     });
 });

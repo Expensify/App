@@ -99,10 +99,10 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         };
     }, []);
 
-    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
+    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout && isFocused) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
         const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-        if (visibleTransactions.length <= 1 && isFocused) {
+        if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
         }
 
