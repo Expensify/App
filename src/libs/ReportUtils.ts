@@ -9241,6 +9241,7 @@ function buildOptimisticChangeApproverReportAction(
     managerID: number,
     actorAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isFinalApprover?: boolean,
 ): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     return {
@@ -9251,8 +9252,8 @@ function buildOptimisticChangeApproverReportAction(
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber})}`,
-                html: `changed the approver to <mention-user accountID="${managerID}"/>`,
+                text: `changed the ${isFinalApprover ? 'final ' : ''}approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber})}`,
+                html: `changed the ${isFinalApprover ? 'final ' : ''}approver to <mention-user accountID="${managerID}"/>`,
             },
         ],
         person: [
@@ -9265,6 +9266,7 @@ function buildOptimisticChangeApproverReportAction(
         originalMessage: {
             lastModified: created,
             mentionedAccountIDs: [managerID],
+            isFinalApprover,
         },
         shouldShow: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,

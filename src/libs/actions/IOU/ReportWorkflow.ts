@@ -1697,7 +1697,7 @@ function assignReportToMe(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber, true);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
