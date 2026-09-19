@@ -13,7 +13,7 @@ import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtil
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
+import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventPayoutNonReimbursableReports, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -69,6 +69,18 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
 
                 setPolicyPreventSelfApproval(policyID, isEnabled, policy?.preventSelfApproval);
             },
+        },
+        {
+            title: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsTitle'),
+            subtitle: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsSubtitle'),
+            shouldParseSubtitle: false,
+            switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsTitle'),
+            isActive: policy?.preventPayoutNonReimbursableReports,
+            disabled: !canWritePayments,
+            disabledAction: withPaymentsReadOnlyFallback(),
+            showLockIcon: !canWritePayments,
+            pendingAction: policy?.pendingFields?.preventPayoutNonReimbursableReports ?? policy?.pendingAction,
+            onToggle: (isEnabled: boolean) => setPolicyPreventPayoutNonReimbursableReports(policyID, isEnabled, policy?.preventPayoutNonReimbursableReports),
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
