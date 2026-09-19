@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicTwoFactorAuthPage from '@pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage';
@@ -9,7 +10,7 @@ import DynamicTwoFactorAuthPage from '@pages/settings/Security/TwoFactorAuth/Dyn
 import {toggleTwoFactorAuth} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
@@ -91,8 +92,19 @@ describe('DynamicTwoFactorAuthPage', () => {
         expect(mockToggleTwoFactorAuth).toHaveBeenCalledWith(true);
     });
 
-    it('does not enable 2FA again during the forced onboarding handoff, when 2FA is enabled and the codes are gone', async () => {
+    it('returns to the success page without enabling 2FA again during the forced onboarding handoff, when 2FA is enabled and the codes are gone', async () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: true, twoFactorAuthSetupInProgress: true});
+
+        await renderPage();
+
+        expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path, 'settings/security'), {forceReplace: true});
+    });
+
+    it('keeps the recovery codes page when 2FA is enabled, setup is in progress and the codes are still there', async () => {
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: true, twoFactorAuthSetupInProgress: true, recoveryCodes: 'aaaa, bbbb'});
 
         await renderPage();
 

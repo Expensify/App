@@ -65,13 +65,16 @@ function DynamicTwoFactorAuthPage() {
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
     const is2FASetupInProgress = !!account?.twoFactorAuthSetupInProgress;
 
+    const recoveryCodes = account?.recoveryCodes;
+
     // Once 2FA is enabled this page is only reachable by navigating back into it, so the effect below leaves the flow
     // and the recovery codes stay hidden so they don't flash first. The forced-onboarding post-verify handoff is the
-    // exception: it sets requiresTwoFactorAuth before Got it clears the setup progress, and the page is still a
-    // legitimate step of that flow, so it must keep both the redirect off and the codes on screen.
+    // exception: it sets requiresTwoFactorAuth before Got it clears the setup progress, so the redirect must stay off.
     const shouldLeaveEnabledSetup = is2FAEnabled && !is2FASetupInProgress;
 
-    const recoveryCodes = account?.recoveryCodes;
+    // In that handoff the Onyx reset after validation drops the recovery codes, so this page has nothing to show, and
+    // leaving the flow would skip the handoff that only the success page runs. Send the user back to the success page.
+    const shouldResumeForcedSetupHandoff = is2FAEnabled && is2FASetupInProgress && !recoveryCodes;
 
     useEffect(() => {
         if (!isUserValidated) {
@@ -96,6 +99,14 @@ function DynamicTwoFactorAuthPage() {
                 // A direct link or a reload can also mount this page with 2FA enabled and nothing to pop. goBack()
                 // would then reset to the app root, so open the enabled page instead.
                 Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
+            });
+            return;
+        }
+
+        if (isFocused && shouldResumeForcedSetupHandoff) {
+            Navigation.isNavigationReady().then(() => {
+                // REPLACE, so the next browser Back leaves the flow instead of bouncing between the two pages.
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path, backPath), {forceReplace: true});
             });
             return;
         }
@@ -132,7 +143,7 @@ function DynamicTwoFactorAuthPage() {
             onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                {!!isUserValidated && !shouldLeaveEnabledSetup && (
+                {!!isUserValidated && !shouldLeaveEnabledSetup && !shouldResumeForcedSetupHandoff && (
                     <Section
                         title={translate('twoFactorAuth.keepCodesSafe')}
                         containerStyles={[styles.twoFactorAuthSection]}
