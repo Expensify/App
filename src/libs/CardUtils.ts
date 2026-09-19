@@ -1459,9 +1459,10 @@ function getCardConnectionStatusDisplay({
         if (isCardInactiveStatus) {
             return {statusKey: 'walletPage.cardStatus.inactive', statusTone: 'default'};
         }
-        // A card waiting to be issued or activated cannot be spent on yet, so it reads neither active nor inactive.
+        // A card waiting to be issued or activated cannot be spent on yet. It shares the tone with a pending bank
+        // account, so the wallet reads the same way whichever kind of row the status is on.
         if (isCardPendingStatus) {
-            return {statusKey: 'walletPage.cardStatus.pending', statusTone: 'default'};
+            return {statusKey: 'walletPage.cardStatus.pending', statusTone: 'danger'};
         }
         return {statusKey: 'walletPage.cardStatus.active', statusTone: 'success'};
     }

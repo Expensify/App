@@ -4954,7 +4954,7 @@ describe('getCardConnectionStatusDisplay', () => {
     it('reports a pending status for an Expensify Card waiting to be issued or activated', () => {
         expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, isCardPending: true})).toEqual({
             statusKey: 'walletPage.cardStatus.pending',
-            statusTone: 'default',
+            statusTone: 'danger',
         });
     });
 
