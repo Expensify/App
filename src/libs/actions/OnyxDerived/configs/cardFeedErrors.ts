@@ -87,7 +87,7 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isPastDismissThreshold;
+            const isFeedConnectionBroken = hasCardConnectionIssue(card) && !isPastDismissThreshold;
             // Track personal cards with broken feed connection
             if (isFeedConnectionBroken) {
                 personalCardsWithBrokenConnection[card.cardID] = card;

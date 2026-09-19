@@ -1,6 +1,6 @@
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchQueryActions, useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,8 +11,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import type {SearchKey, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {getItemBadgeText, getLastSearchQuery, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +80,6 @@ function SearchTypeMenuWide() {
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const typeMenuSections = useSearchTypeMenuSections();
-    const {setCurrentSearchKey} = useSearchQueryActions();
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     // Intentionally left enabled (no focus freeze): the wide menu renders in the search navigator's ExtraContent
     // slot, where useIsFocused() does not track visibility, so freezing on it would be unreliable.
@@ -98,7 +98,7 @@ function SearchTypeMenuWide() {
     };
 
     const handleTypeMenuItemPress = singleExecution((searchKey: SearchKey, searchQuery: string) => {
-        navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions, setCurrentSearchKey);
+        navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions);
     });
 
     useLayoutEffect(() => {
