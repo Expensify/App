@@ -62,6 +62,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Original reportID that spawned the current report */
     originalID?: string;
 
+    /** Set on a thread the backend opened to collect feedback on a Concierge answer, naming the rated action */
+    conciergeFeedbackForReportActionID?: string;
+
     /** Scheduled calls for the user on #admin rooms */
     calendlyCalls?: CalendlyCall[];
 

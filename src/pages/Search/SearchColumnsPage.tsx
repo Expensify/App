@@ -1,4 +1,5 @@
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 
 import useOnyx from '@hooks/useOnyx';
@@ -16,6 +17,7 @@ import React from 'react';
 
 function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const {currentSearchKey} = useSearchQueryContext();
 
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -40,6 +42,7 @@ function SearchColumnsPage() {
         CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
@@ -66,7 +69,9 @@ function SearchColumnsPage() {
             sortOrder: currentQueryJSON?.sortOrder,
         });
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+        // Only the columns change, so it's still the same search - carry the key over rather than letting it be
+        // re-derived from the new query.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey: currentSearchKey}), {forceReplace: true});
     };
 
     return (
