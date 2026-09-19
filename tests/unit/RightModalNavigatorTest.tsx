@@ -215,4 +215,46 @@ describe('RightModalNavigator overlay press', () => {
 
         expect(Navigation.dismissModal).not.toHaveBeenCalled();
     });
+
+    it('invokes Navigation.dismissModal when clicking overlay on a multi-step RHP stack', () => {
+        mockGetRootState.mockReturnValue({
+            key: 'root-key',
+            index: 1,
+            routeNames: [NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR],
+            routes: [
+                {key: 'tab-nav', name: NAVIGATORS.TAB_NAVIGATOR},
+                {
+                    key: 'right-modal-key',
+                    name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                    state: {
+                        key: 'stack-sub-key',
+                        index: 1,
+                        routeNames: [SCREENS.SETTINGS.PROFILE.ROOT, SCREENS.SETTINGS.PROFILE.DISPLAY_NAME],
+                        routes: [
+                            {key: 'profile-root', name: SCREENS.SETTINGS.PROFILE.ROOT},
+                            {key: 'profile-display-name', name: SCREENS.SETTINGS.PROFILE.DISPLAY_NAME},
+                        ],
+                        type: 'stack',
+                        stale: false,
+                    },
+                },
+            ],
+            type: 'stack',
+            stale: false,
+        });
+
+        render(
+            <NavigationContainer>
+                <RightModalNavigator
+                    navigation={mockNavigation}
+                    route={mockRoute}
+                />
+            </NavigationContainer>,
+        );
+
+        const overlayBottomButton = screen.getByTestId(CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID);
+        fireEvent.press(overlayBottomButton);
+
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+    });
 });
