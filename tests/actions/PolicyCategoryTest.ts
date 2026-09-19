@@ -5,7 +5,11 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 
 import {
+    buildOptimisticMccGroup as buildOptimisticMccGroupFromCategory,
+    buildOptimisticPolicyCategories as buildOptimisticPolicyCategoriesFromCategory,
+    buildOptimisticPolicyWithExistingCategories as buildOptimisticPolicyWithExistingCategoriesFromCategory,
     createPolicyCategory,
+    DEFAULT_MCC_GROUP as DEFAULT_MCC_GROUP_FROM_CATEGORY,
     deleteWorkspaceCategories,
     enablePolicyCategories,
     importPolicyCategories,
@@ -15,11 +19,17 @@ import {
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
 } from '@libs/actions/Policy/Category';
+import {
+    buildOptimisticMccGroup,
+    buildOptimisticPolicyCategories,
+    buildOptimisticPolicyWithExistingCategories,
+    DEFAULT_MCC_GROUP,
+} from '@libs/actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -846,6 +856,126 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
+        });
+    });
+
+    describe('OptimisticPolicyCategoriesAndMccGroups', () => {
+        it('buildOptimisticPolicyCategories adds each category, clears the draft and clears the pending action on success', () => {
+            const policyID = 'policy1';
+
+            const onyxData = buildOptimisticPolicyCategories(policyID, ['Advertising', 'Benefits']);
+
+            expect(onyxData.optimisticData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy1`,
+                    value: {
+                        Advertising: {name: 'Advertising', enabled: true, errors: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        Benefits: {name: 'Benefits', enabled: true, errors: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}policy1`,
+                    value: null,
+                },
+            ]);
+
+            expect(onyxData.successData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy1`,
+                    value: {
+                        Advertising: {errors: null, pendingAction: null},
+                        Benefits: {errors: null, pendingAction: null},
+                    },
+                },
+            ]);
+
+            const failureUpdate = onyxData.failureData?.[0];
+            expect(onyxData.failureData).toHaveLength(1);
+            expect(failureUpdate?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect(failureUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy1`);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- MERGE value is a partial policy categories patch
+            const failureCategories = failureUpdate && 'value' in failureUpdate ? (failureUpdate.value as PolicyCategories) : undefined;
+            expect(Object.keys(failureCategories ?? {})).toStrictEqual(['Advertising', 'Benefits']);
+            expect(Object.keys(failureCategories?.Advertising?.errors ?? {})).toHaveLength(1);
+            expect(Object.keys(failureCategories?.Benefits?.errors ?? {})).toHaveLength(1);
+        });
+
+        it('buildOptimisticPolicyWithExistingCategories keeps every category field and skips the ones pending delete', () => {
+            const policyID = 'policy2';
+            const categories: PolicyCategories = {
+                Advertising: {name: 'Advertising', enabled: true, areCommentsRequired: true},
+                Travel: {name: 'Travel', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+
+            const onyxData = buildOptimisticPolicyWithExistingCategories(policyID, categories);
+
+            expect(onyxData.optimisticData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy2`,
+                    value: {
+                        Advertising: {name: 'Advertising', enabled: true, areCommentsRequired: true, errors: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}policy2`,
+                    value: null,
+                },
+            ]);
+
+            expect(onyxData.successData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy2`,
+                    value: {
+                        Advertising: {errors: null, pendingAction: null},
+                        Travel: {errors: null, pendingAction: null},
+                    },
+                },
+            ]);
+
+            const failureUpdate = onyxData.failureData?.[0];
+            expect(onyxData.failureData).toHaveLength(1);
+            expect(failureUpdate?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect(failureUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy2`);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- MERGE value is a partial policy categories patch
+            const failureCategories = failureUpdate && 'value' in failureUpdate ? (failureUpdate.value as PolicyCategories) : undefined;
+            expect(Object.keys(failureCategories ?? {})).toStrictEqual(['Advertising', 'Travel']);
+            expect(Object.keys(failureCategories?.Advertising?.errors ?? {})).toHaveLength(1);
+            expect(Object.keys(failureCategories?.Travel?.errors ?? {})).toHaveLength(1);
+        });
+
+        it('DEFAULT_MCC_GROUP mirrors the default MCC groups with a pending add action', () => {
+            for (const [groupID, definition] of Object.entries(CONST.POLICY.DEFAULT_MCC_GROUPS)) {
+                expect(DEFAULT_MCC_GROUP[groupID]).toStrictEqual({...definition, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+            }
+        });
+
+        it('buildOptimisticMccGroup returns copies of the default groups so callers cannot mutate the shared constant', () => {
+            const mccGroupData = buildOptimisticMccGroup();
+
+            expect(Object.keys(mccGroupData.optimisticData.mccGroup)).toStrictEqual(Object.keys(DEFAULT_MCC_GROUP));
+
+            for (const groupID of Object.keys(DEFAULT_MCC_GROUP)) {
+                expect(mccGroupData.optimisticData.mccGroup[groupID]).toStrictEqual(DEFAULT_MCC_GROUP[groupID]);
+                expect(mccGroupData.optimisticData.mccGroup[groupID]).not.toBe(DEFAULT_MCC_GROUP[groupID]);
+            }
+
+            expect(mccGroupData.successData.mccGroup).toStrictEqual(Object.fromEntries(Object.keys(DEFAULT_MCC_GROUP).map((groupID) => [groupID, {pendingAction: null}])));
+            expect(mccGroupData.failureData).toStrictEqual({mccGroup: null});
+        });
+
+        it('Category re-exports every builder it no longer defines', () => {
+            expect(buildOptimisticMccGroupFromCategory).toBe(buildOptimisticMccGroup);
+            expect(buildOptimisticPolicyCategoriesFromCategory).toBe(buildOptimisticPolicyCategories);
+            expect(buildOptimisticPolicyWithExistingCategoriesFromCategory).toBe(buildOptimisticPolicyWithExistingCategories);
+            expect(DEFAULT_MCC_GROUP_FROM_CATEGORY).toBe(DEFAULT_MCC_GROUP);
         });
     });
 });
