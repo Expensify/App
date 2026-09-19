@@ -32,10 +32,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {cardByIdSelector} from '@selectors/Card';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type AddCardToDigitalWalletPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET>;
@@ -63,6 +64,9 @@ function AddCardToDigitalWalletPage({
 
     const [isVerifying, setIsVerifying] = useState(false);
     const [submittedRequest, setSubmittedRequest] = useState<SubmittedWalletRequest>();
+
+    const isRequestInFlightRef = useRef(false);
+    const hasError = !isEmptyObject(latestError);
 
     // A deep link and this card's own details page both send no `backTo`, so fall back to that card's details page.
     const goBackToEntryPoint = () => Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID), {compareParams: false});
@@ -102,6 +106,13 @@ function AddCardToDigitalWalletPage({
         return () => clearCardListErrors(currentCardID);
     }, [currentCardID]);
 
+    useEffect(() => {
+        if (!hasError) {
+            return;
+        }
+        isRequestInFlightRef.current = false;
+    }, [hasError]);
+
     const isWaitingForPendingApproval = !isOffline && isCheckingPendingApproval !== false && !hasPendingApproval && !submittedRequest;
 
     if (isWaitingForPendingApproval || (!card && isLoadingOnyxValue(cardMetadata))) {
@@ -113,11 +124,19 @@ function AddCardToDigitalWalletPage({
     }
 
     const denyRequest = () => {
+        if (isRequestInFlightRef.current) {
+            return;
+        }
+        isRequestInFlightRef.current = true;
         setSubmittedRequest({isApproved: false, walletNameKey: currentWalletNameKey});
         approveDigitalWalletCardAddition(card.cardID, false);
     };
 
     const confirmRequest = (validateCode: string) => {
+        if (isRequestInFlightRef.current) {
+            return;
+        }
+        isRequestInFlightRef.current = true;
         setSubmittedRequest({isApproved: true, walletNameKey: currentWalletNameKey});
         approveDigitalWalletCardAddition(card.cardID, true, validateCode);
     };
