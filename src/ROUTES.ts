@@ -5025,6 +5025,26 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/campfire/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/import` as const,
     },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPORT: {
+        route: 'workspaces/:policyID/accounting/campfire/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/campfire/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/campfire/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/campfire/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/company-card-account` as const,
+    },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/prerequisites` as const,
