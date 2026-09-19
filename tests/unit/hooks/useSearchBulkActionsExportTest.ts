@@ -198,6 +198,9 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
+    const constants = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
+    const groupByKey = (groupBy?: string) => (groupBy ?? '').toUpperCase().replace('-', '_') as keyof typeof constants.SEARCH.GROUP_CUSTOM_COLUMNS;
+
     return {
         shouldShowDeleteOption: () => false,
         getSelectedGroupFilterEntry: jest.fn(),
@@ -205,6 +208,8 @@ jest.mock('@libs/SearchUIUtils', () => {
         getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
         getColumnsToShow: jest.fn(() => []),
+        getCustomColumns: jest.fn((groupBy?: string) => Object.values(constants.SEARCH.GROUP_CUSTOM_COLUMNS[groupByKey(groupBy)] ?? {})),
+        getCustomColumnDefault: jest.fn((groupBy?: string) => constants.SEARCH.GROUP_DEFAULT_COLUMNS[groupByKey(groupBy)] ?? []),
         insertColumnBeforeTotalAmount: (columns: string[], columnId: string) => {
             if (columns.includes(columnId)) {
                 return;
@@ -1333,14 +1338,15 @@ describe('useSearchBulkActions - export options', () => {
         });
 
         const expectedColumns: string[] = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE)];
+        const expectedGroupColumns: string[] = CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY;
         const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
         expect(isBasicExport).toBe(false);
         expect(expectedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
-        expect(query).toEqual(expect.objectContaining({columns: expectedColumns}));
+        expect(query).toEqual(expect.objectContaining({columns: expectedColumns, groupColumns: expectedGroupColumns}));
 
         // translate and the column translation key are both mocked as the identity here, so every column
         // carries a label of its own name - what matters is that a label is sent for each one.
-        expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+        expect(columnLabels).toEqual(Object.fromEntries([...expectedColumns, ...expectedGroupColumns].map((column) => [column, column])));
     });
 
     it('exports Violations on a grouped search that filters by submitted-violation even without saved columns', async () => {
@@ -1362,10 +1368,11 @@ describe('useSearchBulkActions - export options', () => {
         const violationsIndex = expectedColumns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
         expectedColumns.splice(violationsIndex, 0, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
 
+        const expectedGroupColumns: string[] = CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM.filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR);
         const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
         expect(isBasicExport).toBe(false);
-        expect(query).toEqual(expect.objectContaining({columns: expectedColumns}));
-        expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+        expect(query).toEqual(expect.objectContaining({columns: expectedColumns, groupColumns: expectedGroupColumns}));
+        expect(columnLabels).toEqual(Object.fromEntries([...expectedColumns, ...expectedGroupColumns].map((column) => [column, column])));
     });
 
     it('exports Violations on a grouped submitted-violation search even when saved columns omit it', async () => {
@@ -1397,6 +1404,34 @@ describe('useSearchBulkActions - export options', () => {
                     CONST.SEARCH.TABLE_COLUMNS.FROM,
                     CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
                 ],
+            }),
+        );
+    });
+
+    it('exports the group columns configured in the view, leaving out the ones it hides', async () => {
+        await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
+            columns: [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.MERCHANT],
+        });
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // The group total is left out of the view, so it is left out of the export too, and the avatar is an icon
+        // with no CSV value.
+        const {query} = getLastCSVExportParameters();
+        expect(query).toEqual(
+            expect.objectContaining({
+                groupColumns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES],
             }),
         );
     });

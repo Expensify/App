@@ -78,6 +78,8 @@ import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
     getColumnsToShow,
+    getCustomColumnDefault,
+    getCustomColumns,
     getSearchColumnTranslationKey,
     getSelectedGroupFilterEntry,
     getValidGroupBy,
@@ -1018,6 +1020,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         (isBasicExport: boolean, queryJSONToExport: SearchQueryJSON | undefined, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>) => {
             const groupBy = getValidGroupBy(queryJSON?.groupBy);
             let columnsToExport: SearchColumnType[];
+            let groupColumnsToExport: SearchColumnType[] = [];
 
             if (groupBy) {
                 const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
@@ -1029,6 +1032,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (queryHasViolationFilter(queryJSON)) {
                     insertColumnBeforeTotalAmount(columnsToExport, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
                 }
+
+                // Group rows have their own configurable columns, so the export follows them the same way
+                // the expense rows follow the type columns. The avatar is an icon with no CSV value.
+                const groupPermittedColumns: string[] = getCustomColumns(groupBy);
+                const groupColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => groupPermittedColumns.includes(column));
+                groupColumnsToExport = (groupColumns.length > 0 ? groupColumns : getCustomColumnDefault(groupBy)).filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR);
             } else {
                 columnsToExport = getColumnsToShow({
                     currentAccountID: accountID,
@@ -1044,14 +1053,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
-            for (const column of columnsToExport) {
+            for (const column of [...columnsToExport, ...groupColumnsToExport]) {
                 exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column));
             }
 
             // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
             // so the export must send it exactly as search() does or the exported set differs from the viewed set.
             const jsonQuery = queryJSONToExport
-                ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport, searchKey: currentSearchKey}, exactMatchFilterKeys)
+                ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport, groupColumns: groupColumnsToExport, searchKey: currentSearchKey}, exactMatchFilterKeys)
                 : (JSON.stringify(queryJSONToExport) ?? '');
 
             return {
