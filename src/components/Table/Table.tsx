@@ -309,7 +309,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         onSortingChange,
     });
     const sortedData = sortMiddleware(searchedData);
-
     const {
         methods: selectionMethods,
         mobileSelectionModalRowKey,

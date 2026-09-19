@@ -38,6 +38,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
+    getEnforcedApprovalWorkflows,
     INITIAL_APPROVAL_WORKFLOW,
 } from '@libs/WorkflowUtils';
 
@@ -221,13 +222,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
 
-    const filteredApprovalWorkflows =
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedModeEnabled
-            ? approvalWorkflows
-            : approvalWorkflows.filter((workflow) => workflow.isDefault);
+    const filteredApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
 
     const everyoneText = translate('workspace.common.everyone');
 
