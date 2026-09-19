@@ -27,6 +27,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 
 import {
     clearApprovalWorkflow,
+    clearApprovalWorkflowFastEdit,
     removeApprovalWorkflow,
     removeApprovalWorkflowRules,
     selectApprovalWorkflowForEdit,
@@ -186,6 +187,13 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // Resume after a sub-page round-trip: keep onyx state to avoid wiping the user's pending edits.
         const isResumingEdit = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
         if (isResumingEdit) {
+            // A draft left over from an abandoned fast edit can match this check (it also seeds EDIT mode with
+            // the same first approver). Once this page owns the draft it is no longer a fast edit, so drop the
+            // flag — otherwise the expenses-from sub-page would save and clear the draft on its own, blanking
+            // this page underneath it and double-writing if the admin then presses Save here.
+            if (approvalWorkflow?.isFastEdit) {
+                clearApprovalWorkflowFastEdit();
+            }
             // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time snapshot guarded by isResumingEdit + early return; runs at most once per mount
             setInitialApprovalWorkflow(currentApprovalWorkflow);
             return;
@@ -210,6 +218,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         route.params.memberEmail,
         approvalWorkflow?.action,
         approvalWorkflow?.originalApprovers,
+        approvalWorkflow?.isFastEdit,
         isLoadingApprovalWorkflow,
     ]);
 

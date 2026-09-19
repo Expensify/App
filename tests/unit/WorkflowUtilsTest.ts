@@ -1045,6 +1045,46 @@ describe('WorkflowUtils', () => {
                 overLimitForwardsTo: 'update',
             });
         });
+
+        it('Should leave a circular approver chain alone when only the members changed', () => {
+            // 1 forwards to 2 and 2 forwards back to 1, so calculateApprovers pushes the repeat before it breaks
+            // and the approvers array arrives as [1, 2, 1]. Rebuilding every entry would let that trailing 1
+            // overwrite the first one's forwardsTo with '', cutting a chain the caller never touched — a member
+            // only edit (e.g. the "+N more" fast edit, which cannot fix an approver) must not do that.
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com', submitsTo: '1@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '1@example.com', submitsTo: '1@example.com'},
+                '3@example.com': {email: '3@example.com', submitsTo: '1@example.com'},
+                '4@example.com': {email: '4@example.com', submitsTo: '1@example.com'},
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(3)],
+                approvers: [
+                    buildApprover(1, {forwardsTo: '2@example.com'}),
+                    buildApprover(2, {forwardsTo: '1@example.com'}),
+                    buildApprover(1, {forwardsTo: '2@example.com', isCircularReference: true}),
+                ],
+                isDefault: false,
+            };
+
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
+                previousEmployeeList,
+                approvalWorkflow,
+                type: 'update',
+                membersToRemove: [buildMember(4)],
+                defaultApprover: '1@example.com',
+            });
+
+            // Before the dedupe, the trailing repeat of 1 overwrote the first entry's forwardsTo with '', so a
+            // member-only edit silently cut the chain. Both approvers keep pointing where they already did.
+            expect(convertedEmployees['1@example.com']?.forwardsTo).toBe('2@example.com');
+            expect(convertedEmployees['2@example.com']?.forwardsTo).toBe('1@example.com');
+            // Neither forwardsTo is reported as changed, so nothing marks it pending either.
+            expect(convertedEmployees['1@example.com']?.pendingFields?.forwardsTo).toBeUndefined();
+            expect(convertedEmployees['2@example.com']?.pendingFields?.forwardsTo).toBeUndefined();
+            // The member change the caller actually made still lands.
+            expect(convertedEmployees['4@example.com']?.submitsTo).toBe('1@example.com');
+        });
     });
 
     describe('updateWorkflowDataOnApproverRemoval', () => {
