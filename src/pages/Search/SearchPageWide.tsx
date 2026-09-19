@@ -13,6 +13,7 @@ import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavi
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
+import usePrevious from '@hooks/usePrevious';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,11 +34,18 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {FadeIn} from 'react-native-reanimated';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
+
+    /** The last query whose results resolved. Drives the results area so it holds the current results while a new query loads. */
+    contentQueryJSON?: SearchQueryJSON;
+
+    /** Results for `contentQueryJSON`. */
+    contentSearchResults: OnyxEntry<SearchResults>;
+
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
@@ -51,6 +59,8 @@ type SearchPageWideProps = {
 function SearchPageWide({
     queryJSON,
     searchResults,
+    contentQueryJSON,
+    contentSearchResults,
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
@@ -58,7 +68,13 @@ function SearchPageWide({
     searchOverlayContent,
     onSearchContentReady,
 }: SearchPageWideProps) {
-    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
+    const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
+
+    // A hash change swaps the content layer while the previous results are still painted, so the incoming layer's
+    // deferred-mount placeholder must not flash a skeleton over them.
+    // The first render has no previous hash, and that mount genuinely has nothing to cover, so it keeps its skeleton.
+    const previousContentHash = usePrevious(contentQueryJSON?.hash);
+    const isReplacingPreviousContent = previousContentHash !== undefined && previousContentHash !== contentQueryJSON?.hash;
     const styles = useThemeStyles();
     const {currentSearchKey} = useSearchQueryContext();
     const {hasSelectedTransactions} = useSearchSelectionContext();
@@ -118,7 +134,7 @@ function SearchPageWide({
                         onBackButtonPress={handleOnBackButtonPress}
                         shouldShowLink={false}
                     >
-                        {!!queryJSON && (
+                        {!!queryJSON && !!contentQueryJSON && (
                             <>
                                 <SearchPageHeaderWide queryJSON={queryJSON} />
                                 <SearchActionsBarWide
@@ -127,21 +143,32 @@ function SearchPageWide({
                                     onSort={onSortPressedCallback}
                                 />
                                 <View style={styles.flex1}>
-                                    {shouldShowLoadingSkeleton ? (
-                                        <SearchLoadingSkeleton />
-                                    ) : (
-                                        <SearchWithNavigationDeferredMount
-                                            key={queryJSON.hash}
-                                            queryJSON={queryJSON}
-                                            searchResults={searchResults}
-                                            handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            onSearchListScroll={scrollHandler}
-                                            onSortPressedCallback={onSortPressedCallback}
-                                            onDestinationVisible={endSubmitNavigationSpans}
-                                            onContentReady={onSearchContentReady}
-                                        />
-                                    )}
+                                    {/* A query change remounts this layer, fading in whatever it shows first so a skeleton never pops
+                                        in at full opacity. The results carry their own fade (see SearchWithNavigationDeferredMount)
+                                        because they hydrate after this layer mounts. Deliberately no reanimated `exiting` anywhere in
+                                        this subtree: on web it fades by detaching and re-inserting the DOM node, throwing
+                                        `NotFoundError: removeChild` and breaking Skia canvases. */}
+                                    <Animated.View
+                                        key={contentQueryJSON.hash}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton />
+                                        ) : (
+                                            <SearchWithNavigationDeferredMount
+                                                isReplacingContent={isReplacingPreviousContent}
+                                                queryJSON={contentQueryJSON}
+                                                searchResults={contentSearchResults}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onSearchListScroll={scrollHandler}
+                                                onSortPressedCallback={onSortPressedCallback}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                            />
+                                        )}
+                                    </Animated.View>
                                     {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
                                     {/* Floats over the bottom of the list, which already ends above SearchSelectionFooter. */}
                                     <SearchBulkActionsBarWide queryJSON={queryJSON} />

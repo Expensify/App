@@ -12,9 +12,16 @@ import CONST from '@src/CONST';
 
 import type {ComponentProps} from 'react';
 
-import React from 'react';
+import React, {useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn} from 'react-native-reanimated';
 
 import Search from './index';
+
+type SearchWithNavigationDeferredMountProps = ComponentProps<typeof Search> & {
+    /** Whether this mount is swapping in over content that is already on screen, rather than filling an empty page. */
+    isReplacingContent?: boolean;
+};
 
 function handleSkeletonLayout() {
     endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
@@ -30,23 +37,40 @@ function handleSkeletonLayout() {
     }
 }
 
-function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>) {
+function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: SearchWithNavigationDeferredMountProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
+
+    // Read once at mount: the placeholder only ever covers this mount's deferral window, so a later prop change must
+    // not un-hide it mid-swap.
+    const [isReplacingContentAtMount] = useState(isReplacingContent);
 
     return (
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                <SearchRowSkeleton
-                    shouldAnimate
-                    onLayout={handleSkeletonLayout}
-                    containerStyle={containerStyle}
-                />
+                // Absolutely filled so it overlays the incoming Search content rather than stacking in the parent's
+                // column layout. When results are already on screen it stays mounted but invisible, so its onLayout
+                // telemetry still fires without flashing a skeleton over content the user can already see.
+                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
+                    <SearchRowSkeleton
+                        shouldAnimate
+                        onLayout={handleSkeletonLayout}
+                        containerStyle={containerStyle}
+                    />
+                </View>
             }
         >
-            <Search {...props} />
+            {/* The fade lives here rather than on the parent layer because NavigationDeferredMount hydrates a frame or
+                more after that layer mounts. Animating the layer would run the fade against the placeholder and leave
+                the results to pop in at full opacity once they finally mount. */}
+            <Animated.View
+                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                style={styles.flex1}
+            >
+                <Search {...props} />
+            </Animated.View>
         </NavigationDeferredMount>
     );
 }

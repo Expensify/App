@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import {StyleSheet, View} from 'react-native';
 
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
@@ -20,10 +20,11 @@ function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
 
     return (
-        <Animated.View
-            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-            exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-            style={[styles.flex1]}
+        // Absolutely filled so it overlays the results layer rather than stacking in the column layout. No reanimated
+        // `exiting` fade: on web that detaches/re-inserts the DOM node and throws `NotFoundError: removeChild`; the
+        // skeleton just unmounts when the results take over.
+        <View
+            style={[styles.flex1, StyleSheet.absoluteFill]}
             onLayout={() => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
                 endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.COLD);
@@ -33,7 +34,7 @@ function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
                 shouldAnimate
                 containerStyle={containerStyle}
             />
-        </Animated.View>
+        </View>
     );
 }
 
