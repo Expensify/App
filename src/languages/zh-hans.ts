@@ -8334,6 +8334,13 @@ ${reportName}`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+            filters: {
+                description: (providerName: string) => `选择要从 ${providerName} 导入的成员。你可以根据职级阶段、标签和办公室进行选择。`,
+                chooseAtLeastOneItem: '请选择至少一个项目以导入',
+                stages: {title: '职位阶段', description: '选择你想与此工作区同步的候选人求职阶段'},
+                tags: {title: '标签', description: '选择要与此工作区同步的候选人标签'},
+                offices: {title: '办公室', description: '选择你想与此工作区同步的候选人办公室'},
+            },
             subtitle: '连接招聘工具并保持候选人审批同步。',
         },
         merge: {

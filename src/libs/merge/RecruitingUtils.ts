@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import MERGE_ATS_PROVIDERS from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {MergeATSProviderSlug} from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+import type {MergeATSConnectionData, MergeATSFilters} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -11,6 +12,9 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import {hasMergeSyncError, isMergeConnected, isMergeSyncDone} from './MergeUtils';
 
 type RecruitingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.RECRUITING_CONNECTION_NAMES>;
+
+/** One of the dimensions candidates can be filtered by when importing them from an ATS. */
+type MergeATSFilterType = ValueOf<typeof CONST.MERGE.ATS_FILTER_TYPE>;
 
 /** Display info for a recruiting (ATS) provider connected to a policy. */
 type RecruitingProviderInfo = {
@@ -55,26 +59,50 @@ function getFilterDimensionLabel(selectedNames: string[] | undefined): string | 
     return formatList(selectedNames);
 }
 
-/** Display label for the tags the admin chose to filter candidates by, or undefined when no tag is selected. Tags are stored as names, so they are used as-is. */
-function getMergeATSTagsLabel(policy: OnyxEntry<Policy>): string | undefined {
-    return getFilterDimensionLabel(policy?.connections?.merge_ats?.config?.filters?.tags);
+/**
+ * The values the ATS currently offers for one filter dimension, paired with the value that is stored in `config.filters`
+ * for each of them. Tags and stages are stored by name, offices by ID.
+ */
+function getMergeATSFilterOptions(filterType: MergeATSFilterType, data: MergeATSConnectionData | undefined) {
+    switch (filterType) {
+        case CONST.MERGE.ATS_FILTER_TYPE.TAGS:
+            return (data?.tags ?? []).map((tag) => ({value: tag, name: tag}));
+        case CONST.MERGE.ATS_FILTER_TYPE.STAGES:
+            return (data?.stages ?? []).map((stage) => ({value: stage.name, name: stage.name}));
+        case CONST.MERGE.ATS_FILTER_TYPE.OFFICES:
+            return (data?.offices ?? []).map((office) => ({value: office.id, name: office.name}));
+        default:
+            return [];
+    }
 }
 
-/** Display label for the stages the admin chose to filter candidates by, or undefined when no stage is selected. Stages are stored as names, so they are used as-is. */
-function getMergeATSStagesLabel(policy: OnyxEntry<Policy>): string | undefined {
-    return getFilterDimensionLabel(policy?.connections?.merge_ats?.config?.filters?.stages);
+function getMergeATSFilterValues(filterType: MergeATSFilterType, data: MergeATSConnectionData | undefined): string[] {
+    switch (filterType) {
+        case CONST.MERGE.ATS_FILTER_TYPE.TAGS:
+            return data?.tags ?? [];
+        case CONST.MERGE.ATS_FILTER_TYPE.STAGES:
+            return (data?.stages ?? []).map((stage) => stage.name);
+        case CONST.MERGE.ATS_FILTER_TYPE.OFFICES:
+            return (data?.offices ?? []).map((office) => office.id);
+        default:
+            return [];
+    }
 }
 
 /**
- * Display label for the offices the admin chose to filter candidates by, or undefined when no office is selected.
- * Offices are stored as IDs, so they are resolved against the office catalog in `data.offices`.
+ * Display label for one dimension of the given filters, or undefined when nothing selected for it resolves to a name.
+ * Offices are stored as IDs, so they are resolved against the office catalog in `data.offices`. Tags and stages are
+ * stored as names and used as-is.
  */
-function getMergeATSOfficesLabel(policy: OnyxEntry<Policy>): string | undefined {
-    const mergeATS = policy?.connections?.merge_ats;
-    const availableOffices = mergeATS?.data?.offices ?? [];
-    const officeNames = (mergeATS?.config?.filters?.offices ?? [])
-        .map((officeID) => availableOffices.find((office) => office.id === officeID)?.name)
-        .filter((name): name is string => !!name);
+function getMergeATSFilterLabel(filterType: MergeATSFilterType, filters: MergeATSFilters | undefined | null, data: MergeATSConnectionData | undefined): string | undefined {
+    const selectedValues = filters?.[filterType];
+
+    if (filterType !== CONST.MERGE.ATS_FILTER_TYPE.OFFICES) {
+        return getFilterDimensionLabel(selectedValues);
+    }
+
+    const availableOffices = data?.offices ?? [];
+    const officeNames = (selectedValues ?? []).map((officeID) => availableOffices.find((office) => office.id === officeID)?.name).filter((name): name is string => !!name);
 
     return getFilterDimensionLabel(officeNames);
 }
@@ -113,12 +141,12 @@ export {
     getConnectedATSProvider,
     getMergeATSApprovalMode,
     getMergeATSApproverField,
-    getMergeATSOfficesLabel,
-    getMergeATSStagesLabel,
-    getMergeATSTagsLabel,
+    getMergeATSFilterLabel,
+    getMergeATSFilterOptions,
+    getMergeATSFilterValues,
     isAnyRecruitingConnected,
     isMergeATSCompleteSetupNeeded,
     shouldShowRecruitingConnectionError,
 };
 
-export type {RecruitingConnectionName};
+export type {MergeATSFilterType, RecruitingConnectionName};

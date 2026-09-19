@@ -7430,6 +7430,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             importSettings: 'Importar ajustes',
             defaultApprover: 'Aprobador predeterminado',
             approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
+            filters: {
+                description: (providerName: string) => `Selecciona qué miembros se importan desde ${providerName}. Puedes elegir entre etapas de trabajo, etiquetas y oficinas.`,
+                chooseAtLeastOneItem: 'Elige al menos un elemento para importar',
+                stages: {title: 'Etapa del trabajo', description: 'Elige la fase del puesto de los candidatos que te gustaría sincronizar con este espacio de trabajo'},
+                tags: {title: 'Etiqueta', description: 'Elige las etiquetas de candidatos que te gustaría sincronizar con este espacio de trabajo'},
+                offices: {title: 'Oficina', description: 'Elige las oficinas de los candidatos que te gustaría sincronizar con este espacio de trabajo'},
+            },
             subtitle: 'Conecta herramientas de selección y mantén sincronizadas las aprobaciones de candidatos.',
         },
         merge: {

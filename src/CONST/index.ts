@@ -3373,6 +3373,11 @@ const CONST = {
             RECRUITER: 'recruiter',
             RECRUITING_COORDINATOR: 'recruitingCoordinator',
         },
+        ATS_FILTER_TYPE: {
+            TAGS: 'tags',
+            STAGES: 'stages',
+            OFFICES: 'offices',
+        },
         CATEGORY: {
             HRIS: 'hris',
             ATS: 'ats',

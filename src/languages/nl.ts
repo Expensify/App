@@ -8644,6 +8644,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+            filters: {
+                description: (providerName: string) => `Selecteer welke leden er vanuit ${providerName} worden geïmporteerd. Je kunt kiezen uit functiestadia, tags en kantoren.`,
+                chooseAtLeastOneItem: 'Kies minstens één item om te importeren',
+                stages: {title: 'Functiestadium', description: 'Kies de sollicitatiefase van kandidaten die je met deze workspace wilt synchroniseren'},
+                tags: {title: 'Label', description: 'Kies de tags van kandidaten die je wilt synchroniseren met deze werkruimte'},
+                offices: {title: 'Kantoor', description: 'Kies de kantoorlocaties van kandidaten die je met deze workspace wilt synchroniseren'},
+            },
             subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
         },
         merge: {

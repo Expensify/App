@@ -8665,6 +8665,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             importSettings: 'Impostazioni di importazione',
             defaultApprover: 'Approvatore predefinito',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
+            filters: {
+                description: (providerName: string) => `Seleziona quali membri importare da ${providerName}. Puoi scegliere in base a fasi di lavoro, tag e uffici.`,
+                chooseAtLeastOneItem: 'Scegli almeno un elemento da importare',
+                stages: {title: 'Fase lavoro', description: 'Scegli la fase di selezione dei candidati che vuoi sincronizzare con questo spazio di lavoro'},
+                tags: {title: 'Tag', description: 'Scegli i tag dei candidati che vuoi sincronizzare con questo spazio di lavoro'},
+                offices: {title: 'Ufficio', description: 'Scegli le sedi dei candidati che vuoi sincronizzare con questo spazio di lavoro'},
+            },
             subtitle: 'Collega gli strumenti di recruiting e mantieni sincronizzate le approvazioni dei candidati.',
         },
         merge: {

@@ -8734,6 +8734,17 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+            filters: {
+                description: (providerName: string) =>
+                    `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir parmi les étapes de poste, les tags et les bureaux.`,
+                chooseAtLeastOneItem: 'Choisissez au moins un élément à importer',
+                stages: {title: 'Étape du poste', description: 'Choisissez l’étape de recrutement des candidats que vous souhaitez synchroniser avec cet espace de travail'},
+                tags: {title: 'Tag', description: 'Choisissez les tags des candidats que vous souhaitez synchroniser avec cet espace de travail'},
+                offices: {
+                    title: 'Bureau',
+                    description: 'Choisissez les bureaux des candidats que vous souhaitez synchroniser avec cet espace de travail',
+                },
+            },
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
         },
         merge: {

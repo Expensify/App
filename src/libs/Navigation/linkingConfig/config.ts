@@ -1761,6 +1761,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.POLICY_COPY_SETTINGS.CONFIRM]: ROUTES.POLICY_COPY_SETTINGS_CONFIRM.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS]: {
+                    screens: {
+                        [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.ROOT]: ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS.route,
+                        [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER]: ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                     screens: {
                         [SCREENS.NEW_TASK.DYNAMIC_ROOT]: DYNAMIC_ROUTES.NEW_TASK.path,
