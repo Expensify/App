@@ -9,6 +9,7 @@ import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -140,12 +141,15 @@ describe('IOURequestStartPage manual tab content', () => {
 
         /** The flow the page is started for - this is what decides whether tabs are rendered. */
         iouType?: IOUType;
+
+        /** Initial transaction draft properties (e.g. isAmountSet, amount) */
+        transactionDraft?: Partial<Transaction>;
     };
 
     /**
      * Seeds the manual tab selection and a draft transaction of the given request type, then renders the page.
      */
-    async function renderStartPage({iouRequestType, iouType = CONST.IOU.TYPE.SUBMIT}: RenderStartPageOptions) {
+    async function renderStartPage({iouRequestType, iouType = CONST.IOU.TYPE.SUBMIT, transactionDraft}: RenderStartPageOptions) {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
@@ -154,6 +158,7 @@ describe('IOURequestStartPage manual tab content', () => {
                 // Matching the route's reportID keeps useResetIOUType's focus effect from rebuilding the draft,
                 // so the draft stays in the "not reset yet" state this test is about.
                 reportID: REPORT_ID,
+                ...transactionDraft,
             });
         });
 
@@ -258,6 +263,37 @@ describe('IOURequestStartPage manual tab content', () => {
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {isAmountSet: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+    });
+
+    it('retains the discard guard on manual tab when mounting with a pre-existing draft amount (e.g. after page reload)', async () => {
+        await renderStartPage({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            transactionDraft: {isAmountSet: true, amount: 1200},
+        });
+
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+    });
+
+    it('keeps the discard guard clean on pay flow mount when pre-populated with an initial amount, but triggers when amount changes', async () => {
+        await renderStartPage({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            iouType: CONST.IOU.TYPE.PAY,
+            transactionDraft: {isAmountSet: true, amount: 5000},
+        });
+
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 4000});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 5000});
         });
         await waitForBatchedUpdatesWithAct();
         expect(mockGetHasUnsavedChanges?.()).toBe(false);
