@@ -15,7 +15,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 
 type WorkspaceMemberRoleCellProps = {
-    role: string | undefined;
+    role: ValueOf<typeof CONST.POLICY.ROLE> | undefined;
     policy: OnyxEntry<Policy>;
     memberLogin: string;
     canEdit?: boolean;
@@ -26,9 +26,10 @@ function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: W
     const {translate} = useLocalize();
     const roleLabel = translate('workspace.common.roleName', role);
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: role,
+        onSave,
     });
 
     const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
@@ -48,12 +49,7 @@ function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: W
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
                     shouldMeasureAnchorPositionFromTop={!isInverted}
-                    onSelected={(selectedRole) => {
-                        if (selectedRole !== role) {
-                            onSave?.(selectedRole);
-                        }
-                        cancelEditing();
-                    }}
+                    onSelected={handleSave}
                 />
             }
         >

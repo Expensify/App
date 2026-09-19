@@ -419,10 +419,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const data: WorkspaceMemberRowData[] = useMemo(() => {
         const ownerDisplayRole = isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.OWNER;
         const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
+        const policyRoles = Object.values(CONST.POLICY.ROLE);
 
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
-            const role = policy?.owner === details.login ? ownerDisplayRole : policyEmployee.role;
+            const employeeRole = policyRoles.find((policyRole) => policyRole === policyEmployee.role);
+            const role = policy?.owner === details.login ? ownerDisplayRole : employeeRole;
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);

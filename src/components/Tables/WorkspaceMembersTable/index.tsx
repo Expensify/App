@@ -27,7 +27,7 @@ type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customFie
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    role?: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
     name: string;
