@@ -49,7 +49,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import {getQuickbooksOnlineIntegrationName} from './AccountingUtils';
+import {getQuickbooksOnlineIntegrationName, isQBORefreshTokenExpiringSoon} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
@@ -639,6 +639,11 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
  * Returns whether the Merge HR setup still needs to be completed for a policy.
  */
 const isMergeHRCompleteSetupNeededSelector = (policy: OnyxEntry<Policy>) => isMergeHRCompleteSetupNeeded(policy);
+
+/**
+ * Returns whether an admin should be warned that the workspace's QuickBooks Online connection is about to expire.
+ */
+const isQBORefreshTokenExpiringSoonSelector = (policy: OnyxEntry<Policy>) => isPolicyAdmin(policy) && isQBORefreshTokenExpiringSoon(policy);
 
 function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string, shouldCheckGlobalPolicyRole = true): string | undefined {
     if (shouldCheckGlobalPolicyRole && policy?.role) {
@@ -3724,6 +3729,7 @@ export {
     hasAnyPaidPolicy,
     isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
+    isQBORefreshTokenExpiringSoonSelector,
 };
 
 export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

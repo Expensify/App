@@ -77,6 +77,7 @@ import {
     isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
+    isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
     isPolicyMemberWithoutPendingDelete,
@@ -5253,6 +5254,28 @@ describe('PolicyUtils', () => {
         it('returns only Expensify emails when the employee list is undefined', () => {
             const result = getExcludedUsers(undefined);
             expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
+        });
+    });
+
+    describe('isQBORefreshTokenExpiringSoonSelector', () => {
+        const buildQBOPolicy = (role: string, refreshTokenExpiresAt: number): Policy =>
+            Object.assign(createRandomPolicy(1), {
+                role,
+                connections: {quickbooksOnline: {config: {credentials: {companyID: '12345', refreshTokenExpiresAt}}, lastSync: {isAuthenticationError: false}}},
+            });
+        const expiringSoon = Math.floor(Date.now() / 1000) + 3 * 86400;
+
+        it('returns true for an admin whose QBO refresh token expires within the warning window', () => {
+            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, expiringSoon))).toBe(true);
+        });
+
+        it('returns false for a member, since only admins can reconnect', () => {
+            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.USER, expiringSoon))).toBe(false);
+        });
+
+        it('returns false when the token is still far from expiring or the policy is undefined', () => {
+            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, Math.floor(Date.now() / 1000) + 60 * 86400))).toBe(false);
+            expect(isQBORefreshTokenExpiringSoonSelector(undefined)).toBe(false);
         });
     });
 

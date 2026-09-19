@@ -4904,6 +4904,12 @@ const CONST = {
                 BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+            /** How many days before a QuickBooks Online refresh token expires the workspace starts warning admins to reconnect */
+            QBO_REFRESH_TOKEN_EXPIRY_WARNING_DAYS: 7,
+            QBO_REFRESH_TOKEN_EXPIRY_STATUS: {
+                EXPIRING_SOON: 'expiringSoon',
+                EXPIRED: 'expired',
+            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',

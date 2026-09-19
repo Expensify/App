@@ -7368,6 +7368,8 @@ const translations = {
             reconnect: 'Reconnect',
             enterCredentials: 'Enter your credentials',
             updateCredentials: 'Update credentials',
+            qboConnectionExpiring: ({date}: {date: string}) => `Your QuickBooks Online connection expires on ${date}.`,
+            qboConnectionExpired: ({date}: {date: string}) => `Your QuickBooks Online connection expired on ${date}.`,
             claimOffer: {
                 badgeText: 'Offer available!',
                 xero: {
