@@ -37,6 +37,8 @@ const anchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
+const TOOLTIP_HORIZONTAL_MARGIN = 48;
+
 function InboxTabSelector() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -145,7 +147,7 @@ function InboxTabSelector() {
                 shiftVertical: 8,
                 wrapperStyle: styles.productTrainingTooltipWrapper,
                 computeHorizontalShiftForNative: true,
-                maxWidth: windowWidth - 48,
+                maxWidth: windowWidth - TOOLTIP_HORIZONTAL_MARGIN,
             },
         },
         {
