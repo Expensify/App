@@ -1,10 +1,13 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 
 import {getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -49,15 +52,22 @@ function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, 
     };
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon
-            title={value ? getTaxValueWithPercentage(value) : ''}
-            description={translate('workspace.taxes.value')}
-            onPress={handlePress}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            rightLabel={rightLabel}
-            errorText={errorText}
-        />
+        <MenuItem.Root onPress={callFunctionIfActionIsAllowed(handlePress)}>
+            <MenuItemField.Row
+                name={translate('workspace.taxes.value')}
+                value={value ? getTaxValueWithPercentage(value) : ''}
+            >
+                {!!rightLabel && <MenuItem.RightLabel>{rightLabel}</MenuItem.RightLabel>}
+                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

@@ -483,6 +483,56 @@ function Comparison() {
             />
 
             <Card
+                title="brickRoadIndicator, description, errorText, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Country"
+                        title="United States"
+                        shouldShowRightIcon
+                        onPress={noop}
+                        brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                        errorText="Please select a country"
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItemField.Row
+                            name="Country"
+                            value="United States"
+                        >
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        <MenuItem.HelpText
+                            isError
+                            message="Please select a country"
+                        />
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, hintText, non-interactive, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Limit type"
+                        title="Smart limit"
+                        interactive={false}
+                        hintText="Resets every month"
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItemField.Row
+                            name="Limit type"
+                            value="Smart limit"
+                        />
+                        <MenuItem.HelpText message="Resets every month" />
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
                 title="description, non-interactive, title"
                 legacy={
                     <MenuItemWithTopDescription
