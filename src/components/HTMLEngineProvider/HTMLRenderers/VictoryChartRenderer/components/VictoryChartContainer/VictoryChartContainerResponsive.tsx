@@ -48,15 +48,17 @@ function VictoryChartContainerResponsive({children}: {children: React.ReactNode}
 
     return (
         <View
-            style={styles.mw100}
+            style={styles.w100}
             onLayout={handleLayout}
         >
-            <VictoryChartContainerFixed
-                layout={layout}
-                themeStyles={themeStyles}
-            >
-                {children}
-            </VictoryChartContainerFixed>
+            {containerWidth > 0 && (
+                <VictoryChartContainerFixed
+                    layout={layout}
+                    themeStyles={themeStyles}
+                >
+                    {children}
+                </VictoryChartContainerFixed>
+            )}
         </View>
     );
 }

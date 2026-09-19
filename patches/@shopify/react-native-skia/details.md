@@ -134,3 +134,29 @@
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976, fixed by https://github.com/Shopify/react-native-skia/pull/4002 (merged 2026-09-02, not in any release as of 2026-09-16; the latest is 2.11.2 and 2.12.0-next.1 does not carry it either). Its dispose() applies the same isConnected guard (deferred by a microtask, since its caller is a layout effect) and adds context-restore handling, but it also zeroes the canvas size on cleanup, so a hidden Activity screen would show a blank chart in the backdrop. When the Skia dependency is bumped past that merge, either accept the blank backdrop and drop this patch or replace it with a patch that only removes the size reset.
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/100714
+
+### [@shopify+react-native-skia+2.4.18+005+size-backing-store-to-painted-size.patch](@shopify+react-native-skia+2.4.18+005+size-backing-store-to-painted-size.patch)
+
+- Reason:
+
+    ```
+    Fixes soft/blurry text inside charts on web. WebGLRenderer sizes its backing store
+    from canvas.clientWidth * devicePixelRatio, which is the canvas's layout size. Charts
+    are laid out at their authored design size (680px wide for every summary chart) and
+    painted through a CSS transform that fits them to the chat column or to the expand
+    modal, and clientWidth does not report that transform. So the surface is rasterised
+    for the design box and the browser resamples it onto a differently sized area: on a
+    1440px window an expanded chart is a 1360px backing store painted across 1955 device
+    pixels, and a chat column narrower than 680px paints the same 1360 across 1032 to
+    1162. Either way the glyphs are a resampled bitmap while the surrounding chat text is
+    rasterised at device resolution, which is the visible sharpness gap.
+
+    Fix: derive the pixel ratio from getBoundingClientRect().width / clientWidth, which is
+    exactly the accumulated CSS transform scale, and use it both for the backing store and
+    for the canvas.scale() applied before drawing the picture. Untransformed canvases keep
+    the previous ratio, so nothing else changes.
+    ```
+
+- Upstream PR/issue:
+- E/App issue: https://github.com/Expensify/App/issues/95221
+- PR introducing patch:
