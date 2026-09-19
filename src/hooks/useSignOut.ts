@@ -31,7 +31,11 @@ type SignOutOptions = {
     shouldAlwaysConfirm?: boolean;
 };
 
-/** Onyx has no promise-based read. */
+/**
+ * Onyx has no promise-based read. GPS points are only needed after the user confirms leaving a delegated
+ * account during an active trip (async post-modal callback), so useOnyx cannot supply them without
+ * subscribing to the full GPS_DRAFT_DETAILS object and re-rendering Settings on every location tick.
+ */
 function readOnce<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<TKey>> {
     return new Promise((resolve) => {
         const connection = Onyx.connectWithoutView({

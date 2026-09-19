@@ -14,9 +14,11 @@ import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
+import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 
 // eslint-disable-next-line no-restricted-imports -- Type-only namespace import used to type jest.requireActual for the react-native-onyx mock.
 import type * as ReactNativeOnyx from 'react-native-onyx';
+import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -24,6 +26,13 @@ const mockShowConfirmModal = jest.fn();
 const mockTranslate = jest.fn((key: string) => key);
 
 let mockIsOffline = false;
+
+const mockOnyxConnection = {id: 'mock-connection', callbackID: 'mock-callback-id'};
+
+function mockConnectWithoutViewImplementation(connectOptions: ConnectOptions<OnyxKey>) {
+    connectOptions.callback?.(undefined, connectOptions.key);
+    return mockOnyxConnection;
+}
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
@@ -52,10 +61,7 @@ jest.mock('react-native-onyx', () => {
         __esModule: true,
         default: {
             ...actual.default,
-            connectWithoutView: jest.fn(({callback}: {callback: (value: unknown) => void}) => {
-                callback(undefined);
-                return 'mock-connection';
-            }),
+            connectWithoutView: jest.fn(mockConnectWithoutViewImplementation),
             disconnect: jest.fn(),
         },
     };
@@ -140,10 +146,7 @@ describe('useSignOut', () => {
         jest.clearAllMocks();
         mockIsOffline = false;
         mockOnyxState();
-        mockConnectWithoutView.mockImplementation(({callback}: {callback: (value: unknown) => void}) => {
-            callback({});
-            return 'mock-connection';
-        });
+        mockConnectWithoutView.mockImplementation(mockConnectWithoutViewImplementation);
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
     });
 
@@ -241,11 +244,20 @@ describe('useSignOut', () => {
     it('should show GPS switch-account warning before disconnecting from a delegated account', async () => {
         // Given a copilot is leaving while a GPS trip is in progress
         mockOnyxState({isActingAsDelegate: true, isTrackingGPS: true});
-        mockConnectWithoutView.mockImplementation(({key, callback}: {key: string; callback: (value: unknown) => void}) => {
-            if (key === ONYXKEYS.GPS_DRAFT_DETAILS) {
-                callback({points: [{latitude: 1, longitude: 2}]});
+        mockConnectWithoutView.mockImplementation((connectOptions) => {
+            if (connectOptions.key === ONYXKEYS.GPS_DRAFT_DETAILS) {
+                const gpsDraftDetails: GpsDraftDetails = {
+                    gpsPoints: [[{lat: 1, long: 2}]],
+                    distanceInMeters: 0,
+                    isTracking: true,
+                    reportID: '1',
+                    unit: 'mi',
+                };
+                connectOptions.callback?.(gpsDraftDetails, connectOptions.key);
+            } else {
+                connectOptions.callback?.(undefined, connectOptions.key);
             }
-            return 'mock-connection';
+            return mockOnyxConnection;
         });
 
         const {result} = renderHook(() => useSignOut());
