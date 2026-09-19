@@ -1,6 +1,12 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
+import type {PolicyTags} from '@src/types/onyx';
 
 import {Str} from 'expensify-common';
+
+import {escapeTagName} from './PolicyUtils';
+import StringUtils from './StringUtils';
 
 /**
  * Checks if a tag value is missing/empty
@@ -29,4 +35,56 @@ function getDecodedTagName(tagName: string): string {
     return Str.htmlDecode(tagName);
 }
 
-export {isTagMissing, trimTag, getDecodedTagName};
+/** The reason a proposed tag name is invalid. Callers translate it via `getTagNameErrorMessage`. */
+type TagNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
+
+/**
+ * Validates a tag name against every rule (required, reserved, unique, length). This is the single
+ * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
+ * `currentName` (the decoded display name) when editing so renaming a tag to its own name isn't flagged
+ * as a duplicate. Uniqueness also matches HTML-encoded stored names such as `R&amp;D` vs `R&D`.
+ * Returns an error code, or undefined when the name is valid.
+ */
+function getTagNameError(tags: PolicyTags | undefined, newName: string, currentName?: string): TagNameError | undefined {
+    const sanitized = StringUtils.sanitizeName(newName);
+
+    if (StringUtils.isEmptyString(sanitized)) {
+        return 'required';
+    }
+
+    // Tags are stored under their escaped name, so escape before both the reserved-name and uniqueness checks.
+    const escaped = escapeTagName(sanitized);
+
+    if (escaped === '0') {
+        return 'invalid';
+    }
+
+    // Tag keys may be HTML-encoded, so uniqueness compares decoded names as well as the escaped storage key.
+    if (sanitized !== currentName && (tags?.[escaped] || Object.keys(tags ?? {}).some((name) => getDecodedTagName(name) === sanitized))) {
+        return 'existing';
+    }
+
+    // Spread to count Unicode code points rather than UTF-16 code units.
+    if ([...sanitized].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+        return 'tooLong';
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link TagNameError} into a user-facing message for the given name. */
+function getTagNameErrorMessage(translate: LocaleContextProps['translate'], error: TagNameError, name: string): string {
+    switch (error) {
+        case 'required':
+            return translate('workspace.tags.tagRequiredError');
+        case 'existing':
+            return translate('workspace.tags.existingTagError');
+        case 'invalid':
+            return translate('workspace.tags.invalidTagNameError');
+        case 'tooLong':
+        default:
+            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH);
+    }
+}
+
+export {isTagMissing, trimTag, getDecodedTagName, getTagNameError, getTagNameErrorMessage};

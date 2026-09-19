@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useInlineEditState from '@components/TransactionItemRow/EditableCell/useInlineEditState';
-import usePopoverEditState from '@components/TransactionItemRow/EditableCell/usePopoverEditState';
+import useInlineEditState from '@components/EditableCell/useInlineEditState';
+import usePopoverEditState from '@components/EditableCell/usePopoverEditState';
 
 type InlineHookParameters = Parameters<typeof useInlineEditState<string>>;
 

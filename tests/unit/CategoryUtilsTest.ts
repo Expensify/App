@@ -3,6 +3,7 @@ import {
     getAvailableNonPersonalPolicyCategories,
     getCategoryDefaultTaxRate,
     getCategoryGLCode,
+    getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
     hasAnyCategoryRules,
@@ -471,6 +472,28 @@ describe('getCategoryGLCode', () => {
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+});
+
+describe('getCategoryNameError', () => {
+    const encodedFoodAndDrink = 'Food &amp; Drink';
+    const categories: PolicyCategories = {
+        Food: {name: 'Food', enabled: true, pendingAction: null},
+        [encodedFoodAndDrink]: {name: encodedFoodAndDrink, enabled: true, pendingAction: null},
+    };
+
+    it('does not flag an HTML-encoded category as a duplicate of its decoded name', () => {
+        expect(getCategoryNameError(categories, 'Food & Drink', encodedFoodAndDrink)).toBeUndefined();
+    });
+
+    it('flags a decoded name that already exists as an encoded category', () => {
+        expect(getCategoryNameError(categories, 'Food & Drink')).toBe('existing');
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food')).toBe('existing');
+    });
+
+    it('still flags an exact-key duplicate', () => {
+        expect(getCategoryNameError(categories, 'Food')).toBe('existing');
+        expect(getCategoryNameError(categories, 'Food', 'Food')).toBeUndefined();
     });
 });
 

@@ -32,9 +32,11 @@ type WorkspaceCategoryTableRowData = TableData & {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     isLocked: boolean;
+    canEditName: boolean;
     action: () => void;
     dismissError: () => void;
     onToggleEnabled: (enabled: boolean) => void;
+    onRenameName: (newName: string) => void;
 };
 
 type WorkspaceCategoriesTableProps = {

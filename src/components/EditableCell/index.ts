@@ -1,4 +1,5 @@
 export {default as EditableCell} from './EditableCell';
+export {default as InlineTextEditCell} from './InlineTextEditCell';
 export {default as EditingCellProvider} from './EditingCellContext';
 export {useEditingCellState} from './EditingCellContext';
 export {default as useInlineEditState} from './useInlineEditState';
