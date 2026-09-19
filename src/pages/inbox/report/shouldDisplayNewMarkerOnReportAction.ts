@@ -217,6 +217,9 @@ const getUnreadMarkerReportAction = ({
         ? visibleReportActions.some((action) => action.reportActionID === prevUnreadMarkerReportActionID && !shouldHideNewMarker(action, isOffline))
         : false;
 
+    const canActionTriggerMarker = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction =>
+        !!action && (isReversed || action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(action, currentUserAccountID);
+
     const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
     const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
     const step = isReversed ? -1 : 1;
@@ -224,7 +227,7 @@ const getUnreadMarkerReportAction = ({
     for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
         const reportAction = visibleReportActions.at(index);
 
-        if (!reportAction || reportAction.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID || !canReportActionTriggerUnreadMarker(reportAction, currentUserAccountID)) {
+        if (!canActionTriggerMarker(reportAction)) {
             continue;
         }
 
@@ -232,7 +235,7 @@ const getUnreadMarkerReportAction = ({
         const nextActionStep = isReversed ? -1 : 1;
         for (let nextIndex = index + nextActionStep; nextIndex >= 0 && nextIndex < visibleReportActions.length; nextIndex += nextActionStep) {
             const candidate = visibleReportActions.at(nextIndex);
-            if (candidate && candidate.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID && canReportActionTriggerUnreadMarker(candidate, currentUserAccountID)) {
+            if (canActionTriggerMarker(candidate)) {
                 nextAction = candidate;
                 break;
             }

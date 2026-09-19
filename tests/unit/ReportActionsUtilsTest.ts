@@ -6838,6 +6838,17 @@ describe('ReportActionsUtils', () => {
             ).toEqual(['unread-newer', 1]);
         });
 
+        it('preserves the concierge greeting as a marker candidate when isReversed is true', () => {
+            const visibleReportActions = [makeAction({reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID}), makeAction({reportActionID: 'unread-newer', created: '2023-01-01 12:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isReversed: true,
+                }),
+            ).toEqual([CONST.CONCIERGE_GREETING_ACTION_ID, 0]);
+        });
+
         it("clears the marker entirely when the only unread action is the current user's own new message", () => {
             const ownNew = makeAction({reportActionID: 'own-new', actorAccountID: currentUserAccountID});
             const olderRead = makeAction({reportActionID: 'older-read', created: '2023-01-01 09:00:00.000'});
