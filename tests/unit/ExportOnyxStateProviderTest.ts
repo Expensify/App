@@ -18,7 +18,7 @@ describe('Onyx state export', () => {
         const exportState = jest.spyOn(Onyx, 'exportState').mockResolvedValueOnce(state);
 
         await expect(readOnyxState()).resolves.toBe(state);
-        expect(exportState).toHaveBeenCalledWith({includeStaleRamOnlyKeys: true});
+        expect(exportState).toHaveBeenCalledWith();
     });
 
     it('propagates storage errors', async () => {
