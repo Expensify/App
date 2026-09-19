@@ -3,6 +3,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +19,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import React, {useMemo, useState} from 'react';
 
@@ -103,6 +105,9 @@ function TagPicker({
     const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
+    // Backfill the policy's tags on demand so lazy-loaded accounts don't get stuck showing only the selected tag.
+    const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
+
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
     const selectedOptions = getSelectedOptions(selectedTag);
@@ -172,6 +177,10 @@ function TagPicker({
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
+    // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
+    // fallback. Orphaned tags passed in by the caller are a complete local list, so they render immediately.
+    const isLoadingNewOptions = isLoadingPolicyTags && !additionalTagsToInclude?.length;
+
     const textInputOptions = {
         value: searchValue,
         onChangeText: setSearchValue,
@@ -184,7 +193,9 @@ function TagPicker({
 
     return (
         <SelectionListWithSections
-            sections={sections}
+            // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
+            // Otherwise the selected-only fallback row still shows while the fetch is in flight.
+            sections={isLoadingNewOptions ? getEmptyArray<never>() : sections}
             ListItem={SingleSelectListItem}
             style={{
                 sectionTitleStyles: styles.mt5,
@@ -192,6 +203,8 @@ function TagPicker({
             }}
             textInputOptions={textInputOptions}
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowLoadingPlaceholder={isLoadingNewOptions}
+            isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
