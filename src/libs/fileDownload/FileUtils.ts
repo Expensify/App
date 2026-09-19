@@ -159,6 +159,14 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
     return {fileName: splitFileName.join('.'), fileExtension: fileExtension ?? ''};
 };
 
+function getDownloadFileName(displayName: string, source: string): string {
+    const sourceExtension = splitExtensionFromFileName(getFileName(source)).fileExtension;
+    if (!displayName || !sourceExtension || displayName.toLowerCase().endsWith(`.${sourceExtension.toLowerCase()}`)) {
+        return displayName;
+    }
+    return `${displayName}.${sourceExtension}`;
+}
+
 /**
  * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
  * Falls back to `defaultFileName` only when the URI has no extension either, as with Android's `content://` URIs.
@@ -963,6 +971,7 @@ export {
     splitExtensionFromFileName,
     getMimeType,
     getFileName,
+    getDownloadFileName,
     getFileNameWithFallback,
     getFileType,
     cleanFileName,
