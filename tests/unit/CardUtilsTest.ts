@@ -76,6 +76,7 @@ import {
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
+    isPersonalCardBrokenConnection,
     isTravelCardTransaction,
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
@@ -4453,6 +4454,24 @@ describe('CardUtils', () => {
         it('returns false for an ignored scrape status even when the last sync is long past the threshold', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+    });
+
+    describe('isPersonalCardBrokenConnection', () => {
+        it('returns true for account-not-found, which is actionable for personal cards but ignored for company feed health', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS};
+
+            expect(isPersonalCardBrokenConnection(card)).toBe(true);
+        });
+
+        it('returns false while a personal-card sync is pending', () => {
+            const card: Card = {
+                ...createRandomCard(1),
+                lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS,
+                pendingFields: {lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            };
+
+            expect(isPersonalCardBrokenConnection(card)).toBe(false);
         });
     });
 

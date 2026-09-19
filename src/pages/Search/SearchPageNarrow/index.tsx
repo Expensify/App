@@ -146,7 +146,7 @@ function SearchPageNarrow({
         [hasFilterBars, windowHeight],
     );
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
