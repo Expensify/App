@@ -454,12 +454,23 @@ function ReportFetchHandler() {
     // fetch leaves a stale `false` that can make ReportNotFoundGuard show "not here" before the fetch below
     // re-runs. When opening a report whose actions were never successfully loaded, mark it as loading again so
     // the guard waits for the real fetch result instead of trusting the leaked flag. See issue #92920.
+    // `hasOnceLoadedReportActions` is memory-only too, so "Clear cache and restart" drops it underneath an
+    // already-mounted report screen, and the fetch effect below only re-runs on a route change. Re-arming the
+    // loading flag on its own would advertise a load that is never issued, pinning every consumer of the flag
+    // (e.g. the report preview carousel) on a spinner forever - so re-fetch here as well, and the flag settles
+    // again whichever way the fetch resolves. Duplicate OpenReport calls are collapsed by
+    // resolveOpenReportDuplicationConflictAction. See issue #100524.
     useEffect(() => {
         if (reportLoadingState.hasOnceLoadedReportActions) {
             return;
         }
         updateLoadingInitialReportAction(reportIDFromRoute, true);
-    }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
+
+        if (!isFocused || isOffline) {
+            return;
+        }
+        fetchReport();
+    }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions, isFocused, isOffline]);
 
     // isLoadingInitialReportActions only clears via OpenReport's success/failure Onyx update (no client timeout), so
     // a reconciliation stall that pauses the queue before that response arrives leaves the skeleton stuck with
