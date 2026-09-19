@@ -187,7 +187,7 @@ The pencil **Edit** icon does not appear on a very short trip, such as one you s
 
 ## What happens if I tap **Stop** without moving?
 
-The trip stays on screen with a distance of 0.00, your current address shown under both **Start** and **Stop**, and the **Resume** and **Save** buttons available. Tap **Resume** to keep recording from where you are, or tap the trash icon next to the distance counter and confirm to discard the trip.
+The trip stays on screen with a distance of 0.00, your current location shown under both **Start** and **Stop**, and the **Resume** and **Save** buttons available. Tap **Resume** to keep recording from where you are, or tap the trash icon next to the distance counter and confirm to discard the trip.
 
 A trip with a distance of 0.00 can't be turned into an expense. Tapping **Save** shows a **Can't create expense** message. Tap **Got it** to go back to the trip, then resume or discard it.
 
