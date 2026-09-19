@@ -13,6 +13,7 @@ import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCa
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
 import sortedReportActionsConfig from './configs/sortedReportActions';
+import spendDataSignatureConfig from './configs/spendDataSignature';
 import visibleReportActionsConfig from './configs/visibleReportActions';
 
 /**
@@ -30,6 +31,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: loginToAccountIDMapConfig,
     [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: guideAccountIDsConfig,
+    [ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE]: spendDataSignatureConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;

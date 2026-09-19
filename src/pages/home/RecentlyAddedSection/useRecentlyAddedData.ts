@@ -2,6 +2,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -10,13 +11,13 @@ import {getAmount, getCreated, getCurrency, getMerchantName, getTransactionPendi
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 
 /** A single expense row surfaced by the Recently added slot. */
 type RecentlyAddedExpense = {
@@ -98,7 +99,6 @@ function useRecentlyAddedData(): RecentlyAddedData {
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
 
     const query = useMemo(
         () =>
@@ -125,7 +125,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
     // keeps it suppressed until the snapshot catches up.
     const [deletedTransactionIDs, setDeletedTransactionIDs] = useState(() => new Set<string>());
 
-    const fireSearch = useEffectEvent(() => {
+    const fireSearch = () => {
         if (isOffline || !queryJSON) {
             return;
         }
@@ -139,14 +139,9 @@ function useRecentlyAddedData(): RecentlyAddedData {
             // The query only filters on the current accountID, which is available before OpenApp responds. Don't sit behind it.
             skipWaitForWrites: true,
         });
-    });
+    };
 
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-        fireSearch();
-    }, [isFocused, isOffline, hash]);
+    useTabFocusedRefresh(SCREENS.HOME, [hash, isOffline].join('|'), fireSearch);
 
     const snapshotData = searchResults?.data;
 

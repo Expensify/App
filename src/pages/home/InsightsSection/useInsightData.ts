@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
@@ -12,13 +13,11 @@ import {getSections, getSortedSections, isGroupedItemArray, isSearchDataLoaded} 
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent} from 'react';
 
 const INSIGHT_STATE = {
     OFFLINE: 'offline',
@@ -69,7 +68,8 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
+    // The chart is built from a snapshot that no update patches, so an expense change has to move the key.
+    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     const retry = () => {
         // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
@@ -88,16 +88,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
         });
     };
 
-    const onConfigChanged = useEffectEvent(() => {
-        retry();
-    });
-
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-        onConfigChanged();
-    }, [queryJSON?.hash, isOffline, isFocused]);
+    useTabFocusedRefresh(SCREENS.HOME, [queryJSON?.hash, isOffline, spendDataSignature?.expenses ?? 0].join('|'), retry);
 
     const sortedSections =
         searchResults?.data && queryJSON && groupBy && login

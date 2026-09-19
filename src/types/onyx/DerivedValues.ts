@@ -218,6 +218,17 @@ type LoginToAccountIDMapDerivedValue = Record<string, number>;
  */
 type GuideAccountIDsDerivedValue = number[];
 
+/**
+ * Counters that move when spend data changes, used by the Home cards to know a refetch is owed.
+ */
+type SpendDataSignatureDerivedValue = {
+    /** Moves on every change to any expense */
+    expenses: number;
+
+    /** Moves only on changes to expenses charged to one of the user's cards */
+    cardExpenses: number;
+};
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -231,6 +242,7 @@ export type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

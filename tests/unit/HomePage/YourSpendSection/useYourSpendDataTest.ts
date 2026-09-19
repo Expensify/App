@@ -17,6 +17,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsTabFocused from '@hooks/useIsTabFocused';
 import useNetwork from '@hooks/useNetwork';
 
 import {search} from '@libs/actions/Search';
@@ -37,6 +38,8 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
 
 import createMock from '../../../utils/createMock';
 
@@ -81,6 +84,13 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: () => ({}),
 }));
 
+// Mandatory: the real hook reads the root navigation state, which is never ready under Jest, so it
+// would report "not focused" and the searches would silently never fire.
+jest.mock('@hooks/useIsTabFocused', () => ({
+    __esModule: true,
+    default: jest.fn(() => true),
+}));
+
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
 }));
@@ -109,6 +119,8 @@ jest.mock('@libs/PolicyUtils', () => ({
 // Typed references to mocked modules
 
 const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedUseIsTabFocused = jest.mocked(useIsTabFocused);
+const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockedSearch = jest.mocked(search);
 const mockedGetDisplayableExpensifyCards = jest.mocked(getDisplayableExpensifyCards);
@@ -263,6 +275,8 @@ beforeEach(() => {
     }
     mockUseOnyx.mockClear();
     mockedSearch.mockClear();
+    mockedUseIsTabFocused.mockReturnValue(true);
+    mockedUseIsFocused.mockReturnValue(true);
 
     mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY);
     mockedBuildRepaidLast30DaysQuery.mockReturnValue(PAYMENT_QUERY);
@@ -543,6 +557,23 @@ describe('useYourSpendData — search dispatch', () => {
         );
     });
 
+    it('does not replay the set when an RHP opens and closes over Home', () => {
+        // Given Home has already fired its searches
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const callsAfterFirstRender = mockedSearch.mock.calls.length;
+        expect(callsAfterFirstRender).toBeGreaterThan(0);
+
+        // When an RHP is pushed over Home and popped again, leaving the Home tab active throughout
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then closing it does not refetch a set the account already has
+        expect(mockedSearch).toHaveBeenCalledTimes(callsAfterFirstRender);
+    });
+
     it('does not dispatch search() when offline', () => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         mockedUseNetwork.mockReturnValue(networkState(true));
@@ -810,9 +841,80 @@ describe('useYourSpendData — refires search when a relevant report state chang
         return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === approvalHash).length;
     }
 
+    function paymentSearchCallCount(): number {
+        const paymentHash = buildSearchQueryJSON(PAYMENT_QUERY)?.hash;
+        return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === paymentHash).length;
+    }
+
+    function cardGroupSearchCallCount(): number {
+        const cardGroupHash = buildSearchQueryJSON(CARD_GROUP_QUERY)?.hash;
+        return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === cardGroupHash).length;
+    }
+
     beforeEach(() => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('holds an approval behind an open RHP and refires once it closes', () => {
+        // Given Home has searched with one OUTSTANDING report
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // When the report is approved behind an open RHP, and the RHP is then closed
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        rerender(undefined);
+        expect(approvalSearchCallCount()).toBe(before);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then the refresh is not lost: it fires once, after Home is visible again
+        expect(approvalSearchCallCount()).toBe(before + 1);
+    });
+
+    it('refires the payment search when an owned report is reimbursed', () => {
+        // Given an owned report that has been approved but not yet paid
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = paymentSearchCallCount();
+
+        // When the report is reimbursed, which no snapshot update ever patches
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        rerender(undefined);
+
+        // Then the repaid row fetches again instead of showing the pre-payment total
+        expect(paymentSearchCallCount()).toBeGreaterThan(before);
+    });
+
+    it('refires the card search when an expense on the user`s card changes', () => {
+        // Given Home has loaded with one displayable card
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = cardGroupSearchCallCount();
+
+        // When a card expense changes, which moves the derived counter but no query
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 1};
+        rerender(undefined);
+
+        // Then the grouped card totals refetch
+        expect(cardGroupSearchCallCount()).toBeGreaterThan(before);
+    });
+
+    it('does not refire the card search for an expense that is not on the user`s card', () => {
+        // Given Home has loaded with one displayable card
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = cardGroupSearchCallCount();
+
+        // When an expense changes that is not charged to one of the user's cards
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 0};
+        rerender(undefined);
+
+        // Then the card totals are left alone
+        expect(cardGroupSearchCallCount()).toBe(before);
     });
 
     it('refires the approval search when an owned report leaves the OUTSTANDING state', () => {
