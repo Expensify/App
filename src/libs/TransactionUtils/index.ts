@@ -1981,8 +1981,12 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 /**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
  */
-function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): boolean {
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
     if (!transaction) {
+        return false;
+    }
+
+    if (policy?.autoCategorizeNewExpenses === false) {
         return false;
     }
 
@@ -2316,7 +2320,7 @@ function shouldShowViolation(
         return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
-    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, iouReport)) {
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, iouReport, policy)) {
         return false;
     }
 
