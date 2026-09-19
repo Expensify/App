@@ -21,6 +21,10 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     onSelectRow: (item: TItem) => void;
     canSelectMultiple?: boolean;
     footerContent?: React.ReactNode;
+
+    /** Whether to place the footer in the list so it scrolls with data instead of being fixed to the bottom */
+    shouldFooterBeInsideList?: boolean;
+
     listFooterContent?: React.JSX.Element | null | undefined;
     shouldShowLoadingPlaceholder?: boolean;
     rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
@@ -139,9 +143,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Custom accessibility label for the select all checkbox, providing context about what is being selected */
         selectAllAccessibilityLabel?: string;
-
-        /** Whether to place the footer (custom footer content or the confirm button) in the list so it scrolls with data instead of being fixed to the bottom */
-        shouldFooterBeInsideList?: boolean;
     };
 
 type SelectionListStyle = {
