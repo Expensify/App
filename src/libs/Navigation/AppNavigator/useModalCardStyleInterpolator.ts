@@ -52,8 +52,11 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         // existing behavior that prevents a janky double-animation when the side panel slides in/out.
         const sidePanelGateAllowsEntry = isSidePanelTransitionEnded || !!sidePanelNVP?.openNarrowScreen || !shouldUseNarrowLayout;
 
+        // Wide cards draw their own frame and shadow so the container must not clip them. Narrow still needs the clip to mask the slide.
+        const containerOverflow: 'hidden' | 'visible' = shouldUseNarrowLayout ? 'hidden' : 'visible';
+
         if (enter.kind === 'none' || !sidePanelGateAllowsEntry) {
-            return {containerStyle: {overflow: 'hidden'}, cardStyle};
+            return {containerStyle: {overflow: containerOverflow}, cardStyle};
         }
 
         if (enter.kind === 'fade') {
@@ -83,7 +86,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         }
 
         return {
-            containerStyle: {overflow: 'hidden'},
+            containerStyle: {overflow: containerOverflow},
             cardStyle,
         };
     };

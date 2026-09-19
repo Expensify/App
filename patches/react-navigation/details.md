@@ -67,3 +67,12 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/11145
 - E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
 - PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
+
+### [@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch](@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch)
+
+- Reason: On the web floating RHP each stacked card draws its own drop shadow through the interpolator's `cardStyle` (`getRHPExtendedCardFrame`). `CardA11yWrapper` puts `overflow: hidden` on every card that is not on top, and the wrapper is sized to the navigator frame, so it clips the shadow of the card under the focused one. Opening an expense over an expense report cut the report card's left and bottom shadow. The patch moves that clip from `CardA11yWrapper` to the `Animated.View` in `Card` that receives `cardStyle`. That view paints the shadow, and `overflow: hidden` does not clip an element's own shadow, so the shadow stays and the content is still clipped. `CardContainer` passes `active` down to `Card`.
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/13254, fix in https://github.com/react-navigation/react-navigation/pull/13255. Upstream declined an opt-out option and asked for this instead. The patch is that change applied to the compiled 7.8.5 output.
+- E/App issue: N/A, from the internal web floating-RHP styling work.
+- PR Introducing Patch: [#101093](https://github.com/callstack-internal/Expensify-App/pull/101093)
+- PR Updating Patch: N/A
+- Note: Not gated to the RHP. Every stack now clips inactive cards one level lower, so the built-in `styles.shadow` edge view inside `Card` is clipped on inactive cards too. The active card covers that edge. Drop the patch once upstream ships the fix.
