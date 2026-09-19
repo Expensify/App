@@ -120,7 +120,9 @@ function ReportActionsListWrapper() {
     );
 }
 
-test('[ReportActionsList] should render ReportActionsList with 500 reportActions stored', async () => {
+// LegendList's behavior mock eagerly renders the supplied data, while the previous FlashList test used
+// its virtualized implementation. Start a renderer-specific baseline instead of comparing those harnesses.
+test('[ReportActionsList] should render LegendList with 500 reportActions stored', async () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
     };

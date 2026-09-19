@@ -70,7 +70,7 @@ function useEditMessage({
             return;
         }
 
-        reportScrollManager.scrollToIndex(0);
+        reportScrollManager.scrollToBottom();
     }
 
     /**
