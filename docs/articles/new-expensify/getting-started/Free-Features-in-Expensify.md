@@ -77,15 +77,15 @@ For purchases without receipts, enter expenses by hand.
 
 ### Web
 1. Click the **+** icon in the navigation tabs on the left > **Create expense** > **Manual**.
-2. Enter the expense amount and click **Next**.
-3. Choose yourself as the recipient.
-4. Fill out the expense details and click **Create expense**.
+2. Confirm yourself as the recipient.
+3. Enter the expense amount and select the currency.
+4. Fill out the remaining expense details and click **Create expense**.
 
 ### Mobile
 1. Tap the **+** icon at the bottom > **Create expense** > **Manual**.
-2. Enter the expense amount and click **Next**.
-3. Choose yourself as the recipient
-4. Fill out the expense details and click **Create expense**.
+2. Confirm yourself as the recipient.
+3. Enter the expense amount and select the currency.
+4. Fill out the remaining expense details and tap **Create expense**.
 
 ---
 
