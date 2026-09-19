@@ -185,11 +185,11 @@ Yes, as long as the trip is long enough to trim. After you tap **Stop**, tap the
 
 The pencil **Edit** icon does not appear on a very short trip, such as one you stop without driving anywhere, because there is nothing to trim.
 
-## What happens if I tap Stop without moving?
+## What happens if I tap **Stop** without moving?
 
 The trip stays on screen with a distance of 0.00, your current address shown under both **Start** and **Stop**, and the **Resume** and **Save** buttons available. Tap **Resume** to keep recording from where you are, or tap the trash icon next to the distance counter and confirm to discard the trip.
 
-A trip with the same start and stop location can't be turned into an expense. Tapping **Save** shows a **Can't create expense** message. Tap **Got it** to go back to the trip, then resume or discard it.
+A trip with a distance of 0.00 can't be turned into an expense. Tapping **Save** shows a **Can't create expense** message. Tap **Got it** to go back to the trip, then resume or discard it.
 
 ## Can I use GPS tracking on web or desktop?
 
