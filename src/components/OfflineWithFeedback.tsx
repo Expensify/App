@@ -62,6 +62,9 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
 
     shouldForceOpacity?: boolean;
     dismissError?: () => void;
+
+    /** Retries a failed receipt upload. */
+    onRetryReceiptUpload?: () => void;
 };
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
@@ -81,6 +84,7 @@ function OfflineWithFeedback({
     shouldDisplayErrorAbove = false,
     shouldForceOpacity = false,
     dismissError = () => {},
+    onRetryReceiptUpload,
     errorRowTextStyles,
     ...restProps
 }: OfflineWithFeedbackProps) {
@@ -142,6 +146,7 @@ function OfflineWithFeedback({
                     onDismiss={onDismiss}
                     errorRowTextStyles={errorRowTextStyles}
                     dismissError={dismissError}
+                    onRetryReceiptUpload={onRetryReceiptUpload}
                 />
             )}
             {hasChildren && !hideChildren && (
@@ -159,6 +164,7 @@ function OfflineWithFeedback({
                     errorRowTextStyles={errorRowTextStyles}
                     onDismiss={onDismiss}
                     dismissError={dismissError}
+                    onRetryReceiptUpload={onRetryReceiptUpload}
                 />
             )}
         </View>

@@ -192,6 +192,11 @@ type RequestMoneyInformation = {
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
+
+    /** The report already counts this transaction, so its totals and transaction count must be left alone rather than recalculated as if one were being added. */
+    isTransactionAlreadyOnReport?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
@@ -238,6 +243,12 @@ type MoneyRequestInformationParams = {
     isReverseSplitOperation?: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
+
+    /** Reuses an existing transaction thread instead of building a new one, so a retry lands on the records the first attempt already claimed. */
+    existingTransactionThreadReportID?: string;
+
+    /** The report already counts this transaction, so its totals and transaction count must be left alone rather than recalculated as if one were being added. */
+    isTransactionAlreadyOnReport?: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -1297,6 +1308,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isReverseSplitOperation,
         action,
         currentReportActionID,
+        existingTransactionThreadReportID,
+        isTransactionAlreadyOnReport = false,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -1449,6 +1462,15 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   rules,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
+    } else if (isTransactionAlreadyOnReport) {
+        // A retry re-sends a transaction the report already accounts for, so its totals stay as they are.
+        // Recalculating here would count the same expense twice, and nothing reverts it: an `ALREADY_CREATED`
+        // response applies only `successData`, which does not restore these aggregates.
+        //
+        // Still cloned, even though no total is touched: `iouReport` came out of the reports collection, and the
+        // report-preview branch below writes `parentReportActionID` onto it. Every other branch here ends with an
+        // object of its own for the same reason.
+        iouReport = {...iouReport};
     } else if (isPolicyExpenseChat) {
         // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
         // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
@@ -1557,7 +1579,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });
 
-    iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+    if (!isTransactionAlreadyOnReport) {
+        // An inflated count is not cosmetic: `isOneTransactionReport` is `transactionCount === 1`, so a retry
+        // taking it to 2 changes how the report renders and navigates.
+        iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+    }
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
@@ -1661,7 +1687,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
             paymentType: transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
-            existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+            existingTransactionThreadReportID: existingTransactionThreadReportID ?? linkedTrackedExpenseReportAction?.childReportID,
             optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
             isPersonalTrackingExpense: isSelfDMSplit,
