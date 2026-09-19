@@ -12,6 +12,7 @@ import WorkspaceViewTagsTable from '@components/Tables/WorkspaceViewTagsTable';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -66,6 +67,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Checkmark', 'Trashcan']);
     const {translate} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -325,7 +327,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const headerButtons = getHeaderButtons();
     const tableHeaderComponent = (
         <>
-            {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+            {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={pageGutter}>{headerButtons}</View>}
             <OfflineWithFeedback
                 errors={currentPolicyTag.errors}
                 onClose={() =>

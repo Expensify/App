@@ -8,7 +8,6 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,7 +49,6 @@ type FinishChatCardProps = {
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, setUSDBankAccountStep, backTo}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -82,11 +80,11 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
             <Section
                 title={translate('workspace.bankAccount.letsFinishInChat')}
                 icon={illustrations.ConciergeBubble}
-                containerStyles={[styles.mb8, styles.mh5]}
+                containerStyles={styles.mb8}
                 titleStyles={[styles.mb3]}
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
-                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                <View style={styles.mhn5}>
                     <MenuItemNavigation
                         icon={icons.ChatBubble}
                         title={translate('workspace.bankAccount.finishInChat')}

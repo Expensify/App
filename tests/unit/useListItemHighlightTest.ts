@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useListItemHighlight from '@components/SelectionList/ListItemComposed/hooks/useListItemHighlight';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,6 +18,7 @@ function renderHighlightHook(params?: HookParams) {
     const {result} = renderHook(() => ({
         styles: useThemeStyles(),
         theme: useTheme(),
+        spacing: useLayoutSpacing(),
         highlight: useListItemHighlight(params),
     }));
     return result.current;
@@ -40,14 +42,14 @@ describe('useListItemHighlight', () => {
     });
 
     it('rests on the wrapper style and margins, staying transparent for the animated background', () => {
-        const {styles, highlight} = renderHighlightHook();
+        const {styles, highlight, spacing} = renderHighlightHook();
 
         expect(highlight.pressableStyle).toContain(styles.selectionListPressableItemWrapper);
         expect(highlight.pressableStyle).toContain(styles.mh0);
         // Unconditional even when not highlighting: the highlight flag resets mid-animation, so an opaque
         // background here would mask the still-running animation on the wrapper underneath.
         expect(highlight.pressableStyle).toContain(styles.bgTransparent);
-        expect(highlight.pressableWrapperStyle).toContain(styles.mh5);
+        expect(highlight.pressableWrapperStyle).toContainEqual(spacing.pageGutterMargin);
         expect(highlight.pressableWrapperStyle).toContain(animatedHighlightStyleMock);
     });
 

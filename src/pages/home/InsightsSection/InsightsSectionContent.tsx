@@ -3,6 +3,7 @@ import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +38,7 @@ function InsightsSectionContent() {
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'Chart']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     const insightConfigs = useHomeInsightConfigs();
     const [selectedKey] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
@@ -119,7 +121,7 @@ function InsightsSectionContent() {
                 />
             )}
             {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={[cardPaddingHorizontal, !shouldUseNarrowLayout && styles.pt3, view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}

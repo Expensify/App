@@ -22,6 +22,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -90,6 +91,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding, pageGutter} = useLayoutSpacing();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -504,7 +506,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             modals={modals}
         >
             <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[pageGutter, styles.pb5]}>{headerButtons}</View>}
                 <Section
                     isCentralPane
                     title=""
@@ -679,7 +681,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         subtitle={translate('workspace.rules.customRules.cardSubtitle')}
                         subtitleStyles={[shouldShowRulesDocumentSubSection ? styles.mb6 : styles.mb2]}
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
-                        containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                        containerStyles={cardPadding}
                     >
                         {shouldShowRulesDocumentSubSection && (
                             <OfflineWithFeedback

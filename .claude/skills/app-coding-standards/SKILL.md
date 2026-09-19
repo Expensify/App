@@ -74,6 +74,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [UI-1](rules/ui-1-correct-loading-indicator.md) — Use the correct loading indicator based on navigation context
 - [UI-2](rules/ui-2-new-page-scrollview.md) — New pages must be scrollable
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
+- [UI-4](rules/ui-4-layout-spacing-tokens.md) — Type and responsive insets come from tokens
 
 ## Usage
 

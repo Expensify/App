@@ -3,6 +3,7 @@ import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -120,11 +121,12 @@ function Section({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding, pageGutterMargin, cardGapBottom} = useLayoutSpacing();
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     const lottieIllustration = isLottie ? illustration : undefined;
     return (
-        <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+        <View style={[styles.pageWrapper, styles.cardSectionContainer, pageGutterMargin, cardGapBottom, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {banner}
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection
@@ -166,7 +168,7 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8)), centralPaneContainerStyle]}>
+            <View style={[styles.w100, isCentralPane && (contentPaddingOnLargeScreens && !shouldUseNarrowLayout ? contentPaddingOnLargeScreens : cardPadding), centralPaneContainerStyle]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection

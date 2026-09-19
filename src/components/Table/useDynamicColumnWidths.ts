@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
@@ -98,6 +99,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     hasSelectionColumn,
 }: UseDynamicColumnWidthsParams<DataType, ColumnKey>): {gridTemplateColumns: string[] | undefined; scrollWidth: number | undefined} {
     const styles = useThemeStyles();
+    const {values} = useLayoutSpacing();
 
     const noDynamicWidths = {gridTemplateColumns: undefined, scrollWidth: undefined};
 
@@ -130,7 +132,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     const selectionColumnWidth = hasSelectionColumn ? variables.tableCheckboxColumnWidth : 0;
     const totalColumnCount = columns.length + (hasSelectionColumn ? 1 : 0);
     const totalGapWidth = Math.max(totalColumnCount - 1, 0) * styles.gap3.gap;
-    const rowChromeWidth = (styles.mh5.marginHorizontal + styles.ph3.paddingHorizontal) * 2;
+    const rowChromeWidth = (values.pageGutter + styles.ph3.paddingHorizontal) * 2;
     const availableWidth = tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth;
 
     if (availableWidth <= 0) {

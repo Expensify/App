@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -65,6 +66,7 @@ function PolicyDistanceRatesPage({
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
@@ -479,7 +481,7 @@ function PolicyDistanceRatesPage({
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.ph5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={pageGutter}>{headerButtons}</View>}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

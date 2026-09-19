@@ -1,0 +1,37 @@
+type LayoutSpacingToken = {
+    narrow: number;
+    wide: number;
+};
+
+const layoutSpacing = {
+    cardPadding: {narrow: 24, wide: 32},
+    pageGutter: {narrow: 12, wide: 20},
+    cardGap: {narrow: 12, wide: 20},
+} as const satisfies Record<string, LayoutSpacingToken>;
+
+function resolveLayoutSpacing(shouldUseNarrowLayout: boolean) {
+    const size = shouldUseNarrowLayout ? 'narrow' : 'wide';
+    const cardPadding = layoutSpacing.cardPadding[size];
+    const pageGutter = layoutSpacing.pageGutter[size];
+    const cardGap = layoutSpacing.cardGap[size];
+
+    return {
+        values: {cardPadding, pageGutter, cardGap},
+        cardPadding: {padding: cardPadding},
+        cardPaddingHorizontal: {paddingHorizontal: cardPadding},
+        cardPaddingBottom: {paddingBottom: cardPadding},
+        cardPaddingLeft: {paddingLeft: cardPadding},
+        cardMarginHorizontal: {marginHorizontal: cardPadding},
+        cardEdgeToEdge: {marginHorizontal: -cardPadding},
+        cardGapBottom: {marginBottom: cardGap},
+        pageGutter: {paddingHorizontal: pageGutter},
+        pageGutterMargin: {marginHorizontal: pageGutter},
+        pageGutterRight: {paddingRight: pageGutter},
+    };
+}
+
+type LayoutSpacing = ReturnType<typeof resolveLayoutSpacing>;
+
+export default layoutSpacing;
+export {resolveLayoutSpacing};
+export type {LayoutSpacing};
