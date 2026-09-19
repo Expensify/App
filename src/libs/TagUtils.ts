@@ -52,7 +52,7 @@ function getTagNameError(tags: PolicyTags | undefined, newName: string, currentN
         return 'required';
     }
 
-    // Tags are stored under their escaped name, so escape before both the reserved-name and uniqueness checks.
+    // Tags are stored under their escaped name, so escape before the reserved-name, uniqueness, and length checks.
     const escaped = escapeTagName(sanitized);
 
     if (escaped === '0') {
@@ -65,7 +65,7 @@ function getTagNameError(tags: PolicyTags | undefined, newName: string, currentN
     }
 
     // Spread to count Unicode code points rather than UTF-16 code units.
-    if ([...sanitized].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+    if ([...escaped].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
         return 'tooLong';
     }
 
@@ -83,7 +83,7 @@ function getTagNameErrorMessage(translate: LocaleContextProps['translate'], erro
             return translate('workspace.tags.invalidTagNameError');
         case 'tooLong':
         default:
-            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH);
+            return translate('common.error.characterLimitExceedCounter', [...escapeTagName(StringUtils.sanitizeName(name))].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH);
     }
 }
 
