@@ -1080,7 +1080,9 @@ function getUpdatedTransaction({
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
         const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
-        if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
+        // Clearing the category leaves the server's tax rate untouched, so predicting a change here only writes a
+        // rate that the response immediately overwrites.
+        if (transactionChanges.category && categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
             updatedTransaction.taxValue = categoryTaxValue;
@@ -3358,11 +3360,9 @@ function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transact
     const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
     const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
     const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode ?? '');
-    let categoryTaxAmount;
-
-    if (categoryTaxPercentage) {
-        categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))));
-    }
+    const categoryTaxAmount = categoryTaxPercentage
+        ? convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))))
+        : undefined;
 
     return {categoryTaxCode, categoryTaxAmount, categoryTaxValue: categoryTaxPercentage};
 }
