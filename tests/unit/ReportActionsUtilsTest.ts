@@ -6791,6 +6791,21 @@ describe('ReportActionsUtils', () => {
             ).toEqual(['comment', 0]);
         });
 
+        it('allows an explicitly marked unread export to anchor the marker', () => {
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [exportAction],
+                    manuallyMarkedUnreadReportActionID: exportAction.reportActionID,
+                }),
+            ).toEqual(['export', 0]);
+        });
+
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];
             expect(

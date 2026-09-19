@@ -200,11 +200,16 @@ const getUnreadMarkerReportAction = ({
 
     // Drop the manual anchor once the marked action is deleted, otherwise no action would match it and the
     // marker would vanish instead of relocating via the timestamp scan below.
-    const manuallyMarkedUnreadReportAction = manuallyMarkedUnreadReportActionID
-        ? visibleReportActions.find((action) => action.reportActionID === manuallyMarkedUnreadReportActionID)
-        : undefined;
+    const manuallyMarkedUnreadReportActionIndex = manuallyMarkedUnreadReportActionID
+        ? visibleReportActions.findIndex((action) => action.reportActionID === manuallyMarkedUnreadReportActionID)
+        : -1;
+    const manuallyMarkedUnreadReportAction = manuallyMarkedUnreadReportActionIndex >= 0 ? visibleReportActions.at(manuallyMarkedUnreadReportActionIndex) : undefined;
     const activeManuallyMarkedUnreadReportActionID =
         manuallyMarkedUnreadReportAction && !shouldHideNewMarker(manuallyMarkedUnreadReportAction, isOffline) ? manuallyMarkedUnreadReportActionID : null;
+
+    if (activeManuallyMarkedUnreadReportActionID) {
+        return [activeManuallyMarkedUnreadReportActionID, manuallyMarkedUnreadReportActionIndex];
+    }
 
     // Lets the caller tell "the anchor was deleted, so relocate the marker" apart from "the anchor is still
     // around, so another self-authored action must not steal it".
