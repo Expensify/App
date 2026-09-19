@@ -29,24 +29,32 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
 
             val shareObjectString = sharedPreferences.getString(IntentHandlerConstants.shareObjectProperty, null)
             if (shareObjectString == null) {
-                callback.invoke("No data found", null)
+                callback.invoke(null)
                 return
             }
 
             val shareObject = JSONObject(shareObjectString)
             val content = shareObject.optString("content")
-            val mimeType = shareObject.optString("mimeType")
+            var mimeType = shareObject.optString("mimeType", "")
             val timestamp = System.currentTimeMillis()
 
             val file = File(content)
-            if (!file.exists()) {
-                val textObject = JSONObject().apply {
-                    put("id", "text")
-                    put("content", content)
-                    put("mimeType", "txt")
-                    put("processedAt", timestamp)
+            if (file.exists() && (mimeType.isEmpty() || mimeType.endsWith("/*") || mimeType == "null")) {
+                val extension = file.extension.lowercase()
+                mimeType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: mimeType
+            }
+            if (!file.exists() || file.length() == 0L) {
+                if (mimeType.startsWith("text/") || mimeType == "txt") {
+                    val textObject = JSONObject().apply {
+                        put("id", "text")
+                        put("content", content)
+                        put("mimeType", "txt")
+                        put("processedAt", timestamp)
+                    }
+                    callback.invoke(textObject.toString())
+                    return
                 }
-                callback.invoke(textObject.toString())
+                callback.invoke(null)
                 return
             }
 
@@ -84,7 +92,8 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
             callback.invoke(fileData.toString())
             
         } catch (e: Exception) {
-            callback.invoke(e.toString(), null)
+            Log.e("ShareActionHandlerModule", "Error processing shared files: ${e.message}", e)
+            callback.invoke(null)
         }
     }
 }

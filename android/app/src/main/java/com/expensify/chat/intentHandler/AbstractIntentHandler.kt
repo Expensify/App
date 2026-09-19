@@ -11,7 +11,7 @@ abstract class AbstractIntentHandler: IntentHandler {
         val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.clear()
-        editor.apply()
+        editor.commit()
 
         // Clear leftover temporary files from previous share attempts
         clearInternalStorageDirectory(context)
