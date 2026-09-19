@@ -181,11 +181,11 @@ The GPS receipt shows a map of your actual route driven, along with the total di
 
 ## Can I edit a GPS trip after I stop tracking?
 
-Yes, as long as the trip is long enough to trim. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end address. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
+Yes, as long as the trip is long enough to trim. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end location. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
 
 The pencil **Edit** icon does not appear on a very short trip, such as one you stop without driving anywhere, because there is nothing to trim.
 
-## What happens if I tap **Stop** without moving?
+## What happens if I start a GPS trip and tap **Stop** without moving?
 
 The trip stays on screen with a distance of 0.00, your current location shown under both **Start** and **Stop**, and the **Resume** and **Save** buttons available. Tap **Resume** to keep recording from where you are, or tap the trash icon next to the distance counter and confirm to discard the trip.
 
