@@ -4504,11 +4504,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
         route: 'workspaces/:policyID/accounting/netsuite/token-input/:subPage',
-        getRoute: (policyID: string | undefined, subPage: string) => {
+        getRoute: (policyID: string | undefined, subPage: string, authType?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT route');
             }
-            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}` as const;
+            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}${authType ? `?authType=${authType}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_NETSUITE_SETUP: {
@@ -4738,6 +4738,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT route');
             }
             return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
+        },
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/fx-expense-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/fx-expense-account` as const;
         },
     },
     POLICY_ACCOUNTING_CERTINIA_PREREQUISITES: {
@@ -5020,6 +5029,18 @@ const ROUTES = {
     POLICY_ACCOUNTING_CAMPFIRE_IMPORT: {
         route: 'workspaces/:policyID/accounting/campfire/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/import` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
+        route: 'workspaces/:policyID/accounting/business-central/prerequisites',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/prerequisites` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_SETUP: {
+        route: 'workspaces/:policyID/accounting/business-central/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/setup` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/company-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/company-selector` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

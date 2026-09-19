@@ -53,6 +53,7 @@ const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
 const mockShouldUseNarrowLayout = jest.fn(() => false);
 const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: false}));
 const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
+const mockIsBetaEnabledOrUnknown = jest.fn<boolean | undefined, [beta: string]>(() => false);
 const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -126,7 +127,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta)}),
+    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta), isBetaEnabledOrUnknown: (beta: string) => mockIsBetaEnabledOrUnknown(beta)}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -269,6 +270,7 @@ beforeEach(() => {
     mockUseOnyx.mockImplementation(() => [undefined]);
     mockUseNetwork.mockReturnValue({isOffline: false});
     mockIsBetaEnabled.mockReturnValue(false);
+    mockIsBetaEnabledOrUnknown.mockReturnValue(false);
     mockUseSettingsNavigationMenuData.mockReturnValue({
         accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
         generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},

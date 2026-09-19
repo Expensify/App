@@ -63,9 +63,10 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         isConciergeMainDM,
         hasCachedReportActions,
         showConciergeSidePanelWelcome,
+        derivedIsEmptyReport,
     } = readinessSignals;
 
-    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
+    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport);
 
     // Before the first successful load, a missing loading-state entry means ReportFetchHandler has not
     // enqueued OpenReport yet. Once a terminal failure writes false, the stored state releases the gate.

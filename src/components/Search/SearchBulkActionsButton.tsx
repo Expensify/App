@@ -1,3 +1,4 @@
+import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -39,7 +40,7 @@ import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from '
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
-import {useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -53,6 +54,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
@@ -70,6 +72,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         headerButtonsOptions,
+        dropdownButtonsOptions,
         bulkActionsMenuHeaderText,
         selectedPolicyIDs,
         selectedTransactionReportIDs,
@@ -120,7 +123,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
+    const popoverUseScrollView = shouldPopoverUseScrollView(dropdownButtonsOptions);
     const {selectedItemsCount, excludedItemsCount} = useMemo(() => {
         const getItemsCount = (transactionsToCount: typeof selectedTransactions) => {
             if (isExpenseReportType) {
@@ -193,12 +196,11 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     } else {
         selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
     }
+    const selectedBulkActionsCount = areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount;
     const shouldShowAllMatchingItemsSelected = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length === 0;
     const selectionButtonText = shouldShowAllMatchingItemsSelected
         ? translate('search.exportAll.allMatchingItemsSelected')
-        : translate('workspace.common.selected', {
-              count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
-          });
+        : translate('workspace.common.selected', {count: selectedBulkActionsCount});
 
     return (
         <>
@@ -239,12 +241,12 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                         <View style={[styles.pb3]}>
                             <ButtonWithDropdownMenu
                                 buttonRef={buttonRef}
-                                options={headerButtonsOptions}
+                                options={dropdownButtonsOptions}
                                 menuHeaderText={bulkActionsMenuHeaderText}
                                 customText={selectionButtonText}
                                 isLoading={isAllMatchingItemsCountLoading}
                                 shouldAlwaysShowDropdownMenu
-                                isDisabled={headerButtonsOptions.length === 0}
+                                isDisabled={dropdownButtonsOptions.length === 0}
                                 onPress={() => null}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
                                 onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
@@ -260,26 +262,16 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             />
                         </View>
                     ) : (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <ButtonWithDropdownMenu
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                onPress={() => null}
-                                shouldAlwaysShowDropdownMenu
-                                customText={selectionButtonText}
-                                isLoading={isAllMatchingItemsCountLoading}
-                                options={headerButtonsOptions}
-                                menuHeaderText={bulkActionsMenuHeaderText}
-                                shouldPopoverUseScrollView={popoverUseScrollView}
-                                onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
-                                isSplitButton={false}
-                                buttonRef={buttonRef}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DROPDOWN}
-                            />
-                        </View>
+                        <BulkActionBar
+                            selectedCount={selectedBulkActionsCount}
+                            customText={shouldShowAllMatchingItemsSelected ? selectionButtonText : undefined}
+                            isSelectedCountLoading={isAllMatchingItemsCountLoading}
+                            options={headerButtonsOptions}
+                            // No argument: the boolean flag only clears the report view's `selectedTransactionIDs`.
+                            onClearSelection={() => clearSelectedTransactions()}
+                            onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
+                            barRef={buttonRef}
+                        />
                     )
                 }
             </KYCWall>

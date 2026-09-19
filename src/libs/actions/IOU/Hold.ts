@@ -685,7 +685,7 @@ function getReportFromHoldRequestsOnyxData({
     recipient,
     policy,
     createdTimestamp,
-    betas,
+    isASAPSubmitBetaEnabled,
     isApprovalFlow = false,
     delegateAccountID,
     getCurrencyDecimals,
@@ -698,7 +698,7 @@ function getReportFromHoldRequestsOnyxData({
     recipient: Participant;
     policy: OnyxEntry<OnyxTypes.Policy>;
     createdTimestamp?: string;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isApprovalFlow?: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
@@ -746,7 +746,7 @@ function getReportFromHoldRequestsOnyxData({
               currency: iouReport?.currency ?? '',
               nonReimbursableTotal: holdNonReimbursableAmount,
               parentReportActionID: newParentReportActionID,
-              betas,
+              isASAPSubmitBetaEnabled,
               reportTransactions,
               createdTimestamp,
               getCurrencyDecimals,
