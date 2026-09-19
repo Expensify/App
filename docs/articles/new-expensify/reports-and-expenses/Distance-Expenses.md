@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, require GPS or map entry, manual entry disabled, odometer disabled, edit existing distance expense]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -65,6 +65,8 @@ To create an expense by inputting a distance manually:
    - Other optional fields
 6. Select **Create expense**.
 
+**Note:** If your workspace has **Require GPS or map entry** enabled, you can't create a new manual distance expense. Selecting **Manual** shows a **Require GPS or map entry** message explaining that the workspace requires either map-based or GPS-tracked distance expenses. Select **Got it** to dismiss it, then use **Map** or **GPS** instead.
+
 ---
 
 ## How to create a Distance expense using Odometer readings (Web and Mobile)
@@ -87,6 +89,8 @@ To create an expense using your vehicle's odometer readings:
    - (Optional) Add a description, category, or tag.
 9. Select **Create expense**.
 
+**Note:** If your workspace has **Require GPS or map entry** enabled, you can't create a new odometer distance expense. Selecting **Odometer** shows a **Require GPS or map entry** message explaining that the workspace requires either map-based or GPS-tracked distance expenses. Select **Got it** to dismiss it, then use **Map** or **GPS** instead.
+
 Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
 
 ---
@@ -107,6 +111,8 @@ To edit the distance:
 5. Select **Save**.
 
 When you switch the route on an already-created expense, the distance, amount, and merchant update to the newly selected route, and a "changed the distance" system message is posted in the expense thread.
+
+If your workspace enabled **Require GPS or map entry** after you created a manual or odometer distance expense, you can still edit that existing expense. Open it, select the **Distance** field, update the distance, and select **Save**. The **Require GPS or map entry** message only appears when you create a new manual or odometer expense.
 
 ---
 
@@ -158,6 +164,14 @@ The expense amount is automatically calculated by multiplying the distance by th
 ## Can I edit a Distance expense after I’ve created it?
 
 Yes! You can edit the expense before it is approved. When editing a map-based Distance expense, two tabs appear at the top: **Map** and **Manual**. Select **Map** to update waypoints, or select **Manual** to type in the distance directly. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+
+## Why can't I select Manual or Odometer when creating a Distance expense?
+
+Your workspace has **Require GPS or map entry** enabled, which limits new distance expenses to map-based routes or GPS-tracked trips. Selecting **Manual** or **Odometer** shows a **Require GPS or map entry** message. Use **Map** or **GPS** instead, or ask a workspace admin to turn the setting off.
+
+## Can I still edit a manual or odometer expense after my workspace requires GPS or map entry?
+
+Yes. **Require GPS or map entry** only applies to new distance expenses. Manual and odometer expenses you created before the setting was enabled stay editable until they're approved — open the expense, select the **Distance** field, enter the new distance, and select **Save**.
 
 ## Can I update the Distance expense unit or rate?
 
