@@ -636,6 +636,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Εκκίνηση του Expensify',
         expired: 'Η συνεδρία σας έχει λήξει.',
         signIn: 'Παρακαλούμε συνδεθείτε ξανά.',
+        notValid: 'Δεν ήταν δυνατή η χρήση αυτού του συνδέσμου.',
+        sessionMismatch: 'Ο σύνδεσμος που ανοίξατε δεν είναι έγκυρος για την τρέχουσα συνεδρία σας.',
+        switchAccount: {
+            title: 'Αλλαγή λογαριασμών;',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Είστε συνδεδεμένοι ως ${currentEmail}. Αυτός ο σύνδεσμος θα σας συνδέσει ως ${newEmail} αντί γι’ αυτό.`,
+            confirm: 'Αλλαγή λογαριασμών',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

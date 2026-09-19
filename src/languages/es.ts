@@ -622,6 +622,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
+        notValid: 'No se pudo usar este enlace.',
+        sessionMismatch: 'El enlace que has abierto no es válido para tu sesión actual.',
+        switchAccount: {
+            title: '¿Cambiar de cuenta?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Has iniciado sesión como ${currentEmail}. Este enlace iniciará sesión como ${newEmail} en su lugar.`,
+            confirm: 'cambiar de cuenta',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

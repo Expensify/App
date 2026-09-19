@@ -1,6 +1,9 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
+import useConfirmModal from '@hooks/useConfirmModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -19,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
@@ -33,6 +36,9 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const [hasCancelledSwitch, setHasCancelledSwitch] = useState(false);
 
     useEffect(() => {
         const sessionEmail = session?.email;
@@ -40,9 +46,28 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
+        const linkEmail = new URLSearchParams(transitionURL ?? undefined).get('email');
+
         if (isLoggingInAsNewUser) {
-            // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            if (isSupportalLogin) {
+                // We don't want to close react-native app in this particular case.
+                signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+                return;
+            }
+
+            showConfirmModal({
+                title: translate('deeplinkWrapper.switchAccount.title'),
+                prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: linkEmail ?? '', currentEmail: sessionEmail ?? ''}),
+                confirmText: translate('deeplinkWrapper.switchAccount.confirm'),
+                cancelText: translate('common.cancel'),
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    setHasCancelledSwitch(true);
+                    return;
+                }
+                // We don't want to close react-native app in this particular case.
+                signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            });
             return;
         }
 
@@ -68,7 +93,17 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
         // because the old authToken stored in Onyx may be invalid.
-        signInWithShortLivedAuthToken(shortLivedAuthToken);
+        signInWithShortLivedAuthToken(shortLivedAuthToken, session?.authToken, false).then((response) => {
+            if (response?.type !== CONST.ERROR_TYPE.SESSION_MISMATCH) {
+                return;
+            }
+            showConfirmModal({
+                title: translate('deeplinkWrapper.notValid'),
+                prompt: translate('deeplinkWrapper.sessionMismatch'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+        });
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,17 +117,17 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
         // For HybridApp we have separate logic to handle transitions.
-        if (!CONFIG.IS_HYBRID_APP && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
+        if (!CONFIG.IS_HYBRID_APP && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && (!isLoggingInAsNewUser || hasCancelledSwitch)) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
                 Navigation.goBack(ROUTES.HOME);
-                if (exitTo) {
+                if (exitTo && !hasCancelledSwitch) {
                     Navigation.navigate(exitTo as Route);
                 }
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialURL, isAccountLoading]);
+    }, [initialURL, isAccountLoading, hasCancelledSwitch]);
 
     return <FullScreenLoadingIndicator />;
 }

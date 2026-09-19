@@ -633,6 +633,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
+        notValid: 'このリンクは使用できませんでした。',
+        sessionMismatch: '開いたリンクは現在のセッションでは有効ではありません。',
+        switchAccount: {
+            title: 'アカウントを切り替えますか？',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `現在は ${currentEmail} としてサインインしています。このリンクを使うと、代わりに ${newEmail} としてサインインします。`,
+            confirm: 'アカウントを切り替える',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

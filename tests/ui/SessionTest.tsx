@@ -1,4 +1,4 @@
-import {act, cleanup, render, waitFor} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import * as AppActions from '@libs/actions/App';
 import * as Device from '@libs/actions/Device';
@@ -18,6 +18,8 @@ import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
 import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
@@ -30,6 +32,11 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock('@components/Modal/ReanimatedModal', () => {
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
+});
 
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
@@ -119,7 +126,7 @@ describe('Deep linking', () => {
                 },
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
             });
-            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1);
+            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, undefined);
         });
 
         // Set the keys the app needs to finish loading rather than going through
@@ -226,6 +233,10 @@ describe('Deep linking', () => {
             const {unmount: unmount2} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: 'Switch accounts'}));
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
 
             expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
 
@@ -414,7 +425,7 @@ describe('signInWithShortLivedAuthToken', () => {
             }),
         );
 
-        Session.signInWithShortLivedAuthToken('token', true);
+        Session.signInWithShortLivedAuthToken('token', undefined, true);
         await waitForBatchedUpdates();
 
         let isAuthenticating: boolean | undefined;
