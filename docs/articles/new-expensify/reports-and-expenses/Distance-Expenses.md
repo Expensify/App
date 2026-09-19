@@ -191,6 +191,8 @@ The trip stays on screen with a distance of 0.00, your current address shown und
 
 A trip with a distance of 0.00 can't be turned into an expense. Tapping **Save** shows a **Can't create expense** message. Tap **Got it** to go back to the trip, then resume or discard it.
 
+If you tap **Stop** right after **Start**, before Expensify finds your location, no trip is kept and the **Start** button shows again.
+
 ## Can I use GPS tracking on web or desktop?
 
 No. GPS tracking requires the iOS or Android mobile app because it uses your device's location services. On web or desktop, you'll see a prompt to download the mobile app when selecting GPS. You can still use map-based or manual distance entry on any platform.
