@@ -8699,12 +8699,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }
             },
             syncResults: {
-                title: (provider: string) => `Synchronisation ${provider} terminée`,
-                successTitle: (provider: string) => `Connexion ${provider} synchronisée avec succès !`,
-                added: 'Ajouté',
-                removed: 'Supprimé',
-                skipped: 'Ignoré',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 employé',
                     other: (count: number) => `${count} employés`,
                 }),
@@ -8735,6 +8730,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidat',
+                    other: (count: number) => `${count} candidat·s`,
+                }),
+            },
         },
         merge: {
             connections: 'Connexions',
@@ -8763,6 +8764,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
+            syncResults: {
+                title: (provider: string) => `Synchronisation ${provider} terminée`,
+                successTitle: (provider: string) => `Connexion à ${provider} synchronisée avec succès !`,
+                added: 'Ajouté',
+                removed: 'Supprimé',
+                skipped: 'Ignoré',
+            },
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',

@@ -7655,12 +7655,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 }
             },
             syncResults: {
-                title: (provider: string) => `Η συγχρονισμός με το ${provider} ολοκληρώθηκε`,
-                successTitle: (provider: string) => `Ο συγχρονισμός της σύνδεσής σας με το ${provider} ολοκληρώθηκε με επιτυχία!`,
-                added: 'Προστέθηκε',
-                removed: 'Αφαιρέθηκε',
-                skipped: 'Παραλείφθηκε',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 υπάλληλος',
                     other: (count: number) => `${count} υπάλληλοι`,
                 }),
@@ -7694,6 +7689,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 υποψήφιος',
+                    other: (count: number) => `${count} υποψήφιοι`,
+                }),
+            },
         },
         merge: {
             connections: 'Συνδέσεις',
@@ -7724,6 +7725,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncLimitReached: {
                 title: 'Δοκιμάστε ξανά αύριο',
                 prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
+            },
+            syncResults: {
+                title: (provider: string) => `ο συγχρονισμός του ${provider} ολοκληρώθηκε`,
+                successTitle: (provider: string) => `Η σύνδεσή σας με το ${provider} συγχρονίστηκε με επιτυχία!`,
+                added: 'Προστέθηκε',
+                removed: 'Αφαιρέθηκε',
+                skipped: 'Παραλείφθηκε',
             },
         },
         export: {

@@ -1712,6 +1712,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_RECRUITING_SYNC_RESULTS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
         policyID: string;
     };

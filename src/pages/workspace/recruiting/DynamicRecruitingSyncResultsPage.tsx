@@ -9,15 +9,15 @@ import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-type DynamicHRSyncResultsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS>;
+type DynamicRecruitingSyncResultsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_RECRUITING_SYNC_RESULTS>;
 
-function DynamicHRSyncResultsPage({route}: DynamicHRSyncResultsPageProps) {
+function DynamicRecruitingSyncResultsPage({route}: DynamicRecruitingSyncResultsPageProps) {
     return (
         <MergeSyncResultsPageBase
             policyID={route.params.policyID}
-            category={CONST.POLICY.CONNECTIONS.CATEGORY.HR}
+            category={CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING}
         />
     );
 }
 
-export default DynamicHRSyncResultsPage;
+export default DynamicRecruitingSyncResultsPage;

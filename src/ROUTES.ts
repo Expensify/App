@@ -1269,6 +1269,12 @@ const DYNAMIC_ROUTES = {
         // while the user is on either the HR page or the members list, so both are entry screens.
         entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
     },
+    WORKSPACE_RECRUITING_SYNC_RESULTS: {
+        // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
+        // while the user is on either the recruiting page or the members list, so both are entry screens.
+        path: 'recruiting-sync-results',
+        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.MEMBERS],
+    },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
         entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],
