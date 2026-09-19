@@ -2051,6 +2051,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: ROUTES.CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP,
+                        [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
@@ -2182,6 +2183,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path,
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
+                        [SCREENS.REPORT_CHANGE_APPROVER.REASSIGN_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: ROUTES.EXPENSE_REPORT_RHP.route,
