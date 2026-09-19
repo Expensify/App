@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext, useSelectionClearGeneration} from '@components/Search/SearchContext';
 import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import {SearchSelectionProvider, useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchQueryContextValue, SelectedTransactions} from '@components/Search/types';
@@ -143,6 +143,29 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['group_1']);
         expect(result.current.groupedChildState.isSelected).toBe(false);
+    });
+
+    it('shows a child picked back out of an excluded group as selected, since its own entry outranks the group', () => {
+        const {result} = renderSelection();
+
+        // Given every matching item selected, then the group taken back out of it
+        act(() => {
+            result.current.actions.selectAllMatchingItems(true);
+            result.current.actions.setSelectedTransactions(buildSelected('group_1'));
+        });
+        act(() => {
+            result.current.actions.applySelection(() => ({}), {totalSelectableItemsCount: 1, shouldPreserveAllMatchingSelection: true});
+        });
+        expect(result.current.groupedChildState.isSelected).toBe(false);
+
+        // When one of its children is picked on its own
+        act(() => {
+            result.current.actions.applySelection(() => buildSelected('tx_1'), {shouldPreserveAllMatchingSelection: true});
+        });
+
+        // Then it reads selected, and the exclusion that covered it through the group is gone
+        expect(result.current.groupedChildState.isSelected).toBe(true);
+        expect(result.current.state.excludedTransactions.tx_1).toBeUndefined();
     });
 
     it('clears all-matching selection when every result is excluded', () => {
@@ -305,5 +328,29 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
 
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(result.current.state.hasSelectedTransactions).toBe(false);
+    });
+});
+
+describe('SearchSelectionProvider clear generation', () => {
+    function renderClearGeneration() {
+        return renderHook(() => ({state: useSearchSelectionContext(), actions: useSearchSelectionActions(), clearGeneration: useSelectionClearGeneration()}), {wrapper});
+    }
+
+    it('moves only when a clear empties something, so a no-op clear cannot end a range session', () => {
+        const {result} = renderClearGeneration();
+
+        act(() => result.current.actions.clearSelectedTransactions(true));
+        act(() => result.current.actions.clearSelectedTransactions());
+        expect(result.current.clearGeneration).toBe(0);
+
+        act(() => result.current.actions.setSelectedTransactions(['tx_1']));
+        act(() => result.current.actions.clearSelectedTransactions(true));
+        expect(result.current.state.selectedTransactionIDs).toEqual([]);
+        expect(result.current.clearGeneration).toBe(1);
+
+        act(() => result.current.actions.setSelectedTransactions(buildSelected('tx_1')));
+        act(() => result.current.actions.clearSelectedTransactions());
+        expect(result.current.state.selectedTransactions).toEqual({});
+        expect(result.current.clearGeneration).toBe(2);
     });
 });

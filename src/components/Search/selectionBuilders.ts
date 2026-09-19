@@ -1,6 +1,7 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isGroupEntry, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isGroupEntry, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -9,7 +10,10 @@ import type {SearchGroupBase, SearchResultDataType} from '@src/types/onyx/Search
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import {deepEqual} from 'fast-equals';
+
+import type {OpenGroupKeys} from './hooks/useOpenGroupsRegistry';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 /**
@@ -414,6 +418,18 @@ type GroupSelectionParams = {
     areAllMatchingItemsSelected: boolean;
 };
 
+/** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked. */
+function isGroupSelected({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
+    if (children.length === 0) {
+        return !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
+    }
+    // Loaded rows decide alone, since select-all-matching still covers the group's own key after every row is excluded.
+    return children.some(
+        (child) =>
+            !isTransactionPendingDelete(child) && isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
+    );
+}
+
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
 function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
     isSelectAllChecked: boolean;
@@ -470,11 +486,240 @@ function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTra
     return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
 }
 
+/** Openness is the gate, not the rows: a closed group still carries the ones it loaded. */
+function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys: OpenGroupKeys): TransactionListItemType[] {
+    return openGroupKeys.has(group.keyForList) ? group.transactions : [];
+}
+
+type ShiftRangeSource = {
+    /** Each group header followed by the rows it carries, in visual order */
+    items: SearchListItem[];
+
+    childrenByGroupKey: Map<string, TransactionListItemType[]>;
+
+    /** So a child's selection is stored and removed under the right parent */
+    groupKeyByChildKey: Map<string, string>;
+};
+
+/** One pass, so what a range spans and who owns each row cannot disagree. Flattens only in group-by views. */
+function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: OpenGroupKeys, groupsAreHeaders: boolean): ShiftRangeSource {
+    const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
+    const groupKeyByChildKey = new Map<string, string>();
+    if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
+        return {items: sortedData, childrenByGroupKey, groupKeyByChildKey};
+    }
+
+    const items: SearchListItem[] = [];
+    for (const group of sortedData) {
+        items.push(group);
+        if (!group.keyForList) {
+            continue;
+        }
+        const children = resolveGroupChildren(group, openGroupKeys);
+        childrenByGroupKey.set(group.keyForList, children);
+        for (const child of children) {
+            items.push(child);
+            if (child.keyForList) {
+                groupKeyByChildKey.set(child.keyForList, group.keyForList);
+            }
+        }
+    }
+    return {items, childrenByGroupKey, groupKeyByChildKey};
+}
+
+type GroupLookups = {
+    /** The group a child row belongs to, so its selection is stored and removed under the right parent */
+    groupKeyByChildKey: ReadonlyMap<string, string>;
+
+    /** Each group's rows as the range sees them */
+    childrenByGroupKey: ReadonlyMap<string, TransactionListItemType[]>;
+
+    /** Supplied by the provider, which is what reads Onyx for a row's action flags */
+    buildSelectedEntry: (item: TransactionListItemType) => [string, SelectedTransactionInfo];
+
+    /** The group's total on the server, which can be more than the rows it has loaded */
+    getGroupCount: (groupKey: string) => number | undefined;
+};
+
+/** Undefined under select-all-matching, where the group is selected without its rows being known. */
+function resolveGroupBlock(selection: SelectedTransactions, childKey: string, areAllMatchingItemsSelected: boolean, lookups: GroupLookups) {
+    const groupKey = lookups.groupKeyByChildKey.get(childKey);
+    if (!groupKey || areAllMatchingItemsSelected || !selection[groupKey]?.isSelected) {
+        return undefined;
+    }
+    return {groupKey, loaded: lookups.childrenByGroupKey.get(groupKey) ?? []};
+}
+
+/** A group selected before its children loaded lives under its own key, so dropping one child means writing it out first. */
+function spellOutGroupSelection(selection: SelectedTransactions, childKey: string, areAllMatchingItemsSelected: boolean, lookups: GroupLookups): SelectedTransactions {
+    const block = resolveGroupBlock(selection, childKey, areAllMatchingItemsSelected, lookups);
+    // Counted the same way the loop writes, so writing out can never delete the entry and put nothing back.
+    const selectable = block?.loaded.filter((child) => !isTransactionPendingDelete(child)) ?? [];
+    if (!block || selectable.length === 0) {
+        return selection;
+    }
+    const {groupKey} = block;
+    const spelledOut: SelectedTransactions = {...selection};
+    delete spelledOut[groupKey];
+    for (const child of selectable) {
+        const [key, info] = lookups.buildSelectedEntry(child);
+        // No `isSelectedViaGroup`: the caller is about to drop one of these, so the group stops being a whole-group selection.
+        spelledOut[key] = {...info, groupKey};
+    }
+    return spelledOut;
+}
+
+/** What a shift+click range writes: the rows it covers selected, the rows it gave back dropped, and the same map back when neither happened. */
+function applyShiftRangeBatchToSelection(
+    batch: ShiftRangeBatch<SearchListItem>,
+    selection: SelectedTransactions,
+    areAllMatchingItemsSelected: boolean,
+    lookups: GroupLookups,
+): SelectedTransactions {
+    let updated: SelectedTransactions = {...selection};
+    // Returning the given map unchanged is what lets the commit bail on identity rather than re-render every row.
+    let hasWritten = false;
+    // Whole wins over partial, since that is the gesture a header click makes.
+    const partialGroupKeys = new Set<string>();
+    const wholeGroupKeys = new Set<string>();
+    // Every group written under, with the rows it has loaded, so its coverage can be recounted once the batch is in.
+    const touchedGroups = new Map<string, TransactionListItemType[]>();
+    const touchGroup = (groupKey: string, loadedRows: TransactionListItemType[]) => {
+        if (touchedGroups.has(groupKey)) {
+            return;
+        }
+        touchedGroups.set(groupKey, loadedRows);
+    };
+
+    const dropKey = (key: string) => {
+        if (!Object.hasOwn(updated, key)) {
+            return;
+        }
+        delete updated[key];
+        hasWritten = true;
+    };
+
+    // `blockGroupKey` is set only when a whole group row joins the range, which is what makes its children narrowable later.
+    const addTransaction = (transaction: TransactionListItemType, blockGroupKey: string | undefined) => {
+        if (!transaction.keyForList || isTransactionPendingDelete(transaction)) {
+            return;
+        }
+        updated = spellOutGroupSelection(updated, transaction.keyForList, areAllMatchingItemsSelected, lookups);
+        const [key, info] = lookups.buildSelectedEntry(transaction);
+        const parentGroupKey = blockGroupKey ?? lookups.groupKeyByChildKey.get(transaction.keyForList);
+        if (parentGroupKey) {
+            (blockGroupKey ? wholeGroupKeys : partialGroupKeys).add(parentGroupKey);
+            touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
+        }
+        const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
+        // Re-covering a row is not a write, and coverage is recounted after the batch, so it is left out of the comparison.
+        if (deepEqual({...updated[key], isEntireGroupSelected: undefined}, {...entry, isEntireGroupSelected: undefined})) {
+            return;
+        }
+        updated[key] = entry;
+        hasWritten = true;
+    };
+
+    const removeRow = (row: SearchListItem) => {
+        if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
+            if (row.keyForList) {
+                const parentGroupKey = lookups.groupKeyByChildKey.get(row.keyForList);
+                if (parentGroupKey) {
+                    partialGroupKeys.add(parentGroupKey);
+                    touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
+                }
+                updated = spellOutGroupSelection(updated, row.keyForList, areAllMatchingItemsSelected, lookups);
+                dropKey(row.keyForList);
+            }
+            return;
+        }
+        if (isTransactionGroupListItemType(row)) {
+            // A group can hold an entry under its own key as well as under its children's.
+            if (row.keyForList) {
+                dropKey(row.keyForList);
+            }
+            for (const child of row.transactions ?? []) {
+                if (child.keyForList) {
+                    dropKey(child.keyForList);
+                }
+            }
+        }
+    };
+
+    const addRow = (row: SearchListItem) => {
+        if (isTransactionListItemType(row)) {
+            addTransaction(row, undefined);
+            return;
+        }
+        if (isTransactionReportGroupListItemType(row) && row.transactions.length === 0) {
+            if (row.keyForList && row.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                const [key, info] = mapEmptyReportToSelectedEntry(row);
+                if (!deepEqual(updated[key], info)) {
+                    updated[key] = info;
+                    hasWritten = true;
+                }
+            }
+            return;
+        }
+        if (isTransactionGroupListItemType(row)) {
+            const selectable = (row.transactions ?? []).filter((child) => !isTransactionPendingDelete(child));
+            if (selectable.length === 0) {
+                return;
+            }
+            // The children carry the selection from here, so the group's own key would count it twice.
+            if (row.keyForList) {
+                dropKey(row.keyForList);
+                touchedGroups.set(row.keyForList, row.transactions ?? []);
+            }
+            for (const child of selectable) {
+                addTransaction(child, row.keyForList);
+            }
+        }
+    };
+
+    for (const row of batch.toDeselect) {
+        removeRow(row);
+    }
+    for (const row of batch.toSelect) {
+        addRow(row);
+    }
+
+    // Rows left behind must stop claiming the group covers them, or an export sends a whole-group filter.
+    for (const [key, transaction] of Object.entries(updated)) {
+        if (transaction.isSelectedViaGroup && transaction.groupKey && partialGroupKeys.has(transaction.groupKey) && !wholeGroupKeys.has(transaction.groupKey)) {
+            updated[key] = {...transaction, isSelectedViaGroup: false};
+            hasWritten = true;
+        }
+    }
+
+    // Delete takes a whole group on this flag, so each group the range wrote under is recounted rather than left as it was.
+    for (const [groupKey, loadedRows] of touchedGroups) {
+        const unstamped = updated;
+        const stamped = stampGroupCoverageFlags({
+            selectedTransactions: unstamped,
+            groupKey,
+            groupCount: lookups.getGroupCount(groupKey),
+            loadedChildrenCount: loadedRows.length,
+            loadedSelectableCount: loadedRows.filter((child) => !isTransactionPendingDelete(child)).length,
+        });
+        if (Object.entries(stamped).some(([key, transaction]) => transaction.isEntireGroupSelected !== unstamped[key]?.isEntireGroupSelected)) {
+            hasWritten = true;
+        }
+        updated = stamped;
+    }
+
+    return hasWritten ? updated : selection;
+}
+
 export {
     mapTransactionItemToSelectedEntry,
     mapEmptyReportToSelectedEntry,
     prepareTransactionsList,
     deriveSelectedReports,
+    buildShiftRangeSource,
+    applyShiftRangeBatchToSelection,
+    spellOutGroupSelection,
+    isGroupSelected,
     getGroupCheckboxState,
     isRowChecked,
     getSearchGroupCount,

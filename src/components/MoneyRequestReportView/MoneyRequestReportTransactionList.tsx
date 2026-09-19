@@ -1,6 +1,6 @@
 import LinkButton from '@components/Button/composed/LinkButton';
 import type FlatListRefType from '@components/FlashList/types';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext, useSelectionClearGeneration} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
 
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -74,6 +74,7 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTransactionLongPressModal';
 import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
+import useReportTransactionShiftRange from './useReportTransactionShiftRange';
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
@@ -296,19 +297,6 @@ function MoneyRequestReportTransactionList({
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    const toggleTransaction = useCallback(
-        (transactionID: string) => {
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (selectedTransactionIDs.includes(transactionID)) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((t) => t !== transactionID);
-            } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, transactionID];
-            }
-            setSelectedTransactions(newSelectedTransactionIDs);
-        },
-        [setSelectedTransactions, selectedTransactionIDs],
-    );
-
     const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionIDs.includes(transactionID), [selectedTransactionIDs]);
 
     useFocusEffect(
@@ -363,9 +351,7 @@ function MoneyRequestReportTransactionList({
 
     useEffect(() => {
         clearSelectedTransactions(true);
-        // We don't want to run the effect on change of clearSelectedTransactions since it can cause an infinite loop.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportID]);
+    }, [reportID, clearSelectedTransactions]);
 
     const [sortConfig, setSortConfig] = useState<SortedTransactions>({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -508,12 +494,25 @@ function MoneyRequestReportTransactionList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
 
-    const visualOrderTransactionIDs = useMemo(() => {
-        if (!shouldGroupTransactions || groupedTransactions.length === 0) {
-            return sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
-        }
-        return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
-    }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
+    const visualOrderTransactions = useMemo(
+        () => (shouldGroupTransactions && groupedTransactions.length > 0 ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions),
+        [groupedTransactions, resolvedTransactions, shouldGroupTransactions],
+    );
+
+    const visualOrderTransactionIDs = useMemo(
+        () => visualOrderTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID),
+        [visualOrderTransactions],
+    );
+
+    const selectionClearGeneration = useSelectionClearGeneration();
+    const {toggleTransaction, toggleGroup, toggleAll} = useReportTransactionShiftRange({
+        reportID,
+        transactions: visualOrderTransactions,
+        selectedTransactionIDs,
+        setSelectedTransactions,
+        clearSelectedTransactions,
+        selectionClearGeneration,
+    });
 
     // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
     // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
@@ -580,18 +579,9 @@ function MoneyRequestReportTransactionList({
             if (!group) {
                 return;
             }
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
-            const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
-
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (anySelected) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
-            } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, ...groupTransactionIDs];
-            }
-            setSelectedTransactions(newSelectedTransactionIDs);
+            toggleGroup(group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
         },
-        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
+        [groupedTransactions, toggleGroup],
     );
 
     /**
@@ -810,6 +800,7 @@ function MoneyRequestReportTransactionList({
         isEmptyTransactions || shouldUseNarrowLayout ? null : (
             <MoneyRequestReportTableHeaderRow
                 transactions={transactions}
+                onToggleAll={toggleAll}
                 pendingAction={reportPendingAction}
                 columns={columnsToShow}
                 sortBy={sortBy}

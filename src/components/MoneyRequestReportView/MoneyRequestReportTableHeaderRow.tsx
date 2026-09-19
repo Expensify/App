@@ -1,6 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 
@@ -27,6 +27,9 @@ import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 type MoneyRequestReportTableHeaderRowProps = {
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
+
+    /** Called with the rows Select All covers; the list decides whether that selects them or clears the selection */
+    onToggleAll: (selectableTransactionIDs: string[]) => void;
 
     /** The report's offline pending action, shown as feedback on the whole row */
     pendingAction: PendingAction | undefined;
@@ -64,6 +67,7 @@ type MoneyRequestReportTableHeaderRowProps = {
  */
 function MoneyRequestReportTableHeaderRow({
     transactions,
+    onToggleAll,
     pendingAction,
     columns,
     sortBy,
@@ -81,7 +85,6 @@ function MoneyRequestReportTableHeaderRow({
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const {selectedTransactionIDs} = useSearchSelectionContext();
-    const {setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionActions();
 
     const isDesktopTableLayout = !shouldUseNarrowLayout;
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
@@ -111,13 +114,7 @@ function MoneyRequestReportTableHeaderRow({
                     ]}
                 >
                     <Checkbox
-                        onPress={() => {
-                            if (selectedTransactionIDs.length !== 0) {
-                                clearSelectedTransactions(true);
-                            } else {
-                                setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                            }
-                        }}
+                        onPress={() => onToggleAll(transactionsWithoutPendingDelete.map((t) => t.transactionID))}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                         isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                         isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
