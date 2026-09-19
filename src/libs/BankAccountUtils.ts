@@ -16,9 +16,11 @@ type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalA
 type BankAccountConnectionStatus = {
     labelKey: TranslationPaths;
     tone: 'default' | 'success' | 'danger';
+    badgeTone?: 'default' | 'success' | 'danger';
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;
+    requiresPlaidHandler?: boolean;
     tooltipKey?: TranslationPaths;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
@@ -65,6 +67,74 @@ function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean
     return !!accountData.allowDebit;
 }
 
+function isConnectedViaPlaid(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.plaidAccountID || !!accountData.additionalData?.plaidAccountID;
+}
+
+function hasBrokenPlaidConnection(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.additionalData?.verifications?.externalApiResponses?.plaidAssets?.needsFixing;
+}
+
+/**
+ * Whether the bank account can be connected via Plaid:
+ * - Provisioned as the Expensify Card settlement account; or
+ * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
+ */
+function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; accountData?: AccountData} | null | undefined, onCardWaitlistPolicyIDs: string[] | undefined): boolean {
+    if (!bankAccount) {
+        return false;
+    }
+
+    if (bankAccount.isExpensifyCardSettlementAccount) {
+        return true;
+    }
+
+    const policyID = bankAccount.accountData?.additionalData?.policyID;
+    if (policyID && onCardWaitlistPolicyIDs?.includes(policyID)) {
+        return true;
+    }
+
+    for (const id of bankAccount.accountData?.policyIDs ?? []) {
+        if (onCardWaitlistPolicyIDs?.includes(id)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Picks the policyID whose waitlist entry made the bank account eligible for Plaid link/relink.
+ * A shared bank account may reference many policies; the backend needs the specific matching one
+ * to run the same eligibility check.
+ */
+function getPlaidLinkableCardPolicyID(bankAccount: {accountData?: AccountData} | null | undefined, onCardWaitlistPolicyIDs: string[] | undefined): string | undefined {
+    if (!bankAccount) {
+        return undefined;
+    }
+
+    const primaryPolicyID = bankAccount.accountData?.additionalData?.policyID;
+    if (primaryPolicyID && onCardWaitlistPolicyIDs?.includes(primaryPolicyID)) {
+        return primaryPolicyID;
+    }
+
+    for (const id of bankAccount.accountData?.policyIDs ?? []) {
+        if (onCardWaitlistPolicyIDs?.includes(id)) {
+            return id;
+        }
+    }
+
+    return primaryPolicyID;
+}
+
 function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
     return {
         labelKey: 'walletPage.bankAccountStatus.incomplete',
@@ -84,7 +154,36 @@ function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
  * ReimbursementAccountPage, which routes a PENDING account to the validation (test transaction) step only when the
  * currency is USD. An absent currency is treated as USD, matching BankAccount.getCurrency().
  */
-function getBankAccountConnectionStatus(state: string | undefined, currency?: string): BankAccountConnectionStatus | undefined {
+function getBankAccountConnectionStatus(accountData: AccountData | undefined, currency?: string, canBankAccountLinkPlaid = false): BankAccountConnectionStatus | undefined {
+    if (!accountData) {
+        return undefined;
+    }
+
+    const {state, type, additionalData: {country = CONST.COUNTRY.US} = {}} = accountData;
+    if (canBankAccountLinkPlaid && country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+        if (hasBrokenPlaidConnection(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
+                actionKey: 'common.actionBadge.fix',
+                tone: 'danger',
+                badgeTone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        }
+        if (!isConnectedViaPlaid(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidConnectForLimit',
+                actionKey: 'walletPage.bankAccountStatus.connect',
+                tone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+            };
+        }
+    }
+
     if (state === CONST.BANK_ACCOUNT.STATE.PENDING && !!currency && currency !== CONST.CURRENCY.USD) {
         return getIncompleteBankAccountStatus();
     }
@@ -124,6 +223,7 @@ function getBankAccountConnectionStatus(state: string | undefined, currency?: st
             return undefined;
     }
 }
+
 /**
  * A BUSINESS account in a state that has actually been usable for paying expenses (anything other than SETUP / VERIFYING / PENDING).
  * Used by the search picker, the autocomplete suggestions, and the advanced-filter visibility gate so all three surfaces accept and count the same set of accounts.
@@ -290,6 +390,10 @@ export {
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
+    isConnectedViaPlaid,
+    hasBrokenPlaidConnection,
+    canLinkPlaid,
+    getPlaidLinkableCardPolicyID,
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
