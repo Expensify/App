@@ -256,6 +256,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         if (
             hasCreatedLegacyThreadRef.current ||
             transactionThreadReportID ||
+            !report?.reportID ||
             (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction) ||
             !reportLoadingState?.hasOnceLoadedReportActions ||
             reportActions.length === 0
@@ -266,7 +267,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // Because when switching between reports, reportActions may contain data from the previous report.
         // So we need to check that reportActions belongs to the current report.
         const isFirstActionBelongsToCurrentReport = !!getReportAction(reportIDFromRoute, reportActions.at(0)?.reportActionID);
-        if (report?.reportID && reportActions.length === 1 && !isFirstActionBelongsToCurrentReport) {
+        if (reportActions.length === 1 && !isFirstActionBelongsToCurrentReport) {
             return;
         }
 
