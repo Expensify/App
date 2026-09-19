@@ -38,7 +38,8 @@ import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -225,6 +226,14 @@ function IOURequestStartPage({
     const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const hasAmountChanged = transaction?.isAmountSet === true;
+
+    useFocusEffect(
+        useCallback(() => {
+            hasSubmittedRef.current = false;
+            setHasSubmitted(false);
+        }, []),
+    );
+
     const getEmbeddedHasUnsavedChanges = () => shouldEmbedConfirmation && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
     const isEmbeddedDirty = shouldEmbedConfirmation && !hasSubmitted && (isSignDirty || hasAmountChanged);
 
