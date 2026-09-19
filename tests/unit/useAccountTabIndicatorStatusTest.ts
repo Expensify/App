@@ -185,6 +185,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
             owner: name === accountCardFeedTestCases.admin.name ? 'johndoe12@expensify.com' : 'otheruser@expensify.com',
             role: name === accountCardFeedTestCases.admin.name ? 'admin' : 'user',
             policyAccountID: cardFeed.policyAccountID,
+            areDistanceRatesEnabled: status === CONST.INDICATOR_STATUS.HAS_HOME_ADDRESS_INFO,
             commuterExclusions: status === CONST.INDICATOR_STATUS.HAS_HOME_ADDRESS_INFO ? {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE} : undefined,
         },
         [ONYXKEYS.CARD_LIST]: {

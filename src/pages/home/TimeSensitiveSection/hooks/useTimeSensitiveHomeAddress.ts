@@ -1,15 +1,11 @@
 import useOnyx from '@hooks/useOnyx';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
-const hasHomeAndOfficeWorkspaceSelector = (policies: OnyxCollection<Policy>) =>
-    Object.values(policies ?? {}).some(
-        (policy) => policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+import {hasHomeAndOfficeCommuterExclusionPolicySelector} from '@selectors/Policy';
 
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => (privatePersonalDetails?.addresses ?? []).some((address) => !!address?.street?.trim());
 
@@ -19,7 +15,7 @@ const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersona
  * no home address recorded in their private personal details.
  */
 function useTimeSensitiveHomeAddress() {
-    const [hasHomeAndOfficeWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasHomeAndOfficeWorkspaceSelector});
+    const [hasHomeAndOfficeWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasHomeAndOfficeCommuterExclusionPolicySelector});
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
 
     return {
