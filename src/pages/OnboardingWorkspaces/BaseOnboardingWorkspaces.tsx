@@ -81,7 +81,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
-    const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+    // Reached from the work email merge flow, this screen replaces the screens before it and is passed no `backTo`, so
+    // there is nothing to go back to. Merging a work email into a public account is one-off, so hide Back instead of
+    // leaving a button that can't do anything.
+    const isMergeWorkEmailEntryPoint = !route.params?.backTo && !!onboardingValues?.isMergeAccountStepCompleted;
+    const shouldHideBackButton = (onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()) || isMergeWorkEmailEntryPoint;
 
     const finishOnboarding = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;

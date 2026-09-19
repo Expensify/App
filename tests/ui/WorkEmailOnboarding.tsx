@@ -28,6 +28,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Response as OnyxResponse} from '@src/types/onyx';
 
+import type * as ReactNavigation from '@react-navigation/native';
+
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -49,6 +51,16 @@ jest.mock('@rnmapbox/maps', () => {
         default: jest.fn(),
         MarkerView: jest.fn(),
         setAccessToken: jest.fn(),
+    };
+});
+
+// Lets a test render the onboarding screens as if they were backgrounded by a screen pushed on top of them.
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => {
+    const actual = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
+    return {
+        ...actual,
+        useIsFocused: () => mockIsFocused,
     };
 });
 
@@ -298,6 +310,7 @@ describe('OnboardingWorkEmail Page', () => {
     });
 
     beforeEach(() => {
+        mockIsFocused = true;
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
             createMock<ResponsiveLayoutResult>({
                 isSmallScreenWidth: false,
@@ -418,8 +431,35 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
         });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not navigate anywhere while the screen is backgrounded', async () => {
+        await TestHelper.signInWithTestUser();
+
+        mockIsFocused = false;
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        AddWorkEmailShouldValidate();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // A backgrounded screen that navigates pushes a duplicate copy of the rest of the onboarding flow onto the stack.
+        expect(navigate).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -539,7 +579,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
         });
 
         unmount();
@@ -703,6 +743,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
     });
 
     beforeEach(() => {
+        mockIsFocused = true;
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
             createMock<ResponsiveLayoutResult>({
                 isSmallScreenWidth: false,
@@ -854,6 +895,36 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
         });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not navigate anywhere while the screen is backgrounded', async () => {
+        await TestHelper.signInWithTestUser();
+
+        mockIsFocused = false;
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        MergeIntoAccountAndLoginSuccessful();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // A backgrounded screen that navigates pushes a duplicate copy of the rest of the onboarding flow onto the stack.
+        expect(navigate).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
