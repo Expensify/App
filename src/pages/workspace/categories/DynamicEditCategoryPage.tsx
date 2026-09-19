@@ -8,7 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCategoryNameError, getCategoryNameErrorMessage} from '@libs/CategoryUtils';
+import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import StringUtils from '@libs/StringUtils';
@@ -43,25 +43,26 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT;
     const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
     const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path);
+    const decodedCategoryName = getDecodedCategoryName(currentCategoryName);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const nameError = getCategoryNameError(policyCategories, values.categoryName, currentCategoryName);
+            const nameError = getCategoryNameError(policyCategories, values.categoryName, decodedCategoryName);
 
             if (nameError) {
                 errors.categoryName = getCategoryNameErrorMessage(translate, nameError, values.categoryName);
             }
             return errors;
         },
-        [policyCategories, currentCategoryName, translate],
+        [policyCategories, decodedCategoryName, translate],
     );
 
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newCategoryName = StringUtils.sanitizeName(values.categoryName);
             // Do not call the API if the edited category name is the same as the current category name
-            if (currentCategoryName !== newCategoryName) {
+            if (decodedCategoryName !== newCategoryName) {
                 renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled);
             }
 
@@ -70,7 +71,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
                 Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath, {compareParams: false});
             });
         },
-        [currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, isVendorMatchingBetaEnabled],
+        [decodedCategoryName, currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, isVendorMatchingBetaEnabled],
     );
 
     return (

@@ -6,7 +6,7 @@
 import type PolicyData from '@hooks/usePolicyData/types';
 
 import {getCardNameError, getExpensifyCardLimitError, getExpensifyCardNewAvailableSpend, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
-import {getCategoryNameError} from '@libs/CategoryUtils';
+import {getCategoryNameError, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getDistanceRateNameError, getDistanceRateValueError} from '@libs/PolicyDistanceRatesUtils';
 import {getPerDiemAmountError, getPerDiemNameError} from '@libs/PolicyPerDiemUtils';
@@ -34,8 +34,9 @@ import {renamePolicyTag} from './Tag';
 
 function renameCategoryInline(policyData: PolicyData, currentName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): void {
     const sanitized = StringUtils.sanitizeName(newName);
+    const currentDisplayName = getDecodedCategoryName(currentName);
 
-    if (sanitized === currentName || getCategoryNameError(policyData.categories, newName, currentName)) {
+    if (sanitized === currentDisplayName || getCategoryNameError(policyData.categories, newName, currentDisplayName)) {
         return;
     }
 

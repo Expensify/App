@@ -56,11 +56,14 @@ function getOptimisticCardNameValuePairs(cardID: number): Record<string, unknown
     return requireRecord(cardUpdate.nameValuePairs, 'Missing nameValuePairs optimistic update');
 }
 
+const encodedFoodAndDrink = 'Food &amp; Drink';
+
 const policyData = createMock<PolicyData>({
     policy: {id: '1'},
     categories: {
         Food: {name: 'Food', enabled: true},
         Travel: {name: 'Travel', enabled: true},
+        [encodedFoodAndDrink]: {name: encodedFoodAndDrink, enabled: true},
     },
     tags: {},
     reports: [],
@@ -108,6 +111,24 @@ describe('PolicyInlineEdit', () => {
             renameCategoryInline(policyData, 'Food', '  Meals  ', true);
 
             expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'}, true);
+        });
+
+        it('does not persist a name that matches an HTML-encoded category', () => {
+            renameCategoryInline(policyData, 'Food', 'Food & Drink', true);
+
+            expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
+        });
+
+        it('does not persist when the sanitized name matches the decoded stored name', () => {
+            renameCategoryInline(policyData, encodedFoodAndDrink, '  Food & Drink  ', true);
+
+            expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
+        });
+
+        it('persists a rename of an HTML-encoded category using the raw stored name', () => {
+            renameCategoryInline(policyData, encodedFoodAndDrink, 'Snacks', true);
+
+            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: encodedFoodAndDrink, newName: 'Snacks'}, true);
         });
     });
 

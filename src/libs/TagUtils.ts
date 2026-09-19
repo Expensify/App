@@ -42,7 +42,8 @@ type TagNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
  * Validates a tag name against every rule (required, reserved, unique, length). This is the single
  * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
  * `currentName` (the decoded display name) when editing so renaming a tag to its own name isn't flagged
- * as a duplicate. Returns an error code, or undefined when the name is valid.
+ * as a duplicate. Uniqueness also matches HTML-encoded stored names such as `R&amp;D` vs `R&D`.
+ * Returns an error code, or undefined when the name is valid.
  */
 function getTagNameError(tags: PolicyTags | undefined, newName: string, currentName?: string): TagNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
@@ -58,7 +59,8 @@ function getTagNameError(tags: PolicyTags | undefined, newName: string, currentN
         return 'invalid';
     }
 
-    if (tags?.[escaped] && sanitized !== currentName) {
+    // Tag keys may be HTML-encoded, so uniqueness compares decoded names as well as the escaped storage key.
+    if (sanitized !== currentName && (tags?.[escaped] || Object.keys(tags ?? {}).some((name) => getDecodedTagName(name) === sanitized))) {
         return 'existing';
     }
 

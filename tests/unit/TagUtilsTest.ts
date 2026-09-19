@@ -1,4 +1,4 @@
-import {getDecodedTagName, isTagMissing, trimTag} from '@libs/TagUtils';
+import {getDecodedTagName, getTagNameError, isTagMissing, trimTag} from '@libs/TagUtils';
 
 import CONST from '@src/CONST';
 
@@ -86,6 +86,23 @@ describe('TagUtils', () => {
         it('decodes other common HTML entities', () => {
             expect(getDecodedTagName('a &lt; b &gt; c')).toBe('a < b > c');
             expect(getDecodedTagName('&quot;hello&quot;')).toBe('"hello"');
+        });
+    });
+
+    describe('getTagNameError', () => {
+        const encodedResearchAndDevelopment = 'R&amp;D';
+        const tags = {
+            Engineering: {name: 'Engineering', enabled: true},
+            [encodedResearchAndDevelopment]: {name: encodedResearchAndDevelopment, enabled: true},
+        };
+
+        it('does not flag an HTML-encoded tag as a duplicate of its decoded name', () => {
+            expect(getTagNameError(tags, 'R&D', 'R&D')).toBeUndefined();
+        });
+
+        it('flags a decoded name that already exists as an encoded tag', () => {
+            expect(getTagNameError(tags, 'R&D')).toBe('existing');
+            expect(getTagNameError(tags, 'R&D', 'Engineering')).toBe('existing');
         });
     });
 });
