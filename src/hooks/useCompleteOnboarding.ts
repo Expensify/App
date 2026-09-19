@@ -128,6 +128,7 @@ function useCompleteOnboarding() {
                 isSelfTourViewed,
                 conciergeChat,
                 adminsChatReport,
+                currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 delegateAccountID,
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
