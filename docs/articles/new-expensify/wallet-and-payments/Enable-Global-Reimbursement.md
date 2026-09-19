@@ -1,7 +1,8 @@
 ---
 title: Global Reimbursement - Setup and Verification
 description: Choose your bank location to set up global reimbursements in New Expensify.
-keywords: [New Expensify, foreign bank validation, global reimbursement, United States, Canada, Europe, Singapore, Australia, United Kingdom, international reimbursements]
+keywords: [New Expensify, foreign bank validation, global reimbursement, United States, Canada, Europe, Singapore, Australia, United Kingdom, international reimbursements, currency conversion fees, FX fees, who pays conversion fees, company pays, employee pays]
+internalScope: Audience is Workspace Admins setting up global reimbursement. Covers choosing the correct country setup guide and choosing who pays currency conversion fees, does not cover the country-specific verification steps themselves or adding an employee deposit account.
 ---
 <div id="new-expensify" markdown="1">
 
@@ -49,6 +50,22 @@ Global reimbursement allows companies to send payments to employees in different
 
 ---
 
+## How to choose who pays currency conversion fees for global reimbursement
+
+When you reimburse an employee in a different currency, foreign exchange (FX) fees may apply to the cross-border conversion. As a Workspace Admin, you can choose whether your company or the employee pays these fees.
+
+**Currency conversion fees** is currently in a limited beta. It appears only if the beta is enabled for your workspace and your workspace reimburses employees directly through Expensify. If you don't see it, contact Concierge to request access.
+
+1. Go to **Workspaces > [Workspace Name] > Workflows**.
+2. Under **Payments**, select **Currency conversion fees**.
+3. Choose one of the following:
+   - **Company pays** – Your company covers the currency conversion fees, and the employee receives the full reimbursement amount.
+   - **Employee pays** – The currency conversion fees are deducted from the payment, so the employee receives a slightly smaller amount.
+
+This setting only applies to cross-border conversions. When an admin changes it, all Workspace Admins are notified in the workspace's **#admins** room.
+
+---
+
 # FAQ
 
 ## Can other admins send global reimbursements?
@@ -58,7 +75,7 @@ Yes. Once verified, the reimbursement account can be shared with other workspace
 The verification process can take anywhere from a few business days to several weeks, depending on whether all required documentation is provided when it begins.
 
 ## Why is my employee not receiving the full deposit?
-Some employees may receive a slightly smaller reimbursement than expected when paid into a bank account with a different currency. This happens due to foreign exchange (FX) fees when transmitting payments across borders, or fees charged by the receiving bank. The employee absorbs these fees, while the company sees the full report amount on their statement.
+Some employees may receive a slightly smaller reimbursement than expected when paid into a bank account with a different currency. This happens due to foreign exchange (FX) fees when transmitting payments across borders, or fees charged by the receiving bank. By default, the employee absorbs the currency conversion fees, while the company sees the full report amount on their statement. Where **Currency conversion fees** is available, a Workspace Admin can change who pays them under **Workflows > Payments > Currency conversion fees**. Fees charged by the receiving bank are always absorbed by the employee.
 
 ## Why is the reimbursement amount different from the expense amount?
 If your workspace and employees use different currencies, the reimbursement amount received by the employee will differ from the original expense amount. Exchange rates set by different providers on different days can cause the final amount to differ slightly from the original expense. Transaction fees may also contribute to this difference.
