@@ -5,6 +5,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -30,6 +31,8 @@ type ResolveChatTargetForSubmitCleanupParams = {
     report: OnyxEntry<Report>;
     fallbackOptimisticChatReportID: string;
     action: IOUAction;
+    /** The participant's draft report, so a not-yet-created workspace chat still resolves. Pass an empty object when there is none. */
+    participantReportDraft: OnyxEntry<Report> | EmptyObject;
 };
 
 /** Pre-action scan-flow resolver: returns both the builder's optimistic ID and the cleanup nav target so they stay in lockstep. */
@@ -49,7 +52,14 @@ function resolveChatTargetForScan({iouType, participant, report, currentUserAcco
  * lands on the same report the action wrote to. Falls back to `fallbackOptimisticChatReportID` (UI's
  * pre-generated optimistic ID for this submission) when no existing chat resolves.
  */
-function resolveChatTargetForSubmitCleanup({participant, currentUserAccountID, report, fallbackOptimisticChatReportID, action}: ResolveChatTargetForSubmitCleanupParams): ChatTarget {
+function resolveChatTargetForSubmitCleanup({
+    participant,
+    currentUserAccountID,
+    report,
+    fallbackOptimisticChatReportID,
+    action,
+    participantReportDraft,
+}: ResolveChatTargetForSubmitCleanupParams): ChatTarget {
     if (isMoneyRequestReport(report)) {
         return {report, chatReportID: fallbackOptimisticChatReportID, optimisticChatReportID: undefined};
     }
@@ -76,7 +86,7 @@ function resolveChatTargetForSubmitCleanup({participant, currentUserAccountID, r
     }
 
     let chatReportID: string | undefined;
-    if (participant.isPolicyExpenseChat && participant.reportID && getReportOrDraftReport(participant.reportID)) {
+    if (participant.isPolicyExpenseChat && participant.reportID && getReportOrDraftReport(participant.reportID, undefined, undefined, participantReportDraft)) {
         chatReportID = participant.reportID;
     } else if (participant.accountID) {
         chatReportID = getChatByParticipants([participant.accountID, currentUserAccountID])?.reportID;
