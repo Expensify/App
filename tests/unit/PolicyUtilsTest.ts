@@ -517,11 +517,14 @@ describe('PolicyUtils', () => {
     describe('isRoomMemberProtectedByPolicyRole', () => {
         const adminLogin = 'admin@test.com';
         const memberLogin = 'member@test.com';
+        const policyOwnerAccountID = 3001;
+        const regularMemberAccountID = 3002;
         // `role` is the role of the user currently viewing the policy, `employeeList` holds every member's own role
         const buildPolicy = (): Policy =>
             createMock<Policy>({
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: policyOwnerAccountID,
                 employeeList: {
                     [adminLogin]: {role: CONST.POLICY.ROLE.ADMIN},
                     [memberLogin]: {role: CONST.POLICY.ROLE.USER},
@@ -566,6 +569,39 @@ describe('PolicyUtils', () => {
             // Then the normalized fallback still matches the admin entry and protects them
             expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Admin@Test.com')).toBe(true);
             expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Member@Test.com')).toBe(false);
+        });
+
+        it('protects the policy owner by accountID even when the employee list does not list them', () => {
+            // Given the policy owner participating in another employee's workspace chat, absent from `employeeList`
+            // When their protection is resolved
+            // Then they are protected by `ownerAccountID`, not incidentally by carrying `role: admin` in the roster.
+            // The callers' own owner check compares against `report.ownerAccountID`, which is the employee whose
+            // expense chat it is, so without this the policy owner has no identity-based protection at all
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'owner@test.com', policyOwnerAccountID)).toBe(true);
+        });
+
+        it('protects the policy owner even when the employee list is blank', () => {
+            // Given a policy whose `employeeList` has not loaded, which happens when it is not the viewer's active
+            // policy, so no login can resolve to a role
+            const policyWithoutRoster = createMock<Policy>({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role: undefined,
+                ownerAccountID: policyOwnerAccountID,
+                employeeList: {},
+            });
+
+            // When the owner's protection is resolved
+            // Then they are still protected, because `ownerAccountID` is a required top-level field that resolves
+            // without the roster
+            expect(isRoomMemberProtectedByPolicyRole(policyWithoutRoster, 'owner@test.com', policyOwnerAccountID)).toBe(true);
+        });
+
+        it('does not protect a non-owner just because an accountID is passed', () => {
+            // Given a regular member's accountID alongside their login
+            // When their protection is resolved
+            // Then they stay removable, since the owner check must not widen protection to every member with an
+            // accountID. This is the regression that would reintroduce the original bug
+            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), memberLogin, regularMemberAccountID)).toBe(false);
         });
     });
 

@@ -61,7 +61,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
     // Check the selected member's own role on the policy, not the viewer's, and fail closed when their login is missing.
     // Kept in sync with the members list through the shared helper.
-    const isSelectedMemberProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login);
+    const isSelectedMemberProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
     const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const askForConfirmationToRemove = () => {
         showConfirmModal({

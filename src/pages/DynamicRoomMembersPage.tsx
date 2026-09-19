@@ -216,7 +216,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             // Check the listed member's own role on the policy, not the viewer's, and fail closed when their login is
             // missing. Kept in sync with the member details page through the shared helper.
-            const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login);
+            const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
             const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
             const isSelectionDisabled =
                 (isPolicyExpenseChat && isProtectedByPolicyRole) ||
