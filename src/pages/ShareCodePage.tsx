@@ -226,12 +226,16 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     We shouldn't introduce platform specific code in our codebase.
                     This is a temporary solution while Web is not supported for the QR code download feature */}
                     {shouldAllowDownloadQRCode && (
-                        <MenuItem
-                            isAnonymousAction
-                            title={translate('common.download')}
-                            icon={icons.Download}
-                            onPress={() => qrCodeRef.current?.download?.()}
-                        />
+                        <MenuItem.Root onPress={() => qrCodeRef.current?.download?.()}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Download} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('common.download')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     )}
 
                     <MenuItemNavigation

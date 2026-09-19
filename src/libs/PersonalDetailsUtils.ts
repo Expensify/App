@@ -267,6 +267,9 @@ function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): Ony
     };
 }
 
+// The Onyx update produced by buildPersonalDetailsUpdate. Use it instead of naming the key in an OnyxUpdate generic.
+type PersonalDetailsOnyxUpdate = ReturnType<typeof buildPersonalDetailsUpdate>;
+
 /**
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
  * They will have an "optimistic" accountID that must be cleaned up later.
@@ -296,21 +299,9 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsCleanup[accountID] = null;
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailsNew,
-        },
-    ];
+    const optimisticData: PersonalDetailsOnyxUpdate[] = [buildPersonalDetailsUpdate(personalDetailsNew)];
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailsCleanup,
-        },
-    ];
+    const finallyData: PersonalDetailsOnyxUpdate[] = [buildPersonalDetailsUpdate(personalDetailsCleanup)];
 
     return {
         optimisticData,
@@ -536,6 +527,8 @@ function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<P
 function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
     return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
 }
+
+export type {PersonalDetailsOnyxUpdate};
 
 export {
     getPersonalDetailForAccountID,
