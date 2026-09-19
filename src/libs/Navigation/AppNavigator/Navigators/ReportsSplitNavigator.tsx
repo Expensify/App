@@ -1,5 +1,4 @@
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import useFindLastAccessedReport from '@hooks/useFindLastAccessedReport';
 
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -8,13 +7,11 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationStateRoute, ReportsSplitNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
 
 import type {ReportScreenProps} from '@pages/inbox/ReportScreen';
 
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -30,24 +27,29 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  * There can be multiple report screens in the stack with different report IDs.
  */
 function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
-    const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
     const shouldClearInitialReportActionsDefer = !!route.params && 'shouldDeferInitialReportActions' in route.params && route.params.shouldDeferInitialReportActions === true;
     const [shouldDeferInitialReportActions] = useState(() => shouldClearInitialReportActionsDefer);
 
+    const routeReportID = route.params && 'screen' in route.params && route.params.screen === SCREENS.REPORT ? route.params.params?.reportID : undefined;
+    const currentURL = getCurrentUrl();
+    const isTransitioning = currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+    const reportIdFromPath = currentURL ? new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1) : undefined;
+    const shouldResolveReportID = !routeReportID && !reportIdFromPath && !isTransitioning;
+
+    const {lastAccessedReportID} = useFindLastAccessedReport({
+        openOnAdminRoom: isOpenOnAdminRoom,
+        enabled: shouldResolveReportID,
+    });
+
     const [initialReportID] = useState(() => {
         // Deep links and REPORT_WITH_ID navigation pass the reportID in nested params,
-        // which lets us skip the O(n) findLastAccessedReport scan over all reports.
-        if (route.params && 'screen' in route.params && route.params.screen === SCREENS.REPORT && route.params.params?.reportID) {
-            return route.params.params.reportID;
+        // which lets us skip the scan over all reports.
+        if (routeReportID) {
+            return routeReportID;
         }
 
-        const currentURL = getCurrentUrl();
-        const isTransitioning = currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
-
-        const reportIdFromPath = currentURL ? new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1) : undefined;
         if (reportIdFromPath) {
             return reportIdFromPath;
         }
@@ -58,10 +60,8 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
             return '';
         }
 
-        // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), undefined, isOpenOnAdminRoom, undefined, reportNameValuePairs);
         // eslint-disable-next-line rulesdir/no-default-id-values
-        return initialReport?.reportID ?? '';
+        return lastAccessedReportID ?? '';
     });
 
     useEffect(() => {
