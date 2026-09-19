@@ -7245,6 +7245,7 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
         /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
