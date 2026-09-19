@@ -2050,6 +2050,14 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery});
 }
 
+/**
+ * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkApproveReports(jsonQuery: string) {
+    write(WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS, {jsonQuery});
+}
+
 /** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
 type ExportTemplateGroups = {
     /** Custom templates (custom integrations + account/policy in-app templates) */
@@ -2485,6 +2493,7 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkApproveReports,
     updateAdvancedFilters,
     setSearchContext,
     deleteSavedSearch,
