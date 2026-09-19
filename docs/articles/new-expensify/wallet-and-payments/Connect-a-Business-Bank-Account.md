@@ -97,7 +97,10 @@ Provide the following company information:
 ## How to add Beneficial Owner details
 
 1. Check the appropriate box under **Beneficial Owner**. A Beneficial Owner is an individual who owns 25% or more of the business. If no individual owns 25% or more, leave both boxes unchecked.
-2. Accept the agreement terms and verify that all details are true and accurate.
+2. For each Beneficial Owner, enter their legal name, date of birth, Social Security Number, and address.
+3. Accept the agreement terms and verify that all details are true and accurate.
+
+Expensify asks for each Beneficial Owner's complete Social Security Number in the **Full 9 digits of SSN** field. The last four digits are not enough. This differs from your own personal details, where Expensify asks only for the last four digits. Expensify does not run a personal credit check.
 
 ---
 

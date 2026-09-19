@@ -49,7 +49,7 @@ To comply with financial regulations, the following documents are needed:
 # Step 2: Submit Required Documentation
 
 1.Under **Account > Wallet**, choose **Enable Global Reimbursements**.
-2. Upload your latest bank statement and click **Next** to confirm the account details.
+2. Enter your business information and confirm the account details.
 3. On the next screen, upload the following documents:
    * Address verification document
    * Proof of Beneficial Ownership
@@ -62,8 +62,13 @@ To comply with financial regulations, the following documents are needed:
      - Enter details for someone who is.
      - Expensify will send a message to the Director/Senior Officer outlining what's required.
      - They must also provide ID and proof of address.
+5. On the **Agreements** screen, confirm each agreement.
+6. Under **Bank statement**, select **Choose file** and upload a recent bank statement, dated within the last three months, for the business bank account you're connecting.
+7. Select **Accept and add bank account**.
 
 **Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
+
+You cannot reach the ACH authorization form until a bank statement is uploaded. If you started setup before the bank statement was required, resuming setup returns you to the **Agreements** screen so you can upload one.
 
 Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
 
