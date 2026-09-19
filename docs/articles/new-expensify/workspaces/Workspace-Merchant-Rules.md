@@ -24,7 +24,7 @@ To create a Merchant Rule:
    - **Contains**
    - **Matches exactly**
 5. Select the fields you want the rule to update. 
-6. Optionally apply the rule to existing unsubmitted expenses and review matching expenses using **Preview matches**.
+6. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet, then click **Preview matches** to review which expenses the rule will update.
 7. Click **Save rule**.
 
 ---
@@ -123,7 +123,7 @@ Common reasons include:
 - The rule is disabled.
 - Another rule matched first.
 - A field was manually set during expense creation.
-- The rule was created after the expense and wasn't applied retroactively, unless you select "apply to existing expenses" when creating the rule.
+- The rule was created after the expense and wasn't applied retroactively, unless you enabled **Apply to existing unsubmitted expenses** when saving the rule. Expenses that have already been submitted are never updated by a rule.
 - The tag the rule applies was deleted from the workspace, so only that update is skipped.
 
 ## How do I clear a Category, Tag, or Tax value from a Merchant Rule?
