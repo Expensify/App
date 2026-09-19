@@ -284,9 +284,28 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)
     const firstWorkflow = sortedApprovalWorkflows.at(0);
     if (firstWorkflow && !firstWorkflow.isDefault) {
+        let defaultApprovers = calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail});
+        if (defaultApprovers.length === 0) {
+            // policy.approver / policy.owner are stored independently of employeeList and can
+            // reference an email that is no longer a current employee (e.g. removed through a
+            // different flow that didn't keep this field in sync). calculateApprovers then
+            // returns [], and an approvalWorkflows entry with an empty `approvers` array
+            // crashes convertApprovalWorkflowToPolicyEmployees the next time anything submits
+            // it, independent of any member removal. Mirror the fallback already used above
+            // for non-default workflows instead of leaving this one unguarded. See #100266.
+            defaultApprovers = [
+                {
+                    email: defaultApprover,
+                    forwardsTo: undefined,
+                    avatar: personalDetailsByEmail[defaultApprover]?.avatar,
+                    displayName: personalDetailsByEmail[defaultApprover]?.displayName ?? defaultApprover,
+                    isCircularReference: false,
+                },
+            ];
+        }
         sortedApprovalWorkflows.unshift({
             members: [],
-            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail}),
+            approvers: defaultApprovers,
             isDefault: true,
         });
     }

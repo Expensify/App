@@ -843,6 +843,35 @@ describe('WorkflowUtils', () => {
             const unassignedMember = defaultWorkflow?.members.find((m) => m.email === 'unassigned@example.com');
             expect(unassignedMember).toBeDefined();
         });
+
+        it('Should fall back to a synthetic approver for the auto-injected default workflow when policy.approver is not a current employee (regression test for #100266)', () => {
+            // policy.approver/policy.owner are stored independently of employeeList and can go
+            // stale relative to it. When no employee submits directly to that stale approver,
+            // convertPolicyEmployeesToApprovalWorkflows auto-injects a default workflow via
+            // calculateApprovers({employees, firstEmail: defaultApprover, ...}) with no
+            // approvers.length === 0 fallback -- unlike the sibling branch above (used for
+            // non-default workflows) which already guards against exactly this case. The result
+            // was an approvalWorkflows entry with `approvers: []`, which crashes
+            // convertApprovalWorkflowToPolicyEmployees ("Approval workflow must have at least
+            // one approver") the next time anything submits it -- independent of whether any
+            // member removal ever happens. See #100266.
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '1@example.com',
+                },
+            };
+            // 'stale-approver@example.com' is not a key in `employees` -- e.g. a former
+            // approver removed through some other flow that didn't update policy.approver.
+            const policy = createMockPolicy(employees, 'stale-approver@example.com');
+
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+
+            const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
+            expect(defaultWorkflow).toBeDefined();
+            expect(defaultWorkflow?.approvers.length).toBeGreaterThan(0);
+        });
     });
 
     describe('mergeWorkflowMembersWithAvailableMembers', () => {
