@@ -21,7 +21,6 @@ import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import appendParentTagsFilter from '@libs/Navigation/helpers/dynamicRoutesUtils/appendParentTagsFilter';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
@@ -116,21 +115,23 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     };
 
     const navigateToEditGlCode = () => {
-        const workspaceGlCodeRoute = appendParentTagsFilter(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path, parentTagsFilter);
-        const settingsGlCodeRoute = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName), parentTagsFilter);
-        const settingsGlCodeRouteForCurrentTag = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name), parentTagsFilter);
+        const glCodeRoute = isQuickSettingsFlow
+            ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
+            : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path);
 
         if (!isControlPolicy(policy)) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
-                    isQuickSettingsFlow ? buildDynamicRoute(settingsGlCodeRoute) : buildDynamicRoute(workspaceGlCodeRoute),
+                    isQuickSettingsFlow
+                        ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName))
+                        : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path),
                 ),
             );
             return;
         }
-        Navigation.navigate(isQuickSettingsFlow ? buildDynamicRoute(settingsGlCodeRouteForCurrentTag) : buildDynamicRoute(workspaceGlCodeRoute));
+        Navigation.navigate(glCodeRoute);
     };
 
     const navigateToEditTagApprover = () => {
