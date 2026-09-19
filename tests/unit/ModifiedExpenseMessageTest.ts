@@ -367,6 +367,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1059,6 +1061,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual(expectedResult);
