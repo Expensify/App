@@ -16,8 +16,6 @@ import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 
-// eslint-disable-next-line no-restricted-imports -- Type-only namespace import used to type jest.requireActual for the react-native-onyx mock.
-import type * as ReactNativeOnyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -55,7 +53,7 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 jest.mock('react-native-onyx', () => {
-    const actual = jest.requireActual<typeof ReactNativeOnyx>('react-native-onyx');
+    const actual = jest.requireActual<{default: typeof Onyx}>('react-native-onyx');
     return {
         ...actual,
         __esModule: true,
