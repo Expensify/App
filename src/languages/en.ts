@@ -7653,19 +7653,22 @@ const translations = {
             },
             filters: {
                 description: (providerName: string) => `Select which members get imported from ${providerName}. You can choose from job stages, tags, and offices.`,
-                skipImport: "Don't import",
                 chooseAtLeastOneItem: 'Choose at least one item to import',
                 stages: {
                     title: 'Job stage',
+                    toggleTitle: 'Import job stages',
                     description: 'Choose the job stage of candidates you would like to sync with this workspace',
+                    emptySelectionError: 'Please select at least one job stage',
                 },
                 tags: {
                     title: 'Tag',
+                    toggleTitle: 'Import tags',
                     description: 'Choose the tags of candidates you would like to sync with this workspace',
+                    emptySelectionError: 'Please select at least one tag',
                 },
                 offices: {
                     title: 'Office',
-                    optionalTitle: 'Office (optional)',
+                    toggleTitle: 'Import offices (optional)',
                     description: 'Choose the offices of candidates you would like to sync with this workspace',
                 },
             },

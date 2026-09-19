@@ -76,6 +76,19 @@ function getMergeATSFilterOptions(filterType: MergeATSFilterType, data: MergeATS
     }
 }
 
+function getMergeATSFilterValues(filterType: MergeATSFilterType, data: MergeATSConnectionData | undefined): string[] {
+    switch (filterType) {
+        case CONST.MERGE.ATS_FILTER_TYPE.TAGS:
+            return data?.tags ?? [];
+        case CONST.MERGE.ATS_FILTER_TYPE.STAGES:
+            return (data?.stages ?? []).map((stage) => stage.name);
+        case CONST.MERGE.ATS_FILTER_TYPE.OFFICES:
+            return (data?.offices ?? []).map((office) => office.id);
+        default:
+            return [];
+    }
+}
+
 /**
  * Display label for one dimension of the given filters, or undefined when nothing selected for it resolves to a name.
  * Offices are stored as IDs, so they are resolved against the office catalog in `data.offices`. Tags and stages are
@@ -130,6 +143,7 @@ export {
     getMergeATSApproverField,
     getMergeATSFilterLabel,
     getMergeATSFilterOptions,
+    getMergeATSFilterValues,
     isAnyRecruitingConnected,
     isMergeATSCompleteSetupNeeded,
     shouldShowRecruitingConnectionError,

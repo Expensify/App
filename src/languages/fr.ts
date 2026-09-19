@@ -8705,13 +8705,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             filters: {
                 description: (providerName: string) =>
                     `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir parmi les étapes de poste, les tags et les bureaux.`,
-                skipImport: 'Ne pas importer',
                 chooseAtLeastOneItem: 'Choisissez au moins un élément à importer',
                 stages: {title: 'Étape du poste', description: 'Choisissez l’étape de recrutement des candidats que vous souhaitez synchroniser avec cet espace de travail'},
                 tags: {title: 'Tag', description: 'Choisissez les tags des candidats que vous souhaitez synchroniser avec cet espace de travail'},
                 offices: {
                     title: 'Bureau',
-                    optionalTitle: 'Bureau (facultatif)',
                     description: 'Choisissez les bureaux des candidats que vous souhaitez synchroniser avec cet espace de travail',
                 },
             },

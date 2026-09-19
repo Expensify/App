@@ -1,4 +1,5 @@
 import {
+    getMergeATSFilterValues,
     getConnectedATSProvider,
     getMergeATSApprovalMode,
     getMergeATSApproverField,
@@ -225,6 +226,44 @@ describe('RecruitingUtils', () => {
             expect(getMergeATSFilterOptions(TAGS, data)).toEqual([{value: 'Engineering', name: 'Engineering'}]);
             expect(getMergeATSFilterOptions(STAGES, data)).toEqual([{value: 'Offer', name: 'Offer'}]);
             expect(getMergeATSFilterOptions(OFFICES, data)).toEqual([{value: 'o1', name: 'New York'}]);
+        });
+    });
+
+    describe('getMergeATSFilterValues', () => {
+        it('returns an empty list when the ATS returned no catalog for the dimension', () => {
+            // Given no data at all, or data that only holds another dimension's catalog
+            // When every dimension is asked for its values
+            // Then each comes back empty, so toggling one on selects nothing rather than crashing
+            expect(getMergeATSFilterValues(TAGS, undefined)).toEqual([]);
+            expect(getMergeATSFilterValues(STAGES, undefined)).toEqual([]);
+            expect(getMergeATSFilterValues(OFFICES, undefined)).toEqual([]);
+            expect(getMergeATSFilterValues(TAGS, {stages: [{id: 's1', name: 'Offer'}]})).toEqual([]);
+        });
+
+        it('returns the same values the options expose, since both feed `config.filters`', () => {
+            // Given a catalog for every dimension, where offices are stored by id and tags and stages by name
+            const data = {
+                tags: ['Engineering', 'Design'],
+                stages: [
+                    {id: 's1', name: 'Offer'},
+                    {id: 's2', name: 'Phone Screen'},
+                ],
+                offices: [
+                    {id: 'o1', name: 'New York'},
+                    {id: 'o2', name: 'Remote - EU'},
+                ],
+            };
+
+            // When each dimension is asked for all of its values
+            // Then they match the `value` of the options shown in the selection list, so toggling a dimension on is
+            // the same as picking every one of its options by hand
+            for (const filterType of [TAGS, STAGES, OFFICES]) {
+                expect(getMergeATSFilterValues(filterType, data)).toEqual(getMergeATSFilterOptions(filterType, data).map((option) => option.value));
+            }
+
+            expect(getMergeATSFilterValues(TAGS, data)).toEqual(['Engineering', 'Design']);
+            expect(getMergeATSFilterValues(STAGES, data)).toEqual(['Offer', 'Phone Screen']);
+            expect(getMergeATSFilterValues(OFFICES, data)).toEqual(['o1', 'o2']);
         });
     });
 

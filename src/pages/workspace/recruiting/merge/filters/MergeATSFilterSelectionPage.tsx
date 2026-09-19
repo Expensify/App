@@ -1,14 +1,16 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMergeConnected} from '@libs/merge/MergeUtils';
@@ -30,18 +32,22 @@ import {useMergeATSFilters, useMergeATSFiltersActions} from './MergeATSFiltersDr
 
 type MergeATSFilterSelectionPageProps = PlatformStackScreenProps<RecruitingMergeImportSettingsNavigatorParamList, typeof SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER>;
 
-const SKIP_IMPORT_KEY = 'skipImport';
-
 const TITLES = {
+    [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: 'workspace.recruiting.filters.stages.title',
     [CONST.MERGE.ATS_FILTER_TYPE.TAGS]: 'workspace.recruiting.filters.tags.title',
     [CONST.MERGE.ATS_FILTER_TYPE.OFFICES]: 'workspace.recruiting.filters.offices.title',
-    [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: 'workspace.recruiting.filters.stages.title',
 } as const;
 
 const DESCRIPTIONS = {
+    [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: 'workspace.recruiting.filters.stages.description',
     [CONST.MERGE.ATS_FILTER_TYPE.TAGS]: 'workspace.recruiting.filters.tags.description',
     [CONST.MERGE.ATS_FILTER_TYPE.OFFICES]: 'workspace.recruiting.filters.offices.description',
-    [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: 'workspace.recruiting.filters.stages.description',
+} as const;
+
+const EMPTY_SELECTION_ERRORS = {
+    [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: 'workspace.recruiting.filters.stages.emptySelectionError',
+    [CONST.MERGE.ATS_FILTER_TYPE.TAGS]: 'workspace.recruiting.filters.tags.emptySelectionError',
+    [CONST.MERGE.ATS_FILTER_TYPE.OFFICES]: undefined,
 } as const;
 
 function MergeATSFilterSelectionPage({
@@ -58,28 +64,17 @@ function MergeATSFilterSelectionPage({
     const filters = useMergeATSFilters();
     const {setFilter} = useMergeATSFiltersActions();
     const [selectedValues, setSelectedValues] = useState<Set<string>>(() => new Set(filters[filterType]));
+    const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
 
-    const options = getMergeATSFilterOptions(filterType, mergeATS?.data);
-
-    const optionItems: ListItem[] = options.map((option) => ({
+    const optionItems = getMergeATSFilterOptions(filterType, mergeATS?.data).map((option) => ({
         text: option.name,
         keyForList: option.value,
         value: option.value,
         isSelected: selectedValues.has(option.value),
     }));
-
-    const skipImportItem: ListItem = {
-        text: translate('workspace.recruiting.filters.skipImport'),
-        keyForList: SKIP_IMPORT_KEY,
-        isSelected: selectedValues.size === 0,
-    };
+    const {filteredData, textInputOptions} = useSelectionListSearch(optionItems);
 
     const toggleItem = (item: ListItem) => {
-        if (item.keyForList === SKIP_IMPORT_KEY) {
-            setSelectedValues(new Set());
-            return;
-        }
-
         setSelectedValues((previousValues) => {
             const nextValues = new Set(previousValues);
             if (nextValues.has(item.keyForList)) {
@@ -91,13 +86,34 @@ function MergeATSFilterSelectionPage({
         });
     };
 
-    const handleSave = () => {
-        setFilter(filterType, [...selectedValues]);
-        Navigation.goBack(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS.getRoute(policyID));
+    const toggleSelectAll = () => {
+        setSelectedValues((previousValues) => {
+            const nextValues = new Set(previousValues);
+            const areAllVisibleSelected = filteredData.length > 0 && filteredData.every((option) => nextValues.has(option.value));
+            for (const option of filteredData) {
+                if (areAllVisibleSelected) {
+                    nextValues.delete(option.value);
+                } else {
+                    nextValues.add(option.value);
+                }
+            }
+            return nextValues;
+        });
     };
 
     const titleKey = TITLES[filterType];
     const descriptionKey = DESCRIPTIONS[filterType];
+    const emptySelectionErrorKey = EMPTY_SELECTION_ERRORS[filterType];
+
+    const handleSave = () => {
+        if (selectedValues.size === 0 && emptySelectionErrorKey) {
+            setHasAttemptedSave(true);
+            return;
+        }
+
+        setFilter(filterType, [...selectedValues]);
+        Navigation.goBack(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS.getRoute(policyID));
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -108,26 +124,36 @@ function MergeATSFilterSelectionPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 testID="MergeATSFilterSelectionPage"
             >
                 <HeaderWithBackButton title={titleKey ? translate(titleKey) : ''} />
                 <View style={styles.flex1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{descriptionKey ? translate(descriptionKey) : ''}</Text>
-                    <SelectionListWithSections
-                        sections={[
-                            {data: [skipImportItem], sectionIndex: 0},
-                            {data: optionItems, sectionIndex: 1, customHeader: <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />},
-                        ]}
+                    <SelectionList
+                        data={filteredData}
                         ListItem={MultiSelectListItem}
                         canSelectMultiple
-                        shouldPreventAutoScrollOnSelect
+                        selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.RIGHT}
                         onSelectRow={toggleItem}
-                        style={{listItemWrapperStyle: styles.pv4}}
+                        onSelectAll={toggleSelectAll}
+                        textInputOptions={{
+                            ...textInputOptions,
+                            headerMessage: textInputOptions.value.trim() && filteredData.length === 0 ? translate('common.noResultsFound') : '',
+                        }}
+                        style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting}}
                     />
                     <FixedFooter
                         style={styles.mtAuto}
                         addBottomSafeAreaPadding
                     >
+                        {selectedValues.size === 0 && hasAttemptedSave && !!emptySelectionErrorKey && (
+                            <FormHelpMessage
+                                isError
+                                message={translate(emptySelectionErrorKey)}
+                                style={styles.mb3}
+                            />
+                        )}
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
