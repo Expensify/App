@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
+import TextLink from '@components/TextLink';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -16,7 +17,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
-import {getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed, isDirectFeed} from '@libs/CardUtils';
+import {navigateToFeedTransactions} from '@libs/CardNavigationUtils';
+import {getCardFeedWithoutDomainID, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed, isDirectFeed} from '@libs/CardUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -39,16 +41,30 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     policyID: string;
     feedName: CompanyCardFeedWithDomainID;
 
+    /** The fund ID the feed belongs to, i.e. its domain account ID or the workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
     /** Whether the feed is loading */
     isLoading: boolean;
 
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
+    /** Whether the feed is browsable, i.e. it is not loading, pending, missing or in an error state */
+    shouldShowViewTransactions: boolean;
+
     CardFeedIcon: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({
+    policyID,
+    feedName,
+    domainOrWorkspaceAccountID,
+    isLoading,
+    canWriteCompanyCards,
+    shouldShowViewTransactions,
+    CardFeedIcon,
+}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -86,6 +102,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
         // as already reconnected and close at once.
         startCardFeedRefresh(policyID, feedName, policy?.outputCurrency, currencyList, countryByIp);
     };
+
+    // The page keys a feed as `<feed>#<domainID>`, while the Search feed filter keys it as `<fundID>_<feed>`.
+    const viewTransactions = () => navigateToFeedTransactions(`${domainOrWorkspaceAccountID}_${getCardFeedWithoutDomainID(feedName)}`);
 
     const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
@@ -135,6 +154,12 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     </Button>
                 )}
             </View>
+
+            {shouldShowViewTransactions && (
+                <View style={[styles.flexRow, styles.ph5, styles.pb2]}>
+                    <TextLink onPress={viewTransactions}>{translate('workspace.common.viewTransactions')}</TextLink>
+                </View>
+            )}
 
             {!isLoading && canWriteCompanyCards && shouldShowBrokenConnectionError && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
