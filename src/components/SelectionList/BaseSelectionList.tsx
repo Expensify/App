@@ -531,7 +531,8 @@ function BaseSelectionListImpl({
                         data={data}
                         renderItem={renderItem}
                         ref={listRef}
-                        keyExtractor={(item) => item.keyForList}
+                        // FlashList can pass a stale index here while its render stack syncs after the dataset shrinks, so item can be undefined.
+                        keyExtractor={(item, index) => item?.keyForList ?? index.toString()}
                         extraData={extraData}
                         ListFooterComponent={
                             isFooterInsideList ? (
