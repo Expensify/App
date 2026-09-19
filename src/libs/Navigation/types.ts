@@ -638,6 +638,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         orderWeight: number;
         tagName: string;
+        parentTagsFilter?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_TAG_APPROVER]: {
         policyID: string;
@@ -653,6 +654,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         orderWeight: number;
         tagName: string;
+        parentTagsFilter?: string;
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;

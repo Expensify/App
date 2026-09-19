@@ -51,6 +51,7 @@ import {
     getSubmitToEmail,
     getTagApproverRule,
     findPolicyTagAtLevel,
+    findPolicyTagEntryByParentFilter,
     getTagGLCode,
     isTagInPolicy,
     matchesParentTagPath,
@@ -1923,6 +1924,31 @@ describe('PolicyUtils', () => {
 
             expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales\\:EMEA')?.name).toBe('Roadshow');
             expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales')).toBeUndefined();
+        });
+    });
+
+    describe('findPolicyTagEntryByParentFilter', () => {
+        const dependentTags: PolicyTags = {
+            Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+            'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+        };
+
+        it('returns the tag and storage key when parentTagsFilter matches', () => {
+            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Engineering$')).toEqual({
+                tag: dependentTags['Roadshow-1'],
+                tagKey: 'Roadshow-1',
+            });
+        });
+
+        it('returns the tag by name when parentTagsFilter is not provided', () => {
+            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow')).toEqual({
+                tag: dependentTags.Roadshow,
+                tagKey: 'Roadshow',
+            });
+        });
+
+        it('returns undefined when parentTagsFilter does not match any tag', () => {
+            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Sales$')).toBeUndefined();
         });
     });
 
