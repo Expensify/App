@@ -8389,6 +8389,8 @@ ${reportName}`,
             subsidiarySelectDescription: '选择要与此工作区同步的 Dynamics 365 Business Central 子公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加一家公司并重新同步连接',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 Business Central 中添加供应商，然后再次同步连接',
         },
     },
     getAssistancePage: {
