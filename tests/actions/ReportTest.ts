@@ -1435,6 +1435,33 @@ describe('actions/Report', () => {
         expect(loadingState).toMatchObject({isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true});
     });
 
+    it('openReport settles the initial-load state when the fetch fails', async () => {
+        const REPORT_ID = 'openReport_failedFetch';
+        const mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
+
+        // Given an OpenReport request that will fail
+        mockFetch?.fail?.();
+
+        Report.openReport({
+            conciergeChat: undefined,
+            hasReportActions: true,
+            reportID: REPORT_ID,
+            introSelected: undefined,
+            betas: undefined,
+            personalDetails: undefined,
+            currentUserAccountID: 1,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the failure is terminal, so consumers that gate on hasOnceLoadedReportActions (e.g. the report
+        // preview carousel) resolve instead of spinning forever on a stamp that is never coming. See issue #100524.
+        const loadingState = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`);
+        expect(loadingState).toMatchObject({isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true});
+
+        mockFetch.mockReset();
+    });
+
     it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {
         global.fetch = TestHelper.createGlobalFetchMock();
 

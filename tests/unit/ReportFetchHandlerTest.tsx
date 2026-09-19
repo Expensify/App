@@ -34,6 +34,12 @@ jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => true,
 }));
 
+let mockIsOffline = false;
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: mockIsOffline}),
+}));
+
 const mockOpenReport = jest.fn();
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof UserActionsReport>('@userActions/Report'),
@@ -55,6 +61,7 @@ describe('ReportFetchHandler', () => {
     beforeEach(async () => {
         mockOpenReport.mockClear();
         mockSetParams.mockClear();
+        mockIsOffline = false;
         setRouteParams({reportID: REPORT_ID});
         await Onyx.clear();
         await Onyx.multiSet({
@@ -169,19 +176,21 @@ describe('ReportFetchHandler', () => {
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
     });
 
-    it('does NOT re-fetch for a report whose actions simply never loaded', async () => {
-        // Given a report that has been opened but has never recorded a loaded stamp
+    it('does NOT re-fetch when the loaded stamp is wiped while offline', async () => {
+        // Given a mounted report whose actions have already loaded once, on a device that has since gone offline
+        mockIsOffline = true;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
         await waitForBatchedUpdates();
         renderHandler();
         await waitForBatchedUpdates();
         mockOpenReport.mockClear();
 
-        // When its initial load resolves without ever succeeding, the way a failed fetch leaves it
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        // When the memory-only loading state is dropped
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, null);
         await waitForBatchedUpdates();
 
-        // Then nothing re-fetches, because a stamp that was never there is not a stamp that was wiped
+        // Then nothing is requested, because the fetch would only sit in the queue until connectivity returns
         expect(mockOpenReport).not.toHaveBeenCalled();
     });
 });

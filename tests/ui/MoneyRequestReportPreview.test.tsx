@@ -513,22 +513,6 @@ describe('MoneyRequestReportPreview', () => {
         expect(screen.getByText(TestHelper.translateLocal('search.moneyRequestReport.accessPlaceHolder'))).toBeOnTheScreen();
     });
 
-    it('renders the empty placeholder once the initial load resolves without ever succeeding', async () => {
-        // Given an empty report whose chat fetch failed, so it cleared isLoadingInitialReportActions but never stamped hasOnceLoadedReportActions
-        setReportPreviewData({transactions: []});
-
-        renderPage({});
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockChatReport.reportID}`, {
-                isLoadingInitialReportActions: false,
-            });
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        // Then the preview resolves instead of spinning forever waiting for a stamp that is never coming
-        expect(screen.getByText(TestHelper.translateLocal('search.moneyRequestReport.emptyStateTitle'))).toBeOnTheScreen();
-    });
-
     it('keeps showing loading during the deferred transition before transactions populate', async () => {
         setReportPreviewData({transactions: []});
         mockDeferredValueOverride = true;

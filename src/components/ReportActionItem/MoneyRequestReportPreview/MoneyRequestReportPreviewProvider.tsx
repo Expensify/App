@@ -131,15 +131,7 @@ function MoneyRequestReportPreviewProvider({
         }, [isTransitionPending]),
     );
 
-    // A failed OpenReport clears `isLoadingInitialReportActions` without ever setting `hasOnceLoadedReportActions`,
-    // so keying the spinner on the latter alone leaves it spinning for a fetch that already resolved. Require a
-    // load to still be in flight, and the preview falls back to its empty/access placeholder instead. See issue #100524.
-    const shouldShowLoading =
-        chatReportLoadingState != null &&
-        chatReportLoadingState.hasOnceLoadedReportActions !== true &&
-        chatReportLoadingState.isLoadingInitialReportActions !== false &&
-        transactions.length === 0 &&
-        !isOptimisticChatReport;
+    const shouldShowLoading = chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !isOptimisticChatReport;
     const [transactionViolations] = useReportTransactionViolations(transactions);
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded

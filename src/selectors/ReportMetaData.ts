@@ -10,12 +10,8 @@ const hasOnceLoadedReportActionsSelector = (loadingState: OnyxEntry<ReportLoadin
 
 // Preserves the distinction between a missing loading-state entry (undefined) and an entry whose
 // `hasOnceLoadedReportActions` is not yet true, unlike the plain field selector above.
-// `isLoadingInitialReportActions` comes along so consumers can tell "a fetch is still in flight" apart from
-// "a fetch already resolved without ever succeeding", which `hasOnceLoadedReportActions` alone cannot express.
-const reportActionsLoadingStateSelector = (
-    loadingState: OnyxEntry<ReportLoadingState>,
-): Pick<ReportLoadingState, 'hasOnceLoadedReportActions' | 'isLoadingInitialReportActions'> | undefined =>
-    loadingState ? {hasOnceLoadedReportActions: loadingState.hasOnceLoadedReportActions, isLoadingInitialReportActions: loadingState.isLoadingInitialReportActions} : undefined;
+const reportActionsLoadingStateSelector = (loadingState: OnyxEntry<ReportLoadingState>): Pick<ReportLoadingState, 'hasOnceLoadedReportActions'> | undefined =>
+    loadingState ? {hasOnceLoadedReportActions: loadingState.hasOnceLoadedReportActions} : undefined;
 
 const reportActionsListLoadingStateSelector = (
     loadingState: OnyxEntry<ReportLoadingState>,
