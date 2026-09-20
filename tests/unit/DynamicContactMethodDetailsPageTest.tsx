@@ -3,6 +3,8 @@ import {act, render} from '@testing-library/react-native';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 
 import * as UserActions from '@libs/actions/User';
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicContactMethodDetailsPage from '@pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage';
@@ -101,6 +103,19 @@ describe('DynamicContactMethodDetailsPage', () => {
             </HTMLProviderWrapper>
         );
     }
+
+    it('marks contact deletion as non-retryable and skips reauthentication', () => {
+        const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+        UserActions.deleteContactMethod(fakeEmail, mockLoginList);
+
+        expect(writeSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.DELETE_CONTACT_METHOD,
+            expect.objectContaining({partnerUserID: fakeEmail, shouldRetry: false, skipReauthentication: true}),
+            expect.any(Object),
+        );
+        writeSpy.mockRestore();
+    });
 
     it('should not call resetContactMethodValidateCodeSentState when we got a delete pending field', async () => {
         // Given a login list with a validated contact method
