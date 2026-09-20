@@ -3647,7 +3647,10 @@ function excludeParticipantsForDisplay(
             return false;
         }
 
-        if (shouldExcludeHidden && isHiddenForCurrentUser(allReportParticipants[accountID]?.notificationPreference)) {
+        const reportParticipant = allReportParticipants[accountID];
+        // An empty preference is used by legacy rooms for members who have access but have not set a preference yet.
+        // Only an explicit hidden preference should remove a known member from the members list.
+        if (shouldExcludeHidden && (!reportParticipant || reportParticipant.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)) {
             return false;
         }
 

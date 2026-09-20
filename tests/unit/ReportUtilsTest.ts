@@ -15337,7 +15337,9 @@ describe('ReportUtils', () => {
             2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
             3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY},
             4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
         });
+        Object.defineProperty(mockParticipants[5], 'notificationPreference', {value: '', configurable: true});
 
         const mockReportMetadata = createMock<OnyxEntry<ReportMetadata>>({
             pendingChatMembers: [
@@ -15374,6 +15376,13 @@ describe('ReportUtils', () => {
             });
             expect(result).toEqual([1, 3, 4]);
             expect(result).not.toContain(2); // participant 2 has 'hidden' notification preference
+        });
+
+        it('should include participants with no notification preference when shouldExcludeHidden is true', () => {
+            const filteredParticipantIDs = excludeParticipantsForDisplay([5], mockParticipants, mockReportMetadata, {
+                shouldExcludeHidden: true,
+            });
+            expect(filteredParticipantIDs).toEqual([5]);
         });
 
         it('should exclude deleted participants when shouldExcludeDeleted is true', () => {
