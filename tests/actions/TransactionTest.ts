@@ -652,6 +652,7 @@ describe('actions/Transaction', () => {
                 changeTransactionsReport({
                     transactionIDs: [transactionIDToMove],
                     isASAPSubmitBetaEnabled: false,
+                    isVendorMatchingBetaEnabled: false,
                     accountID: RORY_ACCOUNT_ID,
                     email: RORY_EMAIL,
                     newReport: destinationReport,
