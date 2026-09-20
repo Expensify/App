@@ -16,6 +16,7 @@ import {
     getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
     getSortedTagKeys,
+    hasDependentTags as hasDependentTagsForPolicy,
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
@@ -442,6 +443,39 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
               }
             : violation,
     );
+}
+
+/**
+ * Syncs the tag violations with the current tag list of the policy.
+ *
+ * A tag list change (a tag deleted, disabled, renamed or re-added) can land on its own - the workspace admin who
+ * changed it holds no copy of every submitter's transaction, and a push that only carries `policyTags_` leaves the
+ * stored `transactionViolations_` untouched. Re-deriving the tag violations at read time keeps an open expense in
+ * step with the tag list without writing to Onyx, so it can never race the server value or the optimistic data of
+ * the action that changed the tags.
+ *
+ * The rules are the same ones `getViolationsOnyxData` applies, so the violations shown before and after the next
+ * refetch match. Violations are returned untouched when the policy or its tags aren't hydrated, since an absent tag
+ * list is not evidence that a tag is gone.
+ */
+function syncTagOutOfPolicyViolation(
+    violations: TransactionViolation[],
+    transaction: OnyxEntry<Transaction>,
+    policyTagList: OnyxEntry<PolicyTagLists>,
+    policy: OnyxEntry<Policy>,
+): TransactionViolation[] {
+    if (!transaction || !policy || !policyTagList || isEmptyObject(policyTagList)) {
+        return violations;
+    }
+
+    const policyRequiresTags = !!policy.requiresTag || !!transaction.tag;
+    if (!policyRequiresTags) {
+        return violations;
+    }
+
+    return Object.keys(policyTagList).length === 1
+        ? getTagViolationsForSingleLevelTags(transaction, violations, policyRequiresTags, policyTagList)
+        : getTagViolationsForMultiLevelTags(transaction, violations, policyTagList, hasDependentTagsForPolicy(policy, policyTagList));
 }
 
 const ViolationsUtils = {
@@ -1231,6 +1265,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation};
+export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation, syncTagOutOfPolicyViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};

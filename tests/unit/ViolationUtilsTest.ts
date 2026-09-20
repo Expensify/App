@@ -2,7 +2,13 @@ import {beforeEach} from '@jest/globals';
 
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {
+    filterReceiptViolations,
+    getIsViolationFixed,
+    isHardViolationOrRateDateWarning,
+    syncCustomUnitRateOutOfDateRangeViolation,
+    syncTagOutOfPolicyViolation,
+} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -743,6 +749,109 @@ describe('getViolationsOnyxData', () => {
                     },
                 }),
             );
+        });
+    });
+
+    describe('syncTagOutOfPolicyViolation', () => {
+        const firstTagName = 'Tag 1';
+        const secondTagName = 'Tag 2';
+
+        beforeEach(() => {
+            transactionViolations = [];
+            transaction.tag = firstTagName;
+            policy.requiresTag = true;
+            policyTags = {
+                Tag: {
+                    name: 'Tag',
+                    required: true,
+                    orderWeight: 0,
+                    tags: {
+                        [firstTagName]: {name: firstTagName, enabled: true},
+                        [secondTagName]: {name: secondTagName, enabled: true},
+                    },
+                },
+            };
+        });
+
+        it('should add the tagOutOfPolicy violation once the tag has been deleted from the policy', () => {
+            // Given a tag list the transaction's tag has been deleted from, as it arrives from the server
+            delete policyTags.Tag?.tags[firstTagName];
+
+            // When the stored violations are synced against it
+            const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, policyTags, policy);
+
+            // Then the transaction is flagged, without waiting for a transactionViolations_ update
+            expect(result).toContainEqual(expect.objectContaining(tagOutOfPolicyViolation));
+        });
+
+        it('should add the tagOutOfPolicy violation once the tag has been disabled', () => {
+            // Given a tag the admin has disabled rather than deleted
+            policyTags = {...policyTags, Tag: {...policyTags.Tag, tags: {...policyTags.Tag?.tags, [firstTagName]: {name: firstTagName, enabled: false}}}} as PolicyTagLists;
+
+            // When the stored violations are synced against it
+            const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, policyTags, policy);
+
+            // Then the transaction is flagged, since a disabled tag is no longer selectable
+            expect(result).toContainEqual(expect.objectContaining(tagOutOfPolicyViolation));
+        });
+
+        it('should remove a stored tagOutOfPolicy violation once the tag is valid again', () => {
+            // Given a stored violation for a tag that has since been re-added to the policy
+            transactionViolations = [tagOutOfPolicyViolation];
+
+            // When the stored violations are synced against the current tag list
+            const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, policyTags, policy);
+
+            // Then the stale violation is dropped
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY}));
+        });
+
+        it('should remove the missingTag violation once the last enabled tag is deleted', () => {
+            // Given a tagless transaction on a policy whose tags have all been deleted
+            transaction.tag = undefined;
+            transactionViolations = [missingTagViolation];
+            policyTags = {Tag: {name: 'Tag', required: true, orderWeight: 0, tags: {}}};
+
+            // When the stored violations are synced against it
+            const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, policyTags, policy);
+
+            // Then missingTag no longer applies, because there is no tag left to pick
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.MISSING_TAG}));
+        });
+
+        it('should add the missingTag violation once a tag list with enabled tags is added', () => {
+            // Given a tagless transaction on a policy that requires tags
+            transaction.tag = undefined;
+
+            // When the stored violations are synced against a tag list that has enabled tags
+            const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, policyTags, policy);
+
+            // Then the transaction is flagged as missing a tag
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.MISSING_TAG}));
+        });
+
+        it('should leave the violations untouched when the tag list has not been loaded', () => {
+            // Given a policy whose tags are not hydrated on this client
+            transactionViolations = [tagOutOfPolicyViolation];
+
+            // When the stored violations are synced
+            const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, undefined, policy);
+
+            // Then the server's violations are kept, since a missing tag list is not evidence that the tag is gone
+            expect(result).toEqual(transactionViolations);
+        });
+
+        it('should leave the violations untouched when tags are not required and the transaction has no tag', () => {
+            // Given a policy that does not require tags and a transaction that holds none
+            transaction.tag = undefined;
+            policy.requiresTag = false;
+            transactionViolations = [categoryOutOfPolicyViolation];
+
+            // When the stored violations are synced
+            const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, policyTags, policy);
+
+            // Then nothing tag-related is derived
+            expect(result).toEqual(transactionViolations);
         });
     });
 
