@@ -8,6 +8,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
+
 import React from 'react';
 // The provider animates with Animated from 'react-native', so the test has to reach for the same module to drive it.
 // eslint-disable-next-line no-restricted-imports
