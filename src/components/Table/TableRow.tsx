@@ -110,19 +110,6 @@ export default function TableRow({
         queueMicrotask(() => setShouldDisableHoverStyle(true));
     }, [wasRecentlyEditingCell]);
 
-    // Closing a popover selector starts a press on this row because the popover is a child, but that press
-    // never reaches onPress. Clear the leftover flag after a frame so the next tap can open the row.
-    // A dismiss tap that does fire onPress still consumes the flag first.
-    useEffect(() => {
-        if (isEditingCell) {
-            return;
-        }
-        const animationFrame = requestAnimationFrame(() => {
-            wasEditingOnMouseDownRef.current = false;
-        });
-        return () => cancelAnimationFrame(animationFrame);
-    }, [isEditingCell]);
-
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
     const inertProps = isAccessibilityHidden ? {inert: true} : {};
@@ -239,7 +226,9 @@ export default function TableRow({
     const renderSelectionCheckbox = () => {
         const checkbox = checkboxReplacementElement ?? (
             <Checkbox
-                shouldStopMouseDownPropagation
+                // While editing, let mousedown reach the row so it can snapshot the dismiss tap
+                // and skip preventDefault. Spend checkboxes do the same.
+                shouldStopMouseDownPropagation={!isEditingCell}
                 containerStyle={styles.m0}
                 style={styles.flex1}
                 isChecked={!!item.selected}
@@ -302,8 +291,14 @@ export default function TableRow({
     };
 
     // Snapshot at pointer down because blur clears isEditingCell before onPress.
-    // Native touch never fires onMouseDown, so this also runs from onPressIn.
-    const captureEditingOnPointerDown = () => {
+    // Overwrite so a press that never reaches onPress (popover dismiss) cannot stick.
+    const captureEditingOnMouseDown = () => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+    };
+
+    // Native never fires onMouseDown. On web, keep a flag already set by mousedown if
+    // blur cleared isEditingCell between the two events.
+    const captureEditingOnPressIn = () => {
         wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
     };
 
@@ -327,7 +322,7 @@ export default function TableRow({
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
-                    captureEditingOnPointerDown();
+                    captureEditingOnMouseDown();
 
                     const target = e?.target;
 
@@ -344,7 +339,11 @@ export default function TableRow({
                     }
 
                     if (target.closest('[role="switch"]') || target.closest('[role="checkbox"]')) {
-                        e.preventDefault();
+                        // Keep the filter bar focused. While an inline editor is open, let the
+                        // browser blur it so the value saves — same as spend transaction rows.
+                        if (!isEditingCell) {
+                            e.preventDefault();
+                        }
                         return;
                     }
 
@@ -354,7 +353,7 @@ export default function TableRow({
                 }}
                 onPress={(event) => handleRowPress(event)}
                 onPressIn={(event) => {
-                    captureEditingOnPointerDown();
+                    captureEditingOnPressIn();
                     onPressIn?.(event);
                 }}
                 onLongPress={handleRowLongPress}
