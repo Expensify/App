@@ -5,7 +5,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -322,11 +321,10 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
-                                <MenuItemWithTopDescription
-                                    title={memberNames}
-                                    description={translate('common.members')}
-                                    numberOfLinesTitle={2}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    name={translate('common.members')}
+                                    value={memberNames}
+                                    numberOfLinesValue={2}
                                     onPress={() => {
                                         Navigation.goBack(backTo);
                                     }}
