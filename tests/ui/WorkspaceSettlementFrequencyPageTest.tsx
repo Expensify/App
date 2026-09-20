@@ -97,7 +97,7 @@ const route: PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS
     name: SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY,
     params: {policyID: POLICY_ID},
 };
-// The screen does not read navigation; this inert test double only satisfies the navigator-provided prop.
+// The screen does not read navigation. This inert test double only satisfies the navigator-provided prop.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const navigation = {} as PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY>['navigation'];
 
