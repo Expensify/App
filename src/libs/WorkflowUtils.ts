@@ -318,6 +318,21 @@ function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], pol
 }
 
 /**
+ * The enforced workflows seen from a member's side. A member left on an inert workflow by a downgrade submits to the
+ * default approver like everyone else, so they move onto the default workflow rather than ending up on no workflow.
+ */
+function getEnforcedApprovalWorkflowsForMembers(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
+    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
+    if (enforcedApprovalWorkflows.length === approvalWorkflows.length) {
+        return enforcedApprovalWorkflows;
+    }
+
+    const membersOfInertWorkflows = approvalWorkflows.filter((workflow) => !workflow.isDefault).flatMap((workflow) => workflow.members);
+
+    return enforcedApprovalWorkflows.map((workflow) => (workflow.isDefault ? {...workflow, members: [...workflow.members, ...membersOfInertWorkflows]} : workflow));
+}
+
+/**
  * Map every workflow member's email to the first approver of the workflow they belong to.
  * Members who approve their own expenses are left out, since they sit at the top of their own chain.
  */
@@ -1796,6 +1811,7 @@ export {
     getApprovalWorkflowRulesForPolicy,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
+    getEnforcedApprovalWorkflowsForMembers,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,

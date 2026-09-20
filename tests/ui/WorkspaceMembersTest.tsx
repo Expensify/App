@@ -758,11 +758,12 @@ describe('WorkspaceMembers', () => {
             unmount();
         });
 
-        it('hides an approver the workspace no longer enforces after a downgrade', async () => {
+        it('shows the default approver for a member whose workflow a downgrade stopped enforcing', async () => {
             // Given a workspace downgraded out of advanced approvals, where the owner still submits to the auditor:
             // the workflow is gone from the Workflows tab, since a non-advanced mode enforces only its default
             // workflow, but the owner's `submitsTo` survives the downgrade, so the approver it names is still
-            // derivable here. `signInWithTestUser` puts this suite on every beta, and the Workflows tab keeps all
+            // derivable here. The owner submits to the default approver like everyone else now, so the admin is the
+            // approver to show. `signInWithTestUser` puts this suite on every beta, and the Workflows tab keeps all
             // workflows under the multiple-approvers beta, so the beta is cleared to match the tab's own behavior.
             await act(async () => {
                 await Onyx.set(ONYXKEYS.BETAS, []);
@@ -781,14 +782,44 @@ describe('WorkspaceMembers', () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
-            // The auditor submits to the default approver, so their approver still shows. Waiting on this row first
-            // means the rows have rendered before the owner's row is asserted to have no approver.
+            // The auditor submits to the default approver, so their approver shows unchanged.
             const approverLabel = TestHelper.translateLocal('common.approver');
             expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
 
-            // No "Approver: ..." segment on the owner's row, since the workflow they submit through is not the one
-            // this approval mode enforces.
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER)}$`))).toBeOnTheScreen();
+            // The owner falls back to the default approver rather than keeping the auditor the downgrade dropped.
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('falls every member back to the default approver when no workflow is the default one', async () => {
+            // Given a downgraded workspace where the admin approves everyone and the auditor approves the admin,
+            // while the default approver is still the owner: neither workflow is the enforced one, so every member
+            // submits to the owner. Betas are cleared for the same reason as the test above.
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, []);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: ownerEmail,
+                    employeeList: {
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: auditorEmail},
+                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            const approverLabel = TestHelper.translateLocal('common.approver');
+            expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
+            expect(screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
+
+            // The owner is the default approver, so they approve their own expenses and no approver shows.
+            const roleLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${roleLabel}$`))).toBeOnTheScreen();
 
             unmount();
         });

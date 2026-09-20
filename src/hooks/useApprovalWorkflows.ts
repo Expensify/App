@@ -3,7 +3,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
-    getEnforcedApprovalWorkflows,
+    getEnforcedApprovalWorkflowsForMembers,
 } from '@libs/WorkflowUtils';
 import type {PolicyConversionResult} from '@libs/WorkflowUtils';
 
@@ -36,8 +36,9 @@ type UseApprovalWorkflowsParams = {
 
 type UseApprovalWorkflowsResult = PolicyConversionResult & {
     /**
-     * The workflows the workspace's approval mode actually enforces. Read this wherever a member's approver is
-     * surfaced, so a workflow the workspace has stopped enforcing isn't presented as if it still applied.
+     * The workflows the workspace's approval mode actually enforces, with every member on the workflow that governs
+     * them. Read this wherever a member's approver is surfaced, so a workflow the workspace has stopped enforcing
+     * isn't presented as if it still applied.
      */
     enforcedApprovalWorkflows: ApprovalWorkflow[];
 };
@@ -61,7 +62,7 @@ function useApprovalWorkflows({policy, personalDetails, currentUserLogin}: UseAp
         ? convertApprovalWorkflowRulesToWorkflows({...params, rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID)})
         : convertPolicyEmployeesToApprovalWorkflows(params);
 
-    return {...result, enforcedApprovalWorkflows: getEnforcedApprovalWorkflows(result.approvalWorkflows, policy, isMultipleApproversBetaEnabled)};
+    return {...result, enforcedApprovalWorkflows: getEnforcedApprovalWorkflowsForMembers(result.approvalWorkflows, policy, isMultipleApproversBetaEnabled)};
 }
 
 export default useApprovalWorkflows;
