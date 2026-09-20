@@ -143,15 +143,17 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
         onClose();
     };
 
-    const popoverHeight = styles.getSelectionListPopoverHeight({
+    // Padding sits outside the list, matching workspace member roles, so it is not clipped into a scrollbar.
+    const listHeight = styles.getSelectionListPopoverHeight({
         itemCount: availableLimitTypeItems.length || 1,
         itemHeight: variables.optionRowHeight,
         windowHeight,
         isInLandscapeMode,
         hasButton: false,
-        // Top padding plus one extra line so a wrapping Smart Limit description is not clipped.
-        extraHeight: styles.pt4.paddingTop + variables.lineHeightNormal,
+        // One extra line so a wrapping Smart Limit description is not clipped.
+        extraHeight: variables.lineHeightNormal,
     }).height;
+    const popoverHeight = listHeight + styles.pt4.paddingTop + styles.pb4.paddingBottom;
 
     return (
         <PopoverWithMeasuredContent
@@ -173,7 +175,7 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[StyleUtils.getHeight(popoverHeight), styles.flexColumn, styles.pt4]}>
+            <View style={[StyleUtils.getHeight(popoverHeight), styles.flexColumn, styles.pv4]}>
                 <SelectionList
                     data={availableLimitTypeItems}
                     ListItem={SingleSelectListItem}
