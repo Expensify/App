@@ -2733,21 +2733,30 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
 
 /**
  * Get IOU action for a reportID and transactionID
+ *
+ * @param shouldExcludeDeletedActions Skip actions that were deleted (or are pending deletion). A deleted IOU action keeps
+ * its IOUTransactionID, so a report can hold two actions for the same transaction once the expense is restored.
  */
-function getIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined): OnyxEntry<ReportAction> {
+function getIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined, shouldExcludeDeletedActions = false): OnyxEntry<ReportAction> {
     if (!reportID || !transactionID) {
         return undefined;
     }
     const reportActions = getAllReportActions(reportID);
 
-    return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+    return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID, shouldExcludeDeletedActions);
 }
 
 /**
  * Get the IOU action for a transactionID from given reportActions
+ *
+ * @param shouldExcludeDeletedActions See getIOUActionForReportID.
  */
-function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
+function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string, shouldExcludeDeletedActions = false): OnyxEntry<ReportAction> {
     return reportActions.find((reportAction) => {
+        // An action with no message at all is not evidence of a deletion: deleting blanks the message rather than dropping it.
+        if (shouldExcludeDeletedActions && (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || (!!reportAction.message && isDeletedAction(reportAction)))) {
+            return false;
+        }
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
         return IOUTransactionID === transactionID;
     });

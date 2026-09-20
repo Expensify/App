@@ -481,6 +481,107 @@ describe('actions/Transaction', () => {
             expect(shouldReportActionBeVisible(retiredAction, trackedExpenseAction.reportActionID, true, CARLOS_ACCOUNT_ID)).toBe(false);
         });
 
+        it('ignores the deleted IOU action left behind by a delete when moving a restored expense', async () => {
+            // Given a self-DM holding two IOU actions for the same expense: the blanked one left behind when the expense was
+            // deleted (its transaction thread is gone) and the live one created when the expense was undeleted
+            const selfDMReport: Report = {...createRandomReport(81, CONST.REPORT.CHAT_TYPE.SELF_DM), reportID: '81'};
+            const movePolicy: Policy = {...createRandomPolicy(82, CONST.POLICY.TYPE.TEAM, 'Undelete Workspace'), id: 'policy-for-undelete'};
+            const workspaceChat: Report = {...createRandomReport(83, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: '83', policyID: movePolicy.id};
+            const destinationReport: Report = {
+                ...createRandomReport(84),
+                reportID: '84',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: movePolicy.id,
+                chatReportID: workspaceChat.reportID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+            };
+            const restoredTransaction: Transaction = {
+                transactionID: 'transaction-restored',
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: ''},
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const deletedThreadReportID = 'thread-deleted-with-the-expense';
+            const liveThreadReportID = 'thread-created-by-undelete';
+            const buildIOUAction = (reportActionID: string, childReportID: string): ReportAction => ({
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                    transactionID: restoredTransaction.transactionID,
+                    isPersonalTrackingExpense: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                }),
+                reportActionID,
+                reportID: selfDMReport.reportID,
+                childReportID,
+            });
+            // Deleting an expense blanks its IOU action but keeps the IOUTransactionID, so this action still matches the
+            // transaction. It is seeded first so an unfiltered lookup would return it.
+            const deletedAction: ReportAction = {
+                ...buildIOUAction('1', deletedThreadReportID),
+                message: [{type: 'COMMENT', html: '', text: '', isEdited: true}],
+            };
+            const liveAction: ReportAction = buildIOUAction('2', liveThreadReportID);
+            const liveThread: Report = {
+                ...createRandomReport(85),
+                reportID: liveThreadReportID,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: liveAction.reportActionID,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReport.reportID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${movePolicy.id}`, movePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${liveThread.reportID}`, liveThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${restoredTransaction.transactionID}`, restoredTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+                [deletedAction.reportActionID]: deletedAction,
+                [liveAction.reportActionID]: liveAction,
+            });
+            await waitForBatchedUpdates();
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+
+            // When the restored expense is moved to a workspace report
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [restoredTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CARLOS_ACCOUNT_ID,
+                email: CARLOS_EMAIL,
+                newReport: destinationReport,
+                policy: movePolicy,
+                allTransactions,
+                policyTagList: {},
+                transactionViolations: {},
+                reports: allReports,
+                selfDMReportActions: {[deletedAction.reportActionID]: deletedAction, [liveAction.reportActionID]: liveAction},
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the action created in the destination report points at the live transaction thread, not at the one that
+            // was deleted along with the expense, so the moved expense can still be opened
+            const destinationActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${destinationReport.reportID}`);
+            const movedIOUAction = Object.values(destinationActions ?? {}).find(
+                (action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === restoredTransaction.transactionID,
+            );
+            expect(movedIOUAction).toBeDefined();
+            expect(movedIOUAction?.childReportID).toBe(liveThreadReportID);
+        });
+
         it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {
             // Given a destination workspace whose default distance rate is defined in GBP (200/mi)
             const policyID = generatePolicyID();
