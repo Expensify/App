@@ -110,6 +110,19 @@ export default function TableRow({
         queueMicrotask(() => setShouldDisableHoverStyle(true));
     }, [wasRecentlyEditingCell]);
 
+    // Closing a popover selector starts a press on this row because the popover is a child, but that press
+    // never reaches onPress. Clear the leftover flag after a frame so the next tap can open the row.
+    // A dismiss tap that does fire onPress still consumes the flag first.
+    useEffect(() => {
+        if (isEditingCell) {
+            return;
+        }
+        const animationFrame = requestAnimationFrame(() => {
+            wasEditingOnMouseDownRef.current = false;
+        });
+        return () => cancelAnimationFrame(animationFrame);
+    }, [isEditingCell]);
+
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
     const inertProps = isAccessibilityHidden ? {inert: true} : {};
