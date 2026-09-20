@@ -1,6 +1,14 @@
 import type PolicyData from '@hooks/usePolicyData/types';
 
-import {renameCategoryInline, renameExpensifyCardInline, updateExpensifyCardLimitInline, updateExpensifyCardLimitTypeInline, updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
+import {
+    canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineUpdate,
+    renameCategoryInline,
+    renameExpensifyCardInline,
+    updateExpensifyCardLimitInline,
+    updateExpensifyCardLimitTypeInline,
+    updateMemberRoleInline,
+} from '@libs/actions/Policy/InlineEdit';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {isRecord} from '@libs/ObjectUtils';
@@ -167,9 +175,50 @@ describe('PolicyInlineEdit', () => {
         });
     });
 
+    describe('getExpensifyCardLimitInlineUpdate', () => {
+        it('returns undefined for an invalid limit so the confirm modal is not shown', () => {
+            // Given a card with a current limit of $100
+            const card = buildCard();
+
+            // When the inline value is not an integer dollar amount
+            const nextLimit = getExpensifyCardLimitInlineUpdate(card, '10.5');
+
+            // Then there is no persistable update because the RHP form would also reject this
+            expect(nextLimit).toBeUndefined();
+        });
+
+        it('returns undefined when the dollar amount matches the stored limit', () => {
+            // Given a card whose unapproved expense limit is already 10000 cents
+            const card = buildCard();
+
+            // When the inline value is that same dollar amount
+            const nextLimit = getExpensifyCardLimitInlineUpdate(card, '100');
+
+            // Then there is no persistable update so the page can skip the remaining-spend confirm
+            expect(nextLimit).toBeUndefined();
+        });
+
+        it('returns the backend amount in cents for a valid new limit', () => {
+            // Given a card whose stored limit is $100
+            const card = buildCard();
+
+            // When the inline value is a different integer dollar amount
+            const nextLimit = getExpensifyCardLimitInlineUpdate(card, '50');
+
+            // Then the page and write path share the same cents value to persist
+            expect(nextLimit).toBe(5000);
+        });
+    });
+
     describe('updateExpensifyCardLimitInline', () => {
         it('does not persist an invalid limit', () => {
             updateExpensifyCardLimitInline(1, buildCard(), '10.5');
+
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('does not persist an unchanged limit', () => {
+            updateExpensifyCardLimitInline(1, buildCard(), '100');
 
             expect(mockWrite).not.toHaveBeenCalled();
         });
@@ -185,6 +234,41 @@ describe('PolicyInlineEdit', () => {
                 }),
                 expect.anything(),
             );
+        });
+    });
+
+    describe('canUpdateExpensifyCardLimitTypeInline', () => {
+        it('returns false when the type is unchanged so the confirm modal is not shown', () => {
+            // Given a card that is already Monthly
+            const card = buildCard();
+
+            // When the inline picker selects Monthly again
+            const canUpdate = canUpdateExpensifyCardLimitTypeInline(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+
+            // Then the page should not confirm or persist because nothing would change
+            expect(canUpdate).toBe(false);
+        });
+
+        it('returns false for Single Use on a physical card', () => {
+            // Given a physical card, which cannot use Single Use
+            const card = buildCard({nameValuePairs: {isVirtual: false}});
+
+            // When the inline picker selects Single Use
+            const canUpdate = canUpdateExpensifyCardLimitTypeInline(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE);
+
+            // Then the page should skip confirm because the write path would no-op
+            expect(canUpdate).toBe(false);
+        });
+
+        it('returns true for a persistable type change', () => {
+            // Given a virtual Monthly card that can switch to Smart
+            const card = buildCard();
+
+            // When the inline picker selects Smart
+            const canUpdate = canUpdateExpensifyCardLimitTypeInline(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+
+            // Then the page can proceed to confirm or persist
+            expect(canUpdate).toBe(true);
         });
     });
 

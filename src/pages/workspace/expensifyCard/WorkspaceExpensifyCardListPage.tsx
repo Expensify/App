@@ -35,19 +35,23 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {renameExpensifyCardInline, updateExpensifyCardLimitInline, updateExpensifyCardLimitTypeInline} from '@libs/actions/Policy/InlineEdit';
+import {
+    canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineUpdate,
+    renameExpensifyCardInline,
+    updateExpensifyCardLimitInline,
+    updateExpensifyCardLimitTypeInline,
+} from '@libs/actions/Policy/InlineEdit';
 import {
     getCardsByCardholderName,
     getCardSettings,
     getDefaultExpensifyCardLimitType,
     getExpensifyCardLimitChangeWarningKey,
-    getExpensifyCardLimitError,
     getExpensifyCardLimitTypeChangeWarningKey,
     getExpensifyCardNewAvailableSpend,
     isCurrencySupportedForECards,
     shouldConfirmExpensifyCardLimitTypeChange,
 } from '@libs/CardUtils';
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -156,7 +160,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const changeCardLimitType = useCallback(
         (card: Card, newLimitType: CardLimitType) => {
             const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
-            if (newLimitType === latestCard.nameValuePairs?.limitType) {
+            if (!canUpdateExpensifyCardLimitTypeInline(latestCard, newLimitType, defaultLimitType)) {
                 return;
             }
 
@@ -189,13 +193,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const changeCardLimit = useCallback(
         (card: Card, newLimit: string) => {
-            if (getExpensifyCardLimitError(newLimit)) {
-                return;
-            }
-
             const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
-            const nextLimit = convertToBackendAmount(Number(newLimit));
-            if (nextLimit === (latestCard.nameValuePairs?.unapprovedExpenseLimit ?? 0)) {
+            const nextLimit = getExpensifyCardLimitInlineUpdate(latestCard, newLimit);
+            if (nextLimit === undefined) {
                 return;
             }
 

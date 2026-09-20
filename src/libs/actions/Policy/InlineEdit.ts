@@ -108,17 +108,24 @@ function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, 
     updateWorkspaceMembersRole(policy, [memberLogin], [accountID], newRole);
 }
 
-function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Card, newLimitType: CardLimitType, fallbackLimitType?: CardLimitType): void {
-    const currentLimitType = card.nameValuePairs?.limitType;
-    if (newLimitType === currentLimitType) {
-        return;
+/**
+ * Whether an inline limit-type edit is persistable. The table page uses this to skip the confirm
+ * modal for types the write path would no-op (unchanged, Single Use on physical, or Fixed when hidden).
+ */
+function canUpdateExpensifyCardLimitTypeInline(card: Card, newLimitType: CardLimitType, fallbackLimitType?: CardLimitType): boolean {
+    if (newLimitType === card.nameValuePairs?.limitType) {
+        return false;
     }
 
     if (newLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE && !card.nameValuePairs?.isVirtual) {
-        return;
+        return false;
     }
 
-    if (newLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED && !shouldShowExpensifyCardFixedLimitType(card, fallbackLimitType)) {
+    return newLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED || shouldShowExpensifyCardFixedLimitType(card, fallbackLimitType);
+}
+
+function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Card, newLimitType: CardLimitType, fallbackLimitType?: CardLimitType): void {
+    if (!canUpdateExpensifyCardLimitTypeInline(card, newLimitType, fallbackLimitType)) {
         return;
     }
 
@@ -133,20 +140,40 @@ function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Ca
 }
 
 /**
- * Updates an Expensify card limit from an inline table edit. `newLimit` is the dollar amount as a string.
+ * Cents to persist from an inline dollar-string edit, or undefined when the value is invalid or unchanged.
+ * The table page uses this to skip the confirm modal; the write path uses the same result so both stay in sync.
  */
-function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, newLimit: string): void {
+function getExpensifyCardLimitInlineUpdate(card: Card, newLimit: string): number | undefined {
     if (getExpensifyCardLimitError(newLimit)) {
         return;
     }
 
     const nextLimit = convertToBackendAmount(Number(newLimit));
-    const oldLimit = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
-    if (nextLimit === oldLimit) {
+    if (nextLimit === (card.nameValuePairs?.unapprovedExpenseLimit ?? 0)) {
         return;
     }
 
-    updateExpensifyCardLimit(workspaceAccountID, card.cardID, nextLimit, getExpensifyCardNewAvailableSpend(card, nextLimit), oldLimit, card.availableSpend, card.nameValuePairs?.isVirtual);
+    return nextLimit;
+}
+
+/**
+ * Updates an Expensify card limit from an inline table edit. `newLimit` is the dollar amount as a string.
+ */
+function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, newLimit: string): void {
+    const nextLimit = getExpensifyCardLimitInlineUpdate(card, newLimit);
+    if (nextLimit === undefined) {
+        return;
+    }
+
+    updateExpensifyCardLimit(
+        workspaceAccountID,
+        card.cardID,
+        nextLimit,
+        getExpensifyCardNewAvailableSpend(card, nextLimit),
+        card.nameValuePairs?.unapprovedExpenseLimit ?? 0,
+        card.availableSpend,
+        card.nameValuePairs?.isVirtual,
+    );
 }
 
 function renamePerDiemDestinationInline(policyID: string, rateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
@@ -193,6 +220,8 @@ export {
     renameDistanceRateInline,
     updateDistanceRateValueInline,
     updateMemberRoleInline,
+    canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineUpdate,
     updateExpensifyCardLimitTypeInline,
     updateExpensifyCardLimitInline,
     renamePerDiemDestinationInline,
