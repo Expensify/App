@@ -67,8 +67,6 @@ import {
     isDeletedPolicyEmployee,
     isExpensifyTeam,
     isGroupPolicy,
-    // Member role bulk actions are Collect/Control only; Submit has no assignable roles.
-    // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is a billing/paid-only check for member role assignment
     isPaidGroupPolicy,
     isPolicyApprover,
     isSubmitPolicy,
