@@ -360,7 +360,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
         },
     ];
 
-    const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
+    const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod, shouldRetry: false, skipReauthentication: true};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
     Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
