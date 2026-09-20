@@ -3,8 +3,12 @@
  */
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -22,11 +26,6 @@ import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import {getAssignableWorkspaceMemberRoleItems} from './WorkspaceMemberRoleList';
-
-const popoverDimensions = {
-    width: CONST.POPOVER_DROPDOWN_WIDTH,
-    height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-};
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -47,6 +46,30 @@ type WorkspaceMemberRolePickerModalProps = {
     onSelected?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
+/**
+ * Authorized Payer rows only show two roles, so inversion has to use that shorter height instead of the full dropdown max.
+ */
+function useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles}: Pick<WorkspaceMemberRolePickerModalProps, 'policy' | 'selectedRole' | 'allowedRoles'>) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {windowHeight} = useWindowDimensions();
+    const {isInLandscapeMode} = useResponsiveLayout();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, selectedRole, policy, currentUserLogin, allowedRoles);
+    // Padding sits outside the list, matching Spend tag / GroupBy, so it is not clipped into a scrollbar.
+    const listHeight = styles.getSelectionListPopoverHeight({
+        itemCount: availableRoleItems.length || 1,
+        itemHeight: variables.optionRowHeight,
+        windowHeight,
+        isInLandscapeMode,
+        hasButton: false,
+    }).height;
+    const popoverHeight = listHeight + styles.pt4.paddingTop + styles.pb4.paddingBottom;
+
+    return {availableRoleItems, popoverHeight};
+}
+
 function WorkspaceMemberRolePickerModal({
     isVisible,
     onClose,
@@ -60,11 +83,9 @@ function WorkspaceMemberRolePickerModal({
 }: WorkspaceMemberRolePickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const anchorRef = useRef<View>(null);
 
-    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, selectedRole, policy, currentUserLogin, allowedRoles);
+    const {availableRoleItems, popoverHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles});
 
     const handleRoleSelected = (item: ListItemType) => {
         onSelected?.(item.value);
@@ -77,9 +98,12 @@ function WorkspaceMemberRolePickerModal({
             isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
-            popoverDimensions={popoverDimensions}
+            popoverDimensions={{
+                width: CONST.POPOVER_DROPDOWN_WIDTH,
+                height: popoverHeight,
+            }}
             anchorAlignment={anchorAlignment}
-            innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
+            innerContainerStyle={StyleUtils.getWidthStyle(CONST.POPOVER_DROPDOWN_WIDTH)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
@@ -88,13 +112,14 @@ function WorkspaceMemberRolePickerModal({
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
+            <View style={[StyleUtils.getHeight(popoverHeight), styles.flexColumn, styles.pv4]}>
                 <SelectionList
                     data={availableRoleItems}
                     ListItem={SingleSelectListItem}
                     onSelectRow={handleRoleSelected}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
+                    style={{contentContainerStyle: [styles.pb0]}}
                 />
             </View>
         </PopoverWithMeasuredContent>
@@ -102,3 +127,4 @@ function WorkspaceMemberRolePickerModal({
 }
 
 export default WorkspaceMemberRolePickerModal;
+export {useWorkspaceMemberRolePickerPopover};

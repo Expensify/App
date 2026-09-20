@@ -1,6 +1,6 @@
 import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 import Text from '@components/Text';
-import WorkspaceMemberRolePickerModal from '@components/WorkspaceMemberRolePickerModal';
+import WorkspaceMemberRolePickerModal, {useWorkspaceMemberRolePickerPopover} from '@components/WorkspaceMemberRolePickerModal';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -25,14 +25,15 @@ type WorkspaceMemberRoleCellProps = {
 function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: WorkspaceMemberRoleCellProps) {
     const {translate} = useLocalize();
     const roleLabel = translate('workspace.common.roleName', role);
+    const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
+    const {popoverHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole: role, allowedRoles});
 
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: role,
         onSave,
+        popoverHeight,
     });
-
-    const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
 
     return (
         <EditableCell
