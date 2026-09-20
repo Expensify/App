@@ -24,6 +24,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import * as TestHelper from '../utils/TestHelper';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -55,17 +56,40 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-// goBack runs `afterTransition` once the screen transition finishes, which never happens in a test. Run it
-// synchronously so the deferred save is observable, and record the route so the destination can be asserted.
 jest.mock('@libs/Navigation/Navigation', () => ({
-    goBack: jest.fn((_route?: string, options?: {afterTransition?: () => void}) => {
-        options?.afterTransition?.();
-    }),
+    goBack: jest.fn(),
     navigate: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     dismissModal: jest.fn(),
+}));
+
+// The real helper defers the callback until the screen transition finishes, which never happens in a test. Callbacks
+// run synchronously by default; set `shouldDefer` to hold them so a test can interleave work with an in-flight save
+// the way the real helper does (it can wait up to MAX_TRANSITION_START_WAIT_MS + MAX_TRANSITION_DURATION_MS).
+const mockPredictedTransition = {
+    shouldDefer: false,
+    pendingCallbacks: [] as Array<() => void>,
+    flush() {
+        const callbacks = mockPredictedTransition.pendingCallbacks;
+        mockPredictedTransition.pendingCallbacks = [];
+        for (const callback of callbacks) {
+            callback();
+        }
+    },
+};
+
+jest.mock('@libs/Navigation/runAfterPredictedTransition', () => ({
+    __esModule: true,
+    default: (callback: () => void) => {
+        if (mockPredictedTransition.shouldDefer) {
+            mockPredictedTransition.pendingCallbacks.push(callback);
+        } else {
+            callback();
+        }
+        return {cancel: jest.fn()};
+    },
 }));
 
 // Only the writes are mocked. clearApprovalWorkflow, validateFastEditApprovalWorkflow and the session ID stay real
@@ -184,9 +208,8 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        goBackMock.mockImplementation((_route?: string, options?: {afterTransition?: () => void}) => {
-            options?.afterTransition?.();
-        });
+        mockPredictedTransition.shouldDefer = false;
+        mockPredictedTransition.pendingCallbacks = [];
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
@@ -264,6 +287,34 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
 
+    it('hides the Approver row on a fast-edit invite, so it cannot fight the workflow save', async () => {
+        await seedFastEditHandOff();
+
+        renderInviteMessagePage(FAST_EDIT_BACK_TO);
+        await waitForBatchedUpdatesWithAct();
+
+        // The row is seeded from the policy's *default* approver, not the workflow being edited. Offering it here
+        // asks the admin a question this path has no way to honour.
+        expect(screen.queryByText(TestHelper.translateLocal('workflowsPage.approver'))).not.toBeOnTheScreen();
+
+        await pressInvite();
+
+        // With no row there is no submitsTo to pass, so the workflow save is the only thing that routes this member:
+        // the legacy path would otherwise overwrite the admin's pick with the workflow's first approver, and the
+        // rules path would leave submitsTo pointing at the row while the rules route them to the edited workflow.
+        expect(addMembersToWorkspaceMock.mock.calls.at(0)?.at(8)).toBeUndefined();
+    });
+
+    it('still offers the Approver row on an invite that is not a fast edit', async () => {
+        // Scope check: the generic invite flow does choose an approver, and nothing here changes that.
+        await seedFastEditHandOff({isFastEdit: false});
+
+        renderInviteMessagePage(`workspaces/${POLICY_ID}/members` as Route);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPage.approver'))).toBeOnTheScreen();
+    });
+
     it('leaves the save to the edit page when the invite came from an edit-page session', async () => {
         await seedFastEditHandOff({isFastEdit: false});
 
@@ -302,11 +353,8 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
         renderInviteMessagePage(FAST_EDIT_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
-        // Hold the deferred save, then start a newer "+N more" session before releasing it.
-        let releaseSave: (() => void) | undefined;
-        goBackMock.mockImplementation((_route?: string, options?: {afterTransition?: () => void}) => {
-            releaseSave = options?.afterTransition;
-        });
+        // Hold the deferred teardown, then start a newer "+N more" session before releasing it.
+        mockPredictedTransition.shouldDefer = true;
 
         await pressInvite();
 
@@ -321,7 +369,7 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
         });
 
         await act(async () => {
-            releaseSave?.();
+            mockPredictedTransition.flush();
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -342,8 +390,8 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
         await waitForBatchedUpdatesWithAct();
 
         // Never release the transition: the app was reloaded or closed during the pop, so the in-memory
-        // afterTransition callback is gone.
-        goBackMock.mockImplementation(() => {});
+        // teardown callback is gone.
+        mockPredictedTransition.shouldDefer = true;
 
         await pressInvite();
 

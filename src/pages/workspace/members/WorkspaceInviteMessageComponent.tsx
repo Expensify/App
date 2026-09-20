@@ -23,7 +23,6 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
-import {clearApprovalWorkflow, getApprovalWorkflowSessionID, updateApprovalWorkflow, updateApprovalWorkflowRules, validateFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -40,7 +39,9 @@ import {
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
-import {filterRulesForPolicy, getRemovedApprovalWorkflowMembers} from '@libs/WorkflowUtils';
+import {filterRulesForPolicy} from '@libs/WorkflowUtils';
+
+import saveFastEditApprovalWorkflow from '@pages/workspace/workflows/approvals/saveFastEditApprovalWorkflow';
 
 import variables from '@styles/variables';
 
@@ -133,7 +134,14 @@ function WorkspaceInviteMessageComponent({
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
 
     const isControl = isControlPolicy(policy);
-    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    // A "+N more" fast edit detours here only to create the member it is about to add to the workflow it is
+    // editing, and it saves that workflow itself on the way out. The Approver row is seeded from the policy's
+    // *default* approver and feeds `addMembersToWorkspace` as `submitsTo`, which fights that save: the legacy path
+    // overwrites the admin's pick with the workflow's first approver, and the MULTIPLE_APPROVERS path leaves
+    // `submitsTo` pointing at the row while the rules route the member to the edited workflow, so the two stores
+    // disagree. This path is not choosing an approver, so don't offer the row at all.
+    const isFastEditWorkflowInvite = isWorkflowApprovalExpensesFromRoute && !!approvalWorkflow?.isFastEdit;
+    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled && !isFastEditWorkflowInvite;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
@@ -206,54 +214,23 @@ function WorkspaceInviteMessageComponent({
      *
      * @returns whether the save was performed. `false` leaves the caller's existing navigation in charge.
      */
-    const saveFastEditApprovalWorkflow = () => {
+    const completeFastEditApprovalWorkflowSave = () => {
         if (!approvalWorkflow?.isFastEdit) {
             return false;
         }
 
-        // Same scope as the expenses-from page's own Save: the approver rules belong to the edit page, and this
-        // form has no field to point one of their errors at either. Only a structurally broken draft fails here,
-        // in which case falling through to the approver step lets the admin finish the workflow by hand.
-        if (!validateFastEditApprovalWorkflow(approvalWorkflow)) {
-            return false;
-        }
-
-        const workflowToSave = approvalWorkflow;
-        const originalMembers = workflowToSave.originalMembers ?? [];
-        // Queue the write before navigating. The invite itself is already queued by the time we get here, so a
-        // reload between the pop and a deferred callback would leave the member invited with no submitsTo — the
-        // exact silent no-op this save exists to prevent. Once queued, the request is persisted and survives a
-        // reload. Passing shouldClearApprovalWorkflowDraft=false keeps the save off APPROVAL_WORKFLOW entirely,
-        // so it can't blank this page's summary while it is still sliding away; the teardown below owns that.
-        if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
-            updateApprovalWorkflowRules({
-                approvalWorkflow: workflowToSave,
-                initialApprovalWorkflow: {...workflowToSave, members: originalMembers},
-                policy,
-                rules: rulesCollection,
-            });
-        } else {
-            updateApprovalWorkflow(workflowToSave, getRemovedApprovalWorkflowMembers(originalMembers, workflowToSave.members), [], policy, false);
-        }
-
-        // Only the draft teardown is deferred past the pop transition, so a "+N more" opened in that window could
-        // seed a newer draft first. Snapshot the session and leave a newer one alone.
-        const sessionID = getApprovalWorkflowSessionID();
-
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID), {
-            afterTransition: () => {
-                if (getApprovalWorkflowSessionID() !== sessionID) {
-                    return;
-                }
-
-                // This session owns the draft and no edit page will consume it, so tear it down here. Neither save
-                // path clears it: the rules one never does, and updateApprovalWorkflow is called above with its
-                // clear flag off so the write can land before the transition.
-                clearApprovalWorkflow();
-            },
+        // The same helper the expenses-from page's own Save runs, so the two screens can't drift: it validates with
+        // the fast-edit scope (the approver rules belong to the edit page, and this form has no field to point one
+        // of their errors at either), queues the write before navigating, and tears the draft down afterwards. A
+        // structurally broken draft is the only thing that fails here, in which case falling through to the
+        // approver step lets the admin finish the workflow by hand.
+        return saveFastEditApprovalWorkflow({
+            approvalWorkflow,
+            policy,
+            rules: rulesCollection,
+            isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS),
+            navigateBack: () => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
         });
-
-        return true;
     };
 
     const sendInvitation = () => {
@@ -296,7 +273,7 @@ function WorkspaceInviteMessageComponent({
             }
 
             // A fast edit has no edit page behind it, so this is the last chance to save the workflow.
-            if (saveFastEditApprovalWorkflow()) {
+            if (completeFastEditApprovalWorkflowSave()) {
                 return;
             }
 

@@ -434,6 +434,46 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         expect(draft?.isFastEdit).toBe(true);
     });
 
+    it('leaves a newer "+N more" draft alone when this page is torn down after that session started', async () => {
+        await seedWorkflowWithBobDeselected(true);
+        mockPredictedTransition.shouldDefer = true;
+
+        const {unmount} = renderExpensesFromPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await pressSave();
+
+        // The other ordering of the superseded save: the admin taps another workflow's "+N more" while this page is
+        // still sliding away, so the newer draft is seeded BEFORE this page unmounts. The unmount cleanup then runs
+        // against a draft that belongs to a session it never owned.
+        await act(async () => {
+            selectApprovalWorkflowForEdit({
+                workflow: {members: [{email: CAROL_EMAIL, displayName: 'carol'}], approvers: [{email: ALICE_EMAIL, displayName: 'alice'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            mockPredictedTransition.flush();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // The confirmed write still lands...
+        expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
+        const [, membersToRemove] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
+        expect(membersToRemove?.map((member) => member.email)).toEqual([BOB_EMAIL]);
+        // ...and the newer session's draft survives, so its picker doesn't open empty.
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft?.members.map((member) => member.email)).toEqual([CAROL_EMAIL]);
+        expect(draft?.isFastEdit).toBe(true);
+    });
+
     it('queues the save before navigating on a successful fast edit', async () => {
         await seedWorkflowWithBobDeselected(true);
 

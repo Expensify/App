@@ -426,11 +426,20 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                                 shouldBlockApprovalWorkflowEditing
                                                     ? undefined
                                                     : () => {
+                                                          // On a large layout this list stays visible underneath the Edit RHP, so "+N more"
+                                                          // can be tapped while the Edit page for this same workflow is still mounted.
+                                                          // Marking that session as a fast edit would hand the save to the expenses-from
+                                                          // sub-page, which persists immediately and clears the draft out from under the Edit
+                                                          // page. Leave the flag off there: expenses-from is opened as a child of the Edit
+                                                          // route, so it goes back to Edit and that page keeps ownership of the save.
+                                                          const editRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail);
+                                                          const isEditPageOpenForThisWorkflow = Navigation.getActiveRoute().includes(editRoute);
+
                                                           selectApprovalWorkflowForEdit({
                                                               workflow,
                                                               defaultWorkflowMembers: availableMembers,
                                                               usedApproverEmails,
-                                                              isFastEdit: true,
+                                                              isFastEdit: !isEditPageOpenForThisWorkflow,
                                                           });
                                                           Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
                                                       }

@@ -122,9 +122,11 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
 }
 
 /**
- * @param shouldClearApprovalWorkflowDraft whether the optimistic data should drop the in-progress draft. Callers
- * that defer this write past their own teardown (the expenses-from fast edit) pass `false` once a newer session
- * has seeded a draft, so this save can't null the draft that session is editing.
+ * @param shouldClearApprovalWorkflowDraft whether the optimistic data should drop the in-progress draft. The
+ * fast-edit call sites always pass `false`: they queue this write before navigating away, so letting it null
+ * `APPROVAL_WORKFLOW` would blank the page they are still sliding away from, and it would wipe the draft of any
+ * newer session seeded in the meantime. Those call sites tear the draft down themselves once the transition is
+ * over, and only when the session they started is still the current one.
  */
 function updateApprovalWorkflow(
     approvalWorkflow: ApprovalWorkflow,
