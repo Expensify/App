@@ -91,11 +91,6 @@ jest.mock('@hooks/useConfirmModal', () => ({
     default: jest.fn(() => ({showConfirmModal: jest.fn()})),
 }));
 
-jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
-    __esModule: true,
-    default: jest.fn(() => (onProceed: () => void) => onProceed()),
-}));
-
 jest.mock('@hooks/useReportIsArchived', () => ({
     __esModule: true,
     default: jest.fn(() => false),

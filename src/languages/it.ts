@@ -92,6 +92,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Selezione multipla',
         saveChanges: 'Salva modifiche',
         submit: 'Invia',
+        submitAnyway: 'Invia comunque',
         markAsDone: 'Segna come completata',
         submitted: 'Inviato',
         markedAsDoneStatus: 'Contrassegnato come completato',
@@ -1417,6 +1418,13 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: 'Segna come contante',
         pendingMatchSubmitTitle: 'Invia report',
         pendingMatchSubmitDescription: 'Alcune spese sono in attesa di abbinamento con una transazione della carta di credito. Vuoi segnarle come contante?',
+        confirmSubmitReportViolations: {
+            title: 'Invia il rapporto?',
+            description: 'Questo rapporto presenta violazioni delle norme. Sei sicuro di volerlo inviare senza apportare modifiche?',
+            rejectedExpense: 'Spesa rifiutata non contrassegnata come risolta',
+            pendingCardMatch: 'Spesa in attesa di un possibile abbinamento con una transazione della carta',
+            otherViolation: (violationLabel: string) => `Spesa: ${violationLabel}`,
+        },
         routePending: 'Instradamento in sospeso...',
         automaticallyEnterExpenseDetails: 'Concierge compilerà i dettagli per te.',
         receiptScanning: () => ({

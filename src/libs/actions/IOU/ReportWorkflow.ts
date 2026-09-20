@@ -147,6 +147,9 @@ type SubmitReportFunctionParams = {
      */
     shouldExportToPDF?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+
+    /** Set when the user confirmed "Submit anyway" on a report with violations. */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 function canApproveIOU(
@@ -1329,6 +1332,7 @@ function submitReport({
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
     shouldExportToPDF,
+    shouldResolveAcknowledgedViolations,
     isTrackIntentUser,
     getCurrencyDecimals,
 }: SubmitReportFunctionParams) {
@@ -1664,6 +1668,7 @@ function submitReport({
                   optimisticHoldReportExpenseActionIDs,
               }
             : {}),
+        ...(shouldResolveAcknowledgedViolations ? {shouldResolveAcknowledgedViolations} : {}),
     };
 
     onSubmitted?.();

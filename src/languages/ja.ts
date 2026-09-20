@@ -92,6 +92,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '複数選択',
         saveChanges: '変更を保存',
         submit: '送信',
+        submitAnyway: 'とにかく送信',
         markAsDone: '完了にする',
         submitted: '送信済み',
         markedAsDoneStatus: '完了済み',
@@ -1402,6 +1403,13 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: '現金としてマーク',
         pendingMatchSubmitTitle: 'レポートを提出',
         pendingMatchSubmitDescription: '一部の経費がクレジットカード取引との照合待ちです。現金としてマークしますか？',
+        confirmSubmitReportViolations: {
+            title: 'レポートを送信しますか？',
+            description: 'このレポートにはポリシー違反があります。変更を加えずに送信してもよろしいですか？',
+            rejectedExpense: '拒否された経費が解決済みとしてマークされていません',
+            pendingCardMatch: '経費がカード取引との一致待ちです',
+            otherViolation: (violationLabel: string) => `経費: ${violationLabel}`,
+        },
         routePending: 'ルート保留中…',
         automaticallyEnterExpenseDetails: 'Concierge が詳細を入力します。',
         receiptScanning: () => ({

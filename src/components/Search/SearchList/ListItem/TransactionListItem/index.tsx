@@ -11,6 +11,7 @@ import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLi
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -218,6 +219,12 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const transactionViolations = mergeProhibitedViolations(attendeeOnyxViolations);
 
+    const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
+    // Live (not snapshot) report actions: markPendingRTERTransactionsAsCash needs the IOU action's current
+    // childReportID to resolve the transaction thread, which a stale search snapshot may not have yet.
+    const [liveReportActionsForViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations([transaction], filteredViolationsCollection, Object.values(liveReportActionsForViolations ?? {}));
+
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
@@ -251,6 +258,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            confirmSubmitReportViolations,
             currentUserAccountID,
             currentUserLogin,
             introSelected,

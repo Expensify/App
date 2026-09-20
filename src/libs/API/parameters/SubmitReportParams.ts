@@ -15,6 +15,9 @@ type SubmitReportParams = {
      * Array<{optimisticReportActionID: string; oldReportActionID: string}>
      */
     optimisticHoldReportExpenseActionIDs?: string;
+
+    /** Set when the user confirmed "Submit anyway" on a report with violations, so the backend also resolves the acknowledged rejected-expense/RTER violations. */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 export default SubmitReportParams;

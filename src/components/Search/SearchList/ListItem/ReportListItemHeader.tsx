@@ -14,6 +14,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -279,6 +281,14 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reportListItemHeaderReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.reportID ?? reportItem.reportID)}`);
+    const {transactions: reportListHeaderTransactions, violations: reportListHeaderViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
+    const reportListHeaderTransactionsArray = useMemo(() => Object.values(reportListHeaderTransactions), [reportListHeaderTransactions]);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        reportListHeaderTransactionsArray,
+        reportListHeaderViolations,
+        Object.values(reportListItemHeaderReportActions ?? {}),
+    );
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
@@ -336,6 +346,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            confirmSubmitReportViolations,
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,

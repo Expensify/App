@@ -92,6 +92,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '多选',
         saveChanges: '保存更改',
         submit: '提交',
+        submitAnyway: '仍然提交',
         markAsDone: '标记为完成',
         submitted: '已提交',
         markedAsDoneStatus: '已标记为完成',
@@ -1365,6 +1366,13 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: '标记为现金',
         pendingMatchSubmitTitle: '提交报告',
         pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
+        confirmSubmitReportViolations: {
+            title: '提交报告？',
+            description: '此报告存在违反政策的情况。您确定要不做任何更改就提交吗？',
+            rejectedExpense: '被拒绝的费用未标记为已解决',
+            pendingCardMatch: '费用正在等待与卡交易的潜在匹配',
+            otherViolation: (violationLabel: string) => `费用：${violationLabel}`,
+        },
         routePending: '路由处理中…',
         automaticallyEnterExpenseDetails: 'Concierge 会帮你填写详细信息。',
         receiptScanning: () => ({

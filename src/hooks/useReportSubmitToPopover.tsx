@@ -43,7 +43,7 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 type ReportSubmitToPopoverOpenOptions = {
     onSubmitSuccess?: () => void;
     /** When provided, called with the selected submit-to email instead of `submitReport`. */
-    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number) => void;
+    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => void;
 };
 
 type UseReportSubmitToPopoverParams = {
@@ -160,7 +160,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         onSubmitSuccess?.();
     }, [onSubmitSuccess]);
 
-    const handleSearchSubmitWithManagerEmail = useCallback((managerEmail: string, managerAccountID?: number) => {
+    const handleSearchSubmitWithManagerEmail = useCallback((managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => {
         if (!canSubmitRef.current) {
             return;
         }
@@ -171,7 +171,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         canSubmitRef.current = false;
         onSubmitWithManagerEmailRef.current = undefined;
         setIsSearchSubmitFlow(false);
-        onSubmit(managerEmail, managerAccountID);
+        onSubmit(managerEmail, managerAccountID, shouldResolveAcknowledgedViolations);
     }, []);
 
     const showReportSubmitToPopover = useCallback(

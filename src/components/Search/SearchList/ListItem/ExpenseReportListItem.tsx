@@ -14,6 +14,7 @@ import Text from '@components/Text';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
@@ -219,6 +220,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
+    // Live (not snapshot) report actions: markPendingRTERTransactionsAsCash needs the IOU action's current
+    // childReportID to resolve the transaction thread, which a stale search snapshot may not have yet.
+    const [liveReportActionsForViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(liveReportTransactions, reportViolations, Object.values(liveReportActionsForViolations ?? {}));
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
     // violations merge that getSections previously did. Policy comes from the live `policyForViolations`
@@ -274,6 +279,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            confirmSubmitReportViolations,
             onHoldMenuOpen: (holdItem, requestType, paymentType) => {
                 // Search rows render from a snapshot; the report may not exist in the main
                 // collection yet. Fall back to the snapshot so the modal can submit.
@@ -371,6 +377,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         rules,
         conciergeChat,
         shouldShowMarkAsDoneCopy,
+        confirmSubmitReportViolations,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

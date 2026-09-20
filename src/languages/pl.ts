@@ -96,6 +96,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Wielokrotny wybór',
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
+        submitAnyway: 'Wyślij mimo to',
         markAsDone: 'Oznacz jako wykonane',
         submitted: 'Przesłano',
         markedAsDoneStatus: 'Oznaczone jako ukończone',
@@ -1449,6 +1450,13 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: 'Oznacz jako gotówkę',
         pendingMatchSubmitTitle: 'Wyślij raport',
         pendingMatchSubmitDescription: 'Niektóre wydatki oczekują na dopasowanie z transakcją kartą kredytową. Czy chcesz oznaczyć je jako gotówkę?',
+        confirmSubmitReportViolations: {
+            title: 'Wysłać raport?',
+            description: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz go wysłać bez wprowadzania zmian?',
+            rejectedExpense: 'Odrzucony wydatek nie oznaczony jako rozwiązany',
+            pendingCardMatch: 'Wydatek czeka na możliwe dopasowanie z transakcją kartą',
+            otherViolation: (violationLabel: string) => `Wydatek: ${violationLabel}`,
+        },
         routePending: 'Trasa w toku…',
         automaticallyEnterExpenseDetails: 'Concierge uzupełni szczegóły za ciebie.',
         receiptScanning: () => ({
