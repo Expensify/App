@@ -129,10 +129,8 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             }),
         ]).start(({finished}) => {
             setIsSidePanelTransitionEnded(true);
-            // Clear the session only once the panel has finished sliding out and is about to unmount. Clearing it when
-            // the close starts would leave the still-mounted panel without a session for the length of the animation,
-            // which makes the Concierge message list filter every action out and the content visibly collapse.
-            // The `finished` guard keeps an interrupted close (reopened mid-animation) from wiping the new session.
+            // Clear the session after the slide-out, not when it starts: the panel stays mounted for the animation and
+            // a null session empties its message list. `finished` is false on an interrupted close, sparing the new session.
             if (finished && shouldHideSidePanel) {
                 setSessionStartTime(null);
             }
