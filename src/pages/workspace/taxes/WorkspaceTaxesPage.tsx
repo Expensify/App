@@ -208,7 +208,8 @@ function WorkspaceTaxesPage({
 
     // Tax codes are a Control feature, and a Collect workspace is sent to the upgrade path instead of an editable code,
     // so the column has nothing to show there.
-    const shouldShowTaxCodeColumn = !shouldUseNarrowLayout && isControlPolicy(policy) && taxRows.some((taxRow) => !!taxRow.taxCode);
+    // Purely a data question. The table owns the width at which the column stops being rendered.
+    const shouldShowTaxCodeColumn = isControlPolicy(policy) && taxRows.some((taxRow) => !!taxRow.taxCode);
 
     const hasVisibleTaxes = taxRows.length > 0;
     const isLoading = !isOffline && !policy?.taxRates;

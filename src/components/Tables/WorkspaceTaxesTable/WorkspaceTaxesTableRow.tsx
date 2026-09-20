@@ -48,7 +48,7 @@ type WorkspaceTaxesTableRowProps = {
     rowIndex: number;
     shouldUseNarrowTableLayout: boolean;
 
-    /** Whether the tax code column is visible on wide layouts or not */
+    /** Whether the workspace has tax codes worth a column. Narrow and medium layouts hide it regardless. */
     shouldShowTaxCodeColumn: boolean;
 };
 

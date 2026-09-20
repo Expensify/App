@@ -26,7 +26,7 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
 
-    /** Whether the tax code column is visible on wide layouts or not */
+    /** Whether the workspace has tax codes worth a column. Narrow and medium layouts hide it regardless. */
     shouldShowTaxCodeColumn: boolean;
 
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
@@ -53,6 +53,9 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
+    // Narrow and medium layouts collapse the columns into a card that has nowhere to put the code.
+    const shouldShowTaxCodeCell = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
+
     const taxTableColumns: Array<TableColumn<WorkspaceTaxTableColumnKey, WorkspaceTaxTableRowData>> = [
         {
             key: 'name',
@@ -77,7 +80,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
                 shouldFitContent: true,
             },
         },
-        ...(shouldShowTaxCodeColumn
+        ...(shouldShowTaxCodeCell
             ? [
                   {
                       key: 'taxCode' as const,
@@ -135,12 +138,9 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         return nameComparison;
     };
 
-    // Narrow and medium layouts collapse the columns into a card that leaves the code out, so it is only searchable at
-    // the widths that render it.
-    const shouldSearchTaxCode = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
-
+    // Deliberately not narrowed by layout, so resizing the window never changes which rows a query matches.
     const isItemInSearch: IsItemInSearchCallback<WorkspaceTaxTableRowData> = (item, searchValue) => {
-        const searchableFields = [item.name, item.taxRateValue, ...(shouldSearchTaxCode ? [item.taxCode] : [])];
+        const searchableFields = [item.name, item.taxRateValue, item.defaultLabel, ...(shouldShowTaxCodeColumn ? [item.taxCode] : [])];
         const results = tokenizedSearch([item], searchValue, () => searchableFields);
         return results.length > 0;
     };
