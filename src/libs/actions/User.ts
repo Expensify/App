@@ -12,6 +12,7 @@ import type {
     RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
+    SetPersonalExpenseRulesParams,
     TogglePlatformMuteParams,
     UpdateChatPriorityModeParams,
     UpdateNewsletterSubscriptionParams,
@@ -27,6 +28,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -176,7 +178,7 @@ function clearRevokeError(loginKey: string) {
 /**
  * Attempt to close the user's account
  */
-function closeAccount(reason: string) {
+function closeAccount(reason: string, validateCode: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
 
@@ -184,7 +186,7 @@ function closeAccount(reason: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
-            value: {isLoading: true},
+            value: {isLoading: true, errors: null},
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
@@ -195,17 +197,18 @@ function closeAccount(reason: string) {
         },
     ];
 
-    const parameters: CloseAccountParams = {message: reason};
+    const parameters: CloseAccountParams = {message: reason, validateCode};
 
     API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
         failureData,
-    });
-
-    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
-    if (CONFIG.IS_HYBRID_APP) {
+    }).then((response) => {
+        // The account stays open when the validateCode is rejected, so OldDot must stay signed in to keep the state of both apps in sync
+        if (!CONFIG.IS_HYBRID_APP || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
         HybridAppModule.signOutFromOldDot();
-    }
+    });
 }
 
 /**
@@ -693,6 +696,7 @@ function triggerNotifications<TKey extends OnyxKey>(
     currentUserAccountID: number,
     currentUserEmail: string,
     topmostOneTransactionThreadReportID: string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     for (const update of onyxUpdates) {
@@ -706,7 +710,17 @@ function triggerNotifications<TKey extends OnyxKey>(
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
-                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, reportAttributes);
+                const derivedMovedFromReportName = reportAttributes?.[getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM) ?? '']?.reportName;
+                showReportActionNotification(
+                    reportID,
+                    action,
+                    topmostOneTransactionThreadReportID,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    formatPhoneNumber,
+                    reportAttributes?.[reportID]?.reportName,
+                    derivedMovedFromReportName,
+                );
             }
         }
     }
@@ -821,6 +835,7 @@ function subscribeToUserEvents(
     currentUserAccountID: number,
     currentUserEmail: string,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
@@ -848,7 +863,13 @@ function subscribeToUserEvents(
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         Log.info('[subscribeToUserEvents] Applying Onyx updates');
-        applyOnyxUpdatesReliably(updates);
+        applyOnyxUpdatesReliably(updates).catch((error: unknown) => {
+            Log.alert('[subscribeToUserEvents] Applying the updates failed, the watermark is held so the next update recovers the range', {
+                lastUpdateID: updates.lastUpdateID,
+                previousUpdateID: updates.previousUpdateID,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        });
     });
 
     // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and a lot of messages come in
@@ -877,7 +898,7 @@ function subscribeToUserEvents(
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), formatPhoneNumber, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1055,7 +1076,7 @@ function setContactMethodAsDefault(
     ];
 
     // Pattern C: apply all actual data changes only after server confirms success
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1081,16 +1102,12 @@ function setContactMethodAsDefault(
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
-                },
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                login: newDefaultContactMethod,
+                displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
             },
-        },
+        }),
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
@@ -1159,16 +1176,12 @@ function setHighContrastIntent(hasIntent: boolean | null) {
  * Sets a custom status
  */
 function updateCustomStatus(currentUserAccountID: number, status: Status) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserAccountID]: {
-                    status,
-                },
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserAccountID]: {
+                status,
             },
-        },
+        }),
     ];
 
     const parameters: UpdateStatusParams = {text: status.text, emojiCode: status.emojiCode, clearAfter: status.clearAfter};
@@ -1182,16 +1195,12 @@ function updateCustomStatus(currentUserAccountID: number, status: Status) {
  * Clears the custom status
  */
 function clearCustomStatus(currentUserAccountID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserAccountID]: {
-                    status: null, // Clearing the field
-                },
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserAccountID]: {
+                status: null, // Clearing the field
             },
-        },
+        }),
     ];
     API.write(WRITE_COMMANDS.CLEAR_STATUS, null, {optimisticData});
 }
@@ -1705,9 +1714,10 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         return rule;
     });
 
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_EXPENSE_RULES,
+    const parameters: SetPersonalExpenseRulesParams = {
         value: JSON.stringify(rulesForAPI),
+        shouldUpdateMatchingTransactions: false,
+        ruleToApply: '',
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
@@ -1734,7 +1744,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         },
     ];
 
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+    API.write(WRITE_COMMANDS.SET_PERSONAL_EXPENSE_RULES, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -1764,7 +1774,13 @@ function clearExpenseRuleErrors(expenseRules: ExpenseRule[], selectedRuleKey: st
     Onyx.set(ONYXKEYS.NVP_EXPENSE_RULES, updatedExpenseRules);
 }
 
-function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
+function saveExpenseRule(
+    expenseRules: ExpenseRule[],
+    newRule: ExpenseRule,
+    existingRuleKey: string | undefined,
+    getKeyForRule: (rule: ExpenseRule) => string,
+    shouldUpdateMatchingTransactions = false,
+) {
     const isEditing = !!existingRuleKey;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
@@ -1818,9 +1834,10 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .map(({pendingAction: _pendingAction, errors: _errors, ...rule}) => rule);
 
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_EXPENSE_RULES,
+    const parameters: SetPersonalExpenseRulesParams = {
         value: JSON.stringify(rulesForAPI),
+        shouldUpdateMatchingTransactions,
+        ruleToApply: shouldUpdateMatchingTransactions ? JSON.stringify(newRule) : '',
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
@@ -1847,7 +1864,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         },
     ];
 
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+    API.write(WRITE_COMMANDS.SET_PERSONAL_EXPENSE_RULES, parameters, {
         optimisticData,
         successData,
         failureData,

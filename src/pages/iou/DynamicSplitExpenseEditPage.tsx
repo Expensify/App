@@ -3,6 +3,8 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -190,6 +192,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
+    const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');
     const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
     const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
@@ -297,13 +300,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const distanceRequestFields = isDistance ? (
         <>
-            <MenuItemWithTopDescription
-                description={translate('common.distance')}
-                title={distanceToDisplay}
-                interactive
-                shouldShowRightIcon
-                titleStyle={styles.flex1}
-                style={[styles.moneyRequestMenuItem]}
+            <MenuItemField
+                name={translate('common.distance')}
+                value={distanceToDisplay}
                 onPress={() => {
                     if (isOdometerDistance) {
                         Navigation.navigate(
@@ -421,13 +420,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         />
                         {distanceRequestFields}
                         {shouldShowCategory && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
+                            <MenuItemField
                                 key={translate('common.category')}
-                                description={translate('common.category')}
-                                title={getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
-                                numberOfLinesTitle={2}
-                                rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                                name={translate('common.category')}
+                                value={categoryValue}
+                                numberOfLinesValue={2}
                                 onPress={() => {
                                     const categoryRoute = createDynamicRoute(
                                         DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
@@ -458,9 +455,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     }
                                     Navigation.navigate(categoryRoute);
                                 }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                            />
+                            >
+                                {!categoryValue && isCategoryRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            </MenuItemField>
                         )}
                         {shouldShowTags &&
                             policyTagLists.map(({name}, index) => {
@@ -502,12 +499,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     />
                                 );
                             })}
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
+                        <MenuItemField
                             key={translate('common.date')}
-                            description={translate('common.date')}
-                            title={splitExpenseDraftTransactionDetails?.created}
-                            numberOfLinesTitle={2}
+                            name={translate('common.date')}
+                            value={splitExpenseDraftTransactionDetails?.created}
+                            numberOfLinesValue={2}
                             onPress={() => {
                                 Navigation.navigate(
                                     createDynamicRoute(
@@ -515,16 +511,13 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     ),
                                 );
                             }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
                         />
                         {shouldShowTax && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
+                            <MenuItemField
                                 key={translate('common.tax')}
-                                description={taxRatesDescription ?? translate('common.tax')}
-                                title={taxRateTitle}
-                                numberOfLinesTitle={2}
+                                name={taxRatesDescription ?? translate('common.tax')}
+                                value={taxRateTitle}
+                                numberOfLinesValue={2}
                                 onPress={() => {
                                     if (shouldShowTaxDisabledAlert) {
                                         showTaxDisabledAlert();
@@ -536,8 +529,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                         ),
                                     );
                                 }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
                             />
                         )}
                         {shouldShowReimbursable && (
@@ -554,14 +545,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 onToggle={(value) => updateSplitExpenseDraftField({billable: value})}
                             />
                         )}
-                        <MenuItemWithTopDescription
+                        <MenuItemField
                             key={translate('common.report')}
-                            description={translate('common.report')}
-                            title={reportName}
-                            numberOfLinesTitle={2}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            interactive={false}
+                            name={translate('common.report')}
+                            value={reportName}
+                            numberOfLinesValue={2}
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
