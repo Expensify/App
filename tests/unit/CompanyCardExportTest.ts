@@ -753,8 +753,31 @@ describe('getPolicyCardExportSettings + getCardExportAccountTitle', () => {
         const visaCard = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT, undefined, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA);
         const otherFeedCard = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT, undefined, CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD);
 
-        expect(getCardExportAccountTitle(settings, visaCard)).toContain('2200 Visa Payable');
-        expect(getCardExportAccountTitle(settings, otherFeedCard)).toContain('2100 Amex Payable');
+        const defaultSuffix = translateLocal('common.default').toLocaleLowerCase();
+
+        expect(getCardExportAccountTitle(settings, visaCard)).toBe(`2200 Visa Payable (${defaultSuffix})`);
+        expect(getCardExportAccountTitle(settings, otherFeedCard)).toBe(`2100 Amex Payable (${defaultSuffix})`);
+    });
+
+    it('returns undefined when the card feed points at a program account the connection does not have', () => {
+        const policy = createBasePolicy({
+            rillet: {
+                config: {
+                    export: {
+                        exportToMultipleAccounts: true,
+                        reimbursable: CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL,
+                        nonReimbursable: CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE,
+                        creditCardAccountCode: '2100',
+                        cardProgramAccounts: {[CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: '9999'},
+                    },
+                },
+                data: {accounts: RILLET_ACCOUNTS},
+            },
+        });
+        const settings = getPolicyCardExportSettings(CONST.POLICY.CONNECTIONS.NAME.RILLET, MOCK_POLICY_ID, translate, policy);
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT, undefined, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA);
+
+        expect(getCardExportAccountTitle(settings, card)).toBeUndefined();
     });
 
     it('returns undefined when there is no export settings for the card', () => {
