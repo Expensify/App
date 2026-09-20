@@ -34,22 +34,34 @@ function setSidePanelHidden(shouldHideSidePanel: boolean) {
 
 /**
  * Stands in for the slide animation. Under Jest the native driver never completes on its own, so the test holds the
- * end callback and fires it by hand — that is the only way to observe the window where the panel is still mounted.
+ * end callback and fires it by hand. That is the only way to observe the window where the panel is still mounted.
  */
 function mockSlideAnimation() {
-    let endCallback: ((result: {finished: boolean}) => void) | undefined;
+    let latestEndCallback: ((result: {finished: boolean}) => void) | undefined;
     const realParallel = Animated.parallel;
     jest.spyOn(Animated, 'parallel').mockImplementation((animations) => {
         const composite = realParallel(animations);
         composite.start = (callback?: (result: {finished: boolean}) => void) => {
-            endCallback = callback;
+            latestEndCallback = callback;
         };
         return composite;
     });
-    return (finished: boolean) =>
-        act(() => {
-            endCallback?.({finished});
-        });
+
+    /**
+     * Hands back a completer bound to the animation that started most recently, so a later animation cannot steal it.
+     * An interrupted close reports back only after the reopen has registered its own callback, so the test has to
+     * capture the close callback while it is still the latest one.
+     */
+    return function takeLatestSlide() {
+        const endCallback = latestEndCallback;
+        if (!endCallback) {
+            throw new Error('No slide animation has started, so there is no end callback to complete.');
+        }
+        return (finished: boolean) =>
+            act(() => {
+                endCallback({finished});
+            });
+    };
 }
 
 function wrapper({children}: PropsWithChildren) {
@@ -70,17 +82,18 @@ describe('SidePanelContextProvider (Concierge session lifetime)', () => {
 
     it('keeps the session alive for the whole close animation, then clears it once the panel unmounts', () => {
         // Given an open Side Panel with an established Concierge session
-        const endSlide = mockSlideAnimation();
+        const takeLatestSlide = mockSlideAnimation();
         const {result, rerender} = renderHook(() => useSidePanelState(), {wrapper});
         setSidePanelHidden(false);
         rerender({});
-        endSlide(true);
+        takeLatestSlide()(true);
         const openSessionStartTime = result.current.sessionStartTime;
         expect(openSessionStartTime).not.toBeNull();
 
         // When the panel starts closing
         setSidePanelHidden(true);
         rerender({});
+        const finishClose = takeLatestSlide();
 
         // Then the session survives while the panel is still mounted and sliding out. Clearing it here is what made
         // the Concierge message list filter every action out mid-animation, collapsing the panel content.
@@ -88,29 +101,32 @@ describe('SidePanelContextProvider (Concierge session lifetime)', () => {
         expect(result.current.sessionStartTime).toBe(openSessionStartTime);
 
         // And it is cleared once the animation completes, in the same commit that unmounts the panel
-        endSlide(true);
+        finishClose(true);
         expect(result.current.isSidePanelTransitionEnded).toBe(true);
         expect(result.current.sessionStartTime).toBeNull();
     });
 
     it('does not let an interrupted close wipe the session when the panel is reopened mid-animation', () => {
         // Given an open Side Panel with an established Concierge session
-        const endSlide = mockSlideAnimation();
+        const takeLatestSlide = mockSlideAnimation();
         const {result, rerender} = renderHook(() => useSidePanelState(), {wrapper});
         setSidePanelHidden(false);
         rerender({});
-        endSlide(true);
+        takeLatestSlide()(true);
         const openSessionStartTime = result.current.sessionStartTime;
         expect(openSessionStartTime).not.toBeNull();
 
-        // When the panel is closed and reopened before the close animation finishes
+        // When the panel is closed, its close callback is captured, and the panel is reopened before that close
+        // animation gets to finish. Capturing it first is what keeps the reopen from taking its place.
         setSidePanelHidden(true);
         rerender({});
+        const finishInterruptedClose = takeLatestSlide();
         setSidePanelHidden(false);
         rerender({});
 
-        // Then the interrupted close reports back unfinished and leaves the session intact
-        endSlide(false);
+        // Then the superseded close reports back unfinished and leaves the reopened session intact. Without the
+        // `finished` guard this stale callback would wipe the session the reopen just established.
+        finishInterruptedClose(false);
         expect(result.current.sessionStartTime).toBe(openSessionStartTime);
     });
 });
