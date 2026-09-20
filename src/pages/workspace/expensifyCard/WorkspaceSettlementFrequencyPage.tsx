@@ -42,6 +42,9 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
 
     const shouldShowMonthlyOption = settings?.isMonthlySettlementAllowed ?? false;
     const selectedFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    // This guard is only meant to keep the page from opening when there is nothing to choose. It is derived from live Onyx state, so saving
+    // Daily — which optimistically clears `monthlySettlementDate` — would otherwise flip it to true and drop the not-found page on top of the
+    // user's own successful change. A picked option proves the page was usable, so it is what releases the guard below.
     const isSettlementFrequencyBlocked = !shouldShowMonthlyOption && selectedFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
 
     const [selectedFrequencyDraft, setSelectedFrequencyDraft] = useState<ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>>();
@@ -79,7 +82,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             return;
         }
         updateSettlementFrequencyUtil(defaultFundID, programKey, currentFrequency, settings?.monthlySettlementDate);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
     };
 
     const confirmButtonOptions = {
@@ -93,7 +96,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            shouldBeBlocked={isSettlementFrequencyBlocked}
+            shouldBeBlocked={isSettlementFrequencyBlocked && !selectedFrequencyDraft}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
