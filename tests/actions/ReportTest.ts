@@ -4837,8 +4837,8 @@ describe('actions/Report', () => {
                 expect(expenseReport?.nonReimbursableTotal).toBe(-0);
                 expect(expenseReport?.unheldNonReimbursableTotal).toBe(-0);
 
-                // And once the optimistic update is applied, the Total rendered for the converted report -- the result
-                // of the conversion itself, not a report rebuilt with the helper -- is positive rather than -$100.00
+                // Apply the optimistic update and assert against that converted report, not a report rebuilt with the
+                // helper. The Total rendered for the converted report is positive rather than -$100.00.
                 await Onyx.update(result.optimisticData);
                 const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                 expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
@@ -4868,7 +4868,7 @@ describe('actions/Report', () => {
                 // When converting the IOU report to an expense report
                 const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat303', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
 
-                // Then only `total` is negated -- writing the missing siblings as -0 would make `getReimbursableTotal`
+                // Then only `total` is negated. Writing the missing siblings as -0 would make `getReimbursableTotal`
                 // return -0 instead of falling back to `total`, and the Total would render as $0.00.
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                 const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
@@ -4883,6 +4883,51 @@ describe('actions/Report', () => {
                 await Onyx.update(result.optimisticData);
                 const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                 expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
+            });
+
+            it('should flip the unheld columns independently of `total` when an expense is on hold', async () => {
+                // Given an IOU report with a held expense, so the unheld columns are smaller than `total`
+                const policyID = '304';
+                const policy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(5, undefined),
+                    reportID: 'iouReport304',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 5,
+                    currency: CONST.CURRENCY.USD,
+                    total: 10000,
+                    reimbursableTotal: 10000,
+                    nonReimbursableTotal: 0,
+                    unheldTotal: 6000,
+                    unheldReimbursableTotal: 6000,
+                    unheldNonReimbursableTotal: 0,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat304', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
+
+                // Then the unheld columns flip on their own value rather than tracking `total`
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
+                expect(expenseReport?.total).toBe(-10000);
+                expect(expenseReport?.unheldTotal).toBe(-6000);
+                expect(expenseReport?.unheldReimbursableTotal).toBe(-6000);
+
+                // And the hold amounts stay positive, with the non-held amount still below the full amount
+                await Onyx.update(result.optimisticData);
+                const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const {nonHeldAmount, fullAmount} = ReportUtils.getNonHeldAndFullAmount(convertedReport, false, [], TestHelper.convertToDisplayString);
+                expect(nonHeldAmount).toContain('60.00');
+                expect(fullAmount).toContain('100.00');
             });
         });
     });
@@ -5459,6 +5504,90 @@ describe('actions/Report', () => {
             const revertedAction = isReportActions(failureReportActionData?.value) ? failureReportActionData.value[parentReportActionID] : undefined;
             const revertedOriginalMessage = revertedAction ? getOriginalMessage(revertedAction) : undefined;
             expect(revertedOriginalMessage && 'deleted' in revertedOriginalMessage && revertedOriginalMessage.deleted).toBeNull();
+        });
+
+        it('should recompute unheldTotal from the unheld destination-currency transactions', async () => {
+            const reportID = 'reportWithHeldExpense';
+            const unheldTransactionID = 'unheldTransactionForPolicyChange';
+            const heldTransactionID = 'heldTransactionForPolicyChange';
+
+            // Expense reports store amounts with the opposite sign, so a $100 expense is stored as -10000.
+            const unheldTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: unheldTransactionID,
+                reportID,
+                amount: -10000,
+                currency: CONST.CURRENCY.USD,
+                reimbursable: true,
+            };
+
+            const heldTransaction = {
+                ...createRandomTransaction(2),
+                transactionID: heldTransactionID,
+                reportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                reimbursable: true,
+                comment: {...createRandomTransaction(2).comment, hold: 'holdReportActionID'},
+            };
+
+            // The report's totals are still in the source currency, including a stale unheldTotal.
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: 'AUD',
+                total: -99999,
+                unheldTotal: -88888,
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransactionID}`, unheldTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransactionID}`, heldTransaction);
+            await waitForBatchedUpdates();
+
+            const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                ownerLogin: undefined,
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
+                isTrackIntentUser: false,
+            });
+
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            const optimisticTotals = optimisticData.find((update) => update.key === reportKey && isReportMergeUpdate(update) && !!update.value && 'total' in update.value);
+            const failureTotals = failureData.find((update) => update.key === reportKey && isReportMergeUpdate(update) && !!update.value && 'total' in update.value);
+            const optimisticReport = isReportMergeUpdate(optimisticTotals) ? optimisticTotals.value : undefined;
+
+            // The recomputed unheldTotal covers only the unheld expense, so it is not simply equal to total
+            expect(optimisticReport?.total).toBe(-15000);
+            expect(optimisticReport?.unheldTotal).toBe(-10000);
+
+            // And the hold amounts are read from the destination currency rather than the stale AUD value
+            await Onyx.update(optimisticData);
+            const mergedReport = await getOnyxValue(reportKey);
+            const {nonHeldAmount, fullAmount} = ReportUtils.getNonHeldAndFullAmount(mergedReport, false, [unheldTransaction, heldTransaction], TestHelper.convertToDisplayString);
+            expect(nonHeldAmount).toContain('100.00');
+            expect(fullAmount).toContain('150.00');
+
+            // A failed request puts the original unheldTotal back alongside the other totals
+            const failureReport = isReportMergeUpdate(failureTotals) ? failureTotals.value : undefined;
+            expect(failureReport?.unheldTotal).toBe(-88888);
         });
     });
 
@@ -10916,6 +11045,7 @@ describe('actions/Report', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             currency: CONST.CURRENCY.USD,
             total: 0,
+            unheldTotal: 0,
             transactionCount: 0,
         });
 
@@ -11199,6 +11329,8 @@ describe('actions/Report', () => {
             const snapshotOptimistic = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`);
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.total).toBe(-3000);
+            // Both moved expenses are unheld, so the destination snapshot has to carry the recomputed unheldTotal too
+            expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.unheldTotal).toBe(-3000);
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(2);
             expect(snapshotOptimistic?.data?.[transaction1Key]?.reportID).toBe(DESTINATION_REPORT_ID);
             expect(snapshotOptimistic?.data?.[transaction2Key]?.reportID).toBe(DESTINATION_REPORT_ID);
@@ -11211,6 +11343,7 @@ describe('actions/Report', () => {
             const snapshotFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`);
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]?.reportID).toBe(SOURCE_REPORT_1_ID);
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.total).toBe(0);
+            expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.unheldTotal).toBe(0);
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(0);
             expect(snapshotFailure?.data?.[transaction1Key]?.reportID).toBe(SOURCE_REPORT_1_ID);
             expect(snapshotFailure?.data?.[transaction2Key]?.reportID).toBe(SOURCE_REPORT_2_ID);

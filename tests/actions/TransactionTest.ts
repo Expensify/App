@@ -570,6 +570,129 @@ describe('actions/Transaction', () => {
             expect(updated?.modifiedMerchant).toContain('mi');
         });
 
+        describe('unheldTotal', () => {
+            const SOURCE_REPORT_ID = 'source-unheld-total';
+            const DESTINATION_REPORT_ID = 'destination-unheld-total';
+            const UNHELD_TRANSACTION_ID = 'txn-unheld';
+            const HELD_TRANSACTION_ID = 'txn-held';
+
+            /**
+             * Seeds a source report carrying a $10 unheld expense and a $20 held expense (so `unheldTotal` is
+             * deliberately not equal to `total`), plus an empty destination report, then moves one of them.
+             */
+            async function moveExpense(transactionIDToMove: string) {
+                const policyID = generatePolicyID();
+                const policy: Policy = {...createRandomPolicy(4, CONST.POLICY.TYPE.TEAM, 'Hold Workspace'), id: policyID, outputCurrency: CONST.CURRENCY.USD};
+
+                const sourceReport = {
+                    reportID: SOURCE_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID,
+                    currency: CONST.CURRENCY.USD,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    total: -3000,
+                    unheldTotal: -1000,
+                    transactionCount: 2,
+                } as Report;
+
+                const destinationReport = {
+                    reportID: DESTINATION_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID,
+                    currency: CONST.CURRENCY.USD,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    total: 0,
+                    unheldTotal: 0,
+                    transactionCount: 0,
+                } as Report;
+
+                const unheldTransaction: Transaction = {
+                    transactionID: UNHELD_TRANSACTION_ID,
+                    reportID: SOURCE_REPORT_ID,
+                    amount: -1000,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Unheld',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    reimbursable: true,
+                };
+
+                const heldTransaction: Transaction = {
+                    transactionID: HELD_TRANSACTION_ID,
+                    reportID: SOURCE_REPORT_ID,
+                    amount: -2000,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Held',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    reimbursable: true,
+                    comment: {hold: 'holdReportActionID'},
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_ID}`, sourceReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`, destinationReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${UNHELD_TRANSACTION_ID}`, unheldTransaction);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${HELD_TRANSACTION_ID}`, heldTransaction);
+                await waitForBatchedUpdates();
+
+                let reports: OnyxCollection<Report>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    callback: (value) => {
+                        reports = value;
+                    },
+                });
+
+                changeTransactionsReport({
+                    transactionIDs: [transactionIDToMove],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: RORY_ACCOUNT_ID,
+                    email: RORY_EMAIL,
+                    newReport: destinationReport,
+                    policy,
+                    allTransactions: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${UNHELD_TRANSACTION_ID}`]: unheldTransaction,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${HELD_TRANSACTION_ID}`]: heldTransaction,
+                    },
+                    policyTagList: undefined,
+                    transactionViolations: {},
+                    reports,
+                    isTrackIntentUser: false,
+                });
+                await waitForBatchedUpdates();
+
+                return {
+                    source: await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_ID}`),
+                    destination: await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`),
+                };
+            }
+
+            it('should move the amount out of unheldTotal on both reports when the expense is not on hold', async () => {
+                // When the $10 unheld expense is moved to the destination report
+                const {source, destination} = await moveExpense(UNHELD_TRANSACTION_ID);
+
+                // Then it leaves the source unheldTotal and arrives in the destination unheldTotal
+                expect(source?.total).toBe(-2000);
+                expect(source?.unheldTotal).toBe(0);
+                expect(destination?.total).toBe(-1000);
+                expect(destination?.unheldTotal).toBe(-1000);
+            });
+
+            it('should leave unheldTotal untouched on both reports when the expense is on hold', async () => {
+                // When the $20 held expense is moved to the destination report
+                const {source, destination} = await moveExpense(HELD_TRANSACTION_ID);
+
+                // Then only `total` moves, because a held expense was never counted in unheldTotal
+                expect(source?.total).toBe(-1000);
+                expect(source?.unheldTotal).toBe(-1000);
+                expect(destination?.total).toBe(-2000);
+                expect(destination?.unheldTotal).toBe(0);
+            });
+        });
+
         describe('moved system messages', () => {
             const TRANSACTION_ID = 'txn-moved-message';
             const TRANSACTION_THREAD_REPORT_ID = 'txn-thread-moved-message';
