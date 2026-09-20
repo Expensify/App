@@ -2,7 +2,7 @@
  * Renders the natural-language ("Describe your search") input that parses a plain-English
  * query into a structured search URL and navigates the user to the results.
  */
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
@@ -86,7 +86,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
                     value={nlQuery}
                     onChangeText={setNlQuery}
                     onKeyPress={(e) => {
-                        if (e.nativeEvent.key !== 'Enter' || e.nativeEvent.shiftKey) {
+                        if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey)) {
                             return;
                         }
                         handleSubmit();
