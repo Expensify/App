@@ -215,6 +215,7 @@ describe('OnboardingWorkspaces Page', () => {
                 hasCompletedGuidedSetupFlow: false,
                 shouldValidate: true,
                 isMergeAccountStepCompleted: true,
+                isMergeAccountStepSkipped: false,
             });
         });
 
@@ -225,6 +226,32 @@ describe('OnboardingWorkspaces Page', () => {
 
         await waitFor(() => {
             expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the back button on join workspace when the work email merge was skipped', async () => {
+        await TestHelper.signInWithTestUser();
+
+        // Skipping the merge also sets `isMergeAccountStepCompleted`, so that flag alone does not identify the merge
+        // entry point. A skipped merge routes through ONBOARDING_PURPOSE, leaving real screens behind this one.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                isMergeAccountStepCompleted: true,
+                isMergeAccountStepSkipped: true,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
         });
 
         unmount();

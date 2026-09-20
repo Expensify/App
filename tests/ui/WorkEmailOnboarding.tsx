@@ -438,27 +438,43 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should not navigate anywhere while the screen is backgrounded', async () => {
+    it('should not navigate a second time once it is backgrounded and OpenApp updates the account', async () => {
         await TestHelper.signInWithTestUser();
-
-        mockIsFocused = false;
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
             });
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+            // AddWorkEmail is gated on an unvalidated caller; signInWithTestUser sets validated:true by default.
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
         });
 
         const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
+        // Focused: submitting a work email that needs validation moves the flow forward exactly once.
         AddWorkEmailShouldValidate();
 
         await waitForBatchedUpdatesWithAct();
 
-        // A backgrounded screen that navigates pushes a duplicate copy of the rest of the onboarding flow onto the stack.
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
+        });
+        expect(navigate).toHaveBeenCalledTimes(1);
+
+        // The validation screen is now on top, so this screen is backgrounded.
+        mockIsFocused = false;
+        navigate.mockClear();
+
+        // OpenApp lands after the merge succeeds and flips both account fields this effect depends on. Re-running the
+        // effect here is what used to push a second copy of the remaining onboarding flow onto the stack.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: false});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
         expect(navigate).not.toHaveBeenCalled();
 
         unmount();
@@ -900,10 +916,8 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should not navigate anywhere while the screen is backgrounded', async () => {
+    it('should not navigate a second time once it is backgrounded and OpenApp updates the account', async () => {
         await TestHelper.signInWithTestUser();
-
-        mockIsFocused = false;
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -913,17 +927,35 @@ describe('OnboardingWorkEmailValidation Page', () => {
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
                 onboardingWorkEmail: workEmail,
             });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
         });
 
         const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
+        // Focused: a successful merge moves the flow forward exactly once.
         MergeIntoAccountAndLoginSuccessful();
 
         await waitForBatchedUpdatesWithAct();
 
-        // A backgrounded screen that navigates pushes a duplicate copy of the rest of the onboarding flow onto the stack.
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+        });
+        expect(navigate).toHaveBeenCalledTimes(1);
+
+        // "Join a workspace" is now on top, so this screen is backgrounded.
+        mockIsFocused = false;
+        navigate.mockClear();
+
+        // OpenApp lands after the merge and flips the account fields. The re-render that follows re-evaluates this
+        // effect's dependencies, which is what used to stack a second "Join a workspace" screen.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: false});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
         expect(navigate).not.toHaveBeenCalled();
 
         unmount();

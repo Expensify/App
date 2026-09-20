@@ -80,7 +80,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     // Reached from the work email merge flow, this screen replaces the screens before it and is passed no `backTo`, so
     // there is nothing to go back to. Merging a work email into a public account is one-off, so hide Back instead of
     // leaving a button that can't do anything.
-    const isMergeWorkEmailEntryPoint = !route.params?.backTo && !!onboardingValues?.isMergeAccountStepCompleted;
+    // `isMergeAccountStepCompleted` is also set when the user *skips* the merge, and that path routes to
+    // ONBOARDING_PURPOSE rather than here, so exclude it to keep this scoped to an actual merge.
+    const isMergeWorkEmailEntryPoint = !route.params?.backTo && !!onboardingValues?.isMergeAccountStepCompleted && !onboardingValues?.isMergeAccountStepSkipped;
     const shouldHideBackButton = (onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()) || isMergeWorkEmailEntryPoint;
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
