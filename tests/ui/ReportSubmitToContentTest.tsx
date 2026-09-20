@@ -107,7 +107,13 @@ jest.mock('@libs/PolicyUtils', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     hasViolations: jest.fn(() => false),
     isExpenseReport: jest.fn(() => true),
+    isManuallyRejectedReport: jest.fn(() => false),
     isMoneyRequestReportPendingDeletion: jest.fn(() => false),
+}));
+// useTransactionsAndViolationsForReport reads this context; the recipient-selection paths under test don't
+// exercise any transaction/violation, so the default (no reports loaded yet) is sufficient here.
+jest.mock('@components/OnyxListItemProvider', () => ({
+    useAllReportsTransactionsAndViolations: jest.fn(() => undefined),
 }));
 jest.mock('@libs/tokenizedSearch', () => jest.fn(() => []));
 jest.mock('@libs/UserUtils', () => ({expensifyLoginsSelector: jest.fn()}));

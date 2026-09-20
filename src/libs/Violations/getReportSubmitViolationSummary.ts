@@ -77,4 +77,3 @@ function buildSubmitViolationBullets(summary: ReportSubmitViolationSummary, tran
 }
 
 export {getReportSubmitViolationSummary, buildSubmitViolationBullets};
-export type {ReportSubmitViolationSummary};
