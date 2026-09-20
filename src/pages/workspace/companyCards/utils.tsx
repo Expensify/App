@@ -545,7 +545,7 @@ function getCardExportAccountSelection(settings: CardExportSettings | undefined,
 
     return {
         isDefaultTitle: !isUsingCustomAccount,
-        title: `${accountSelection.exportsToLabel} ${accountDisplayName}`,
+        title: accountDisplayName || undefined,
         selectedAccountID,
         programAccountID: programAccount?.id,
     };
@@ -574,6 +574,7 @@ function getExportAccountColumn<DataType extends ExportAccountRowData>(label: st
         },
         dynamicSizing: {
             getContentToMeasure: (item) => (item.exportAccountTitle ? [{text: item.exportAccountTitle, fontSize: fontScale.text}] : []),
+            maxWidth: CONST.TABLES.DYNAMIC_COLUMNS.MAX_FREE_TEXT_COLUMN_WIDTH,
         },
     };
 }
@@ -598,7 +599,7 @@ function getExportMenuItem(
 
     return {
         ...menuItem,
-        title: selection.title,
+        title: accountSelection?.type === CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT ? `${accountSelection.exportsToLabel} ${selection.title ?? ''}` : selection.title,
         data: buildExportAccountOptions(accountSelection, selection, styles),
     };
 }
