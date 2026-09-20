@@ -10785,8 +10785,10 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         isOwnPolicyExpenseChat = !!getParentReport(report)?.isOwnPolicyExpenseChat;
     }
 
-    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expenses from such report
-    if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
+    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expenses from such report.
+    // Expense reports are exempt because they are already gated by canAddTransaction below, which is the same check the "Add expense" button uses. An empty
+    // expense report only ever has its owner as a participant, so applying this rule here would hide the page behind a button that is still rendered.
+    if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat && !isExpenseReport(report)) {
         return false;
     }
 

@@ -4752,6 +4752,28 @@ describe('ReportUtils', () => {
                 });
             });
 
+            it('it is an empty expense report whose parent policy expense chat is not available on this device', async () => {
+                // Given an empty expense report the user owns, whose parent policy expense chat cannot be resolved locally.
+                // This is what a report created in another session looks like on a device that never ran the optimistic build.
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    ownerAccountID: currentUserAccountID,
+                    policyID: '08CE60F05A5D86E1',
+                };
+                mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+                // When the money request options are computed with the owner as the only participant
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+
+                // Then submitting is still allowed, because canAddTransaction — the same check the "Add expense" button uses — permits it
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
+
             it("it is an open expense report tied to user's own policy expense chat", () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}103`, {
                     reportID: '103',
