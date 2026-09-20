@@ -9651,6 +9651,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 buttonText: 'Aplicar',
             },
             filterType: {label: 'Tipo de filtro', has: {positive: 'tem', negative: 'não tem'}, is: {positive: 'é', negative: 'não é'}},
+            transactionStatus: {
+                label: 'Status da transação',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Pendente',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Postado',
+                hint: 'Aplica-se apenas a transações com cartão.',
+            },
         },
         display: {
             label: 'Exibir',

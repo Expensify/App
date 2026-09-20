@@ -9748,6 +9748,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 buttonText: 'Appliquer',
             },
             filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
+            transactionStatus: {
+                label: 'Statut de la transaction',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'En attente',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
+                hint: 'S’applique uniquement aux transactions par carte.',
+            },
         },
         display: {
             label: 'Affichage',

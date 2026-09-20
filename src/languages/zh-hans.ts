@@ -9305,6 +9305,12 @@ ${reportName}`,
                 buttonText: '应用',
             },
             filterType: {label: '筛选类型', has: {positive: '有', negative: '没有'}, is: {positive: '是', negative: '不是'}},
+            transactionStatus: {
+                label: '交易状态',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: '待处理',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: '已入账',
+                hint: '仅适用于银行卡交易。',
+            },
         },
         display: {
             label: '显示',

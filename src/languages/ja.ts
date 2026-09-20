@@ -9557,6 +9557,12 @@ ${reportName}`,
                 buttonText: '適用',
             },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
+            transactionStatus: {
+                label: '取引ステータス',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: '保留中',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: '記帳済み',
+                hint: 'カードの取引にのみ適用されます。',
+            },
         },
         display: {
             label: '表示',

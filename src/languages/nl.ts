@@ -9653,6 +9653,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 buttonText: 'Toepassen',
             },
             filterType: {label: 'Filtertype', has: {positive: 'heeft', negative: 'heeft niet'}, is: {positive: 'is', negative: 'is niet'}},
+            transactionStatus: {
+                label: 'Transactiestatus',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'In behandeling',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Geboekt',
+                hint: 'Alleen van toepassing op kaarttransacties.',
+            },
         },
         display: {
             label: 'Weergave',
