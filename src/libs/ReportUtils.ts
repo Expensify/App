@@ -1922,6 +1922,22 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
 }
 
 /**
+ * Returns the effective notification preference for the settings UI.
+ * A known participant with an empty preference has access but is missing a legacy preference value, so use the report default
+ * while keeping the global report/LHN helper's hidden fallback unchanged.
+ */
+function getReportNotificationPreferenceForSettings(report: OnyxEntry<Report>, currentUserAccountID?: number): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+    const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
+    const participant = accountID ? report?.participants?.[accountID] : undefined;
+
+    if (!participant) {
+        return CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    }
+
+    return participant.notificationPreference || getDefaultNotificationPreferenceForReport(report);
+}
+
+/**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
@@ -14462,6 +14478,7 @@ export {
     getReportIDFromLink,
     getReportTransactions,
     getReportNotificationPreference,
+    getReportNotificationPreferenceForSettings,
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
     getReportPreviewMessage,
