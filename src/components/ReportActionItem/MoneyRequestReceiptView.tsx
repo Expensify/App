@@ -178,8 +178,6 @@ function MoneyRequestReceiptView({
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    // RTER violations (e.g. a broken card connection) are not actionable once the report is paid, so they must not
-    // surface as a receipt audit banner on a settled report.
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);

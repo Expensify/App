@@ -79,8 +79,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         }`,
         {},
     );
-    // RTER violations (e.g. a broken card connection) are not actionable once the report is paid, so they must not
-    // surface in the expense header status bar on a settled report.
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
