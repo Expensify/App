@@ -109,16 +109,16 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     useFocusEffect(fetchCardLimitTypeData);
 
     const updateCardLimitType = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM>) => {
-        updateExpensifyCardLimitType(
-            defaultFundID,
-            Number(cardID),
-            typeSelected,
-            assigneeTimeZone,
-            latestCardRef.current?.nameValuePairs,
-            values[INPUT_IDS.VALID_FROM],
-            values[INPUT_IDS.VALID_THRU],
-            !expirationToggle,
-        );
+        updateExpensifyCardLimitType({
+            workspaceAccountID: defaultFundID,
+            cardID: Number(cardID),
+            newLimitType: typeSelected,
+            timeZone: assigneeTimeZone,
+            oldCardNameValuePairs: latestCardRef.current?.nameValuePairs,
+            validFrom: values[INPUT_IDS.VALID_FROM],
+            validThru: values[INPUT_IDS.VALID_THRU],
+            shouldClearValidityDates: !expirationToggle,
+        });
         goBack();
     };
 

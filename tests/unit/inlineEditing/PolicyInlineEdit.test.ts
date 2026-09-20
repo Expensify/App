@@ -252,7 +252,15 @@ describe('updateExpensifyCardLimitType', () => {
     it('still writes validity dates when the RHP supplies them', () => {
         const nameValuePairs = buildCard().nameValuePairs;
 
-        updateExpensifyCardLimitType(1, 10, CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, undefined, nameValuePairs, '2026-03-01', '2026-03-31', false);
+        updateExpensifyCardLimitType({
+            workspaceAccountID: 1,
+            cardID: 10,
+            newLimitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+            oldCardNameValuePairs: nameValuePairs,
+            validFrom: '2026-03-01',
+            validThru: '2026-03-31',
+            shouldClearValidityDates: false,
+        });
 
         const {params} = getWriteCall(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE);
         const optimisticNameValuePairs = getOptimisticCardNameValuePairs(10);

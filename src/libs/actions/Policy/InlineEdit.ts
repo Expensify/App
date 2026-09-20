@@ -123,7 +123,13 @@ function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Ca
     }
 
     // Leave existing validity dates unchanged. Stored dates are UTC timestamps, not picker strings.
-    updateExpensifyCardLimitType(workspaceAccountID, card.cardID, newLimitType, undefined, card.nameValuePairs, undefined, undefined, undefined, true);
+    updateExpensifyCardLimitType({
+        workspaceAccountID,
+        cardID: card.cardID,
+        newLimitType,
+        oldCardNameValuePairs: card.nameValuePairs,
+        shouldSkipValidityDateUpdate: true,
+    });
 }
 
 /**
