@@ -39,7 +39,7 @@ function AddExistingExpenseTable({
     onEndReachedThreshold,
     ListFooterComponent,
 }: AddExistingExpenseTableProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     const columns: Array<TableColumn<ExpenseTableColumnKey>> = [
@@ -109,10 +109,10 @@ function AddExistingExpenseTable({
             return (getAmount(item1) - getAmount(item2)) * orderMultiplier;
         }
 
-        // Default: sort by the expense date, matching how Spend > Expenses orders rows by default.
-        const created1 = new Date(getCreated(item1)).getTime();
-        const created2 = new Date(getCreated(item2)).getTime();
-        return (created1 - created2) * orderMultiplier;
+        // Default: sort by the expense date, matching how Spend > Expenses orders rows by default. The dates are
+        // compared as strings because an optimistic transaction stores a timestamp while a server one stores a plain
+        // date, and both formats still order lexicographically.
+        return localeCompare(getCreated(item1), getCreated(item2)) * orderMultiplier;
     };
 
     const renderExpenseTableRow = ({item, index}: ListRenderItemInfo<UnreportedExpenseTableRowData>) => (

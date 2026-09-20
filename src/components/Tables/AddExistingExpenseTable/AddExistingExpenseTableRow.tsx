@@ -2,13 +2,14 @@ import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TransactionItemRow from '@components/TransactionItemRow';
 
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getDescription, getMerchant} from '@libs/TransactionUtils';
+import {getDescription, getMerchantName} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +26,7 @@ type AddExistingExpenseTableRowProps = {
 
 function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AddExistingExpenseTableRowProps) {
     const styles = useThemeStyles();
-    // The item FlashList passes to renderItem is the plain row data, so selection state comes from processedData.
+    const {translate} = useLocalize();
     const {tableMethods, processedData} = useTableContext<UnreportedExpenseTableRowData>();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -37,8 +38,8 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
     const transactionPolicy = usePolicy(transactionReport?.policyID);
 
-    // Merchant/description doubles as the row's accessible name, matching what the row visibly shows.
-    const accessibilityLabel = getMerchant(item) || getDescription(item);
+    // Merchant or description doubles as the row's accessible name, matching what the row visibly shows.
+    const accessibilityLabel = getMerchantName(item, translate) || getDescription(item);
 
     return (
         <Table.Row
@@ -51,7 +52,7 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
             // This list has no per-row navigation, so the whole row is the selection target. On small screens the row is
             // only a target once selection mode is on, which the user enters by long pressing, as in the other tables.
             onPress={() => {
-                if (item.isSelectionDisabled || isSmallScreenWidth) {
+                if (isSmallScreenWidth) {
                     return;
                 }
                 tableMethods.handleSingleRowSelection(item.keyForList);
