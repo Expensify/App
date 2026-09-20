@@ -27,6 +27,12 @@ const popoverDimensions = {
     width: CONST.POPOVER_DATE_WIDTH,
 };
 
+// A zero height opts the popover into measuring the calendar's real rendered height (see `shouldMeasureContentHeight`).
+const measuredPopoverDimensions = {
+    height: 0,
+    width: CONST.POPOVER_DATE_WIDTH,
+};
+
 function DatePickerModal({
     value,
     defaultValue,
@@ -46,6 +52,8 @@ function DatePickerModal({
     shouldPositionFromTop = false,
     forwardedFSClass,
     shouldEnableMonthYearBackdropInNarrowPane = false,
+    shouldMeasureContentHeight = false,
+    windowMargin,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
@@ -83,7 +91,8 @@ function DatePickerModal({
             isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
-            popoverDimensions={popoverDimensions}
+            popoverDimensions={shouldMeasureContentHeight ? measuredPopoverDimensions : popoverDimensions}
+            windowMargin={windowMargin}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
             anchorAlignment={anchorAlignment}

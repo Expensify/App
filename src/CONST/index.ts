@@ -318,6 +318,13 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+
+    /**
+     * Smallest height a dropdown popover is allowed to shrink to when it is adapted to the space available next to its
+     * anchor. Below this it stops being usable (no room for the search input plus a couple of rows), so we stop
+     * shrinking and let the popover be clamped inside the window instead.
+     */
+    POPOVER_DROPDOWN_MIN_USABLE_HEIGHT: 200,
     POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
