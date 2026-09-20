@@ -15,6 +15,8 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
+    getVendorDisplayName,
+    hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -43,6 +45,7 @@ import {
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getOwnerChangePayerSuccessData,
     getSageIntacctVendors,
     getReimburserEmail,
     getSubmitReportManagerAccountID,
@@ -2133,6 +2136,68 @@ describe('PolicyUtils', () => {
                 owner: 'owner@example.com',
             });
             expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+    });
+
+    describe('getOwnerChangePayerSuccessData', () => {
+        it('should reassign policy.reimburser when the outgoing owner is the payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({reimburser: 'new@example.com'});
+        });
+
+        it('should reassign achAccount.reimburser when that is where the payer is stored', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                achAccount: {reimburser: 'owner@example.com'},
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({achAccount: {reimburser: 'new@example.com'}});
+        });
+
+        it('should not reassign when the workspace has a bank account, because the backend keeps the former payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@example.com',
+                achAccount: {bankAccountID: 1234, reimburser: 'owner@example.com'},
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should not reassign when someone other than the outgoing owner is the payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'payer@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should not reassign when reimbursement is disabled', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'owner@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should return no payer fields for an undefined policy', () => {
+            expect(getOwnerChangePayerSuccessData(undefined, 'new@example.com')).toEqual({});
         });
     });
 
@@ -4283,12 +4348,13 @@ describe('PolicyUtils', () => {
                     },
                 });
 
-            it('requires a configured connection and the matching beta', () => {
+            it('requires a configured connection but not the matching beta', () => {
                 const policy = buildDualEntryPolicy(vendors);
                 expect(isDualEntryVendorMatchingActive(policy)).toBe(true);
                 expect(hasVendorFeature(policy, true)).toBe(true);
-                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(policy, false)).toBe(true);
                 expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), true)).toBe(false);
+                expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), false)).toBe(false);
                 expect(isDualEntryVendorMatchingActive(undefined)).toBe(false);
             });
 
@@ -4618,6 +4684,51 @@ describe('PolicyUtils', () => {
             it('returns undefined when no supported connection exists', () => {
                 const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
                 expect(getMatchingVendorByID(policy, 'v-1')).toBeUndefined();
+            });
+        });
+
+        describe('hasVendorFeatureOnAnyPolicy', () => {
+            const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
+            const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
+            const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
+            const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
+
+            it('is false when no workspace has the vendor feature', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[plainKey]: plainPolicy}, true)).toBe(false);
+            });
+
+            it('is true for a QBO workspace exporting card expenses as credit card transactions, without the beta', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[qboKey]: qboPolicy, [plainKey]: plainPolicy}, false)).toBe(true);
+            });
+
+            it('is true for a Xero workspace with the beta', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, true)).toBe(true);
+            });
+
+            it('ignores beta-gated integrations while the beta is off', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy}, false)).toBe(false);
+            });
+        });
+
+        describe('getVendorDisplayName', () => {
+            const qboPolicy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+
+            it('returns an empty string when no vendor is assigned', () => {
+                expect(getVendorDisplayName(qboPolicy, undefined)).toBe('');
+            });
+
+            it('prefers the synced vendor name over the name stored on the transaction', () => {
+                expect(getVendorDisplayName(qboPolicy, {externalID: 'v-1', name: 'Old Acme', wasManuallySet: true})).toBe('Acme Co');
+            });
+
+            it('falls back to the stored name when the vendor is no longer in the synced list', () => {
+                expect(getVendorDisplayName(qboPolicy, {externalID: 'gone', name: 'Former Vendor', wasManuallySet: true})).toBe('Former Vendor');
+            });
+
+            it('returns an empty string for a legacy vendor with neither a synced nor a stored name', () => {
+                expect(getVendorDisplayName(undefined, {externalID: 'v-9', wasManuallySet: true})).toBe('');
             });
         });
 
