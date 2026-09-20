@@ -106,6 +106,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
         'ArrowRight',
     ]);
@@ -126,7 +127,23 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         });
     };
 
+    const showEmptyReportDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedEmptyReportDescription', {count: 1}),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    // A report without expenses has nothing to export, so the export is blocked the same way it is in the Search export flow.
+    const isEmptyReport = transactionIDs.length === 0 && (moneyRequestReport?.transactionCount ?? 0) === 0;
+
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => {
+        if (isEmptyReport) {
+            showEmptyReportDownloadErrorModal();
+            return;
+        }
+
         if (isOffline) {
             showOfflineModal();
             return;
@@ -161,6 +178,10 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
             onSelected: () => {
                 if (!moneyRequestReport) {
+                    return;
+                }
+                if (isEmptyReport) {
+                    showEmptyReportDownloadErrorModal();
                     return;
                 }
                 if (isOffline) {

@@ -63,6 +63,7 @@ type UseSortingProps<T, ColumnKey extends string = string> = {
     initialSortColumn?: ColumnKey;
     narrowLayoutSortColumn?: ColumnKey;
     shouldUseNarrowTableLayout?: boolean;
+    onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
 
     /** Keys of the columns currently rendered, so sorting can fall back once its active column is no longer one of them. */
     columnKeys: ColumnKey[];
@@ -125,6 +126,7 @@ function useSorting<T, ColumnKey extends string = string>({
     initialSortColumn,
     narrowLayoutSortColumn,
     shouldUseNarrowTableLayout,
+    onSortingChange,
     columnKeys,
 }: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
     const [userSorting, setUserSorting] = useState<ActiveSorting<ColumnKey>>({
@@ -134,10 +136,16 @@ function useSorting<T, ColumnKey extends string = string>({
 
     const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting, columnKeys, initialSortColumn);
 
+    const updateSorting: SortingMethods<ColumnKey>['updateSorting'] = (value) => {
+        const newSorting = typeof value === 'function' ? value(userSorting) : value;
+        setUserSorting(newSorting);
+        onSortingChange?.(newSorting);
+    };
+
     const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
         // Flipped from the sorting the headers actually show rather than the stored one, which the fallback above can
         // diverge from. Otherwise the first press after a column disappears asks for the order already on screen.
-        setUserSorting({
+        updateSorting({
             columnKey: columnKey ?? activeSorting.columnKey,
             order: activeSorting.order === 'asc' ? 'desc' : 'asc',
         });
@@ -148,7 +156,7 @@ function useSorting<T, ColumnKey extends string = string>({
     const middleware: Middleware<T> = (data) => sort({data, activeSorting, compareItems});
 
     const methods: SortingMethods<ColumnKey> = {
-        updateSorting: setUserSorting,
+        updateSorting,
         toggleColumnSorting,
         getActiveSorting,
     };
