@@ -142,7 +142,8 @@ export default function WorkspaceExpensifyCardsTable({
             styling: {
                 // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
                 // so a long limit type value truncates instead of widening the column.
-                containerStyles: [styles.mnw0],
+                // editableCellHeader matches the padded Limit type cell so the label and value share an edge.
+                containerStyles: [styles.mnw0, styles.editableCellHeader],
             },
         },
         {
@@ -165,7 +166,8 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.expensifyCard.limit'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // editableCellHeader insets the right-aligned label to match the padded Limit cell.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
             },
         },
         {
@@ -173,7 +175,8 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.expensifyCard.remaining'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // Same chrome as Limit so the two amount columns share a right edge even though Remaining is not editable.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
             },
         },
         {

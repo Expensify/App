@@ -133,13 +133,15 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             ) : (
-                                <InlineTextEditCell
-                                    value={item.name}
-                                    accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
-                                    canEdit={!!item.canEditName}
-                                    onSave={item.onRenameName}
-                                    displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
-                                />
+                                <View style={styles.editableCellFlushWithSibling}>
+                                    <InlineTextEditCell
+                                        value={item.name}
+                                        accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
+                                        canEdit={!!item.canEditName}
+                                        onSave={item.onRenameName}
+                                        displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                                    />
+                                </View>
                             )}
                         </View>
                     </View>
@@ -227,7 +229,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.editableCellHeader]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip
