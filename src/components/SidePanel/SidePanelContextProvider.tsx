@@ -101,9 +101,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
-        if (shouldHideSidePanel) {
-            setSessionStartTime(null);
-        } else if (!sessionStartTime) {
+        if (!shouldHideSidePanel && !sessionStartTime) {
             setSessionStartTime(getServerAnchoredDBTime());
         }
     }
@@ -129,8 +127,15 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => {
+        ]).start(({finished}) => {
             setIsSidePanelTransitionEnded(true);
+            // Clear the session only once the panel has finished sliding out and is about to unmount. Clearing it when
+            // the close starts would leave the still-mounted panel without a session for the length of the animation,
+            // which makes the Concierge message list filter every action out and the content visibly collapse.
+            // The `finished` guard keeps an interrupted close (reopened mid-animation) from wiping the new session.
+            if (finished && shouldHideSidePanel) {
+                setSessionStartTime(null);
+            }
             onCloseCompleteRef.current?.();
             onCloseCompleteRef.current = undefined;
         });
