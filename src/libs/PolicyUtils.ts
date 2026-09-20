@@ -2701,7 +2701,6 @@ function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
-/**
  * True when Rillet is connected AND configured. Mirrors `Rillet::hasVendorFeature` on the PHP side.
  */
 function isRilletVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
@@ -2713,8 +2712,7 @@ function isDualEntryVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * True when Campfire is connected AND configured. Mirrors `Campfire::hasVendorFeature` on the PHP side.
- * Campfire has no export-destination enum, so `config.isConfigured` is the configuration gate.
+ * True when Campfire is connected AND configured.
  */
 function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config?.isConfigured;
