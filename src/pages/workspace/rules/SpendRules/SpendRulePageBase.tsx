@@ -1,5 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import HeaderIconButton from '@components/Header/primitives/HeaderIconButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -451,15 +452,9 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
             >
-                <Header>
-                    <Header.BackButton />
-                    <Header.Title title={translate('workspace.rules.spendRules.restrictCardSpendTitle')} />
-                    {!!deleteIconButtonProps && (
-                        <Header.Right>
-                            <Header.IconButton {...deleteIconButtonProps} />
-                        </Header.Right>
-                    )}
-                </Header>
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.spendRules.restrictCardSpendTitle')}>
+                    {!!deleteIconButtonProps && <HeaderIconButton {...deleteIconButtonProps} />}
+                </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>{revampFormContent}</ScrollView>
                 {canWriteSpendRules && (
                     <FormAlertWithSubmitButton

@@ -1,6 +1,6 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import type {FormOnyxValues} from '@components/Form/types';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {BotAvatarBlue} from '@components/Icon/DefaultBotAvatars';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -208,13 +208,12 @@ function AddAgentRulePage({
                 shouldEnableMaxHeight
             >
                 <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                    <Header>
-                        <Header.BackButton onPress={handleBackButtonPress} />
-                        <Header.Title title={translate('workspace.rules.agentRules.newRuleTitle')} />
-                        <Header.Right>
-                            <SidePanelButton />
-                        </Header.Right>
-                    </Header>
+                    <HeaderWithBackButtonAndTitle
+                        title={translate('workspace.rules.agentRules.newRuleTitle')}
+                        onBackButtonPress={handleBackButtonPress}
+                    >
+                        <SidePanelButton />
+                    </HeaderWithBackButtonAndTitle>
                     <View style={[styles.flexShrink0, styles.w100]}>
                         <TabSelectorContextProvider activeTabKey={activeTab}>
                             <TabSelectorBase

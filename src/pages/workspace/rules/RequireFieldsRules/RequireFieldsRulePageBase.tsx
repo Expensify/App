@@ -1,5 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import HeaderIconButton from '@components/Header/primitives/HeaderIconButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import FieldRequirementSettingRow from '@components/RequireFieldsRules/FieldRequirementSettingRow';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -445,15 +446,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <Header>
-                    <Header.BackButton />
-                    <Header.Title title={translate('workspace.rules.requireFieldsRule.title')} />
-                    {!!deleteIconButtonProps && (
-                        <Header.Right>
-                            <Header.IconButton {...deleteIconButtonProps} />
-                        </Header.Right>
-                    )}
-                </Header>
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.requireFieldsRule.title')}>
+                    {!!deleteIconButtonProps && <HeaderIconButton {...deleteIconButtonProps} />}
+                </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>

@@ -1,4 +1,5 @@
 import Header from '@components/Header/Header';
+import HeaderRight from '@components/Header/layout/HeaderRight';
 import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
 import HeaderTitle from '@components/Header/primitives/HeaderTitle';
 
@@ -34,6 +35,7 @@ type HeaderWithBackButtonAndTitleProps = Partial<ChildrenProps> & {
 };
 
 function HeaderWithBackButtonAndTitle({
+    children,
     iconFill,
     onBackButtonPress,
     shouldUseHeadlineHeader = false,
@@ -63,6 +65,7 @@ function HeaderWithBackButtonAndTitle({
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                 shouldUseHeadlineHeader={shouldUseHeadlineHeader}
             />
+            <HeaderRight>{children}</HeaderRight>
         </Header>
     );
 }
