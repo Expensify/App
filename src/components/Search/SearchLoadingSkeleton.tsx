@@ -20,9 +20,6 @@ function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
 
     return (
-        // Absolutely filled so it overlays the results layer rather than stacking in the column layout. No reanimated
-        // `exiting` fade: on web that detaches/re-inserts the DOM node and throws `NotFoundError: removeChild`; the
-        // skeleton just unmounts when the results take over.
         <View
             style={[styles.flex1, StyleSheet.absoluteFill]}
             onLayout={() => {

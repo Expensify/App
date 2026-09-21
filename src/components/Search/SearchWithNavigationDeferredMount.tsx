@@ -50,9 +50,6 @@ function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: Searc
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                // Absolutely filled so it overlays the incoming Search content rather than stacking in the parent's
-                // column layout. When results are already on screen it stays mounted but invisible, so its onLayout
-                // telemetry still fires without flashing a skeleton over content the user can already see.
                 <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
                     <SearchRowSkeleton
                         shouldAnimate
@@ -62,9 +59,6 @@ function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: Searc
                 </View>
             }
         >
-            {/* The fade lives here rather than on the parent layer because NavigationDeferredMount hydrates a frame or
-                more after that layer mounts. Animating the layer would run the fade against the placeholder and leave
-                the results to pop in at full opacity once they finally mount. */}
             <Animated.View
                 entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 style={styles.flex1}

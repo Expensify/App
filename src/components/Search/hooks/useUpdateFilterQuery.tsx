@@ -52,10 +52,9 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             return;
         }
 
-        // Mark the query as a refinement so SearchPage holds the previous results while it loads (the fade path).
+        // Mark the query as a refinement so SearchPage holds the previous results while it loads
         markQueryAsRefinement(queryString);
 
-        // Changing the type invalidates the current search key, so recompute it from the new query.
         const shouldResetSearchKey = !!values.type && values.type !== searchAdvancedFiltersForm.type;
 
         Navigation.setParams({q: queryString, rawQuery: undefined, ...(shouldResetSearchKey && {searchKey: getSearchKeyForQuery(buildSearchQueryJSON(queryString))})});

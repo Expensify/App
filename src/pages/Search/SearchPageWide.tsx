@@ -70,9 +70,8 @@ function SearchPageWide({
 }: SearchPageWideProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
 
-    // A hash change swaps the content layer while the previous results are still painted, so the incoming layer's
-    // deferred-mount placeholder must not flash a skeleton over them.
-    // The first render has no previous hash, and that mount genuinely has nothing to cover, so it keeps its skeleton.
+    // A hash change swaps the content layer while the previous results are still displayed, so the incoming layer
+    // must not flash a skeleton over them. The first render has no previous hash so it keeps its skeleton.
     const previousContentHash = usePrevious(contentQueryJSON?.hash);
     const isReplacingPreviousContent = previousContentHash !== undefined && previousContentHash !== contentQueryJSON?.hash;
     const styles = useThemeStyles();
@@ -143,11 +142,6 @@ function SearchPageWide({
                                     onSort={onSortPressedCallback}
                                 />
                                 <View style={styles.flex1}>
-                                    {/* A query change remounts this layer, fading in whatever it shows first so a skeleton never pops
-                                        in at full opacity. The results carry their own fade (see SearchWithNavigationDeferredMount)
-                                        because they hydrate after this layer mounts. Deliberately no reanimated `exiting` anywhere in
-                                        this subtree: on web it fades by detaching and re-inserting the DOM node, throwing
-                                        `NotFoundError: removeChild` and breaking Skia canvases. */}
                                     <Animated.View
                                         key={contentQueryJSON.hash}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
