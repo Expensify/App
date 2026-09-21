@@ -161,4 +161,4 @@ export {
     rendersColumnHeaderAsStickyRow,
     rendersColumnHeaderInListHeader,
 };
-export type {ColumnHeaderPlacement, TableListMetadata};
+export type {TableListMetadata};
