@@ -164,6 +164,17 @@ describe('TroubleshootPage Onyx export', () => {
         expect(mockLogAlert).toHaveBeenCalledWith('[Troubleshoot] Unable to export Onyx state', {error});
     }
 
+    it('shares the masked Onyx state', async () => {
+        render(React.createElement(TroubleshootPage));
+
+        fireEvent.press(screen.getByRole('button', {name: exportButtonName}));
+
+        await waitFor(() => {
+            expect(shareAsFile).toHaveBeenCalledWith(JSON.stringify(maskedState));
+        });
+        expect(maskOnyxState).toHaveBeenCalledWith(exportedState, true);
+    });
+
     it('shows an error when reading Onyx state fails', async () => {
         const error = new Error('Storage read failed');
         jest.mocked(readOnyxState).mockRejectedValueOnce(error);

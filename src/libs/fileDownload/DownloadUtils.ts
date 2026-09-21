@@ -6,29 +6,8 @@ import CONST from '@src/CONST';
 
 import type {FileDownload} from './types';
 
+import createDownloadLink from './createDownloadLink';
 import {appendTimeToFileName, getFileName} from './FileUtils';
-
-const createDownloadLink = (href: string, fileName: string) => {
-    // creating anchor tag to initiate download
-    const link = document.createElement('a');
-    // adding href to anchor
-    link.href = href;
-    link.style.display = 'none';
-
-    link.download = fileName;
-
-    // Append to html link element page
-    document.body.appendChild(link);
-
-    try {
-        // Start download
-        link.click();
-    } finally {
-        // The browser reads the Blob URL asynchronously after click(), so wait until the current task finishes before revoking it.
-        setTimeout(() => URL.revokeObjectURL(href), 0);
-        link.remove();
-    }
-};
 
 /**
  * The function downloads an attachment on web platforms.

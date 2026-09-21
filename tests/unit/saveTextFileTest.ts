@@ -2,21 +2,12 @@ import localFileCreate from '@libs/localFileCreate';
 import saveTextFileNative from '@libs/saveTextFile/index.native';
 import type SaveTextFile from '@libs/saveTextFile/types';
 
-type ShareOptions = {url: string; failOnCancel: boolean};
+import type {ShareOptions} from 'react-native-share';
 
 const mockUnlink = jest.fn<Promise<void>, [string]>();
 const mockShareOpen = jest.fn<Promise<{success: boolean; message: string}>, [ShareOptions]>();
 
 jest.mock('@libs/localFileCreate', () => jest.fn());
-jest.mock('@libs/ApiUtils', () => ({
-    getApiRoot: jest.fn(() => 'https://example.com'),
-}));
-jest.mock('@libs/fileDownload/FileUtils', () => ({
-    appendTimeToFileName: jest.fn((fileName: string) => fileName),
-    getFileName: jest.fn((fileName: string) => fileName),
-}));
-jest.mock('@libs/tryResolveUrlFromApiRoot', () => jest.fn((url: string) => url));
-jest.mock('@userActions/Link', () => ({openExternalLink: jest.fn()}));
 jest.mock('react-native-blob-util', () => ({
     __esModule: true,
     default: {fs: {unlink: (path: string) => mockUnlink(path)}},

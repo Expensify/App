@@ -1,4 +1,4 @@
-import {createDownloadLink} from '@libs/fileDownload/DownloadUtils';
+import createDownloadLink from '@libs/fileDownload/createDownloadLink';
 import localFileCreate from '@libs/localFileCreate';
 
 import type SaveTextFile from './types';
