@@ -2,22 +2,11 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import {ACCOUNTING_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import CONST from '@src/CONST';
 
 import {useMemo} from 'react';
-
-/** Keys shown under the "Reports" parent row, in the order the nav renders them. */
-const REPORTS_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY];
-
-/** Keys shown under the "Accounting" parent row, in the order the nav renders them. */
-const ACCOUNTING_KEYS: SearchKey[] = [
-    CONST.SEARCH.SEARCH_KEYS.EXPORT,
-    CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-    CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
-    CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
-    CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
-];
 
 type FlatNavSpendItems = {
     /** The top-level "Expenses" row, absent when the user has no expense search to show */
@@ -57,4 +46,3 @@ function useFlatNavSpendItems(): FlatNavSpendItems {
 }
 
 export default useFlatNavSpendItems;
-export {REPORTS_KEYS, ACCOUNTING_KEYS};

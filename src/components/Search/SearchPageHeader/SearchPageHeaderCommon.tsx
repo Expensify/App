@@ -5,22 +5,40 @@ import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 
+import {setLastVisitedSearchKey} from '@libs/MoreDestinationHistory';
+import {getSpendGroupID, getSpendGroupTranslationPath} from '@libs/SpendNavigationGroups';
+
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import React, {useEffect} from 'react';
 
 import getSearchPageHeaderTitle from './getSearchPageHeaderTitle';
 
 type SearchPageHeaderCommonProps = {
     queryJSONType: SearchDataTypes;
     shouldShowLoadingBar?: boolean;
+
+    /** Title the page after the search's group rather than the search itself, so it holds still while tabbing within a group */
+    shouldUseGroupTitle?: boolean;
 };
 
-function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar}: SearchPageHeaderCommonProps) {
+function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar, shouldUseGroupTitle = false}: SearchPageHeaderCommonProps) {
     const {translate} = useLocalize();
     const typeMenuSections = useSearchTypeMenuSections();
     const {currentSearchKey} = useSearchQueryContext();
     const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).find((item) => item.key === currentSearchKey);
     const activeSavedSearch = useActiveSavedSearch();
-    const title = getSearchPageHeaderTitle({translate, type: queryJSONType, activeSavedSearch, selectedItem});
+    // Remember where the user is inside Accounting or Saved, so the More menu can return them here.
+    const groupID = getSpendGroupID(currentSearchKey);
+    useEffect(() => {
+        if (!groupID || !currentSearchKey) {
+            return;
+        }
+        setLastVisitedSearchKey(groupID, currentSearchKey);
+    }, [groupID, currentSearchKey]);
+
+    const groupTranslationPath = shouldUseGroupTitle ? getSpendGroupTranslationPath(currentSearchKey) : undefined;
+    const title = groupTranslationPath ? translate(groupTranslationPath) : getSearchPageHeaderTitle({translate, type: queryJSONType, activeSavedSearch, selectedItem});
 
     return (
         <TopBar

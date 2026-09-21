@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 
 import {getInsights} from '@libs/actions/Insights';
+import {setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -44,6 +45,11 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         }
         getInsights(dashboardID, hash, jsonQuery);
     }, [dashboardID, hash, jsonQuery, isFocused, isOffline]);
+
+    // Remember the dashboard so the More menu can return the user to it.
+    useEffect(() => {
+        setLastVisitedInsightsDashboard(dashboardID);
+    }, [dashboardID]);
 
     return (
         <ScreenWrapper

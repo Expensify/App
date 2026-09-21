@@ -17,6 +17,18 @@ const flatNavigationBarLogoWidth = 92;
 /** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark exactly that wide. */
 const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
 
+/**
+ * Height the narrow Spend tab row occupies: its wrapper's 4px top padding, the tab buttons, and tabSelector's 12px
+ * bottom padding. The search list's top offset subtracts this when the row is hidden.
+ */
+const searchTabRowHeight = 4 + 40 + 12;
+
+/**
+ * How much the narrow Spend header shrinks when the tab row is hidden: the row itself, plus the 4px the search input
+ * gains back by sitting 4px below the header instead of 8px.
+ */
+const searchHiddenTabRowOffset = searchTabRowHeight + 4;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -251,6 +263,8 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
+    searchTabRowHeight,
+    searchHiddenTabRowOffset,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     tabSelectorScrollMarginInline: 20,

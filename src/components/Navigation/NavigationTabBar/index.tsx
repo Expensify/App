@@ -3,6 +3,7 @@ import FloatingGPSButton from '@components/FloatingGPSButton';
 import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import useFlatNavSpendItems from '@components/Navigation/FlatNavigationBar/useFlatNavSpendItems';
 import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import {EXPENSES_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
@@ -29,8 +31,10 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import CannedSearchTabButton from './CannedSearchTabButton';
 import InboxTabButton from './InboxTabButton';
 import InsightsTabButton from './InsightsTabButton';
+import MoreTabButton from './MoreTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
@@ -47,9 +51,11 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const {isBetaEnabled} = usePermissions();
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Receipt', 'Document']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {expenses, reports} = useFlatNavSpendItems();
+    const firstReportsSearch = reports.at(0);
 
     const StyleUtils = useStyleUtils();
 
@@ -175,27 +181,27 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                <SearchTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
-                {isInsightsTabVisible && (
-                    <InsightsTabButton
+                {!!expenses && (
+                    <CannedSearchTabButton
                         selectedTab={selectedTab}
-                        isWideLayout={false}
+                        item={expenses}
+                        label={translate('search.tabs.expenses')}
+                        icon={expensifyIcons.Receipt}
+                        searchKeys={EXPENSES_KEYS}
+                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSES}
                     />
                 )}
-                <WorkspacesTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
-                {!isInsightsTabVisible && (
-                    <NavigationTabBarAvatar
-                        style={styles.navigationTabBarItem}
-                        isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                        onPress={navigateToSettings}
+                {!!firstReportsSearch && (
+                    <CannedSearchTabButton
+                        selectedTab={selectedTab}
+                        item={firstReportsSearch}
+                        label={translate('common.reports')}
+                        icon={expensifyIcons.Document}
+                        searchKeys={REPORTS_KEYS}
+                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                     />
                 )}
+                <MoreTabButton selectedTab={selectedTab} />
             </View>
 
             {shouldShowFloatingButtons && (

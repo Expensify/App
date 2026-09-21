@@ -9087,6 +9087,8 @@ const CONST = {
             WORKSPACES: 'NavigationTabBar-Workspaces',
             ACCOUNT: 'NavigationTabBar-Account',
             HOME: 'NavigationTabBar-Home',
+            EXPENSES: 'NavigationTabBar-Expenses',
+            MORE: 'NavigationTabBar-More',
             FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
             FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',

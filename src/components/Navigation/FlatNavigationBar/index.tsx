@@ -29,6 +29,7 @@ import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {formatBadgeText, getItemBadgeText, getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {ACCOUNTING_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import ProfileAvatarWithIndicator from '@pages/inbox/sidebar/ProfileAvatarWithIndicator';
@@ -49,7 +50,7 @@ import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
 import FlatNavSavedSearches from './FlatNavSavedSearches';
-import useFlatNavSpendItems, {ACCOUNTING_KEYS, REPORTS_KEYS} from './useFlatNavSpendItems';
+import useFlatNavSpendItems from './useFlatNavSpendItems';
 
 const FAB_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -129,9 +130,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const getGroupBadgeText = (items: SearchTypeMenuItem[], isExpanded: boolean) =>
         isExpanded ? undefined : formatBadgeText(items.reduce((total, item) => total + (countsBySearchKey[item.key] ?? 0), 0));
 
-    // The Reports group's own row is already called "Reports", so its first child spells out that it holds all of them.
     const getSearchItemLabel = (item: SearchTypeMenuItem, isSubItem: boolean) =>
-        isSubItem && item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS ? translate('search.tabs.allReports') : translate(item.translationPath);
+        translate(isSubItem ? getGroupedSearchTranslationPath(item.key, item.translationPath) : item.translationPath);
 
     const renderSearchItem = (item: SearchTypeMenuItem, isSubItem: boolean) => (
         <FlatNavItem

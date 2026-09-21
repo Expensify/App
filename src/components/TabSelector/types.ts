@@ -86,6 +86,9 @@ type TabSelectorBaseProps<K extends string = string> = {
     /** Whether tabs should have equal width. */
     equalWidth?: boolean;
 
+    /** Whether each tab should be only as wide as its content instead of stretching to fill the row. */
+    shouldHugContent?: boolean;
+
     /** Additional styles for the tabs' scroll content container. */
     contentContainerStyles?: StyleProp<ViewStyle>;
 };
@@ -120,6 +123,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** Whether the tab should be only as wide as its content instead of stretching to fill the row. */
+    shouldHugContent?: boolean;
 
     /** Text to display on the badge on the tab. */
     badgeText?: string;
