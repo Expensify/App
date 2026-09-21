@@ -3,13 +3,12 @@ import TransactionPreview from '@components/ReportActionItem/TransactionPreview'
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsReportVisible from '@hooks/useIsReportVisible';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -18,13 +17,16 @@ import {createTransactionThreadReport, openReport, setOptimisticTransactionThrea
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
+    getAllReportActions,
     getIOUActionForReportID,
+    getIOUActionForTransactionID,
     getOriginalMessage,
+    isDeletedAction,
     isMoneyRequestAction,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import {areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getTransactionsWithReceipts, isIOUReport} from '@libs/ReportUtils';
+import {areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getReportOrDraftReport, getTransactionsWithReceipts, isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -36,7 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
-import type {ReportActions, Transaction} from '@src/types/onyx';
+import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
@@ -55,6 +57,10 @@ const hasReportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => Ob
 // The stagger between the report and the expense that design asked for: https://github.com/Expensify/App/pull/92546#issuecomment-4687440972
 const PRESSED_EXPENSE_CASCADE_DELAY = 180;
 
+function isLiveIOUAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction {
+    return !!reportAction && !isDeletedAction(reportAction) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 function MoneyRequestReportPreview({
     iouReportID,
     iouReport,
@@ -70,10 +76,9 @@ function MoneyRequestReportPreview({
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayoutIgnoringWideRHP, isSmallScreenWidth} = useResponsiveLayoutOnWideRHP();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
-    // Deferred presses need focus, which is narrower than the visibility the highlight below is gated on.
-    const isFocused = useIsFocused();
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -155,8 +160,8 @@ function MoneyRequestReportPreview({
     );
 
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayoutIgnoringWideRHP, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
-        [StyleUtils, widths, shouldUseNarrowLayoutIgnoringWideRHP, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
+        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
     );
     const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
@@ -209,6 +214,7 @@ function MoneyRequestReportPreview({
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
         selector: pendingNewTransactionIDsSelector,
     });
+    const isFocused = useIsFocused();
     // Transactions arrive in batches and `useNewTransactions` would diff each batch as newly added expenses.
     // Withhold the list until every transaction the report claims has arrived.
     const expectedTransactionCount = iouReport?.transactionCount ?? 0;
@@ -221,19 +227,29 @@ function MoneyRequestReportPreview({
         setHasCompletedDelivery(true);
     }
     const transactionsForDiff = isDeliveryComplete || hasCompletedDelivery ? transactions : undefined;
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isFocused);
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
-    // A modal pane can be covered at any width, so this reads the flag unadjusted for wide RHP.
-    const isReportVisible = useIsReportVisible(shouldUseNarrowLayoutIgnoringWideRHP);
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isReportVisible);
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
     const resolveChildReportID = useCallback(
         (transaction: Transaction) => {
-            const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            if (transactionIOUAction && !isLiveIOUAction(transactionIOUAction)) {
+                const liveIOUAction = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(isLiveIOUAction), transaction.transactionID);
+                if (!liveIOUAction) {
+                    return undefined;
+                }
+                transactionIOUAction = liveIOUAction;
+            }
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (childReportID) {
+                const existingThread = getReportOrDraftReport(childReportID);
+                if (existingThread && !existingThread.reportID) {
+                    return undefined;
+                }
                 setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
             } else if (transactionIOUAction?.reportActionID) {
                 const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
@@ -275,24 +291,8 @@ function MoneyRequestReportPreview({
                 if (!wasPressedFromReport) {
                     Navigation.navigate(reportRoute);
                 }
-                const seeded = setActiveTransactionIDs(openableTransactionIDs);
-                const release = () => {
-                    seeded.then(() => {
-                        if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
-                            return;
-                        }
-                        clearActiveTransactionIDs();
-                    });
-                };
-                const timer = setTimeout(() => {
-                    cascadeTimerRef.current = null;
-                    if (!Navigation.isActiveRoute(reportRoute)) {
-                        release();
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                }, PRESSED_EXPENSE_CASCADE_DELAY);
-                cascadeTimerRef.current = {timer, release};
+                setActiveTransactionIDs(openableTransactionIDs);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
                 return;
             }
 

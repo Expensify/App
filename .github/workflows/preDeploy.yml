@@ -30,7 +30,7 @@ jobs:
     if: ${{ always() }}
 
     steps:
-      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+      - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Exit failed workflow
         if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' || needs.bunTests.result == 'failure' }}
@@ -46,7 +46,7 @@ jobs:
       SHOULD_DEPLOY: ${{ fromJSON(steps.shouldDeploy.outputs.SHOULD_DEPLOY) }}
 
     steps:
-      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+      - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Get merged pull request
         id: getMergedPullRequest

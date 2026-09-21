@@ -14,7 +14,7 @@ import {View} from 'react-native';
 import type {SearchCustomColumnIds} from './Search/types';
 import type {ListItem} from './SelectionList/types';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import DraggableList from './DraggableList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -125,7 +125,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                 isDisabled: isRequired,
                 isDragDisabled,
                 leftElement: (
-                    <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
+                    <View style={[styles.mr3, isDragDisabled ? styles.cursorDisabled : styles.cursorGrab]}>
                         <Icon
                             src={icons.DragHandles}
                             fill={theme.icon}

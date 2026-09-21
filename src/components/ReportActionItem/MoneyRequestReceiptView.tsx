@@ -25,6 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -137,6 +138,8 @@ function MoneyRequestReceiptView({
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -239,6 +242,7 @@ function MoneyRequestReceiptView({
     const canInteractWithReport = !!canUserInteractWithReport(report, isReportArchived);
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction, currentUserAccountID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -247,12 +251,14 @@ function MoneyRequestReceiptView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
             isChatReportArchived,
             reportNameValuePairs,
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         });
 
     const onAttachmentFilesValidated = (files: FileObject[]) => {
@@ -489,6 +495,7 @@ function MoneyRequestReceiptView({
                     isChatIOUReportArchived,
                     originalReportID,
                     getCurrencyDecimals,
+                    isOffline,
                     isSingleTransactionView: true,
                     policy,
                 });
@@ -501,7 +508,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -509,7 +516,7 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
@@ -545,7 +552,7 @@ function MoneyRequestReceiptView({
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
     // Adding a receipt changes the expense, so it takes the same expense-level permission the rest of the edit flow uses.
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && canCurrentUserEditExpense(parentReportAction, moneyRequestReport, policy) && !mergeTransactionID;
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && canCurrentUserEditExpense(parentReportAction, moneyRequestReport, policy, rules) && !mergeTransactionID;
 
     // Expanding only opens the receipt to look at, so it asks for none of the permission above
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
@@ -572,6 +579,7 @@ function MoneyRequestReceiptView({
         }
         const source = URL.createObjectURL(file as Blob);
         replaceReceipt({
+            isVendorMatchingBetaEnabled,
             transaction,
             file: file as File,
             source,

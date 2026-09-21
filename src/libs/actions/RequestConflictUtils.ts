@@ -30,11 +30,14 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
     WRITE_COMMANDS.ENABLE_POLICY_HR,
+    WRITE_COMMANDS.ENABLE_POLICY_RECRUITING,
+    WRITE_COMMANDS.ENABLE_POLICY_MCP,
     WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
     WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
     WRITE_COMMANDS.ENABLE_POLICY_TAGS,
     WRITE_COMMANDS.ENABLE_POLICY_TAXES,
     WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS,
+    WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS,
     WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
     WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
     WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
@@ -272,12 +275,27 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
+/**
+ * The server builds the stored attachment from the uploaded file, so a rename only survives if the queued file
+ * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
+ */
+function renameQueuedAttachment(file: unknown, name: string): unknown {
+    if (typeof File !== 'undefined' && file instanceof File) {
+        return new File([file], name, {type: file.type, lastModified: file.lastModified});
+    }
+    if (typeof file !== 'object' || file === null) {
+        return file;
+    }
+    return {...file, name};
+}
+
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
     shouldRemoveQueuedAttachment = false,
+    renamedAttachmentLabel?: string,
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -297,6 +315,8 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
             delete currentAddComment.data.file;
             delete currentAddComment.data.attachmentID;
             currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        } else if (renamedAttachmentLabel && currentAddComment.data?.file) {
+            currentAddComment.data.file = renameQueuedAttachment(currentAddComment.data.file, renamedAttachmentLabel);
         }
 
         nextAction = {

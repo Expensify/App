@@ -31,20 +31,32 @@ type WideRHPStateContextType = {
 };
 
 type WideRHPActionsContextType = {
-    // Register the route at the given width. 'narrow' drops its registration.
+    // Register the route at the given width. 'narrow' removes from both sets.
     setRHPWidth: (route: NavigationRoute, width: RHPWidth) => void;
 
-    // Called on screen unmount, which is what bounds how long a dismissing screen holds its width.
+    // Remove the route from both sets (used on screen unmount).
     removeRHPRouteKey: (route: NavigationRoute) => void;
 
-    // Set an optimistic width hint for a reportID before navigation. The latest mark wins.
+    // Set an optimistic width hint for a reportID before navigation.
     markReportRHPWidth: (reportID: string | undefined, width: RHPWidthHint) => void;
 
-    // Clear the hint for a reportID. Pass `width` to clear only that one.
+    // Clear the hint(s) for a reportID. Pass `width` to clear only that one.
     unmarkReportRHPWidth: (reportID: string, width?: RHPWidthHint) => void;
 
-    // Read the optimistic width hint for a reportID. Consumed by the screen it was marked for.
+    // Read the optimistic width hint for a reportID.
     getReportRHPWidthHint: (reportID: string) => RHPWidthHint | undefined;
+
+    // Sync super wide and wide RHP keys with the visible RHP screens
+    syncRHPKeys: () => void;
+
+    // Clear the arrays of wide and super wide rhp keys
+    clearWideRHPKeys: () => void;
+
+    // Set that wide rhp is closing
+    setIsWideRHPClosing: (isClosing: boolean) => void;
+
+    // Set that super wide rhp is closing
+    setIsSuperWideRHPClosing: (isClosing: boolean) => void;
 };
 
 export type {RHPWidth, RHPWidthHint, WideRHPStateContextType, WideRHPActionsContextType};

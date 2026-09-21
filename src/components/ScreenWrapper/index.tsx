@@ -9,7 +9,7 @@ import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -124,7 +124,8 @@ function ScreenWrapper({
     const mergedScreenWrapperRef = mergeRefs(screenWrapperRef, ref);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
-    const {isSmallScreenWidth, shouldUseNarrowLayoutIgnoringWideRHP, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
@@ -143,14 +144,14 @@ function ScreenWrapper({
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     const statusContextValue = useMemo(
-        () => ({didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
-        [didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
+        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
+        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
     // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
     // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offsetting the offline indicator because we only show the offline indicator on small screens.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
-    const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayoutIgnoringWideRHP;
+    const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayout;
     const shouldMoveAccessibilityFocus = isMobileWebNarrowLayout && isInNarrowPane;
     const shouldHideFromAccessibility = isMobileWebNarrowLayout && !isFocused;
     const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens} = useContext(ScreenWrapperOfflineIndicatorContext);

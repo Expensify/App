@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';

@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {
+    isDistanceRequest as isDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
     isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
     isPerDiemRequest,
@@ -68,7 +69,8 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const participantReportID = transaction?.participants?.at(0)?.reportID;
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
-    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, reportNameValuePair)) || isUnreported;
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, rules, reportNameValuePair)) || isUnreported;
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
@@ -112,7 +114,6 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const [policyForMovingExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const [transactions] = useOptimisticDraftTransactions(transaction);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isCreateReportRestricted = useCreateReportRestrictionCheck(session);
@@ -178,9 +179,9 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForNewReport,
-            betas,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},
@@ -230,6 +231,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             transactionIDs={transaction ? [transaction.transactionID] : []}
             isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
             isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+            isDistanceRequest={transactions.some(isDistanceRequestUtil)}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
             transactionPolicyID={targetExpensePolicyID}

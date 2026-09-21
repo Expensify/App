@@ -18,7 +18,9 @@ import {useState} from 'react';
 
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from './useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnboardingMessages from './useOnboardingMessages';
@@ -39,9 +41,11 @@ function useCompleteOnboarding() {
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -79,7 +83,7 @@ function useCompleteOnboarding() {
                 ? createWorkspace({
                       policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName),
+                      policyName: generateDefaultWorkspaceName(email, currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                       currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -97,7 +101,9 @@ function useCompleteOnboarding() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                       conciergeChat,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -122,6 +128,7 @@ function useCompleteOnboarding() {
                 isSelfTourViewed,
                 conciergeChat,
                 adminsChatReport,
+                delegateAccountID,
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 

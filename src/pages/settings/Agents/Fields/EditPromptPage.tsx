@@ -1,7 +1,7 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -21,6 +21,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
+import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +29,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentPromptForm';
 
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useRef} from 'react';
 import {Platform, View} from 'react-native';
 
 type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>;
@@ -42,6 +43,9 @@ function EditPromptPage({route}: EditPromptPageProps) {
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const formRef = useRef<FormRef>(null);
+    const promptTopOffsetRef = useRef(0);
+    const scrollToInput = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> = {};
@@ -88,12 +92,13 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
+                ref={formRef}
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM}
                 validate={validate}
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.save')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={false}
+                shouldUseScrollView={isInLandscapeMode}
                 submitFlexEnabled={false}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
@@ -101,23 +106,31 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
-                <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [styles.flex1]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.PROMPT}
-                        label={translate('editAgentPage.instructions')}
-                        accessibilityLabel={translate('editAgentPage.instructions')}
-                        role={CONST.ROLE.PRESENTATION}
-                        type="markdown"
-                        excludedMarkdownStyles={['mentionReport']}
-                        defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
-                        multiline
-                        containerStyles={[styles.h100]}
-                        touchableInputWrapperStyle={[styles.flex1]}
-                        inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                    />
+                <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
+                    <View
+                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
+                        onLayout={(event) => {
+                            promptTopOffsetRef.current = event.nativeEvent.layout.y;
+                        }}
+                    >
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.PROMPT}
+                            label={translate('editAgentPage.instructions')}
+                            accessibilityLabel={translate('editAgentPage.instructions')}
+                            role={CONST.ROLE.PRESENTATION}
+                            type="markdown"
+                            excludedMarkdownStyles={['mentionReport']}
+                            defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
+                            multiline
+                            containerStyles={[styles.h100]}
+                            touchableInputWrapperStyle={[styles.flex1]}
+                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            onFocus={scrollToInput}
+                        />
+                    </View>
+                    <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                 </View>
-                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             </FormProvider>
         </ScreenWrapper>
     );

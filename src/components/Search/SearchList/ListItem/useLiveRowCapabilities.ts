@@ -54,6 +54,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
     const [liveReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const [liveReportMetadata] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     if (!enabled || !snapshotData) {
         return item;
@@ -70,6 +71,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
         currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
         bankAccountList,
         liveReportMetadata,
+        rules,
         liveActionsArray,
         transactionsForReport,
     );

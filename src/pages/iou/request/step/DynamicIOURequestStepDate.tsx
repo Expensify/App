@@ -89,8 +89,10 @@ function DynamicIOURequestStepDate({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -132,6 +134,7 @@ function DynamicIOURequestStepDate({
 
         if (isEditing) {
             updateMoneyRequestDate({
+                isVendorMatchingBetaEnabled,
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,
@@ -154,6 +157,7 @@ function DynamicIOURequestStepDate({
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';

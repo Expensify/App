@@ -39,13 +39,13 @@ const baseParams: Params = {
     isEditingSplitBill: false,
     isPolicyExpenseChat: false,
     isScanRequest: false,
+    canEnterScanFieldsManually: false,
     shouldShowMerchant: true,
     hasSmartScanFailed: false,
     didConfirmSplit: false,
     routeError: undefined,
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
-    isNewManualExpenseFlowEnabled: false,
     isDistanceRequest: false,
     shouldShowDate: false,
     isReadOnly: false,
@@ -131,23 +131,23 @@ describe('useFormErrorManagement', () => {
         expect(result.current.errorMessage).toBeUndefined();
     });
 
-    it('errorMessage suppresses required/invalid amount errors in the new manual expense flow (surfaced inline)', () => {
-        const {result: required} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+    it('errorMessage suppresses required/invalid amount errors (surfaced inline)', () => {
+        const {result: required} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
         act(() => required.current.setFormError('common.error.fieldRequired'));
         expect(required.current.errorMessage).toBeUndefined();
 
-        const {result: invalid} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        const {result: invalid} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
         act(() => invalid.current.setFormError('common.error.invalidAmount'));
         expect(invalid.current.errorMessage).toBeUndefined();
     });
 
-    it('errorMessage still shows required/invalid amount errors when the new manual expense flow is disabled', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
+    it('errorMessage still shows the invalid amount error for a distance request (no inline surface)', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isDistanceRequest: true}), {wrapper: Wrapper});
         act(() => result.current.setFormError('common.error.invalidAmount'));
         expect(result.current.errorMessage).toBeDefined();
     });
 
-    const splitParams: Params = {...baseParams, isNewManualExpenseFlowEnabled: true, isTypeSplit: true, shouldShowReadOnlySplits: false};
+    const splitParams: Params = {...baseParams, isTypeSplit: true, shouldShowReadOnlySplits: false};
 
     it('suppresses the duplicate footer invalid amount error on an editable split (#96565)', () => {
         jest.useFakeTimers();
@@ -201,22 +201,10 @@ describe('useFormErrorManagement', () => {
         }
     });
 
-    it('errorMessage still shows the invalid amount error for a distance request in the new manual expense flow (no inline surface)', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true, isDistanceRequest: true}), {wrapper: Wrapper});
-        act(() => result.current.setFormError('common.error.invalidAmount'));
-        expect(result.current.errorMessage).toBeDefined();
-    });
-
-    it('errorMessage suppresses the invalid merchant error in the new manual expense flow (surfaced inline)', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+    it('errorMessage suppresses the invalid merchant error (surfaced inline)', () => {
+        const {result} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
         act(() => result.current.setFormError('iou.error.invalidMerchant'));
         expect(result.current.errorMessage).toBeUndefined();
-    });
-
-    it('errorMessage still shows the invalid merchant error when the new manual expense flow is disabled', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
-        act(() => result.current.setFormError('iou.error.invalidMerchant'));
-        expect(result.current.errorMessage).toBeDefined();
     });
 
     it('treats the placeholder merchant of an untouched draft as empty, so it is only invalid while a merchant is required', () => {
@@ -242,11 +230,36 @@ describe('useFormErrorManagement', () => {
         expect(result.current.isMerchantFieldValid).toBe(false);
     });
 
+    it('leaves the merchant optional on a scan the user has started filling in, since a blank field is still scanned', () => {
+        const scanParams: Partial<Params> = {
+            isScanRequest: true,
+            isPolicyExpenseChat: false,
+            iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        };
+        const scanDraft = {
+            transactionID: 'txn1',
+            amount: 0,
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            comment: {},
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        };
+
+        const {result: untouched} = renderHook(() => useFormErrorManagement({...baseParams, ...scanParams, transaction: createMock<OnyxTypes.Transaction>(scanDraft)}), {
+            wrapper: Wrapper,
+        });
+        const {result: amountEntered} = renderHook(
+            () => useFormErrorManagement({...baseParams, ...scanParams, transaction: createMock<OnyxTypes.Transaction>({...scanDraft, amount: 1000, isAmountSet: true})}),
+            {wrapper: Wrapper},
+        );
+
+        expect(untouched.current.isMerchantRequired).toBe(false);
+        expect(amountEntered.current.isMerchantRequired).toBe(false);
+    });
+
     it('clears the invalid merchant error once the recipient changes from a workspace chat to a user (#96593)', () => {
         // Given an untouched manual draft (still carrying the placeholder merchant) headed for a workspace chat
         const {result, rerender} = renderHook(
-            ({isPolicyExpenseChat}: {isPolicyExpenseChat: boolean}) =>
-                useFormErrorManagement({...baseParams, ...placeholderMerchantParams, isNewManualExpenseFlowEnabled: true, isPolicyExpenseChat}),
+            ({isPolicyExpenseChat}: {isPolicyExpenseChat: boolean}) => useFormErrorManagement({...baseParams, ...placeholderMerchantParams, isPolicyExpenseChat}),
             {wrapper: Wrapper, initialProps: {isPolicyExpenseChat: true}},
         );
 
@@ -271,7 +284,6 @@ describe('useFormErrorManagement', () => {
         isReadOnly?: boolean;
     }): Params => ({
         ...baseParams,
-        isNewManualExpenseFlowEnabled: true,
         shouldShowDate,
         isReadOnly,
         transaction: createMock<OnyxTypes.Transaction>({
@@ -304,6 +316,50 @@ describe('useFormErrorManagement', () => {
         act(() => result.current.setFormError('common.error.fieldRequired'));
 
         rerender(manualRequiredParams({isAmountSet: true, created: '', isReadOnly: true}));
+        expect(result.current.formError).toBe('');
+    });
+
+    it('keeps the required error alive while another receipt of a multi-scan is still partially filled', () => {
+        // Given a confirmation showing a complete receipt while a sibling one is partially filled. Confirming switches to
+        // the sibling, and the error has to survive the render where the complete receipt is still the one on screen.
+        const completeReceiptParams = (partiallyManuallyFilledScanID?: string): Params => ({
+            ...baseParams,
+            canEnterScanFieldsManually: true,
+            partiallyManuallyFilledScanID,
+            transaction: createMock<OnyxTypes.Transaction>({
+                transactionID: 'txn1',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                isAmountSet: true,
+                isMerchantSet: true,
+                isCreatedSet: true,
+                comment: {},
+            }),
+        });
+
+        const partiallyFilledReceiptParams = (partiallyManuallyFilledScanID?: string): Params => ({
+            ...completeReceiptParams(partiallyManuallyFilledScanID),
+            transaction: createMock<OnyxTypes.Transaction>({
+                transactionID: 'txn1',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                isAmountSet: false,
+                isMerchantSet: true,
+                isCreatedSet: true,
+                comment: {},
+            }),
+        });
+
+        const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+            wrapper: Wrapper,
+            initialProps: partiallyFilledReceiptParams('txn1'),
+        });
+        act(() => result.current.setFormError('common.error.fieldRequired'));
+
+        // Moving to a receipt that has nothing missing would clear the error, but a sibling is still partially filled
+        rerender(completeReceiptParams('txn2'));
+        expect(result.current.formError).toBe('common.error.fieldRequired');
+
+        // Once no receipt is partially filled any more the error clears, so confirmation is no longer blocked
+        rerender(completeReceiptParams(undefined));
         expect(result.current.formError).toBe('');
     });
 

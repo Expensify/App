@@ -39,6 +39,18 @@ describe('FailureTracking middleware', () => {
         expect(getFailureCount()).toBe(1);
     });
 
+    // A 503 comes back in an HTTP 200, so the server answered and earlier failures should be cleared.
+    test('calls recordSuccess on SERVICE_UNAVAILABLE error', async () => {
+        recordFailure();
+        expect(getFailureCount()).toBe(1);
+
+        const error = new Error(CONST.ERROR.SERVICE_UNAVAILABLE);
+
+        await expect(FailureTracking(Promise.reject(error), request, false)).rejects.toThrow(CONST.ERROR.SERVICE_UNAVAILABLE);
+
+        expect(getFailureCount()).toBe(0);
+    });
+
     test('does NOT call recordFailure on other errors', async () => {
         const error = new Error('some random error');
 

@@ -5,7 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -21,7 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePressLoading from '@hooks/usePressLoading';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,10 +57,10 @@ function TaskFieldAvatar({reportID}: {reportID?: string}) {
 
     return (
         <ReportActionAvatars
-            singleAvatarContainerStyle={[styles.actionAvatar]}
-            subscriptAvatarBorderColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
+            singleAvatarContainerStyle={styles.actionAvatar}
+            subscriptAvatarContainerStyle={styles.mr0}
+            backdropColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
             reportID={reportID}
-            noRightMarginOnSubscriptContainer
         />
     );
 }
@@ -73,7 +73,8 @@ function DynamicNewTaskPage() {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportAttributes = useReportAttributes();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const derivedSharedDestinationReportName = useDerivedReportNameByReportID(parentReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -84,7 +85,18 @@ function DynamicNewTaskPage() {
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate, formatPhoneNumber);
     const assigneePersonalDetails = task?.assigneeAccountID ? personalDetails?.[task.assigneeAccountID] : undefined;
     const shareDestination = task?.shareDestination
-        ? getShareDestination(parentReport, personalDetails, localeCompare, formatPhoneNumber, policy, conciergeReportID, translate, reportAttributes, pendingDeleteMemberAccountIDs)
+        ? getShareDestination(
+              parentReport,
+              personalDetails,
+              localeCompare,
+              formatPhoneNumber,
+              policy,
+              conciergeReportID,
+              translate,
+              rules,
+              derivedSharedDestinationReportName,
+              pendingDeleteMemberAccountIDs,
+          )
         : undefined;
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
@@ -237,8 +249,8 @@ function DynamicNewTaskPage() {
                                     </MenuItem.Row>
                                 </MenuItem.Root>
                             ) : (
-                                <MenuItemEmptyField
-                                    description={translate('task.assignee')}
+                                <MenuItemField
+                                    name={translate('task.assignee')}
                                     onPress={navigateToAssignee}
                                 />
                             )}
@@ -274,20 +286,12 @@ function DynamicNewTaskPage() {
                                     </MenuItem.Row>
                                 </MenuItemWithLabel>
                             ) : (
-                                <MenuItem.Root
-                                    onPress={navigateToShareDestination ? callFunctionIfActionIsAllowed(navigateToShareDestination) : undefined}
-                                    accessibilityLabel={translate('common.share')}
+                                <MenuItemField
+                                    name={translate('common.share')}
+                                    onPress={navigateToShareDestination}
                                 >
-                                    <MenuItem.Row>
-                                        <MenuItem.Content>
-                                            <MenuItem.DescriptionPlaceholder>{translate('common.share')}</MenuItem.DescriptionPlaceholder>
-                                        </MenuItem.Content>
-                                        <MenuItem.Trailing>
-                                            <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
-                                            {!!navigateToShareDestination && <MenuItem.Chevron />}
-                                        </MenuItem.Trailing>
-                                    </MenuItem.Row>
-                                </MenuItem.Root>
+                                    <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
+                                </MenuItemField>
                             )}
                         </View>
                     </View>
