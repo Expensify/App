@@ -3358,9 +3358,13 @@ function buildMergeDuplicatesParams(
 function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     const customUnitRateID = isDistanceRequest(transaction) ? (getRateID(transaction) ?? '') : undefined;
-    // A rate's own tax rate wins over a category rule, so there is nothing for the rule to apply to.
-    const distanceRateTaxCode = customUnitRateID === undefined ? undefined : getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID;
-    if (!taxRules || taxRules?.length === 0 || distanceRateTaxCode) {
+    // Distance skips the category rule in two cases. Tax tracking being off for distance rates hides the Tax field, so
+    // a value written there would be invisible. A rate carrying its own tax rate wins over the rule, because vehicle
+    // types coded to the same category can each reclaim at a different rate.
+    const shouldSkipDistanceTax =
+        customUnitRateID !== undefined &&
+        (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || !!getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID);
+    if (!taxRules || taxRules?.length === 0 || shouldSkipDistanceTax) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
     }
 
