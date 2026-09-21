@@ -1,8 +1,8 @@
 import {render} from '@testing-library/react-native';
 
+import type {AvatarIcon} from '@components/Avatar/types';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import type {AvatarIcon} from '@components/Avatar/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
