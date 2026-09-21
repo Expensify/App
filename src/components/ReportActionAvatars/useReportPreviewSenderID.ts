@@ -1,11 +1,13 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isDM, isIOUReport} from '@libs/ReportUtils';
 
@@ -138,6 +140,7 @@ type GetReportPreviewSenderIDParams = {
     chatReport: OnyxEntry<Report>;
     iouActions: ReportAction[] | undefined;
     transactions: Transaction[] | undefined;
+    attendeesPersonalDetails: PersonalDetailsByLogin;
     splits: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> | undefined;
     policy: OnyxEntry<Policy>;
     currentUserAccountID: number;
@@ -150,6 +153,7 @@ function getReportPreviewSenderID({
     chatReport,
     iouActions,
     transactions,
+    attendeesPersonalDetails,
     splits,
     policy,
     currentUserAccountID,
@@ -249,7 +253,7 @@ function getReportPreviewSenderID({
         // If the transaction is a split, then attendees are not present as a property so we need to use a helper function.
         ?.flatMap<number | undefined>((tr) =>
             convertAttendeesToArray(tr.comment?.attendees).map((att) =>
-                tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID,
+                tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : attendeesPersonalDetails[att.email ?? '']?.accountID,
             ),
         )
         .filter((accountID) => !!accountID);
@@ -317,8 +321,21 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const attendeeLogins = transactions?.flatMap((transaction) => convertAttendeesToArray(transaction.comment?.attendees).map((att) => att.email)) ?? [];
+    const attendeesPersonalDetails = usePersonalDetailsByLogins(attendeeLogins);
 
-    return getReportPreviewSenderID({iouReport, action, chatReport, iouActions, transactions, splits, policy, currentUserAccountID, hasFinishedInitialReportActionsLoad});
+    return getReportPreviewSenderID({
+        iouReport,
+        action,
+        chatReport,
+        iouActions,
+        transactions,
+        attendeesPersonalDetails,
+        splits,
+        policy,
+        currentUserAccountID,
+        hasFinishedInitialReportActionsLoad,
+    });
 }
 
 export default useReportPreviewSenderID;

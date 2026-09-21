@@ -73,6 +73,11 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         return;
     }
 
+    // API sometimes returns the parent as the preexisting report, which would parent it to itself
+    if (preexistingReportID === parentReportID) {
+        return;
+    }
+
     // Handle cleanup of stale optimistic IOU report and its report preview separately
     if (isMoneyRequestReport(report) && parentReportID && parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
@@ -221,7 +226,16 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         // betas and conciergeChat are safe to pass as undefined because introSelected is undefined, so the
                         // guided-setup code path that uses them is never reached. Passing them explicitly so the compiler
                         // flags this when they become required. Refactor issues: https://github.com/Expensify/App/issues/66424
-                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, conciergeChat: undefined, hasReportActions, currentUserAccountID});
+                        // personalDetails is undefined because the parent report already exists, so no optimistic report is created and they are never read.
+                        openReport({
+                            reportID: parentReportID,
+                            introSelected: undefined,
+                            betas: undefined,
+                            conciergeChat: undefined,
+                            personalDetails: undefined,
+                            hasReportActions,
+                            currentUserAccountID,
+                        });
                     });
                 } else {
                     callback();
@@ -230,7 +244,16 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     // betas and conciergeChat are safe to pass as undefined because introSelected is undefined, so the
                     // guided-setup code path that uses them is never reached. Passing them explicitly so the compiler
                     // flags this when they become required. Refactor issues: https://github.com/Expensify/App/issues/66424
-                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, conciergeChat: undefined, hasReportActions, currentUserAccountID});
+                    // personalDetails is undefined because the parent report already exists, so no optimistic report is created and they are never read.
+                    openReport({
+                        reportID: parentReportID,
+                        introSelected: undefined,
+                        betas: undefined,
+                        conciergeChat: undefined,
+                        personalDetails: undefined,
+                        hasReportActions,
+                        currentUserAccountID,
+                    });
                 }
                 return;
             }

@@ -184,6 +184,15 @@ function isFocusRestoreInProgress(): boolean {
     return isRestoringFocus;
 }
 
+/** Seeds the trigger candidate for focus restoration */
+function seedTriggerCandidate(element: HTMLElement): void {
+    if (getHadTabNavigation()) {
+        return;
+    }
+    lastMouseTrigger = element;
+    lastMouseTriggerAt = performance.now();
+}
+
 /* Empty = nothing focusable yet (detached mid-remount, missing attributes); caller's retry budget owns cleanup, not this function. */
 function pickRestoreCandidates(entry: TriggerEntry): HTMLElement[] {
     const candidates: HTMLElement[] = [];
@@ -290,6 +299,7 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
         if (after === candidate) {
             triggerMap.delete(routeKey);
             lastRestoreTarget = candidate;
+            seedTriggerCandidate(candidate);
             scheduleReturnHoldRelease();
             return true;
         }
@@ -297,6 +307,7 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
         if (after !== before && after && after !== document.body) {
             triggerMap.delete(routeKey);
             lastRestoreTarget = after instanceof HTMLElement ? after : candidate;
+            seedTriggerCandidate(lastRestoreTarget);
             scheduleReturnHoldRelease();
             return true;
         }

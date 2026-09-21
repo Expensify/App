@@ -11,6 +11,7 @@ import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -55,12 +56,12 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 }
 
 type PopoverReportActionContextMenuProps = {
-    /** Reference to the outer element */
     ref?: ForwardedRef<ReportActionContextMenu>;
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -69,8 +70,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const selectionRef = useRef('');
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
-    const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
-    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
+    const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions, isOffline)}`);
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions, isOffline));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
@@ -364,7 +365,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         policy,
     });
 
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions, isOffline)}`);
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
@@ -385,6 +386,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     chatReportID: reportIDRef.current,
                     chatReport: report,
                     chatReportActions: reportActions,
+                    transactionThreadReportActions: childReportActions,
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
@@ -433,6 +435,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isReportArchived,
                     isOriginalReportArchived,
                     email ?? '',
+                    isOffline,
                     visibleReportActionsData ?? undefined,
                 );
             };
@@ -463,6 +466,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         reportTransactions,
         bankAccountList,
         isOriginalReportArchived,
+        isOffline,
         visibleReportActionsData,
         iouTransaction,
         iouOriginalTransaction,
@@ -550,7 +554,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 prompt={translate('reportActionContextMenu.deleteConfirmation', reportAction)}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
         </>
     );

@@ -27,11 +27,9 @@ import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddExistingExpensesParamList} from '@libs/Navigation/types';
-import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, getOriginalTransactionWithSplitInfo, isPerDiemRequest} from '@libs/TransactionUtils';
+import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getEligibleTransactionsToAdd, getMerchant, isUnreportedTransaction} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -47,7 +45,7 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -56,10 +54,6 @@ import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
 type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
 type ExpenseStatus = typeof CONST.SEARCH.STATUS.EXPENSE.UNREPORTED | typeof CONST.SEARCH.STATUS.EXPENSE.DRAFTS;
-
-function isUnreportedTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || transaction?.reportID === '';
-}
 
 function AddExistingExpense({route}: AddExistingExpensePageType) {
     const {convertToDisplayString} = useCurrencyListActions();
@@ -89,74 +83,12 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const [openReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {selector: openExpenseReportIDsSelector});
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    const getEligibleTransactions = useCallback(
-        (transactions: OnyxCollection<Transaction>) => {
-            if (!transactions) {
-                return [];
-            }
-            const isIOU = isIOUReport(report);
-            return Object.values(transactions || {}).filter((item) => {
-                const isUnreported = isUnreportedTransaction(item);
-                if (isIOU && !isUnreported) {
-                    return false;
-                }
-
-                // Split expenses can't be moved to a 1:1 DM chat, so they must not be offered when adding to an IOU report
-                if (isIOU) {
-                    const originalTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.comment?.originalTransactionID}`];
-                    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(item, originalTransaction);
-                    if (isExpenseSplit) {
-                        return false;
-                    }
-                }
-
-                const isOnOpenExpenseReport = !!(item?.reportID && (allOpenReports?.[item.reportID] ?? openReportDrafts?.[item.reportID]));
-                if (!isUnreported && !isOnOpenExpenseReport) {
-                    return false;
-                }
-
-                // Don't show expenses that are already on the current report
-                if (item?.reportID === reportID) {
-                    return false;
-                }
-
-                // Check if the transaction belongs to the current user by verifying card ownership
-                if (item?.cardID) {
-                    const card = cardList?.[item.cardID];
-                    if (card?.accountID !== currentUserAccountID) {
-                        return false;
-                    }
-                }
-
-                const transactionAmount = getTransactionDetails(item)?.amount ?? 0;
-
-                // Only block negative amounts for unreported expenses.
-                if (transactionAmount < 0 && isUnreported) {
-                    return false;
-                }
-
-                // Zero amount expenses are not allowed in IOU reports
-                if (isIOU && transactionAmount === 0) {
-                    return false;
-                }
-
-                if (isPerDiemRequest(item)) {
-                    // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
-                    const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
-                    const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
-
-                    return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
-                }
-
-                return true;
-            });
-        },
-        [policy, report, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
+    const transactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) =>
+            getEligibleTransactionsToAdd({transactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts}),
+        [report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
     );
-
-    const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: getEligibleTransactions,
-    });
+    const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsSelector});
 
     const fetchMoreUnreportedTransactions = () => {
         if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {
@@ -429,7 +361,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                                         startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
                                     });
                                 },
-                                success: true,
+                                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                             },
                         ]}
                     />

@@ -41,6 +41,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
+    flagReportNavigatedAway,
     joinReportViaSecureLink,
     markLocalReportActionsAsLoaded,
     openReport,
@@ -92,6 +93,7 @@ function ReportFetchHandler() {
 
     // Only the main report route carries a Submit-via-PDF secure access key.
     const secureKeyFromRoute = route.name === SCREENS.REPORT ? route.params?.secureKey : undefined;
+    const isPendingCreationFromRoute = route.name === SCREENS.REPORT ? route.params?.isPendingCreation === 'true' : false;
     const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -111,6 +113,7 @@ function ReportFetchHandler() {
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
+    const [isPreMountedDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -174,6 +177,14 @@ function ReportFetchHandler() {
             return;
         }
 
+        // isPendingCreationFromRoute means reportIDFromRoute is a client-generated ID that doesn't exist
+        // on the server yet. Calling openReport for it would 403 and show the not-found page instead.
+        // Once the real submit creates the report under this ID, reportOnyx?.reportID becomes truthy
+        // and normal fetching resumes.
+        if (isPendingCreationFromRoute && !reportOnyx?.reportID) {
+            return;
+        }
+
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             // openReport is intentionally never called for an optimistic chat report, so nothing else can settle its
             // initial-load state. The stamp written at creation lives in a RAM-only key and is lost on an app restart,
@@ -191,6 +202,13 @@ function ReportFetchHandler() {
         // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
         // later by the confirmation's AddTrackedExpenseToPolicy request, so never openReport it here.
         if (!reportOnyx?.reportID && !!reportDraftOnyx?.reportID) {
+            return;
+        }
+
+        // A pre-mounted draft gets copied into the real report collection so it can render immediately,
+        // which makes reportOnyx?.reportID truthy even though the row is still speculative - the guard
+        // above no longer catches it, so check the pre-mount marker directly instead.
+        if (isPreMountedDraft) {
             return;
         }
 
@@ -216,7 +234,11 @@ function ReportFetchHandler() {
             reportActionID: reportActionIDFromRoute,
             participants: dmParticipants,
             betas,
+            personalDetails,
             hasReportActions,
+            // Falsy means a page refresh / cold start, which is when openReport clears a manual unread marker.
+            // This screen opens the report the user is looking at, so it is the only caller that passes it.
+            hasOnceLoadedReportActions: reportLoadingState.hasOnceLoadedReportActions,
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
@@ -231,6 +253,9 @@ function ReportFetchHandler() {
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
         createTransactionThreadReport({
             introSelected,
+            conciergeChat,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
@@ -253,7 +278,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
+        openReport({reportID, introSelected, conciergeChat, betas, personalDetails, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -266,6 +291,7 @@ function ReportFetchHandler() {
             introSelected,
             conciergeChat,
             betas,
+            personalDetails,
             hasReportActions: hasViewingPublicRoomReportActions,
             currentUserAccountID,
             isSelfTourViewed,
@@ -321,6 +347,28 @@ function ReportFetchHandler() {
         }
         navigation.setParams({secureKey: undefined});
     }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
+
+    // isPendingCreation is only needed before the report exists. Clear it from the route params once it
+    // does, so a copied URL, restored navigation state, or reload doesn't carry the stale flag and skip
+    // fetching again later.
+    useEffect(() => {
+        if (!isPendingCreationFromRoute || !reportOnyx?.reportID) {
+            return;
+        }
+        navigation.setParams({isPendingCreation: undefined});
+    }, [isPendingCreationFromRoute, reportOnyx?.reportID, navigation]);
+
+    // A restored or shared route can carry isPendingCreation with no submit behind it. The owning submit writes the
+    // report row within the dismiss transition budget (about 2s) after this screen gains focus, so a focused screen
+    // still without a row after the much longer grace period holds a stale flag. Expire it, or the screen would skip
+    // fetching and never resolve to content or not-found.
+    useEffect(() => {
+        if (!isPendingCreationFromRoute || !isFocused || !!reportOnyx?.reportID) {
+            return;
+        }
+        const timeout = setTimeout(() => navigation.setParams({isPendingCreation: undefined}), CONST.TIMING.STALE_PENDING_CREATION_ROUTE_TIMEOUT);
+        return () => clearTimeout(timeout);
+    }, [isPendingCreationFromRoute, isFocused, reportOnyx?.reportID, navigation]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
@@ -387,6 +435,20 @@ function ReportFetchHandler() {
             onUnmount();
         };
     }, []);
+
+    // Record navigating away so the next openReport can clear a manual unread marker on the return trip. We flag
+    // on blur (wide layout keeps the screen mounted) and on unmount / reportID change (narrow layout tears it
+    // down). Staying in the report never flags it, so the user's marker is not wiped mid-session.
+    useEffect(() => {
+        if (!prevIsFocused || isFocused) {
+            return;
+        }
+        flagReportNavigatedAway(reportIDFromRoute);
+    }, [isFocused, prevIsFocused, reportIDFromRoute]);
+
+    useEffect(() => {
+        return () => flagReportNavigatedAway(reportIDFromRoute);
+    }, [reportIDFromRoute]);
 
     // `isLoadingInitialReportActions` is memory-only and is not reset between navigations. A prior failed
     // fetch leaves a stale `false` that can make ReportNotFoundGuard show "not here" before the fetch below
@@ -537,6 +599,9 @@ function ReportFetchHandler() {
         // It will be created optimistically and in the backend when call openReport
         createTransactionThreadReport({
             introSelected,
+            conciergeChat,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
@@ -546,6 +611,8 @@ function ReportFetchHandler() {
         });
     }, [
         introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         currentUserEmail,
         currentUserAccountID,
         betas,
@@ -558,6 +625,7 @@ function ReportFetchHandler() {
         route.name,
         reportLoadingState?.hasOnceLoadedReportActions,
         reportActions.length,
+        conciergeChat,
     ]);
 
     return null;

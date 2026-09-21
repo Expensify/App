@@ -47,6 +47,88 @@ function getReportParentReportID(report: OnyxEntry<Report>) {
     return report?.parentReportID;
 }
 
+/** Which report-type avatar wrapper the `ReportAvatar` dispatcher should render for this report. */
+function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT_AVATAR_KIND> | undefined {
+    if (!report) {
+        return undefined;
+    }
+
+    switch (report.type) {
+        case CONST.REPORT.TYPE.EXPENSE:
+            return CONST.REPORT_AVATAR_KIND.EXPENSE;
+        case CONST.REPORT.TYPE.IOU:
+            return CONST.REPORT_AVATAR_KIND.IOU;
+        case CONST.REPORT.TYPE.TASK:
+            return CONST.REPORT_AVATAR_KIND.TASK;
+        case CONST.REPORT.TYPE.INVOICE:
+            return CONST.REPORT_AVATAR_KIND.INVOICE;
+        case CONST.REPORT.TYPE.CHAT:
+            if (isThread(report)) {
+                return CONST.REPORT_AVATAR_KIND.CHAT_THREAD;
+            }
+            break;
+        case undefined:
+            // Legacy `getIcons` classifies chats purely off chatType, so a chat row whose `type` hasn't populated
+            // yet still routes by its chatType. Without either field there is nothing to route on.
+            break;
+        default:
+            return CONST.REPORT_AVATAR_KIND.DEFAULT;
+    }
+
+    switch (report.chatType) {
+        case CONST.REPORT.CHAT_TYPE.GROUP:
+            return CONST.REPORT_AVATAR_KIND.GROUP_CHAT;
+        case CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT:
+            return CONST.REPORT_AVATAR_KIND.POLICY_EXPENSE_CHAT;
+        case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
+        case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
+        case CONST.REPORT.CHAT_TYPE.POLICY_ROOM:
+        case CONST.REPORT.CHAT_TYPE.DOMAIN_ALL:
+        case CONST.REPORT.CHAT_TYPE.INVOICE:
+            return CONST.REPORT_AVATAR_KIND.ROOM;
+        default:
+            // DM, self-DM, system, trip room and anything unclassified
+            return CONST.REPORT_AVATAR_KIND.DEFAULT;
+    }
+}
+
+/** The report fields `GroupChatAvatar` renders from: the custom avatar plus what `getGroupChatName` needs for the tooltip name */
+type GroupChatAvatarReport = Pick<Report, 'reportID' | 'avatarUrl' | 'reportName' | 'participants'>;
+
+function groupChatAvatarReportSelector(report: OnyxEntry<Report>): GroupChatAvatarReport | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {reportID: report.reportID, avatarUrl: report.avatarUrl, reportName: report.reportName, participants: report.participants};
+}
+
+/** The report fields `ExpenseReportAvatar` renders from: the owner and the parent action (for a copilot) for the primary avatar plus the workspace-icon fallbacks. */
+type ExpenseReportAvatarReport = Pick<Report, 'ownerAccountID' | 'policyID' | 'policyAvatar' | 'policyName' | 'oldPolicyName' | 'chatReportID' | 'parentReportID' | 'parentReportActionID'>;
+
+function expenseReportAvatarSelector(report: OnyxEntry<Report>): ExpenseReportAvatarReport | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {
+        ownerAccountID: report.ownerAccountID,
+        policyID: report.policyID,
+        policyAvatar: report.policyAvatar,
+        policyName: report.policyName,
+        oldPolicyName: report.oldPolicyName,
+        chatReportID: report.chatReportID,
+        parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
+    };
+}
+
+/** Policy fallbacks a child report's workspace icon reads off its parent chat. */
+function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyID' | 'policyName' | 'oldPolicyName' | 'policyAvatar'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {policyID: report.policyID, policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
+}
+
 const policyIDsWithEmptyReportsSelector =
     (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
         if (hasDismissedEmptyReportsConfirmation || !accountID) {
@@ -83,6 +165,12 @@ const policyChatRoomsSelector =
         }
         return list;
     };
+
+/** Selects the outstanding reports that belong to the given policy. */
+const createOutstandingReportsForPolicySelector =
+    (policyID: string | undefined) =>
+    (outstandingReportsByPolicyID: OnyxEntry<OutstandingReportsByPolicyIDDerivedValue>): OnyxCollection<Report> =>
+        outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
 
 /**
  * Selects archived report NVPs for the current report and possible "Move expense" destination reports.
@@ -151,6 +239,7 @@ type ExcludedFields = ValidReportKeys<
         'lastMessageText',
         'lastVisibleActionCreated',
         'lastReadTime',
+        'manuallyMarkedUnreadReportActionID',
         'lastReadSequenceNumber',
         'lastMentionedTime',
         'lastVisibleActionLastModified',
@@ -259,7 +348,6 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         privateNotes: report.privateNotes,
         fieldList: report.fieldList,
         permissions: getStablePermissions(report.permissions),
-        tripData: report.tripData,
         welcomeMessage: report.welcomeMessage,
         nextStep: report.nextStep,
         pendingAction: report.pendingAction,
@@ -272,15 +360,20 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
 }
 
 export {
+    expenseReportAvatarSelector,
     getArchiveReason,
     getReportChatType,
+    groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
+    reportAvatarKindSelector,
+    reportPolicyFieldsSelector,
     createMoveExpenseReportNVPSelector,
+    createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,

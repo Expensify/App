@@ -35,11 +35,12 @@ type MultiSelectItem<T> = {
 };
 
 type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
-    /** The list of all items to show up in the list */
     items: Array<MultiSelectItem<T>>;
 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
+
+    itemHeight?: number;
 
     /** Search input placeholder. Defaults to 'common.search' when not provided. */
     searchPlaceholder?: string;
@@ -47,7 +48,6 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
     /** Whether the data for the popover is loading */
     loading?: boolean;
 
-    /** Whether to show the loading placeholder */
     shouldShowLoadingPlaceholder?: boolean;
 };
 
@@ -58,6 +58,7 @@ function MultiSelect<T extends string>({
     items,
     isSearchable,
     isNegatable,
+    itemHeight,
     searchPlaceholder,
     selectionListTextInputStyle,
     selectionListStyle,
@@ -125,6 +126,7 @@ function MultiSelect<T extends string>({
     return (
         <ListFilterView
             itemCount={listData.length}
+            itemHeight={itemHeight}
             isSearchable={isSearchable}
             isNegatable={isNegatable}
         >

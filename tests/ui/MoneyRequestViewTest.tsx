@@ -3,6 +3,7 @@ import {act, render, screen, waitFor} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -100,24 +101,27 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
+const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+
 const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
-            <MoneyRequestView
-                transactionThreadReport={threadReport}
-                parentReportID={expenseReportID}
-                expensePolicy={createMock<Policy>({
-                    id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    name: 'Test Policy',
-                    owner: currentUserEmail,
-                    outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
-                    ...policy,
-                })}
-                shouldShowAnimatedBackground={false}
-            />
+            <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                <MoneyRequestView
+                    transactionThreadReport={threadReport}
+                    parentReportID={expenseReportID}
+                    expensePolicy={createMock<Policy>({
+                        id: policyID,
+                        type: CONST.POLICY.TYPE.TEAM,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        name: 'Test Policy',
+                        owner: currentUserEmail,
+                        outputCurrency: CONST.CURRENCY.USD,
+                        ...policy,
+                    })}
+                    shouldShowAnimatedBackground={false}
+                />
+            </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>,
     );
 
@@ -173,7 +177,6 @@ describe('MoneyRequestView edit fields', () => {
                 name: 'Test Policy',
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
                 reportID: expenseReportID,
@@ -216,6 +219,61 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
             expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
         });
+    });
+
+    it('shows the Category and Tag rows from the report policy when nothing is selected yet', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                Travel: {name: 'Travel', enabled: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                Location: {name: 'Location', orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.category')).toBeOnTheScreen();
+            expect(screen.getByTestId('menu-item-Location')).toBeOnTheScreen();
+        });
+    });
+
+    it('hides the Category and Tag rows when the categories and tags belong to a different policy', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}someOtherPolicy`, {
+                Travel: {name: 'Travel', enabled: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}someOtherPolicy`, {
+                Location: {name: 'Location', orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        });
+        expect(screen.queryByTestId('menu-item-common.category')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
     });
 
     it('should show tax fields when tax tracking is disabled but transaction has tax data', async () => {
@@ -316,7 +374,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should show amount as editable for the submitter when a submitted report has not been forwarded', async () => {
+    it('should show amount, merchant and date as editable for the submitter when a submitted report has not been forwarded', async () => {
         const approverAccountID = 999;
         const approverEmail = 'approver@test.com';
         const corporatePolicy = {
@@ -350,10 +408,12 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+            expect(screen.getByTestId('menu-item-common.date')).toHaveTextContent('editable');
         });
     });
 
-    it('should show amount as readonly for the submitter after the report was forwarded since the last submit', async () => {
+    it('should show amount, merchant and date as readonly for the submitter after the report was forwarded since the last submit', async () => {
         const approverAccountID = 999;
         const approverEmail = 'approver@test.com';
         const corporatePolicy = {
@@ -389,6 +449,8 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+            expect(screen.getByTestId('menu-item-common.date')).toHaveTextContent('readonly');
         });
     });
 
@@ -628,6 +690,38 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows the vendor row on Sage Intacct without the vendorMatching beta because Intacct (R2) is generally available', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'iv-1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                    config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                    data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Intacct keeps the "Vendor" label and shows the vendor's display name, which Intacct stores in `value`.
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Intacct');
+        });
+    });
+
     it('hides the vendor row on Xero without the vendorMatching beta because Xero (R3) is still pre-GA', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -843,6 +937,7 @@ describe('MoneyRequestView edit fields', () => {
         });
 
         it('does not show the commuter exclusion on a self-DM expense that carries the fields', async () => {
+            const customUnitRateID = 'self-dm-distance-rate';
             const threadReport = {
                 ...LHNTestUtils.getFakeReport(),
                 parentReportID: selfDMReportID,
@@ -873,7 +968,34 @@ describe('MoneyRequestView edit fields', () => {
                         },
                     },
                 });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...distanceTransactionUpdate, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    customUnits: {
+                        distance: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: 'distance',
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {
+                                [customUnitRateID]: {
+                                    customUnitRateID,
+                                    currency: CONST.CURRENCY.USD,
+                                    rate: 67,
+                                },
+                            },
+                        },
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    ...distanceTransactionUpdate,
+                    amount: 201,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    comment: {
+                        ...distanceTransactionUpdate.comment,
+                        customUnit: {
+                            ...distanceTransactionUpdate.comment.customUnit,
+                            customUnitRateID,
+                        },
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -891,6 +1013,7 @@ describe('MoneyRequestView edit fields', () => {
 
             await waitFor(() => {
                 expect(screen.getByTestId('menu-item-common.distance')).toBeOnTheScreen();
+                expect(screen.getByTestId(/^menu-item-title-iou\.amount/)).toHaveTextContent('USD-268');
             });
             expect(screen.queryByTestId(`menu-item-${commuterDistanceDescription}`)).not.toBeOnTheScreen();
         });

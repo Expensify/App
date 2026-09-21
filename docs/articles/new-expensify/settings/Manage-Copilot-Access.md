@@ -30,6 +30,7 @@ A Copilot can:
  - Create and manage expenses on your behalf
  - Review reports
  - Access account, workspace, and domain settings based on their assigned permissions
+ - Merge accounts on your behalf (Full Access only). The security code is sent to you, the account owner. You will have to share the security code with the person who is the Copilot for your account, so please share it with caution.
 
 A Copilot cannot:
 

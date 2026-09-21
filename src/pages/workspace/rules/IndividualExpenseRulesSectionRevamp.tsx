@@ -7,12 +7,19 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {
+    getBillableExpensesPendingAction,
+    getCashExpenseReimbursableMode,
+    setPolicyAttendeeTrackingEnabled,
+    setPolicyRequireCompanyCardsEnabled,
+    setWorkspaceEReceiptsEnabled,
+} from '@libs/actions/Policy/Policy';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
+import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, isMaxExpenseAmountSet, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -62,8 +69,12 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    // Every toggle here owes a locked-out member the read-only modal, the way the pre-revamp section gave all four of
+    // them. Splitting this section out dropped it, so a member saw a lock with nothing explaining it. Only the modal is
+    // taken from the hook: its `canWrite` is the `canWriteRules` prop already.
+    const {withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'CreditCard', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -80,8 +91,8 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         const receiptAmount = policy?.maxExpenseAmountNoReceipt;
         const itemizedAmount = policy?.maxExpenseAmountNoItemizedReceipt;
 
-        const isReceiptEnabled = receiptAmount !== undefined && receiptAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && receiptAmount !== 0;
-        const isItemizedEnabled = itemizedAmount !== undefined && itemizedAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && itemizedAmount !== 0;
+        const isReceiptEnabled = isMaxExpenseAmountSet(receiptAmount);
+        const isItemizedEnabled = isMaxExpenseAmountSet(itemizedAmount);
 
         return translate('workspace.rules.generalTab.receiptRequirementsSummary', {
             regularAmount: isReceiptEnabled ? convertToDisplayString(receiptAmount, policyCurrency) : undefined,
@@ -119,6 +130,16 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
+
+    // There has to be a card to require before the rule means anything, and either card product counts. Three separate
+    // things can lock the row, so each gets the response that actually explains it: no write access opens the read-only
+    // modal, Collect opens the upgrade the other rules use, and only a missing card product earns the More features
+    // tooltip. The pre-revamp row showed that tooltip for all three, which told an auditor to enable a feature that was
+    // already on.
+    const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
+    const areAnyCardsEnabled = !!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled;
+    const isRequireCompanyCardsLocked = !canWriteRules || isCollect || !areAnyCardsEnabled;
+    const shouldExplainMissingCards = canWriteRules && !isCollect && !areAnyCardsEnabled;
 
     useEffect(() => {
         // The subtitle names the required tag lists, and only the Tags pages fetch them, so it would otherwise read
@@ -262,6 +283,20 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                 <View style={[styles.sectionDividerLine, styles.mv3]} />
                 {renderMenuItems(productDefaultItems)}
                 <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    wrapperStyle={[styles.pv3]}
+                    isActive={requireCompanyCardsEnabled}
+                    disabled={isRequireCompanyCardsLocked}
+                    showLockIcon={isRequireCompanyCardsLocked}
+                    disabledText={shouldExplainMissingCards ? translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip') : undefined}
+                    disabledAction={withReadOnlyFallback(isCollect ? navigateToRulesControlUpgrade : undefined)}
+                    onToggle={() => (canWriteRules && policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
+                    pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
+                    rowIcon={icons.CreditCard}
+                />
+                <ToggleSettingOptionRow
                     title={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
@@ -270,7 +305,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     isActive={areEReceiptsEnabled}
                     disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
                     showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
-                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
+                    disabledAction={withReadOnlyFallback(isCollect ? navigateToRulesControlUpgrade : undefined)}
                     onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
                     pendingAction={policy?.pendingFields?.eReceipts}
                     rowIcon={icons.Receipt}
@@ -283,7 +318,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     isActive={isAttendeeTrackingEnabledForPolicy}
                     disabled={!canWriteRules || isCollect}
                     showLockIcon={!canWriteRules || isCollect}
-                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
+                    disabledAction={withReadOnlyFallback(isCollect ? navigateToRulesControlUpgrade : undefined)}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                     rowIcon={icons.Users}
@@ -291,6 +326,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                 <PublicReceiptVisibilityToggle
                     policyID={policyID}
                     canWriteRules={canWriteRules}
+                    withReadOnlyFallback={withReadOnlyFallback}
                     rowIcon={icons.Eye}
                 />
             </View>

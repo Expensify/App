@@ -1,9 +1,12 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -13,7 +16,6 @@ import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendi
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 
-import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -40,6 +42,7 @@ function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbu
 
 function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
     const styles = useThemeStyles();
 
@@ -141,13 +144,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     onCloseError={section.onCloseError}
                 />
             ))}
-            <TravelBillingContinuousReconciliationSection
-                policy={policy}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-                isAutoSyncEnabled={!!config?.autoSync?.enabled}
-                toggleWrapperStyle={[styles.ph5, styles.pv3]}
-            />
-
             <Accordion
                 isExpanded={isAccordionExpanded}
                 isToggleTriggered={shouldAnimateAccordionSection}
@@ -156,14 +152,30 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     key={translate('workspace.sageIntacct.paymentAccount')}
                     pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID)}
-                        description={translate('workspace.sageIntacct.paymentAccount')}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('workspace.sageIntacct.paymentAccount')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
-                        brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                        value={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID)}
+                    >
+                        {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
+                {canConfigureCurrencyConversionFees && (
+                    <OfflineWithFeedback
+                        key={translate('workspace.sageIntacct.fxExpenseAccount')}
+                        pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}
+                    >
+                        <MenuItemWithTopDescription
+                            title={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}
+                            description={translate('workspace.sageIntacct.fxExpenseAccount')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT.getRoute(policyID))}
+                            brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        />
+                    </OfflineWithFeedback>
+                )}
             </Accordion>
         </ConnectionLayout>
     );

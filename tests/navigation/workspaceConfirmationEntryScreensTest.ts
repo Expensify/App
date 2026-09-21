@@ -12,7 +12,7 @@ describe('WORKSPACE_CONFIRMATION_CURRENCY', () => {
 
     it('allows opening the currency selector from every screen that hosts the confirm workspace form', () => {
         expect(currencyEntryScreens).toEqual(
-            expect.arrayContaining([SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.TRAVEL.WORKSPACE_CONFIRMATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE]),
+            expect.arrayContaining([SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE]),
         );
     });
 

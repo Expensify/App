@@ -47,7 +47,8 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         return acc;
     }, new Set<string>());
 
-    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
+    // getExpensifyTeamExclusions walks every personal detail, so it is skipped while the selector withholds its options.
+    const expensifyTeamExclusions = ready ? getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email) : CONST.EMPTY_OBJECT;
 
     // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
     // top on first render without repinning rows that are toggled afterwards.

@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import Table from '@components/Table';
@@ -26,18 +26,13 @@ import {View} from 'react-native';
 import type {WorkspaceExpensifyCardTableRowData} from '.';
 
 type WorkspaceExpensifyCardsTableRowProps = {
-    /** Data about the Expensify card */
     item: WorkspaceExpensifyCardTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 
 export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceExpensifyCardsTableRowProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'FreezeCard']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FreezeCard']);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const theme = useTheme();
@@ -108,10 +103,9 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                         style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <Avatar
-                            source={item.cardholder?.avatar ?? icons.FallbackAvatar}
-                            avatarID={item.cardholder?.accountID}
-                            type={CONST.ICON_TYPE_AVATAR}
+                        <UserAvatar
+                            source={item.cardholder?.avatar}
+                            accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                             size={avatarSize}
                         />
                         <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>

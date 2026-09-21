@@ -94,67 +94,70 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
         },
     ];
 
-    if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
-        menuItems.push({
-            icon: icons.Exit,
-            text: translate('common.leave'),
-            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE)),
-            shouldCallAfterModalHide: true,
-        });
-    }
-
-    if (isAdmin) {
-        menuItems.push({
-            icon: icons.Plus,
-            text: translate('workspace.common.duplicateWorkspace'),
-            onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
-        });
-        if (item.isEligibleToCopy) {
+    if (!item.isArchived) {
+        if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
             menuItems.push({
-                icon: icons.Copy,
-                text: translate('workspace.copyPolicySettings.title'),
+                icon: icons.Exit,
+                text: translate('common.leave'),
+                onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE)),
+                shouldCallAfterModalHide: true,
+            });
+        }
+
+        if (isAdmin) {
+            menuItems.push({
+                icon: icons.Plus,
+                text: translate('workspace.common.duplicateWorkspace'),
+                onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
+            });
+            if (item.isEligibleToCopy) {
+                menuItems.push({
+                    icon: icons.Copy,
+                    text: translate('workspace.copyPolicySettings.title'),
+                    onSelected: () => {
+                        if (!item.policyID) {
+                            return;
+                        }
+                        clearCopyPolicySettings();
+                        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID));
+                    },
+                });
+            }
+        }
+
+        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
+            menuItems.push({
+                icon: icons.Star,
+                text: translate('workspace.common.setAsDefault'),
                 onSelected: () => {
-                    if (!item.policyID) {
+                    if (!item.policyID || !activePolicyID) {
                         return;
                     }
-                    clearCopyPolicySettings();
-                    Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID));
+                    setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, item.policyID, activePolicyID);
                 },
+            });
+        }
+
+        if (isOwner) {
+            menuItems.push({
+                icon: icons.Trashcan,
+                text: translate('workspace.common.delete'),
+                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
+                onSelected: () => {
+                    if (isLoadingBill) {
+                        return;
+                    }
+
+                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted by the page.
+                    onDeleteWorkspace(item.policyID);
+                },
+                shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
+                shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
             });
         }
     }
 
-    if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
-        menuItems.push({
-            icon: icons.Star,
-            text: translate('workspace.common.setAsDefault'),
-            onSelected: () => {
-                if (!item.policyID || !activePolicyID) {
-                    return;
-                }
-                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, item.policyID, activePolicyID);
-            },
-        });
-    }
-
-    if (isOwner) {
-        menuItems.push({
-            icon: icons.Trashcan,
-            text: translate('workspace.common.delete'),
-            shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
-            onSelected: () => {
-                if (isLoadingBill) {
-                    return;
-                }
-
-                // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted by the page.
-                onDeleteWorkspace(item.policyID);
-            },
-            shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
-            shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
-        });
-    }
-
+    // Transferring ownership applies to both active and archived workspaces, so it lives outside the split above.
     if (isAdmin && !isOwner && canRenderTransferOwnerButton) {
         menuItems.push({
             icon: icons.Transfer,

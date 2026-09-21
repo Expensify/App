@@ -7,7 +7,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
 type Args = {
-    /** The report ID */
     reportID: string;
 
     /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
@@ -19,7 +18,6 @@ type Args = {
     /** Called when the unread-marker action is within the viewport, on every viewability change */
     onUnreadActionVisible: () => void;
 
-    /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */
@@ -91,7 +89,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // display floating button if we're scrolled more than the offset
         if (
-            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             !isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !shouldBeAlignedToTop
@@ -101,7 +99,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // hide floating button if we're scrolled closer than the offset
         if (
-            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !hasNewerActions

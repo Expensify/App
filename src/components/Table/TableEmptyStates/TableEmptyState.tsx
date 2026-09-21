@@ -18,11 +18,13 @@ type TableEmptyStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia'>
 
 export default function TableEmptyState({children, ...emptyStateProps}: TableEmptyStateProps) {
     const styles = useThemeStyles();
-    const {originalDataLength, tableListMetadata} = useTableContext();
+    const {originalDataLength, tableListMetadata, isDefaultViewEmpty} = useTableContext();
     // We default the empty state to the default folders illustration, but passed props override it
     const genericIllustration = useGenericEmptyStateIllustration();
 
-    if (originalDataLength) {
+    // Render when there's genuinely no data, or when the default view hides every row (e.g. only archived
+    // workspaces remain and the list defaults to showing active ones) — otherwise the body would be blank.
+    if (originalDataLength && !isDefaultViewEmpty) {
         return null;
     }
 

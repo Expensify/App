@@ -71,19 +71,10 @@ Because `mock.module()` is hoisting-sensitive, files that use it import the modu
 
 ## Type-checking
 
-These files are type-checked by the root `tsconfig.json` along with everything else, so they see the app's real
-types. `bun:test` resolves because that config pulls in `node_modules/bun-types/test.d.ts` — the one file in
-bun-types that declares the module — through `files` rather than `include`, since `exclude` covers node_modules.
+These files are type-checked by the directory-scoped Bun project, `tsconfig.bun.json`. They get Bun and Node types,
+including `bun:test` and Bun runtime APIs such as `$`. Add a new tooling test directly under `tests/tooling/`; no
+tsconfig update is needed.
 
-The rest of bun-types is deliberately left out: its global JSX declarations are incompatible with the app's React
-types, and `generateTranslations.test.ts` reaches `src/` through the script it covers. One consequence is that
-`@types/jest`'s globals are visible here too, so a missing `bun:test` import can type-check but still fail at
-runtime — import every helper you use.
-
-`CIGitLogic.test.ts` is the exception. It uses Bun's `$` shell, which is a runtime API rather than a module
-declaration, so it needs the full `@types/bun`. Those types redeclare globals the app already owns — a `jest`
-namespace that shadows `@types/jest`'s generic signatures, and a `fetch` carrying `preconnect` — and adding them
-to the root project produces ~1,100 errors across `tests/unit`. So that one file is excluded from the root
-project and type-checked by `tests/tooling/tsconfig.json`, which mirrors what `server/tsconfig.json` does. A new
-test needing Bun runtime APIs should be added to that project's `files`; one that only needs `bun:test` should
-not, so it keeps seeing the app's types.
+The Bun project avoids general app imports because Bun's globals conflict with the React Native and Jest globals used
+by the app. Translation tooling may import `src/languages/en.ts`: its CONST dependencies use Bun-safe defaults, while
+web and native builds resolve platform-specific runtime values.

@@ -11,6 +11,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isInvoiceReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {
     getChildTransactions,
@@ -28,7 +29,6 @@ import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 
 import type {CurrencyListActionsContextType} from './useCurrencyList';
@@ -99,13 +99,14 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const {isBetaEnabled} = usePermissions();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
@@ -148,6 +149,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
      * @param duplicateTransactionViolations - Collection of duplicate transaction violations
      * @param currentSearchHash - Current search hash for updating split transactions
      * @param isSingleTransactionView - Optional flag indicating if the deletion is from a single transaction view
+     * @param fullyDeletedGroupKeys - Grouped-search group rows this delete wipes out entirely, keyed by transaction ID
      * @returns Result describing whether the delete redirected or deleted transaction threads
      */
     const deleteTransactions = useCallback(
@@ -157,6 +159,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             duplicateTransactionViolations: OnyxCollection<TransactionViolations>,
             currentSearchHash?: number,
             isSingleTransactionView?: boolean,
+            fullyDeletedGroupKeys?: Record<string, SearchGroupKey>,
         ): DeleteTransactionsResult => {
             if (!transactionIDs.length) {
                 return {
@@ -292,6 +295,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
                 updateSplitTransactions({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     allTransactionsList: allTransactions,
@@ -320,7 +324,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
-                    betas,
                     personalDetails,
                     transactionReport: report,
                     expenseReport,
@@ -328,6 +331,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    rules,
                 });
             }
 
@@ -364,6 +368,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         chatReportID: candidateIOUReport?.reportID,
                         chatReport: candidateIOUReport,
                         chatReportActions: selfDMReportActions,
+                        transactionThreadReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`],
                         transactionID,
                         reportAction: action,
                         iouReport: undefined,
@@ -393,6 +398,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionID,
                     reportAction: action,
                     transactionThreadReport,
+                    transactionThreadReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`],
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
                     iouReport,
@@ -401,6 +407,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isSingleTransactionView,
                     transactionIDsPendingDeletion: deletedTransactionIDs,
                     selectedTransactionIDs: transactionIDs,
+                    searchHash: currentSearchHash,
+                    fullyDeletedGroupKey: fullyDeletedGroupKeys?.[transactionID],
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
@@ -419,6 +427,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             };
         },
         [
+            isVendorMatchingBetaEnabled,
             allPolicyRecentlyUsedCategories,
             allReportNameValuePairs,
             allReports,
@@ -436,7 +445,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             report,
             reportActions,
             transactionViolations,
-            betas,
             allPolicyTags,
             personalDetails,
             selfDMReportID,
@@ -451,6 +459,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             formatPhoneNumber,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         ],
     );
 

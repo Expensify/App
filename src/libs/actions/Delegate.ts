@@ -49,10 +49,16 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
-    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
+
+    // Keep personal details through the switch so the nav avatar and user names render
+    // instantly instead of showing a skeleton while OpenApp responds. OpenApp overwrites
+    // this key with fresh data when its response lands, so stale entries are short lived.
+    ONYXKEYS.PERSONAL_DETAILS_LIST,
 ];
 
 /**
@@ -147,6 +153,11 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         return;
     }
 
+    if (isConnectedAsDelegate({delegatedAccess})) {
+        Log.info('[Delegate] Already connected as a delegate, skipping connect');
+        return;
+    }
+
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
     Onyx.set(ONYXKEYS.STASHED_SESSION, session ?? {});
 
@@ -219,7 +230,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
             return SequentialQueue.waitForIdle()
                 .then(() => {
                     // Update authToken in Onyx so it persists if the further flow does not complete for any reason.
-                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
+                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken, CONST.AUTH_TOKEN_TYPES.DELEGATE);
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
@@ -872,6 +883,7 @@ function openSecuritySettingsPage() {
 }
 
 export {
+    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
     connect,
     disconnect,
     clearDelegatorErrors,

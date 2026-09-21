@@ -58,8 +58,10 @@ type SpendSummaryRowProps = {
     iconSrc: IconAsset;
     onPress: () => void;
     wrapperStyle: StyleProp<ViewStyle>;
-    // Position of this row within the Your spend list. Used to vary the skeleton
-    // title width across stacked rows, mirroring `ForYouSkeleton`.
+    /**
+     * Position of this row within the Your spend list. Used to vary the skeleton
+     * title width across stacked rows, mirroring `ForYouSkeleton`.
+     */
     skeletonRowIndex: number;
     /** Greys the total when a queued offline change may have made it stale. */
     isStale?: boolean;
@@ -114,7 +116,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
                 onPress={onPress}
                 shouldShowRightIcon
                 leftComponent={
-                    <View style={styles.getWidgetItemIconContainerStyle(theme.border)}>
+                    <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={iconSrc}
                             fill={theme.icon}

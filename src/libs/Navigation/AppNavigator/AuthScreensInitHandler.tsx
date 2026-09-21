@@ -1,18 +1,23 @@
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
+import {isQAServerActive} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,20 +44,32 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
 import {useEffect, useRef} from 'react';
 
 function initializePusher(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
+    // No fallback: CONFIG.PUSHER.APP_KEY defaults to the production key, so falling back would open a QA socket
+    // against production Pusher and every channel auth, signed with QA's secret, would be rejected quietly.
+    const appKey = isQAServerActive() ? CONFIG.PUSHER.QA_APP_KEY : CONFIG.PUSHER.APP_KEY;
+
+    // pusher-js rejects only a null/undefined key, so an empty one builds a socket that never connects while Pusher.init
+    // resolves solely from its 'connected' handler, leaving every subscribe() and the PUSHER_INIT span pending forever.
+    if (!appKey) {
+        Log.alert('[Pusher] Skipping init: no Pusher app key is configured for the active server');
+        return Promise.resolve();
+    }
+
     return Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
+        appKey,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, formatPhoneNumber, getReportAttributes);
     });
 }
 
@@ -69,10 +86,11 @@ function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const ownerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -82,8 +100,12 @@ function AuthScreensInitHandler() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
+    const policyOwnerLogin = ownerEmail ?? session?.email;
+    const policyOwnerAccountID = usePersonalDetailByLogin(policyOwnerLogin, accountIDSelector);
+    const policyOwnerDisplayName = usePersonalDetailByLogin(policyOwnerLogin, displayNameSelector);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const reportAttributes = useReportAttributes();
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
@@ -115,6 +137,7 @@ function AuthScreensInitHandler() {
                 currentAccountID,
                 currentEmail,
                 () => topmostOneTransactionThreadReportIDRef.current,
+                formatPhoneNumber,
                 () => reportAttributesRef.current,
             );
         });
@@ -122,6 +145,7 @@ function AuthScreensInitHandler() {
         return () => {
             registerPusherReinitializeHandler(null);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -129,7 +153,8 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -138,7 +163,7 @@ function AuthScreensInitHandler() {
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
-            Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
+            Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
             };
@@ -152,7 +177,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -189,18 +214,22 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(
+        App.setUpPoliciesAndNavigate({
             session,
             introSelected,
-            currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             activePolicy,
-            guidedSetupAndTourStatus?.isSelfTourViewed,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             lastWorkspaceNumber,
             translate,
             conciergeChat,
-        );
+            delegateAccountID,
+            policyOwnerAccountID,
+            policyOwnerDisplayName,
+        });
 
         Download.clearDownloads();
         clearStaleExportDownloads();

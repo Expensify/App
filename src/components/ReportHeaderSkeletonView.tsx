@@ -1,3 +1,4 @@
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,7 +27,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
-    const height = styles.headerBarHeight.height;
+    const {contentHeaderHeight: height} = useContentHeaderHeight();
     const radius = 20;
     const circleY = height / 2;
     const circleTopY = circleY - radius;

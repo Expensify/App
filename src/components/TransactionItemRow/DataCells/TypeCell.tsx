@@ -9,7 +9,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isTravelCardTransaction} from '@libs/CardUtils';
-import {getExpenseTypeTranslationKey, getTransactionType, isExpensifyCardTransaction, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {
+    getDetailedExpenseTypeTranslationKey,
+    getExpenseTypeTranslationKey,
+    getTransactionType,
+    isExpensifyCardTransaction,
+    isManagedCardTransaction,
+    isPending,
+} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -90,25 +97,6 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const typeText = isPendingCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
     const styles = useThemeStyles();
 
-    const getTooltipText = () => {
-        if (isPendingCardTransaction) {
-            return translate('iou.pending');
-        }
-        if (isTravelBillingCard) {
-            return translate('cardTransactions.travelCard');
-        }
-        if (isExpensifyCard) {
-            return translate('cardTransactions.expensifyCard');
-        }
-        if (isManagedCard) {
-            return translate('cardTransactions.companyCard');
-        }
-        if (type === CONST.SEARCH.TRANSACTION_TYPE.CARD) {
-            return translate('cardTransactions.personalCard');
-        }
-        return translate(typeText);
-    };
-
     return shouldUseNarrowLayout ? (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
@@ -116,7 +104,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
             style={[styles.mutedNormalTextLabel, styles.pre, styles.justifyContentCenter, styles.flexShrink0]}
         />
     ) : (
-        <Tooltip text={getTooltipText()}>
+        <Tooltip text={translate(getDetailedExpenseTypeTranslationKey(transactionItem, card))}>
             <View>
                 <Icon
                     src={typeIcon}

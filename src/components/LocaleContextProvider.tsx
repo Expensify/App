@@ -1,6 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
+import getCollator from '@libs/CollatorUtils';
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
@@ -24,7 +25,6 @@ import {format as formatDate} from 'date-fns';
 import React, {createContext, useEffect, useState} from 'react';
 
 type LocaleContextProviderProps = {
-    /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
 
@@ -95,8 +95,6 @@ const LocaleContext = createContext<LocaleContextProps>({
     dateFnsLocale: undefined,
 });
 
-const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
-
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
@@ -141,7 +139,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const selectedTimezone = currentUserPersonalDetails?.timezone?.selected;
     const effectiveTimezone = selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected;
-    const collator = new Intl.Collator(currentLocale, COLLATOR_OPTIONS);
+    const collator = getCollator(currentLocale);
 
     const translate: LocaleContextProps['translate'] = (path, ...parameters) => translateLocalize(currentLocale, path, ...parameters);
 
