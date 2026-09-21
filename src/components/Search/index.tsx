@@ -1089,6 +1089,8 @@ function Search({
         return <View onLayout={onDeferredLayout} />;
     }
 
+    const listContainerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3;
+
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
@@ -1097,7 +1099,7 @@ function Search({
             <SearchRowSkeleton
                 shouldAnimate
                 onLayout={onSkeletonLayout}
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
+                containerStyle={listContainerStyle}
             />
         );
     }
@@ -1112,7 +1114,7 @@ function Search({
         return (
             <SearchRowSkeleton
                 shouldAnimate
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
+                containerStyle={listContainerStyle}
             />
         );
     }
@@ -1164,7 +1166,7 @@ function Search({
             },
         } as const;
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
+            <View style={[listContainerStyle, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
@@ -1188,7 +1190,7 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [listContainerStyle]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
@@ -1235,7 +1237,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                    <View style={[listContainerStyle, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
                             groupBy={validGroupBy}
