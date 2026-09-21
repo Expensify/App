@@ -4438,6 +4438,10 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const;
         },
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/custom-dimension/:dimensionID',
+        getRoute: (policyID: string, dimensionID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/custom-dimension/${dimensionID}` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/classes/displayed-as` as const,

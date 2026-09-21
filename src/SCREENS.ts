@@ -526,6 +526,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_IMPORT: 'Policy_Accounting_Quickbooks_Online_Import',
             QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
             QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
+            QUICKBOOKS_ONLINE_CUSTOM_DIMENSION: 'Policy_Accounting_Quickbooks_Online_Import_Custom_Dimension',
             QUICKBOOKS_ONLINE_CUSTOMERS: 'Policy_Accounting_Quickbooks_Online_Import_Customers',
             QUICKBOOKS_ONLINE_LOCATIONS: 'Policy_Accounting_Quickbooks_Online_Import_Locations',
             QUICKBOOKS_ONLINE_ITEMS: 'Policy_Accounting_Quickbooks_Online_Import_Items',
