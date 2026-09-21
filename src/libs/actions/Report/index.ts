@@ -110,6 +110,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
+    applyLabelToUploadingAttachmentHtml,
     buildEditedCommentWithAttachment,
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
@@ -155,6 +156,8 @@ import {
     getReportPreviewReportActionMessage,
     getReportTransactions,
     getUploadingAttachmentHtmlFromComment,
+    getUploadingAttachmentLabelFromDraft,
+    getUploadingAttachmentSource,
     hasOutstandingChildRequest,
     isAdminRoom,
     isChatThread as isChatThreadReportUtils,
@@ -176,6 +179,7 @@ import {
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
+    restoreAttachmentAnchorAttributes,
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -255,6 +259,7 @@ import type {
     TransactionViolations,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type {DeferredAttachmentEdit} from '@src/types/onyx/DeferredAttachmentEdits';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -276,6 +281,7 @@ import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {clearDeferredAttachmentEdit, deferAttachmentEdit, startDeferredAttachmentEditReplays} from './DeferredAttachmentEdits';
 import deleteReport from './DeleteReport';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
@@ -3442,6 +3448,7 @@ function deleteReportComment(
     if (!reportActionID || !originalReportID || !reportID) {
         return;
     }
+    clearDeferredAttachmentEdit(reportActionID);
     const reportActionMessage = ReportActionsUtils.getReportActionMessage(reportAction);
     const reportCommentText = reportActionMessage?.html ?? '';
 
@@ -3709,6 +3716,19 @@ function handleUserDeletedLinksInHtml(
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
+startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
+    // The report cache can still be empty right after a cold start; a later update re-fires this callback.
+    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${deferredEdit.reportID}`];
+    if (!originalReport) {
+        return false;
+    }
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, videoAttributeCache} = deferredEdit;
+
+    // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
+    Promise.resolve().then(() => editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, allPersonalDetails, videoAttributeCache));
+    return true;
+});
+
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(
     originalReport: OnyxEntry<Report>,
@@ -3738,7 +3758,10 @@ function editReportComment(
     if (originalCommentMarkdown === draftForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache);
+    const htmlForNewComment = restoreAttachmentAnchorAttributes(
+        handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+        originalCommentHTML,
+    );
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 
@@ -3760,7 +3783,14 @@ function editReportComment(
     const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
 
     // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
-    const uploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
+    const originalUploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
+    const uploadingAttachmentSource = getUploadingAttachmentSource(originalUploadingAttachmentHtml);
+    const draftAttachmentLabel = uploadingAttachmentSource ? getUploadingAttachmentLabelFromDraft(textForNewComment, uploadingAttachmentSource) : undefined;
+
+    // The server rebuilds the stored attachment from the uploaded file, so a rename has to travel with the queued
+    // file as well as the optimistic markup, otherwise it reverts as soon as the send goes through.
+    const renamedAttachmentLabel = draftAttachmentLabel === originalUploadingAttachmentHtml?.match(/data-name="([^"]*)"/)?.at(1) ? undefined : draftAttachmentLabel;
+    const uploadingAttachmentHtml = originalUploadingAttachmentHtml ? applyLabelToUploadingAttachmentHtml(originalUploadingAttachmentHtml, renamedAttachmentLabel) : undefined;
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
     const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
 
@@ -3848,6 +3878,19 @@ function editReportComment(
         reportActionID,
     };
 
+    // A newer edit supersedes one still waiting on its upload, otherwise the old one replays over it.
+    clearDeferredAttachmentEdit(reportActionID);
+
+    // Nothing is left in the queue to re-attach the file, so this edit would carry the text alone. The upload is
+    // already in flight, so the edit is parked until the attachment syncs and replayed against the stored copy.
+    const hasQueuedAttachmentRequest = getAll().some((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
+    if (uploadingAttachmentHtml && !hasQueuedAttachmentRequest) {
+        Onyx.update(optimisticData);
+        const deferredEdit: DeferredAttachmentEdit = {reportID: originalReportID, textForNewComment, currentUserLogin, isOriginalReportArchived, originalMessage, videoAttributeCache};
+        deferAttachmentEdit(reportActionID, deferredEdit);
+        return;
+    }
+
     API.write(
         WRITE_COMMANDS.UPDATE_COMMENT,
         parameters,
@@ -3856,7 +3899,7 @@ function editReportComment(
             checkAndFixConflictingRequest: (persistedRequests) => {
                 const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
                 if (addCommentIndex > -1) {
-                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, shouldRemoveQueuedAttachment);
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, shouldRemoveQueuedAttachment, renamedAttachmentLabel);
                 }
                 return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
