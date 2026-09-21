@@ -3901,8 +3901,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchListHeaderTableStyle: {
             backgroundColor: theme.highlightBG,
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCardAndTable,
+            borderTopRightRadius: variables.componentBorderRadiusCardAndTable,
             borderBottomWidth: 1,
             borderColor: theme.border,
             minHeight: 36,
