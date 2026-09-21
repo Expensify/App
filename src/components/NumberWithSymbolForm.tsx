@@ -503,6 +503,9 @@ function NumberWithSymbolForm({
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
                         innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
+                        // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the
+                        // borderless treatment removes would come back under the cursor without this.
+                        hoverStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
                         contentContainerStyle={styles.justifyContentCenter}
@@ -520,6 +523,9 @@ function NumberWithSymbolForm({
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
                         innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
+                        // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the
+                        // borderless treatment removes would come back under the cursor without this.
+                        hoverStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                         onPress={onTrailingDropdownPress}
                         // Keep the press from blurring the input. Callers that only reveal these buttons while the
                         // field is focused would otherwise unmount this one before the press lands, leaving the

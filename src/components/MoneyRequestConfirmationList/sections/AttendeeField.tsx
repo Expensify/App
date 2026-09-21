@@ -51,9 +51,11 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     const rawIouAttendees = useAttendees(attendeeSlice as OnyxEntry<OnyxTypes.Transaction>);
     const iouAttendees = enrichAndSortAttendees(rawIouAttendees, loginToAccountIDMap, personalDetailsList, localeCompare);
 
-    const attendeesDescription = `${translate('iou.attendees')} ${
-        iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `· ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
-    }`;
+    // The row uses this as its placeholder and as its accessibility label too, so it cannot carry a trailing space.
+    const attendeesDescription =
+        iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee
+            ? `${translate('iou.attendees')} · ${formattedAmountPerAttendee} ${translate('common.perPerson')}`
+            : translate('iou.attendees');
     const attendeesAccessibilityLabel = `${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`;
     const attendeePills = Array.isArray(iouAttendees) ? (
         <UserPills

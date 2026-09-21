@@ -152,13 +152,15 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
     };
 
+    // Only ever rendered in place of the editable amount field, so the row is never interactive and never opens
+    // the tax-amount page. It reads the amount out for a user who cannot change it.
     const readOnlyTaxAmountRow = shouldUseDropdownRows ? (
         <ExpenseFieldRow
             name={translate('iou.taxAmount')}
             value={formattedTaxAmount}
             onPress={openTaxAmountPage}
             isDisabled={didConfirm}
-            isInteractive={canModifyTaxFields}
+            isInteractive={false}
             testID={`${taxRates?.name}_amount`}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
         />

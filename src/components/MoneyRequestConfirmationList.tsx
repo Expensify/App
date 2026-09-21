@@ -709,6 +709,9 @@ function MoneyRequestConfirmationList({
                     // The rows of this list are the expense's own fields, so a tap that none of them claims is a tap
                     // outside the focused field and has to dismiss the keyboard. The list's default (`always`) is for
                     // lists whose rows are driven by a search input that must keep focus through a row press.
+                    //
+                    // Deliberately set for every confirmation variant, not just the manual form the complaint came
+                    // from: none of them is search-driven, so `always` was wrong for all of them.
                     keyboardShouldPersistTaps="handled"
                     disableKeyboardShortcuts
                 />

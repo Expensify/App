@@ -135,8 +135,11 @@ function CategoryField({
             <ExpenseFieldRow
                 name={translate('common.category')}
                 value={decodedCategoryName}
+                numberOfLinesValue={2}
                 rightLabel={getCategoryRightLabel()}
                 rightLabelIcon={getCategoryRightLabelIcon()}
+                // `Automatic` describes the category Concierge picked, so it has to outlive the field being filled in.
+                shouldKeepRightLabelWhenFilled={willAutoFill}
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
                 isDisabled={didConfirm}

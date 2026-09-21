@@ -128,8 +128,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         return (
             <ExpenseFieldRow
                 name={translate('common.report')}
-                // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is flattened first.
-                value={Parser.isHTML(reportName) ? Parser.htmlToText(reportName) : reportName}
+                // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is
+                // flattened first. Plain names pass through unchanged, with their entities decoded.
+                value={Parser.htmlToText(reportName)}
                 onPress={openReportPage}
                 isInteractive={shouldReportBeEditable}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}

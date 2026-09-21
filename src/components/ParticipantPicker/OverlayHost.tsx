@@ -15,7 +15,8 @@ const ParticipantPickerOverlayHostContext = createContext<string | undefined>(un
  * showing through. A page like that renders this host below its chrome, so the overlay covers the whole page the
  * way the picker's own screen would.
  *
- * Renders nothing on the platforms that present the picker as a modal, since nothing is sent to the host there.
+ * Registers a host on every platform, but only the iOS picker portals into it: everywhere else the picker is a
+ * modal and the host stays empty.
  */
 function ParticipantPickerOverlayHost({children}: PropsWithChildren) {
     // Two hosts sharing a name share their contents, so each one names itself.

@@ -16,8 +16,8 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
+import HighlightableExpenseFieldRow from './HighlightableExpenseFieldRow';
 import {createTagDisplaySelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -72,9 +72,11 @@ function TagFields({
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldRow
+            <HighlightableExpenseFieldRow
+                shouldHighlight={!displayedTag && !previousShouldShow}
                 name={policyTagList.name}
                 value={displayedTag}
+                numberOfLinesValue={2}
                 rightLabel={isTagRequired ? translate('common.required') : ''}
                 errorText={shouldDisplayTagError && !!displayedTag ? translate(formError as TranslationPaths) : ''}
                 onPress={openTagPage}

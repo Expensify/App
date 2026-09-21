@@ -28,8 +28,11 @@ function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, 
     const {translate} = useLocalize();
     const {action, iouType, isPerDiemRequest, isReadOnly} = useConfirmationFields();
 
-    // Both the header copy and the add-receipt button key off whether the section already shows a receipt. The
-    // preview renders on exactly these inputs (see `useReceiptThumbnailSource`), so the two cannot disagree.
+    // The header copy, the add-receipt button and the spacing around the preview all key off whether the section
+    // shows a receipt. This is a close approximation of what `ReceiptSection` resolves for itself rather than the
+    // same decision: it reads the raw receipt path where the section reads the thumbnail it resolves from the
+    // transaction, and it does not know about the distance-map case that hides the receipt area outright. Neither
+    // gap is reachable from this footer today, since a manual expense carries no distance data.
     const hasReceipt = (!!receiptOptions.receiptPath && !!receiptOptions.receiptFilename) || !!receiptOptions.isLoadingReceipt;
     const canAddReceipt = !isReadOnly && shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
@@ -47,8 +50,9 @@ function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, 
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{hasReceipt ? translate('common.receipt') : translate('iou.expenseDetails')}</Text>
                 </View>
 
-                {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the header goes here. */}
-                <View style={hasReceipt ? styles.mt2 : undefined}>
+                {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the header
+                    above and of the first field below it goes here. */}
+                <View style={hasReceipt ? styles.mv2 : undefined}>
                     <ReceiptSection
                         policy={policy}
                         shouldHideEmptyState
