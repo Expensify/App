@@ -68,7 +68,7 @@ function SearchFiltersSaveButton() {
             {!!activeSavedSearchID && (
                 <DecisionModal
                     title={translate('search.saveEdits.title')}
-                    prompt={translate('search.saveEdits.prompt')}
+                    prompt={translate('search.saveEdits.prompt', {name: activeSavedSearch?.name ?? ''})}
                     isSmallScreenWidth={isSmallScreenWidth}
                     firstOptionText={translate('search.saveEdits.createNew')}
                     onFirstOptionSubmit={createNewSavedSearch}
