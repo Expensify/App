@@ -25,14 +25,21 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
  * `getLastMessageTextForReport` / `getAlternateText` -> `getReportAlternateText`).
  *
  * These scenarios build participant-bearing reports with report actions behind them, so the preview path runs for
- * every option. Fixtures are deterministic (no falso) to keep baseline and current runs comparable.
+ * every option built. `createFilteredOptionList` builds all `REPORTS_COUNT` of them; the `getValidOptions` scenarios
+ * resolve a preview for `maxElements` options, which is what the consumers (SearchRouter, chat finder) actually cap at.
+ *
+ * `ACTIONS_PER_REPORT` is deliberately larger than a couple of actions: the last-visible-action lookup scans the
+ * report's actions, so a short list hides that cost. Expense/IOU reports also get a populated transaction thread, so
+ * the two-collection lookup walks real actions instead of an empty one. Fixtures are deterministic (no falso) to keep
+ * baseline and current runs comparable.
  */
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'user1@example.com';
 const REPORTS_COUNT = 300;
 const PERSONAL_DETAILS_COUNT = 300;
-const ACTIONS_PER_REPORT = 8;
+const ACTIONS_PER_REPORT = 40;
+const THREAD_ACTIONS_PER_REPORT = 10;
 const MAX_ELEMENTS = 20;
 const WIDE_MAX_ELEMENTS = 100;
 const POLICY_ID = 'policy1';
@@ -53,8 +60,10 @@ const ACTION_NAMES = [
 /** Deterministic timestamp, ordered by the action index so the newest action is stable across runs. */
 function buildCreated(reportIndex: number, actionIndex: number): string {
     const day = (reportIndex % 27) + 1;
-    const minute = actionIndex * 7;
-    return `2026-01-${String(day).padStart(2, '0')} 10:${String(minute).padStart(2, '0')}:00.000`;
+    const totalMinutes = actionIndex * 7;
+    const hour = 10 + Math.floor(totalMinutes / 60);
+    const minute = totalMinutes % 60;
+    return `2026-01-${String(day).padStart(2, '0')} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00.000`;
 }
 
 function buildOriginalMessage(actionName: TupleToUnion<typeof ACTION_NAMES>, reportIndex: number) {
@@ -123,6 +132,7 @@ for (let index = 0; index < PERSONAL_DETAILS_COUNT; index++) {
 
 const reports: Record<string, Report> = {};
 const reportActions: Record<string, ReportActions> = {};
+const threadReports: Record<string, Report> = {};
 const transactionThreadIDs: Record<string, string | undefined> = {};
 const lastActions: Record<string, ReportAction> = {};
 
@@ -162,7 +172,30 @@ for (let index = 0; index < REPORTS_COUNT; index++) {
     reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = actions;
 
     if (type === CONST.REPORT.TYPE.EXPENSE || type === CONST.REPORT.TYPE.IOU) {
-        transactionThreadIDs[reportID] = `${index + REPORTS_COUNT}`;
+        const threadReportID = `${index + REPORTS_COUNT}`;
+        transactionThreadIDs[reportID] = threadReportID;
+
+        // The transaction thread has to exist with actions of its own, otherwise the two-collection
+        // last-visible-action lookup short-circuits on an empty collection and the scenario never pays for it.
+        threadReports[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] = {
+            reportID: threadReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            reportName: `Transaction thread ${index}`,
+            parentReportID: reportID,
+            parentReportActionID: `${index}_1`,
+            ownerAccountID: otherAccountID,
+            lastActorAccountID: otherAccountID,
+            lastVisibleActionCreated: buildCreated(index + REPORTS_COUNT, THREAD_ACTIONS_PER_REPORT - 1),
+            lastMessageText: '',
+            participants: buildParticipantsFromAccountIDs([CURRENT_USER_ACCOUNT_ID, otherAccountID]),
+        } as Report;
+
+        const threadActions: ReportActions = {};
+        for (let actionIndex = 0; actionIndex < THREAD_ACTIONS_PER_REPORT; actionIndex++) {
+            const action = buildReportAction(index + REPORTS_COUNT, actionIndex);
+            threadActions[action.reportActionID] = action;
+        }
+        reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`] = threadActions;
     }
 }
 
@@ -223,7 +256,9 @@ const getPreviewOptionsConfig = (maxElements: number) => ({
     includeSelfDM: true,
     includeOwnedWorkspaceChats: true,
     showChatPreviewLine: true,
-    forcePolicyNamePreview: true,
+    // Left false so the policy expense chats resolve a preview too; with it on, a third of the options
+    // short-circuit to the policy name and never enter the path this suite measures.
+    forcePolicyNamePreview: false,
     maxElements,
     personalDetails,
     sortedActions: undefined,
@@ -235,7 +270,7 @@ const getPreviewOptionsConfig = (maxElements: number) => ({
 describe('OptionsListChatPreview', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reports);
+        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {...reports, ...threadReports});
         Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, reportActions);
         Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, allPolicies);
     });

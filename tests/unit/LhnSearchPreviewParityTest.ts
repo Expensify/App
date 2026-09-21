@@ -37,9 +37,16 @@ const PERSONAL_DETAILS: PersonalDetailsList = {
     [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN, displayName: 'Current User'},
 };
 
+// `Onyx.clear()` does not purge the module-level report-action caches these utils read (their
+// subscriber callbacks short-circuit on a falsy value), so every case works on its own report IDs.
+let caseIndex = 0;
+function rid(offset: number): string {
+    return String(caseIndex * 1000 + offset);
+}
+
 function makeReport(overrides: Partial<Report> = {}): Report {
     return {
-        reportID: '100',
+        reportID: rid(100),
         type: CONST.REPORT.TYPE.CHAT,
         reportName: '#test-room',
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
@@ -266,6 +273,8 @@ type ParityCase = {
     cardList?: OnyxEntry<CardList>;
     isReportArchived?: boolean;
     isTrackIntentUser?: boolean;
+    /** Leaves `convertToDisplayStringWithoutCurrency` off the Search config so the lib-side fallback is exercised. */
+    useSearchCurrencyFallback?: boolean;
 };
 
 function toReportActions(actions: ReportAction[]): ReportActions {
@@ -284,6 +293,7 @@ async function computeBothSurfaces({
     cardList,
     isReportArchived = false,
     isTrackIntentUser = false,
+    useSearchCurrencyFallback = false,
 }: ParityCase) {
     const reportsById: Record<string, Report> = {[report.reportID]: report};
     for (const extra of extraReports) {
@@ -401,6 +411,7 @@ async function computeBothSurfaces({
     const {options: searchResults} = getSearchOptions({
         dateFnsLocale: undefined,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency: useSearchCurrencyFallback ? undefined : convertToDisplayStringWithoutCurrency,
         options: optionList,
         draftComments: {},
         loginList: {},
@@ -565,6 +576,7 @@ describe('LHN vs Search preview parity', () => {
     });
 
     beforeEach(() => {
+        caseIndex += 1;
         clearFilteredOptionListCache();
     });
 
@@ -601,8 +613,8 @@ describe('LHN vs Search preview parity', () => {
 
         it('should match for invite with room name resolved from lastActionReport', async () => {
             await expectParity({
-                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, {originalMessage: {targetAccountIDs: [2], reportID: 200}}),
-                extraReports: [makeReport({reportID: '200', reportName: '#target-room'})],
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, {originalMessage: {targetAccountIDs: [2], reportID: Number(rid(200))}}),
+                extraReports: [makeReport({reportID: rid(200), reportName: '#target-room'})],
             });
         });
 
@@ -687,8 +699,8 @@ describe('LHN vs Search preview parity', () => {
 
         it('should match for MOVED_TRANSACTION with derived report name', async () => {
             await expectParity({
-                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {originalMessage: {toReportID: '300', fromReportID: '100'}}),
-                extraReports: [makeReport({reportID: '300', reportName: 'Target Expense Report', chatType: undefined, type: CONST.REPORT.TYPE.EXPENSE})],
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {originalMessage: {toReportID: rid(300), fromReportID: rid(100)}}),
+                extraReports: [makeReport({reportID: rid(300), reportName: 'Target Expense Report', chatType: undefined, type: CONST.REPORT.TYPE.EXPENSE})],
             });
         });
 
@@ -831,9 +843,9 @@ describe('LHN vs Search preview parity', () => {
             const iouAction = makeAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 reportActionID: '2',
                 created: '2024-01-02 00:00:00.000',
-                childReportID: '400',
+                childReportID: rid(400),
                 originalMessage: {
-                    IOUReportID: '100',
+                    IOUReportID: rid(100),
                     IOUTransactionID: 't1',
                     amount: 1234,
                     currency: 'USD',
@@ -859,15 +871,90 @@ describe('LHN vs Search preview parity', () => {
                 mainReportActions: [createdAction, iouAction],
                 extraReports: [
                     makeReport({
-                        reportID: '400',
+                        reportID: rid(400),
                         chatType: undefined,
                         reportName: 'Transaction thread',
-                        parentReportID: '100',
+                        parentReportID: rid(100),
                         parentReportActionID: '2',
                     }),
                 ],
-                extraReportActions: {'400': [threadCreatedAction]},
-                lateReportActions: {'400': [threadCommentAction]},
+                extraReportActions: {[rid(400)]: [threadCreatedAction]},
+                lateReportActions: {[rid(400)]: [threadCommentAction]},
+            });
+        });
+
+        it('should match for an attachment-only last message', async () => {
+            const attachmentHtml = '<img src="https://example.com/a.png" data-expensify-source="https://example.com/a.png" />';
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                report: makeReport({lastMessageText: CONST.ATTACHMENT_MESSAGE_TEXT, lastMessageHtml: attachmentHtml}),
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                    message: [{type: 'COMMENT', html: attachmentHtml, text: CONST.ATTACHMENT_MESSAGE_TEXT, isDeletedParentAction: false, deleted: ''}],
+                }),
+            });
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain(translateLocal('common.attachment'));
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should match when the last action is a deleted parent action', async () => {
+            await expectParity({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                    childVisibleActionCount: 1,
+                    message: [{type: 'COMMENT', html: '', text: '', isDeletedParentAction: true, deleted: '2024-01-01 00:00:01.000'}],
+                }),
+            });
+        });
+
+        it('should match when the newest comment is deleted and the preview falls back to the previous one', async () => {
+            const visibleAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                message: [{type: 'COMMENT', html: 'Still here', text: 'Still here', isDeletedParentAction: false, deleted: ''}],
+            });
+            const deletedAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                message: [{type: 'COMMENT', html: '', text: '', isDeletedParentAction: false, deleted: '2024-01-02 00:00:01.000'}],
+            });
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                report: makeReport({lastVisibleActionCreated: '2024-01-02 00:00:00.000'}),
+                mainReportActions: [visibleAction, deletedAction],
+            });
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain('Still here');
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should match when the newest action is a whisper targeted at another user', async () => {
+            const visibleAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                message: [{type: 'COMMENT', html: 'Visible to everyone', text: 'Visible to everyone', isDeletedParentAction: false, deleted: ''}],
+            });
+            const whisperAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER, {
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                originalMessage: {whisperedTo: [1], inviteeAccountIDs: [2]},
+            });
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                report: makeReport({lastVisibleActionCreated: '2024-01-02 00:00:00.000'}),
+                mainReportActions: [visibleAction, whisperAction],
+            });
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain('Visible to everyone');
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should match for a task report with a completed task action', async () => {
+            await expectParity({
+                report: makeReport({
+                    type: CONST.REPORT.TYPE.TASK,
+                    chatType: undefined,
+                    reportName: 'Write the tests',
+                    ownerAccountID: 1,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                }),
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED),
             });
         });
 
@@ -878,6 +965,68 @@ describe('LHN vs Search preview parity', () => {
                     message: [{type: 'COMMENT', html: 'ping +15551234567@expensify.sms please', text: 'ping +15551234567@expensify.sms please', isDeletedParentAction: false, deleted: ''}],
                 }),
             });
+        });
+    });
+
+    /**
+     * Both surfaces resolve translations and currency formatting from the active locale, so under `en` a fallback that
+     * picks the wrong locale is byte-identical to the injected implementation and nothing here can fail. These cases run
+     * the same paths under `es`.
+     */
+    describe('non-English locale', () => {
+        beforeAll(async () => {
+            await IntlStore.load(CONST.LOCALES.ES);
+        });
+
+        afterAll(async () => {
+            await IntlStore.load(CONST.LOCALES.EN);
+        });
+
+        it('should match for a translated special action', async () => {
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM),
+            });
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain(translateLocal('report.actions.type.leftTheChat'));
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should match for a generic comment', async () => {
+            await expectParity({lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT)});
+        });
+
+        it('should match for a card approval amount formatted with its currency', async () => {
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL, {
+                    originalMessage: {amount: 1234, currency: CONST.CURRENCY.USD, merchant: 'ACME'},
+                }),
+            });
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain(convertToDisplayString(1234, CONST.CURRENCY.USD));
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should match for a currency-less card approval amount when both surfaces get the same formatter', async () => {
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL, {
+                    originalMessage: {amount: 1234, merchant: 'ACME'},
+                }),
+            });
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain(convertToDisplayStringWithoutCurrency(1234));
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should format the amount in the active locale when Search falls back to the built-in currency formatter', async () => {
+            const {lhnText, searchText} = await computeBothSurfaces({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL, {
+                    originalMessage: {amount: 1234, merchant: 'ACME'},
+                }),
+                useSearchCurrencyFallback: true,
+            });
+            // The test helper is pinned to `en`; the lib fallback follows IntlStore, so the two disagree on the decimal separator.
+            expect(lhnText).toContain('12.34');
+            expect(searchText).toContain('12,34');
         });
     });
 });
