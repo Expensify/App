@@ -1,7 +1,7 @@
 import LinkButton from '@components/Button/composed/LinkButton';
 import type FlatListRefType from '@components/FlashList/types';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
+import type {SortOrder} from '@components/Search/types';
 
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -12,19 +12,15 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
-import {isBillableEnabledOnPolicy, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
+import {isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
@@ -37,12 +33,10 @@ import {
     isSortableColumnName,
 } from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
-import {compareValues, getColumnsToShow, getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {compareValues} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
-import {getTransactionPendingAction, getVisibleTransactionViolations, hasNonReimbursableTransactions, isTransactionPendingDelete} from '@libs/TransactionUtils';
-import shouldShowTransactionPostedYear from '@libs/TransactionUtils/shouldShowTransactionPostedYear';
-import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
+import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
@@ -75,6 +69,8 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTransactionLongPressModal';
 import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
+import useMoneyRequestReportColumns from './useMoneyRequestReportColumns';
+import useMoneyRequestReportLayout from './useMoneyRequestReportLayout';
 import useReportTransactionShiftRange from './useReportTransactionShiftRange';
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -271,17 +267,11 @@ function MoneyRequestReportTransactionList({
     const longPressModalRef = useRef<MoneyRequestReportTransactionLongPressModalHandle>(null);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
 
-    const isTaxEnabled = isPolicyTaxEnabled(policy);
     const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(report);
-    const shouldShowExpenseReportBreakDown = hasNonReimbursableTransactions(transactions);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerLoginSelector});
-    const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
-    const [reportLayoutOption] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_OPTION);
-    const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -430,62 +420,10 @@ function MoneyRequestReportTransactionList({
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
-    // Always use default columns for money request report view (don't use user-customized search columns)
-    const isExpenseReportViewFromIOUReport = isIOUReport(report);
-    const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
-    const shouldShowCommentsColumn = useMemo(() => Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0), [reportActions]);
-    // The saved column list is account-wide, so drop the vendor column on reports whose workspace lacks the vendor feature.
-    const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const columnsToShow = useMemo(() => {
-        const savedColumns = (reportDetailsColumns ?? []).filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
-        return getColumnsToShow({
-            currentAccountID: currentUserDetails?.accountID,
-            data: transactions,
-            report,
-            visibleColumns: (isExpenseReportViewFromIOUReport ? [] : savedColumns) as SearchCustomColumnIds[],
-            isExpenseReportView: true,
-            isExpenseReportViewFromIOUReport,
-            shouldShowBillableColumn,
-            shouldShowCommentsColumn,
-            shouldShowReimbursableColumn: shouldShowExpenseReportBreakDown,
-            reportCurrency: report?.currency,
-            isPolicyTaxEnabled: isTaxEnabled,
-        });
-    }, [
-        transactions,
-        currentUserDetails?.accountID,
-        isExpenseReportViewFromIOUReport,
-        shouldShowBillableColumn,
-        shouldShowCommentsColumn,
-        reportDetailsColumns,
-        isVendorColumnAvailable,
-        report,
-        isTaxEnabled,
-        shouldShowExpenseReportBreakDown,
-    ]);
+    const {columnsToShow, dateColumnSize, postedColumnSize, amountColumnSize, taxAmountColumnSize, minTableWidth, shouldScrollHorizontally, isExpenseReportViewFromIOUReport} =
+        useMoneyRequestReportColumns({report, policy, transactions, reportActions});
 
-    const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columnsToShow);
-    const shouldScrollHorizontally = !shouldUseNarrowLayout && minTableWidth > windowWidth;
-
-    // Latch the user's most recent selection so the popover label and grouping mode never flick through the
-    // (layoutOption=null, groupByOption=null) → CATEGORY default while the two NVPs settle in separate render passes.
-    // Drop the latch once Onyx reaches the clicked value, so later authoritative updates (failureData rollback,
-    // another client changing the layout) flow through instead of staying masked by stale local state.
-    const [pendingLayoutSelection, setPendingLayoutSelection] = useState<OnyxTypes.ReportLayoutSelection | null>(null);
-    const onyxLayoutSelection = getReportLayoutSelection(reportLayoutOption, reportLayoutGroupBy);
-    const currentSelection: OnyxTypes.ReportLayoutSelection = pendingLayoutSelection ?? onyxLayoutSelection;
-    useEffect(() => {
-        if (pendingLayoutSelection === null || pendingLayoutSelection !== onyxLayoutSelection) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the click latch to Onyx so subsequent authoritative updates aren't masked by stale local state
-        setPendingLayoutSelection(null);
-    }, [pendingLayoutSelection, onyxLayoutSelection]);
-
-    const isLayoutMatrixSelected = currentSelection === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX;
-    const currentGroupBy: OnyxTypes.ReportLayoutGroupBy = currentSelection !== CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX ? currentSelection : getReportLayoutGroupBy(reportLayoutGroupBy);
-    const shouldGroupTransactions = shouldShowGroupedTransactions && !isLayoutMatrixSelected;
+    const {currentSelection, currentGroupBy, shouldGroupTransactions, selectLayout} = useMoneyRequestReportLayout(shouldShowGroupedTransactions);
 
     const groupedTransactions = useMemo(() => {
         if (!shouldGroupTransactions) {
@@ -607,19 +545,6 @@ function MoneyRequestReportTransactionList({
         },
         [navigateToTransactionThread, reportActions, sortedTransactions, report, visualOrderTransactionIDs],
     );
-
-    const {amountColumnSize, dateColumnSize, postedColumnSize, taxAmountColumnSize} = useMemo(() => {
-        const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
-        const isTaxAmountColumnWide = transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
-        const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        const shouldShowPostedYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionPostedYear(transaction));
-        return {
-            amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            postedColumnSize: shouldShowPostedYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        };
-    }, [transactions]);
 
     const isEmptyTransactions = isEmpty(transactions);
 
@@ -778,10 +703,7 @@ function MoneyRequestReportTransactionList({
                 {shouldShowGroupedTransactions && (
                     <MoneyRequestReportGroupByButton
                         currentSelection={currentSelection}
-                        onSelect={(selection) => {
-                            setPendingLayoutSelection(selection);
-                            setReportLayout(selection, reportLayoutOption, reportLayoutGroupBy);
-                        }}
+                        onSelect={selectLayout}
                     />
                 )}
                 {!shouldUseNarrowLayout && !isExpenseReportViewFromIOUReport && (
