@@ -610,6 +610,10 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   algorithm: 'brotliCompress',
                                   test: /\.(?:js|css|html|svg|wasm|ttf)$/,
                                   compressionOptions: {params: {[zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY}},
+                                  // Every matching file must get a twin: the CDN rewrite appends `.br` blindly, so a skipped file is a 404.
+                                  // `threshold` skips files smaller than N bytes (0 = none). `minRatio` skips a twin when
+                                  // `compressed / original` is greater than it (default 0.8 = keep only twins at least 20% smaller);
+                                  // nothing is greater than Infinity, so even files Brotli cannot shrink keep theirs.
                                   threshold: 0,
                                   minRatio: Infinity,
                               }),
