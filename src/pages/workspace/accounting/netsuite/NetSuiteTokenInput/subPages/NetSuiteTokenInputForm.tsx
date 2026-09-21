@@ -2,7 +2,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
-import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
@@ -11,13 +10,11 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
 import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 
 import NetSuiteTokenAuthenticationLink from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenAuthenticationLink';
@@ -27,7 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 import connectToNetSuiteOAuthSetup from './connectToNetSuiteOAuthSetup';
@@ -38,9 +35,6 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
     const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
     const {environmentURL} = useEnvironment();
-    const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
-
-    const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
     const formInputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
 
@@ -66,10 +60,6 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
             }
 
             if (isOAuthFlow) {
-                if (!is2FAEnabled) {
-                    setIsRequire2FAModalOpen(true);
-                    return;
-                }
                 connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL);
                 return;
             }
@@ -81,7 +71,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
             }
             onNext();
         },
-        [onNext, policyID, policy, isOAuthFlow, is2FAEnabled, environmentURL],
+        [onNext, policyID, policy, isOAuthFlow, environmentURL],
     );
 
     return (
@@ -126,19 +116,6 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
                     </View>
                 ))}
             </FormProvider>
-            {isOAuthFlow && !is2FAEnabled && (
-                <RequireTwoFactorAuthenticationModal
-                    onSubmit={() => {
-                        setIsRequire2FAModalOpen(false);
-                        Navigation.navigate(getTwoFactorAuthRoute());
-                    }}
-                    onCancel={() => {
-                        setIsRequire2FAModalOpen(false);
-                    }}
-                    isVisible={isRequire2FAModalOpen}
-                    description={translate('twoFactorAuth.twoFactorAuthIsRequiredNetSuiteDescription')}
-                />
-            )}
         </>
     );
 }
