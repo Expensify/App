@@ -2828,12 +2828,7 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         if (!xeroContacts) {
             return undefined;
         }
-        return Object.values(xeroContacts).map((contact) => ({
-            id: contact.id,
-            name: contact.name,
-            currency: '',
-            email: contact.email,
-        }));
+        return Object.values(xeroContacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
     }
     if (isRilletVendorMatchingActive(policy)) {
         const rilletVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.data?.vendors;
@@ -2851,18 +2846,7 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.data?.vendors === undefined ? undefined : getDualEntryVendors(policy);
     }
     if (isCampfireVendorMatchingActive(policy)) {
-        const campfireVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors;
-        if (campfireVendors === undefined) {
-            return undefined;
-        }
-        return campfireVendors
-            .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
-            .map((vendor) => ({
-                id: vendor.id,
-                name: vendor.name,
-                currency: '',
-                email: vendor.email ?? '',
-            }));
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors === undefined ? undefined : getCampfireVendors(policy);
     }
     return undefined;
 }
@@ -2948,12 +2932,7 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     }
     const xeroContact = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[vendorID];
     if (xeroContact) {
-        return {
-            id: xeroContact.id,
-            name: xeroContact.name,
-            currency: '',
-            email: xeroContact.email,
-        };
+        return {id: xeroContact.id, name: xeroContact.name, currency: '', email: xeroContact.email};
     }
     const rilletVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
     if (rilletVendor) {
@@ -2963,6 +2942,10 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             currency: '',
             email: rilletVendor.email ?? '',
         };
+    }
+    const campfireVendor = getCampfireVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (campfireVendor) {
+        return campfireVendor;
     }
     return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
 }
@@ -3014,6 +2997,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
                 title: translate('workspace.dualEntry.noVendorsFound'),
                 subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+            return {
+                title: translate('workspace.campfire.noVendorsFound'),
+                subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
+            };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
             const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
@@ -3037,12 +3025,15 @@ function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
     if (!contacts) {
         return [];
     }
-    return Object.values(contacts).map((contact) => ({
-        id: contact.id,
-        name: contact.name,
-        currency: '',
-        email: contact.email,
-    }));
+    return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/** Campfire vendor matching uses only active vendor-type records, never customers or inactive vendors */
+function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors;
+    return (vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
 /** DualEntry export settings and expense matching must use vendors available to the selected company */
