@@ -355,7 +355,43 @@ describe('DynamicFormFlow', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByText('Ownership')).not.toBeOnTheScreen();
-        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'));
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'), {forceReplace: true});
+    });
+
+    it('leaves the flow from Back on the first shown page when the first group is hidden', async () => {
+        mockRouteParams.subPage = 'account-holder-details';
+        const hiddenFirstGroup = allFieldTypes.map((field) => (field.group === 'Account details' ? {...field, showWhen: {key: 'legalType', equals: ['NEVER']}} : field));
+        const onBack = jest.fn();
+        render(
+            <DynamicFormFlow
+                fields={hiddenFirstGroup}
+                formID={FORM_ID}
+                headerTitle="Add bank account"
+                testID="DynamicFormFlowHiddenFirst"
+                buildRoute={buildRoute}
+                onSubmit={jest.fn()}
+                onBack={onBack}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('common.back'));
+
+        expect(onBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends the user to the first incomplete page instead of submitting when a required answer is missing', async () => {
+        mockRouteParams.subPage = 'confirm';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {country: ''});
+        });
+        const onSubmit = jest.fn();
+        await renderFlow(onSubmit);
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('account-holder-details'));
     });
 
     it('lets a flow force the step indicator on or off regardless of page count', async () => {

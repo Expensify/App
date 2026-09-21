@@ -252,6 +252,24 @@ describe('DynamicFormFields', () => {
         expect(screen.getByText('AN')).toBeOnTheScreen();
     });
 
+    it('never prints a sensitive item answer on a list row', async () => {
+        const itemFields: DynamicFormField[] = [
+            {key: 'name', label: 'Name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+            {key: 'ssn', label: 'SSN', group: 'Owner', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+        ];
+        render(
+            <ListFieldAdapter
+                itemFields={itemFields}
+                value={[{id: '1', name: 'Alice Nguyen', ssn: '123456789'}]}
+                renderFields={() => null}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('Alice Nguyen')).toBeOnTheScreen();
+        expect(screen.queryByText('123456789')).not.toBeOnTheScreen();
+    });
+
     it('does not draft a list whose items hold a sensitive answer', () => {
         const owners: DynamicFormField = {
             key: 'owners',

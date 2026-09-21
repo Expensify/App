@@ -209,5 +209,6 @@ describe('groupFieldsIntoPages', () => {
         const pages = groupFieldsIntoPages([text('a', 'KYC / AML'), text('b', 'KYC & AML'), text('c', '日本')]);
 
         expect(pages.map((page) => page.slug)).toEqual(['kyc-aml', 'kyc-aml-2', 'page-3']);
+        expect(groupFieldsIntoPages([text('d', 'Confirm')]).at(0)?.slug).toBe('confirm-2');
     });
 });

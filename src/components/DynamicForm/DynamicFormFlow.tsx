@@ -22,10 +22,8 @@ import DynamicFormShell from './DynamicFormShell';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
 import getDynamicFieldErrors from './getDynamicFieldErrors';
 import {getFieldLabel} from './getInputComponentForField';
-import groupFieldsIntoPages from './groupFieldsIntoPages';
+import groupFieldsIntoPages, {CONFIRM_PAGE_SLUG} from './groupFieldsIntoPages';
 import isFieldVisible from './isFieldVisible';
-
-const CONFIRM_PAGE = 'confirm';
 
 type DynamicFormFlowProps = {
     fields: DynamicFormField[];
@@ -89,7 +87,7 @@ function DynamicFormFlow({
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
     const [carriedAnswers, setCarriedAnswers] = useState<DynamicFormValues>(() => carriedAnswersByForm.get(formID) ?? {});
     const groupPages = groupFieldsIntoPages(fields);
-    const pages = [...groupPages.map((page) => ({pageName: page.slug, component: EmptyPage})), {pageName: CONFIRM_PAGE, component: EmptyPage}];
+    const pages = [...groupPages.map((page) => ({pageName: page.slug, component: EmptyPage})), {pageName: CONFIRM_PAGE_SLUG, component: EmptyPage}];
     const draftValues: DynamicFormValues = {...draft, ...carriedAnswers};
     const hasVisibleField = (page: DynamicFormPageSchema) => page.fields.some((field) => isFieldVisible(field, draftValues));
     const skipPages = groupPages.filter((page) => !hasVisibleField(page)).map((page) => page.slug);
@@ -111,7 +109,15 @@ function DynamicFormFlow({
         pages,
         skipPages,
         startFrom,
-        onFinished: () => onSubmit(draftValues),
+        onFinished: () => {
+            const incompletePage = groupPages.at(firstIncompleteIndex);
+            if (firstIncompleteIndex !== -1 && incompletePage) {
+                Navigation.navigate(buildRoute(incompletePage.slug));
+                return;
+            }
+            carriedAnswersByForm.delete(formID);
+            onSubmit(draftValues);
+        },
         buildRoute,
     });
 
@@ -127,14 +133,15 @@ function DynamicFormFlow({
     const nextShownIndex = pageNames.findIndex((name, index) => index > pageIndex && !skipPages.includes(name));
     const previousShownIndex = pageNames.findLastIndex((name, index) => index < pageIndex && !skipPages.includes(name));
     const redirectIndex = isCurrentPageSkipped && !isRedirecting && !isDraftLoading ? Math.max(nextShownIndex, previousShownIndex) : -1;
+    const redirectPageName = pageNames.at(redirectIndex === -1 ? pageNames.length : redirectIndex);
     useEffect(() => {
-        if (redirectIndex === -1) {
+        if (!redirectPageName) {
             return;
         }
-        moveTo(redirectIndex, false);
-    }, [redirectIndex, moveTo]);
+        Navigation.navigate(buildRoute(redirectPageName), {forceReplace: true});
+    }, [redirectPageName, buildRoute]);
 
-    const goBackToConfirmation = () => Navigation.goBack(buildRoute(CONFIRM_PAGE));
+    const goBackToConfirmation = () => Navigation.goBack(buildRoute(CONFIRM_PAGE_SLUG));
 
     const currentGroupPage = groupPages.find((page) => page.slug === currentPageName);
 
@@ -143,7 +150,7 @@ function DynamicFormFlow({
             goBackToConfirmation();
             return;
         }
-        if (pageIndex === 0) {
+        if (previousShownIndex === -1) {
             carriedAnswersByForm.delete(formID);
             onBack();
             return;
@@ -168,7 +175,7 @@ function DynamicFormFlow({
         nextPage();
     };
 
-    const isConfirmationPage = currentPageName === CONFIRM_PAGE;
+    const isConfirmationPage = currentPageName === CONFIRM_PAGE_SLUG;
     const visibleGroupPages = groupPages.filter(hasVisibleField);
     const stepNames = visibleGroupPages.map((page) => page.name);
     const stepIndex = currentGroupPage ? Math.max(0, visibleGroupPages.indexOf(currentGroupPage)) : stepNames.length - 1;

@@ -57,7 +57,10 @@ type ListFieldAdapterProps = {
 
 /** First answer names the row, the remaining answers describe it */
 function summarizeItem(item: DynamicFormListItem, itemFields: DynamicFormField[], translate: LocalizedTranslate): {title: string; description: string} {
-    const [title = '', ...rest] = itemFields.map((field) => formatDynamicFieldValue(field, item, translate)).filter((answer) => answer !== '');
+    const [title = '', ...rest] = itemFields
+        .filter((field) => !field.sensitive)
+        .map((field) => formatDynamicFieldValue(field, item, translate))
+        .filter((answer) => answer !== '');
     return {title, description: rest.join(', ')};
 }
 
