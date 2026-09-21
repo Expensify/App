@@ -12,6 +12,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
@@ -265,6 +266,7 @@ function MoneyRequestReportTransactionList({
     const longPressModalRef = useRef<MoneyRequestReportTransactionLongPressModalHandle>(null);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
 
     const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(report);
     const currentUserDetails = useCurrentUserPersonalDetails();

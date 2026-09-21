@@ -2,11 +2,12 @@ import type {SearchColumnType, SearchCustomColumnIds, TableColumnSize} from '@co
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
-import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
+import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {getColumnsToShow, getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
@@ -73,16 +74,20 @@ function useMoneyRequestReportColumns({report, policy, transactions, reportActio
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {isBetaEnabled} = usePermissions();
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const isExpenseReportViewFromIOUReport = isIOUReport(report);
     const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
     const shouldShowCommentsColumn = Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0);
+    // The saved column list is account-wide, so drop the vendor column on reports whose workspace lacks the vendor feature.
+    const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const savedColumns = (reportDetailsColumns ?? []).filter((column) => isReportDetailsCustomColumn(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
     const columnsToShow = getColumnsToShow({
         currentAccountID: currentUserDetails?.accountID,
         data: transactions,
         report,
-        visibleColumns: isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn),
+        visibleColumns: isExpenseReportViewFromIOUReport ? [] : savedColumns,
         isExpenseReportView: true,
         isExpenseReportViewFromIOUReport,
         shouldShowBillableColumn,

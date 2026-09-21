@@ -5,6 +5,7 @@ import {subscribeToUserEvents} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
 
 import PusherHelper from '../utils/PusherHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -34,7 +35,7 @@ describe('subscribeToUserEvents, when applying a Pusher update fails', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'test@example.com'});
         await waitForBatchedUpdates();
         PusherHelper.setup();
-        subscribeToUserEvents(1, 'test@example.com', () => undefined, undefined);
+        subscribeToUserEvents(1, 'test@example.com', () => undefined, formatPhoneNumber, undefined);
     });
 
     afterEach(() => PusherHelper.teardown());
