@@ -61,6 +61,11 @@ jest.mock('@components/Form/InputWrapper', () => ({
     default: (props: CapturedInputProps) => mockInputWrapper(props),
 }));
 
+jest.mock('@components/CountryPicker/CountrySelectorModal', () => ({
+    __esModule: true,
+    default: () => null,
+}));
+
 jest.mock('@components/UploadFile', () => ({
     __esModule: true,
     default: (props: unknown) => mockUploadFile(props),
@@ -174,8 +179,16 @@ describe('DynamicFormFields', () => {
         expect(Object.keys(rendered?.optionsList ?? {})).toHaveLength(9);
     });
 
-    it('renders a country row through the existing CountryPicker', () => {
+    it('renders a country row through the existing CountryPicker under its own label', () => {
         expect(renderFields(allFieldTypes).get('country')?.InputComponent).toBe(CountryPicker);
+
+        render(
+            <CountryPicker
+                label="Nationality"
+                value="GB"
+            />,
+        );
+        expect(screen.getByText('Nationality')).toBeOnTheScreen();
     });
 
     it('passes maxFiles and accepted types to UploadFile', () => {

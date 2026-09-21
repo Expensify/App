@@ -418,11 +418,23 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('owners'));
 
         screen.unmount();
+        mockRouteParams.action = 'edit';
+        await renderAt('owners~new');
+        fireEvent.changeText(screen.getByLabelText('Name'), 'Marcus Webb');
+        fireEvent.changeText(screen.getByLabelText('SSN'), '987654321');
+        fireEvent.press(screen.getByText('common.save'));
+        await waitForBatchedUpdatesWithAct();
+        expect(Navigation.goBack).toHaveBeenLastCalledWith(buildRoute('confirm'));
+        delete mockRouteParams.action;
+
+        screen.unmount();
         await renderAt('confirm');
         fireEvent.press(screen.getByText('common.confirm'));
         await waitForBatchedUpdatesWithAct();
 
-        expect(onSubmit).toHaveBeenCalledWith({owners: [expect.objectContaining({name: 'Alice Nguyen', ssn: '123456789'})]});
+        expect(onSubmit).toHaveBeenCalledWith({
+            owners: [expect.objectContaining({name: 'Alice Nguyen', ssn: '123456789'}), expect.objectContaining({name: 'Marcus Webb', ssn: '987654321'})],
+        });
     });
 
     it('leaves the flow from Back on the first shown page when the first group is hidden', async () => {

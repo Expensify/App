@@ -205,7 +205,8 @@ function DynamicFormFlow({
         );
     }, [currentPageName, editorField, editingItem, editorSensitiveKeysSignature]);
 
-    const openListItemEditor = (fieldKey: string, itemID?: string) => Navigation.navigate(buildRoute(getCarriedItemKey(fieldKey, itemID ?? NEW_ITEM_ID)));
+    const openListItemEditor = (fieldKey: string, itemID?: string, action?: 'edit') => Navigation.navigate(buildRoute(getCarriedItemKey(fieldKey, itemID ?? NEW_ITEM_ID), action));
+    const closeListItemEditor = () => Navigation.goBack(buildRoute(isEditing ? CONFIRM_PAGE_SLUG : (editorGroup?.slug ?? CONFIRM_PAGE_SLUG)));
 
     const saveEditorItem = (values: DynamicFormValues) => {
         if (!editorField || !editorGroup) {
@@ -222,7 +223,7 @@ function DynamicFormFlow({
             carriedAnswersByForm.set(formID, nextCarried);
             setCarriedAnswers(nextCarried);
         }
-        Navigation.goBack(buildRoute(editorGroup.slug));
+        closeListItemEditor();
     };
 
     const editorItemLabel = editorField?.itemLabelKey ? translate(editorField.itemLabelKey) : editorField?.itemLabel;
@@ -233,7 +234,7 @@ function DynamicFormFlow({
 
     const handleBackButtonPress = () => {
         if (editorGroup) {
-            Navigation.goBack(buildRoute(editorGroup.slug));
+            closeListItemEditor();
             return;
         }
         if (isEditing) {
@@ -289,7 +290,7 @@ function DynamicFormFlow({
                                 title: summary.title,
                                 description: summary.description,
                                 avatarSource: getLetterAvatarURL(colorSeed, firstName, otherNames.at(-1) ?? '', '') || undefined,
-                                onPress: () => openListItemEditor(field.key, item.id),
+                                onPress: () => openListItemEditor(field.key, item.id, 'edit'),
                             };
                         });
                     }
