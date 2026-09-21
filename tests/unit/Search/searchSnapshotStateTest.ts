@@ -213,6 +213,26 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.responseJsonCode).toBeUndefined();
     });
 
+    it('records NO_RESPONSE when the failed response carries no numeric jsonCode', async () => {
+        // Given a response the API layer treats as a failure (not 200) but that has no numeric code to classify it with
+        const queryJSON = getQueryJSON();
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await Onyx.update(onyxData?.failureData ?? []);
+            await Onyx.update(onyxData?.finallyData ?? []);
+            return {};
+        });
+
+        // When the request resolves
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        // Then the errors still get a code, otherwise the error view would hold its skeleton waiting for one that never comes
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.NO_RESPONSE);
+    });
+
     it('does not persist a jsonCode for a successful response', async () => {
         const queryJSON = getQueryJSON();
         jest.mocked(makeRequestWithSideEffects).mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
