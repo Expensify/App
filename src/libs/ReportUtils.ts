@@ -166,8 +166,7 @@ import {
     isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
-    // eslint-disable-next-line no-restricted-imports -- canApproveIOU and canIOUBePaid need the paid-group gate on the policy, which is what this check is for
-    isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
+    isPaidGroupPolicyByType,
     isPendingDeletePolicy,
     isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
@@ -3191,7 +3190,7 @@ function canApproveIOU(
 
     // Submit workspaces allow Approve (approving routes through the upgrade flow in approveMoneyRequest).
     const isSubmitWorkspace = isSubmitPolicy(policy);
-    if (!policy || !(isPaidGroupPolicyPolicyUtils(policy) || isSubmitWorkspace)) {
+    if (!policy || !(isPaidGroupPolicyByType(policy.type) || isSubmitWorkspace)) {
         return false;
     }
 
@@ -3288,7 +3287,7 @@ function canIOUBePaid(
 
     // TODO: Submit workspaces should show the PAY button and redirect to an upgrade modal instead of hiding it.
     // This will be addressed as part of the Wave 3 "Upgrade on Pay" feature.
-    if (isExpenseReport(iouReport) && !isPaidGroupPolicyPolicyUtils(policy)) {
+    if (isExpenseReport(iouReport) && !isPaidGroupPolicyByType(policy?.type)) {
         return false;
     }
 
