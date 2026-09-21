@@ -1,5 +1,5 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
@@ -10,8 +10,9 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
-import {getLastSearchQuery, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
 import useSavedSearchTitles from '@pages/Search/hooks/useSavedSearchTitles';
 
@@ -47,7 +48,6 @@ function FlatNavSavedSearches() {
     const reportAttributes = useReportAttributes();
 
     const {currentSearchKey} = useSearchQueryContext();
-    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const savedSearchTitles = useSavedSearchTitles({
         savedSearches,
@@ -91,8 +91,7 @@ function FlatNavSavedSearches() {
                     return;
                 }
                 setSearchContext(false);
-                setCurrentSearchKey(item.searchKey, item.query);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.query, name: item.name}));
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.query, name: item.name, searchKey: item.searchKey}));
             }}
         />
     ));

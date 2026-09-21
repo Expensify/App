@@ -8,6 +8,7 @@ function navigateToCardTransactions(cardID: string) {
     Navigation.navigate(
         ROUTES.SEARCH_ROOT.getRoute({
             query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, cardID}),
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
         }),
     );
 }

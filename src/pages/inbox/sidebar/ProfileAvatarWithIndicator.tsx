@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
 
-import type {AvatarSizeName} from '@styles/utils';
+import type {AvatarSizeName} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,8 +25,6 @@ import {View} from 'react-native';
 type ProfileAvatarWithIndicatorProps = {
     isSelected?: boolean;
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** Rendered size of the avatar */
     size?: AvatarSizeName;
 };
 
@@ -38,10 +36,6 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles, size =
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isLoading = !!(isLoadingApp && !currentUserPersonalDetails.avatar);
 
-    // selectedAvatarBorder is sized for the small avatar, so the ring has to follow whatever size is rendered.
-    const ringSize = StyleUtils.getAvatarSize(size) + 6;
-    const ringSizeStyle = {height: ringSize, width: ringSize, borderRadius: ringSize / 2};
-
     return (
         <OfflineWithFeedback
             pendingAction={currentUserPersonalDetails.pendingFields?.avatar}
@@ -49,12 +43,12 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles, size =
         >
             <View style={[styles.pRelative]}>
                 <View
-                    style={[isSelected && [styles.selectedAvatarBorder, ringSizeStyle], styles.pAbsolute]}
+                    style={[isSelected && StyleUtils.getSelectedAvatarRingStyle(size), styles.pAbsolute]}
                     testID="avatar-ring"
                 />
-                <View style={StyleUtils.getAvatarStyle(size)}>
+                <View style={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}>
                     {isLoading ? (
-                        <AvatarSkeleton />
+                        <AvatarSkeleton size={size} />
                     ) : (
                         <>
                             <UserAvatar

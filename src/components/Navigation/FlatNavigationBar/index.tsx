@@ -3,7 +3,7 @@ import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearch
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
 import ScrollView from '@components/ScrollView';
-import {useSearchQueryActions, useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -24,10 +24,11 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {formatBadgeText, getItemBadgeText, getLastSearchQuery, savedSearchIDToSearchKey, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {formatBadgeText, getItemBadgeText, getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import ProfileAvatarWithIndicator from '@pages/inbox/sidebar/ProfileAvatarWithIndicator';
@@ -82,7 +83,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const searchIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
     const {currentSearchKey} = useSearchQueryContext();
-    const {setCurrentSearchKey} = useSearchQueryActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {counts: reportCounts} = useTodoCounts();
     const {expenses, reports, accounting} = useFlatNavSpendItems();
@@ -118,7 +118,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const navigateToSearchItem = singleExecution((item: SearchTypeMenuItem) => {
         clearSelectedText();
         interceptAnonymousUser(() => {
-            navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions, setCurrentSearchKey);
+            navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
         });
     });
 
@@ -182,8 +182,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         clearSelectedText();
         interceptAnonymousUser(() => {
             setSearchContext(false);
-            setCurrentSearchKey(searchKey, query);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name: savedSearch.name}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name: savedSearch.name, searchKey}));
         });
     };
 

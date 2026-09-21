@@ -113,6 +113,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Clock',
         'Bolt',
         'Bot',
+        'UserPlus',
     ]);
 
     const policyName = policy?.name ?? '';
@@ -183,6 +184,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         shouldShowEnterCredentialsError,
         shouldShowRBR,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         convertToDisplayString,
     }).map((item) => ({
         ...item,
@@ -242,6 +244,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     policyAvatar={policyAvatar}
                     policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldDisplayAccountButton
                 />
 
                 {/* The bottom padding clears the floating scan button, which only floats over the list on narrow layouts. */}
