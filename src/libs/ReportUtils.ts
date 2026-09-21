@@ -146,6 +146,7 @@ import {
     temporaryGetDisplayNameOrDefault,
 } from './PersonalDetailsUtils';
 import {
+    canMemberWrite as canMemberWritePolicyUtils,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
@@ -155,16 +156,16 @@ import {
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getPolicyRole,
+    getReimbursementChoice,
     getRuleApprovers,
     getSubmitToAccountID,
     getTagGLCode,
-    canMemberWrite as canMemberWritePolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
     isExpensifyTeam,
-    isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
+    isGroupPolicyByType,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
     isPerDiemEnabled,
@@ -2945,7 +2946,7 @@ function isPayer(
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === currentAccountID;
-    const reimbursementChoice = policy?.reimbursementChoice;
+    const reimbursementChoice = getReimbursementChoice(policy);
 
     if (isPaidGroupPolicy(iouReport)) {
         // Pay-elsewhere / mark-paid flows for disabled reimbursement still allow any admin to act.
@@ -3059,7 +3060,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
         isInstantSubmitEnabled(policy) &&
         isSubmitAndClose(policy) &&
         (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) ||
-            (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
+            (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
     ) {
         return false;
     }
@@ -6887,13 +6888,7 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
             return '';
         }
         isReplaced = true;
-
-        // The synced tag carries the name the file was uploaded under, so a rename made during the upload loses to it.
-        const draftLabel = match.match(/^\n*!?\[([^\]]*)\]/)?.at(1);
-        const labelledAttachmentMarkdown = draftLabel
-            ? syncedAttachmentMarkdown.replace(/^(!?)\[[^\]]*\]/, (_reference, imagePrefix: string) => `${imagePrefix}[${draftLabel}]`)
-            : syncedAttachmentMarkdown;
-        return `${match.match(/^\n*/)?.at(0) ?? ''}${labelledAttachmentMarkdown}`;
+        return `${match.match(/^\n*/)?.at(0) ?? ''}${syncedAttachmentMarkdown}`;
     });
 }
 
@@ -6920,80 +6915,12 @@ function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | unde
 }
 
 /**
- * The label a draft gives the still-uploading attachment, taken from the markdown reference the editor shows
- * (`[label](blob:…)`). An image written without a label parses as `!(blob:…)`, which yields nothing to carry over.
- */
-function getUploadingAttachmentLabelFromDraft(draftMarkdown: string, localSource: string): string | undefined {
-    const labelledReferenceRegex = new RegExp(`!?\\[([^\\]]*)\\]\\(${Str.escapeForRegExp(localSource)}\\)`);
-    return draftMarkdown.match(labelledReferenceRegex)?.at(1) ?? undefined;
-}
-
-/**
- * Applies the draft's label to the still-uploading attachment tag. `AnchorRenderer` shows the anchor's own text,
- * so renaming the file in the editor is only kept if that text is carried over rather than the original filename.
- */
-function applyLabelToUploadingAttachmentHtml(uploadingAttachmentHtml: string, label: string | undefined): string {
-    if (!label) {
-        return uploadingAttachmentHtml;
-    }
-    if (uploadingAttachmentHtml.startsWith('<img')) {
-        return uploadingAttachmentHtml.replace(/alt="[^"]*"/i, `alt="${label}"`);
-    }
-    return uploadingAttachmentHtml.replace(/>[\s\S]*?<\/(a|video)>$/i, `>${label}</$1>`);
-}
-
-const uploadingAttachmentSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
-
-function getUploadingAttachmentSource(currentCommentHtml: string | undefined): string | undefined {
-    return currentCommentHtml?.match(uploadingAttachmentSourceRegex)?.at(1);
-}
-
-/**
  * Whether a draft dropped a still-uploading attachment. Compared against the local URI, not the parsed HTML,
  * because a kept reference stays plain markdown and never parses back into an attachment tag.
  */
 function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): boolean {
-    const localSource = getUploadingAttachmentSource(currentCommentHtml);
+    const localSource = currentCommentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
     return !!localSource && !draftMarkdown.includes(localSource);
-}
-
-function hasAttachmentAnchorAttributes(html: string): boolean {
-    return html.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE) || html.includes(CONST.ATTACHMENT_ID_ATTRIBUTE);
-}
-
-/**
- * The parser caches these attributes for images and videos but not for anchors, so an edited file attachment comes
- * back as an ordinary link. The server keeps only the attachment ID, which is all a second edit has left to match on.
- */
-function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalCommentHtml: string | undefined): string {
-    if (!originalCommentHtml || !hasAttachmentAnchorAttributes(originalCommentHtml) || !newCommentHtml.includes('<a ')) {
-        return newCommentHtml;
-    }
-
-    const anchorTagRegex = /<a\s([^>]*)>/gi;
-    const attachmentAttributesByHref = new Map<string, string>();
-    for (const [, attributes] of originalCommentHtml.matchAll(anchorTagRegex)) {
-        if (!hasAttachmentAnchorAttributes(attributes)) {
-            continue;
-        }
-        const href = attributes.match(/href="([^"]*)"/i)?.at(1);
-        const attachmentAttributes = attributes.match(/data-[\w-]+="[^"]*"/gi)?.join(' ');
-        if (href && attachmentAttributes) {
-            attachmentAttributesByHref.set(href, attachmentAttributes);
-        }
-    }
-    if (attachmentAttributesByHref.size === 0) {
-        return newCommentHtml;
-    }
-
-    return newCommentHtml.replaceAll(anchorTagRegex, (match: string, attributes: string) => {
-        if (hasAttachmentAnchorAttributes(attributes)) {
-            return match;
-        }
-        const href = attributes.match(/href="([^"]*)"/i)?.at(1);
-        const attachmentAttributes = href ? attachmentAttributesByHref.get(href) : undefined;
-        return attachmentAttributes ? `<a ${attributes} ${attachmentAttributes}>` : match;
-    });
 }
 
 function getReportDescription(report: OnyxEntry<Report>): string {
@@ -7422,7 +7349,7 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitB
     }
     const isInstantSubmitEnabledLocal = isInstantSubmitEnabled(policy);
     const isSubmitAndCloseLocal = isSubmitAndClose(policy);
-    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const arePaymentsDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     if (isInstantSubmitEnabledLocal && arePaymentsDisabled && isSubmitAndCloseLocal && !isEmptyOptimisticReport) {
         return {
@@ -11970,7 +11897,7 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
     const autoReimbursementLimit = policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
         isGroupPolicyPolicyUtils(policy) &&
-        policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
+        getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
         autoReimbursementLimit >= reimbursableTotal &&
         reimbursableTotal > 0 &&
         CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(report?.currency as CurrencyType);
@@ -14738,12 +14665,8 @@ export {
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
     isUploadingAttachmentRemovedFromDraft,
-    restoreAttachmentAnchorAttributes,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
-    getUploadingAttachmentLabelFromDraft,
-    getUploadingAttachmentSource,
-    applyLabelToUploadingAttachmentHtml,
     parseMovedTransactionReportIDs,
 };
 
