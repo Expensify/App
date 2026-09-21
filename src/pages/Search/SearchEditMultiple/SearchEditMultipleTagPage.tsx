@@ -39,9 +39,14 @@ function SearchEditMultipleTagPage() {
     const selectedTransactions = selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
     const commonDependentTag = getCommonDependentTag(selectedTransactions);
     const draftTag = draftTransaction?.tag;
-    const transactionTag = draftTag === undefined ? (commonDependentTag ?? '') : draftTag;
-    const currentTag = getTagArrayFromName(draftTag ?? '').at(tagListIndex) ?? '';
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
+    // Only dependent tags auto-select the shared value on first open: their levels are a single chain, so
+    // seeding the common tag is what lets child levels filter and rebuild. Independent lists are unrelated,
+    // so seeding one list's shared value would drag a sibling list into the draft and a later deselect of
+    // that untouched level would clear it (issue #100538). Keep them empty until the user picks.
+    const autoSelectedTag = hasDependentTags ? (commonDependentTag ?? '') : '';
+    const transactionTag = draftTag === undefined ? autoSelectedTag : draftTag;
+    const currentTag = getTagArrayFromName(draftTag ?? '').at(tagListIndex) ?? '';
 
     const tagListName = getTagList(policyTags, tagListIndex).name;
     const headerTitle = tagListName || translate('common.tag');

@@ -1259,6 +1259,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 // A collapsed flattened tag with NO per-level intent (e.g. a net no-op deselect). Category is

@@ -97,18 +97,25 @@ async function renderAndTap({
     policy,
     policyTags,
     draft,
+    selectedTransactions,
     tagListIndex,
     tappedTag,
 }: {
     policy: Policy;
     policyTags: PolicyTagLists;
     draft: Partial<Transaction>;
+    // Real transactions behind the selected IDs. Only needed when the test exercises first-open auto-selection,
+    // which derives the shared common tag from each transaction's own tag.
+    selectedTransactions?: Record<string, Partial<Transaction>>;
     tagListIndex: number;
     tappedTag: string;
 }): Promise<SavedTagPayload | undefined> {
     mockTagListIndex = String(tagListIndex);
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, policyTags);
+    for (const [transactionID, transaction] of Object.entries(selectedTransactions ?? {})) {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+    }
     await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, draft);
 
     render(<SearchEditMultipleTagPage />);
@@ -156,6 +163,25 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
 
         // Child intent deleted, so apply time keeps each expense's own R1:P7 instead of collapsing to R1.
         expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[1, null]]));
+    });
+
+    it('independent multi-level: picking one list on first open does not auto-fill a sibling list', async () => {
+        // Given two expenses that both already carry the shared independent tag R1:P7, opened for bulk edit
+        // with a clean draft (no level picked yet).
+        // When the user picks R1 in the first list (Region) on first open.
+        const payload = await renderAndTap({
+            policy: makePolicy(true),
+            policyTags: INDEPENDENT_TAGS,
+            selectedTransactions: {t1: {tag: 'R1:P7'}, t2: {tag: 'R1:P7'}},
+            draft: {selectedTransactionIDs: ['t1', 't2']},
+            tagListIndex: 0,
+            tappedTag: 'R1',
+        });
+
+        // Then only the Region intent is recorded and the flattened display tag stays R1: the sibling Project
+        // level (P7) is never dragged into the draft, so a later deselect there can't clear an untouched level.
+        expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[0, 'R1']]));
+        expect(payload?.tag).toBe('R1');
     });
 
     it('dependent multi-level: deselecting the child does not strip it (null-alone regression)', async () => {
