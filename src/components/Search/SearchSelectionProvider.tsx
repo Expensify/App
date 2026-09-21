@@ -219,9 +219,8 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
 
     const clearSelectedTransactions: SearchSelectionActionsValue['clearSelectedTransactions'] = (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
         if (typeof searchHashOrClearIDsFlag === 'boolean') {
-            setSelectionState((prevState) =>
-                prevState.selectedTransactionIDs.length === 0 ? prevState : {...prevState, selectedTransactionIDs: [], clearGeneration: prevState.clearGeneration + 1},
-            );
+            // No generation bump: this empties the ID list, which the search selection the counter speaks for does not read.
+            setSelectionState((prevState) => (prevState.selectedTransactionIDs.length === 0 ? prevState : {...prevState, selectedTransactionIDs: []}));
             return;
         }
 

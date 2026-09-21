@@ -1,6 +1,6 @@
 import LinkButton from '@components/Button/composed/LinkButton';
 import type FlatListRefType from '@components/FlashList/types';
-import {useSearchSelectionActions, useSearchSelectionContext, useSelectionClearGeneration} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
 
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -510,14 +510,12 @@ function MoneyRequestReportTransactionList({
         [visualOrderTransactions],
     );
 
-    const selectionClearGeneration = useSelectionClearGeneration();
     const {toggleTransaction, toggleGroup, toggleAll} = useReportTransactionShiftRange({
         reportID,
         transactions: visualOrderTransactions,
         selectedTransactionIDs,
         setSelectedTransactions,
         clearSelectedTransactions,
-        selectionClearGeneration,
     });
 
     // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
@@ -806,7 +804,7 @@ function MoneyRequestReportTransactionList({
         isEmptyTransactions || shouldUseNarrowLayout ? null : (
             <MoneyRequestReportTableHeaderRow
                 transactions={transactions}
-                onToggleAll={toggleAll}
+                onToggleAll={() => toggleAll(visualOrderTransactionIDs)}
                 pendingAction={reportPendingAction}
                 columns={columnsToShow}
                 sortBy={sortBy}

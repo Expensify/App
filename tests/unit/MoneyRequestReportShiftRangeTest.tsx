@@ -9,6 +9,9 @@ import createRandomTransaction from '../utils/collections/transaction';
 
 const REPORT_ID = '777';
 
+/** Errors the backend records are keyed by when they happened, and the latest one is the one read. */
+const REJECTED_AT = '1700000000000';
+
 function buildTransaction(transactionID: string, overrides: Partial<OnyxTypes.Transaction> = {}): OnyxTypes.Transaction {
     return {...createRandomTransaction(Number(transactionID)), transactionID, reportID: REPORT_ID, ...overrides};
 }
@@ -17,7 +20,7 @@ const rows = [buildTransaction('1'), buildTransaction('2'), buildTransaction('3'
 
 /** Drives the hook the way the list does, holding the selection the component reads from context. */
 function renderShiftRange(initialTransactions: OnyxTypes.Transaction[] = rows) {
-    const state = {selectedTransactionIDs: [] as string[], transactions: initialTransactions, reportID: REPORT_ID, selectionClearGeneration: 0};
+    const state = {selectedTransactionIDs: [] as string[], transactions: initialTransactions, reportID: REPORT_ID};
     const setSelectedTransactions = jest.fn((transactionIDs: string[]) => {
         state.selectedTransactionIDs = transactionIDs;
     });
@@ -32,7 +35,6 @@ function renderShiftRange(initialTransactions: OnyxTypes.Transaction[] = rows) {
             selectedTransactionIDs: state.selectedTransactionIDs,
             setSelectedTransactions,
             clearSelectedTransactions,
-            selectionClearGeneration: state.selectionClearGeneration,
         }),
     );
 
@@ -73,6 +75,20 @@ describe('MoneyRequestReport shift+click', () => {
         settle();
         act(() => result.current.toggleTransaction('3', true));
 
+        expect(state.selectedTransactionIDs).toEqual(['1', '3']);
+    });
+
+    it('leaves a row the backend rejected out of the range it spans, since its checkbox is disabled too', () => {
+        // Given a list whose middle row carries a reject the backend recorded against it
+        const withRejected = [rows.at(0), buildTransaction('2', {errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}}), rows.at(2)].filter((row) => !!row);
+        const {result, state, settle} = renderShiftRange(withRejected);
+
+        // When a range spans across it
+        act(() => result.current.toggleTransaction('1'));
+        settle();
+        act(() => result.current.toggleTransaction('3', true));
+
+        // Then it is skipped, rather than a range checking what a click cannot
         expect(state.selectedTransactionIDs).toEqual(['1', '3']);
     });
 
@@ -179,12 +195,31 @@ describe('MoneyRequestReport shift+click', () => {
 
         // When something outside the hook clears the selection
         state.selectedTransactionIDs = [];
-        state.selectionClearGeneration += 1;
         rerender({});
 
         // Then a shift+click runs from the top of the list, rather than from the row clicked before the clear
         act(() => result.current.toggleTransaction('1', true));
 
         expect(state.selectedTransactionIDs).toEqual(['1']);
+    });
+
+    it('gives nothing back when the selection was written from somewhere else, such as the toolbar’s Select All', () => {
+        const {result, state, settle, rerender} = renderShiftRange();
+
+        // Given a range this session painted across the first three rows
+        act(() => result.current.toggleTransaction('1'));
+        settle();
+        act(() => result.current.toggleTransaction('3', true));
+        settle();
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3']);
+
+        // When something outside the list replaces the selection, here by selecting every row
+        state.selectedTransactionIDs = ['1', '2', '3', '4'];
+        rerender({});
+
+        // Then the next shift+click keeps every row, rather than giving back rows the session painted before that write
+        act(() => result.current.toggleTransaction('2', true));
+
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3', '4']);
     });
 });

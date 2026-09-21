@@ -28,8 +28,8 @@ type MoneyRequestReportTableHeaderRowProps = {
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
-    /** Called with the rows Select All covers; the list decides whether that selects them or clears the selection */
-    onToggleAll: (selectableTransactionIDs: string[]) => void;
+    /** Select All: the list decides whether that selects every row it can or clears the selection */
+    onToggleAll: () => void;
 
     /** The report's offline pending action, shown as feedback on the whole row */
     pendingAction: PendingAction | undefined;
@@ -114,7 +114,7 @@ function MoneyRequestReportTableHeaderRow({
                     ]}
                 >
                     <Checkbox
-                        onPress={() => onToggleAll(transactionsWithoutPendingDelete.map((t) => t.transactionID))}
+                        onPress={onToggleAll}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                         isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                         isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}

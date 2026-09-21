@@ -150,8 +150,12 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
 
 /** Rows selected without being picked on their own came from a block, which a range may narrow. */
 function adoptUnprotectedBlock<TItem>(params: Params<TItem>): ReadonlySet<string> {
+    // Without a protection predicate of its own every selected row is protected, so the block is empty by definition.
+    const isProtected = params.isItemProtected;
+    if (!isProtected) {
+        return NO_KEYS;
+    }
     const keys = new Set<string>();
-    const isProtected = params.isItemProtected ?? params.isItemSelected;
     for (const row of params.items) {
         if (isExcluded(params, row)) {
             continue;

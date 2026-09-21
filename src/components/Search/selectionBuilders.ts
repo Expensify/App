@@ -419,15 +419,9 @@ type GroupSelectionParams = {
 };
 
 /** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked. */
-function isGroupSelected({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
-    if (children.length === 0) {
-        return !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
-    }
-    // Loaded rows decide alone, since select-all-matching still covers the group's own key after every row is excluded.
-    return children.some(
-        (child) =>
-            !isTransactionPendingDelete(child) && isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
-    );
+function isGroupSelected(params: GroupSelectionParams): boolean {
+    const {isSelectAllChecked, isIndeterminate} = getGroupCheckboxState(params);
+    return isSelectAllChecked || isIndeterminate;
 }
 
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
@@ -692,20 +686,30 @@ function applyShiftRangeBatchToSelection(
         }
     }
 
-    // Delete takes a whole group on this flag, so each group the range wrote under is recounted rather than left as it was.
-    for (const [groupKey, loadedRows] of touchedGroups) {
-        const unstamped = updated;
-        const stamped = stampGroupCoverageFlags({
-            selectedTransactions: unstamped,
-            groupKey,
-            groupCount: lookups.getGroupCount(groupKey),
-            loadedChildrenCount: loadedRows.length,
-            loadedSelectableCount: loadedRows.filter((child) => !isTransactionPendingDelete(child)).length,
-        });
-        if (Object.entries(stamped).some(([key, transaction]) => transaction.isEntireGroupSelected !== unstamped[key]?.isEntireGroupSelected)) {
-            hasWritten = true;
+    // Delete takes a whole group on this flag, so each group the range wrote under is recounted, in one pass over the selection rather than one per group.
+    const selectedCountByGroupKey = new Map<string, number>();
+    for (const [key, transaction] of Object.entries(updated)) {
+        if (key === transaction.groupKey || !transaction.groupKey || !touchedGroups.has(transaction.groupKey)) {
+            continue;
         }
-        updated = stamped;
+        selectedCountByGroupKey.set(transaction.groupKey, (selectedCountByGroupKey.get(transaction.groupKey) ?? 0) + 1);
+    }
+
+    const coverageByGroupKey = new Map<string, boolean>();
+    for (const [groupKey, loadedRows] of touchedGroups) {
+        const loadedSelectableCount = loadedRows.filter((child) => !isTransactionPendingDelete(child)).length;
+        const remainingGroupCount = getRemainingSearchGroupCount(lookups.getGroupCount(groupKey), loadedRows.length, loadedSelectableCount);
+        coverageByGroupKey.set(groupKey, isSelectionCoveringEntireGroup(remainingGroupCount, selectedCountByGroupKey.get(groupKey) ?? 0, loadedSelectableCount));
+    }
+
+    for (const [key, transaction] of Object.entries(updated)) {
+        const groupKey = touchedGroups.has(key) ? key : transaction.groupKey;
+        const isEntireGroupSelected = groupKey ? coverageByGroupKey.get(groupKey) : undefined;
+        if (isEntireGroupSelected === undefined || !groupKey || (transaction.groupKey === groupKey && transaction.isEntireGroupSelected === isEntireGroupSelected)) {
+            continue;
+        }
+        updated[key] = {...transaction, groupKey, isEntireGroupSelected};
+        hasWritten = true;
     }
 
     return hasWritten ? updated : selection;

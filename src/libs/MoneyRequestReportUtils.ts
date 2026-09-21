@@ -10,6 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {hasDeferredWriteForReport} from './deferredLayoutWrite';
+import {getLatestErrorField} from './ErrorUtils';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -25,6 +26,14 @@ import {
     isReportTransactionThread,
 } from './ReportUtils';
 import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
+
+/**
+ * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
+ * expense's own `reject` field rather than the generic `errors`, and it is what disables the row.
+ */
+function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): string | undefined {
+    return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+}
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
@@ -227,4 +236,5 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
+    getTransactionRejectErrorKey,
 };

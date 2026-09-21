@@ -336,21 +336,41 @@ describe('SearchSelectionProvider clear generation', () => {
         return renderHook(() => ({state: useSearchSelectionContext(), actions: useSearchSelectionActions(), clearGeneration: useSelectionClearGeneration()}), {wrapper});
     }
 
-    it('moves only when a clear empties something, so a no-op clear cannot end a range session', () => {
+    it('moves only when a clear empties the search selection, so a no-op clear cannot end a range session', () => {
+        // Given nothing selected
         const {result} = renderClearGeneration();
 
+        // When a clear finds nothing to clear, on either surface
         act(() => result.current.actions.clearSelectedTransactions(true));
         act(() => result.current.actions.clearSelectedTransactions());
+
+        // Then the counter stays where it was
         expect(result.current.clearGeneration).toBe(0);
+    });
 
+    it('stays put when the ID list is cleared, since that is the report list’s selection and not the one it speaks for', () => {
+        // Given rows selected by ID, which only the report list reads
+        const {result} = renderClearGeneration();
         act(() => result.current.actions.setSelectedTransactions(['tx_1']));
-        act(() => result.current.actions.clearSelectedTransactions(true));
-        expect(result.current.state.selectedTransactionIDs).toEqual([]);
-        expect(result.current.clearGeneration).toBe(1);
 
+        // When that list is cleared
+        act(() => result.current.actions.clearSelectedTransactions(true));
+
+        // Then the IDs go, and no range over the search rows is told to end
+        expect(result.current.state.selectedTransactionIDs).toEqual([]);
+        expect(result.current.clearGeneration).toBe(0);
+    });
+
+    it('moves when the search selection is emptied, which is what a range over those rows can no longer narrow', () => {
+        // Given rows selected in the search
+        const {result} = renderClearGeneration();
         act(() => result.current.actions.setSelectedTransactions(buildSelected('tx_1')));
+
+        // When the selection is cleared
         act(() => result.current.actions.clearSelectedTransactions());
+
+        // Then the counter moves once
         expect(result.current.state.selectedTransactions).toEqual({});
-        expect(result.current.clearGeneration).toBe(2);
+        expect(result.current.clearGeneration).toBe(1);
     });
 });

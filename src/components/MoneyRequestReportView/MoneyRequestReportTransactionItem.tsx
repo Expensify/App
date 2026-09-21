@@ -16,7 +16,8 @@ import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
-import {getLatestErrorField, getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getTransactionRejectErrorKey} from '@libs/MoneyRequestReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -154,9 +155,7 @@ function MoneyRequestReportTransactionItemBody({
         Object.entries(transaction.errors ?? {}).filter((entry): entry is [string, string | null] => typeof entry[1] === 'string' || entry[1] === null),
     );
 
-    // The backend reports a reject against an expense it has already moved under its own `reject` field rather than
-    // the generic `errors`, so both have to be read to show the message.
-    const rejectErrorKey = Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+    const rejectErrorKey = getTransactionRejectErrorKey(transaction);
     const hasRejectError = !!rejectErrorKey;
     const rejectError: TranslationKeyErrors = rejectErrorKey ? {[rejectErrorKey]: {translationKey: 'iou.rejectReport.couldNotRejectExpense'}} : {};
 

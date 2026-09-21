@@ -4,12 +4,13 @@
  */
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
+import {getTransactionRejectErrorKey} from '@libs/MoneyRequestReportUtils';
 import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type * as OnyxTypes from '@src/types/onyx';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 type ReportTransactionShiftRangeParams = {
     /** Dropping the session with it, since the list is reused for the next report and a transaction can be on both */
@@ -24,9 +25,6 @@ type ReportTransactionShiftRangeParams = {
 
     /** Clearing goes through its own action rather than an empty write, so the hook takes it to own both branches */
     clearSelectedTransactions: (shouldClearIDs: true) => void;
-
-    /** Changes when the selection is cleared from anywhere, which ends the session the same way a new report does */
-    selectionClearGeneration: number;
 };
 
 type ReportTransactionShiftRange = {
@@ -46,39 +44,57 @@ function useReportTransactionShiftRange({
     selectedTransactionIDs,
     setSelectedTransactions,
     clearSelectedTransactions,
-    selectionClearGeneration,
 }: ReportTransactionShiftRangeParams): ReportTransactionShiftRange {
     // The engine asks this per row while resolving an anchor, so the lookup has to be constant time.
     const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
     const transactionsByID = new Map(transactions.map((transaction) => [transaction.transactionID, transaction]));
 
+    // The list this session last wrote, which is how a write from anywhere else is told apart from its own.
+    const lastWrittenSelectionRef = useRef<string[] | null>(null);
+    const writeSelection = (transactionIDs: string[]) => {
+        lastWrittenSelectionRef.current = transactionIDs;
+        setSelectedTransactions(transactionIDs);
+    };
+
     const rangeApi = useShiftRangeSelection<OnyxTypes.Transaction>({
         items: transactions,
         getItemKey: (transaction) => transaction.transactionID ?? null,
         isItemSelected: (transaction) => selectedTransactionIDsSet.has(transaction.transactionID),
-        isDisabledItem: (transaction) => isTransactionPendingDelete(transaction),
-        onApplyRange: (batch) => setSelectedTransactions(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (transaction) => transaction.transactionID)),
+        // The rows the checkbox disables, so a range cannot check what a click cannot.
+        isDisabledItem: (transaction) => isTransactionPendingDelete(transaction) || !!getTransactionRejectErrorKey(transaction),
+        onApplyRange: (batch) => writeSelection(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (transaction) => transaction.transactionID)),
     });
 
     useEffect(() => {
         rangeApi.clearAnchor();
-    }, [reportID, selectionClearGeneration, rangeApi]);
+    }, [reportID, rangeApi]);
+
+    // A selection the session did not write is one it cannot narrow, since the rows it painted are no longer what the list shows.
+    const endSessionIfSelectionCameFromElsewhere = () => {
+        if (lastWrittenSelectionRef.current === selectedTransactionIDs) {
+            return;
+        }
+        lastWrittenSelectionRef.current = selectedTransactionIDs;
+        rangeApi.clearAnchor();
+    };
 
     const toggleTransaction = (transactionID: string, shiftKey?: boolean) => {
+        endSessionIfSelectionCameFromElsewhere();
         const item = transactionsByID.get(transactionID);
         if (item && rangeApi.applyShiftClick(item, shiftKey)) {
             return;
         }
-        setSelectedTransactions(selectedTransactionIDsSet.has(transactionID) ? selectedTransactionIDs.filter((id) => id !== transactionID) : [...selectedTransactionIDs, transactionID]);
+        writeSelection(selectedTransactionIDsSet.has(transactionID) ? selectedTransactionIDs.filter((id) => id !== transactionID) : [...selectedTransactionIDs, transactionID]);
         if (item) {
             rangeApi.notifyAnchor(item);
         }
     };
 
     const toggleGroup = (groupTransactionIDs: string[]) => {
+        endSessionIfSelectionCameFromElsewhere();
         const groupTransactionIDSet = new Set(groupTransactionIDs);
         const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDsSet.has(id));
-        setSelectedTransactions(anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDSet.has(id)) : [...selectedTransactionIDs, ...groupTransactionIDs]);
+        writeSelection(anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDSet.has(id)) : [...selectedTransactionIDs, ...groupTransactionIDs]);
         if (anySelected) {
             // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
             rangeApi.clearAnchor();
@@ -89,12 +105,13 @@ function useReportTransactionShiftRange({
     };
 
     const toggleAll = (selectableTransactionIDs: string[]) => {
+        endSessionIfSelectionCameFromElsewhere();
         if (selectedTransactionIDs.length !== 0) {
             clearSelectedTransactions(true);
             rangeApi.clearAnchor();
             return;
         }
-        setSelectedTransactions(selectableTransactionIDs);
+        writeSelection(selectableTransactionIDs);
         // A full-list block, so the next shift+click collapses the selection onto the span it lands in.
         rangeApi.seedFullRange();
     };

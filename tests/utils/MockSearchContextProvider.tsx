@@ -6,6 +6,7 @@ import {
     SearchSelectionActionsContext,
     SearchSelectionContext,
 } from '@components/Search/SearchContext';
+import {SearchSelectionClearGenerationContext} from '@components/Search/SearchContextDefinitions';
 import type {
     SearchActionsContextValue,
     SearchQueryActionsValue,
@@ -22,6 +23,10 @@ import React from 'react';
 type MockSearchContextProviderProps = {
     state: SearchStateContextValue;
     actions: SearchActionsContextValue;
+
+    /** The counter a range session ends on, so a test can clear the selection the way the provider does */
+    selectionClearGeneration?: number;
+
     children: React.ReactNode;
 };
 
@@ -90,7 +95,7 @@ function splitActions(value: SearchActionsContextValue): {
     };
 }
 
-function MockSearchContextProvider({state, actions, children}: MockSearchContextProviderProps) {
+function MockSearchContextProvider({state, actions, selectionClearGeneration = 0, children}: MockSearchContextProviderProps) {
     const stateSlices = splitState(state);
     const actionsSlices = splitActions(actions);
     // Answered from the state the checkboxes render from, so the range and the rows cannot read different selections.
@@ -106,7 +111,9 @@ function MockSearchContextProvider({state, actions, children}: MockSearchContext
                 <SearchResultsContext value={stateSlices.results}>
                     <SearchResultsActionsContext value={actionsSlices.results}>
                         <SearchSelectionContext value={stateSlices.selection}>
-                            <SearchSelectionActionsContext value={selectionActions}>{children}</SearchSelectionActionsContext>
+                            <SearchSelectionActionsContext value={selectionActions}>
+                                <SearchSelectionClearGenerationContext value={selectionClearGeneration}>{children}</SearchSelectionClearGenerationContext>
+                            </SearchSelectionActionsContext>
                         </SearchSelectionContext>
                     </SearchResultsActionsContext>
                 </SearchResultsContext>

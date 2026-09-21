@@ -98,6 +98,7 @@ const SearchSelectionContext = React.createContext<SearchSelectionContextValue>(
 const SearchSelectionActionsContext = React.createContext<SearchSelectionActionsValue>(defaultSearchSelectionActions);
 const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionActionsValue>(defaultRowSelectionActions);
 const SearchShiftRangeGroupsContext = React.createContext<SearchShiftRangeGroupsActions>(defaultSearchShiftRangeGroupsActions);
+/** Bumped when a clear empties the search selection, which is what a range over those rows can no longer narrow */
 const SearchSelectionClearGenerationContext = React.createContext(0);
 
 export {

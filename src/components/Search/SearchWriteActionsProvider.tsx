@@ -31,7 +31,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
 
-import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import useOpenGroupsRegistry from './hooks/useOpenGroupsRegistry';
@@ -545,7 +545,7 @@ function SearchWriteActionsProvider({
         groupKeyByChildKeyRef.current = groupKeyByChildKey;
         childrenByGroupKeyRef.current = childrenByGroupKey;
     }, [groupKeyByChildKey, childrenByGroupKey]);
-    const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
+    const isShiftRangeHeaderItem = (item: SearchData[number]): item is TransactionGroupListItemType => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     const getGroupCount = (groupKey: string) =>
         getSearchGroupCount(isGroupedItemArray(filteredData) ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ??
@@ -647,7 +647,7 @@ function SearchWriteActionsProvider({
         // One children source for the seed and the selection, so a group can't seed a different block than it selects.
         const groupTransactions = isTransactionGroupListItemType(item) ? (itemTransactions ?? item.transactions ?? []) : [];
 
-        if (isTransactionGroupListItemType(item) && isShiftRangeHeaderItem(item)) {
+        if (isShiftRangeHeaderItem(item)) {
             if (isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions))) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
@@ -655,7 +655,7 @@ function SearchWriteActionsProvider({
                 // Just this block: seeding the whole selection would span unrelated rows and deselect them.
                 seedGroup(item.keyForList);
             }
-        } else if (!isShiftRangeHeaderItem(item)) {
+        } else {
             // Seed the anchor so a later shift+click continues from here. The hook ignores rows a range can't reach.
             rangeApi.notifyAnchor(item);
         }

@@ -176,8 +176,15 @@ function makeFlatSearchResults(expense: TransactionListItemType | undefined): Se
     } as unknown as SearchResults;
 }
 
+/** The rows after the first on a flat search, where every row is its own selectable unit and a range spans them directly. */
+const flatRangeRows = [
+    buildTransactionRow(11, 'flat-2', {currency: 'USD', amount: -642, report: {reportID: '11'}}),
+    buildTransactionRow(12, 'flat-3', {currency: 'USD', amount: -642, report: {reportID: '11'}}),
+    buildTransactionRow(13, 'flat-4', {currency: 'USD', amount: -642, report: {reportID: '11'}}),
+];
+
 let flatExpense = makeFlatExpense(-3000);
-let flatFilteredData: TransactionListItemType[] = [flatExpense];
+let flatFilteredData: TransactionListItemType[] = [flatExpense, ...flatRangeRows];
 let flatSearchResults = makeFlatSearchResults(flatExpense);
 
 let groupedSearchResults: SearchResults | undefined;
@@ -347,7 +354,7 @@ describe('Lazily loaded group selection', () => {
         cachedPartialGroup.transactions = loadedChildren;
         pagingGroup = partiallyLoadedGroup;
         flatExpense = makeFlatExpense(-3000);
-        flatFilteredData = [flatExpense];
+        flatFilteredData = [flatExpense, ...flatRangeRows];
         flatSearchResults = makeFlatSearchResults(flatExpense);
         await act(async () => {
             await Onyx.clear();
@@ -1020,6 +1027,95 @@ describe('Lazily loaded group selection', () => {
 
         expect(result.current.excludedTransactions).toEqual({});
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('spans the flat list from the last row clicked, where every row is its own selectable unit', async () => {
+        const {result} = renderFlatSelection();
+        const [firstRow, secondRow, thirdRow] = flatFilteredData;
+
+        // Given the first row clicked plainly, which anchors the range
+        await act(async () => {
+            result.current.toggle(firstRow);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click lands two rows down
+        await act(async () => {
+            result.current.toggle(thirdRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the rows between the two are selected as well
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([firstRow.keyForList, secondRow.keyForList, thirdRow.keyForList].sort());
+    });
+
+    it('gives back the flat rows a shrinking range no longer covers', async () => {
+        const {result} = renderFlatSelection();
+        const [firstRow, secondRow, , fourthRow] = flatFilteredData;
+
+        // Given a range drawn across the whole flat list
+        await act(async () => {
+            result.current.toggle(firstRow);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(fourthRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the endpoint is pulled back to the second row
+        await act(async () => {
+            result.current.toggle(secondRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only the span it still covers is left selected
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([firstRow.keyForList, secondRow.keyForList].sort());
+    });
+
+    it('keeps the far side when a flat range crosses its anchor', async () => {
+        const {result} = renderFlatSelection();
+        const [firstRow, secondRow, thirdRow, fourthRow] = flatFilteredData;
+
+        // Given a range painted downwards from the second row
+        await act(async () => {
+            result.current.toggle(secondRow);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(fourthRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the next shift+click lands above the anchor
+        await act(async () => {
+            result.current.toggle(firstRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the rows below it stay selected, which is what production Table and Gmail do
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([firstRow.keyForList, secondRow.keyForList, thirdRow.keyForList, fourthRow.keyForList].sort());
+    });
+
+    it('collapses a flat Select All onto the span the next shift+click lands in', async () => {
+        const {result} = renderFlatSelection();
+        const [firstRow, secondRow] = flatFilteredData;
+
+        // Given every row selected from the header checkbox
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(Object.keys(result.current.selectedTransactions)).toHaveLength(flatFilteredData.length);
+
+        // When a shift+click lands on the second row
+        await act(async () => {
+            result.current.toggle(secondRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the selection narrows onto it, which is what makes an overshoot recoverable in one click
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([firstRow.keyForList, secondRow.keyForList].sort());
     });
 
     it('forgets a block held for the next shift+click once an ordinary click starts a session of its own', async () => {
