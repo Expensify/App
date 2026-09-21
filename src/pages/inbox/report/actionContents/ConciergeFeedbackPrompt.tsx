@@ -120,9 +120,8 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     return (
         <ActionableItemButtons
             layout="horizontal"
-            style={[styles.alignItemsCenter, styles.flexWrap]}
+            style={styles.alignItemsCenter}
         >
-            {/* The label takes the room it needs at large font sizes, which wraps the thumbs onto the next line instead of pushing them off screen */}
             <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('concierge.feedback.prompt')}</Text>
             {/* The thumbs share one child so the container gap does not separate them */}
             <View style={styles.flexRow}>
