@@ -66,6 +66,8 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
         return;
     }
     if (iouReportID) {
+        // The replaced RHP's backTo can point at this same report, which turns into a not-here page once it's
+        // deleted. Drop it so deleting falls back to the report's chat instead.
         Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: forceReplace ? undefined : backTo}), {forceReplace});
 
         // A multi-transaction report opens super wide RHP, so stack the thread RHP on top of it. A single-transaction
