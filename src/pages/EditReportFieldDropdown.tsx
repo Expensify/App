@@ -11,7 +11,7 @@ import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type EditReportFieldDropdownPageProps = {
     /** Value of the policy report field */
@@ -35,18 +35,24 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
 
     const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
+    // Tapping a row used to call `onSubmit` straight away, which closed the page on input (WCAG 3.2.2 On Input).
+    // The tap now only stages the value, and `onSubmit` runs from an explicit Save.
+    // An empty string is a meaningful staged value (it clears the field), so `undefined` means "nothing staged yet".
+    const [draftValue, setDraftValue] = useState<string>();
+    const currentValue = draftValue ?? fieldValue;
+
     // Freeze the value selected when the picker opened so it drives the pinned "Selected" section for the whole open/focus cycle.
     // The live value still drives the checkmark, so tapping a row marks it without reordering the list. The reorder happens only on reopen.
     const initialFieldValue = useInitialSelection(fieldValue, {resetOnFocus: true});
 
     const sections = getReportFieldOptionsSection({
         searchValue: debouncedSearchValue,
-        // Live value drives the checkmark, so tapping a row marks it immediately.
+        // Staged value drives the checkmark, so tapping a row marks it immediately.
         selectedOptions: [
             {
-                keyForList: fieldValue,
-                searchText: fieldValue,
-                text: fieldValue,
+                keyForList: currentValue,
+                searchText: currentValue,
+                text: currentValue,
             },
         ],
         // Frozen value drives the pinned section, so the list doesn't reorder while selecting.
@@ -71,7 +77,14 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
             ListItem={SingleSelectListItem}
             shouldShowTextInput
             textInputOptions={textInputOptions}
-            onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
+            // Tapping the already-selected row clears the field, matching the previous behavior of this picker.
+            onSelectRow={(option) => setDraftValue(!option?.text || currentValue === option.text ? '' : option.text)}
+            confirmButtonOptions={{
+                showButton: true,
+                text: translate('common.save'),
+                onConfirm: () => onSubmit({[fieldKey]: currentValue}),
+                isDisabled: draftValue === undefined || draftValue === fieldValue,
+            }}
             initiallyFocusedItemKey={initialFieldValue}
             shouldUpdateFocusedIndex
         />
