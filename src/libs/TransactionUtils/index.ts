@@ -827,6 +827,15 @@ function getUpdatedTransaction({
 
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = lodashDeepClone(transaction);
+    const shouldPreserveConfirmedScanZeroAmount =
+        isScanRequest(transaction) &&
+        transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.OPEN &&
+        transaction.amount === 0 &&
+        !Object.hasOwn(transactionChanges, 'amount') &&
+        !isFailedScanAmountPlaceholder(transaction);
+    if (shouldPreserveConfirmedScanZeroAmount) {
+        updatedTransaction.isAmountSet = true;
+    }
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart

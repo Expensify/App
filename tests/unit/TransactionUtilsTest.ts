@@ -424,6 +424,58 @@ describe('TransactionUtils', () => {
     });
 
     describe('getUpdatedTransaction', () => {
+        it('should preserve a confirmed zero Scan amount while another field edit is pending', () => {
+            // Given a submitted Scan whose explicit zero survived a cache reset without its draft flag
+            const transaction = generateTransaction({
+                amount: 0,
+                modifiedAmount: '',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                merchant: 'Zero Scan',
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            });
+
+            // When the merchant is edited and marked pending while offline
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {merchant: 'Zero Scan edited'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+            // Then the optimistic edit retains proof that zero is valid instead of showing a missing-amount error
+            expect(updatedTransaction.isAmountSet).toBe(true);
+            expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(false);
+        });
+
+        it('should keep a genuinely missing failed Scan amount missing while another field edit is pending', () => {
+            // Given a failed Scan whose zero is still an unconfirmed placeholder
+            const transaction = generateTransaction({
+                amount: 0,
+                modifiedAmount: '',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                merchant: 'Failed Scan',
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            });
+
+            // When the merchant is edited and marked pending while offline
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {merchant: 'Failed Scan edited'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+            // Then the edit does not incorrectly confirm the missing amount
+            expect(updatedTransaction.isAmountSet).not.toBe(true);
+            expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
+        });
+
         it('should return updated category and tax when updating category with a category tax rules', () => {
             // Given a policy with tax expense rules associated with a category
             const category = 'Advertising';
