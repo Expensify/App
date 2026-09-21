@@ -52,6 +52,10 @@ function IOURequestStepVendor({
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
 
+    // Tapping a row only stages the vendor; it is persisted when the user presses Save, so the list no longer
+    // closes on input (WCAG 3.2.2 On Input). The whole row is kept because the "None" row's value is an empty string.
+    const [draftVendor, setDraftVendor] = useState<VendorListItem>();
+
     const {policy} = usePolicyForTransaction({
         transaction,
         reportPolicyID: report?.policyID,
@@ -77,13 +81,15 @@ function IOURequestStepVendor({
     const vendorLabel = isOnXero ? translate('common.supplier') : translate('common.vendor');
 
     const trimmedSearch = searchValue.trim().toLowerCase();
+    // The staged row drives the checkmark once the user picks something, otherwise the persisted vendor does.
+    const selectedVendorID = draftVendor ? draftVendor.value : currentVendorID;
     const vendorRows: VendorListItem[] = sortedVendors
         .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
         .map((vendor) => ({
             value: vendor.id,
             text: vendor.name,
             keyForList: vendor.id,
-            isSelected: vendor.id === currentVendorID,
+            isSelected: vendor.id === selectedVendorID,
             searchText: vendor.name,
         }));
 
@@ -95,7 +101,7 @@ function IOURequestStepVendor({
                   value: '',
                   text: translate('common.none'),
                   keyForList: 'clear-vendor',
-                  isSelected: false,
+                  isSelected: draftVendor?.keyForList === 'clear-vendor',
                   searchText: '',
               },
               ...vendorRows,
@@ -125,6 +131,18 @@ function IOURequestStepVendor({
             });
         }
         navigateBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => {
+            if (!draftVendor) {
+                return;
+            }
+            selectVendor(draftVendor);
+        },
+        isDisabled: !draftVendor || draftVendor.value === currentVendorID,
     };
 
     const headerMessage = searchValue && data.length === 0 ? translate('common.noResultsFound') : '';
@@ -160,14 +178,15 @@ function IOURequestStepVendor({
                 return (
                     <SelectionList
                         data={data}
-                        onSelectRow={selectVendor}
+                        onSelectRow={setDraftVendor}
+                        confirmButtonOptions={confirmButtonOptions}
                         textInputOptions={{
                             label: translate('common.search'),
                             value: searchValue,
                             onChangeText: setSearchValue,
                             headerMessage,
                         }}
-                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
+                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : currentVendorID}
                         ListItem={SingleSelectListItem}
                         listEmptyContent={listEmptyContent}
                         shouldSingleExecuteRowSelect
