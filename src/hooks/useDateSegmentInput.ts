@@ -47,7 +47,7 @@ type UseDateSegmentInputParams = {
     /** The newest date the calendar can show */
     maxDate: Date;
 
-    /** Called with a stored format date once every segment holds a valid value */
+    /** Called with a stored format date once every segment holds a valid value, or with an empty string once the field is left holding digits that cannot produce one */
     onCommit: (isoDate: string) => void;
 };
 
@@ -105,6 +105,9 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     // Whether the next digit replaces the segment instead of extending it, set on arriving at a segment
     const [shouldOverwrite, setShouldOverwrite] = useState(false);
     const [appliedValue, setAppliedValue] = useState(value);
+    // Whether the field was left holding digits that do not add up to a date, which stay on screen so the user can see
+    // what still has to be corrected
+    const [hasInvalidEntry, setHasInvalidEntry] = useState(false);
 
     // A date set from outside, by the calendar or by a restored draft, has to reach the segments as well. Without this
     // an edit in progress would keep showing the date it started from, since the segments are what the field renders.
@@ -115,6 +118,12 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         // half typed segment with the padded form it is showing. The next digit would then start the segment over.
         if (isEditing && value !== getISODateFromSegments(segments)) {
             setSegments(getSegmentsFromISODate(value));
+        }
+
+        // A date picked from the calendar settles what the field holds, so there is no longer an entry to correct. An
+        // empty value is the field reporting its own unusable entry, which is what put those digits on screen.
+        if (value) {
+            setHasInvalidEntry(false);
         }
     }
 
@@ -231,19 +240,35 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             return;
         }
 
-        const seededSegments = getSegmentsFromISODate(value);
+        // Returning to an entry that was left unusable resumes it, since the date it reported was the empty one
+        const seededSegments = hasInvalidEntry ? segments : getSegmentsFromISODate(value);
+        setHasInvalidEntry(false);
         setSegments(seededSegments);
         assertViewDate(getViewDateFromSegments(seededSegments, new Date().getMonth(), minDate, maxDate));
         setIsEditing(true);
     };
 
-    // An unfinished edit is dropped rather than cleared, so leaving the field restores the last committed date
+    /**
+     * Leaving the field settles what it holds. An entry that cannot produce a date reports the date as unset and stays
+     * on screen, so a form blocks on it rather than submitting whatever was there before the edit began.
+     *
+     * Only an entry the user has changed counts. Passing through a field without touching it leaves its date alone.
+     */
     const handleFieldBlur = () => {
         setIsEditing(false);
-        setSegments(EMPTY_SEGMENTS);
         setViewDate(undefined);
         setFocusRequest(undefined);
         setShouldOverwrite(false);
+
+        const hasUnusableEntry = !getISODateFromSegments(segments) && (hasAnySegment(segments) || !!value);
+        setHasInvalidEntry(hasUnusableEntry);
+
+        if (hasUnusableEntry) {
+            onCommit('');
+            return;
+        }
+
+        setSegments(EMPTY_SEGMENTS);
     };
 
     if (!isEnabled) {
@@ -259,8 +284,10 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         };
     }
 
-    // The segments describe an edit in progress, so outside of one the committed date is what the field has to show
-    const displayedSegments = isEditing ? segments : getSegmentsFromISODate(value);
+    // The segments describe an edit in progress or one left unusable, so outside of those the committed date is what
+    // the field has to show
+    const shouldShowSegments = isEditing || hasInvalidEntry;
+    const displayedSegments = shouldShowSegments ? segments : getSegmentsFromISODate(value);
 
     return {
         displayValue: value,
@@ -268,7 +295,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         focusRequest,
         viewDate: isEditing ? viewDate : undefined,
         viewDateVersion,
-        hasTypedDigits: isEditing && hasAnySegment(segments),
+        hasTypedDigits: shouldShowSegments && hasAnySegment(segments),
         getSegmentProps: (name: DateSegmentName) => ({
             value: getSegmentDisplay(displayedSegments, name),
             onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),
