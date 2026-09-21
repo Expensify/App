@@ -26,7 +26,7 @@ function CurrencyInlineListAdapter({value, onInputChange = () => {}, errorText =
         <>
             <CurrencySelectionList
                 searchInputLabel={translate('common.currency')}
-                initiallySelectedCurrencyCode={value || undefined}
+                initiallySelectedCurrencyCode={value === '' ? undefined : value}
                 onSelect={(item) => onInputChange(item.currencyCode)}
             />
             {!!errorText && (

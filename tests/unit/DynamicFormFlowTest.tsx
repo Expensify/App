@@ -168,7 +168,7 @@ describe('DynamicFormFlow', () => {
     });
 
     it('summarizes every visible answer on the confirmation page and submits the draft', async () => {
-        const onSubmit = jest.fn();
+        const onSubmit = jest.fn<void, [DynamicFormValues]>();
         mockRouteParams.subPage = 'confirm';
         await act(async () => {
             await Onyx.merge(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {businessRegistrationDocument: ['stale-upload']});
