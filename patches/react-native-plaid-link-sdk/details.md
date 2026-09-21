@@ -24,3 +24,16 @@
 - Upstream PR/issue: -
 - E/App issue: https://github.com/Expensify/App/issues/87757
 - PR introducing patch: https://github.com/Expensify/App/pull/88534
+
+### [react-native-plaid-link-sdk+12.5.3+002+rn088-kotlin-currentActivity.patch](react-native-plaid-link-sdk+12.5.3+002+rn088-kotlin-currentActivity.patch)
+
+- Reason:
+
+    ```
+    In React Native 0.88 `ReactContextBaseJavaModule.getCurrentActivity()` is a plain Kotlin `fun`, so the bare
+    `currentActivity` property reads in `PlaidModule.kt` fail to compile. Read `reactApplicationContext.currentActivity`.
+    ```
+
+- Upstream PR/issue: Fixed upstream from 12.7.0 (12.6.0 is still broken). Drop this patch when bumping to >= 12.7.0. 13.x rewrote the Android module on Expo Modules (`expo.modules.plaidlinksdk`), which is a separate migration.
+- E/App issue: https://github.com/Expensify/App/issues/101427
+- PR introducing patch: TBD (RN 0.88 / Expo SDK 58 upgrade)

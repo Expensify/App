@@ -1,0 +1,69 @@
+diff --git a/node_modules/@shopify/react-native-skia/apple/SkiaManager.h b/node_modules/@shopify/react-native-skia/apple/SkiaManager.h
+--- a/node_modules/@shopify/react-native-skia/apple/SkiaManager.h
++++ b/node_modules/@shopify/react-native-skia/apple/SkiaManager.h
+@@ -12,7 +12,10 @@
+ 
+ - (void)invalidate;
+ 
++// RN 0.87+ removed RCTCxxBridge, so the runtime is handed in explicitly by RNSkiaModule's
++// installJSIBindingsWithRuntime:callInvoker: instead of being read off the bridge.
+ - (instancetype)initWithBridge:(RCTBridge *)bridge
++                       runtime:(facebook::jsi::Runtime *)jsRuntime
+                      jsInvoker:(std::shared_ptr<facebook::react::CallInvoker>)
+                                    jsInvoker;
+ 
+diff --git a/node_modules/@shopify/react-native-skia/apple/SkiaManager.mm b/node_modules/@shopify/react-native-skia/apple/SkiaManager.mm
+--- a/node_modules/@shopify/react-native-skia/apple/SkiaManager.mm
++++ b/node_modules/@shopify/react-native-skia/apple/SkiaManager.mm
+@@ -24,16 +24,13 @@ - (void)invalidate {
+ }
+ 
+ - (instancetype)initWithBridge:(RCTBridge *)bridge
++                       runtime:(facebook::jsi::Runtime *)jsRuntime
+                      jsInvoker:(std::shared_ptr<facebook::react::CallInvoker>)
+                                    jsInvoker {
+   self = [super init];
+   if (self) {
+     sharedInstance = self;
+-    RCTCxxBridge *cxxBridge = (RCTCxxBridge *)bridge;
+-    if (cxxBridge.runtime) {
+-
+-      facebook::jsi::Runtime *jsRuntime =
+-          (facebook::jsi::Runtime *)cxxBridge.runtime;
++    if (jsRuntime) {
+ 
+       // Create the RNSkiaManager (cross platform)
+       _skManager = std::make_shared<RNSkia::RNSkManager>(
+diff --git a/node_modules/@shopify/react-native-skia/apple/RNSkiaModule.mm b/node_modules/@shopify/react-native-skia/apple/RNSkiaModule.mm
+--- a/node_modules/@shopify/react-native-skia/apple/RNSkiaModule.mm
++++ b/node_modules/@shopify/react-native-skia/apple/RNSkiaModule.mm
+@@ -30,18 +30,21 @@ - (void)invalidate {
+   skiaManager = nil;
+ }
+ 
++// RN 0.87+ removed RCTCxxBridge. The manager is created in installJSIBindingsWithRuntime:callInvoker:,
++// which RCTTurboModuleManager calls when this TurboModule is created, so install() only reports the state.
+ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
++  return skiaManager != nil ? @true : @false;
++}
++
++- (void)installJSIBindingsWithRuntime:(facebook::jsi::Runtime &)runtime
++                          callInvoker:(const std::shared_ptr<facebook::react::CallInvoker> &)callInvoker {
+   if (skiaManager != nil) {
+-    // Already initialized, ignore call.
+-    return @true;
+-  }
+-  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+-  if (!jsInvoker) {
+-    jsInvoker = cxxBridge.jsCallInvoker;
++    return;
+   }
+-  skiaManager = [[SkiaManager alloc] initWithBridge:cxxBridge
++  jsInvoker = callInvoker;
++  skiaManager = [[SkiaManager alloc] initWithBridge:self.bridge
++                                            runtime:&runtime
+                                           jsInvoker:jsInvoker];
+-  return @true;
+ }
+ 
+ #ifdef RCT_NEW_ARCH_ENABLED

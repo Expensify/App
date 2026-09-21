@@ -1,0 +1,30 @@
+diff --git a/node_modules/@react-native-documents/picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.kt b/node_modules/@react-native-documents/picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.kt
+--- a/node_modules/@react-native-documents/picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.kt
++++ b/node_modules/@react-native-documents/picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.kt
+@@ -83,7 +83,7 @@ class RNDocumentPickerModule(reactContext: ReactApplicationContext) :
+ 
+   @ReactMethod
+   override fun pick(opts: ReadableMap, promise: Promise) {
+-    val currentActivity = currentActivity
++    val currentActivity = reactApplicationContext.currentActivity // RN088: getCurrentActivity() is a Kotlin fun now
+ 
+     if (currentActivity == null) {
+       rejectWithNullActivity(promise)
+@@ -106,7 +106,7 @@ class RNDocumentPickerModule(reactContext: ReactApplicationContext) :
+   }
+ 
+   override fun saveDocument(options: ReadableMap, promise: Promise) {
+-    val currentActivity = currentActivity
++    val currentActivity = reactApplicationContext.currentActivity // RN088: getCurrentActivity() is a Kotlin fun now
+     if (currentActivity == null) {
+       rejectWithNullActivity(promise)
+       return
+@@ -145,7 +145,7 @@ class RNDocumentPickerModule(reactContext: ReactApplicationContext) :
+ 
+   @ReactMethod
+   override fun pickDirectory(opts: ReadableMap, promise: Promise) {
+-    val currentActivity = currentActivity
++    val currentActivity = reactApplicationContext.currentActivity // RN088: getCurrentActivity() is a Kotlin fun now
+     if (currentActivity == null) {
+       rejectWithNullActivity(promise)
+       return

@@ -99,8 +99,8 @@
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.336",
     "@expensify/react-native-wallet": "0.1.22",
-    "@expo/metro-config": "57.0.7",
-    "@expo/metro-runtime": "57.0.7",
+    "@expo/metro-config": "^58.0.3",
+    "@expo/metro-runtime": "58.0.3",
     "@formatjs/intl-listformat": "^7.5.7",
     "@formatjs/intl-locale": "^4.0.0",
     "@formatjs/intl-numberformat": "^8.10.3",
@@ -121,6 +121,7 @@
     "@react-native-firebase/app": "^22.2.1",
     "@react-native-google-signin/google-signin": "^10.0.1",
     "@react-native-picker/picker": "2.11.3",
+    "@react-native/assets-registry": "^0.88.0-rc.1",
     "@react-navigation/bottom-tabs": "7.15.5",
     "@react-navigation/core": "7.21.12",
     "@react-navigation/material-top-tabs": "7.4.19",
@@ -144,18 +145,18 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^5.0.3",
     "expensify-common": "2.0.201",
-    "expo": "57.0.8",
-    "expo-asset": "57.0.7",
-    "expo-audio": "57.0.3",
-    "expo-font": "57.0.1",
-    "expo-image": "57.0.1",
-    "expo-image-manipulator": "57.0.6",
-    "expo-location": "57.0.6",
-    "expo-modules-core": "57.0.7",
-    "expo-store-review": "57.0.1",
-    "expo-task-manager": "57.0.6",
-    "expo-video": "57.0.2",
-    "expo-web-browser": "57.0.2",
+    "expo": "58.0.0-preview.3",
+    "expo-asset": "58.0.3",
+    "expo-audio": "58.0.0",
+    "expo-font": "58.0.1",
+    "expo-image": "58.0.2",
+    "expo-image-manipulator": "58.0.4",
+    "expo-location": "58.0.3",
+    "expo-modules-core": "58.0.3",
+    "expo-store-review": "58.0.0",
+    "expo-task-manager": "58.0.4",
+    "expo-video": "58.0.1",
+    "expo-web-browser": "58.0.0",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",
@@ -168,20 +169,20 @@
     "lodash-es": "4.17.21",
     "lottie-react-native": "7.3.8",
     "mapbox-gl": "^3.24.0",
-    "metro": "0.84.4",
+    "metro": "0.87.1",
     "onfido-sdk-ui": "14.53.1",
     "pako": "^2.1.0",
     "process": "^0.11.10",
     "pusher-js": "8.3.0",
-    "react": "19.2.3",
+    "react": "19.3.0",
     "react-collapse": "^5.1.0",
     "react-content-loader": "^7.0.0",
-    "react-dom": "19.2.3",
+    "react-dom": "19.3.0",
     "react-error-boundary": "^4.0.11",
     "react-fast-pdf": "^1.0.34",
     "react-is": "^18.3.1",
     "react-map-gl": "^8.1.1",
-    "react-native": "0.86.0",
+    "react-native": "0.88.0-rc.1",
     "react-native-advanced-input-mask": "1.4.6",
     "react-native-app-logs": "0.3.1",
     "react-native-blob-util": "0.24.9",
@@ -190,7 +191,7 @@
     "react-native-device-info": "10.3.1",
     "react-native-draggable-flatlist": "^4.0.3",
     "react-native-fs": "^2.20.0",
-    "react-native-gesture-handler": "2.32.0",
+    "react-native-gesture-handler": "^2.33.0",
     "react-native-google-places-autocomplete": "2.6.4",
     "react-native-haptic-feedback": "^2.3.3",
     "react-native-image-picker": "^7.1.2",
@@ -212,8 +213,8 @@
     "react-native-quick-crypto": "^1.1.6",
     "react-native-reanimated": "4.5.5",
     "react-native-render-html": "6.3.1",
-    "react-native-safe-area-context": "5.6.2",
-    "react-native-screens": "4.25.0",
+    "react-native-safe-area-context": "^5.9.1",
+    "react-native-screens": "^4.27.0",
     "react-native-share": "11.0.2",
     "react-native-svg": "15.15.5",
     "react-native-tab-view": "^4.3.0",
@@ -258,8 +259,8 @@
     "@react-native-community/cli": "20.1.0",
     "@react-native-community/cli-platform-android": "20.1.0",
     "@react-native-community/cli-platform-ios": "20.1.0",
-    "@react-native/babel-preset": "0.86.0",
-    "@react-native/metro-config": "0.86.0",
+    "@react-native/babel-preset": "0.88.0-rc.1",
+    "@react-native/metro-config": "0.88.0-rc.1",
     "@react-navigation/devtools": "7.0.52",
     "@rock-js/platform-android": "0.13.4",
     "@rock-js/platform-ios": "0.13.4",
@@ -292,9 +293,9 @@
     "@types/node": "^20.11.5",
     "@types/pako": "^2.0.3",
     "@types/pusher-js": "^5.1.0",
-    "@types/react": "19.2.3",
+    "@types/react": "19.3.0",
     "@types/react-collapse": "^5.0.1",
-    "@types/react-dom": "19.2.3",
+    "@types/react-dom": "19.3.0",
     "@types/react-is": "^18.3.0",
     "@types/react-native-web": "0.19.2",
     "@types/react-test-renderer": "^19.1.0",
@@ -307,7 +308,7 @@
     "babel-plugin-module-resolver": "^5.0.0",
     "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260507",
     "babel-plugin-transform-remove-console": "^6.9.4",
-    "babel-preset-expo": "^57.0.3",
+    "babel-preset-expo": "^58.0.3",
     "bun": "^1.3.14",
     "concurrently": "^9.2.4",
     "cspell": "9.4.0",
@@ -333,7 +334,7 @@
     "jest-circus": "29.7.0",
     "jest-cli": "29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "jest-expo": "57.0.2",
+    "jest-expo": "58.0.2",
     "jest-transformer-svg": "^2.0.1",
     "knip": "^6.34.0",
     "lefthook": "2.1.9",
@@ -386,7 +387,7 @@
     "express": "4.20.0",
     "elliptic": "6.5.7",
     "fast-json-patch": "3.1.1",
-    "hermes-compiler": "250829098.0.14",
+    "hermes-compiler": "260318099.0.3",
     "webpack": "^5.108.4",
     "esbuild": "^0.28.1",
     "@blakeembrey/template": "1.2.0",
@@ -395,8 +396,8 @@
     "send": "0.19.0",
     "regexpu-core": "6.4.0",
     "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260507",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "eslint-config-expensify": {
       "typescript-eslint": "8.58.1",
       "@typescript-eslint/eslint-plugin": "8.58.1",
@@ -409,26 +410,33 @@
     "pdfjs-dist": "^5.5.207",
     "lightningcss": "1.30.1",
     "@fullstory/react-native": {
-      "expo": "57.0.8"
+      "expo": "58.0.0-preview.3"
     },
     "@react-native-firebase/app": {
-      "expo": "57.0.8"
+      "expo": "58.0.0-preview.3"
     },
     "@react-native-firebase/perf": {
-      "expo": "57.0.8"
+      "expo": "58.0.0-preview.3"
     },
     "@react-native-google-signin/google-signin": {
-      "expo": "57.0.8"
+      "expo": "58.0.0-preview.3"
     },
     "@rnmapbox/maps": {
-      "expo": "57.0.8"
+      "expo": "58.0.0-preview.3"
     },
     "@sentry/react-native": {
-      "expo": "57.0.8"
+      "expo": "58.0.0-preview.3"
     },
     "expo-modules-core": {
       "react-native-worklets": "0.11.1"
-    }
+    },
+    "react-native-worklets": {
+      "react-native": "$react-native"
+    },
+    "react-native-reanimated": {
+      "react-native": "$react-native"
+    },
+    "@react-native/codegen": "0.88.0-rc.1"
   },
   "expo": {
     "autolinking": {

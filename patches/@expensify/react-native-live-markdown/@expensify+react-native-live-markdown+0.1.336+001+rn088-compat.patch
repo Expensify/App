@@ -1,0 +1,47 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdownModule.mm b/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdownModule.mm
+--- a/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdownModule.mm
++++ b/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdownModule.mm
+@@ -3,6 +3,7 @@
+ #import <RNLiveMarkdown/RuntimeDecorator.h>
+ #import <React/RCTBridge+Private.h>
+ #import <jsi/jsi.h>
++#import <ReactCommon/CallInvoker.h>
+ 
+ using namespace facebook;
+ using namespace expensify::livemarkdown;
+@@ -11,14 +12,19 @@ @implementation LiveMarkdownModule
+ 
+ RCT_EXPORT_MODULE()
+ 
++// RN 0.87+ removed RCTCxxBridge. RCTTurboModuleManager calls installJSIBindingsWithRuntime:callInvoker:
++// when the TurboModule is created (before JS receives the module object), so install() is a no-op.
+ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
+ {
+-  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+-  jsi::Runtime &rt = *(jsi::Runtime *)cxxBridge.runtime;
+-  expensify::livemarkdown::injectJSIBindings(rt);
+   return @(1);
+ }
+ 
++- (void)installJSIBindingsWithRuntime:(jsi::Runtime &)runtime
++                          callInvoker:(const std::shared_ptr<facebook::react::CallInvoker> &)callInvoker
++{
++  expensify::livemarkdown::injectJSIBindings(runtime);
++}
++
+ - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+     (const facebook::react::ObjCTurboModule::InitParams &)params {
+   return std::make_shared<facebook::react::NativeLiveMarkdownModuleSpecJSI>(
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java b/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
+@@ -61,7 +61,8 @@ public class CustomFabricUIManager extends FabricUIManager {
+       spannable -> {
+         mMarkdownUtils.applyMarkdownFormatting((SpannableStringBuilder)spannable);
+       },
+-      attachmentsPositions);
++      attachmentsPositions,
++      getTextEffectRegistry()); // RN 0.88: TextLayoutManager.measureText gained a trailing TextEffectRegistry parameter
+   }
+ 
+   public static FabricUIManager create(FabricUIManager source, ReadableMap markdownProps, int parserId) {

@@ -144,3 +144,21 @@
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976, fixed by https://github.com/Shopify/react-native-skia/pull/4002 (merged 2026-09-02, not in any release as of 2026-09-09; the latest is 2.11.2). Its dispose() applies the same isConnected guard (deferred by a microtask, since its caller is a layout effect) and adds context-restore handling, but it also zeroes the canvas size on cleanup, so a hidden Activity screen would show a blank chart in the backdrop. When the Skia dependency is bumped past that merge, either accept the blank backdrop and drop this patch or replace it with a patch that only removes the size reset.
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/100714
+
+### [@shopify+react-native-skia+2.4.18+005+rn088-jsi-install-without-RCTCxxBridge.patch](@shopify+react-native-skia+2.4.18+005+rn088-jsi-install-without-RCTCxxBridge.patch)
+
+- Reason:
+
+    ```
+    React Native 0.87 removed `RCTCxxBridge`. `RNSkiaModule.install` casted `self.bridge` to it to read the
+    JSI runtime and `jsCallInvoker`, so the iOS build fails on RN 0.87+.
+
+    Fix: create the `SkiaManager` from `installJSIBindingsWithRuntime:callInvoker:` (the
+    `RCTTurboModuleWithJSIBindings` protocol, which `RCTTurboModuleManager` calls when the TurboModule is created,
+    before JS receives the module object) and hand the runtime to `SkiaManager` explicitly instead of reading it
+    off the bridge. `install()` becomes a status query. Same approach react-native-gesture-handler 2.33 used.
+    ```
+
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/pull/3852 and https://github.com/Shopify/react-native-skia/pull/3906 (merged 2026-06-24/25, released in 2.7.0) instead guard the RCTCxxBridge path with `#ifndef RCT_REMOVE_LEGACY_ARCH` (RN 0.88 sets it to 1 by default) and read the runtime through an `RCTBridge` category. Drop this patch when Skia is bumped to >= 2.7.0 and re-verify the iOS build.
+- E/App issue: https://github.com/Expensify/App/issues/101427
+- PR introducing patch: TBD (RN 0.88 / Expo SDK 58 upgrade)

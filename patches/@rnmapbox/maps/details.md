@@ -13,3 +13,23 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/pull/90169#issuecomment-4476930634
 - PR introducing patch: https://github.com/Expensify/App/pull/91418
+
+### [@rnmapbox+maps+10.3.2+002+rn088-compat.patch](@rnmapbox+maps+10.3.2+002+rn088-compat.patch)
+
+- Reason:
+
+    ```
+    Three build breaks on React Native 0.88 / AGP 9:
+    - iOS: RN 0.87 added `fontSizeMultiplier` to `facebook::react::LayoutMetrics` (right before
+      `overflowInset`). `RNMBXMarkerViewComponentView.mm` builds a new LayoutMetrics with an aggregate
+      initializer, so the struct no longer compiles without the new field.
+    - Android: with RN 0.88's Fresco/Kotlin metadata `CloseableStaticBitmap.underlyingBitmap` is nullable,
+      so `image.underlyingBitmap.copy(...)` in `DownloadMapImageTask.kt` fails to compile. Copy null-safely
+      and skip the image when the bitmap is gone.
+    - Android: AGP 9 rejects `getDefaultProguardFile('proguard-android.txt')` ("no longer supported since it
+      includes -dontoptimize"); use `proguard-android-optimize.txt`.
+    ```
+
+- Upstream PR/issue: iOS: https://github.com/rnmapbox/maps/pull/4295 (open). Android bitmap: https://github.com/rnmapbox/maps/pull/4297 and ProGuard: https://github.com/rnmapbox/maps/pull/4282 (both merged 2026-09-21, not in a release yet; latest is 10.3.5 from 2026-07-22). Drop the Android hunks once we bump past a release that contains them, and the iOS hunk once #4295 ships.
+- E/App issue: https://github.com/Expensify/App/issues/101427
+- PR introducing patch: TBD (RN 0.88 / Expo SDK 58 upgrade)
