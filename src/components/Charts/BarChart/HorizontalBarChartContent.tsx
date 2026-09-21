@@ -242,9 +242,10 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         'worklet';
 
         // Anchor the tooltip above the bar's tip (the data end: right for positive values, left for negative),
-        // nudged slightly toward the axis so the pointer sits just inside the tip. The axis is to the left of a
-        // positive tip and to the right of a negative one, so flip the nudge direction by the tip's side.
-        const nudge = targetX >= xZero.get() ? -TOOLTIP_TIP_OFFSET_X : TOOLTIP_TIP_OFFSET_X;
+        // nudged toward the axis so the pointer sits just inside the tip. Cap the nudge at the bar's own length
+        // so a bar shorter than the offset can't push the anchor past the zero axis onto the wrong side.
+        const toAxis = xZero.get() - targetX;
+        const nudge = Math.sign(toAxis) * Math.min(TOOLTIP_TIP_OFFSET_X, Math.abs(toAxis));
         return {x: targetX + nudge, y: targetY - barThickness.get() / 2 - TOOLTIP_TIP_GAP};
     };
 
