@@ -146,6 +146,7 @@ import {
     temporaryGetDisplayNameOrDefault,
 } from './PersonalDetailsUtils';
 import {
+    canMemberWrite as canMemberWritePolicyUtils,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
@@ -155,16 +156,16 @@ import {
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getPolicyRole,
+    getReimbursementChoice,
     getRuleApprovers,
     getSubmitToAccountID,
     getTagGLCode,
-    canMemberWrite as canMemberWritePolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
     isExpensifyTeam,
-    isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
+    isGroupPolicyByType,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
     isPerDiemEnabled,
@@ -2946,7 +2947,7 @@ function isPayer(
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === currentAccountID;
-    const reimbursementChoice = policy?.reimbursementChoice;
+    const reimbursementChoice = getReimbursementChoice(policy);
 
     if (isPaidGroupPolicy(iouReport)) {
         // Pay-elsewhere / mark-paid flows for disabled reimbursement still allow any admin to act.
@@ -3060,7 +3061,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
         isInstantSubmitEnabled(policy) &&
         isSubmitAndClose(policy) &&
         (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) ||
-            (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
+            (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
     ) {
         return false;
     }
@@ -7452,7 +7453,7 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitB
     }
     const isInstantSubmitEnabledLocal = isInstantSubmitEnabled(policy);
     const isSubmitAndCloseLocal = isSubmitAndClose(policy);
-    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const arePaymentsDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     if (isInstantSubmitEnabledLocal && arePaymentsDisabled && isSubmitAndCloseLocal && !isEmptyOptimisticReport) {
         return {
@@ -12000,7 +12001,7 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
     const autoReimbursementLimit = policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
         isGroupPolicyPolicyUtils(policy) &&
-        policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
+        getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
         autoReimbursementLimit >= reimbursableTotal &&
         reimbursableTotal > 0 &&
         CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(report?.currency as CurrencyType);

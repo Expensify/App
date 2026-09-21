@@ -95,6 +95,7 @@ import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
+    getReimbursementChoice,
     getSubmitToAccountID,
     isInstantSubmitEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
@@ -4192,7 +4193,7 @@ function updateReportField({
     report: Report;
     reportField: PolicyReportField;
     previousReportField: PolicyReportField;
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
@@ -4207,7 +4208,7 @@ function updateReportField({
     const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField, accountID);
-    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const predictedNextStatus = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
     const optimisticNextStep = buildOptimisticNextStep({
         report,
@@ -8083,7 +8084,7 @@ function buildOptimisticChangePolicyData({
 
     const isInstantSubmitEnabledLocal = isInstantSubmitEnabled(policy);
     const isSubmitAndCloseLocal = isSubmitAndClose(policy);
-    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const arePaymentsDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     if (isProcessingReport(report) && isInstantSubmitEnabledLocal && isSubmitAndCloseLocal && arePaymentsDisabled) {
         newStatusNum = CONST.REPORT.STATUS_NUM.CLOSED;
         optimisticData.push({
