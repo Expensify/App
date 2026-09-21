@@ -497,7 +497,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
         });
 
         it.each([
-            {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: false},
+            {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: true},
             {isBetaEnabled: true, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: true},
             {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, shouldShowVendors: true},
         ])(
@@ -512,7 +512,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
                 // When the More features page renders with the selected beta state
                 await renderWithVendorMatching(connections, isBetaEnabled);
 
-                // Then visibility follows the active vendor source's beta requirement
+                // Then visibility follows DualEntry's GA availability when it scopes vendors.
                 if (shouldShowVendors) {
                     await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
                 } else {
