@@ -1,5 +1,5 @@
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {createTypeMenuSections, SPEND_INSIGHTS_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, SPEND_INSIGHT_KEYS} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -144,7 +144,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     return typeMenuSections;
 };
 
-const spendInsightsSearchKeys = new Set<SearchKey>(SPEND_INSIGHTS_SEARCH_KEYS);
+const spendInsightKeys = new Set<SearchKey>(SPEND_INSIGHT_KEYS);
 
 const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
     const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
@@ -155,7 +155,7 @@ const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
     }
 
     return typeMenuSections.flatMap((section) => {
-        const menuItems = section.menuItems.filter((item) => !spendInsightsSearchKeys.has(item.key));
+        const menuItems = section.menuItems.filter((item) => !spendInsightKeys.has(item.key));
         if (menuItems.length === section.menuItems.length) {
             return section;
         }

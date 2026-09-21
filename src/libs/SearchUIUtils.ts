@@ -4561,7 +4561,7 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
 }
 
-const SPEND_INSIGHTS_SEARCH_KEYS = [
+const SPEND_INSIGHT_KEYS = [
     CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
     CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
     CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
@@ -4756,7 +4756,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        const insightsSearchKeys = [...SPEND_INSIGHTS_SEARCH_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+        const insightsSearchKeys = [...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
 
         for (const key of insightsSearchKeys) {
             if (!suggestedSearchesVisibility[key]) {
@@ -7120,7 +7120,7 @@ export {
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
-    SPEND_INSIGHTS_SEARCH_KEYS,
+    SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,
     getItemBadgeText,
