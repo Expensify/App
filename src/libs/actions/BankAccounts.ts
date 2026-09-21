@@ -372,6 +372,26 @@ function clearPersonalBankAccount(preservedData?: Partial<PersonalBankAccount>) 
     clearPersonalBankAccountSetupType();
 }
 
+/** Clears setup progress while retaining the context needed to return to the flow that opened bank account setup. */
+function clearPersonalBankAccountPreservingEntryContext(personalBankAccount: OnyxEntry<PersonalBankAccount>) {
+    const preservedData: Partial<PersonalBankAccount> = {};
+
+    if (personalBankAccount?.exitReportID) {
+        preservedData.exitReportID = personalBankAccount.exitReportID;
+    }
+    if (personalBankAccount?.policyID) {
+        preservedData.policyID = personalBankAccount.policyID;
+    }
+    if (personalBankAccount?.source) {
+        preservedData.source = personalBankAccount.source;
+    }
+    if (personalBankAccount?.onSuccessFallbackRoute) {
+        preservedData.onSuccessFallbackRoute = personalBankAccount.onSuccessFallbackRoute;
+    }
+
+    clearPersonalBankAccount(Object.keys(preservedData).length > 0 ? preservedData : undefined);
+}
+
 /** Resets state and seeds drafts via Onyx.set to avoid set/merge races. */
 function resetPersonalBankAccountForUpdate(bankAccountID: number, personalBankAccountDraft?: Partial<PersonalBankAccountForm>, homeAddressDraft?: Record<string, string | undefined>) {
     clearPlaid();
@@ -1938,6 +1958,7 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    clearPersonalBankAccountPreservingEntryContext,
     clearInternationalBankAccount,
     setPersonalBankAccountContinueKYCOnSuccess,
     resetPersonalBankAccountForUpdate,

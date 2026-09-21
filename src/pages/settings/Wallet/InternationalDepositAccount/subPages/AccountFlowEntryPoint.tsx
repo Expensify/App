@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 
-import {clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
+import {clearPersonalBankAccountPreservingEntryContext, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
@@ -50,16 +50,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const [, plaidDataResult] = useOnyx(ONYXKEYS.PLAID_DATA);
     const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
     const isLoadingResumeState = isLoadingOnyxValue(personalBankAccountDraftResult, plaidDataResult);
-    const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
-
     useEffect(() => {
         if (isLoadingPersonalBankAccount || isLoadingResumeState || personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
             return;
         }
 
-        // Clear stale flow state on entry while preserving onSuccessFallbackRoute if it was set before entering this screen (e.g. from a pay/KYC flow or deep link).
+        // Clear stale flow state while retaining the context needed to return to the report, policy, or KYC flow that opened this screen.
         // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
-        clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
+        clearPersonalBankAccountPreservingEntryContext(personalBankAccount);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingPersonalBankAccount, isLoadingResumeState, personalBankAccount?.source]);
 

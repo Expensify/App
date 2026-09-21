@@ -1,5 +1,6 @@
 import {
     clearPersonalBankAccount,
+    clearPersonalBankAccountPreservingEntryContext,
     connectBankAccountWithPlaid,
     createCorpayBankAccountForWalletFlow,
     fetchCorpayFields,
@@ -404,6 +405,45 @@ describe('actions/BankAccounts', () => {
             const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
 
             expect(personalBankAccount).toEqual({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
+        });
+
+        test('preserves entry context while clearing setup progress', async () => {
+            // Given a report-originated setup containing both navigation context and transient progress
+            const personalBankAccount = {
+                exitReportID: '123',
+                policyID: 'policy-1',
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
+                shouldShowSuccess: true,
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+
+            // When the setup progress is cleared after selecting a country
+            clearPersonalBankAccountPreservingEntryContext(personalBankAccount);
+            await waitForBatchedUpdates();
+
+            // Then its entry context is retained without Wallet resume state
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({
+                exitReportID: '123',
+                policyID: 'policy-1',
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+            });
+        });
+
+        test('preserves Wallet ownership while clearing setup progress', async () => {
+            // Given a Wallet-owned setup with saved progress
+            const personalBankAccount = {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+
+            // When the setup progress is cleared after selecting a different country
+            clearPersonalBankAccountPreservingEntryContext(personalBankAccount);
+            await waitForBatchedUpdates();
+
+            // Then Wallet ownership remains but the saved page does not
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
         });
     });
 });
