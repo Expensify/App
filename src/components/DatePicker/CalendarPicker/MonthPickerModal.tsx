@@ -41,7 +41,7 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
     // Freeze the month selected when the picker opened so it stays pinned to the top for the whole open cycle, even as the live selection changes.
     const initialMonth = useInitialSelection(currentMonth, {isVisible});
     // Pin the frozen initial month to the top of the full list before search filtering, so it stays pinned while searching.
-    const orderedMonths = moveInitialSelectionToTop(allMonths, [String(initialMonth)]);
+    const orderedMonths = useMemo(() => moveInitialSelectionToTop(allMonths, [String(initialMonth)]), [allMonths, initialMonth]);
     const filteredMonths = searchText === '' ? orderedMonths : orderedMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
     const {data, headerMessage} = useMemo(() => {
         return {

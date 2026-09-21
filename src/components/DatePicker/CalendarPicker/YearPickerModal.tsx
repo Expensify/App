@@ -37,8 +37,10 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
     // Freeze the year selected when the picker opened so it stays pinned to the top for the whole open cycle, even as the live selection changes.
     const initialYear = useInitialSelection(currentYear, {isVisible});
     // Pin the frozen initial year to the top of the full sorted list before search filtering, so it stays pinned while searching.
-    const sortedYears = [...years].sort((a, b) => b.value - a.value);
-    const orderedYears = moveInitialSelectionToTop(sortedYears, [String(initialYear)]);
+    const orderedYears = useMemo(() => {
+        const sortedYears = [...years].sort((a, b) => b.value - a.value);
+        return moveInitialSelectionToTop(sortedYears, [String(initialYear)]);
+    }, [years, initialYear]);
 
     const {data, headerMessage} = useMemo(() => {
         const yearsList = searchText === '' ? orderedYears : orderedYears.filter((year) => year.text?.includes(searchText));
