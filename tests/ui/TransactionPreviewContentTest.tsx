@@ -9,6 +9,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 
+import type * as ReactNavigation from '@react-navigation/native';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -26,7 +28,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => {
-    const actualNavigation = jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native');
+    const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
         useRoute: () => ({key: 'report', name: 'Report', params: {}}),
