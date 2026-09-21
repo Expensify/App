@@ -29,7 +29,13 @@ function getPerDiemMerchant(locationName: string, dates: {start: string; end: st
     return `${locationName}, ${formatStoredDate(start)} - ${formatStoredDate(end)}`;
 }
 
-/** Both parts or neither, so no caller renders half a rebuild. Only the day and year are matched, because older clients wrote the month in their own language. */
+/**
+ * The shape the writer above stores, with the numbers captured rather than interpolated, so this compiles once for the
+ * search rows that measure a column through it. The month is left open, because older clients wrote it in their own language.
+ */
+const GENERATED_MERCHANT_PATTERN = /^(.+), [^,]+ (\d{1,2}), (\d{4}) - [^,]+ (\d{1,2}), (\d{4})$/u;
+
+/** Both parts or neither, so no caller renders half a rebuild. */
 function getPerDiemDisplayParts(transaction: OnyxEntry<Transaction>, merchant: string, locale: Locale): {destination: string; dates: string} | undefined {
     const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
     if (!start || !end) {
@@ -37,9 +43,14 @@ function getPerDiemDisplayParts(transaction: OnyxEntry<Transaction>, merchant: s
     }
     const startDate = DateUtils.toLocalDate(start);
     const endDate = DateUtils.toLocalDate(end);
-    const generatedRange = new RegExp(`^(.+), [^,]+ ${startDate.getDate()}, ${startDate.getFullYear()} - [^,]+ ${endDate.getDate()}, ${endDate.getFullYear()}$`, 'u');
-    const destination = generatedRange.exec(merchant)?.[1];
-    if (!destination) {
+    const [, destination, startDay, startYear, endDay, endYear] = GENERATED_MERCHANT_PATTERN.exec(merchant) ?? [];
+    if (
+        !destination ||
+        Number(startDay) !== startDate.getDate() ||
+        Number(startYear) !== startDate.getFullYear() ||
+        Number(endDay) !== endDate.getDate() ||
+        Number(endYear) !== endDate.getFullYear()
+    ) {
         return undefined;
     }
     const startLabel = DateUtils.formatToMediumDate(startDate, locale);

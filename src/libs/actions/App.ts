@@ -203,7 +203,7 @@ function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): 
 }
 
 function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
-    // After a failed chunk load left the store on English, the NVP still holds `locale`, so the writes below are no-ops and nothing else would ask for the load again.
+    // Applying a locale is what loads it: the writes below are no-ops when the NVP already holds it, which is what a failed load leaves behind, and then nothing would ask again.
     IntlStore.load(locale);
 
     if (locale === currentPreferredLocale) {

@@ -507,7 +507,7 @@ function monthNamesWithFallback(locale: Locale, formatKey: IntlFormatKey, englis
 /**
  * As a language writes a month inside a sentence (es `enero`), so only a label that stands alone capitalizes it.
  * Never add day or year to `LONG_MONTH`: that flips Intl into format context and inflects the label (ru "января").
- * Memoized for the pickers and the card fields, which call it per render outside React Compiler's reach.
+ * Memoized for MonthPickerModal, the one caller React Compiler does not cover.
  */
 const getMonthNames = memoize((locale: Locale): readonly string[] => monthNamesWithFallback(locale, 'LONG_MONTH', CONST.DATE.ENGLISH_MONTH_NAMES), {maxSize: 16, equality: 'shallow'});
 

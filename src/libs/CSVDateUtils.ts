@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
 
 import {addDays, format, isValid, parse} from 'date-fns';
+import escapeRegExp from 'lodash/escapeRegExp';
 
 import DateUtils from './DateUtils';
 import {registerDerivedIntlCache} from './IntlFormatterCaches';
@@ -31,25 +32,24 @@ const CSV_DATE_FORMATS = [
 const TRAILING_TIME_PATTERN = /[T\s]\d{1,2}:\d{2}/;
 
 /**
- * Every month name the uploader's language writes, mapped to the English one date-fns parses, longest first so a full
- * name is matched before its abbreviation. Memoized because a file is parsed a row at a time and the table is the same
- * for all of them, and dropped with the other derived caches, because the names it reads change when a locale's data lands.
+ * Every month name the uploader's language writes, as a pattern matching it in a cell, paired with the English name
+ * date-fns parses. Longest first, so a full name is matched before its abbreviation. Memoized because a file is parsed
+ * a row at a time, and dropped with the other derived caches, because the names it reads change when a locale's data lands.
  */
 const getEnglishMonthNameByLocalizedName = memoize(
-    (locale: Locale): Array<[localizedName: string, englishName: string]> => {
-        const entries: Array<[string, string]> = [];
+    (locale: Locale): Array<[localizedName: RegExp, englishName: string]> => {
+        const names: Array<[string, string]> = [];
         const localizedNames = [...DateUtils.getMonthNames(locale), ...DateUtils.getShortMonthNames(locale)];
         for (const [index, name] of localizedNames.entries()) {
             const englishName = CONST.DATE.ENGLISH_MONTH_NAMES.at(index % CONST.DATE.ENGLISH_MONTH_NAMES.length) ?? '';
-            const localizedName = name.toLowerCase();
-            entries.push([localizedName, englishName]);
+            names.push([name, englishName]);
             // A language may abbreviate a month with a trailing point, which the tool that wrote the file may have dropped.
-            const withoutPoints = localizedName.replaceAll('.', '');
-            if (withoutPoints !== localizedName) {
-                entries.push([withoutPoints, englishName]);
+            const withoutPoints = name.replaceAll('.', '');
+            if (withoutPoints !== name) {
+                names.push([withoutPoints, englishName]);
             }
         }
-        return entries.sort(([nameA], [nameB]) => nameB.length - nameA.length);
+        return names.sort(([nameA], [nameB]) => nameB.length - nameA.length).map(([name, englishName]) => [new RegExp(escapeRegExp(name), 'iu'), englishName]);
     },
     {maxSize: 16, equality: 'shallow'},
 );
@@ -63,13 +63,13 @@ registerDerivedIntlCache(() => {
  * exporting tool wrote, which is the uploader's language as often as English, while date-fns reads English alone.
  */
 function toEnglishMonthName(input: string, locale: Locale): string {
-    const lowerCaseInput = input.toLowerCase();
     for (const [localizedName, englishName] of getEnglishMonthNameByLocalizedName(locale)) {
-        const nameIndex = lowerCaseInput.indexOf(localizedName);
-        if (nameIndex === -1) {
+        // Matched against the cell itself rather than a lowercased copy, whose offsets drift from it: `İ` lowercases to two characters.
+        const match = localizedName.exec(input);
+        if (!match) {
             continue;
         }
-        return `${input.slice(0, nameIndex)}${englishName}${input.slice(nameIndex + localizedName.length)}`;
+        return `${input.slice(0, match.index)}${englishName}${input.slice(match.index + match[0].length)}`;
     }
     return input;
 }

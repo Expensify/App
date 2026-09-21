@@ -13,7 +13,6 @@ import {setLocale} from '@userActions/App';
 
 import CONST from '@src/CONST';
 import {isSupportedLocale} from '@src/CONST/LOCALES';
-import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Locale from '@src/types/onyx/Locale';
@@ -109,7 +108,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             return;
         }
 
-        IntlStore.load(localeToApply);
         setLocale(localeToApply, nvpPreferredLocale);
     }, [localeToApply, nvpPreferredLocale]);
 

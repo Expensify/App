@@ -595,8 +595,8 @@ function getDisplayValue(
         return convertToDisplayString(Number(fieldValue), getCurrency(transaction));
     }
     if (field === 'created') {
-        // An expense date is date-only, so it renders UTC-anchored rather than in the reader's zone.
-        return DateUtils.formatInUTCToMedium(SafeString(fieldValue), locale);
+        // An expense date is date-only, so it renders UTC-anchored. One the formatter cannot read stays as stored, because a blank row reads as the two candidates sharing a date.
+        return DateUtils.formatInUTCToMedium(SafeString(fieldValue), locale) || SafeString(fieldValue);
     }
     if (field === 'description') {
         return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue)));
