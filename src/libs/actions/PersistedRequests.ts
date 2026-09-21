@@ -353,11 +353,46 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
         });
 }
 
-function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>): Promise<void> {
+/**
+ * Replace one queued request with newRequest. With requestIndexToReplace the target is that identity, looked up in the
+ * live queue, and oldRequestIndex is only the caller's now-stale guess (logged as staleIndex); without it, the target
+ * is oldRequestIndex itself, which must be in range. A target that cannot be resolved — absent, out of range, or carried
+ * by more than one request — is skipped, never appended.
+ */
+function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>, requestIndexToReplace?: number): Promise<void> {
     const requests = [...persistedRequests];
-    const oldRequest = requests.at(oldRequestIndex);
-    Log.info('[PersistedRequests] Updating a request', false, {oldRequest: sanitizeLogParams(oldRequest), newRequest: sanitizeLogParams(newRequest), oldRequestIndex});
-    requests.splice(oldRequestIndex, 1, newRequest as AnyRequest);
+    const carriesTargetIdentity = (persistedRequest: AnyRequest) => requestIndexToReplace !== undefined && getClientRequestIndex(persistedRequest) === requestIndexToReplace;
+    const indexToReplace = requestIndexToReplace === undefined ? oldRequestIndex : requests.findIndex(carriesTargetIdentity);
+    const targetIdentityIsAmbiguous = requests.filter(carriesTargetIdentity).length > 1;
+    const targetIsMissingFromQueue = indexToReplace === -1 || indexToReplace >= requests.length;
+    const skippedLogParams = {command: newRequest.command, requestIndexToReplace, staleIndex: oldRequestIndex, queueLength: requests.length};
+
+    if (targetIdentityIsAmbiguous) {
+        Log.alert('[PersistedRequests] Refusing to update a request whose requestIndex is carried by more than one queued request', skippedLogParams);
+        return Promise.resolve();
+    }
+
+    if (targetIsMissingFromQueue) {
+        const ongoing = getOngoingRequest();
+        const targetIsTheOngoingRequest = requestIndexToReplace !== undefined && ongoing !== null && getClientRequestIndex(ongoing) === requestIndexToReplace;
+
+        if (targetIsTheOngoingRequest) {
+            Log.info('[PersistedRequests] Update target has been promoted to the ongoing request, which carries the update already, skipping it', false, skippedLogParams);
+        } else {
+            Log.alert('[PersistedRequests] Update target is in neither the queue nor the ongoing request, so the update is dropped', skippedLogParams);
+        }
+        return Promise.resolve();
+    }
+
+    const oldRequest = requests.at(indexToReplace);
+    Log.info('[PersistedRequests] Updating a request', false, {
+        oldRequest: sanitizeLogParams(oldRequest),
+        newRequest: sanitizeLogParams(newRequest),
+        oldRequestIndex,
+        resolvedIndex: indexToReplace,
+        requestIndexToReplace,
+    });
+    requests.splice(indexToReplace, 1, newRequest as AnyRequest);
     persistedRequests = requests;
     const requestIndex = getClientRequestIndex(newRequest as AnyRequest);
     if (requestIndex != null) {
@@ -544,6 +579,7 @@ export {
     save,
     getAll,
     getCommands,
+    getClientRequestIndex,
     endRequestAndRemoveFromQueue,
     update,
     getLength,

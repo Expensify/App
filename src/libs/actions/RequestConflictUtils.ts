@@ -11,6 +11,8 @@ import type {TupleToUnion} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import {getClientRequestIndex} from './PersistedRequests';
+
 type AnyRequestMatcher = (request: AnyRequest) => boolean;
 
 const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -305,7 +307,8 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
         indicesToDelete.push(index);
     }
 
-    const currentAddComment = persistedRequests.at(addCommentIndex);
+    const addCommentIsLocated = addCommentIndex >= 0;
+    const currentAddComment = addCommentIsLocated ? persistedRequests.at(addCommentIndex) : undefined;
     let nextAction = null;
     if (currentAddComment) {
         currentAddComment.data = {...currentAddComment.data, ...parameters};
@@ -322,6 +325,7 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
         nextAction = {
             type: 'replace',
             index: addCommentIndex,
+            requestIndex: getClientRequestIndex(currentAddComment),
             request: currentAddComment,
         };
 
