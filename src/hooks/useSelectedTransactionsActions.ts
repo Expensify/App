@@ -578,15 +578,16 @@ function useSelectedTransactionsActions({
         }
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
+            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+            if (isDeletedAction(action)) {
+                return false;
+            }
+
             if (isManagedCardTransaction(transaction)) {
                 return canDeleteCardTransaction(transaction, policy);
             }
 
-            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            const isActionDeleted = isDeletedAction(action);
-            const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
-
-            return isIOUActionOwner && !isActionDeleted;
+            return typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
         });
 
         const canRemoveReportTransaction = canDeleteTransaction(report, rules, isReportArchived);
