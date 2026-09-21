@@ -41,6 +41,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -1793,9 +1794,20 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
+/**
+ * Whether Invoice Fields is enabled for the policy.
+ * Respects the `areInvoiceFieldsEnabled` toggle and verifies the policy has access to the feature (Control only).
+ */
+function isInvoiceFieldsEnabled(policy: OnyxEntry<Policy> | null): boolean {
+    return !!policy?.areInvoiceFieldsEnabled && canPolicyAccessFeature(policy ?? undefined, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED);
+}
+
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
         return arePolicyRulesEnabled(policy, policyCategories);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED) {
+        return isInvoiceFieldsEnabled(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
@@ -2730,21 +2742,28 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Xero, Rillet, and DualEntry branches but not on QBO or Sage Intacct:
+ * `isVendorMatchingBetaEnabled` is consulted on the Xero and Rillet branches but not on QBO, Sage Intacct, or DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
  *   - Rillet (R4) configured connection. Beta required
- *   - DualEntry configured connection. Beta required
+ *   - DualEntry configured connection. GA, so no beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy)) {
+    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy));
+}
+
+/**
+ * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature.
+ */
+function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
 }
 
 /**
@@ -2930,6 +2949,18 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
         };
     }
     return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
+/**
+ * Display name of a transaction's vendor, or an empty string when none is assigned. The workspace's synced vendor list
+ * wins so renames in the accounting system show through. The name stored on the transaction covers vendors since
+ * removed from that list.
+ */
+function getVendorDisplayName(policy: OnyxEntry<Policy>, vendor: TransactionCommentVendor | undefined): string {
+    if (!vendor?.externalID) {
+        return '';
+    }
+    return findVendorByID(policy, vendor.externalID)?.name ?? vendor.name ?? '';
 }
 
 /**
@@ -3497,6 +3528,7 @@ export {
     getConnectedIntegration,
     getConnectionExporters,
     findVendorByID,
+    getVendorDisplayName,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
@@ -3511,6 +3543,7 @@ export {
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
+    hasVendorFeatureOnAnyPolicy,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -3702,6 +3735,7 @@ export {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
+    isInvoiceFieldsEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     hasAcceptedTravelTerms,
