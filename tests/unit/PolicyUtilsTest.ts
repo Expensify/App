@@ -47,6 +47,9 @@ import {
     getRateDisplayValue,
     getOwnerChangePayerSuccessData,
     getSageIntacctVendors,
+    arePaymentsEnabled,
+    getReimbursementChoice,
+    isPolicyPayer,
     getReimburserEmail,
     getSubmitReportManagerAccountID,
     getSubmitToAccountID,
@@ -2139,6 +2142,102 @@ describe('PolicyUtils', () => {
             });
             expect(getReimburserEmail(policy)).toBeUndefined();
         });
+
+        // A workspace that never stored a choice gets the deprecated spelling from the backend, and it means Indirect.
+        it('should resolve the payer for deprecated manual reimbursement', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBe('owner@example.com');
+        });
+
+        it('should return undefined when deprecated reimbursement is disabled', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'reimburser@example.com',
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+    });
+
+    describe('getReimbursementChoice', () => {
+        it('should return undefined when there is no policy', () => {
+            expect(getReimbursementChoice(undefined)).toBeUndefined();
+        });
+
+        it('should return undefined when the policy has no choice', () => {
+            const policy = createMock<Policy>({id: '1'});
+            expect(getReimbursementChoice(policy)).toBeUndefined();
+        });
+
+        it.each([
+            CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        ])('should pass through the current value %s', (choice) => {
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+            expect(getReimbursementChoice(policy)).toBe(choice);
+        });
+
+        it.each([
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+        ])('should resolve %s to %s', (deprecatedChoice, expectedChoice) => {
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: deprecatedChoice});
+            expect(getReimbursementChoice(policy)).toBe(expectedChoice);
+        });
+
+        it('should not resolve a value that merely starts with the deprecated prefix', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: 'deprecated_reimburseSomethingElse' as Policy['reimbursementChoice']});
+            expect(getReimbursementChoice(policy)).toBe('deprecated_reimburseSomethingElse');
+        });
+    });
+
+    describe('arePaymentsEnabled', () => {
+        it.each([
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+        ])('should return %s -> %s', (choice, expected) => {
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+            expect(arePaymentsEnabled(policy)).toBe(expected);
+        });
+    });
+
+    describe('isPolicyPayer', () => {
+        // The workspace owner is the payer under Indirect reimbursement, whichever spelling the backend returns.
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+            'should treat the owner as the payer for %s',
+            (choice) => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: choice,
+                    owner: 'owner@example.com',
+                });
+                expect(isPolicyPayer(policy, 'owner@example.com')).toBe(true);
+            },
+        );
+
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+            'should treat nobody as the payer for %s',
+            (choice) => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: choice,
+                    owner: 'owner@example.com',
+                });
+                expect(isPolicyPayer(policy, 'owner@example.com')).toBe(false);
+            },
+        );
     });
 
     describe('getOwnerChangePayerSuccessData', () => {

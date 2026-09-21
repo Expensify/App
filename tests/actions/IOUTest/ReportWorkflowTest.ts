@@ -6081,4 +6081,79 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(result).toBeUndefined();
         });
     });
+    describe('canIOUBePaid with a deprecated reimbursement choice', () => {
+        // A workspace that never stored a reimbursement choice gets its answer from an inbox task the backend has
+        // retired, and the backend returns that answer prefixed with `deprecated_`. The prefixed value means the same
+        // as its plain counterpart, so Pay has to behave identically for both spellings.
+        function buildApprovedExpenseReportScenario(reimbursementChoice: Policy['reimbursementChoice'], seed: number) {
+            const policyID = `${seed}`;
+            const chatReportID = `${seed + 1}`;
+            const iouReportID = `${seed + 2}`;
+
+            const policy: Policy = {
+                ...createRandomPolicy(seed),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: RORY_EMAIL,
+                reimbursementChoice,
+                reimburser: undefined,
+                achAccount: undefined,
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(seed + 1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(seed + 2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                total: -10000,
+                nonReimbursableTotal: 0,
+                isWaitingOnBankAccount: false,
+            };
+
+            return {policy, chatReport, expenseReport, policyID, chatReportID, iouReportID};
+        }
+
+        it.each([
+            ['the current spelling', CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+            ['the deprecated spelling', CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+        ])('should let the workspace owner pay an approved report when indirect reimbursement uses %s', async (_label, reimbursementChoice) => {
+            const {policy, chatReport, expenseReport, policyID, chatReportID, iouReportID} = buildApprovedExpenseReportScenario(reimbursementChoice, 4100);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, expenseReport, {}, policy)).toBe(true);
+            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBe(true);
+            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBe(true);
+        });
+
+        it.each([
+            ['the current spelling', CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
+            ['the deprecated spelling', CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
+        ])('should keep Pay unavailable on an approved report when reimbursement is disabled using %s', async (_label, reimbursementChoice) => {
+            const {policy, chatReport, expenseReport, policyID, chatReportID, iouReportID} = buildApprovedExpenseReportScenario(reimbursementChoice, 4200);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, expenseReport, {}, policy)).toBe(false);
+            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBe(false);
+            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBe(false);
+        });
+    });
 });
