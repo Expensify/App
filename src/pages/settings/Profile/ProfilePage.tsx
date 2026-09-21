@@ -6,6 +6,8 @@ import Button from '@components/Button';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -273,18 +275,31 @@ function ProfilePage() {
                             {publicOptions.map((detail) => {
                                 const {pageRoute} = detail;
                                 return (
-                                    <MenuItemWithTopDescription
+                                    <MenuItemSectionRow
                                         key={detail.testID}
-                                        interactive={!!pageRoute}
-                                        shouldShowRightIcon={!!pageRoute}
-                                        title={detail.title}
-                                        description={detail.description}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={pageRoute ? () => Navigation.navigate(pageRoute) : undefined}
-                                        brickRoadIndicator={detail.brickRoadIndicator}
-                                        pressableTestID={detail?.testID}
+                                        testID={detail?.testID}
                                         sentryLabel={detail.sentryLabel}
-                                    />
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Content>
+                                                {detail.title ? (
+                                                    <>
+                                                        <MenuItem.FieldName>{detail.description}</MenuItem.FieldName>
+                                                        <MenuItem.FieldValue>{detail.title}</MenuItem.FieldValue>
+                                                    </>
+                                                ) : (
+                                                    <MenuItem.FieldNamePlaceholder>{detail.description}</MenuItem.FieldNamePlaceholder>
+                                                )}
+                                            </MenuItem.Content>
+                                            {(!!detail.brickRoadIndicator || !!pageRoute) && (
+                                                <MenuItem.Trailing>
+                                                    {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                    {!!pageRoute && <MenuItem.Chevron />}
+                                                </MenuItem.Trailing>
+                                            )}
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRow>
                                 );
                             })}
                             <Button

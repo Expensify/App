@@ -27,7 +27,7 @@ function MenuItemSectionRow({children, onPress, isDisabled = false, sentryLabel,
             style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
         >
             <MenuItemRoot
-                onPress={callFunctionIfActionIsAllowed(onPress)}
+                onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
                 isDisabled={isDisabled}
                 sentryLabel={sentryLabel}
                 testID={testID}

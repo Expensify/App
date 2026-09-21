@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -37,6 +38,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {Str} from 'expensify-common';
 import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS>;
 
@@ -137,14 +139,27 @@ function WorkspaceReportFieldsPage({
                                 errorRowTextStyles={[styles.mv2]}
                                 onClose={clearTitleFieldError}
                             >
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.reports.customNameTitle')}
-                                    title={Str.htmlDecode(titleField?.defaultValue ?? '')}
-                                    shouldShowRightIcon={canWriteReportFields}
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
-                                    interactive={canWriteReportFields}
-                                />
+                                <View style={styles.mt6}>
+                                    <MenuItemSectionRow onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}>
+                                        <MenuItem.Row>
+                                            <MenuItem.Content>
+                                                {titleField?.defaultValue ? (
+                                                    <>
+                                                        <MenuItem.FieldName>{translate('workspace.reports.customNameTitle')}</MenuItem.FieldName>
+                                                        <MenuItem.FieldValue>{Str.htmlDecode(titleField.defaultValue)}</MenuItem.FieldValue>
+                                                    </>
+                                                ) : (
+                                                    <MenuItem.FieldNamePlaceholder>{translate('workspace.reports.customNameTitle')}</MenuItem.FieldNamePlaceholder>
+                                                )}
+                                            </MenuItem.Content>
+                                            {canWriteReportFields && (
+                                                <MenuItem.Trailing>
+                                                    <MenuItem.Chevron />
+                                                </MenuItem.Trailing>
+                                            )}
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRow>
+                                </View>
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
                                 pendingAction={reportTitlePendingFields.deletable ?? policy?.pendingAction}

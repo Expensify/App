@@ -4,8 +4,11 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -178,6 +181,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policyCurrency = policy?.outputCurrency ?? '';
     const readOnly = !canEditWorkspaceSettings(policy);
     const currencyReadOnly = readOnly || isBankAccountVerified;
+    const isCurrencyInteractive = !shouldBlockCurrencyChange && !currencyReadOnly;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails.accountID);
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked} = useLockedAccountState();
@@ -600,14 +604,25 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 clearPolicyErrorField(policy.id, 'clientID');
                             }}
                         >
-                            <MenuItemWithTopDescription
-                                title={policy?.clientID}
-                                description={translate('workspace.common.clientID')}
-                                shouldShowRightIcon={!readOnly}
-                                interactive={!readOnly}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={onPressClientID}
-                            />
+                            <MenuItemSectionRow onPress={readOnly ? undefined : onPressClientID}>
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        {policy?.clientID ? (
+                                            <>
+                                                <MenuItem.FieldName>{translate('workspace.common.clientID')}</MenuItem.FieldName>
+                                                <MenuItem.FieldValue>{policy.clientID}</MenuItem.FieldValue>
+                                            </>
+                                        ) : (
+                                            <MenuItem.FieldNamePlaceholder>{translate('workspace.common.clientID')}</MenuItem.FieldNamePlaceholder>
+                                        )}
+                                    </MenuItem.Content>
+                                    {!readOnly && (
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    )}
+                                </MenuItem.Row>
+                            </MenuItemSectionRow>
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback
@@ -622,20 +637,38 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         errorRowStyles={[styles.mt2]}
                     >
                         <View>
-                            <MenuItemWithTopDescription
-                                title={formattedCurrency}
-                                description={translate('workspace.editor.currencyInputLabel')}
+                            <MenuItemSectionRow
+                                onPress={isCurrencyInteractive ? onPressCurrency : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
-                                shouldShowRightIcon={shouldBlockCurrencyChange ? false : !currencyReadOnly}
-                                interactive={shouldBlockCurrencyChange ? false : !currencyReadOnly}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={onPressCurrency}
-                                hintText={
-                                    shouldBlockCurrencyChange || isBankAccountVerified
-                                        ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
-                                        : translate('workspace.editor.currencyInputHelpText')
-                                }
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        {formattedCurrency ? (
+                                            <>
+                                                <MenuItem.FieldName>{translate('workspace.editor.currencyInputLabel')}</MenuItem.FieldName>
+                                                <MenuItem.FieldValue>{formattedCurrency}</MenuItem.FieldValue>
+                                            </>
+                                        ) : (
+                                            <MenuItem.FieldNamePlaceholder>{translate('workspace.editor.currencyInputLabel')}</MenuItem.FieldNamePlaceholder>
+                                        )}
+                                    </MenuItem.Content>
+                                    {isCurrencyInteractive && (
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    )}
+                                </MenuItem.Row>
+                                <FormHelpMessage
+                                    isError={false}
+                                    shouldShowRedDotIndicator={false}
+                                    message={
+                                        shouldBlockCurrencyChange || isBankAccountVerified
+                                            ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
+                                            : translate('workspace.editor.currencyInputHelpText')
+                                    }
+                                    style={styles.menuItemError}
+                                />
+                            </MenuItemSectionRow>
                         </View>
                     </OfflineWithFeedback>
                     {shouldShowAddress && (
@@ -659,14 +692,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     {!readOnly && !!policy?.type && (
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                             <View>
-                                <MenuItemWithTopDescription
-                                    title={getUserFriendlyWorkspaceType(policy.type, translate)}
-                                    description={translate('workspace.common.planType')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
-                                    shouldShowRightIcon
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                <MenuItemSectionRow
                                     onPress={onPressPlanType}
-                                />
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.FieldName>{translate('workspace.common.planType')}</MenuItem.FieldName>
+                                            <MenuItem.FieldValue>{getUserFriendlyWorkspaceType(policy.type, translate)}</MenuItem.FieldValue>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRow>
                             </View>
                         </OfflineWithFeedback>
                     )}

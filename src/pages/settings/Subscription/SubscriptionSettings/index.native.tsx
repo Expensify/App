@@ -1,7 +1,8 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OptionItem from '@components/OptionsPicker/OptionItem';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -79,12 +80,16 @@ function SubscriptionSettings() {
 
     const subscriptionSizeSection =
         privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && privateSubscription?.userCount ? (
-            <MenuItemWithTopDescription
-                description={translate('subscription.details.subscriptionSize')}
-                title={`${privateSubscription?.userCount}`}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-                style={styles.mt5}
-            />
+            <View style={styles.mt5}>
+                <MenuItemSectionRow>
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            <MenuItem.FieldName>{translate('subscription.details.subscriptionSize')}</MenuItem.FieldName>
+                            <MenuItem.FieldValue>{privateSubscription.userCount}</MenuItem.FieldValue>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItemSectionRow>
+            </View>
         ) : null;
 
     if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {

@@ -1,5 +1,7 @@
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -115,39 +117,76 @@ function PreferencesPage() {
                                     />
                                 </View>
                             </View>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}
-                                description={translate('priorityModePage.priorityMode')}
+                            <MenuItemSectionRow
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
-                                description={translate('languagePage.language')}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.FieldName>{translate('priorityModePage.priorityMode')}</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>{translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}</MenuItem.FieldValue>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItemSectionRow>
+                            <MenuItemSectionRow
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
-                                description={translate('billingCurrency.paymentCurrency')}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        {preferredLocale ? (
+                                            <>
+                                                <MenuItem.FieldName>{translate('languagePage.language')}</MenuItem.FieldName>
+                                                <MenuItem.FieldValue>{LOCALE_TO_LANGUAGE_STRING[preferredLocale]}</MenuItem.FieldValue>
+                                            </>
+                                        ) : (
+                                            <MenuItem.FieldNamePlaceholder>{translate('languagePage.language')}</MenuItem.FieldNamePlaceholder>
+                                        )}
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                                {(!preferredLocale || !isFullySupportedLocale(preferredLocale)) && (
+                                    <FormHelpMessage
+                                        isError={false}
+                                        shouldShowRedDotIndicator={false}
+                                        message={translate('languagePage.aiGenerated')}
+                                        style={styles.menuItemError}
+                                    />
+                                )}
+                            </MenuItemSectionRow>
+                            <MenuItemSectionRow
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
-                                description={translate('themePage.theme')}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.FieldName>{translate('billingCurrency.paymentCurrency')}</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>{`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}</MenuItem.FieldValue>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItemSectionRow>
+                            <MenuItemSectionRow
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.FieldName>{translate('themePage.theme')}</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>{translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}</MenuItem.FieldValue>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItemSectionRow>
                         </View>
                     </Section>
                 </View>
