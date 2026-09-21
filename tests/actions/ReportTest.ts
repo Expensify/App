@@ -2751,6 +2751,37 @@ describe('actions/Report', () => {
         });
     });
 
+    it('keeps the literal file name when an edit label reads as markdown emphasis', async () => {
+        global.fetch = TestHelper.createGlobalFetchMock();
+        const reportID = '123';
+        const attachmentURL = 'https://www.expensify.com/chat-attachments/722/w_abc.csv';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // Given a synced attachment-only comment
+        const action: OnyxEntry<OnyxTypes.ReportAction> = {
+            reportID,
+            reportActionID: '722',
+            actionName: 'ADDCOMMENT',
+            created: '2024-10-21 10:37:59.881',
+            message: [{type: 'COMMENT', html: `<a href="${attachmentURL}" data-expensify-source="${attachmentURL}" data-attachment-id="1">report.csv</a>`, text: '[Attachment]'}],
+        };
+
+        // When it is renamed to a label whose underscores the parser would read as emphasis
+        Report.editReportComment({reportID}, action, `[_my_report_.csv](${attachmentURL})`, undefined, '', undefined);
+
+        // Then the queued edit carries the label as plain text inside the anchor
+        const request = PersistedRequests.getAll().at(0);
+        expect(request?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
+        expect(request?.data?.reportComment).toContain('>_my_report_.csv</a>');
+        expect(request?.data?.reportComment).not.toContain('<em>');
+
+        await waitForBatchedUpdates();
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
     it('it should only send the last sequential UpdateComment request to BE', async () => {
         global.fetch = TestHelper.createGlobalFetchMock();
         const reportID = '123';
