@@ -1167,6 +1167,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         viewOnSpend: 'Ver em Gastos',
+        emptyState: {title: 'Nada para mostrar', subtitle: 'Tente ajustar seus critérios acima'},
+        noExpensesState: {title: 'Veja para onde vai o seu dinheiro', subtitle: 'Quando você tiver despesas, vai encontrar tendências de gastos, principais estabelecimentos e muito mais.'},
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
