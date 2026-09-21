@@ -44,7 +44,8 @@ import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} 
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
-import {openReport, subscribeToNewActionEvent} from '@userActions/Report';
+import {openReport} from '@userActions/Report';
+import {subscribeToNewActionEvent} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
