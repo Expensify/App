@@ -53,7 +53,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with null reportAction
-            clearAllRelatedReportActionErrors(REPORT_ID, null, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, null, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified
@@ -65,7 +65,7 @@ describe('ClearReportActionErrors', () => {
             // Given no initial state
 
             // When clearAllRelatedReportActionErrors is called with undefined reportAction
-            clearAllRelatedReportActionErrors(REPORT_ID, undefined, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, undefined, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified
@@ -78,7 +78,7 @@ describe('ClearReportActionErrors', () => {
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: undefined});
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified
@@ -91,7 +91,7 @@ describe('ClearReportActionErrors', () => {
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: {error1: 'Error message'}});
 
             // When clearAllRelatedReportActionErrors is called with undefined reportID
-            clearAllRelatedReportActionErrors(undefined, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(undefined, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified
@@ -110,7 +110,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with specific keys to clear
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, undefined, ['error1', 'error2']);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false, undefined, ['error1', 'error2']);
             await waitForBatchedUpdates();
 
             // Then only the specified errors should be cleared, leaving error3
@@ -132,7 +132,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then the entire report action should be deleted (not just errors cleared)
@@ -163,7 +163,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called on the child action
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then the parent action's matching error should also be cleared
@@ -194,7 +194,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with ignore='parent'
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, 'parent');
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false, 'parent');
             await waitForBatchedUpdates();
 
             // Then the parent action's error should remain unchanged
@@ -222,7 +222,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with ignore='child'
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, 'child');
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false, 'child');
             await waitForBatchedUpdates();
 
             // Then the child action's error should remain unchanged
@@ -253,7 +253,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then the parent action's error should remain because the keys don't match
@@ -272,7 +272,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with different reportID and originalReportID
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, originalReportID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, originalReportID, false);
             await waitForBatchedUpdates();
 
             // Then the errors should be cleared from the originalReportID location
@@ -285,7 +285,7 @@ describe('ClearReportActionErrors', () => {
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: {}});
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified (early return)
@@ -303,7 +303,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then the report action should remain unchanged (early return due to missing reportActionID)
@@ -339,7 +339,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then all child actions with matching error keys should have their errors cleared
@@ -368,7 +368,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then only matching errors should be cleared, leaving non-matching errors intact
