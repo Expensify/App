@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu, Created date filter, Created column, Date column renamed]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -41,7 +41,7 @@ Filter reports by type, status, category, or date to find specific information.
 3. Choose a type tab - **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
 4. Click **Filters**.
 5. Select filters such as:
-   - **Date:** This month, last month
+   - **Date:** This month, last month. On the **Expense Report** and **Task** types, this filter is named **Created date**
    - **Status:** Outstanding, Paid
    - **From:** You, or someone else
    - **Paid by:** The member who paid the report. On the **Expense Report** type, this sits directly below **Paid status**. On the **Expense** type, it sits directly below **Paid**.
@@ -71,7 +71,8 @@ To customize columns:
 You can choose from a wide range of columns, including:
 
 - **Avatar** – The profile image of the report submitter
-- **Date** – When the report or expense was created
+- **Created date** – When the report was created. This is the name in **Edit columns** on the **Reports** view; the table column header itself is shortened to **Created**
+- **Date** – The expense date. This is the name on the **Expenses** view, where the date can be edited
 - **Submitted** – The date the report was submitted for approval
 - **Total** – The total amount of the report or expense
 - **Workspace** – The workspace the report belongs to
@@ -201,6 +202,14 @@ Each report type has specific filters and search tools for finding the informati
 
 ## Why can’t I see some filters?
 Filters are enabled incrementally. If a filter isn’t visible, ensure that your workspace or account settings support the relevant feature (e.g., categories, statuses).
+
+## Why does my date column say Created on reports but Date on expenses?
+On the **Expense Report** and **Task** types, the date column shows when the report or task was created and cannot be edited, so it is named **Created date** in **Filters**, **Sort by**, **Edit columns**, saved searches, and exported CSV files. The table column header is shortened to **Created** so it fits the column width.
+
+On the **Expense**, **Invoice**, and **Trip** types, the column shows the expense date, which you can edit, so it stays named **Date**. The date column inside an open report also stays named **Date**.
+
+## Do I need to update my saved searches or search commands after the Created date rename?
+No. Only the label changed. The `date:` search command and your saved searches, shared search links, and sorting preferences all keep working.
 
 ## Why are my mobile and desktop report experiences slightly different?
 Expensify ensures cross-platform consistency where possible. However, certain features (like customizable columns) are only available on web for larger screen layouts.
