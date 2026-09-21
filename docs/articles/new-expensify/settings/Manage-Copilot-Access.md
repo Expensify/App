@@ -2,7 +2,7 @@
 
 title: Manage Copilot access
 description: Add, update, or remove Copilot access so someone can help manage your Expensify account without sharing your login credentials.
-keywords: [copilot access, add a copilot, remove a copilot, change copilot access, copilot permissions, delegated access, account delegation, proxy access, manage copilot, delegate access, account assistant, manage someone else's account, shared account access, account access, executive assistant, accountant, bookkeeping, expense management]
+keywords: [copilot access, add a copilot, remove a copilot, change copilot access, copilot permissions, delegated access, account delegation, proxy access, manage copilot, delegate access, account assistant, manage someone else's account, shared account access, account access, executive assistant, accountant, bookkeeping, expense management, search copilots, find member, filter copilot list, find a copilot]
 internalScope: Audience is members who want to grant a Copilot delegated account access. Covers adding, updating, and removing Copilots. Does not cover switching into a Copilot account or acting as a Copilot.
 ---
 
@@ -14,7 +14,7 @@ If you've been granted Copilot access and need help switching accounts or workin
 
 If you just need someone to handle approvals while you're away, [learn how to assign a vacation delegate](/articles/new-expensify/settings/Delegate-when-out-of-office).
 
-Agents can also have delegated access. When you create an agent, it's automatically added as a full-access Copilot on your account so it can act on your behalf, and it appears in your **Copilot: Delegated Access** list alongside any members you've added. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
+Agents can also have delegated access. When you create an agent, it's automatically added as a full-access Copilot on your account so it can act on your behalf, and it appears in your **Copilot: Delegated access** list alongside any members you've added. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
 
 ## Who can add a Copilot
 
@@ -40,7 +40,7 @@ A Copilot cannot:
 ## How to add a Copilot
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, click **Add a copilot**.
+2. In the **Copilot: Delegated access** section, click **Add a copilot**.
 3. Search for the member by name or email address.
 4. Choose an access level:
    * **Full Access** — Grants access to all available actions.
@@ -50,19 +50,31 @@ A Copilot cannot:
 ## How to change a Copilot's access level
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, locate the Copilot.
+2. In the **Copilot: Delegated access** section, locate the Copilot.
 3. Select the three dots **(⋮)**.
-4. Select **Change Access Level**.
+4. Select **Change access level**.
 5. Choose **Full Access** or **Limited Access**.
 6. Confirm your selection.
 
 ## How to remove a Copilot
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, locate the Copilot.
+2. In the **Copilot: Delegated access** section, locate the Copilot.
 3. Select the three dots **(⋮)**.
-4. Select **Remove Copilot**.
+4. Select **Remove copilot**.
 5. Confirm the removal.
+
+## How to search your Copilot: Delegated access list
+
+When the **Copilot: Delegated access** section lists 12 or more accounts in total, a **Find member** field appears above the list. The count includes both the Copilots who can access your account and any accounts you can access.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+2. In the **Find member** field, enter part of the member's name or email address.
+3. Select the Copilot you want from the filtered list.
+
+Searching filters both the **These members can access your account:** list and the **You can access these accounts:** list. A heading is hidden when its list has no matches, and the message **No results found matching "[your search term]"** appears when nothing matches. Clear the field to see the full list again. **Add a copilot** stays available while you search.
+
+If you have fewer than 12 accounts in the section, the **Find member** field is not displayed.
 
 ## What happens after you manage Copilot access
 
@@ -98,4 +110,4 @@ Yes. You can add multiple Copilots to your account. You must wait one minute bet
 
 ## Why do I see an agent in my Copilot list?
 
-When you create an agent, it's automatically added as a full-access Copilot on your account so it can use your personal context and manage expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated Access** section. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
+When you create an agent, it's automatically added as a full-access Copilot on your account so it can use your personal context and manage expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated access** section. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
