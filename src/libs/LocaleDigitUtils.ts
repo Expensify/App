@@ -1,4 +1,4 @@
-import {LOCALES} from '@src/CONST/LOCALES';
+import {isSupportedLocale, LOCALES} from '@src/CONST/LOCALES';
 import localeDayOfMonthMap from '@src/languages/localeDayOfMonthMap';
 import localeOrdinalMap from '@src/languages/localeOrdinalMap';
 import type Locale from '@src/types/onyx/Locale';
@@ -111,7 +111,7 @@ function toLocaleDayOfMonth(locale: Locale, day: number): string {
         return '';
     }
     // The tag reaches here from an Onyx NVP, so a malformed persisted value must not index either map to undefined.
-    const supportedLocale = locale in localeOrdinalMap ? locale : LOCALES.DEFAULT;
+    const supportedLocale = isSupportedLocale(locale) ? locale : LOCALES.DEFAULT;
     return localeDayOfMonthMap[supportedLocale]?.(day) ?? toLocaleOrdinal(supportedLocale, day);
 }
 

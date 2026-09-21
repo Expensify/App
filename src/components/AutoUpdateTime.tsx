@@ -26,7 +26,8 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
     const now = useNow();
 
     const currentUserLocalTime = getLocalDateFromDatetime(now, timezone.selected);
-    const timezoneName = timezone.selected ? DateUtils.getZoneAbbreviation(currentUserLocalTime, timezone.selected, preferredLocale) : '';
+    // The instant itself, not the zone-shifted copy the clock above renders, which would move the name across a DST boundary.
+    const timezoneName = timezone.selected ? DateUtils.getZoneAbbreviation(now, timezone.selected, preferredLocale) : '';
 
     return (
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>

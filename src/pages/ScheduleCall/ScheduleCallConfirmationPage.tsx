@@ -82,9 +82,10 @@ function ScheduleCallConfirmationPage() {
         const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(startsAt, 30), userTimezone, preferredLocale);
         const timezoneString = DateUtils.getZoneAbbreviation(startsAt, userTimezone, preferredLocale);
 
-        // A formatter failure on either end would otherwise render the range as " - 10:30 AM".
+        // A formatter failure on either end would otherwise render the range as " - 10:30 AM", and a zone Intl cannot name would leave a trailing space.
         if (dateString && startTime && endTime) {
-            dateTimeString = `${dateString} from ${startTime} - ${endTime} ${timezoneString}`;
+            const timeRange = `${dateString} from ${startTime} - ${endTime}`;
+            dateTimeString = timezoneString ? `${timeRange} ${timezoneString}` : timeRange;
         }
     }
 

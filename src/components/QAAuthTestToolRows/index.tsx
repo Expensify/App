@@ -102,7 +102,7 @@ function QAAuthTestToolRows() {
                 <Text style={styles.textLabelSupporting}>
                     {translate(`initialSettingsPage.troubleshoot.${PROBE_STATUS_TRANSLATION_KEYS[probeResult.status]}`)}
                     {probeResult.detail ? ` (${probeResult.detail})` : ''}
-                    {probeCompletedAt ? ` — ${datetimeToCalendarTime(probeCompletedAt, false)}` : ''}
+                    {probeCompletedAt ? ` — ${datetimeToCalendarTime(probeCompletedAt)}` : ''}
                 </Text>
             )}
         </>

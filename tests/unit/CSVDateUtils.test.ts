@@ -65,6 +65,25 @@ describe('CSVDateUtils', () => {
             expect(result).toBe('2024-01-25');
         });
 
+        it('reads an ambiguous numeric date in the order the uploading language writes it', () => {
+            // Given a cell reading `03/04/2025`, which is 3 April where the day leads and 4 March where the month does
+            // When it is parsed for each uploader
+            const forGerman = parseCSVDate('03/04/2025', CONST.LOCALES.DE);
+            const forEnglish = parseCSVDate('03/04/2025', CONST.LOCALES.EN);
+
+            // Then each reading follows its own language, rather than both taking the US order and transposing one of them
+            expect(forGerman).toBe('2025-04-03');
+            expect(forEnglish).toBe('2025-03-04');
+        });
+
+        it('reads the dotted shapes a German spreadsheet exports', () => {
+            // Given the two shapes German writes a date in, one numeric and one abbreviating the month with points
+            // When each is parsed for that uploader
+            // Then both resolve, where before they matched no shape at all and the row was dropped
+            expect(parseCSVDate('15.01.2025', CONST.LOCALES.DE)).toBe('2025-01-15');
+            expect(parseCSVDate('15. Jan. 2025', CONST.LOCALES.DE)).toBe('2025-01-15');
+        });
+
         it('drops the clock time from a timestamp', () => {
             // Given a cell carrying a time as well as a day, which the transaction list stores as a day alone
             // When it is parsed
