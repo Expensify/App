@@ -3496,11 +3496,6 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
         },
 
-        requestPreviewBox: {
-            marginTop: 12,
-            maxWidth: variables.reportPreviewMaxWidth,
-        },
-
         moneyRequestPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,

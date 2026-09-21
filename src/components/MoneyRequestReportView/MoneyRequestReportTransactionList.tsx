@@ -12,6 +12,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
@@ -23,7 +24,7 @@ import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransaction
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
+import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
@@ -270,6 +271,7 @@ function MoneyRequestReportTransactionList({
     const longPressModalRef = useRef<MoneyRequestReportTransactionLongPressModalHandle>(null);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
 
     const isTaxEnabled = isPolicyTaxEnabled(policy);
     const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(report);
@@ -432,12 +434,15 @@ function MoneyRequestReportTransactionList({
     const isExpenseReportViewFromIOUReport = isIOUReport(report);
     const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
     const shouldShowCommentsColumn = useMemo(() => Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0), [reportActions]);
+    // The saved column list is account-wide, so drop the vendor column on reports whose workspace lacks the vendor feature.
+    const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const columnsToShow = useMemo(() => {
+        const savedColumns = (reportDetailsColumns ?? []).filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
         return getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: transactions,
             report,
-            visibleColumns: (isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? [])) as SearchCustomColumnIds[],
+            visibleColumns: (isExpenseReportViewFromIOUReport ? [] : savedColumns) as SearchCustomColumnIds[],
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport,
             shouldShowBillableColumn,
@@ -453,6 +458,7 @@ function MoneyRequestReportTransactionList({
         shouldShowBillableColumn,
         shouldShowCommentsColumn,
         reportDetailsColumns,
+        isVendorColumnAvailable,
         report,
         isTaxEnabled,
         shouldShowExpenseReportBreakDown,
