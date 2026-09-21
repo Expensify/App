@@ -373,12 +373,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         shouldShowMarkAsDoneCopy,
     ]);
 
-    const handleSelectionButtonPress = useCallback(
-        (shiftKey?: boolean) => {
-            onSelectionButtonPress?.(item, undefined, shiftKey);
-        },
-        [onSelectionButtonPress, item],
-    );
+    const handleSelectionButtonPress = (shiftKey?: boolean) => {
+        onSelectionButtonPress?.(item, undefined, shiftKey);
+    };
 
     const listItemPressableStyle = useMemo(
         () => [

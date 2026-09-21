@@ -264,6 +264,35 @@ const reportGroups = [
     buildReportGroup(8, 'report-3', []),
 ];
 
+/** Three reports that each carry a row, for a range that has to leave one of them alone. */
+const loadedReportGroups = [
+    buildReportGroup(6, 'report-1', [buildChild(6, '6', 'report-1')]),
+    buildReportGroup(7, 'report-2', [buildChild(7, '7', 'report-2')]),
+    buildReportGroup(8, 'report-3', [buildChild(8, '8', 'report-3')]),
+];
+
+function LoadedReportWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={loadedReportGroups}
+                renderedData={loadedReportGroups}
+                totalSelectableItemsCount={3}
+                searchResults={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+                areItemsGrouped
+                isExpenseReportType
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 /** The same shape, with the middle report holding a single row on its way out. */
 const reportGroupsWithDeletedRow = [
     buildReportGroup(6, 'report-1', [buildChild(6, '6', 'report-1')]),
@@ -1846,6 +1875,32 @@ describe('Lazily loaded group selection', () => {
             await waitForBatchedUpdatesWithAct();
         });
         expect(Object.keys(result.current.selectedTransactions)).toEqual(['6']);
+    });
+
+    it('never takes back a report the user picked while it was empty, once its rows have arrived', async () => {
+        const {result} = renderSelection(LoadedReportWrapper);
+        const [firstReport, secondReport, thirdReport] = loadedReportGroups;
+
+        // Given the first and last reports picked while they carried no rows, so each is held under its own key
+        await act(async () => {
+            result.current.applySelection(
+                (selectedTransactions) => ({
+                    ...selectedTransactions,
+                    ...Object.fromEntries([mapEmptyReportToSelectedEntry(firstReport), mapEmptyReportToSelectedEntry(thirdReport)]),
+                }),
+                {},
+            );
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When their rows have arrived and a shift+click ranges over the middle report only
+        await act(async () => {
+            result.current.toggle(secondReport, secondReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the last report is still selected: a row the user picked is protected whether its entry sits on the row or on its group
+        expect(result.current.selectedTransactions['report-3']?.isSelected).toBe(true);
     });
 
     it('never anchors on a report whose only selected row is on its way out, since its checkbox reads unchecked', async () => {

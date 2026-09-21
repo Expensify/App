@@ -607,11 +607,11 @@ function SearchWriteActionsProvider({
     // A row checked through a group header belongs to that block, so a range may take it back.
     const isRowHandPicked = (item: SearchData[number]) => {
         const selectedTransactions = getSelectedTransactions();
-        // A report row is the row the user clicked, so any selected child makes it hand-picked.
-        if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
-            return item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
-        }
         const entry = item.keyForList ? selectedTransactions[item.keyForList] : undefined;
+        // A report row is the row the user clicked, so any selected child makes it hand-picked — and so does its own entry, which is where the click lands until its rows arrive to carry one.
+        if (isTransactionGroupListItemType(item)) {
+            return !!entry?.isSelected || item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
+        }
         return !!entry?.isSelected && !entry.isSelectedViaGroup;
     };
 
