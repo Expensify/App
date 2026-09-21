@@ -3938,6 +3938,16 @@ const CONST = {
         TAG: 'TAG',
     },
 
+    /**
+     * How far a Business Central vendor is blocked. `_x0020_` is the unblocked value Business Central
+     * sends, `PAYMENT` still allows purchase invoices, and `ALL` forbids every transaction.
+     */
+    BUSINESS_CENTRAL_VENDOR_BLOCKED: {
+        NONE: '_x0020_',
+        PAYMENT: 'Payment',
+        ALL: 'All',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',

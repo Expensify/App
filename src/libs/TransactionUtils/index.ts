@@ -454,8 +454,7 @@ function isScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance expense, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
- * it's transactionID match what was already generated.
+ * @param [existingTransactionID] Reuse this ID when a distance expense already created an empty transaction.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
     const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
@@ -597,6 +596,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
                   filename: receipt?.name ?? filename,
                   state: receiptState ?? receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY,
                   isTestDriveReceipt: receipt.isTestDriveReceipt,
+                  pageCount: receipt.pageCount,
               }
             : undefined,
         hasEReceipt: existingTransaction?.hasEReceipt,
@@ -3495,14 +3495,12 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
 function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
-        .map(
-            (transaction): UnreportedExpenseListItemType => ({
-                ...transaction,
-                isDisabled: isTransactionPendingDelete(transaction),
-                keyForList: transaction.transactionID,
-                errors: transaction.errors as Errors | undefined,
-            }),
-        );
+        .map((transaction): UnreportedExpenseListItemType => ({
+            ...transaction,
+            isDisabled: isTransactionPendingDelete(transaction),
+            keyForList: transaction.transactionID,
+            errors: transaction.errors as Errors | undefined,
+        }));
 }
 
 type GetEligibleTransactionsToAddParams = {
