@@ -91,6 +91,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
 
+        if (onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+            return;
+        }
+
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {
             forceReplace: true,
         });
@@ -102,6 +107,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         isSmb,
         isFocused,
         isConciergeTaskFlow,
+        onboardingIntent,
     ]);
 
     const sendValidateCode = () => {
