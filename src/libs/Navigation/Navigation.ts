@@ -469,8 +469,6 @@ function canPopToRoute(targetState: State, rootState: State, {indexOfBackToRoute
  * `getMinimalAction` descends through the *focused* route of each navigator, so it stops as soon as something else
  * covers the one holding `backToRoute` - a modal, or another workspace's split - and `goUp` would act on that level
  * instead. This walks the same path looking for the route that *matches*, popping every obstacle on the way.
- *
- * See NAVIGATION.md for why every level has to be popped and for the cases where it must not pop.
  */
 function getPopsToNavigatorWithBackToRoute(rootState: State, action: NavigationAction, compareParams: boolean): NavigationAction[] {
     const pops: NavigationAction[] = [];

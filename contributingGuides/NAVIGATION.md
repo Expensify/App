@@ -52,7 +52,6 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [`NAVIGATORS.REPORTS_SPLIT_NAVIGATOR` (Inbox tab)](#navigatorsreports_split_navigator-inbox-tab)
     - [`NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR` (Account tab)](#navigatorssettings_split_navigator-account-tab)
     - [`NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR` (Workspaces tab)](#navigatorsworkspace_split_navigator-workspaces-tab)
-      - [Telling split navigator instances apart (scope)](#telling-split-navigator-instances-apart-scope)
   - [Modals](#modals)
     - [`NAVIGATORS.RIGHT_MODAL_NAVIGATOR` (RHP - Right Hand Panel)](#navigatorsright_modal_navigator-rhp---right-hand-panel)
     - [`NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR`](#navigatorsonboarding_modal_navigator)
@@ -1765,36 +1764,6 @@ It displays the `HOME` screen (`<BaseSidebarScreen />` component) with a list of
 
 > [!NOTE]
 > The Workspaces tab is also selected when the workspace list is displayed (`SCREENS.WORKSPACES_LIST`) which is a separate screen displayed in `AuthScreens` next to the other navigators!
-
-#### Telling split navigator instances apart (scope)
-
-Every workspace and every domain gets its own instance of a split navigator, and all of those instances share a single route name (`NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR`, `NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR`). Matching by route name alone therefore cannot tell workspace A's split from workspace B's, and `routeParamsIgnore` in `Navigation.ts` drops the params that could. Left unchecked, navigating to workspace B while A is focused reuses A's split (B's central screen under A's sidebar), and going back to a workspace A route lands in B.
-
-What identifies an instance is its **scope**: the path params of its sidebar screen, `policyID` for a workspace split and `domainAccountID` for a domain split. `hasDifferentSplitScope(route, payload)` reads that scope from the split's sidebar route, falling back to its focused screen (a narrow-layout split can hold central screens only), then to the state preserved under the route's key, then to the split route's own params. Splits without scope params in their sidebar (`SETTINGS_SPLIT_NAVIGATOR`, `REPORTS_SPLIT_NAVIGATOR`) have nothing to compare and keep matching by name.
-
-Two places own the consequences, and no other place should reimplement the comparison:
-
-| Rule | Owner |
-| --- | --- |
-| A route matches an action payload only if its split scope matches too | `doesRouteMatchToMinimalActionPayload` in `Navigation.ts` |
-| The descent into the focused navigator stops at a same-named split in another scope, reported as `isFocusedRouteInDifferentScope` rather than acted on | `getMinimalAction` |
-
-`getMinimalAction` reports the boundary and leaves the decision to its callers, because the two directions want opposite things from it:
-
--   **Forward** (`linkTo`): flip the action from `NAVIGATE` to `PUSH`, so a sibling split is created and the focused one keeps its own sidebar and history.
--   **Backward** (`goUp`): never add a screen. Focus the matching split instead, which is the general step described next; going back does not need to know that the obstacle was a scope mismatch.
-
-**Reaching a route the focused navigator does not hold.** `getMinimalAction` descends only through the focused route of each navigator, so the descent stops as soon as the navigator holding the requested route is not the focused one. A split of another scope is one way that happens. An open modal covering the tab navigator is another, and there the route names do not even match. In both cases the resolution would address the level where the descent stopped and never continue into it, so going back would leave the user in the wrong workspace, or apply the requested screen to the wrong navigator's stack.
-
-`getPopsToNavigatorWithBackToRoute` in `Navigation.ts` removes the cause rather than the symptom, and it does so before the resolution runs. It follows the same path the descent would, one level per step, but looks for the route that **matches** rather than the one that happens to be **focused**, and collects a pop for every level where it is not. `goUp` dispatches those pops outermost first and then resolves once, against a state where the descent can now get all the way down.
-
-It cannot stop at the highest obstacle, because one Back can be covered by several at once. A modal over the wrong workspace's split, whose own stack is on the wrong central screen, is three levels: the root, the workspace navigator holding the splits, and the split itself. The resolution that follows only ever handles the single level `getMinimalAction` stops on, so anything left below it stays uncovered - going back would close the modal and reach workspace A, then leave the user on A's Members page instead of the requested Overview. Each pop is a pop and nothing else, because going back must not add a screen or a browser history entry.
-
-Every level is read from the state before any of those pops is dispatched, and that stays valid: a pop only discards the routes above the one it focuses, so the matching route and everything nested under it survive each pop above them.
-
-Being a walk down a finite state tree rather than a retry loop is what keeps it honest: it ends on its own and never has to ask whether a dispatch took effect. It returns no pops when there is no level to pop, and stops collecting at any level it must not pop, keeping the pops gathered above it since those only uncovered that level: the route is missing or popping to it would lose visited pages, so `goUp` replaces there and popping first would discard the history that replace keeps; the navigator has not mounted, which leaves a stale state with no key to target; or the navigator is not a stack, since only `StackRouter` handles `POP` and switching tabs is the `jumpTo` case `goUp` owns.
-
-Everything that can stop `goUp` outright is decided before the first of those pops is dispatched, so nothing reports a failure to go up after already having moved the user.
 
 ## Modals
 
