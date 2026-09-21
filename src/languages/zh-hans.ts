@@ -983,6 +983,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `请在 ${date} 前支付您的发票，以避免服务中断`,
                 overdueTitle: '您的付款已逾期，请支付您的发票',
             },
+            renewSubscription: {
+                title: '开启自动续订以保留您当前的价格',
+                subtitle: ({date}: {date: string}) => `订阅将于 ${date} 结束`,
+                cta: '管理',
+            },
         },
         discoverSection: {
             title: '发现',
@@ -10274,6 +10279,11 @@ ${reportName}`,
             trialEnded: {
                 title: '您的免费试用已结束',
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `您的订阅将于 ${date} 结束`,
+                subtitle: '开启自动续订以保留您当前的价格。',
+                manage: '管理',
             },
             earlyDiscount: {
                 claimOffer: '领取优惠',

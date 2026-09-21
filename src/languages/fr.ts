@@ -1024,6 +1024,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Payez votre facture avant le ${date} pour éviter une interruption de service`,
                 overdueTitle: 'Votre paiement est en retard, veuillez régler votre facture',
             },
+            renewSubscription: {
+                title: 'Activez le renouvellement automatique pour conserver votre tarif actuel',
+                subtitle: ({date}: {date: string}) => `L’abonnement prend fin le ${date}`,
+                cta: 'Gérer',
+            },
         },
         discoverSection: {
             title: 'Découvrir',
@@ -10756,6 +10761,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             trialEnded: {
                 title: 'Votre période d’essai gratuite est terminée',
                 subtitle: 'Ajoutez une carte de paiement pour continuer à utiliser toutes vos fonctionnalités préférées.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Votre abonnement prend fin le ${date}`,
+                subtitle: 'Activez le renouvellement automatique pour conserver votre tarif actuel.',
+                manage: 'Gérer',
             },
             earlyDiscount: {
                 claimOffer: 'Profiter de l’offre',

@@ -1020,6 +1020,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Betaal je factuur vóór ${date} om onderbreking van de service te voorkomen`,
                 overdueTitle: 'Je betaling is achterstallig, betaal alsjeblieft je factuur.',
             },
+            renewSubscription: {
+                title: 'Schakel automatische verlenging in om je huidige prijs te behouden',
+                subtitle: ({date}: {date: string}) => `Abonnement eindigt op ${date}`,
+                cta: 'Beheren',
+            },
         },
         discoverSection: {
             title: 'Ontdekken',
@@ -10659,6 +10664,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             trialEnded: {
                 title: 'Je gratis proefperiode is afgelopen',
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Je abonnement eindigt op ${date}`,
+                subtitle: 'Schakel automatische verlenging in om je huidige prijs te behouden.',
+                manage: 'Beheren',
             },
             earlyDiscount: {
                 claimOffer: 'Aanbieding claimen',

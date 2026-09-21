@@ -1027,6 +1027,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Opłać fakturę do ${date}, aby uniknąć przerwy w świadczeniu usługi`,
                 overdueTitle: 'Twoja płatność jest zaległa, zapłać proszę swoją fakturę',
             },
+            renewSubscription: {
+                title: 'Włącz automatyczne odnawianie, aby zachować obecną cenę',
+                subtitle: ({date}: {date: string}) => `Subskrypcja kończy się ${date}`,
+                cta: 'Zarządzaj',
+            },
         },
         discoverSection: {
             title: 'Odkryj',
@@ -10677,6 +10682,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             trialEnded: {
                 title: 'Twój bezpłatny okres próbny dobiegł końca',
                 subtitle: 'Dodaj kartę płatniczą, aby nadal korzystać ze wszystkich swoich ulubionych funkcji.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Twoja subskrypcja kończy się ${date}`,
+                subtitle: 'Włącz automatyczne odnawianie, aby zachować obecną cenę.',
+                manage: 'Zarządzaj',
             },
             earlyDiscount: {
                 claimOffer: 'Odbierz ofertę',

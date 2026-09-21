@@ -22,6 +22,7 @@ import {
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowSubscriptionExpiringSoonUI,
     shouldShowTrialEndedUI,
     shouldUseSimplifiedCollectSubscriptionUI,
 } from '@libs/SubscriptionUtils';
@@ -30,12 +31,12 @@ import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, PrivateSubscription, StripeCustomerID} from '@src/types/onyx';
 import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, addMinutes, format as formatDate, getUnixTime, subDays, subSeconds} from 'date-fns';
+import {addDays, addMinutes, addMonths, format as formatDate, getUnixTime, subDays, subSeconds} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -1603,6 +1604,75 @@ describe('SubscriptionUtils', () => {
 
         it('should return false if lastDayFreeTrial is undefined', () => {
             expect(shouldShowTrialEndedUI(ownerAccountID, undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+    });
+
+    describe('shouldShowSubscriptionExpiringSoonUI', () => {
+        // `endDate` is the date-only string the backend writes to nvp_private_subscription
+        const toEndDate = (date: Date) => formatDate(date, CONST.DATE.FNS_FORMAT_STRING);
+
+        const expiringSubscription: PrivateSubscription = {
+            addNewUsersAutomatically: false,
+            autoRenew: false,
+            autoRenewLastChangedDate: '',
+            endDate: toEndDate(addDays(new Date(), 20)),
+            startDate: toEndDate(subDays(new Date(), 345)),
+            type: CONST.SUBSCRIPTION.TYPE.ANNUAL,
+        };
+
+        it('should return true for an annual subscription with auto-renew off ending inside one month', () => {
+            // Given an annual subscription ending in 20 days with auto-renew off
+            // Then the owner is warned
+            expect(shouldShowSubscriptionExpiringSoonUI(expiringSubscription)).toBeTruthy();
+        });
+
+        it('should return false when the end date is more than one month away', () => {
+            // Given the same subscription ending in 40 days
+            // Then it is too early to warn
+            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, endDate: toEndDate(addDays(new Date(), 40))})).toBeFalsy();
+        });
+
+        it('should return false when the end date has already passed', () => {
+            // Given a lapsed subscription that billing has not yet converted to pay-per-use, so `type` still reads annual
+            // Then no retroactive warning is shown
+            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, endDate: toEndDate(subDays(new Date(), 1))})).toBeFalsy();
+        });
+
+        it('should return false when auto-renew is on', () => {
+            // Given auto-renew is on, the subscription renews rather than ending
+            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, autoRenew: true})).toBeFalsy();
+        });
+
+        it('should return false when auto-renew is missing', () => {
+            // Given an absent `autoRenew`, which the API omits while the subscription still renews
+            // Then it is treated as on
+            const withoutAutoRenew: PrivateSubscription = {...expiringSubscription};
+            delete (withoutAutoRenew as Partial<PrivateSubscription>).autoRenew;
+            expect(shouldShowSubscriptionExpiringSoonUI(withoutAutoRenew)).toBeFalsy();
+        });
+
+        it('should return false for a pay-per-use subscription', () => {
+            // Given switching to pay-per-use clears both `endDate` and `autoRenew`
+            // Then monthly accounts never qualify
+            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, type: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE})).toBeFalsy();
+        });
+
+        it('should return false for an invoiced subscription', () => {
+            // Given invoiced customers are billed against a separate contract end date
+            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, type: CONST.SUBSCRIPTION.TYPE.INVOICING})).toBeFalsy();
+        });
+
+        it('should return false when there is no end date', () => {
+            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, endDate: ''})).toBeFalsy();
+        });
+
+        it('should return false when there is no subscription', () => {
+            expect(shouldShowSubscriptionExpiringSoonUI(undefined)).toBeFalsy();
+        });
+
+        it('should return true on the one-month boundary', () => {
+            // Given an end date exactly one month out, which is the inclusive edge of the Classic trigger
+            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, endDate: toEndDate(addMonths(new Date(), 1))})).toBeTruthy();
         });
     });
 });

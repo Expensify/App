@@ -24,6 +24,7 @@ import useTimeSensitiveHomeAddress from './hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
 import useTimeSensitiveOverdueInvoice from './hooks/useTimeSensitiveOverdueInvoice';
 import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
+import useTimeSensitiveSubscriptionExpiring from './hooks/useTimeSensitiveSubscriptionExpiring';
 import ActivateCard from './items/ActivateCard';
 import AddBankAccount from './items/AddBankAccount';
 import AddHomeAddress from './items/AddHomeAddress';
@@ -37,6 +38,7 @@ import FixFailedBilling from './items/FixFailedBilling';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import FixPolicyConnection from './items/FixPolicyConnection';
 import PayOverdueInvoice from './items/PayOverdueInvoice';
+import RenewSubscription from './items/RenewSubscription';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
 import ValidateAccount from './items/ValidateAccount';
@@ -81,6 +83,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
     const {shouldShowOverdueInvoiceReminder, isOverdue: isInvoiceOverdue, invoiceGracePeriodEndUnixSeconds} = useTimeSensitiveOverdueInvoice();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
+    const {shouldShowSubscriptionExpiring, subscriptionEndDate} = useTimeSensitiveSubscriptionExpiring();
 
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     // the selector derives both, so this never deep-compares employeeList/connections/customUnits per policy
@@ -117,20 +120,22 @@ function useTimeSensitiveItems(): React.ReactNode[] {
 
     // Priority order (RBR / urgent-error rows first, then GBR / setup nudges):
     // 1. Fix failed billing (existing customers with declined cards)
-    // 2. Potential card fraud
-    // 3. Broken bank connections (company cards)
-    // 4. Broken bank connections (personal cards)
-    // 5. Locked bank accounts (workspace VBAs and personal)
-    // 6. Broken policy connections (accounting + HR)
-    // 7. Validate account
-    // 8. Add home address (commuter exclusions, homeAndOffice method)
-    // 9. Add payment card (trial ended, no payment card)
-    // 10. Add bank account for a queued reimbursement
-    // 11. Enter signer info for global bank accounts
-    // 12. Expensify card shipping
-    // 13. Expensify card activation
-    // 14. Virtual Expensify card needs personal details
-    // 15. Digital wallet addition needs confirming
+    // 2. Overdue subscription invoice for the billing owner
+    // 3. Potential card fraud
+    // 4. Broken bank connections (company cards)
+    // 5. Broken bank connections (personal cards)
+    // 6. Locked bank accounts (workspace VBAs and personal)
+    // 7. Broken policy connections (accounting + HR)
+    // 8. Validate account
+    // 9. Add home address (commuter exclusions, homeAndOffice method)
+    // 10. Renew subscription (annual subscription lapsing with auto-renew off)
+    // 11. Add payment card (trial ended, no payment card)
+    // 12. Add bank account for a queued reimbursement
+    // 13. Enter signer info for global bank accounts
+    // 14. Expensify card shipping
+    // 15. Expensify card activation
+    // 16. Virtual Expensify card needs personal details
+    // 17. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Failed billing for existing customers
@@ -219,15 +224,24 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     if (shouldShowAddHomeAddress) {
         items.push(<AddHomeAddress key="add-home-address" />);
     }
-    // Priority 10: Add payment card (trial ended, no payment card)
+    // Priority 10: Annual subscription lapsing with auto-renew off
+    if (shouldShowSubscriptionExpiring) {
+        items.push(
+            <RenewSubscription
+                key="renew-subscription"
+                endDate={subscriptionEndDate}
+            />,
+        );
+    }
+    // Priority 11: Add payment card (trial ended, no payment card)
     if (shouldShowAddPaymentCard) {
         items.push(<AddPaymentCard key="add-payment-card" />);
     }
-    // Priority 11: Add bank account for a queued reimbursement
+    // Priority 12: Add bank account for a queued reimbursement
     if (shouldShowAddBankAccount) {
         items.push(<AddBankAccount key="add-bank-account" />);
     }
-    // Priority 12: Enter signer info for global bank accounts
+    // Priority 13: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {
         items.push(
             <EnterSignerInfo
@@ -238,7 +252,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 13: Expensify card shipping
+    // Priority 14: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -249,7 +263,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 14: Expensify card activation
+    // Priority 15: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -260,7 +274,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 15: Virtual Expensify card needs personal details before reveal
+    // Priority 16: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
@@ -271,7 +285,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 15: Confirm a digital wallet addition
+    // Priority 17: Confirm a digital wallet addition
     if (shouldShowConfirmDigitalWalletAddition) {
         for (const card of cardsPendingDigitalWalletApproval) {
             items.push(

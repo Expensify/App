@@ -22,7 +22,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSaveablePendingReceiptRequests, saveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
-import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
+import {getFreeTrialText, hasSubscriptionRedDotError, shouldShowSubscriptionExpiringSoonUI} from '@libs/SubscriptionUtils';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
 
@@ -237,6 +237,27 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
 
     const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email, shouldShowAddHomeAddress);
     const securityBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
+    let subscriptionBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+    if (
+        !!privateSubscription?.errors ||
+        hasSubscriptionRedDotError(
+            stripeCustomerId,
+            retryBillingSuccessful,
+            billingDisputePending,
+            retryBillingFailed,
+            fundList,
+            billingStatus,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
+        )
+    ) {
+        subscriptionBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    } else if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
+        subscriptionBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
+
     const accountItems = navigationAccountMenuItemsData.items.map((item): MenuData => {
         if (item.screenName === SCREENS.SETTINGS.PROFILE.ROOT) {
             return {...item, brickRoadIndicator: profileBrickRoadIndicator};
@@ -261,21 +282,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
         if (item.screenName === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
             return {
                 ...item,
-                brickRoadIndicator:
-                    !!privateSubscription?.errors ||
-                    hasSubscriptionRedDotError(
-                        stripeCustomerId,
-                        retryBillingSuccessful,
-                        billingDisputePending,
-                        retryBillingFailed,
-                        fundList,
-                        billingStatus,
-                        amountOwed,
-                        ownerBillingGracePeriodEnd,
-                        ownerTravelBillingGracePeriodEnd,
-                    )
-                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                        : undefined,
+                brickRoadIndicator: subscriptionBrickRoadIndicator,
                 badgeText: freeTrialText,
                 isBadgeSuccess: !!freeTrialText,
                 isBadgeCondensed: !!freeTrialText,

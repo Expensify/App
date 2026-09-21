@@ -1008,6 +1008,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `サービス中断を防ぐため、${date}までに請求書をお支払いください`,
                 overdueTitle: 'お支払いの期限が過ぎています。請求書をお支払いください。',
             },
+            renewSubscription: {
+                title: '現在の料金を維持するには自動更新をオンにしてください',
+                subtitle: ({date}: {date: string}) => `サブスクリプションは${date}に終了`,
+                cta: '管理',
+            },
         },
         discoverSection: {
             title: '発見',
@@ -10541,6 +10546,11 @@ ${reportName}`,
             trialEnded: {
                 title: '無料トライアル期間は終了しました',
                 subtitle: 'すべてのお気に入り機能を引き続き利用するには、支払い用カードを追加してください。',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `サブスクリプションは${date}に終了します`,
+                subtitle: '現在の料金を維持するには、自動更新をオンにしてください。',
+                manage: '管理',
             },
             earlyDiscount: {
                 claimOffer: 'オファーを獲得',
