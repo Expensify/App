@@ -51,6 +51,8 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    wrapperStyle,
+    onBlur,
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
@@ -277,14 +279,16 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={styles.mv2}
                 onLayout={handleAnchorLayout}
+                style={[styles.mv2, wrapperStyle]}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate || segmentInput.hasTypedDigits || shouldHideCalendarIcon ? null : icons.Calendar}
+                    // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
+                    // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
+                    icon={shouldHideCalendarIcon || segmentInput.hasTypedDigits || (selectedDate && !shouldHideClearButton) ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -311,6 +315,7 @@ function DatePicker({
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
                     onFocus={shouldAllowTyping ? handleFocus : undefined}
                     onKeyPress={shouldAllowTyping ? undefined : handleInputKeyPress}
+                    onBlur={onBlur}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}

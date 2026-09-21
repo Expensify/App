@@ -1,7 +1,6 @@
 import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
@@ -35,7 +34,6 @@ function WorkspaceHRPage({
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
 
     useHRSyncResultsPage(connectionSyncProgress, isFocused);
-    useMergeHRInitialSyncingModal(policyID, isFocused);
 
     const cards = getHRCards({
         policy,
