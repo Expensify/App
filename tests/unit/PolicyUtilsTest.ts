@@ -47,6 +47,9 @@ import {
     getRateDisplayValue,
     getOwnerChangePayerSuccessData,
     getSageIntacctVendors,
+    arePaymentsEnabled,
+    getReimbursementChoice,
+    isPolicyPayer,
     getReimburserEmail,
     getSubmitReportManagerAccountID,
     getSubmitToAccountID,
@@ -2139,6 +2142,160 @@ describe('PolicyUtils', () => {
             });
             expect(getReimburserEmail(policy)).toBeUndefined();
         });
+
+        it('should resolve the payer for deprecated manual reimbursement', () => {
+            // Given a workspace on Indirect reimbursement that reports the deprecated value and names no payer
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                owner: 'owner@example.com',
+            });
+
+            // When the payer is resolved
+            const reimburserEmail = getReimburserEmail(policy);
+
+            // Then it falls back to the owner, because the deprecated value means Indirect just like the plain one
+            expect(reimburserEmail).toBe('owner@example.com');
+        });
+
+        it('should return undefined when deprecated reimbursement is disabled', () => {
+            // Given a workspace that reports the deprecated disabled value but still names a payer
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'reimburser@example.com',
+                owner: 'owner@example.com',
+            });
+
+            // When the payer is resolved
+            const reimburserEmail = getReimburserEmail(policy);
+
+            // Then nobody is returned, because a disabled workspace has no payer no matter who is named on it
+            expect(reimburserEmail).toBeUndefined();
+        });
+    });
+
+    describe('getReimbursementChoice', () => {
+        it('should return undefined when there is no policy', () => {
+            // Given no policy, which happens while a workspace is still loading
+
+            // When the choice is resolved
+            const choice = getReimbursementChoice(undefined);
+
+            // Then nothing is returned, so callers fall back to their own defaults instead of guessing a choice
+            expect(choice).toBeUndefined();
+        });
+
+        it('should return undefined when the policy has no choice', () => {
+            // Given a workspace that reports no reimbursement choice at all
+            const policy = createMock<Policy>({id: '1'});
+
+            // When the choice is resolved
+            const choice = getReimbursementChoice(policy);
+
+            // Then nothing is returned, because an absent choice must stay absent rather than become a real value
+            expect(choice).toBeUndefined();
+        });
+
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+            'should pass through the current value %s',
+            (choice) => {
+                // Given a workspace on one of the three values the app already understands
+                const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+
+                // When the choice is resolved
+                const resolvedChoice = getReimbursementChoice(policy);
+
+                // Then it is returned untouched, so resolving cannot change the meaning of a workspace that was already correct
+                expect(resolvedChoice).toBe(choice);
+            },
+        );
+
+        it.each([
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+        ])('should resolve %s to %s', (deprecatedChoice, expectedChoice) => {
+            // Given a workspace that reports a deprecated value
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: deprecatedChoice});
+
+            // When the choice is resolved
+            const resolvedChoice = getReimbursementChoice(policy);
+
+            // Then it becomes the plain value it means, so every comparison downstream treats the workspace correctly
+            expect(resolvedChoice).toBe(expectedChoice);
+        });
+
+        it('should not resolve a value that merely starts with the deprecated prefix', () => {
+            // Given a workspace on an unknown value that only shares the deprecated prefix
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The value outside the type is the scenario under test.
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: 'deprecated_reimburseSomethingElse' as Policy['reimbursementChoice']});
+
+            // When the choice is resolved
+            const resolvedChoice = getReimbursementChoice(policy);
+
+            // Then it is passed through, because matching on the prefix would silently invent a meaning for a value we do not know
+            expect(resolvedChoice).toBe('deprecated_reimburseSomethingElse');
+        });
+    });
+
+    describe('arePaymentsEnabled', () => {
+        it.each([
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+        ])('should return %s -> %s', (choice, expected) => {
+            // Given a workspace on one of the current or deprecated values
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+
+            // When payments availability is checked
+            const paymentsEnabled = arePaymentsEnabled(policy);
+
+            // Then only a disabled workspace turns payments off, whichever of the two values it reports
+            expect(paymentsEnabled).toBe(expected);
+        });
+    });
+
+    describe('isPolicyPayer', () => {
+        // The owner is the payer under Indirect reimbursement, so both values have to resolve to the same payer.
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+            'should treat the owner as the payer for %s',
+            (choice) => {
+                // Given an owner who administers a workspace on Indirect reimbursement
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: choice,
+                    owner: 'owner@example.com',
+                });
+
+                // When they are checked against the workspace
+                const isPayer = isPolicyPayer(policy, 'owner@example.com');
+
+                // Then they can pay, so the deprecated value does not strip an owner of the Pay button
+                expect(isPayer).toBe(true);
+            },
+        );
+
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+            'should treat nobody as the payer for %s',
+            (choice) => {
+                // Given an owner who administers a workspace with reimbursement disabled
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: choice,
+                    owner: 'owner@example.com',
+                });
+
+                // When they are checked against the workspace
+                const isPayer = isPolicyPayer(policy, 'owner@example.com');
+
+                // Then not even the owner can pay, so resolving the deprecated value does not hand out Pay where it was switched off
+                expect(isPayer).toBe(false);
+            },
+        );
     });
 
     describe('getOwnerChangePayerSuccessData', () => {
