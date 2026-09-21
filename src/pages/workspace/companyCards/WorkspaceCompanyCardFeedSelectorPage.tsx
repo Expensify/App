@@ -147,10 +147,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
-    /**
-     * Links a feed owned by another workspace to this policy and then selects it. The user may first have to add or
-     * validate a work email, in which case that flow carries the feed and finishes the selection on its own.
-     */
+    /** The user may first have to add or validate a work email, in which case that flow carries the feed and finishes the selection on its own. */
     const linkOtherWorkspaceFeed = (feed: CardFeedListItem) => {
         if (isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
@@ -180,7 +177,6 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     };
 
     const selectFeed = (feed: CardFeedListItem) => {
-        // Staging another row makes an error left over from a previous link attempt irrelevant.
         setFeedWithError(undefined);
         setDraftFeed(feed.value);
     };
@@ -192,7 +188,6 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         if (!currentSelectedFeed) {
             return;
         }
-        // A feed from another workspace is not selectable until it has been linked to this policy.
         if (stagedOtherWorkspaceFeed) {
             linkOtherWorkspaceFeed(stagedOtherWorkspaceFeed);
             return;
@@ -201,9 +196,6 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         goBack();
     };
 
-    // Every row is submittable, matching the old behaviour where tapping any row committed it: re-saving the active
-    // feed is a harmless no-op, and an offline link attempt reports its own error on the row. Save is only dead when
-    // no row is checked.
     const isSaveDisabled = !isStagedFeedOnPage;
 
     const confirmButtonOptions = {
@@ -217,8 +209,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         setFeedWithError(undefined);
     };
 
-    // Without any available feed the page renders a plain ScrollView instead of a SelectionList, so it has to supply
-    // its own Save button for the "From other workspaces" rows — they are the only selectable rows in that state.
+    // Without any available feed the page renders a plain ScrollView instead of a SelectionList, so it has to supply its own Save button.
     const shouldShowOtherFeedsSaveButton = canWriteCompanyCards && otherFeeds.length > 0;
 
     const otherMenuItemFeeds = canWriteCompanyCards ? (
@@ -235,8 +226,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     {otherFeeds.map((feed) => {
                         const item = {
                             ...feed,
-                            // The hook marks the committed feed as selected, but while a selection is staged the
-                            // checkmark has to follow the draft instead.
+                            // The hook marks the committed feed as selected, but the checkmark has to follow the staged one.
                             isSelected: feed.value === currentSelectedFeed,
                             errors: feedWithError?.feed === feed.value ? feedWithError.error : undefined,
                         };

@@ -152,10 +152,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         clearIssueNewCardFormData();
     };
 
-    /**
-     * Links a feed owned by another workspace to this policy and then selects it. The user may first have to add or
-     * validate a work email, in which case that flow carries the fundID and finishes the selection on its own.
-     */
+    /** The user may first have to add or validate a work email, in which case that flow carries the fundID and finishes the selection on its own. */
     const linkOtherWorkspaceFeed = (fundID: number) => {
         const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
         if (!isUserValidated || isUserFromPublicDomain) {
@@ -184,7 +181,6 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
-        // Staging another row makes an error left over from a previous link attempt irrelevant.
         setFeedWithError(undefined);
         setDraftFundID(feed.value);
     };
@@ -197,7 +193,6 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
             return;
         }
         resetCardFlowState();
-        // A feed from another workspace is not selectable until it has been linked to this policy.
         if (isOtherWorkspaceFeedStaged) {
             linkOtherWorkspaceFeed(currentSelectedFundID);
             return;
@@ -206,11 +201,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         goBack();
     };
 
-    // Every row is submittable, matching the old behaviour where tapping any row committed it: re-saving the active
-    // feed is a harmless no-op, and an offline link attempt reports its own error on the row. Save is only dead when
-    // no row is checked, which happens with no primary feeds, where the default fund resolves to the workspace
-    // account ID rather than to any listed feed. Checking membership rather than inequality also keeps Save usable
-    // for a fallback feed that lands in otherFeeds while still resolving as the default fund.
+    // Membership rather than inequality, because with no primary feeds the default fund resolves to the workspace account ID rather than to any listed feed.
     const isSaveDisabled = !isStagedFeedOnPage;
 
     const confirmButtonOptions = {
@@ -222,13 +213,11 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
 
-    // Issuing a card on an already selected feed is already offered on the card list page, so this page only offers
-    // setting up a brand new program. Suppress that branch on workspaces with unsupported currencies, and for members
-    // who cannot reach the bank account setup page.
+    // Suppress the new-program branch on workspaces with unsupported currencies, and for members who cannot
+    // reach the bank account setup page. These workspaces may only issue cards on existing feeds
     const shouldShowSetUpNewProgramButton = !hasIssueCardFundID && canEnrollNewCardProgram && canStartBankAccountSetup;
 
-    // Without a primary feed the page renders a plain ScrollView instead of a SelectionList, so it has to supply its
-    // own Save button for the "From other workspaces" rows — they are the only selectable rows in that state.
+    // Without a primary feed the page renders a plain ScrollView instead of a SelectionList, so it has to supply its own Save button.
     const shouldShowOtherFeedsSaveButton = canWriteExpensifyCard && otherFeeds.length > 0;
 
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
