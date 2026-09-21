@@ -22,7 +22,6 @@ import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/Tra
 
 import variables from '@styles/variables';
 
-import {dismissRejectExpenseError} from '@userActions/IOU/RejectMoneyRequest';
 import {clearError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -165,13 +164,7 @@ function MoneyRequestReportTransactionItemBody({
     const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
     const hasTransactionErrors = Object.keys(transactionErrors).length > 0;
 
-    // A reject error means the server no longer has this expense on this report, so dismissing it drops the stale
-    // local copy rather than just hiding the message. Any other error is a plain dismiss.
     const dismissTransactionError = () => {
-        if (hasRejectError) {
-            dismissRejectExpenseError(transaction.transactionID);
-            return;
-        }
         clearError(transaction.transactionID);
     };
 
