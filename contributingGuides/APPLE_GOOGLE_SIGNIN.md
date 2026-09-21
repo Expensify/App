@@ -103,6 +103,16 @@ index 4286a26033..850f8944ca 100644
                                         accessibilityElementsHidden
 ```
 
+## SSO buttons on adhoc builds
+
+The SSO buttons are also hidden on adhoc builds. Adhoc web builds are served from a per-PR origin
+(`https://<PR>.pr-testing.expensify.com`) and adhoc native builds use an adhoc bundle ID, none of which
+are registered with Apple or Google. Google rejects those origins with `Error 400: origin_mismatch`, so
+the buttons could only ever fail there. Google does not accept wildcards in its authorized JavaScript
+origins, so a per-PR subdomain can't be registered ahead of time.
+
+Test Apple/Google sign-in on staging or production instead.
+
 ## Apple
 
 #### Port requirements
