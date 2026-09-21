@@ -53,6 +53,50 @@ describe('MenuItemField', () => {
         });
     });
 
+    describe('value line count', () => {
+        it('keeps the value on a single line by default', () => {
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        value={VALUE}
+                    />
+                </Wrapper>,
+            );
+
+            expect(screen.getByText(VALUE)).toHaveProp('numberOfLines', 1);
+        });
+
+        it('lets the value take the given number of lines', () => {
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        value={VALUE}
+                        numberOfLinesValue={2}
+                    />
+                </Wrapper>,
+            );
+
+            expect(screen.getByText(VALUE)).toHaveProp('numberOfLines', 2);
+        });
+
+        it('lets the value grow unbounded given 0', () => {
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        value={VALUE}
+                        numberOfLinesValue={0}
+                    />
+                </Wrapper>,
+            );
+
+            // Every platform reads 0 as "as many lines as it needs"
+            expect(screen.getByText(VALUE)).toHaveProp('numberOfLines', 0);
+        });
+    });
+
     describe('empty shape', () => {
         it.each([
             ['no value prop', undefined],

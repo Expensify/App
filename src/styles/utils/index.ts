@@ -1107,6 +1107,17 @@ function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
 }
 
 /**
+ * Scales a view about its top-left corner, e.g. to display high-resolution content
+ * at a smaller size inside a clipping box without re-rendering it.
+ */
+function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle {
+    return {
+        transform: [{scale: scaleValue}],
+        transformOrigin: 'top left',
+    };
+}
+
+/**
  * Returns a style object with a rotation transformation applied based on the provided direction prop.
  *
  * @param direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
@@ -1488,6 +1499,7 @@ const staticStyleUtils = {
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
     getTransformScaleStyle,
+    getTopLeftTransformScaleStyle,
     getCodeFontSize,
     getFontSizeStyle,
     getLineHeightStyle,
@@ -2042,6 +2054,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
@@ -2136,6 +2149,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:

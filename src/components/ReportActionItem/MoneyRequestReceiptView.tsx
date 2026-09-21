@@ -25,6 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -137,6 +138,8 @@ function MoneyRequestReceiptView({
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -248,6 +251,7 @@ function MoneyRequestReceiptView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
             isChatReportArchived,
             reportNameValuePairs,
@@ -491,6 +495,7 @@ function MoneyRequestReceiptView({
                     isChatIOUReportArchived,
                     originalReportID,
                     getCurrencyDecimals,
+                    isOffline,
                     isSingleTransactionView: true,
                     policy,
                 });
@@ -503,7 +508,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -511,7 +516,7 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
@@ -574,6 +579,7 @@ function MoneyRequestReceiptView({
         }
         const source = URL.createObjectURL(file as Blob);
         replaceReceipt({
+            isVendorMatchingBetaEnabled,
             transaction,
             file: file as File,
             source,
