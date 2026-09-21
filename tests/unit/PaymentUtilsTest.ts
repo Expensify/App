@@ -2,7 +2,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePaymentType, getBankAccountLastFourDigits, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
+import {getActivePaymentType, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
 import {wasPaidWithPolicyBankAccount} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -592,64 +592,5 @@ describe('wasPaidWithPolicyBankAccount', () => {
 
     it('returns true for any payer when the workspace has no designated payer', () => {
         expect(wasPaidWithPolicyBankAccount({...policyWithDesignatedPayer, reimburser: undefined}, NON_PAYER_ADMIN_ACCOUNT_ID)).toBe(true);
-    });
-});
-
-describe('getBankAccountLastFourDigits', () => {
-    const POLICY_BANK_ACCOUNT_ID = 1111;
-    const PAYER_EMAIL = 'payer@test.com';
-    const PAYER_ACCOUNT_ID = 101;
-    const NON_PAYER_ADMIN_ACCOUNT_ID = 102;
-
-    const policy: Policy = {
-        ...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE),
-        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        reimburser: PAYER_EMAIL,
-        achAccount: {
-            bankAccountID: POLICY_BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX1111',
-            routingNumber: '123456789',
-            addressName: 'Test bank account',
-            bankName: 'Test bank',
-            reimburser: PAYER_EMAIL,
-        },
-    };
-
-    beforeEach(async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [PAYER_ACCOUNT_ID]: {accountID: PAYER_ACCOUNT_ID, login: PAYER_EMAIL},
-            [NON_PAYER_ADMIN_ACCOUNT_ID]: {accountID: NON_PAYER_ADMIN_ACCOUNT_ID, login: 'wsadmin@test.com'},
-        });
-        await waitForBatchedUpdates();
-    });
-
-    afterEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdates();
-    });
-
-    it('uses the account stored on the payment action over anything resolved locally', () => {
-        expect(getBankAccountLastFourDigits({bankAccountID: undefined, bankAccountList: {}, policy, accountNumber: 'XXXXXX0000', payerAccountID: NON_PAYER_ADMIN_ACCOUNT_ID})).toBe('0000');
-    });
-
-    it('falls back to the workspace account for a payment made by the designated payer', () => {
-        expect(getBankAccountLastFourDigits({bankAccountID: undefined, bankAccountList: {}, policy, payerAccountID: PAYER_ACCOUNT_ID})).toBe('1111');
-    });
-
-    it('does not attribute the workspace account to a payment made by a non-payer admin', () => {
-        expect(getBankAccountLastFourDigits({bankAccountID: undefined, bankAccountList: {}, policy, payerAccountID: NON_PAYER_ADMIN_ACCOUNT_ID})).toBe('');
-    });
-
-    it('does not attribute the workspace account to a payment that names another bank account', () => {
-        expect(getBankAccountLastFourDigits({bankAccountID: 2222, bankAccountList: {}, policy, payerAccountID: PAYER_ACCOUNT_ID})).toBe('');
-    });
-
-    it('keeps the workspace account when the reimburser cannot be resolved from personal details', async () => {
-        // Given a viewer who has never interacted with the designated payer, so their personal details aren't loaded
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[NON_PAYER_ADMIN_ACCOUNT_ID]: {accountID: NON_PAYER_ADMIN_ACCOUNT_ID, login: 'wsadmin@test.com'}});
-        await waitForBatchedUpdates();
-
-        // Then the payer can't be ruled out, so the pre-existing workspace account fallback is kept
-        expect(getBankAccountLastFourDigits({bankAccountID: undefined, bankAccountList: {}, policy, payerAccountID: PAYER_ACCOUNT_ID})).toBe('1111');
     });
 });

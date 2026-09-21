@@ -24,6 +24,7 @@ import {
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getManagerAccountID,
+    getReimbursementChoice,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -169,7 +170,7 @@ function isSplitAction(
         return false;
     }
 
-    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const arePaymentsDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     if (isProcessingReportUtils(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && arePaymentsDisabled) {
         return false;
     }

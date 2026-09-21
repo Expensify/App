@@ -34,7 +34,8 @@ import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 import {getBankAccountFromID} from '@userActions/BankAccounts';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
-import {completeOnboarding, notifyNewAction} from '@userActions/Report';
+import {completeOnboarding} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 
