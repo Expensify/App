@@ -1,3 +1,7 @@
+/**
+ * Narrow preset over `<Header>` for the common back-button-plus-title case, so call-sites that need
+ * nothing else don't have to compose the primitives by hand.
+ */
 import Header from '@components/Header/Header';
 import HeaderRight from '@components/Header/layout/HeaderRight';
 import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
