@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, Upcoming travel, upcoming trips on Home, flight to, hotel in, car rental in, train to, traveler]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Upcoming travel, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses, and does not cover booking or managing travel.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, Upcoming travel, upcoming trips on Home, flight to, hotel in, car rental in, train to, traveler, Home loading, Home still loading, placeholder cards, blank cards on Home, empty cards on Home, gray cards, shimmering bars, loading placeholders]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Upcoming travel, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections, and what Home shows while it is still loading. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses, and does not cover booking or managing travel.
 
 ---
 
@@ -41,6 +41,8 @@ Home includes:
 - **Your spend** (when applicable)
 
 Each section provides context so you know where to go next.
+
+When you first sign in, Home shows a set of placeholder cards while your account data loads, then replaces them with the sections that apply to you.
 
 ---
 
@@ -183,6 +185,14 @@ No, they serve different purposes. Home provides an overview of what needs atten
 ## Can actions be completed from Home?
 
 Not directly. Home links you to other parts of Expensify where actions are completed.
+
+## Why do I see blank cards when Home first loads?
+
+When you first sign in, Expensify loads your account data before it knows which sections apply to you. Until that finishes, Home shows a set of placeholder cards with shimmering bars in place of the section content, so you don’t see an empty page or an empty state that doesn’t apply to you.
+
+The **For you** card appears right away, so you can start typing to Concierge while the rest of Home loads. Once your data finishes loading, the placeholders are replaced by your real sections, so the number of cards on Home can change at that point.
+
+If you lose your connection while Home is still loading, the placeholder cards stay in place until you reconnect.
 
 ## Why does the For you section sometimes appear empty?
 
