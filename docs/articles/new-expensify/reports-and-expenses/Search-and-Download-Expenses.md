@@ -86,14 +86,14 @@ You can download a single report or multiple reports as PDFs. Each PDF includes 
 
 1. Open the report you want to download.
 2. Select the three dots **(⋮)**.
-3. Select **Download as PDF**.
+3. Select **Download report**.
 
 ## Download multiple reports
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), then select **Spend** > **Reports**.
 2. Check the box next to each report you want to download, or use the top checkbox to select all.
 3. Click **Selected**.
-4. Select **Download as PDF**.
+4. Select **Download reports**.
 
 A status window appears while your files are prepared. When they're ready, the download starts automatically. If it doesn't, click **Download file**. You can also click **Send me the file when it's ready** to have **Concierge** send the files to you in a chat message instead.
 
@@ -157,7 +157,7 @@ Your file keeps preparing, and the status window comes back on its own. Expensif
 ## Can I export expenses or reports in bulk?
 
 - **CSV export**: Yes, select multiple or all items.
-- **PDF export**: Yes, select multiple reports and choose **Download as PDF**. Each report is downloaded as a separate PDF.
+- **PDF export**: Yes, select multiple reports and choose **Download reports**. Each report is downloaded as a separate PDF.
 
 ## What happens if some reports fail to download as PDFs?
 
