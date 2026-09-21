@@ -157,6 +157,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_CLOSE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
                             path: ROUTES.SETTINGS_MERGE_ACCOUNTS.route,
                             exact: true,

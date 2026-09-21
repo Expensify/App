@@ -3306,6 +3306,14 @@ const staticStyles = (theme: ThemeColors) =>
             transform: `rotate(180deg)`,
         },
 
+        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
+        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
+        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
+        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
+        flipUpsideDownInPlace: {
+            transform: `scaleY(-1)`,
+        },
+
         navigationScreenCardStyle: {
             height: '100%',
         },
@@ -3494,11 +3502,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         moneyRequestAmountContainer: {
             minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
-        },
-
-        requestPreviewBox: {
-            marginTop: 12,
-            maxWidth: variables.reportPreviewMaxWidth,
         },
 
         moneyRequestPreviewBox: {
@@ -4372,6 +4375,26 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             flexDirection: 'row',
             alignSelf: 'flex-start',
+        },
+
+        conciergeFeedbackThumb: {
+            width: variables.componentSizeSmall,
+            height: variables.componentSizeSmall,
+            borderRadius: variables.buttonBorderRadius,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.transparent,
+        },
+
+        // Matches the add reaction bubble because hoverComponentBG is barely visible on the chat background
+        conciergeFeedbackThumbHovered: {
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
+        // A line height would push the emoji glyph above the center of the thumb
+        conciergeFeedbackThumbEmoji: {
+            fontSize: variables.fontSizeNormal,
+            textAlign: 'center',
         },
 
         emojiReactionListHeader: {
