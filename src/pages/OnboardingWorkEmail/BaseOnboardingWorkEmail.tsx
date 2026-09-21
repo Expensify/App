@@ -15,6 +15,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -80,10 +81,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         selector: expensifyLoginsSelector,
     });
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountSelector});
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const onboardingIntent = useOnboardingIntent();
     const isJoinWorkspaceTaskRoute = route.params?.isJoinWorkspaceTask === 'true';
-    const onboardingIntent = isJoinWorkspaceTaskRoute ? introSelected?.choice : onboardingPurposeSelected;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {taskReport: addWorkEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const returnToOriginReport = useReturnToOriginReport();
