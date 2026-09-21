@@ -3158,6 +3158,7 @@ const CONST = {
     QUICKBOOKS_CONFIG: {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CLASSES: 'syncClasses',
+        SYNC_CUSTOM_DIMENSIONS: 'syncCustomDimensions',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_ITEMS: 'syncItems',
@@ -4493,6 +4494,12 @@ const CONST = {
             REIMBURSEMENT_YES: 'reimburseYes', // Direct
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
+        },
+
+        /** Some workspaces report these instead of the values above. They mean the same thing, so resolve them before comparing. */
+        DEPRECATED_REIMBURSEMENT_CHOICES: {
+            REIMBURSEMENT_NO: 'deprecated_reimburseNo', // None
+            REIMBURSEMENT_MANUAL: 'deprecated_reimburseManual', // Indirect
         },
         GLOBAL_REIMBURSEMENT_FX_PREFERENCE: {
             COMPANY: 'company',

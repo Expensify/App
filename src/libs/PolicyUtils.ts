@@ -699,8 +699,9 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
         return undefined;
     }
 
-    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
@@ -744,8 +745,9 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     }
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
@@ -1649,8 +1651,24 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+/**
+ * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
+ * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
+ * disabled, which hides Pay on its approved reports.
+ */
+function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | undefined {
+    switch (policy?.reimbursementChoice) {
+        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO:
+            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL:
+            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        default:
+            return policy?.reimbursementChoice;
+    }
+}
+
 function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
 /**
@@ -3622,6 +3640,7 @@ export {
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
+    getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
     isTaxTrackingEnabled,
