@@ -1,7 +1,7 @@
 ---
 title: Manage Vendor Matching for Sage Intacct
 description: Learn how Sage Intacct vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
-keywords: [Sage Intacct, vendor matching, vendor, company card expenses, default vendor, Credit Card Charges, credit card export]
+keywords: [Sage Intacct, vendor matching, vendor, company card expenses, default vendor, Credit Card Charges, credit card export, Vendor column, Edit columns]
 internalScope: Audience is Workspace Admins using the Sage Intacct connection with Credit Card Charges company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover Sage Intacct connection setup or other export types.
 noindex: true
 sitemap: false
@@ -67,3 +67,15 @@ Yes. Once a Workspace Admin manually assigns a vendor to an expense, Expensify p
 ## How do I know why Expensify assigned a vendor automatically?
 
 When Expensify automatically assigns a vendor, Concierge posts a system message on the expense indicating whether the vendor was assigned by a merchant rule or by vendor matching.
+
+## Where can I see the vendor for several expenses at once?
+
+Add the **Vendor** column to your expense table. Column customization is not available on mobile.
+
+1. Go to the **Spend** tab in the navigation on the left, then select **Expenses**.
+2. Click **Display**, then select **Edit columns**.
+3. Check **Vendor**, then click **Save**.
+
+Inside a single report, click **Columns** above the expense table, check **Vendor**, then click **Save**.
+
+The column shows the vendor assigned to each non-reimbursable company card expense and stays blank when no vendor is assigned yet.

@@ -1,7 +1,7 @@
 ---
 title: Manage Vendor Matching for QuickBooks Online
 description: Learn how QuickBooks Online vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
-keywords: [QuickBooks Online, vendor matching, vendor, company card expenses, default vendor, Credit Card Misc, Debit Card Misc, credit card export]
+keywords: [QuickBooks Online, vendor matching, vendor, company card expenses, default vendor, Credit Card Misc, Debit Card Misc, credit card export, Vendor column, Edit columns]
 internalScope: Audience is Workspace Admins using the QuickBooks Online connection with Credit card or Debit card company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover QuickBooks Online connection setup or other export types.
 ---
 
@@ -70,4 +70,16 @@ Only Workspace Admins can view and edit the **Vendor** field. Members and submit
 ## Does manually assigning a vendor stop automatic matching?
 
 Yes. Once a Workspace Admin manually assigns a vendor to an expense, Expensify preserves that selection and won't replace it with automatic matching.
+
+## Where can I see the vendor for several expenses at once?
+
+Add the **Vendor** column to your expense table. Column customization is not available on mobile.
+
+1. Go to the **Spend** tab in the navigation on the left, then select **Expenses**.
+2. Click **Display**, then select **Edit columns**.
+3. Check **Vendor**, then click **Save**.
+
+Inside a single report, click **Columns** above the expense table, check **Vendor**, then click **Save**.
+
+The column shows the vendor assigned to each non-reimbursable company card expense and stays blank when no vendor is assigned yet.
 

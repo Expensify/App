@@ -1,7 +1,7 @@
 ---
 title: Manage Vendor Matching for Xero
 description: Learn how Xero vendor matching assigns contacts to non-reimbursable company card expenses before they export as bank transactions, including automatic matching and manual selection.
-keywords: [Xero, vendor matching, vendor, contacts, suppliers, company card expenses, bank transactions]
+keywords: [Xero, vendor matching, vendor, contacts, suppliers, company card expenses, bank transactions, Vendor column, Edit columns]
 internalScope: Audience is workspace admins using the Xero connection. Covers imported Xero contacts, automatic and manual vendor assignment, and how vendors are assigned when company card expenses export as bank transactions. Does not cover Xero connection setup or other export types.
 ---
 
@@ -74,5 +74,17 @@ Only workspace admins can view and edit the **Vendor** field. Members and submit
 ## Does manually assigning a vendor stop automatic matching?
 
 Yes. Once a workspace admin manually assigns a vendor to an expense, Expensify preserves that selection and won't replace it with automatic matching.
+
+## Where can I see the vendor for several expenses at once?
+
+Add the **Vendor** column to your expense table. Column customization is not available on mobile.
+
+1. Go to the **Spend** tab in the navigation on the left, then select **Expenses**.
+2. Click **Display**, then select **Edit columns**.
+3. Check **Vendor**, then click **Save**.
+
+Inside a single report, click **Columns** above the expense table, check **Vendor**, then click **Save**.
+
+The column shows the vendor assigned to each non-reimbursable company card expense and stays blank when no vendor is assigned yet.
 
 
