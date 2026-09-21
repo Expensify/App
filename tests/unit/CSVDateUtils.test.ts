@@ -65,15 +65,27 @@ describe('CSVDateUtils', () => {
             expect(result).toBe('2024-01-25');
         });
 
-        it('reads an ambiguous numeric date in the order the uploading language writes it', () => {
-            // Given a cell reading `03/04/2025`, which is 3 April where the day leads and 4 March where the month does
-            // When it is parsed for each uploader
+        it('reads an ambiguous numeric date the same way whoever uploads it', () => {
+            // Given a cell reading `03/04/2025`, whose field order belongs to the bank that exported the file rather
+            // than to the person importing it
+            // When it is parsed for a German and an English uploader
             const forGerman = parseCSVDate('03/04/2025', CONST.LOCALES.DE);
             const forEnglish = parseCSVDate('03/04/2025', CONST.LOCALES.EN);
 
-            // Then each reading follows its own language, rather than both taking the US order and transposing one of them
-            expect(forGerman).toBe('2025-04-03');
+            // Then both read it month-first. Reading it in the uploader's order instead swaps only the rows whose day
+            // is 12 or less, because the rest fail that reading and fall through, so one file lands with two readings
+            expect(forGerman).toBe('2025-03-04');
             expect(forEnglish).toBe('2025-03-04');
+        });
+
+        it('reads a two-digit year as the century a spreadsheet means by it', () => {
+            // Given the short date Excel exports by default, whose year is two digits
+            // When it is parsed
+            const result = parseCSVDate('3/4/25', CONST.LOCALES.EN);
+
+            // Then it lands in 2025, not in the year 25: date-fns `yyyy` matches two digits and reads them literally,
+            // so a cell like this has to reach the engine's own parser
+            expect(result).toBe('2025-03-04');
         });
 
         it('reads the dotted shapes a German spreadsheet exports', () => {

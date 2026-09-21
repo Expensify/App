@@ -8,20 +8,32 @@ import DateUtils from './DateUtils';
 import {registerDerivedIntlCache} from './IntlFormatterCaches';
 import memoize from './memoize';
 
-/** Shapes that read the same in every language: 2025-11-02, 2025/11/02, 20251102. */
-const UNAMBIGUOUS_DATE_FORMATS = ['yyyy-MM-dd', 'yyyy/MM/dd', 'yyyyMMdd'];
-
-/** `03/04/2025` is 3 April where the language writes the day first and 4 March where it writes the month first, so the reading follows the uploader. */
-const DAY_FIRST_DATE_FORMATS = ['dd/MM/yyyy', 'd/M/yyyy', 'dd-MM-yyyy', 'd-M-yyyy', 'dd.MM.yyyy', 'd.M.yyyy'];
-const MONTH_FIRST_DATE_FORMATS = ['MM/dd/yyyy', 'M/d/yyyy', 'MM-dd-yyyy', 'M-d-yyyy'];
-
-/** Shapes carrying a month name, which `toEnglishMonthName` has rewritten to English by the time these are tried. */
-const MONTH_NAME_DATE_FORMATS = ['MMM d, yyyy', 'MMMM d, yyyy', 'd MMM yyyy', 'dd MMM yyyy', 'd MMMM yyyy', 'dd MMMM yyyy', 'd. MMMM yyyy', 'dd. MMMM yyyy'];
-
-function getDateFormats(locale: Locale): string[] {
-    const [leading, trailing] = DateUtils.isDayBeforeMonth(locale) ? [DAY_FIRST_DATE_FORMATS, MONTH_FIRST_DATE_FORMATS] : [MONTH_FIRST_DATE_FORMATS, DAY_FIRST_DATE_FORMATS];
-    return [...UNAMBIGUOUS_DATE_FORMATS, ...leading, ...trailing, ...MONTH_NAME_DATE_FORMATS];
-}
+/**
+ * Order matters, and it does not follow the reader: a file's field order is the exporting bank's, not the uploader's,
+ * so `03/04/2025` is read month-first for everyone rather than swapping the rows a US export sends to a Spanish user.
+ * The month-name shapes come last, by which point `toEnglishMonthName` has rewritten the name to English.
+ */
+const CSV_DATE_FORMATS = [
+    'yyyy-MM-dd', // ISO format: 2025-11-02
+    'MM/dd/yyyy', // US format: 11/02/2025
+    'dd/MM/yyyy', // European format: 02/11/2025
+    'M/d/yyyy', // US short: 1/2/2025
+    'd/M/yyyy', // European short: 2/1/2025
+    'MM-dd-yyyy', // US with dashes: 11-02-2025
+    'dd-MM-yyyy', // European with dashes: 02-11-2025
+    'dd.MM.yyyy', // European with points: 02.11.2025
+    'd.M.yyyy', // European short with points: 2.1.2025
+    'yyyy/MM/dd', // Alternative ISO: 2025/11/02
+    'MMM d, yyyy', // Month name: Nov 2, 2025
+    'MMMM d, yyyy', // Full month: November 2, 2025
+    'd MMM yyyy', // European with month name: 2 Nov 2025
+    'dd MMM yyyy', // European with month name: 02 Nov 2025
+    'd MMMM yyyy', // European with full month: 2 November 2025
+    'dd MMMM yyyy', // European with full month: 02 November 2025
+    'd. MMMM yyyy', // European with a point after the day: 2. November 2025
+    'dd. MMMM yyyy', // European with a point after the day: 02. November 2025
+    'yyyyMMdd', // Compact: 20251102
+];
 
 /** A date followed by a clock time, so a timestamp can be cut back to its date without guessing where the date ends. */
 const TRAILING_TIME_PATTERN = /[T\s]\d{1,2}:\d{2}/;
@@ -70,17 +82,19 @@ function toEnglishMonthName(input: string, locale: Locale): string {
     return input;
 }
 
-function parseDateValue(value: string, dateFormats: string[]): string | null {
+function parseDateValue(value: string): string | null {
     // The known shapes first: a cell holds a calendar day, and the engine reads `2024-01-15` as UTC midnight, which
     // formats back as the day before in every zone west of UTC.
-    for (const dateFormat of dateFormats) {
+    for (const dateFormat of CSV_DATE_FORMATS) {
         const parsedDate = parse(value, dateFormat, new Date());
-        if (isValid(parsedDate)) {
+        // `yyyy` also matches a two-digit year and reads it literally, so `3/4/25` is the year 25 here and 2025 to the
+        // engine below, which is the reading a spreadsheet means by it.
+        if (isValid(parsedDate) && parsedDate.getFullYear() >= 100) {
             return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
         }
     }
 
-    // Then whatever else the engine accepts, such as a timestamp carrying its own offset.
+    // Then whatever else the engine accepts, such as a two-digit year or a timestamp carrying its own offset.
     const nativeDate = new Date(value);
     return isValid(nativeDate) ? format(nativeDate, CONST.DATE.FNS_FORMAT_STRING) : null;
 }
@@ -94,15 +108,14 @@ function parseCSVDate(input: string, locale: Locale): string | null {
     }
 
     const normalizedInput = toEnglishMonthName(input.trim(), locale);
-    const dateFormats = getDateFormats(locale);
-    const parsedDate = parseDateValue(normalizedInput, dateFormats);
+    const parsedDate = parseDateValue(normalizedInput);
     if (parsedDate) {
         return parsedDate;
     }
 
     // Retry without the clock time, cut at the time itself: cutting at a fixed length left a month name and a two-digit year, which the engine read as the year 20.
     const trailingTime = TRAILING_TIME_PATTERN.exec(normalizedInput);
-    const parsedDateOnly = trailingTime ? parseDateValue(normalizedInput.slice(0, trailingTime.index), dateFormats) : null;
+    const parsedDateOnly = trailingTime ? parseDateValue(normalizedInput.slice(0, trailingTime.index)) : null;
     if (parsedDateOnly) {
         return parsedDateOnly;
     }

@@ -1765,7 +1765,6 @@ const DateUtils = {
     isYesterday,
     getMonthNames,
     getShortMonthNames,
-    isDayBeforeMonth,
     getFilteredMonthItems,
     getDaysOfWeekNarrow,
     toLocalDate,
