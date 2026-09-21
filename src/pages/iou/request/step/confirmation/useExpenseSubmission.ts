@@ -1,8 +1,6 @@
-import useActivePolicy from '@hooks/useActivePolicy';
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
@@ -12,28 +10,24 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
-import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, getReusableP2PReportID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
-import {findSelfDMReportID, generateReportID, getAllPolicyExpenseChatReportActions, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {
     getDistanceRequestType,
     getIsFromGlobalCreate,
     getRateID,
-    getSelectedRouteDistance,
     getValidWaypoints,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
-import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
+import {requestMoney as requestMoneyIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
 import CONST from '@src/CONST';
@@ -50,12 +44,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {isDraftReportSelector} from '@selectors/Report';
 import {useRef, useState} from 'react';
 
 import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 
-import useDistanceDraftData from './submission/useDistanceDraftData';
 import useDistanceSubmission from './submission/useDistanceSubmission';
 import useGpsCapture from './submission/useGpsCapture';
 import useInvoiceSubmission from './submission/useInvoiceSubmission';
@@ -64,6 +56,7 @@ import useSendMoneySubmission from './submission/useSendMoneySubmission';
 import useSplitSubmission from './submission/useSplitSubmission';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 import useSubmissionViolations from './submission/useSubmissionViolations';
+import useTrackExpenseSubmission from './submission/useTrackExpenseSubmission';
 import getCurrentReceiptState from './submission/utils/getCurrentReceiptState';
 import getTransactionTaxValues from './submission/utils/getTransactionTaxValues';
 import logSubmittedReceiptMilestone from './submission/utils/logSubmittedReceiptMilestone';
@@ -181,23 +174,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     // Policy-scoped Onyx data
     const policyID = policy?.id;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const isIouReport = isMoneyRequestReportReportUtils(report);
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policyID);
-    const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const activePolicy = useActivePolicy();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Reports
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
-    // A self-DM destination passes `undefined` as the chat to trackExpense, which then resolves the chat to the self-DM — a real report that is never a draft
-    const destinationChatReportID = isSelfDMDestination ? undefined : currentChatReport?.reportID;
-    const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationChatReportID}`, {selector: isDraftReportSelector});
     const selectedParticipants = participants.filter((participant) => participant.selected);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
         moneyRequestReportID: isIouReport ? report?.reportID : undefined,
@@ -224,7 +206,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const {isOffline} = useNetwork();
@@ -241,15 +222,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Derived values from transaction
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
-    const distanceRequestType = getDistanceRequestType(transaction);
 
     const customUnitRateID = getRateID(transaction) ?? '';
-    const {gpsDraftDetails, recentWaypoints, odometerDraft, transactionDistance, isModifiedGPSDistanceRequest} = useDistanceDraftData({
-        transaction,
-        isGPSDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-    });
     const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({
         transaction,
         policy,
@@ -287,6 +261,36 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         participants,
         currentUserPersonalDetails,
         setIsConfirmed,
+        onExpenseWriteWillStart,
+    });
+
+    const trackSubmission = useTrackExpenseSubmission({
+        transaction,
+        transactions,
+        receiptFiles,
+        canEnterScanFieldsManually,
+        report,
+        policy,
+        policyCategories,
+        isDraftPolicy,
+        personalDetails,
+        currentUserPersonalDetails,
+        selectedParticipants,
+        iouType,
+        action,
+        isGPSDistanceRequest,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isCategorizingTrackExpense,
+        isSharingTrackExpense,
+        isSubmittingExpenseToDraftWorkspace,
+        isSelfDMDestination,
+        isLookingAroundUser,
+        draftTransactionIDs,
+        privateIsArchivedMap,
+        transactionTaxCode,
+        transactionTaxAmount,
+        transactionTaxValue,
         onExpenseWriteWillStart,
     });
 
@@ -568,167 +572,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function trackExpense(shouldHandleNavigation: boolean, options?: {gpsPoint?: GpsPoint}) {
-        const {gpsPoint} = options ?? {};
-        if (!transactions.length) {
-            return;
-        }
-        const participant = selectedParticipants.at(0);
-        if (!participant) {
-            return;
-        }
-        // trackExpense bails per-item on malformed CATEGORIZE/SHARE/SUBMIT too late for UI cleanup — reject the batch upfront.
-        const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.SUBMIT;
-        if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
-            return;
-        }
-        onExpenseWriteWillStart?.();
-        const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
-        // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
-        // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
-        const trackReport = isSelfDMDestination ? undefined : report;
-        const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
-        let submittedCommand: string = WRITE_COMMANDS.TRACK_EXPENSE;
-        if (isCategorizingTrackExpense) {
-            submittedCommand = WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE;
-        } else if (isSharingTrackExpense) {
-            submittedCommand = WRITE_COMMANDS.SHARE_TRACKED_EXPENSE;
-        }
-        let lastOptimisticTransactionID: string | undefined;
-        for (const item of transactions) {
-            const {newAccountIDs, newLogins} =
-                item.accountant?.login && item.accountant.accountID ? getNewAccountIDsAndLogins({[item.accountant.login]: item.accountant.accountID}, personalDetails) : {};
-            lastOptimisticTransactionID = rand64();
-            const trackReceipt = receiptFiles[item.transactionID];
-            logSubmittedReceiptMilestone({item, receipt: trackReceipt, optimisticTransactionID: lastOptimisticTransactionID, command: submittedCommand, iouType});
-            const isLinkedTrackedExpenseReportArchived =
-                !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
-            const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
-            const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
-            const originalItemDistance =
-                isModifiedGPSDistanceRequest && gpsDraftDetails?.distanceInMeters && itemDistanceUnit
-                    ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.distanceInMeters, itemDistanceUnit)
-                    : itemDistance;
-            const modifiedItemDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
-
-            const email = currentUserPersonalDetails.email ?? '';
-
-            trackExpenseIOUActions({
-                getCurrencyDecimals,
-                report: trackReport,
-                isDraftPolicy,
-                isDraftChatReport: !!isDraftChatReport,
-                action,
-                existingTransaction: item,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant,
-                },
-                policyParams: {
-                    policy,
-                    policyCategories,
-                    policyTagList: policyTags,
-                },
-                transactionParams: {
-                    amount: item.amount,
-                    distance: originalItemDistance,
-                    modifiedDistance: modifiedItemDistance,
-                    currency: item.currency,
-                    created: item.created,
-                    merchant: item.merchant,
-                    comment: item?.comment?.comment?.trim() ?? '',
-                    receipt: trackReceipt,
-                    receiptState: getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually}),
-                    category: item.category,
-                    tag: item.tag,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    taxValue: transactionTaxValue,
-                    billable: item.billable,
-                    reimbursable: item.reimbursable,
-                    gpsPoint,
-                    validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true, isGPSDistanceRequest) : undefined,
-                    actionableWhisperReportActionID: item.actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
-                    customUnitRateID,
-                    attendees: item.comment?.attendees,
-                    isLinkedTrackedExpenseReportArchived,
-                    odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
-                    odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
-                    isFromGlobalCreate: getIsFromGlobalCreate(item),
-                    gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
-                    distanceRequestType,
-                    selectedRouteDistance: getSelectedRouteDistance(item),
-                },
-                accountantParams: {
-                    accountant: item.accountant,
-                    newLogins,
-                    newAccountIDs,
-                    formatPhoneNumber,
-                },
-                optimisticChatReportID: optimisticSelfDMReportID,
-                optimisticTransactionID: lastOptimisticTransactionID,
-                isASAPSubmitBetaEnabled,
-                currentUser: {accountID: currentUserPersonalDetails.accountID, email},
-                introSelected,
-                activePolicy,
-                conciergeChat,
-                quickAction,
-                recentWaypoints,
-                betas,
-                draftTransactionIDs,
-                isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email, currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate),
-                previousOdometerDraft: odometerDraft,
-                reportActionsList: policyExpenseChatReportActions,
-                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-                delegateAccountID,
-                rules,
-            });
-        }
-        performPostBatchCleanup({
-            transactions,
-            report,
-            action,
-            draftTransactionIDs,
-            currentUserPersonalDetails,
-            isLookingAroundUser,
-            isSelfDMDestination,
-            participant,
-            shouldHandleNavigation,
-            allTransactionsCreated: true,
-            fallbackOptimisticChatReportID: optimisticSelfDMReportID,
-            navigateBackToReport: undefined,
-            lastOptimisticTransactionID,
-            // trackExpense wrote to optimisticSelfDMReportID, so resolve the self-DM nav target directly. This
-            // suppresses the route-report fallback in resolveChatTargetForSubmitCleanup, which would otherwise keep a
-            // policy/group/source route report as the target when the self-DM report isn't loaded yet (fresh account
-            // or before Onyx hydration) — leaving first-time self-DM creates navigating against the wrong report.
-            preResolvedChatTarget: isSelfDMDestination ? {report: selfDMReport, chatReportID: optimisticSelfDMReportID} : undefined,
-        });
-    }
-
-    function submitTrack(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
-        const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
-        // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
-        const shouldCaptureGpsPoint =
-            hasAnyReceiptFile &&
-            !!transaction &&
-            transaction.amount === 0 &&
-            !isSharingTrackExpense &&
-            !isCategorizingTrackExpense &&
-            !isSubmittingExpenseToDraftWorkspace &&
-            locationPermissionGranted;
-
-        submitWithGpsPoint({
-            shouldCaptureGpsPoint,
-            shouldHandleNavigation,
-            write: (navigate, gpsPoint) => trackExpense(navigate, {gpsPoint}),
-        });
-    }
-
     function submitRequestMoney(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
         const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
         // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
@@ -745,7 +588,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         [SUBMISSION_PATH.DISTANCE]: distanceSubmission.createTransaction,
         [SUBMISSION_PATH.SPLIT]: splitSubmission.createTransaction,
         [SUBMISSION_PATH.INVOICE]: invoiceSubmission.createTransaction,
-        [SUBMISSION_PATH.TRACK]: submitTrack,
+        [SUBMISSION_PATH.TRACK]: trackSubmission.createTransaction,
         [SUBMISSION_PATH.PER_DIEM]: perDiemSubmission.createTransaction,
         [SUBMISSION_PATH.REQUEST_MONEY]: submitRequestMoney,
     };
