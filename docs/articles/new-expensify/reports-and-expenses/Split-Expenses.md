@@ -1,7 +1,7 @@
 ---
 title: Split Expenses 
 description: Learn how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking in Expensify.
-keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported, split reimbursable, reimbursable toggle missing, cash expense default, split tax, tax on split, per diem split tax, time split tax, tax field missing]
+keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported, split reimbursable, reimbursable toggle missing, cash expense default, split tax, tax on split, per diem split tax, time split tax, distance split tax, track tax, tax field missing]
 internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature. Does not cover Classic behavior.
 ---
 
@@ -119,7 +119,7 @@ The workspace’s **Cash expense default** rule is set to **Always reimbursable*
 
 ## Why don’t I see a tax field on a per diem or time split?
 
-Per diem and time expenses are calculated from a workspace rate that doesn’t carry a tax rate, so no tax field appears on their split rows even when **Taxes** is enabled for the workspace. Splits of other expense types, such as cash or company card expenses, still show a tax field when **Taxes** is enabled. The field is labeled **Tax** unless your workspace renamed it. [Learn how to enable Taxes in a workspace](/articles/new-expensify/workspaces/Track-Taxes).
+Per diem and time expenses are calculated from a workspace rate that doesn’t carry a tax rate, so no tax field appears on their split rows even when **Taxes** is enabled for the workspace. Splits of manually created expenses, receipts, and company card expenses still show a tax field when **Taxes** is enabled. Distance splits have one extra requirement: **Track tax** must also be enabled on the workspace’s distance rates, otherwise their split rows show no tax field either. The field is labeled **Tax** unless your workspace renamed it. [Learn how to enable Taxes in a workspace](/articles/new-expensify/workspaces/Track-Taxes) or [how to track tax on distance rates](/articles/new-expensify/workspaces/Set-distance-rates).
 
 ## Can I split a distance or mileage expense?
 
