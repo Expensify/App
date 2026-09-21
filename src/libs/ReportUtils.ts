@@ -3249,6 +3249,7 @@ function canDeleteMoneyRequestReport(
 
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy);
+
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
     }
@@ -3268,7 +3269,8 @@ function canDeleteMoneyRequestReport(
             return false;
         }
 
-        if (isSingleTransaction && isManagedCardTransaction(transaction)) {
+        const isSubmitterOrAdmin = isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdmin(policy);
+        if (isSubmitterOrAdmin && isSingleTransaction && isManagedCardTransaction(transaction)) {
             return canCardTransactionBeDeleted;
         }
 
