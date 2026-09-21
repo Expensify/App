@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 
 import {createWorkspaceWithPolicyDraft} from '@userActions/Policy/CreateWorkspaceFlow';
-import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/PolicyDraft';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
