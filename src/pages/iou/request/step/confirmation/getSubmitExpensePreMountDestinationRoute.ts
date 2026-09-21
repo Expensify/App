@@ -4,8 +4,8 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSearchKeyForDataType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
