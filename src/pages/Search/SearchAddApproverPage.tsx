@@ -57,7 +57,7 @@ function SearchAddApproverPage() {
         const employeeLists = uniquePolicyIds.map((policyID) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList).filter((employeeList) => !!employeeList);
         const firstWorkspaceEmployees = employeeLists.at(0);
         const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, undefined, true, false);
         // We get the intersection here as we only want to show members who belong to all workspaces when adding an additional approver
         return Object.values(intersectedEmployees)
             .map((employee): SelectionListApprover | null => {
