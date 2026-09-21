@@ -12,8 +12,9 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 
@@ -69,7 +70,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const areThereDuplicates = allDuplicateIDs.length > 0 && duplicates.length > 0 && allDuplicateIDs.length === duplicates.length;
 
     const transactionPreview = onPreviewPressed ? transaction : (originalTransaction ?? transaction);
-    const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
+    const isParentPolicyExpenseChat = isGroupPolicyByType(policy?.type);
     const {displayTransaction} = useDisplayTransaction(transactionPreview, isParentPolicyExpenseChat, policy);
     const transactionDetails = getTransactionDetails(displayTransaction);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
