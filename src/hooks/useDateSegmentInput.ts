@@ -48,7 +48,7 @@ type UseDateSegmentInputParams = {
     /** The newest date the calendar can show */
     maxDate: Date;
 
-    /** Called with a stored format date once every segment holds a valid value, or with an empty string once the field is left holding digits that cannot produce one */
+    /** Called with a stored format date whenever the segments produce one, and with an empty string whenever they do not */
     onCommit: (isoDate: string) => void;
 };
 
@@ -120,7 +120,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
 
         // A date this field has just committed already agrees with the segments, and seeding from it would replace a
         // half typed segment with the padded form it is showing. The next digit would then start the segment over.
-        if (isEditing && value !== getISODateFromSegments(segments)) {
+        if (isEditing && value !== (getISODateFromSegments(segments) ?? '')) {
             setSegments(getSegmentsFromISODate(value));
         }
 
@@ -141,13 +141,13 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         requestFocus(name);
     };
 
-    const commitIfComplete = (newSegments: DateSegments) => {
-        const isoDate = getISODateFromSegments(newSegments);
-        if (!isoDate) {
-            return;
-        }
-
-        onCommit(isoDate);
+    /**
+     * Reports what the segments now amount to, on every keystroke rather than once the date is finished. A form reads
+     * its value when it is submitted, which can happen before the field has even been left, so an entry part way
+     * through has to read as no date at all instead of leaving the date from before the edit in place.
+     */
+    const commitSegments = (newSegments: DateSegments) => {
+        onCommit(getISODateFromSegments(newSegments) ?? '');
     };
 
     /**
@@ -170,7 +170,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     const applySegments = (newSegments: DateSegments) => {
         setSegments(newSegments);
         assertViewDate(getViewDateFromSegments(newSegments, (viewDate ?? new Date()).getMonth(), minDate, maxDate));
-        commitIfComplete(newSegments);
+        commitSegments(newSegments);
     };
 
     const handleKeyPress = (name: DateSegmentName, event: TextInputKeyPressEvent) => {
@@ -253,10 +253,8 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     };
 
     /**
-     * Leaving the field settles what it holds. An entry that cannot produce a date reports the date as unset and stays
-     * on screen, so a form blocks on it rather than submitting whatever was there before the edit began.
-     *
-     * Only an entry the user has changed counts. Passing through a field without touching it leaves its date alone.
+     * Digits that do not add up to a date stay on screen once the field is left, so the user can see what still has to
+     * be corrected. The date they report was already emptied as they were typed.
      */
     const handleFieldBlur = () => {
         setIsEditing(false);
@@ -264,15 +262,12 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         setFocusRequest(undefined);
         setShouldOverwrite(false);
 
-        const hasUnusableEntry = !getISODateFromSegments(segments) && (hasAnySegment(segments) || !!value);
+        const hasUnusableEntry = hasAnySegment(segments) && !getISODateFromSegments(segments);
         setHasInvalidEntry(hasUnusableEntry);
 
-        if (hasUnusableEntry) {
-            onCommit('');
-            return;
+        if (!hasUnusableEntry) {
+            setSegments(EMPTY_SEGMENTS);
         }
-
-        setSegments(EMPTY_SEGMENTS);
     };
 
     /**

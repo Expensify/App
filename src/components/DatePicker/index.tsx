@@ -80,7 +80,13 @@ function DatePicker({
     // Updates the field without ending the selection, so the calendar stays open for whatever the user does next
     const commitDate = (newDate: string) => {
         setSelectedDate(newDate);
-        onTouched?.();
+
+        // A date being typed reads as empty until it is finished. Marking the field touched then would show a
+        // required error over a date the user is part way through.
+        if (newDate) {
+            onTouched?.();
+        }
+
         onInputChange?.(newDate);
     };
 
