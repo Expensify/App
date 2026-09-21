@@ -536,9 +536,11 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Suivez-nous sur LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge a une réponse !',
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
         enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
+        feedback: {prompt: 'Cette réponse était-elle utile ?', useful: 'Réponse utile', notUseful: 'Réponse inutile', thanks: 'Merci pour votre retour !'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1272,6 +1274,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'L’apparition de nouvelles cartes et transactions peut prendre un certain temps, veuillez patienter.',
         importMembersRolePermissionWarning: 'Vous n’avez pas l’autorisation d’assigner certains rôles de membre. Tous les nouveaux membres concernés ont été invités en tant que membres.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 fournisseur a été ignoré car il n’existe pas dans cet espace de travail.',
+            other: `${count} fournisseurs ont été ignorés car ils n’existent pas dans cet espace de travail.`,
+        }),
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -1812,6 +1818,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'La dépense n’a pas pu être rejetée, car elle a peut-être déjà été déplacée ou rejetée.',
         },
         moveExpenses: 'Déplacer vers le rapport',
+        autoReport: 'Rapport automatique',
+        autoReportDescription: 'Ajouter aux brouillons de rapports au nom de l’employé',
         moveExpensesMaxTransactionsError: `Les rapports sont limités à ${CONST.REPORT.MAX_TRANSACTIONS} dépenses. Veuillez en déplacer certaines vers un autre rapport.`,
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
@@ -2553,7 +2561,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
         copyCodes: 'Copier les codes',
-        twoFactorAuthIsRequiredNetSuiteDescription: "Pour des raisons de sécurité, NetSuite exige une authentification à deux facteurs pour connecter l'intégration.",
     },
     recoveryCodeForm: {
         error: {
@@ -3373,12 +3380,14 @@ ${amount} pour ${merchant} - ${date}`,
         employees: {
             title: 'Combien d’employés avez-vous ?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1 à 4 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5 à 10 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1 à 10 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11 à 50 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5 à 9 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10 à 50 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51 à 100 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101 à 1 000 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Plus de 1 000 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5 à 10 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1 à 10 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11 à 50 employés',
         },
         accounting: {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
@@ -5349,6 +5358,9 @@ ${amount} pour ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses payées de votre poche seront exportées une fois remboursées',
                 },
             },
+            fxExpenseAccount: 'Compte de frais de conversion de devise Sage Intacct',
+            fxExpenseAccountDescription:
+                'Lorsque votre entreprise prend en charge le coût de conversion de devise pour un paiement effectué à l’étranger, nous comptabiliserons ce coût dans ce compte dans Sage Intacct sous forme d’écriture de journal.',
         },
         certinia: {
             title: 'Certinia',
@@ -8181,6 +8193,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 importColumnUpdatedCategory: 'Catégorie mise à jour',
                 importColumnUpdatedTag: 'Tag mis à jour',
                 importColumnUpdatedDescription: 'Description mise à jour',
+                importColumnUpdatedVendor: 'Fournisseur mis à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
                 applyUpdates: 'Appliquer ces mises à jour :',
@@ -9710,6 +9723,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Jour',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Année',
@@ -9730,6 +9744,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
             filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
+            transactionStatus: {
+                label: 'Statut de la transaction',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'En attente',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
+                hint: 'S’applique uniquement aux transactions par carte.',
+            },
         },
         display: {
             label: 'Affichage',
@@ -9753,6 +9773,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégories',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçants',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Jours',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaines',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',

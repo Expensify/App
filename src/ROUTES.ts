@@ -2286,6 +2286,7 @@ const ROUTES = {
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_DEVICE_MANAGEMENT: 'settings/security/device-management',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'settings/security/closeAccount/confirm',
     SETTINGS_MERGE_ACCOUNTS: {
         route: 'settings/security/merge-accounts',
         getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
@@ -4437,6 +4438,10 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const;
         },
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/custom-dimension/:dimensionID',
+        getRoute: (policyID: string, dimensionID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/custom-dimension/${dimensionID}` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/classes/displayed-as` as const,
@@ -4733,6 +4738,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT route');
             }
             return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
+        },
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/fx-expense-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/fx-expense-account` as const;
         },
     },
     POLICY_ACCOUNTING_CERTINIA_PREREQUISITES: {
