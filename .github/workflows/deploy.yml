@@ -741,7 +741,16 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+          aws s3 cp --recursive --acl public-read --exclude "*.br" "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+
+          for PAIR in js:text/javascript css:text/css html:text/html svg:image/svg+xml wasm:application/wasm ttf:font/ttf; do
+            EXT="${PAIR%%:*}"
+            CONTENT_TYPE="${PAIR#*:}"
+            aws s3 cp --recursive --acl public-read --exclude "*" --include "*.${EXT}.br" \
+              --content-encoding br --content-type "$CONTENT_TYPE" \
+              "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+          done
+
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/apple-app-site-association
         env:
