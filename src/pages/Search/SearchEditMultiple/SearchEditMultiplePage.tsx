@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -57,6 +58,8 @@ import {
 
 function SearchEditMultiplePage() {
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
@@ -129,6 +132,8 @@ function SearchEditMultiplePage() {
         isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
 
     const hasPartiallyEditableDateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.DATE);
+
+    const hasPartiallyEditableReimbursableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
 
     const areSelectedTransactionsBillable = selectedTransactionContexts.every(({transaction, transactionPolicy}) => {
         // Unreported expenses have no policy yet but billable is always applicable
@@ -216,6 +221,7 @@ function SearchEditMultiplePage() {
         // before the synchronous Onyx writes block the JS thread.
         requestAnimationFrame(() => {
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionIDs,
                 changes,
                 bulkEditTagChanges: draftTransaction.bulkEditTagChanges,
@@ -344,6 +350,7 @@ function SearchEditMultiplePage() {
                       description: translate('common.reimbursable'),
                       title: getBooleanTitle(draftTransaction?.reimbursable),
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
+                      disabled: hasPartiallyEditableReimbursableTransaction,
                   },
               ]
             : []),

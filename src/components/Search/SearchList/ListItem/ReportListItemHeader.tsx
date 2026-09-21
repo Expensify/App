@@ -289,10 +289,22 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
 
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
-        useReportPaymentContext({
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const {
+        currentUserAccountID,
+        currentUserLogin,
+        introSelected,
+        betas,
+        isASAPSubmitBetaEnabled,
+        isSelfTourViewed,
+        activePolicy,
+        chatReportPolicy,
+        amountOwed,
+        delegateEmail,
+        delegateAccountID,
+        conciergeChat,
+    } = useReportPaymentContext({
+        chatReportPolicyID: chatReport?.policyID,
+    });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
@@ -307,6 +319,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,
