@@ -2174,14 +2174,13 @@ describe('PolicyUtils', () => {
             expect(getReimbursementChoice(policy)).toBeUndefined();
         });
 
-        it.each([
-            CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-            CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
-            CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-        ])('should pass through the current value %s', (choice) => {
-            const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
-            expect(getReimbursementChoice(policy)).toBe(choice);
-        });
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+            'should pass through the current value %s',
+            (choice) => {
+                const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+                expect(getReimbursementChoice(policy)).toBe(choice);
+            },
+        );
 
         it.each([
             [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],

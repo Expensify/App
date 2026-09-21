@@ -490,7 +490,8 @@ function isCancelPaymentAction(
     // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
     const canCancelPayment =
         isPayer ||
-        (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+        (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     if (!canCancelPayment) {
         return false;
