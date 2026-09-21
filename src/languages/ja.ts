@@ -534,12 +534,14 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'LinkedInでフォロー',
     },
     concierge: {
+        hasAnAnswer: 'Concierge からの回答があります！',
         collapseReasoning: '推論を折りたたむ',
         expandReasoning: '推論を展開',
         enableNotifications: {
             prompt: 'Conciergeから返信があったときに通知を受け取りますか？',
             cta: '通知',
         },
+        feedback: {prompt: 'この回答は役に立ちましたか？', useful: '役に立つ返信', notUseful: '役に立たない返信', thanks: 'フィードバックをありがとうございます！'},
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1252,6 +1254,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: '新しいカードや取引が表示されるまでに少し時間がかかる場合があります。しばらくお待ちください。',
         importMembersRolePermissionWarning: '一部のメンバー権限を割り当てる権限がありません。影響のある新しいメンバーは、メンバーとして招待されました。',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: 'このワークスペースに存在しないため、ベンダーが1件スキップされました。',
+            other: `このワークスペースに存在しないため、${count} 件のベンダーをスキップしました。`,
+        }),
     },
     receipt: {
         upload: '領収書をアップロード',
@@ -1277,6 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '手放して',
         dropMessage: 'ここにファイルをドロップしてください',
         flash: 'フラッシュ',
+        flipCamera: 'カメラを反転',
         multiScan: 'マルチスキャン',
         shutter: 'シャッター',
         gallery: 'ギャラリー',
@@ -1785,6 +1792,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'この経費は、すでに移動または却下されている可能性があるため、却下できませんでした。',
         },
         moveExpenses: 'レポートに移動',
+        autoReport: '自動レポート',
+        autoReportDescription: '従業員に代わって下書きレポートに追加',
         moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         submitReportTo: {
@@ -2520,7 +2529,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
         copyCodes: 'コードをコピー',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'セキュリティ上の理由により、連携を接続するには NetSuite で二要素認証が必要です。',
     },
     recoveryCodeForm: {
         error: {
@@ -5260,6 +5268,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担経費は支払われた時点でエクスポートされます',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct 外貨換算手数料勘定',
+            fxExpenseAccountDescription: '海外で行った支払いについて、御社が為替換算コストを負担する場合、そのコストは仕訳として Sage Intacct のこの勘定科目に計上します。',
         },
         certinia: {
             title: 'Certinia',
@@ -5516,6 +5526,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noSubsidiariesFoundDescription: 'NetSuite に子会社を追加して、もう一度接続を同期してください',
             tokenInput: {
                 title: 'NetSuite のセットアップ',
+                connectWithTokenAuthentication: '代わりにトークンベース認証（SOAP）で接続します',
                 formSteps: {
                     installBundle: {
                         title: 'Expensify バンドルをインストール',
@@ -8014,6 +8025,7 @@ ${reportName}`,
                 importColumnUpdatedCategory: '更新後のカテゴリ',
                 importColumnUpdatedTag: '更新後のタグ',
                 importColumnUpdatedDescription: '更新後の説明',
+                importColumnUpdatedVendor: '仕入先を更新しました',
                 expensesWith: '対象となる経費条件:',
                 expensesExactlyMatching: '次の条件に完全一致する経費の場合:',
                 applyUpdates: 'これらの更新を適用する',
@@ -9518,6 +9530,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
+                [CONST.SEARCH.GROUP_BY.DAY]: '日',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
                 [CONST.SEARCH.GROUP_BY.WEEK]: '週',
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年',
@@ -9538,6 +9551,12 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
+            transactionStatus: {
+                label: '取引ステータス',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: '保留中',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: '記帳済み',
+                hint: 'カードの取引にのみ適用されます。',
+            },
         },
         display: {
             label: '表示',
@@ -9555,6 +9574,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
             [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
+            [CONST.SEARCH.GROUP_BY.DAY]: '日数',
             [CONST.SEARCH.GROUP_BY.MONTH]: '月数',
             [CONST.SEARCH.GROUP_BY.WEEK]: '週数',
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',

@@ -538,9 +538,11 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Śledź nas na LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge ma odpowiedź!',
         collapseReasoning: 'Zwiń rozumowanie',
         expandReasoning: 'Rozwiń rozumowanie',
         enableNotifications: {prompt: 'Chcesz otrzymywać powiadomienia, gdy Concierge odpowie?', cta: 'Powiadom'},
+        feedback: {prompt: 'Czy ta odpowiedź była pomocna?', useful: 'Przydatna odpowiedź', notUseful: 'Nieprzydatna odpowiedź', thanks: 'Dzięki za opinię!'},
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1299,6 +1301,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Nowe karty i transakcje mogą potrzebować trochę czasu, aby się pojawić, prosimy o cierpliwość.',
         importMembersRolePermissionWarning: 'Nie masz uprawnień do przypisywania niektórych ról członków. Wszyscy nowi członkowie, których to dotyczy, zostali zaproszeni jako członkowie.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: 'Pominięto 1 kontrahenta, ponieważ nie istnieje w tej przestrzeni roboczej.',
+            other: `Pominięto ${count} dostawców, ponieważ nie istnieją w tym obszarze roboczym.`,
+        }),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -1324,6 +1330,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Odpuść to',
         dropMessage: 'Upuść tutaj plik',
         flash: 'błysk',
+        flipCamera: 'obróć kamerę',
         multiScan: 'wielokrotne skanowanie',
         shutter: 'migawka',
         gallery: 'galeria',
@@ -1831,6 +1838,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'Nie można było odrzucić tego wydatku, ponieważ mógł już zostać przeniesiony lub odrzucony.',
         },
         moveExpenses: 'Przenieś do raportu',
+        autoReport: 'Raport automatyczny',
+        autoReportDescription: 'Dodaj do szkiców raportów w imieniu pracownika',
         moveExpensesMaxTransactionsError: `Raporty są ograniczone do ${CONST.REPORT.MAX_TRANSACTIONS} wydatków. Przenieś część z nich do innego raportu.`,
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
         submitReportTo: {
@@ -2576,7 +2585,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Zeskanuj kod QR nowym urządzeniem, a następnie wpisz ten kod, aby zakończyć konfigurację.',
         downloadCodes: 'Pobierz kody',
         copyCodes: 'Skopiuj kody',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'Ze względów bezpieczeństwa NetSuite wymaga uwierzytelniania dwuskładnikowego, aby połączyć integrację.',
     },
     recoveryCodeForm: {
         error: {
@@ -5331,6 +5339,9 @@ ${amount} dla ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
                 },
             },
+            fxExpenseAccount: 'Konto opłat za przewalutowanie Sage Intacct',
+            fxExpenseAccountDescription:
+                'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w Sage Intacct jako zapis w dzienniku.',
         },
         certinia: {
             title: 'Certinia',
@@ -5598,6 +5609,7 @@ ${amount} dla ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę zależną w NetSuite i ponownie zsynchronizuj połączenie',
             tokenInput: {
                 title: 'Konfiguracja NetSuite',
+                connectWithTokenAuthentication: 'Połącz się zamiast tego z użyciem uwierzytelniania opartego na tokenie (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Zainstaluj pakiet Expensify',
@@ -8114,6 +8126,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 importColumnUpdatedCategory: 'Zaktualizowana kategoria',
                 importColumnUpdatedTag: 'Zaktualizowany tag',
                 importColumnUpdatedDescription: 'Zaktualizowany opis',
+                importColumnUpdatedVendor: 'Zaktualizowano kontrahenta',
                 expensesWith: 'Dla wydatków z:',
                 expensesExactlyMatching: 'Dla wydatków dokładnie pasujących do:',
                 applyUpdates: 'Zastosuj te aktualizacje:',
@@ -9633,6 +9646,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawca',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Dzień',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Tydzień',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Rok',
@@ -9653,6 +9667,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
             filterType: {label: 'Typ filtra', has: {positive: 'ma', negative: 'nie ma'}, is: {positive: 'jest', negative: 'nie jest'}},
+            transactionStatus: {
+                label: 'Status transakcji',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Oczekujące',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Zaksięgowane',
+                hint: 'Dotyczy tylko transakcji kartą.',
+            },
         },
         display: {
             label: 'Wyświetl',
@@ -9676,6 +9696,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawcy',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tagi',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Dni',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiące',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Tygodnie',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Lata',

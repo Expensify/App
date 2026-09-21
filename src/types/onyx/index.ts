@@ -58,6 +58,7 @@ import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
+import type DeferredAttachmentEdits from './DeferredAttachmentEdits';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
@@ -97,6 +98,8 @@ import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
+import type InsightsDashboard from './InsightsDashboard';
+import type {InsightsDashboardID, InsightsGraphKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -140,6 +143,7 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
+import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -270,6 +274,9 @@ export type {
     FundList,
     GovernmentMileageRate,
     GpsDraftDetails,
+    InsightsDashboard,
+    InsightsDashboardID,
+    InsightsGraphKey,
     IntroSelected,
     IssueNewCard,
     AssignCardData,
@@ -339,6 +346,7 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    DeferredAttachmentEdits,
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
@@ -392,6 +400,7 @@ export type {
     NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
+    PolicyRoomsMetadata,
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,
