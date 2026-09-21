@@ -204,6 +204,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
     const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetTransactionThread, sourceIOUAction} = fixtures;
 
     mergeTransactionRequest({
+        isVendorMatchingBetaEnabled: false,
         iouReportOwnerLogin: undefined,
         mergeTransactionID,
         mergeTransaction,
@@ -327,6 +328,7 @@ describe('mergeTransactionRequest', () => {
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -451,6 +453,7 @@ describe('mergeTransactionRequest', () => {
 
         // When the merge fires
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -558,6 +561,7 @@ describe('mergeTransactionRequest', () => {
 
         // When: The Merge Expense flow is executed
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -715,6 +719,7 @@ describe('mergeTransactionRequest', () => {
         mockFetch?.fail?.();
 
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -827,6 +832,7 @@ describe('mergeTransactionRequest', () => {
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -1017,6 +1023,7 @@ describe('mergeTransactionRequest', () => {
 
         mockFetch?.pause?.();
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction: unreportedMergeTransaction,
@@ -1223,6 +1230,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1433,6 +1441,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1592,6 +1601,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1726,6 +1736,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed for the unreported source transaction
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1870,6 +1881,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
