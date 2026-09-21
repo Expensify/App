@@ -2210,7 +2210,7 @@ describe('PolicyUtils', () => {
     });
 
     describe('isPolicyPayer', () => {
-        // The workspace owner is the payer under Indirect reimbursement, whichever spelling is stored.
+        // The owner is the payer under Indirect reimbursement, so both values have to resolve to the same payer.
         it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
             'should treat the owner as the payer for %s',
             (choice) => {

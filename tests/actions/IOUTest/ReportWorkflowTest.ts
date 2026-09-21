@@ -6082,7 +6082,7 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
     });
     describe('canIOUBePaid with a deprecated reimbursement choice', () => {
-        // Pay has to behave identically for a deprecated spelling and its plain counterpart.
+        // A deprecated value means the same as its plain counterpart, so Pay has to behave identically for both.
         function buildApprovedExpenseReportScenario(reimbursementChoice: Policy['reimbursementChoice'], seed: number) {
             const policyID = `${seed}`;
             const chatReportID = `${seed + 1}`;

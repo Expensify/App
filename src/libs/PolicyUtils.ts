@@ -1652,8 +1652,9 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
- * Resolves a workspace's reimbursement choice, mapping the deprecated spellings onto their plain counterparts.
- * Compare against `CONST.POLICY.REIMBURSEMENT_CHOICES` through this, never against the raw field.
+ * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
+ * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
+ * disabled, which hides Pay on its approved reports.
  */
 function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | undefined {
     switch (policy?.reimbursementChoice) {

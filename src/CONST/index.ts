@@ -4494,7 +4494,7 @@ const CONST = {
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
 
-        /** Older workspaces report these instead of the values above. Each one means the same as its plain counterpart. */
+        /** Some workspaces report these instead of the values above. They mean the same thing, so resolve them before comparing. */
         DEPRECATED_REIMBURSEMENT_CHOICES: {
             REIMBURSEMENT_NO: 'deprecated_reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'deprecated_reimburseManual', // Indirect
