@@ -3778,7 +3778,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     dynamicForm: {
         error: {
             tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
-            tooLong: ({maxLength}: {maxLength: number}) => `最多 ${maxLength} 个字符`,
             invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
             invalidOption: '请从可用选项中选择',
             tooFewItems: ({min}: {min: number}) => `至少添加 ${min} 项`,

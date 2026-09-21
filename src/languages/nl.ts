@@ -3904,7 +3904,6 @@ ${amount} voor ${merchant} - ${date}`,
     dynamicForm: {
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
-            tooLong: ({maxLength}: {maxLength: number}) => `Mag maximaal ${maxLength} tekens bevatten`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
             invalidOption: 'Kies een van de beschikbare opties',
             tooFewItems: ({min}: {min: number}) => `Voeg er minimaal ${min} toe`,

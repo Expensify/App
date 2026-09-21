@@ -3892,7 +3892,6 @@ ${amount} para ${merchant} - ${date}`,
     dynamicForm: {
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Deve ter pelo menos ${minLength} caracteres`,
-            tooLong: ({maxLength}: {maxLength: number}) => `Deve ter no máximo ${maxLength} caracteres`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Exemplo: ${example}` : 'Formato inválido'),
             invalidOption: 'Escolha uma das opções disponíveis',
             tooFewItems: ({min}: {min: number}) => `Adicione pelo menos ${min}`,

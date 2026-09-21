@@ -83,9 +83,6 @@ type DynamicFormField = {
     /** Sample value, shown as a hint */
     example?: string;
 
-    /** Server formatting hint such as `**-**-**`; carried for the confirmation page, not applied to the input yet */
-    displayFormat?: string;
-
     /** Re-fetch the form with the current answers when this field changes */
     refreshOnChange: boolean;
 

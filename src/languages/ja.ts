@@ -3871,7 +3871,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     dynamicForm: {
         error: {
             tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
-            tooLong: ({maxLength}: {maxLength: number}) => `${maxLength}文字以内で入力してください`,
             invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
             invalidOption: '利用可能な選択肢から選んでください',
             tooFewItems: ({min}: {min: number}) => `${min}件以上追加してください`,

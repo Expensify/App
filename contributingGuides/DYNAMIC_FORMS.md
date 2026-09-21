@@ -21,7 +21,6 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `showWhen` | Visibility by another answer. Hidden fields are never validated. |
 | `refreshOnChange` | Re-fetch the schema when this answer changes (`useRefreshOnChange`). |
 | `keyboard`, `multiline` | Text field hints. Digit-only regexes and `number` fields open the numeric keyboard on their own. |
-| `displayFormat` | Server formatting hint such as `**-**-**`. Carried on the field, not applied to the input yet. |
 | `readonly` | Plain row with the prefilled value, skipped by validation. |
 | `sensitive` | Never saved to the draft. Use for SSNs and account numbers, per FORMS.md. |
 | `currencyKey` | Amount only. Names the sibling key the chosen currency is written to; without it the currency is fixed. |
