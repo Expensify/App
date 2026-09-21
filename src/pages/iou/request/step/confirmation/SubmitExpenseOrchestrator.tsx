@@ -18,6 +18,7 @@ import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {trackPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import type {PendingSubmitWrite} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
@@ -352,7 +353,8 @@ function SubmitExpenseOrchestrator({
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: !shouldSkipForceReplace});
+                    const searchKey = getSearchKeyForDataType(searchType);
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType}), searchKey}), {forceReplace: !shouldSkipForceReplace});
                 });
             },
         });

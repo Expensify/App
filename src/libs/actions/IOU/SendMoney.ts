@@ -7,6 +7,8 @@ import type {SendMoneyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -266,7 +268,7 @@ function getSendMoneyParams({
     > = [];
 
     // Add optimistic personal details for recipient
-    let optimisticPersonalDetailListData: OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> | null = null;
+    let optimisticPersonalDetailListData: PersonalDetailsOnyxUpdate | null = null;
     const optimisticPersonalDetailListAction = isNewChat
         ? {
               [recipientAccountID]: {
@@ -290,16 +292,8 @@ function getSendMoneyParams({
             redundantParticipants[accountID] = null;
         }
 
-        optimisticPersonalDetailListData = {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetailListAction,
-        };
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: successPersonalDetailListAction,
-        });
+        optimisticPersonalDetailListData = buildPersonalDetailsUpdate(optimisticPersonalDetailListAction);
+        successData.push(buildPersonalDetailsUpdate(successPersonalDetailListAction));
     }
 
     successData.push(

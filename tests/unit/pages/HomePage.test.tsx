@@ -80,8 +80,9 @@ jest.mock('@gorhom/portal', () => {
 });
 
 jest.mock('@components/ReceiptScanDropZone', () => {
-    function MockReceiptScanDropZone() {
-        return null;
+    // The drop zone wraps the page content, so the mock has to keep rendering its children.
+    function MockReceiptScanDropZone({children}: {children: React.ReactNode}) {
+        return children;
     }
     return MockReceiptScanDropZone;
 });

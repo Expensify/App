@@ -814,6 +814,57 @@ describe('actions/SendInvoice', () => {
             }
         });
 
+        it('should send a phone receiver as an SMS login and store it that way in the optimistic personal details', () => {
+            const phoneNumber = '+12025550123';
+            const smsLogin = `${phoneNumber}${CONST.SMS.DOMAIN}`;
+            const receiverAccountID = 456;
+
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
+
+            const transaction = createMock<Transaction>({
+                transactionID: 'transaction_phone_receiver',
+                reportID: 'report_phone_receiver',
+                amount: 100,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Phone Invoice',
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_test'},
+                    {accountID: receiverAccountID, isSender: false, login: phoneNumber},
+                ],
+            });
+
+            sendInvoice({
+                currentUserAccountID: 123,
+                transaction,
+                policyRecentlyUsedCurrencies: [],
+                senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SEND_INVOICE,
+                expect.objectContaining({
+                    receiverEmail: smsLogin,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {[receiverAccountID]: expect.objectContaining({login: smsLogin, displayName: formatPhoneNumber(phoneNumber)})},
+                        }),
+                    ]),
+                }),
+            );
+
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
+        });
+
         it('should not clear transaction pending action when send invoice fails', async () => {
             const testCurrency = CONST.CURRENCY.EUR;
             const transaction: Transaction = {

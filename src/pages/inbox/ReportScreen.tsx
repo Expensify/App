@@ -34,6 +34,7 @@ import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import useDeferNonEssentials from './hooks/useDeferNonEssentials';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
+import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
@@ -120,6 +121,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                 <>
                                     <DeleteTransactionNavigateBackHandler />
                                     <ReportRouteParamHandler />
+                                    <OneTransactionThreadRedirectHandler />
                                     <ReportFetchHandler />
                                     <ReportNavigateAwayHandler />
                                 </>
