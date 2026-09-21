@@ -161,12 +161,14 @@ describe('getDynamicFieldErrors named rules', () => {
     });
 
     it('checks the zip code against the chosen country', () => {
-        const answers = {address: '1 Main Street', ['address.country']: 'US', ['address.zipCode']: 'ABC'};
+        const countryKey = 'address.country';
+        const zipCodeKey = 'address.zipCode';
+        const answers = {address: '1 Main Street', [countryKey]: 'US', [zipCodeKey]: 'ABC'};
 
         expect(getDynamicFieldErrors([address], answers, translateLocal)).toEqual({
             address: translateLocal('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails('US')?.samples),
         });
-        expect(getDynamicFieldErrors([address], {...answers, ['address.zipCode']: '10001'}, translateLocal)).toEqual({});
+        expect(getDynamicFieldErrors([address], {...answers, [zipCodeKey]: '10001'}, translateLocal)).toEqual({});
     });
 });
 
