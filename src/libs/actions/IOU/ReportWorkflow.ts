@@ -19,7 +19,6 @@ import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {
     getAccountIDForSubmitManagerEmail,
-    getReimbursementChoice,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
     isSubmitAndClose,
