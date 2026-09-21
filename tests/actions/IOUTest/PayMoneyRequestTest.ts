@@ -3,7 +3,7 @@ import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, pay
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
-import {notifyNewAction} from '@libs/actions/Report';
+import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -25,7 +25,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';
@@ -68,14 +67,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
+jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
+    notifyNewAction: jest.fn(),
+}));
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/deferredLayoutWrite', () => ({
@@ -2259,7 +2254,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const introSelected: IntroSelected = {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
             completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
 
@@ -2268,7 +2263,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                     paymentSelected: CONST.PAYMENT_SELECTED.BBA,
                     wasInvited: true,
-                    companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                    companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                     introSelected,
                     isSelfTourViewed: false,
                 }),
@@ -2350,7 +2345,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const introSelected: IntroSelected = {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
             completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, true, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
 
@@ -2366,7 +2361,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const introSelected: IntroSelected = {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
             const conciergeChat = {reportID: 'concierge-onboarding-1'};
             completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, conciergeChat, undefined);

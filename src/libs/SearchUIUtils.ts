@@ -119,6 +119,7 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import memoize from './memoize';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -214,7 +215,6 @@ import {
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
-import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getAmount,
     getAttendees,
@@ -322,6 +322,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
@@ -4284,6 +4285,10 @@ function insertColumnBeforeTotalAmount<T extends SearchColumnType>(columns: T[],
     columns.splice(totalAmountIndex, 0, columnId);
 }
 
+function isReportDetailsCustomColumn(column: string): column is SearchCustomColumnIds {
+    return Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).some((customColumn) => customColumn === column);
+}
+
 function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -4366,12 +4371,18 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
+/** Expense reports and tasks show a non-editable created timestamp in their date column, so it's labelled "Created"/"Created date" instead of "Date". */
+function isCreatedDateType(type?: SearchDataTypes): boolean {
+    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.TASK;
+}
+
+function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTypes): TranslationPaths {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
             return 'common.avatar';
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
-            return 'common.date';
+            // Only the table column header shows the short "Created"; every other label source (Sort by, Edit columns, saved search, CSV) uses the full "Created date".
+            return isCreatedDateType(type) ? 'search.filters.createdDate' : 'common.date';
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
             return 'common.submitted';
         case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
@@ -4388,6 +4399,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'search.filters.exported';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return 'common.vendor';
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -5197,11 +5210,11 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
 }
 
-function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
+function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate, type?: SearchDataTypes) {
     const sortableColumns: Array<SingleSelectItem<SearchSortBy>> = [];
     for (const column of columns) {
         if (isColumnSortable(column)) {
-            sortableColumns.push({text: translate(getSearchColumnTranslationKey(column)), value: getSortByForColumn(column)});
+            sortableColumns.push({text: translate(getSearchColumnTranslationKey(column, type)), value: getSortByForColumn(column)});
         }
     }
     return sortableColumns;
@@ -5499,6 +5512,10 @@ const FILTER_VIEW_MAP = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE]: {
         labelKey: 'search.receiptType',
         icon: 'Receipt',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS]: {
+        labelKey: 'search.filters.transactionStatus.label',
+        icon: 'CreditCardHourglass',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: {
         labelKey: 'search.exportedTo',
@@ -5872,6 +5889,11 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
+    if (key === FILTER_KEYS.TRANSACTION_STATUS) {
+        const transactionStatus = form[key];
+        return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
+    }
+
     const formValue = form[key];
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
@@ -5979,6 +6001,13 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
     return hasKey(FILTER_VIEW_MAP, removeNegation(key));
 }
 
+function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
+        return 'search.filters.createdDate';
+    }
+    return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     defaultSearchQueryFilterKeys: Set<SearchFilterKey>,
@@ -6029,7 +6058,7 @@ function mapFiltersFormToLabelValueList(
             const displayValue = isAmountFilterKey(syntax)
                 ? getAmountDisplayValue(syntax, searchAdvancedFiltersForm, translate, convertToDisplayStringWithoutCurrency)
                 : getDateDisplayValue(syntax, searchAdvancedFiltersForm, translate, dateFnsLocale);
-            const label = FILTER_VIEW_MAP[syntax].labelKey;
+            const label = getFilterViewLabelKey(syntax, type);
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
@@ -6081,6 +6110,13 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
 
     if (filterKey === FILTER_KEYS.WITHDRAWAL_TYPE) {
         return getWithdrawalTypeOptions(translate);
+    }
+
+    if (filterKey === FILTER_KEYS.TRANSACTION_STATUS || filterKey === FILTER_KEYS.TRANSACTION_STATUS_NOT) {
+        return Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((transactionStatus) => ({
+            text: translate(`search.filters.transactionStatus.${transactionStatus}`),
+            value: transactionStatus,
+        }));
     }
 
     return [];
@@ -6427,6 +6463,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
@@ -6457,6 +6494,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
@@ -6600,6 +6638,10 @@ function getColumnsToShow({
 
             if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+            }
+
+            if (transaction.comment?.vendor?.externalID) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
             }
 
             // Only show tax columns when the user explicitly chooses to display them.
@@ -6877,7 +6919,7 @@ function getTableMinWidth(
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
             minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-            minWidth += 48;
+            minWidth += isCreatedDateType(type) ? 80 : 62;
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
             column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
@@ -7071,6 +7113,7 @@ function shouldShowDeleteOption(
 
 const FLEX_COLUMNS = new Set<string>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
@@ -7221,6 +7264,7 @@ export {
     getWithdrawalStatusOptions,
     getWithdrawalStatusDisplayText,
     getColumnsToShow,
+    isReportDetailsCustomColumn,
     insertColumnBeforeTotalAmount,
     getHasOptions,
     getSubmittedViolationsForTransaction,
@@ -7261,6 +7305,8 @@ export {
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
+    getFilterViewLabelKey,
+    isCreatedDateType,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     hasFlexColumn,
