@@ -2319,7 +2319,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.Download,
-            text: translate('common.downloadAsPDF'),
+            text: translate('common.downloadReport', {count: selectedReportIDs.length}),
             value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
             shouldCloseModalOnSelect: true,
             onSelected: async () => {
@@ -2328,9 +2328,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return;
                 }
                 // In "Select all" mode the matching reports aren't enumerated on the client (results are paged),
-                // so send the search query to the backend and let it resolve the reports.
+                // so send the search query to the backend and let it resolve the reports. The searchKey changes what
+                // the backend query matches, so it must be sent exactly as search() does or the exported set differs from the viewed set.
                 if (areAllMatchingItemsSelected) {
-                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend({...queryJSON, searchKey: currentSearchKey}) : JSON.stringify(queryJSON);
                     exportReportsToPDF([], serializedQuery);
 
                     // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
