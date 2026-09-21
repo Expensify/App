@@ -74,7 +74,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    BankAccountList,
     Locale,
     Login,
     OnyxInputOrEntry,
@@ -248,8 +247,6 @@ type GetAlternateTextConfig = {
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
     rules: OnyxCollection<Rule>;
-    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
-    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -274,7 +271,6 @@ function getAlternateText(
         isTrackIntentUser,
         currentUserAccountID,
         rules,
-        bankAccountList,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
@@ -305,7 +301,6 @@ function getAlternateText(
             isTrackIntentUser,
             currentUserAccountID,
             rules,
-            bankAccountList,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
 
@@ -392,8 +387,6 @@ type CreateOptionParams = {
     currentUserAccountID?: number;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
-    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
-    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /** Shared by createOption and shells so filtering uses the final display text. */
@@ -438,7 +431,6 @@ function createOption({
     sortedActions,
     currentUserAccountID,
     pendingDeleteMemberAccountIDs,
-    bankAccountList,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -529,7 +521,6 @@ function createOption({
             isTrackIntentUser,
             currentUserAccountID,
             rules,
-            bankAccountList,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -552,7 +543,6 @@ function createOption({
                           sortedActions,
                           currentUserAccountID,
                           rules,
-                          bankAccountList,
                       },
                   );
 

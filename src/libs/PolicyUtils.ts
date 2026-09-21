@@ -832,6 +832,11 @@ function canAccessPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>,
  * Only the designated payer pays out of the workspace account. Any other admin pays from an account of their own, and
  * their payment must never be attributed to the workspace account, because that account is what every other viewer
  * would otherwise fall back to. That is how the same payment ends up showing two different accounts to two people.
+ *
+ * Read both for display (`getBankAccountLastFourDigits`) and for gating (`getPayActionBankAccountID` in the Cancel
+ * payment check). The `true` returned when the reimburser can't be resolved is the conservative choice for display
+ * (keep showing the workspace digits) but the restrictive one for gating (an admin without that account sees no
+ * Cancel), so keep both callers in mind before changing it.
  */
 function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, payerAccountID: number | undefined): boolean {
     const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
