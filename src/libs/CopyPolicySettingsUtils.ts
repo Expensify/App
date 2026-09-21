@@ -307,9 +307,19 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
 }
 
 /**
- * The selected parts that the Collect (Team) targets can't access on their current plan, as
- * determined by `canPolicyAccessFeature` (the single source of truth for which features require a
- * Control plan). Returns empty when there are no Collect targets.
+ * Parts that always require a Control target, regardless of what `canPolicyAccessFeature` says about
+ * the underlying feature toggle. Collect can turn Rules on for the handful of items it supports, but
+ * it can't receive a Control workspace's Rules configuration: both parts copy Control-only policy
+ * fields (`maxExpenseAmount`, `eReceipts`, `preventSelfApproval`, `glCodes`, ...) that the backend
+ * rejects on a Collect target, so the copy has to be gated behind the Upgrade step instead.
+ */
+const CONTROL_ONLY_COPY_PARTS = new Set<Part>(['rules', 'codingRules']);
+
+/**
+ * The selected parts that the Collect (Team) targets can't receive on their current plan. Most parts
+ * defer to `canPolicyAccessFeature` (the single source of truth for which features require a Control
+ * plan); `CONTROL_ONLY_COPY_PARTS` covers the parts that need Control to be copied even when the
+ * target could enable the feature itself. Returns empty when there are no Collect targets.
  */
 function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[], sourcePolicy?: Policy | null): Part[] {
     const collectTargets = targetPolicies.filter((policy): policy is Policy => isCollectPolicy(policy));
@@ -319,6 +329,9 @@ function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | unde
     const hasInvoiceFields =
         isInvoiceFieldsEnabled(sourcePolicy ?? undefined) || Object.values(sourcePolicy?.fieldList ?? {}).some((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
     return selectedParts.filter((part) => {
+        if (CONTROL_ONLY_COPY_PARTS.has(part)) {
+            return true;
+        }
         const featureName = part === 'invoices' && hasInvoiceFields ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED : PART_TO_POLICY_FEATURE[part];
         if (!featureName) {
             return false;
