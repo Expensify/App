@@ -108,6 +108,10 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
     });
 }
 
+async function clearOnboardingShouldValidate(onboardingValues: Onboarding | undefined) {
+    await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {...onboardingValues, shouldValidate: undefined});
+}
+
 function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
@@ -301,6 +305,7 @@ export {
     setOnboardingMergingAccountBlocked,
     createJoinWorkspaceOnboardingContent,
     updateOnboardingValuesAndNavigation,
+    clearOnboardingShouldValidate,
     setOnboardingUserReportedIntegration,
     setOnboardingAccountingEnabled,
     setOnboardingInterestedFeaturesMap,

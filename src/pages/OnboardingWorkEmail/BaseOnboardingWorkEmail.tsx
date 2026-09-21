@@ -31,6 +31,7 @@ import {AddWorkEmail} from '@userActions/Session';
 import {
     addWorkEmailFormError,
     clearOnboardingMergeAccountBlocked,
+    clearOnboardingShouldValidate,
     clearWorkEmailFormErrors,
     setOnboardingErrorMessage,
     setOnboardingMergeAccountStepValue,
@@ -222,7 +223,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     ]);
 
     const submitWorkEmail = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+        async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
             const submittedWorkEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
             const isCurrentUnvalidatedWorkEmail =
                 isConciergeTaskFlow &&
@@ -238,10 +239,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                 return;
             }
 
+            await clearOnboardingShouldValidate(onboardingValues);
             setHasSubmittedWorkEmail(true);
             AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
         },
-        [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, sessionEmail],
+        [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, onboardingValues, sessionEmail],
     );
 
     useEffect(() => {

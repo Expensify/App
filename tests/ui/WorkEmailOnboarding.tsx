@@ -602,12 +602,23 @@ describe('OnboardingWorkEmail Page', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        const originalXhr = HttpUtils.xhr;
+        HttpUtils.xhr = jest.fn().mockResolvedValue({
+            jsonCode: 200,
+            onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ONBOARDING, value: {shouldValidate: false}}],
+        });
+
         fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), workEmail);
         fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')));
+
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
+        await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
         });
+
+        HttpUtils.xhr = originalXhr;
 
         unmount();
         await waitForBatchedUpdatesWithAct();
