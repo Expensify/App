@@ -19,6 +19,7 @@ import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activ
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -202,6 +203,9 @@ function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): 
 }
 
 function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
+    // After a failed chunk load left the store on English, the NVP still holds `locale`, so the writes below are no-ops and nothing else would ask for the load again.
+    IntlStore.load(locale);
+
     if (locale === currentPreferredLocale) {
         return;
     }

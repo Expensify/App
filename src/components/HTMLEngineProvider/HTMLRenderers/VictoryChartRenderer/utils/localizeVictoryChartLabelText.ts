@@ -5,6 +5,7 @@ import type {Locale} from '@src/CONST/LOCALES';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 import {isValid, parse} from 'date-fns';
+import {enUS} from 'date-fns/locale/en-US';
 
 const AS_OF_LABEL_PATTERN = /^As of:\s*(.+)$/i;
 
@@ -21,7 +22,8 @@ function parseDateAsUTC(sourceText: string): Date | null {
         .trim();
 
     for (const formatStr of SERVER_AS_OF_PARSE_FORMATS) {
-        const parsed = parse(normalizedText, formatStr, new Date());
+        // Pinned, because the label is the server's own English string whatever the reader's language.
+        const parsed = parse(normalizedText, formatStr, new Date(), {locale: enUS});
 
         if (!isValid(parsed)) {
             continue;
@@ -52,7 +54,7 @@ function getLocalizedVictoryChartLabelText(text: string, timezone: SelectedTimez
         return text;
     }
 
-    // The "As of:" prefix is still hardcoded English, which is a separate gap from this PR's scope.
+    // The "As of:" prefix stays as the server rendered it, alongside the other English labels it draws into the chart.
     const day = DateUtils.formatInTimeZoneToMediumDate(utcDate, timezone, locale);
     const time = DateUtils.formatInTimeZoneToShortTime(utcDate, timezone, locale);
     if (!day || !time) {

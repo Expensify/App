@@ -23,11 +23,13 @@ describe('IntlStore', () => {
 
     describe('eager EN seed', () => {
         it('getCurrentLocale() returns LOCALES.DEFAULT before any load() has been awaited', () => {
-            // Given a store no test has loaded a locale into, as at app start before any translation chunk settles
+            // Given the store as every suite receives it: seeded with English translations but with no `load()` yet
+            // committed a locale, which is the shape the app is in while the first translation chunk is still settling
             // When a consumer reads the current locale
             const currentLocale = IntlStore.getCurrentLocale();
 
-            // Then it is the default rather than undefined, so no formatter is ever handed a missing locale
+            // Then the field initializer answers with the default rather than undefined, so no formatter is ever handed
+            // a missing locale
             expect(currentLocale).toBe(CONST.LOCALES.DEFAULT);
         });
     });
@@ -111,21 +113,26 @@ describe('IntlStore', () => {
         });
 
         it('concurrent same-locale load() still populates the translations cache and notifies subscribers (half-cached fast-path race guard)', async () => {
-            // Given a subscriber mounted before the translations settle
-            const listener = jest.fn();
-            const unsubscribe = IntlStore.subscribe(listener);
+            await jest.isolateModulesAsync(async () => {
+                // Given a cold store, isolated from the shared English seed so English is neither cached nor committed,
+                // and a subscriber mounted before the translations settle. On the seeded singleton the fast path is
+                // never the branch under test, and dropping its cache check would leave this green.
+                const ColdStore = (await import('@src/languages/IntlStore')).default;
+                const listener = jest.fn();
+                const unsubscribe = ColdStore.subscribe(listener);
 
-            // When English is requested twice at once, as overlapping callers can on a cold start
-            const firstLoad = IntlStore.load(CONST.LOCALES.EN);
-            const secondLoad = IntlStore.load(CONST.LOCALES.EN);
-            await Promise.all([firstLoad, secondLoad]);
-            await waitForBatchedUpdates();
+                // When English is requested twice at once, as overlapping callers can on a cold start
+                const firstLoad = ColdStore.load(CONST.LOCALES.EN);
+                const secondLoad = ColdStore.load(CONST.LOCALES.EN);
+                await Promise.all([firstLoad, secondLoad]);
+                await waitForBatchedUpdates();
 
-            // Then the translations are cached and the subscriber notified, because the second call must not take the fast path before the first has filled the cache
-            expect(IntlStore.getCurrentLocale()).toBe(CONST.LOCALES.EN);
-            expect(IntlStore.get('common.close')).toBeTruthy();
-            expect(listener).toHaveBeenCalled();
-            unsubscribe();
+                // Then the translations are cached and the subscriber notified, because the second call must not take the fast path before the first has filled the cache
+                expect(ColdStore.getCurrentLocale()).toBe(CONST.LOCALES.EN);
+                expect(ColdStore.get('common.close')).toBeTruthy();
+                expect(listener).toHaveBeenCalled();
+                unsubscribe();
+            });
         });
 
         it('discards a stale in-flight load when a newer load supersedes it (race guard)', async () => {

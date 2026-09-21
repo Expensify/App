@@ -285,9 +285,34 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toEqual([]);
+        });
+
+        it('reads a date cell written in the uploading language', () => {
+            // Given a file a German user exported, whose date cell abbreviates the month as that language writes it
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2 Mär 2025'],
+                    ['Merchant', 'Coffee Shop'],
+                    ['Amount', '5.50'],
+                ],
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                },
+                containsHeader: true,
+            });
+
+            // When the list is built with that user's locale
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.DE);
+
+            // Then the row survives with the day it names. Parsed against English instead, the cell yields nothing and
+            // the row is skipped with no error anywhere, which is how this import lost every such row.
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.created).toBe('2025-03-02');
         });
 
         it('should build transactions from valid spreadsheet data', () => {
@@ -305,7 +330,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(2);
             expect(result.at(0)).toMatchObject({
@@ -343,7 +368,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.category).toBe('Office Supplies');
@@ -364,7 +389,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             // Should only have 1 transaction (row 1), skipping rows 2 (no date) and 3 (no amount)
             expect(result).toHaveLength(1);
@@ -386,7 +411,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {flipAmountSign: true});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {flipAmountSign: true}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.amount).toBe(-1000); // Flipped
@@ -407,7 +432,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(2);
             expect(result.at(0)?.amount).toBe(123456); // $1,234.56 in cents
@@ -429,7 +454,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.amount).toBe(-5000);
@@ -450,7 +475,7 @@ describe('ImportTransactions', () => {
                 containsHeader: false,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(2);
             expect(result.at(0)).toMatchObject({
@@ -475,7 +500,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(4);
             expect(result.at(0)?.created).toBe('2024-01-15');
@@ -499,7 +524,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(2);
             expect(result.at(0)?.merchant).toBe('Store A');
@@ -521,7 +546,7 @@ describe('ImportTransactions', () => {
                 containsHeader: true,
             });
 
-            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {}, CONST.LOCALES.EN);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.merchant).toBe('');
@@ -945,14 +970,14 @@ describe('ImportTransactions', () => {
         });
 
         it('returns the failed-import modal and skips the API call when no transactions are parsed', async () => {
-            const result = await importTransactionsFromCSV({...validSpreadsheet, data: []}, CURRENT_USER_ACCOUNT_ID);
+            const result = await importTransactionsFromCSV({...validSpreadsheet, data: []}, CURRENT_USER_ACCOUNT_ID, CONST.LOCALES.EN);
 
             expect(result).toEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.invalidFileMessage'});
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('calls API.write with an optimistic card when no existingCardID is passed', async () => {
-            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, CONST.LOCALES.EN);
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
             const [command, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -963,7 +988,7 @@ describe('ImportTransactions', () => {
         it('stores the reimbursable selection on the optimistic card', async () => {
             const nonReimbursableSpreadsheet = {...validSpreadsheet, importTransactionSettings: {isReimbursable: false}};
 
-            await importTransactionsFromCSV(nonReimbursableSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+            await importTransactionsFromCSV(nonReimbursableSpreadsheet, CURRENT_USER_ACCOUNT_ID, CONST.LOCALES.EN);
 
             const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             const cardUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE, true);
@@ -974,7 +999,7 @@ describe('ImportTransactions', () => {
         it('reuses an existingCardID without queuing an optimistic card', async () => {
             const existingCardID = 987654321;
 
-            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID);
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, CONST.LOCALES.EN, existingCardID);
 
             const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(params.cardID).toBe(existingCardID);
@@ -983,7 +1008,7 @@ describe('ImportTransactions', () => {
         });
 
         it('uses the hard defaults when importing a new card that has no saved layout', async () => {
-            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, CONST.LOCALES.EN);
 
             const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(params.cardName).toBe('Imported Card');
@@ -997,7 +1022,7 @@ describe('ImportTransactions', () => {
             const existingCardID = 987654321;
             const existingCardSettings = {cardDisplayName: 'Aussie Card', currency: 'AUD', isReimbursable: false, flipAmountSign: true};
 
-            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, undefined, existingCardSettings);
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, CONST.LOCALES.EN, existingCardID, undefined, existingCardSettings);
 
             const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(params.cardName).toBe('Aussie Card');

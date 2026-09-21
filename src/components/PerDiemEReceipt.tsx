@@ -53,6 +53,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const perDiemParts = getPerDiemDisplayParts(transaction, transactionMerchant ?? '', preferredLocale);
     const datesDescription = perDiemParts?.dates ?? transactionMerchant ?? '';
     const destination = perDiemParts?.destination ?? '';
+    const perDiemLabel = translate('common.perDiem').toLowerCase();
     const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
 
@@ -82,7 +83,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
                             {formattedAmount}
                         </Text>
                     </View>
-                    <Text style={[styles.eReceiptMerchant, styles.breakWord, styles.textAlignCenter]}>{`${destination} ${translate('common.perDiem').toLowerCase()}`}</Text>
+                    <Text style={[styles.eReceiptMerchant, styles.breakWord, styles.textAlignCenter]}>{destination ? `${destination} ${perDiemLabel}` : perDiemLabel}</Text>
                 </View>
                 <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb8, styles.gap4]}>
                     <View style={[styles.flexColumn, styles.gap1]}>

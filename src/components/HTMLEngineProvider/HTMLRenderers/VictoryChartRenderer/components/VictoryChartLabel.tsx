@@ -6,15 +6,15 @@ import getSkiaLineMetrics from '@components/HTMLEngineProvider/HTMLRenderers/Vic
 import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 
+import useIntlStoreSnapshot from '@hooks/useIntlStoreSnapshot';
 import useTheme from '@hooks/useTheme';
 
-import IntlStore from '@src/languages/IntlStore';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 import type {Color, SkFont} from '@shopify/react-native-skia';
 
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
-import React, {useSyncExternalStore} from 'react';
+import React from 'react';
 
 type VictoryChartLabelsProps = LabelItem & {
     timezone?: SelectedTimezone;
@@ -34,9 +34,7 @@ type ProcessedLine = {
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
 function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
-    // Not `useLocalize`, whose `LocaleContextProvider` import chain breaks the CLI renderer's standalone binary build.
-    const {locale, isCurrentLocaleLoaded} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
-    // A cold `en` start reads `en` before and after its table lands, so the label must close over this or stay memoized on the untranslated key.
+    const {locale, isCurrentLocaleLoaded} = useIntlStoreSnapshot();
     const translationLocale = isCurrentLocaleLoaded ? locale : undefined;
     const typefaces = useChartTypefaces();
     const theme = useTheme();

@@ -2,7 +2,7 @@ import type * as Sentry from '@sentry/react-native';
 import type {NativeEventSubscription} from 'react-native';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -20,10 +20,10 @@ import FullstoryInitHandler from './FullstoryInitHandler';
 import FullstoryUserContextHandler from './FullstoryUserContextHandler';
 import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
+import useIntlStoreSnapshot from './hooks/useIntlStoreSnapshot';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
-import IntlStore from './languages/IntlStore';
 import {updateLastRoute} from './libs/actions/App';
 import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -133,7 +133,7 @@ function Expensify() {
     }, [isCheckingPublicRoom]);
 
     // Monotonic, unlike `areTranslationsLoading`, which a language switch re-raises and would tear the app shell back down.
-    const {isCurrentLocaleLoaded} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
+    const {isCurrentLocaleLoaded} = useIntlStoreSnapshot();
     const hasEndedLocaleSpan = useRef(false);
     useEffect(() => {
         if (!isCurrentLocaleLoaded || hasEndedLocaleSpan.current) {

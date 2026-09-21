@@ -213,6 +213,17 @@ describe('PerDiemMerchantUtils', () => {
             expect(parts).toEqual({destination: 'Berlin', dates: '19 ago 2025 - 20 ago 2025'});
         });
 
+        it('returns nothing when the transaction carries no dates to rebuild from', () => {
+            // Given a per diem transaction whose structured dates are absent, which is the state the duplicate action guards against
+            const transaction = buildPerDiemTransaction({start: '', end: ''});
+
+            // When its merchant is split for a Spanish reader
+            const parts = getPerDiemDisplayParts(transaction, PER_DIEM_MERCHANT, CONST.LOCALES.ES);
+
+            // Then nothing comes back, so the e-receipt shows its label alone rather than a destination it cannot prove
+            expect(parts).toBeUndefined();
+        });
+
         it('returns nothing when the merchant cannot be rebuilt', () => {
             // Given a merchant that is not a generated per diem merchant
             // When it is split for a Spanish reader

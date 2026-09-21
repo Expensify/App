@@ -154,6 +154,15 @@ function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZo
     return formatter.format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
 }
 
+/** The single part a preset exists to produce, for presets that name no date field and so format with a filler date. */
+function formatIntlPart(locale: Locale, formatKey: IntlFormatKey, date: Date, partType: Intl.DateTimeFormatPartTypes, timeZone?: string): string {
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+    const formatter = getIntlDateTimeFormat(locale, formatKey, timeZone);
+    return formatter?.formatToParts(date).find((part) => part.type === partType)?.value ?? '';
+}
+
 /**
  * CLDR week starts for the shipped locales, read from here rather than `Intl.Locale.getWeekInfo` so engines without it agree
  * with those that have it. `en` is the exception: CLDR resolves it to en-US's Sunday, which would move the calendar for every
@@ -331,8 +340,8 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
  * 12 minutes ago       within the past hour
  * 1 hour ago           within the past day
  * 3 days ago           within the past month
- * Jan 20               within the past year
- * Jan 20, 2019         anything over 1 year
+ * 11 months ago        within the past year
+ * 2 years ago          anything over 1 year
  */
 function datetimeToRelative(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone): string {
     const date = getLocalDateFromDatetime(locale, currentSelectedTimezone, datetime);
@@ -398,24 +407,12 @@ function formatRelative(locale: Locale, date: Date, now: Date): string {
 }
 
 /**
- * Gets the zone abbreviation from the date
- *
- * e.g.
- *
- * PST
- * EST
- * GMT +07  -  For GMT timezone
- *
- * @param datetime
- * @param selectedTimezone
- * @returns
+ * The zone's short name as the reader's language writes it: PST (en) / MEZ (de). A zone the language has no name for
+ * falls back to its offset, GMT+5:30, which Intl does itself.
  */
-function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
-    const abbreviation = formatInTimeZoneWithFallback(datetime, selectedTimezone, 'zzz');
-    if (abbreviation === 'GMT') {
-        return formatInTimeZoneWithFallback(datetime, selectedTimezone, 'O');
-    }
-    return abbreviation;
+function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone, locale: Locale): string {
+    const instant = toZonedInstant(datetime, 'SHORT_TIME_ZONE_NAME');
+    return instant ? formatIntlPart(locale, 'SHORT_TIME_ZONE_NAME', instant, 'timeZoneName', selectedTimezone) : '';
 }
 
 /** @returns Sunday, July 9, 2023 (en) / domingo, 9 de julio de 2023 (es) */
@@ -486,30 +483,36 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
     return {selected: timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic: timezone.automatic ?? false};
 }
 
-function monthNamesIn(locale: Locale): string[] {
+function monthNamesIn(locale: Locale, formatKey: IntlFormatKey): string[] {
     // Mid-month in UTC, so no timezone can shift a month-edge date into the neighboring month.
     const monthsArray = Array.from({length: 12}, (_, monthIndex) => new Date(Date.UTC(2000, monthIndex, 15)));
-    return monthsArray.map((monthDate) => formatIntl(locale, 'LONG_MONTH', monthDate));
+    return monthsArray.map((monthDate) => formatIntl(locale, formatKey, monthDate));
+}
+
+/** Every English month abbreviates to its first three letters. */
+const ENGLISH_SHORT_MONTH_NAMES = CONST.DATE.ENGLISH_MONTH_NAMES.map((month) => month.slice(0, 3));
+
+/** Frozen because every caller shares the instance. */
+function monthNamesWithFallback(locale: Locale, formatKey: IntlFormatKey, englishNames: readonly string[]): readonly string[] {
+    const names = monthNamesIn(locale, formatKey);
+    if (names.every(Boolean)) {
+        return Object.freeze(names);
+    }
+    // The realistic failure is one rejected locale tag, so try the default locale before the English names, which are
+    // hardcoded because the translation files carry no month names.
+    const defaultNames = locale === CONST.LOCALES.DEFAULT ? names : monthNamesIn(CONST.LOCALES.DEFAULT, formatKey);
+    return Object.freeze(defaultNames.every(Boolean) ? defaultNames : [...englishNames]);
 }
 
 /**
  * As a language writes a month inside a sentence (es `enero`), so only a label that stands alone capitalizes it.
  * Never add day or year to `LONG_MONTH`: that flips Intl into format context and inflects the label (ru "января").
- * Memoized for MonthPickerModal, which React Compiler does not cover. Frozen because every caller shares the instance.
+ * Memoized for the pickers and the card fields, which call it per render outside React Compiler's reach.
  */
-const getMonthNames = memoize(
-    (locale: Locale): readonly string[] => {
-        const names = monthNamesIn(locale);
-        if (names.every(Boolean)) {
-            return Object.freeze(names);
-        }
-        // The realistic failure is one rejected locale tag, so try the default locale before the English names, which are
-        // hardcoded because the translation files carry no month names.
-        const defaultNames = locale === CONST.LOCALES.DEFAULT ? names : monthNamesIn(CONST.LOCALES.DEFAULT);
-        return Object.freeze(defaultNames.every(Boolean) ? defaultNames : [...CONST.DATE.ENGLISH_MONTH_NAMES]);
-    },
-    {maxSize: 16, equality: 'shallow'},
-);
+const getMonthNames = memoize((locale: Locale): readonly string[] => monthNamesWithFallback(locale, 'LONG_MONTH', CONST.DATE.ENGLISH_MONTH_NAMES), {maxSize: 16, equality: 'shallow'});
+
+/** @returns ene (es) / Mär (de), as a language abbreviates a month. */
+const getShortMonthNames = memoize((locale: Locale): readonly string[] => monthNamesWithFallback(locale, 'SHORT_MONTH', ENGLISH_SHORT_MONTH_NAMES), {maxSize: 16, equality: 'shallow'});
 
 /**
  * Returns month list items for SelectionList.
@@ -699,10 +702,7 @@ function getOneWeekFromNow(): string {
     return format(date, 'yyyy-MM-dd HH:mm:ss');
 }
 
-/**
- * param {string} dateTimeString
- * returns {string} example: 2023-05-16
- */
+/** @returns the calendar day as the wire format writes it: 2023-05-16 */
 function extractDate(dateTimeString: Date | string): string {
     if (!dateTimeString || dateTimeString === 'never') {
         return '';
@@ -1047,6 +1047,11 @@ const isDayBeforeMonth = memoize(
     {maxSize: 16, equality: 'shallow'},
 );
 
+/** Both ends or neither, so a formatter failure cannot render a range as " to Mar 20". */
+function joinRange(startPart: string, endPart: string, separator: string): string {
+    return startPart && endPart ? `${startPart}${separator}${endPart}` : '';
+}
+
 /**
  * Returns a formatted date range from date 1 to date 2.
  * Dates are formatted as follows:
@@ -1055,10 +1060,6 @@ const isDayBeforeMonth = memoize(
  * 3. When both dates refer to the same year: Feb 28 to Mar 1
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
  */
-function joinRange(startPart: string, endPart: string, separator: string): string {
-    return startPart && endPart ? `${startPart}${separator}${endPart}` : '';
-}
-
 function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2: Date, locale: Locale): string {
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
@@ -1136,14 +1137,10 @@ function getFormattedTransportDateAndHour(date: Date, locale: Locale): {date: st
 }
 
 /**
- * Returns a human-readable timezone label for an ISO offset (e.g. `+07:00` -> `GMT+7`, `+00:00` -> `UTC`).
+ * A human-readable label for an ISO offset's parts: `+`, `07`, `00` -> `GMT+7`, and `+`, `00`, `00` -> `UTC`. Takes the
+ * parts rather than the offset, because its caller has already matched them out of the timestamp.
  */
-function getCancellationDateTimezoneLabel(venueTimezone: string): string {
-    const match = venueTimezone.match(/^([+-])(\d{2}):(\d{2})$/);
-    if (!match) {
-        return 'UTC';
-    }
-    const [, sign, hours, minutes] = match;
+function getCancellationDateTimezoneLabel(sign: string, hours: string, minutes: string): string {
     const hoursNumber = Number(hours);
     const minutesNumber = Number(minutes);
     if (hoursNumber === 0 && minutesNumber === 0) {
@@ -1172,7 +1169,7 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale, now
     const offsetMatch = isoDateString.includes(':') ? isoDateString.match(CANCELLATION_OFFSET_PATTERN) : null;
     const [, sign = '+', hours = '00', minutes = '00'] = offsetMatch ?? [];
     const offsetMinutes = offsetMatch ? (sign === '-' ? -1 : 1) * (Number(hours) * 60 + Number(minutes)) : 0;
-    const venueTimezoneLabel = offsetMatch ? getCancellationDateTimezoneLabel(`${sign}${hours}:${minutes}`) : 'UTC';
+    const venueTimezoneLabel = offsetMatch ? getCancellationDateTimezoneLabel(sign, hours, minutes) : 'UTC';
     // Parse the civil part explicitly rather than appending `Z` and handing the result to `new Date`. Shapes like
     // `'2026-04-19Z'` and `'...+07'` are outside the Date Time String Format, so acceptance is implementation-defined:
     // V8 takes them via legacy heuristics and Hermes does not, which blanked the whole label on device.
@@ -1404,17 +1401,23 @@ function formatToShortMonthDay(date: Date | string, locale: Locale): string {
 
 /**
  * Full ISO timestamp only. An unzoned string would parse as the runtime's wall clock and a date-only one would shift its day,
- * so both render '' rather than a wrong value: use `formatToReadableString` or the `formatInUTCTo*` helpers for those.
+ * so both yield `null` and their callers render '' rather than a wrong value: use `formatToReadableString` or the
+ * `formatInUTCTo*` helpers for those.
  */
-function formatIntlInTimeZone(date: Date | string, timeZone: SelectedTimezone, formatKey: IntlFormatKey, locale: Locale): string {
+function toZonedInstant(date: Date | string, formatKey: IntlFormatKey): Date | null {
     if (!date) {
-        return '';
+        return null;
     }
     if (isUnzonedString(date)) {
         Log.warn('[DateUtils] an unzoned string reached a timezone formatter; pass a zoned Date or a full ISO timestamp with an offset', {date, formatKey});
-        return '';
+        return null;
     }
-    return formatIntl(locale, formatKey, toLocalDate(date), timeZone);
+    return toLocalDate(date);
+}
+
+function formatIntlInTimeZone(date: Date | string, timeZone: SelectedTimezone, formatKey: IntlFormatKey, locale: Locale): string {
+    const instant = toZonedInstant(date, formatKey);
+    return instant ? formatIntl(locale, formatKey, instant, timeZone) : '';
 }
 
 function formatInTimeZoneToLong(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
@@ -1494,7 +1497,7 @@ function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: Select
 /**
  * Formats the violation snapshot start date for display in the user's timezone.
  */
-function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string, timeZone: SelectedTimezone | undefined, preferredLocale: Locale): string {
+function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string, timeZone: SelectedTimezone | undefined, locale: Locale): string {
     if (!violationSnapshotStartedAt || !timeZone) {
         return '';
     }
@@ -1504,7 +1507,7 @@ function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string
         // A date-only payload is a calendar day, not an instant, so render it in UTC where `timeZone` cannot shift the
         // day. Matched against the shape, not against a space: a T-separated instant has no space either.
         const isDateOnly = ISO_DATE_PATTERN.test(violationSnapshotStartedAt);
-        return formatIntl(preferredLocale, 'LONG_DATE', date, isDateOnly ? 'UTC' : timeZone);
+        return formatIntl(locale, 'LONG_DATE', date, isDateOnly ? 'UTC' : timeZone);
     } catch (error) {
         Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});
         return '';
@@ -1703,6 +1706,7 @@ function getNextNthOfMonth(nth: number) {
 // These hold values computed *through* Intl, so they go stale for the same reason the formatter caches do.
 registerDerivedIntlCache(() => {
     getMonthNames.cache.clear();
+    getShortMonthNames.cache.clear();
     getLocalizedDatePlaceholder.cache.clear();
     isDayBeforeMonth.cache.clear();
     deviceTimeZone = undefined;
@@ -1760,6 +1764,7 @@ const DateUtils = {
     isTomorrow,
     isYesterday,
     getMonthNames,
+    getShortMonthNames,
     getFilteredMonthItems,
     getDaysOfWeekNarrow,
     toLocalDate,

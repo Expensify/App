@@ -14,7 +14,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key), preferredLocale: 'en'})));
+// Renders the interpolated date beside the key, so a test can assert the date the component built without loading translations.
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: jest.fn((key: string, parameters?: {date?: string}) => (parameters?.date ? `${key}:${parameters.date}` : key)),
+        preferredLocale: 'en',
+    })),
+);
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -55,9 +61,13 @@ describe('PayOverdueInvoice', () => {
     });
 
     it('shows the grace-period title while within the grace period', () => {
+        // Given an account still inside its grace period
+        // When the card renders
         render(<PayOverdueInvoice gracePeriodEndUnixSeconds={1789481242} />);
 
-        expect(screen.getByText('homePage.timeSensitiveSection.payOverdueInvoice.dueSoonTitle')).toBeOnTheScreen();
+        // Then it names the deadline rather than the past-due state, and the deadline reads as a sentence does, with
+        // the month spelled out and the day anchored in UTC so no reader sees the day before
+        expect(screen.getByText('homePage.timeSensitiveSection.payOverdueInvoice.dueSoonTitle:September 15, 2026')).toBeOnTheScreen();
         expect(screen.queryByText('homePage.timeSensitiveSection.payOverdueInvoice.overdueTitle')).not.toBeOnTheScreen();
     });
 

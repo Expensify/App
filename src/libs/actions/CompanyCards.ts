@@ -44,6 +44,7 @@ import type {
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
+import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -71,6 +72,7 @@ type ImportCSVCompanyCardsData = {
     layoutType: string;
     columnMappings: string[];
     csvData: string[][];
+    locale: Locale;
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
     workspaceCardFeeds?: OnyxEntry<CardFeeds>;
     existingInstanceID?: string;
@@ -101,6 +103,7 @@ function buildOptimisticCompanyCardCSVTransactions(
     csvData: string[][],
     columnMappings: string[],
     feedName: CompanyCardFeed,
+    locale: Locale,
 ): {
     csvDataWithGeneratedIDs: string[][];
     normalizedColumnMappings: string[];
@@ -139,7 +142,7 @@ function buildOptimisticCompanyCardCSVTransactions(
 
         const cardName = row.at(cardNumberColumnIndex)?.trim();
         const rawPostedDate = row.at(postedDateColumnIndex)?.trim();
-        const created = rawPostedDate ? parseCSVDate(rawPostedDate) : null;
+        const created = rawPostedDate ? parseCSVDate(rawPostedDate, locale) : null;
         const merchant = row.at(merchantColumnIndex)?.trim() ?? '';
         const currency = row.at(currencyColumnIndex)?.trim();
         const amountValue = row.at(amountColumnIndex) ?? '';
@@ -154,7 +157,7 @@ function buildOptimisticCompanyCardCSVTransactions(
         row[postedDateColumnIndex] = created;
         if (originalTransactionDateColumnIndex >= 0) {
             const rawOriginalDate = row.at(originalTransactionDateColumnIndex)?.trim();
-            const parsedOriginalDate = rawOriginalDate ? parseCSVDate(rawOriginalDate) : null;
+            const parsedOriginalDate = rawOriginalDate ? parseCSVDate(rawOriginalDate, locale) : null;
             if (parsedOriginalDate) {
                 row[originalTransactionDateColumnIndex] = parsedOriginalDate;
             }
@@ -1249,12 +1252,13 @@ function importCSVCompanyCards({
     layoutType,
     columnMappings,
     csvData,
+    locale,
     lastSelectedFeed,
     workspaceCardFeeds,
     existingInstanceID,
 }: ImportCSVCompanyCardsData): Promise<ImportFinalModal> {
     const feedName = layoutType as CompanyCardFeed;
-    const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
+    const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName, locale);
     // `existingInstanceID` is typed as a string, but for legacy feeds Onyx/NVP can store it as a number.
     // The backend rejects a non-string `instanceID` before parsing the CSV, so coerce it to a string here.
     const instanceID = existingInstanceID ? String(existingInstanceID) : Date.now().toString();

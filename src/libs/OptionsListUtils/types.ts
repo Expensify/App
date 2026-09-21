@@ -113,10 +113,10 @@ type LazyHydrationContext = {
     conciergeReportID: string | undefined;
     currentUserAccountID: number;
 
-    /** Date-fns locale used when the option list was built. */
+    /** Locale the option list was built in. */
     preferredLocale: Locale;
 
-    /** Locale used when the option list was built. */
+    /** Translator bound to the locale the option list was built in. */
     translate: LocalizedTranslate;
 
     /** Currency formatter used when the option list was built. */

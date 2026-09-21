@@ -715,7 +715,6 @@ const CONST = {
             FULL_DATE: {dateStyle: 'full'},
             LONG_WEEKDAY: {weekday: 'long'},
             NARROW_WEEKDAY: {weekday: 'narrow'},
-            // Month-only so Intl returns the standalone form per CLDR. Do NOT add day or year (see getMonthNames).
             LONG_MONTH: {month: 'long'},
             SHORT_MONTH: {month: 'short'},
             LONG_MONTH_YEAR: {month: 'long', year: 'numeric'},
@@ -726,6 +725,7 @@ const CONST = {
             WEEKDAY_MONTH_DAY_YEAR: {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'},
             WEEKDAY_LONG_MONTH_DAY_YEAR: {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'},
             MONTH_DAY_SHORT_TIME: {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'},
+            SHORT_TIME_ZONE_NAME: {timeZoneName: 'short'},
         },
         // ICU 72+ emits U+202F before AM/PM and some Android builds draw it as a tofu box. Scoped to AM/PM so French and Slavic typography keeps its NNBSP around `:` and `%`.
         INTL_NBSP_PATTERN: /[\u202f\u00a0](?=[AaPp][Mm])/g,

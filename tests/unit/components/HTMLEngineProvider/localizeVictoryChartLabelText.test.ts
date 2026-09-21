@@ -34,6 +34,16 @@ describe('localizeVictoryChartLabelText', () => {
             expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 02:48 PM', 'Asia/Tokyo', CONST.LOCALES.EN)).toBe('As of: Jun 12, 2026 at 11:48 PM');
         });
 
+        it('reads the server label whatever language the viewer reads in', () => {
+            // Given the server's own label, which it renders in English for every viewer
+            // When it is rewritten for a Japanese viewer
+            const result = getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM', 'Asia/Tokyo', CONST.LOCALES.JA);
+
+            // Then the English month name still parses and only the rendering follows the viewer, so the label cannot
+            // fall back to raw text for everyone outside English
+            expect(result).toBe('As of: 2026/06/06 at 3:47');
+        });
+
         it('leaves non-As-of labels unchanged', () => {
             expect(getLocalizedVictoryChartLabelText('Top employees by spend', 'America/Los_Angeles', CONST.LOCALES.EN)).toBe('Top employees by spend');
         });

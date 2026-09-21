@@ -16,6 +16,27 @@ describe('generateMonthMatrix', () => {
         expect(generateMonthMatrix(2022, 0, CONST.LOCALES.EN)).toEqual(expected);
     });
 
+    it('starts the week on Sunday for January 2022 in Japanese', () => {
+        // Given January 2022 in Japanese, one of the two shipped locales whose week starts on Sunday, and a month
+        // opening on a Saturday so every row moves rather than only the first
+        const expected: MonthMatrix = [
+            [undefined, undefined, undefined, undefined, undefined, undefined, 1],
+            [2, 3, 4, 5, 6, 7, 8],
+            [9, 10, 11, 12, 13, 14, 15],
+            [16, 17, 18, 19, 20, 21, 22],
+            [23, 24, 25, 26, 27, 28, 29],
+            [30, 31, undefined, undefined, undefined, undefined, undefined],
+        ];
+
+        // When the same month is laid out for a Japanese reader
+        const matrix = generateMonthMatrix(2022, 0, CONST.LOCALES.JA);
+
+        // Then the grid is shifted one slot from the English one above, because the locale argument decides which
+        // weekday a row starts on rather than being accepted and ignored
+        expect(matrix).toEqual(expected);
+        expect(matrix).not.toEqual(generateMonthMatrix(2022, 0, CONST.LOCALES.EN));
+    });
+
     it('returns the correct matrix for February 2022', () => {
         const expected: MonthMatrix = [
             [undefined, 1, 2, 3, 4, 5, 6],

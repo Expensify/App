@@ -34,7 +34,7 @@ Onyx.connectWithoutView({
 // Intl is polyfilled, so touching it upon import would run before the polyfill is installed and barf; and an Intl
 // instance resolves its locale at construction, so one built before that locale's polyfill data has loaded is stuck
 // formatting in English for the lifetime of the app. Going through IntlStore.getCurrentLocale() avoids that, because
-// IntlStore only sets the current locale once every loader for it (translations, date-fns, Intl data) has resolved.
+// IntlStore only sets the current locale once every loader for it (translations and `@formatjs` locale data) has resolved.
 // Web installs no `ListFormat` polyfill, and it shipped later than every other Intl constructor this app relies on
 // (Firefox 78, Safari 14.1), so it is the one that can be genuinely absent rather than merely short of locale data.
 const createConjunctionListFormat = (locale: Locale): Intl.ListFormat | null => {

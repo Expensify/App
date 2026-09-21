@@ -1,4 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIntlStoreSnapshot from '@hooks/useIntlStoreSnapshot';
 import useOnyx from '@hooks/useOnyx';
 
 import getCollator from '@libs/CollatorUtils';
@@ -19,7 +20,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {createContext, useEffect, useSyncExternalStore} from 'react';
+import React, {createContext, useEffect} from 'react';
 
 type LocaleContextProviderProps = {
     children: React.ReactNode;
@@ -89,7 +90,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const {locale: currentLocale, isCurrentLocaleLoaded} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
+    const {locale: currentLocale, isCurrentLocaleLoaded} = useIntlStoreSnapshot();
     // A cold `en` start reads `en` before and after its table lands, so every callback that translates must close over this or stay memoized on the untranslated keys.
     const translationLocale = isCurrentLocaleLoaded ? currentLocale : undefined;
 
@@ -116,6 +117,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const effectiveTimezone = selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected;
     const collator = getCollator(currentLocale);
 
+    // Inline in every callback, never hoisted: only a callback closing over `translationLocale` rebuilds when the table lands, and hoisted it reads `'en'` on both sides of a cold start.
     const translate: LocaleContextProps['translate'] = (path, ...parameters) => translateLocalize(translationLocale ?? currentLocale, path, ...parameters);
 
     const numberFormat: LocaleContextProps['numberFormat'] = (number, options) => format(currentLocale, number, options);

@@ -17,44 +17,86 @@ const meta = {
 };
 
 /**
- * date-fns tokens whose output differs between languages. Longer patterns come first so that overlapping matches
- * (e.g. `LLLLL` inside `LLLL`) are counted once.
- * @type {ReadonlyArray<{token: string; label: string}>}
+ * A date-fns token: an ordinal (`do`) or a run of one letter (`MMMM`), which are the shapes its own formatter reads.
  */
-const LOCALIZED_TOKENS = [
-    {token: 'PPPP', label: 'PPPP (localized long date)'},
-    {token: 'PPP', label: 'PPP (localized medium date)'},
-    {token: 'PP', label: 'PP (localized short date)'},
-    {token: 'pppp', label: 'pppp (localized long time)'},
-    {token: 'ppp', label: 'ppp (localized medium time)'},
-    {token: 'pp', label: 'pp (localized short time)'},
-    {token: 'MMMMM', label: 'MMMMM (narrow month)'},
-    {token: 'MMMM', label: 'MMMM (month name)'},
-    {token: 'MMM', label: 'MMM (short month)'},
-    {token: 'LLLLL', label: 'LLLLL (narrow standalone month)'},
-    {token: 'LLLL', label: 'LLLL (standalone month)'},
-    {token: 'LLL', label: 'LLL (standalone short month)'},
-    {token: 'EEEEE', label: 'EEEEE (narrow weekday)'},
-    {token: 'EEEE', label: 'EEEE (weekday name)'},
-    {token: 'EEE', label: 'EEE (short weekday)'},
-    {token: 'eeeee', label: 'eeeee (narrow weekday)'},
-    {token: 'eeee', label: 'eeee (weekday name)'},
-    {token: 'eee', label: 'eee (short weekday)'},
-    {token: 'ccccc', label: 'ccccc (narrow standalone weekday)'},
-    {token: 'cccc', label: 'cccc (standalone weekday name)'},
-    {token: 'ccc', label: 'ccc (standalone short weekday)'},
-    {token: 'cc', label: 'cc (standalone weekday number, locale-formatted)'},
-    {token: 'do', label: 'do (ordinal day)'},
-    {token: 'aaaa', label: 'aaaa (AM/PM lowercase)'},
-    {token: 'aaa', label: 'aaa (AM/PM lowercase short)'},
-    {token: 'aa', label: 'aa (AM/PM)'},
-    {token: 'a', label: 'a (AM/PM)'},
-    {token: 'bbbb', label: 'bbbb (localized day period)'},
-    {token: 'BBBB', label: 'BBBB (extended day period)'},
-    {token: 'b', label: 'b (localized day period)'},
-    {token: 'P', label: 'P (localized short date)'},
-    {token: 'p', label: 'p (localized short time)'},
-];
+const TOKEN_PATTERN = /[a-zA-Z]o|([a-zA-Z])\1*/g;
+
+/**
+ * The tokens that render the same text in every language: numeric fields, ISO-style offsets and epoch counters. Every
+ * other token is treated as localized, so one this set does not name is guarded by default rather than escaping the
+ * rule. Listing the localized tokens instead is what let a zone name render in the device's language for every reader.
+ * @type {ReadonlySet<string>}
+ */
+const MACHINE_TOKENS = new Set([
+    // Years
+    'y',
+    'yy',
+    'yyy',
+    'yyyy',
+    'yyyyy',
+    'R',
+    'RR',
+    'RRR',
+    'RRRR',
+    'u',
+    'uu',
+    'uuu',
+    'uuuu',
+    // Numeric quarters and months
+    'Q',
+    'QQ',
+    'q',
+    'qq',
+    'M',
+    'MM',
+    'L',
+    'LL',
+    // Days, and the ISO week and weekday, which do not move with the locale's first day
+    'd',
+    'dd',
+    'D',
+    'DD',
+    'DDD',
+    'DDDD',
+    'I',
+    'II',
+    'i',
+    'ii',
+    // Clock
+    'h',
+    'hh',
+    'H',
+    'HH',
+    'K',
+    'KK',
+    'k',
+    'kk',
+    'm',
+    'mm',
+    's',
+    'ss',
+    'S',
+    'SS',
+    'SSS',
+    'SSSS',
+    // Offsets and epoch counters
+    'X',
+    'XX',
+    'XXX',
+    'XXXX',
+    'XXXXX',
+    'x',
+    'xx',
+    'xxx',
+    'xxxx',
+    'xxxxx',
+    'O',
+    'OO',
+    'OOO',
+    'OOOO',
+    't',
+    'T',
+]);
 
 /** Marks a format this rule cannot resolve but must still treat as localized. */
 const UNKNOWN_LOCALIZED = '\u0000unknown-localized';
@@ -78,10 +120,21 @@ const LOCAL_FORMATTER_FORMAT_ARG_INDEX = {formatInTimeZoneWithFallback: 2};
 const LOCALE_SENSITIVE_NO_FORMAT = new Set(['formatDistance', 'formatDistanceStrict', 'formatDistanceToNow', 'formatDistanceToNowStrict', 'formatRelative']);
 
 /**
- * date-fns modules whose `format` exports this rule follows through import aliases.
+ * date-fns packages whose `format` exports this rule follows through import aliases.
  * @type {ReadonlySet<string>}
  */
-const DATE_FNS_MODULES = new Set(['date-fns', 'date-fns-tz']);
+const DATE_FNS_PACKAGES = new Set(['date-fns', 'date-fns-tz']);
+
+/**
+ * Deep paths count: `import {format} from 'date-fns/format'` is how several modules here already import it, and an
+ * exact-match check would leave the whole file unguarded.
+ *
+ * @param {unknown} source
+ * @returns {boolean}
+ */
+function isDateFnsModule(source) {
+    return typeof source === 'string' && [...DATE_FNS_PACKAGES].some((packageName) => source === packageName || source.startsWith(`${packageName}/`));
+}
 
 /**
  * `CONST.DATE.*` formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized, so a
@@ -103,24 +156,11 @@ function stripEscapedLiterals(pattern) {
 
 /**
  * @param {string} pattern
- * @returns {string[]} labels of the localized tokens the pattern contains
+ * @returns {string[]} the pattern's tokens whose text depends on the language
  */
 function findLocalizedTokens(pattern) {
-    let remaining = stripEscapedLiterals(pattern);
-    /** @type {string[]} */
-    const found = [];
-
-    // Longest tokens first so that MMMM is not reported as MMM. Consuming each match keeps
-    // overlapping tokens (MMM inside MMMM) from being counted twice.
-    for (const {token, label} of LOCALIZED_TOKENS) {
-        if (!remaining.includes(token)) {
-            continue;
-        }
-        found.push(label);
-        remaining = remaining.split(token).join('');
-    }
-
-    return found;
+    const tokens = stripEscapedLiterals(pattern).match(TOKEN_PATTERN) ?? [];
+    return [...new Set(tokens.filter((token) => !MACHINE_TOKENS.has(token)))].map((token) => `\`${token}\``);
 }
 
 /**
@@ -191,6 +231,10 @@ function resolvePattern(node, sourceCode, visited = new Set()) {
     if (node.type === 'ConditionalExpression') {
         const consequent = resolvePattern(node.consequent, sourceCode, visited);
         const alternate = resolvePattern(node.alternate, sourceCode, visited);
+        // Before joining, because the joined string no longer equals the marker below and its own letters would be scanned for tokens.
+        if (consequent === UNKNOWN_LOCALIZED || alternate === UNKNOWN_LOCALIZED) {
+            return UNKNOWN_LOCALIZED;
+        }
         if (consequent === null && alternate === null) {
             return null;
         }
@@ -213,7 +257,7 @@ function create(context) {
 
     return {
         ImportDeclaration(node) {
-            if (!DATE_FNS_MODULES.has(node.source.value)) {
+            if (!isDateFnsModule(node.source.value)) {
                 return;
             }
             for (const specifier of node.specifiers) {
@@ -290,4 +334,4 @@ function create(context) {
     };
 }
 
-export {name, meta, create};
+export {name, meta, create, MACHINE_DATE_CONSTANTS};

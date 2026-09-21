@@ -85,7 +85,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             options.push({
                 text: `${weekday}, ${longDate}`,
                 value: CONST.ONBOARDING_HELP.EVENT_TIME,
-                description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventDate, userTimezone)}`,
+                description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventDate, userTimezone, preferredLocale)}`,
                 descriptionTextStyle: [styles.themeTextColor, styles.ml2],
                 displayInDefaultIconColor: true,
                 icon: illustrations.HeadSet,

@@ -26,7 +26,7 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
     const now = useNow();
 
     const currentUserLocalTime = getLocalDateFromDatetime(now, timezone.selected);
-    const timezoneName = timezone.selected ? DateUtils.getZoneAbbreviation(currentUserLocalTime, timezone.selected) : '';
+    const timezoneName = timezone.selected ? DateUtils.getZoneAbbreviation(currentUserLocalTime, timezone.selected, preferredLocale) : '';
 
     return (
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>

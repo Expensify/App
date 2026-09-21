@@ -7,6 +7,7 @@ import {clearIntlFormatterCaches, refreshIntlFormatterCaches} from '@libs/IntlFo
 import {translate} from '@libs/Localize';
 
 import CONST from '@src/CONST';
+import {SORTED_LOCALES} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,9 +64,29 @@ describe('DateUtils', () => {
     const datetime = '2022-11-07 00:00:00';
     const timezone = 'Atlantic/Reykjavik';
 
-    it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
-        const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('GMT+0');
+    it('getZoneAbbreviation names the zone in the reader language, not the device one', () => {
+        // Given one instant read in two zones, in November, when Berlin is on standard time and so an hour ahead of UTC
+        const zonedDatetime = new Date('2022-11-07T00:00:00Z');
+
+        // When each zone's short name is asked for in a given language
+        const reykjavikInEnglish = DateUtils.getZoneAbbreviation(zonedDatetime, UTC, CONST.LOCALES.EN);
+        const berlinInEnglish = DateUtils.getZoneAbbreviation(zonedDatetime, 'Europe/Berlin', CONST.LOCALES.EN);
+        const berlinInGerman = DateUtils.getZoneAbbreviation(zonedDatetime, 'Europe/Berlin', CONST.LOCALES.DE);
+
+        // Then the language passed in decides the text, and a language with no word for the zone gets its offset. The
+        // date-fns `zzz` token read the device language instead, so an English user on a German phone was shown `MEZ`.
+        expect(reykjavikInEnglish).toBe('GMT');
+        expect(berlinInEnglish).toBe('GMT+1');
+        expect(berlinInGerman).toBe('MEZ');
+    });
+
+    it('getZoneAbbreviation returns an empty string for an unzoned datetime', () => {
+        // Given a DB wire timestamp, which names no zone and so picks out no instant to read an offset at
+        // When an abbreviation is asked for it
+        const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone, LOCALE);
+
+        // Then it is empty, the same refusal the other `formatIn*` helpers make, rather than a name read off a guessed instant
+        expect(zoneAbbreviation).toBe('');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
@@ -586,16 +607,19 @@ describe('DateUtils', () => {
             expect(result).toBe(expected);
         });
 
-        it.each(['en', 'es'] as const)('formatTransactionListDate renders a current-year day in %s regardless of viewer timezone', (locale) => {
-            // Given a transaction on 1 January of this year, the day most likely to slip into the previous year
-            const currentYear = new Date().getUTCFullYear();
-            const wireDate = `${currentYear}-01-01`;
+        it.each([
+            [CONST.LOCALES.EN, 'Jan 1'],
+            [CONST.LOCALES.ES, '1 ene'],
+        ] as const)('formatTransactionListDate renders a current-year day in %s without a year', (locale, expected) => {
+            // Given a viewer whose clock says 2026, and a transaction on 1 January of that same year, the day most
+            // likely to slip into the neighboring one. The clock is pinned because the past-year branch is decided
+            // against `now`, so reading the real clock into both the input and the expectation would assert nothing.
+            jest.useFakeTimers().setSystemTime(new Date(2026, 5, 15, 12, 0, 0));
 
             // When it is rendered for the transaction list
-            const result = DateUtils.formatTransactionListDate(wireDate, locale);
+            const result = DateUtils.formatTransactionListDate('2026-01-01', locale);
 
             // Then it shows that same day without a year, in the reader's language, whatever timezone the device is in
-            const expected = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', timeZone: 'UTC'}).format(new Date(`${wireDate}T00:00:00Z`));
             expect(result).toBe(expected);
         });
 
@@ -750,33 +774,17 @@ describe('DateUtils', () => {
             expect(ja).toContain('19');
         });
 
-        it.each(['en', 'de', 'ja', 'ko', 'es', 'fr', 'pt-BR', 'it', 'nl', 'pl', 'zh-hans', 'zh-hant'] as const)(
-            'placeholder and formatted value share the same field order and separators (%s)',
-            (locale) => {
-                // Given the two formats a date field uses, the short date style for the value and numeric fields for the placeholder
-                const sample = new Date(Date.UTC(2024, 11, 31));
-                const literalsFromPreset = (options: Intl.DateTimeFormatOptions) =>
-                    new Intl.DateTimeFormat(locale, options)
-                        .formatToParts(sample)
-                        .filter((p) => p.type === 'literal')
-                        .map((p) => p.value);
-                const orderFromPreset = (options: Intl.DateTimeFormatOptions) =>
-                    new Intl.DateTimeFormat(locale, options)
-                        .formatToParts(sample)
-                        .filter((p) => p.type !== 'literal')
-                        .map((p) => p.type);
+        it.each(SORTED_LOCALES)('the value a date field shows fills in the hint it shows beside it (%s)', (locale) => {
+            // Given the hint a date field renders, and a stored date whose year, month and day are all told apart by sight
+            const placeholder = DateUtils.getLocalizedDatePlaceholder(locale);
 
-                // When each lays out the same date
-                const valueOrder = orderFromPreset({dateStyle: 'short'});
-                const placeholderOrder = orderFromPreset({year: 'numeric', month: '2-digit', day: '2-digit'});
-                const valueSeparators = literalsFromPreset({dateStyle: 'short'});
-                const placeholderSeparators = literalsFromPreset({year: 'numeric', month: '2-digit', day: '2-digit'});
+            // When the same date is rendered into the field
+            const value = DateUtils.formatToLocalizedShortDate('2026-01-05', locale);
 
-                // Then the fields and separators match, because a mismatch would pair an "MM/DD/YYYY" hint with a "05.01.2026" value
-                expect(valueOrder).toEqual(placeholderOrder);
-                expect(valueSeparators).toEqual(placeholderSeparators);
-            },
-        );
+            // Then the value is the hint with its fields filled in, because a field order or separator that differed
+            // between the two would pair an "MM/DD/YYYY" hint with a "05.01.2026" value
+            expect(value).toBe(placeholder.replace('YYYY', '2026').replace('MM', '01').replace('DD', '05'));
+        });
     });
 
     describe('formatToLocalDateTime', () => {
@@ -793,7 +801,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('getMonthNames / getFilteredMonthItems', () => {
+    describe('getMonthNames / getShortMonthNames / getFilteredMonthItems', () => {
         it('keeps a month as written inside a sentence and capitalizes it only as a picker label', () => {
             // Given the Spanish month names, which Spanish writes in lower case
             // When they are read raw and then turned into month picker items
@@ -803,6 +811,19 @@ describe('DateUtils', () => {
             // Then only the picker label is capitalized, because a month inside a sentence must stay lower case
             expect(spanishMonths.at(0)).toBe('enero');
             expect(pickerItem?.text).toBe('Enero');
+        });
+
+        it.each([
+            [CONST.LOCALES.EN, 'Jan'],
+            [CONST.LOCALES.ES, 'ene'],
+        ] as const)('getShortMonthNames abbreviates a month as %s writes it', (locale, expected) => {
+            // Given a language that abbreviates January to something other than the English three letters
+            // When the short month names are read
+            const shortMonths = DateUtils.getShortMonthNames(locale);
+
+            // Then the whole abbreviation is the language's own, which is what lets a CSV cell written in that language
+            // be matched back to a month rather than only an English one
+            expect(shortMonths.at(0)).toBe(expected);
         });
     });
 

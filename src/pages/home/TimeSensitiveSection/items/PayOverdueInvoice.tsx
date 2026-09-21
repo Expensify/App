@@ -25,8 +25,8 @@ function PayOverdueInvoice({gracePeriodEndUnixSeconds, isOverdue = false}: PayOv
     const {translate, preferredLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
 
-    // An ISO string rather than a `Date`, which `formatInUTCToMedium` would re-read as the device's local calendar day.
-    const dueDate = DateUtils.formatInUTCToMedium(fromUnixTime(gracePeriodEndUnixSeconds).toISOString(), preferredLocale);
+    // An ISO string rather than a `Date`, which `formatInUTCToLong` would re-read as the device's local calendar day.
+    const dueDate = DateUtils.formatInUTCToLong(fromUnixTime(gracePeriodEndUnixSeconds).toISOString(), preferredLocale);
 
     const title = isOverdue
         ? translate('homePage.timeSensitiveSection.payOverdueInvoice.overdueTitle')

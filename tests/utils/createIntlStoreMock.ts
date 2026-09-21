@@ -2,7 +2,7 @@ import type {Locale} from '@src/CONST/LOCALES';
 import type IntlStore from '@src/languages/IntlStore';
 import type {FlatTranslationsObject, TranslationPaths} from '@src/languages/types';
 
-/** The part of the store the UI suites touch. Widening the real class's public surface breaks this type until the mock catches up. */
+/** The part of the store the UI suites touch. `Pick` carries each member's real signature, so reshaping one of them, such as `getSnapshot`'s return type, breaks this type until the mock catches up. */
 type MockedIntlStore = Pick<typeof IntlStore, 'getCurrentLocale' | 'load' | 'get' | 'subscribe' | 'getSnapshot' | 'hasLocale'>;
 
 /**
@@ -16,8 +16,9 @@ type MockedIntlStore = Pick<typeof IntlStore, 'getCurrentLocale' | 'load' | 'get
  */
 export default function createIntlStoreMock(locale: Locale = 'en'): MockedIntlStore {
     // `require` is untyped here on purpose: a jest.mock factory is hoisted above imports, so these cannot be `import`s.
+    // The locale path is relative because babel's module-resolver rewrites the `@src` alias only in a static string.
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-    const translations: Record<string, unknown> = require('@src/languages/en').default;
+    const translations: Record<string, unknown> = require(`../../src/languages/${locale}`).default;
     const flattenObject: (obj: Record<string, unknown>) => FlatTranslationsObject = require('@src/languages/flattenObject').default;
     /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 

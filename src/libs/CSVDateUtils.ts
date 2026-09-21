@@ -1,6 +1,11 @@
 import CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 
 import {addDays, format, isValid, parse} from 'date-fns';
+
+import DateUtils from './DateUtils';
+import {registerDerivedIntlCache} from './IntlFormatterCaches';
+import memoize from './memoize';
 
 // Common date formats to try when parsing CSV dates
 // Order matters - more specific/common formats first
@@ -17,60 +22,104 @@ const CSV_DATE_FORMATS = [
     'MMMM d, yyyy', // Full month: November 2, 2025
     'd MMM yyyy', // European with month name: 2 Nov 2025
     'dd MMM yyyy', // European with month name: 02 Nov 2025
+    'd MMMM yyyy', // European with full month: 2 November 2025
+    'dd MMMM yyyy', // European with full month: 02 November 2025
     'yyyyMMdd', // Compact: 20251102
 ];
 
+/** A date followed by a clock time, so a timestamp can be cut back to its date without guessing where the date ends. */
+const TRAILING_TIME_PATTERN = /[T\s]\d{1,2}:\d{2}/;
+
 /**
- * Parses a date string from various formats and returns it in yyyy-MM-dd format
+ * Every month name the uploader's language writes, mapped to the English one date-fns parses, longest first so a full
+ * name is matched before its abbreviation. Memoized because a file is parsed a row at a time and the table is the same
+ * for all of them, and dropped with the other derived caches, because the names it reads change when a locale's data lands.
  */
-function parseCSVDate(input: string): string | null {
-    if (!input || typeof input !== 'string') {
-        return null;
+const getEnglishMonthNameByLocalizedName = memoize(
+    (locale: Locale): Array<[localizedName: string, englishName: string]> => {
+        const entries: Array<[string, string]> = [];
+        const localizedNames = [...DateUtils.getMonthNames(locale), ...DateUtils.getShortMonthNames(locale)];
+        for (const [index, name] of localizedNames.entries()) {
+            const englishName = CONST.DATE.ENGLISH_MONTH_NAMES.at(index % CONST.DATE.ENGLISH_MONTH_NAMES.length) ?? '';
+            const localizedName = name.toLowerCase();
+            entries.push([localizedName, englishName]);
+            // A language may abbreviate a month with a trailing point, which the tool that wrote the file may have dropped.
+            const withoutPoints = localizedName.replaceAll('.', '');
+            if (withoutPoints !== localizedName) {
+                entries.push([withoutPoints, englishName]);
+            }
+        }
+        return entries.sort(([nameA], [nameB]) => nameB.length - nameA.length);
+    },
+    {maxSize: 16, equality: 'shallow'},
+);
+
+registerDerivedIntlCache(() => {
+    getEnglishMonthNameByLocalizedName.cache.clear();
+});
+
+/**
+ * Rewrites the month name a cell holds to English, leaving the rest of the cell in place. A cell carries whatever the
+ * exporting tool wrote, which is the uploader's language as often as English, while date-fns reads English alone.
+ */
+function toEnglishMonthName(input: string, locale: Locale): string {
+    const lowerCaseInput = input.toLowerCase();
+    for (const [localizedName, englishName] of getEnglishMonthNameByLocalizedName(locale)) {
+        const nameIndex = lowerCaseInput.indexOf(localizedName);
+        if (nameIndex === -1) {
+            continue;
+        }
+        return `${input.slice(0, nameIndex)}${englishName}${input.slice(nameIndex + localizedName.length)}`;
     }
+    return input;
+}
 
-    const trimmedInput = input.trim();
-
-    // Try native Date parsing first (handles ISO and some other formats)
-    let date = new Date(trimmedInput);
-    if (isValid(date) && !Number.isNaN(date.getTime())) {
-        return format(date, CONST.DATE.FNS_FORMAT_STRING);
-    }
-
-    // Try parsing with common date formats using date-fns
+function parseDateValue(value: string): string | null {
+    // The shapes above first: a cell holds a calendar day, and the engine reads `2024-01-15` as UTC midnight, which
+    // formats back as the day before in every zone west of UTC.
     for (const dateFormat of CSV_DATE_FORMATS) {
-        const parsedDate = parse(trimmedInput, dateFormat, new Date());
+        const parsedDate = parse(value, dateFormat, new Date());
         if (isValid(parsedDate)) {
             return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
         }
     }
 
-    // If the date didn't parse, try taking just the first 10 characters
-    if (trimmedInput.length > 10) {
-        const shortInput = trimmedInput.substring(0, 10);
-        date = new Date(shortInput);
-        if (isValid(date) && !Number.isNaN(date.getTime())) {
-            return format(date, CONST.DATE.FNS_FORMAT_STRING);
-        }
+    // Then whatever else the engine accepts, such as a timestamp carrying its own offset.
+    const nativeDate = new Date(value);
+    return isValid(nativeDate) ? format(nativeDate, CONST.DATE.FNS_FORMAT_STRING) : null;
+}
 
-        // Also try format parsing on the shortened input
-        for (const dateFormat of CSV_DATE_FORMATS) {
-            const parsedDate = parse(shortInput, dateFormat, new Date());
-            if (isValid(parsedDate)) {
-                return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
-            }
-        }
+/**
+ * Parses a date cell written in the uploader's language and returns it in yyyy-MM-dd format, or null when no shape matches.
+ */
+function parseCSVDate(input: string, locale: Locale): string | null {
+    if (!input || typeof input !== 'string') {
+        return null;
+    }
+
+    const normalizedInput = toEnglishMonthName(input.trim(), locale);
+    const parsedDate = parseDateValue(normalizedInput);
+    if (parsedDate) {
+        return parsedDate;
+    }
+
+    // Retry without the clock time, cut at the time itself: cutting at a fixed length left a month name and a two-digit year, which the engine read as the year 20.
+    const trailingTime = TRAILING_TIME_PATTERN.exec(normalizedInput);
+    const parsedDateOnly = trailingTime ? parseDateValue(normalizedInput.slice(0, trailingTime.index)) : null;
+    if (parsedDateOnly) {
+        return parsedDateOnly;
     }
 
     // If it didn't parse, maybe it's an Excel date number
     // Excel stores dates serialized from January 1st, 1900 (with 1/1/1900 being 1)
     // Excel thinks that 1900 was a leap year and adds an extra day to account for that
-    if (/^\d+$/.test(trimmedInput)) {
-        const inputInt = parseInt(trimmedInput, 10);
+    if (/^\d+$/.test(normalizedInput)) {
+        const inputInt = parseInt(normalizedInput, 10);
         if (inputInt > 0 && inputInt < 100000) {
             const excelEpoch = new Date(1900, 0, 1); // January 1, 1900
-            const parsedDate = addDays(excelEpoch, inputInt - 2);
-            if (isValid(parsedDate)) {
-                return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
+            const excelDate = addDays(excelEpoch, inputInt - 2);
+            if (isValid(excelDate)) {
+                return format(excelDate, CONST.DATE.FNS_FORMAT_STRING);
             }
         }
     }
