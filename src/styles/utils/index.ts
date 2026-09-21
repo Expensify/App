@@ -1978,8 +1978,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
     }),
 
-    getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
-
     getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
         const {
             isSubmittedColumnWide,
