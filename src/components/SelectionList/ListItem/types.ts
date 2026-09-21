@@ -181,9 +181,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Overrides the row's selected state (aria-selected, highlight). Defaults to `item.isSelected`; pass it when selection isn't stored on the item itself. */
     isSelected?: boolean;
-
-    /** Whether to show the right caret icon */
-    shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -222,9 +219,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldSyncFocus?: boolean;
 
     shouldDisplayRBR?: boolean;
-
-    /** Boolean whether to display the right icon */
-    shouldShowRightCaret?: boolean;
 
     titleStyles?: StyleProp<TextStyle>;
     titleContainerStyles?: StyleProp<ViewStyle>;
@@ -273,8 +267,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         shouldDisplayRBR?: boolean;
         /** Test ID of the component. Used to locate this view in end-to-end tests. */
         testID?: string;
-        /** Whether to show the right caret icon */
-        shouldShowRightCaret?: boolean;
         shouldHighlightSelectedItem?: boolean;
         shouldDisableHoverStyle?: boolean;
 
@@ -299,10 +291,13 @@ type SpendRuleListItemType = ListItem & {
 };
 
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
-type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle'> & {
+type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle' | 'children' | 'FooterComponent' | 'shouldDisplayRBR'> & {
+    /** Row content. Hover/focus/tooltip state is provided through ListItemContext instead of a render prop. */
+    children?: ReactNode;
+
+    /** Callback to fire when the selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
-    /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
 };
 

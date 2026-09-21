@@ -37,7 +37,7 @@ const mockUseOnyx: jest.Mock = jest.mocked(useOnyx);
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: jest.fn(() => false)}),
+    default: () => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({

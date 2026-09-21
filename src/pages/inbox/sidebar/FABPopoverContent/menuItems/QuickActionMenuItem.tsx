@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -56,7 +57,8 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -108,10 +110,24 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             undefined,
             isReportArchived,
             quickActionReportPendingDeleteMemberAccountIDs,
+            conciergeReportID,
         );
         quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserPersonalDetails.accountID);
     } else if (!isEmptyObject(policyChatForActivePolicy)) {
-        quickActionAvatars = getIcons(policyChatForActivePolicy, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
+        quickActionAvatars = getIcons(
+            policyChatForActivePolicy,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            null,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            isReportArchived,
+            undefined,
+            conciergeReportID,
+        );
     }
 
     let quickActionTitle = '';

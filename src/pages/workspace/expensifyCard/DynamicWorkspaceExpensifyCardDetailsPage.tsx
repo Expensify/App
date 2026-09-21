@@ -116,6 +116,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
     ]);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
