@@ -223,7 +223,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     ]);
 
     const submitWorkEmail = useCallback(
-        async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
             const submittedWorkEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
             const isCurrentUnvalidatedWorkEmail =
                 isConciergeTaskFlow &&
@@ -239,9 +239,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                 return;
             }
 
-            await clearOnboardingShouldValidate(onboardingValues);
-            setHasSubmittedWorkEmail(true);
-            AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
+            // The form's onSubmit must stay synchronous, so chain off the Onyx write instead of awaiting it.
+            clearOnboardingShouldValidate(onboardingValues).then(() => {
+                setHasSubmittedWorkEmail(true);
+                AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
+            });
         },
         [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, onboardingValues, sessionEmail],
     );

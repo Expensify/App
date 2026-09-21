@@ -258,7 +258,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
             hasRequestedAccessiblePolicies.current = true;
             accessiblePoliciesRequestID.current = getAccessiblePolicies();
-        }, [isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
+        }, [isValidated, isLoadingJoinablePolicies, joinablePoliciesLength, joinablePoliciesLoading]),
     );
 
     useEffect(() => {
@@ -297,22 +297,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
         createdJoinWorkspaceTaskReportID.current = createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
     }, [conciergeChat, delegateAccountID, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email, shouldCreateJoinWorkspaceTaskOnExit]);
-
-    useEffect(() => {
-        if (isLoadingJoinablePolicies || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
-            return;
-        }
-
-        finishOnboarding({
-            policyID: defaultPolicy.id,
-            policyName: defaultPolicy.name,
-            policyOwner: defaultPolicy.owner,
-            employeeCount: 0,
-            hasPendingAccess: false,
-            automaticJoiningEnabled: false,
-            policyType: defaultPolicy.type,
-        });
-    }, [defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type, finishOnboarding, isLoadingJoinablePolicies, joinablePoliciesLength, joinablePoliciesLoading]);
 
     useEffect(() => {
         if (isLoadingJoinablePolicies || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {

@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
+import {isUserValidatedSelector} from '@selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -41,10 +42,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         selector: expensifyLoginsSelector,
     });
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (acc) => ({
-            validated: acc?.validated,
-        }),
+    const [isAccountValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isUserValidatedSelector,
     });
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
@@ -141,7 +140,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             return;
         }
         returnToOriginReport();
-    }, [conciergeChat, delegateAccountID, domain, email, isConciergeTaskFlow, returnToOriginReport]);
+    }, [conciergeChat, delegateAccountID, domain, email, isConciergeTaskFlow, returnToOriginReport, validateEmailTaskReport?.reportID]);
 
     const handleSkipButtonPress = useCallback(() => {
         if (isConciergeTaskFlow) {
@@ -155,7 +154,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     // the "people on YOUR domain" copy would otherwise reference gmail.com. The account flag can lag a primary-login
     // change, so only use it until the login itself is available in Onyx.
     const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
-    const shouldBlockPublicDomain = isCurrentPrimaryPublicDomain && (isValidated || (!!account?.validated && !loginList?.[session?.email ?? '']));
+    const shouldBlockPublicDomain = isCurrentPrimaryPublicDomain && (isValidated || (!!isAccountValidated && !loginList?.[session?.email ?? '']));
 
     useEffect(() => {
         if (shouldBlockPublicDomain) {
