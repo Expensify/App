@@ -258,6 +258,7 @@ import type {
     TransactionViolations,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type {DeferredAttachmentEdit} from '@src/types/onyx/DeferredAttachmentEdits';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -399,7 +400,7 @@ type OpenReportActionParams = {
     betas: OnyxEntry<Beta[]>;
 
     /** The Concierge chat report used to build the guided setup onboarding data */
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
 };
 
 type PregeneratedResponseParams = {
@@ -1651,7 +1652,7 @@ function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
     // TODO: undefined will be removed once all openReport callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID: number | undefined,
-    conciergeChat: OnyxEntry<Report>,
+    conciergeChat: OnyxEntry<ConciergeChatReport>,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -1747,7 +1748,7 @@ function openReport(params: OpenReportActionParams) {
         // Defaults to true so only the report screen, the one caller that passes it, can clear a manual unread marker.
         hasOnceLoadedReportActions = true,
         shouldMarkAsRead = true,
-        conciergeChat,
+        conciergeChat2,
     } = params;
     if (!reportID) {
         return;
@@ -2203,7 +2204,7 @@ type CreateGroupChatParams = {
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean;
     hasCompletedGuidedSetupFlow: boolean;
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
     currentUserAccountID: number;
     avatar?: File | CustomRNImageManipulatorResult;
 };
@@ -2485,7 +2486,7 @@ type CreateTransactionThreadReportParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2613,7 +2614,7 @@ type NavigateToAndOpenReportParams = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
 
     /** Whether the current session is a supportal session.*/
     isSupportalSession: boolean;
@@ -2751,7 +2752,7 @@ type NavigateToAndCreateGroupChatParams = {
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean;
     hasCompletedGuidedSetupFlow: boolean;
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
     currentUserAccountID: number;
 
     /** Whether the current session is a supportal session.*/
@@ -2818,7 +2819,7 @@ function navigateToAndOpenReportWithAccountIDs(
     hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeChat: OnyxEntry<Report>,
+    conciergeChat: OnyxEntry<ConciergeChatReport>,
     shouldRevalidateExistingChat = false,
     hasReportActions?: boolean,
 ) {
@@ -2911,7 +2912,7 @@ function navigateToAndOpenChildReport(
     // The personal details of the child report participants (the current user and the parent action's actor).
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     isSelfTourViewed: boolean | undefined,
-    conciergeChat: OnyxEntry<Report>,
+    conciergeChat: OnyxEntry<ConciergeChatReport>,
 ) {
     const report =
         childReport ??
@@ -2965,7 +2966,7 @@ function createChildReport(
     isSelfTourViewed: boolean | undefined,
     // The personal details of the child report participants (the current user and the parent action's actor).
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeChat: OnyxEntry<Report>,
+    conciergeChat: OnyxEntry<ConciergeChatReport>,
 ): Report {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
@@ -3031,7 +3032,7 @@ type ExplainParams = {
     currentUserAccountID: number;
     introSelected: OnyxEntry<IntroSelected>;
     betas: OnyxEntry<Beta[]>;
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
     isSelfTourViewed: boolean | undefined;
     delegateAccountID: number | undefined;
     /** The personal details of the explanation thread participants (the current user and the report action's actor). */
@@ -4023,7 +4024,7 @@ type ToggleSubscribeToChildReportParams = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
     prevNotificationPreference: NotificationPreference | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     hasReportActions: boolean;
@@ -6188,7 +6189,7 @@ type CompleteOnboardingProps = {
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
     /** The concierge chat report, looked up by ONYXKEYS.CONCIERGE_REPORT_ID. */
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
     /** The admins chat report, looked up by ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID. */
     adminsChatReport?: OnyxEntry<Report>;
     /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. */

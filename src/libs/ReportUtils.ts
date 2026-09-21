@@ -53,6 +53,7 @@ import type {
     ViolationName,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
@@ -1476,7 +1477,7 @@ function isReportIDApproved(reportID: string | undefined) {
 /**
  * Checks if a report is an Expense report.
  */
-function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
+function isExpenseReport(reportOrID: OnyxInputOrEntry<Pick<Report, 'type'>> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
@@ -1484,7 +1485,7 @@ function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean
 /**
  * Checks if a report is an IOU report using report or reportID
  */
-function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
+function isIOUReport(reportOrID: OnyxInputOrEntry<Pick<Report, 'type'>> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
@@ -1819,7 +1820,7 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if report has a parent
  */
-function isThread(report: OnyxInputOrEntry<Report>): report is Thread {
+function isThread(report: OnyxInputOrEntry<Pick<Report, 'parentReportID' | 'parentReportActionID'>>): report is Thread {
     return !!(report?.parentReportID && report?.parentReportActionID);
 }
 
@@ -2605,7 +2606,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportArchived = false): boolean {
+function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Pick<Report, 'type' | 'parentReportID' | 'parentReportActionID'>>, isReportArchived = false): boolean {
     return isReportArchived && !(isExpenseReport(report) || isExpenseRequest(report));
 }
 
@@ -2682,7 +2683,7 @@ function isAuditor(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the user can write in the provided report
  */
-function canWriteInReport(report: OnyxEntry<Report>): boolean {
+function canWriteInReport(report: OnyxEntry<Pick<Report, 'permissions'>>): boolean {
     if (Array.isArray(report?.permissions) && report?.permissions.length > 0 && !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR)) {
         return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) || report?.permissions?.includes(CONST.REPORT.PERMISSIONS.COMMENT);
     }
@@ -2693,7 +2694,7 @@ function canWriteInReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the current user is allowed to comment on the given report.
  */
-function isAllowedToComment(report: OnyxEntry<Report>): boolean {
+function isAllowedToComment(report: OnyxEntry<Pick<Report, 'permissions' | 'writeCapability' | 'policyID'>>): boolean {
     if (!canWriteInReport(report)) {
         return false;
     }
@@ -2741,7 +2742,7 @@ function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  */
-function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
+function isExpenseRequest(report: OnyxInputOrEntry<Pick<Report, 'parentReportID' | 'parentReportActionID'>>): report is Thread {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, deprecatedAllReports);
@@ -2798,7 +2799,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
+function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Pick<Report, 'type'>> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -11079,7 +11080,7 @@ function isValidReportIDFromPath(reportIDFromPath: string | undefined): boolean 
 /**
  * Return the errors we have when creating a chat, a workspace room, or a new empty report
  */
-function getCreationReportErrors(report: OnyxEntry<Report>): Errors | null | undefined {
+function getCreationReportErrors(report: OnyxEntry<Pick<Report, 'errorFields'>>): Errors | null | undefined {
     // We are either adding a workspace room, creating a chat, or we're creating a report, it isn't possible for all of these to have errors for the same report at the same time, so
     // simply looking up the first truthy value will get the relevant property if it's set.
     return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat ?? report?.errorFields?.createReport;
@@ -11088,7 +11089,7 @@ function getCreationReportErrors(report: OnyxEntry<Report>): Errors | null | und
 /**
  * Return true if the expense report is marked for deletion.
  */
-function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | string): boolean {
+function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Pick<Report, 'type' | 'parentReportID' | 'parentReportActionID'>> | string): boolean {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     if (!isMoneyRequestReport(report)) {
         return false;
@@ -11154,7 +11155,7 @@ function navigateToLinkedReportAction(
  * not on its way out, it did not fail to be created, and the person looking is signed in. Permission to write is left
  * out on purpose, so this also covers read-only actions such as opening an attachment.
  */
-function canUserInteractWithReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+function canUserInteractWithReport(report: OnyxEntry<Pick<Report, 'errorFields' | 'type' | 'parentReportID' | 'parentReportActionID'>>, isReportArchived: boolean | undefined) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further interaction.
@@ -11165,7 +11166,10 @@ function canUserInteractWithReport(report: OnyxEntry<Report>, isReportArchived: 
     return !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && !deprecatedIsAnonymousUser;
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+function canUserPerformWriteAction(
+    report: OnyxEntry<Pick<Report, 'errorFields' | 'type' | 'parentReportID' | 'parentReportActionID' | 'permissions' | 'writeCapability' | 'policyID'>>,
+    isReportArchived: boolean | undefined,
+) {
     return canUserInteractWithReport(report, isReportArchived) && isAllowedToComment(report) && canWriteInReport(report);
 }
 
@@ -12408,7 +12412,7 @@ type PrepareOnboardingOnyxDataParams = {
     // TODO: should be required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     currentUserEmail?: string;
     /** The concierge chat report, looked up by conciergeReportID */
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
     /** The admins chat report, looked up by adminsChatReportID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
     adminsChatReport?: OnyxEntry<Report>;
     /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
@@ -12456,7 +12460,7 @@ function prepareOnboardingOnyxData({
     const shouldDeferOptimisticTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     const adminsChatReport = adminsChatReportParam ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
-        ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS})
+        ? (adminsChatReport ?? (adminsChatReportID ? {reportID: adminsChatReportID, policyID: onboardingPolicyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS} : undefined))
         : conciergeChat;
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
     const targetChatType = targetChatReport?.chatType;
@@ -12867,9 +12871,7 @@ function prepareOnboardingOnyxData({
         lastVisibleActionCreated: '',
         hasOutstandingChildTask: false,
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- targetChatReport may be a stub with only reportID/policyID/chatType; the consumers below handle missing fields gracefully.
-    const report = targetChatReport as OnyxEntry<Report>;
-    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report, false);
+    const canUserPerformWriteActionVariable = canUserPerformWriteAction(targetChatReport, false);
     const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteActionVariable, {}, undefined, undefined, currentUserAccountID);
     if (lastMessageText) {
         const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteActionVariable, {}, undefined, undefined, currentUserAccountID);

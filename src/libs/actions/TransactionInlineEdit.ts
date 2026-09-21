@@ -39,6 +39,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -130,7 +131,7 @@ type GetIouParamsInput = {
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
     distanceOriginalPolicy?: OnyxEntry<Policy>;
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
     delegateAccountID: number | undefined;

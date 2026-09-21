@@ -13,6 +13,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -355,6 +356,28 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
     } satisfies Record<keyof StableReport, unknown> & StableReport;
 }
 
+/**
+ * Projection of the Concierge chat report for subscribers that only forward it into the onboarding/openReport action
+ * path. The key set is `ConciergeChatReport`; the narrowed util chain in ReportUtils enforces that nothing downstream
+ * reads more, and the `satisfies` guard enforces that every key is produced here.
+ */
+function conciergeChatSelector(report: OnyxEntry<Report>): ConciergeChatReport | undefined {
+    if (!report?.reportID) {
+        return undefined;
+    }
+    return {
+        reportID: report.reportID,
+        chatType: report.chatType,
+        policyID: report.policyID,
+        type: report.type,
+        permissions: report.permissions,
+        writeCapability: report.writeCapability,
+        errorFields: report.errorFields,
+        parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
+    } satisfies Record<keyof ConciergeChatReport, unknown> & ConciergeChatReport;
+}
+
 function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
@@ -372,6 +395,7 @@ export {
     policyChatRoomsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    conciergeChatSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,

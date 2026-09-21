@@ -143,6 +143,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {CompanyCardFeedWithDomainID, FundID} from '@src/types/onyx/CardFeeds';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -283,7 +284,7 @@ type BuildPolicyDataOptions = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam?: OnyxCollection<Report>;
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;

@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type OnyxReport from '@src/types/onyx/Report';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -46,7 +47,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         hasCompletedGuidedSetupFlow: boolean | undefined;
         betas: OnyxEntry<Beta[]>;
         hasReportActions: boolean | undefined;
-        conciergeChat: OnyxEntry<OnyxReport>;
+        conciergeChat: OnyxEntry<ConciergeChatReport>;
         isSupportalSession: boolean;
     }) => PromotedAction;
 } & {

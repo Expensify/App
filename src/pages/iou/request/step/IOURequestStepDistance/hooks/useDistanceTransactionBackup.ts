@@ -4,7 +4,8 @@ import {openReport} from '@libs/actions/Report';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import {hasRoute} from '@libs/TransactionUtils';
 
-import type {Beta, IntroSelected, Report, Transaction} from '@src/types/onyx';
+import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -30,7 +31,7 @@ type UseDistanceTransactionBackupParams = {
     betas: OnyxEntry<Beta[]>;
 
     /** The Concierge chat report */
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
 
     /** Whether the user has seen the self tour. Used by the offline-recovery `openReport` call. */
     isSelfTourViewed: boolean | undefined;

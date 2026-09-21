@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -39,7 +40,7 @@ import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
     /** The Concierge chat report */
-    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    conciergeChat: OnyxEntry<ConciergeChatReport>;
 
     /** The ID of the report currently being looked at */
     reportID: string;
