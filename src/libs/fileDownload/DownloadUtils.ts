@@ -75,4 +75,3 @@ const fetchFileDownload: FileDownload = (
 };
 
 export default fetchFileDownload;
-export {createDownloadLink};
