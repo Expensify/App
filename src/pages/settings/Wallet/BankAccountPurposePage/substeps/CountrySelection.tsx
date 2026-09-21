@@ -32,7 +32,10 @@ function CountrySelection() {
     const initialCountry = useMemo(() => {
         const draftCountry = reimbursementAccountDraft?.country;
         const isCompatibleDraftCountry =
-            !!draftCountry && CONST.BBA_SUPPORTED_COUNTRIES.includes(draftCountry) && reimbursementAccountDraft?.currency === CONST.BBA_COUNTRY_CURRENCY_MAP[draftCountry];
+            reimbursementAccountDraft?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET &&
+            !!draftCountry &&
+            CONST.BBA_SUPPORTED_COUNTRIES.includes(draftCountry) &&
+            reimbursementAccountDraft?.currency === CONST.BBA_COUNTRY_CURRENCY_MAP[draftCountry];
 
         if (isCompatibleDraftCountry) {
             return draftCountry;
@@ -66,7 +69,7 @@ function CountrySelection() {
         const isSupportedCountry = !!country && !!CONST.BBA_COUNTRY_CURRENCY_MAP[country];
 
         return isSupportedCountry ? country : '';
-    }, [reimbursementAccountDraft?.country, reimbursementAccountDraft?.currency, personalPolicy?.outputCurrency, country]);
+    }, [reimbursementAccountDraft?.country, reimbursementAccountDraft?.currency, reimbursementAccountDraft?.source, personalPolicy?.outputCurrency, country]);
 
     const [selectedCountry, setSelectedCountry] = useState<string>();
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -85,7 +88,10 @@ function CountrySelection() {
         }
         startWithLoading(() => {
             const selectedCurrency = CONST.BBA_COUNTRY_CURRENCY_MAP[resolvedSelectedCountry];
-            const shouldResume = reimbursementAccountDraft?.country === resolvedSelectedCountry && reimbursementAccountDraft?.currency === selectedCurrency;
+            const shouldResume =
+                reimbursementAccountDraft?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET &&
+                reimbursementAccountDraft?.country === resolvedSelectedCountry &&
+                reimbursementAccountDraft?.currency === selectedCurrency;
 
             clearPersonalBankAccount();
             clearInternationalBankAccount();
@@ -93,7 +99,7 @@ function CountrySelection() {
             if (!shouldResume) {
                 clearReimbursementAccount();
                 clearReimbursementAccountDraft();
-                updateReimbursementAccountDraft({country: resolvedSelectedCountry as Country, currency: selectedCurrency});
+                updateReimbursementAccountDraft({country: resolvedSelectedCountry as Country, currency: selectedCurrency, source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
             }
 
             const policyID = shouldResume ? reimbursementAccount?.achData?.policyID : undefined;

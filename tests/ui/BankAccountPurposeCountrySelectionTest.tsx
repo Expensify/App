@@ -87,7 +87,7 @@ describe('BankAccountPurpose CountrySelection', () => {
                 return [{achData: {policyID: 'policy-1', bankAccountID: 123}}, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT) {
-                return [{country: 'LT', currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT, companyName: 'Example'}, {status: 'loaded'}];
+                return [{country: 'LT', currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT, companyName: 'Example', source: CONST.BANK_ACCOUNT.SOURCE.WALLET}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -114,6 +114,50 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockedClearReimbursementAccountDraft).not.toHaveBeenCalled();
         expect(mockedUpdateReimbursementAccountDraft).not.toHaveBeenCalled();
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({policyID: 'policy-1', bankAccountID: 123, backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+    });
+
+    it('starts a fresh Wallet setup instead of resuming a matching workspace draft', async () => {
+        // Given a matching business draft and backend identity created outside Wallet
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.REIMBURSEMENT_ACCOUNT) {
+                return [{achData: {policyID: 'workspace-policy', bankAccountID: 123}}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT) {
+                return [{country: 'LT', currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT, companyName: 'Workspace draft'}, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        render(
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen
+                        name={SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE}
+                        component={CountrySelection}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>,
+        );
+
+        // When the same country is selected from the Wallet flow
+        act(() => {
+            mockedCountrySelectionList.mock.lastCall?.[0]?.onCountrySelected('LT');
+        });
+
+        await act(async () => {
+            mockedCountrySelectionList.mock.lastCall?.[0]?.onConfirm();
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then the workspace state is cleared and a new Wallet-owned draft is created without its backend identity
+        expect(mockedClearReimbursementAccount).toHaveBeenCalled();
+        expect(mockedClearReimbursementAccountDraft).toHaveBeenCalled();
+        expect(mockedUpdateReimbursementAccountDraft).toHaveBeenCalledWith({
+            country: 'LT',
+            currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT,
+            source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+        });
+        expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
     });
 
     it('keeps the child list mounted while persisting the selected country and navigating', async () => {
@@ -149,7 +193,11 @@ describe('BankAccountPurpose CountrySelection', () => {
 
         expect(mockedClearReimbursementAccount).toHaveBeenCalled();
         expect(mockedClearReimbursementAccountDraft).toHaveBeenCalled();
-        expect(mockedUpdateReimbursementAccountDraft).toHaveBeenCalledWith({country: 'LT', currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT});
+        expect(mockedUpdateReimbursementAccountDraft).toHaveBeenCalledWith({
+            country: 'LT',
+            currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT,
+            source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+        });
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
