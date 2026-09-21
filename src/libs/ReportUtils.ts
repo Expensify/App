@@ -6954,7 +6954,10 @@ function applyLabelToUploadingAttachmentHtml(uploadingAttachmentHtml: string, la
 
     // The original filename stays in `data-name`, so leaving it behind would make the tag disagree with itself and
     // every later edit would read the stale name and rename the queued file all over again.
-    const labelledHtml = uploadingAttachmentHtml.replace(new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="[^"]*"`, 'i'), `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${label}"`);
+    const labelledHtml = uploadingAttachmentHtml.replace(
+        new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="[^"]*"`, 'i'),
+        `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${label}"`,
+    );
     if (labelledHtml.startsWith('<img')) {
         return labelledHtml.replace(/alt="[^"]*"/i, `alt="${label}"`);
     }
