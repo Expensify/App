@@ -18,6 +18,7 @@ import allFieldTypes from '../fixtures/dynamicForm/allFieldTypes';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockRouteParams: {subPage?: string; action?: 'edit'} = {};
+const mockSetParams = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -34,7 +35,7 @@ jest.mock('@react-navigation/native', () => {
         ...actual,
         useIsFocused: () => true,
         useRoute: jest.fn(() => ({name: '', key: '', params: mockRouteParams})),
-        useNavigation: jest.fn(() => ({addListener: jest.fn(() => jest.fn()), getState: jest.fn(() => ({routes: []})), isFocused: () => true, setParams: jest.fn()})),
+        useNavigation: jest.fn(() => ({addListener: jest.fn(() => jest.fn()), getState: jest.fn(() => ({routes: []})), isFocused: () => true, setParams: mockSetParams})),
         useFocusEffect: jest.fn(),
     };
 });
@@ -85,6 +86,9 @@ const buildRoute = (pageName: string, action?: 'edit') => ROUTES.SETTINGS_ADD_BA
 
 const completeDraft = {
     accountNumber: '12345678',
+    numberOfEmployees: '25',
+    settlementCurrency: 'USD',
+    operatingCountries: ['GB'],
     legalType: 'PRIVATE',
     accountType: 'CHECKING',
     annualVolume: '1000',
@@ -166,17 +170,23 @@ describe('DynamicFormFlow', () => {
     it('summarizes every visible answer on the confirmation page and submits the draft', async () => {
         const onSubmit = jest.fn();
         mockRouteParams.subPage = 'confirm';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {businessRegistrationDocument: ['stale-upload']});
+        });
         await renderFlow(onSubmit);
 
         expect(screen.getByText('Confirm your details')).toBeOnTheScreen();
+        expect(screen.getByText('Account details')).toBeOnTheScreen();
+        expect(screen.getByText('Account holder details')).toBeOnTheScreen();
         expect(screen.getByText('12345678')).toBeOnTheScreen();
         expect(screen.getByText('Person')).toBeOnTheScreen();
-        expect(screen.getByText('allCountries.GB')).toBeOnTheScreen();
+        expect(screen.getAllByText('allCountries.GB')).toHaveLength(2);
 
         fireEvent.press(screen.getByText('common.confirm'));
         await waitForBatchedUpdatesWithAct();
 
         expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({accountNumber: '12345678', country: 'GB'}));
+        expect(onSubmit.mock.calls.at(0)?.at(0)).not.toHaveProperty('businessRegistrationDocument');
     });
 
     it('carries a sensitive answer from its page to the submission without writing it to the draft', async () => {
@@ -306,6 +316,30 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('account-holder-details'));
     });
 
+    it('starts a fresh form on its first page and resumes a started one at its first incomplete page', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {});
+        });
+        await renderFlow();
+        expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'account-details'});
+
+        screen.unmount();
+        mockSetParams.mockClear();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {...completeDraft, dateOfBirth: '', country: ''});
+        });
+        await renderFlow();
+        expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'account-holder-details'});
+
+        screen.unmount();
+        mockSetParams.mockClear();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, completeDraft);
+        });
+        await renderFlow();
+        expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'confirm'});
+    });
+
     it('redirects away from a page whose fields are all hidden when it is opened directly', async () => {
         mockRouteParams.subPage = 'ownership';
         await act(async () => {
@@ -327,7 +361,104 @@ describe('DynamicFormFlow', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByText('Ownership')).not.toBeOnTheScreen();
-        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'));
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'), {forceReplace: true});
+    });
+
+    it('edits a list item on its own page, keeps its sensitive answer out of the draft and merges it back on submit', async () => {
+        const fields: DynamicFormField[] = [
+            {
+                key: 'owners',
+                label: 'Owners',
+                itemLabel: 'owner',
+                group: 'Owners',
+                type: 'list',
+                required: true,
+                minItems: 1,
+                refreshOnChange: false,
+                itemFields: [
+                    {key: 'name', label: 'Name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+                    {key: 'ssn', label: 'SSN', group: 'Owner', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+                ],
+            },
+        ];
+        const onSubmit = jest.fn();
+        const renderAt = async (subPage: string) => {
+            mockRouteParams.subPage = subPage;
+            render(
+                <DynamicFormFlow
+                    fields={fields}
+                    formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
+                    headerTitle="Owners"
+                    testID="DynamicFormFlowListEditor"
+                    buildRoute={buildRoute}
+                    onSubmit={onSubmit}
+                    onBack={jest.fn()}
+                    confirmationTitle="Confirm"
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+        };
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {});
+        });
+
+        await renderAt('owners~new');
+        fireEvent.changeText(screen.getByLabelText('Name'), 'Alice Nguyen');
+        fireEvent.changeText(screen.getByLabelText('SSN'), '123456789');
+        fireEvent.press(screen.getByText('common.save'));
+        await waitForBatchedUpdatesWithAct();
+
+        const draft = await new Promise<Record<string, unknown> | undefined>((resolve) => {
+            Onyx.connect({key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, callback: (value) => resolve(value ?? undefined)});
+        });
+        const savedOwners = draft?.owners;
+        expect(Array.isArray(savedOwners) && savedOwners.length).toBe(1);
+        expect(Array.isArray(savedOwners) ? savedOwners.at(0) : undefined).toEqual(expect.objectContaining({name: 'Alice Nguyen'}));
+        expect(Array.isArray(savedOwners) ? savedOwners.at(0) : undefined).not.toHaveProperty('ssn');
+        expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('owners'));
+
+        screen.unmount();
+        await renderAt('confirm');
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledWith({owners: [expect.objectContaining({name: 'Alice Nguyen', ssn: '123456789'})]});
+    });
+
+    it('leaves the flow from Back on the first shown page when the first group is hidden', async () => {
+        mockRouteParams.subPage = 'account-holder-details';
+        const hiddenFirstGroup = allFieldTypes.map((field) => (field.group === 'Account details' ? {...field, showWhen: {key: 'legalType', equals: ['NEVER']}} : field));
+        const onBack = jest.fn();
+        render(
+            <DynamicFormFlow
+                fields={hiddenFirstGroup}
+                formID={FORM_ID}
+                headerTitle="Add bank account"
+                testID="DynamicFormFlowHiddenFirst"
+                buildRoute={buildRoute}
+                onSubmit={jest.fn()}
+                onBack={onBack}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('common.back'));
+
+        expect(onBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends the user to the first incomplete page instead of submitting when a required answer is missing', async () => {
+        mockRouteParams.subPage = 'confirm';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {country: ''});
+        });
+        const onSubmit = jest.fn();
+        await renderFlow(onSubmit);
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('account-holder-details'));
     });
 
     it('lets a flow force the step indicator on or off regardless of page count', async () => {

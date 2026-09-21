@@ -1,7 +1,22 @@
 import type {TranslationPaths} from '@src/languages/types';
 
 /** The closed set of input kinds every schema-driven form renders through; the DynamicForm registry is exhaustive over it */
-type DynamicFormFieldType = 'text' | 'select' | 'multiselect' | 'radio' | 'date' | 'country' | 'address' | 'boolean' | 'file' | 'amount' | 'percent' | 'list';
+type DynamicFormFieldType =
+    | 'text'
+    | 'number'
+    | 'select'
+    | 'multiselect'
+    | 'radio'
+    | 'date'
+    | 'country'
+    | 'countryMultiselect'
+    | 'currency'
+    | 'address'
+    | 'boolean'
+    | 'file'
+    | 'amount'
+    | 'percent'
+    | 'list';
 
 /** Keyboard to open for a text field on native and mobile web */
 type DynamicFormKeyboard = 'email' | 'tel' | 'url' | 'numeric';
@@ -47,6 +62,9 @@ type DynamicFormField = {
     /** Allowed values for select, multiselect and radio */
     values?: DynamicFormFieldOption[];
 
+    /** Select and radio only: draw the choice as a segmented tab row, for the switch that decides which fields follow */
+    presentation?: 'tabs';
+
     /** Options filtered by another answer, keyed by that answer's value */
     dependsOn?: {
         key: string;
@@ -67,8 +85,6 @@ type DynamicFormField = {
 
     /** Sample value, shown as a hint */
     example?: string;
-
-    displayFormat?: string;
 
     /** Re-fetch the form with the current answers when this field changes */
     refreshOnChange: boolean;
@@ -95,6 +111,16 @@ type DynamicFormField = {
 
     /** List only: the fields of one repeated item */
     itemFields?: DynamicFormField[];
+
+    /** List only: the noun for one item, such as "owner", for the add row and the editor title */
+    itemLabel?: string;
+
+    itemLabelKey?: TranslationPaths;
+
+    /** List only: hint shown under the add row */
+    addItemDescription?: string;
+
+    addItemDescriptionKey?: TranslationPaths;
 
     minItems?: number;
 

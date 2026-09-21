@@ -17,7 +17,7 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
         return translate(answer ? 'common.yes' : 'common.no');
     }
     if (Array.isArray(answer)) {
-        if (field.type === 'select' || field.type === 'multiselect' || field.type === 'radio') {
+        if (field.type === 'select' || field.type === 'multiselect' || field.type === 'radio' || field.type === 'countryMultiselect') {
             const options = getFieldOptions(field, values);
             return answer
                 .map((key) => options.find((option) => option.key === key))

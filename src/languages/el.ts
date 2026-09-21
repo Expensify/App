@@ -3977,14 +3977,15 @@ ${amount} για ${merchant} - ${date}`,
     dynamicForm: {
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
-            tooLong: ({maxLength}: {maxLength: number}) => `Πρέπει να έχει το πολύ ${maxLength} χαρακτήρες`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
-            invalidDate: 'Εισαγάγετε μια έγκυρη ημερομηνία',
             invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
             tooFewItems: ({min}: {min: number}) => `Προσθέστε τουλάχιστον ${min}`,
             tooManyItems: ({max}: {max: number}) => `Προσθέστε το πολύ ${max}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
         },
+        addItem: ({item}: {item: string}) => `Προσθήκη ${item}`,
+        removeItemTitle: ({name}: {name: string}) => `Αφαίρεση ${name};`,
+        removeItemPrompt: ({name}: {name: string}) => `Θέλετε σίγουρα να αφαιρέσετε ${name};`,
     },
     wiseKYC: {
         title: 'Η Wise χρειάζεται περισσότερες πληροφορίες',

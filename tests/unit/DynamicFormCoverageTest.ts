@@ -15,6 +15,22 @@ describe('DynamicForm coverage', () => {
 
     it('has a fixture field for every type in the contract', () => {
         const covered = new Set(flattenFields(allFieldTypes).map((field) => field.type));
-        expect([...covered].sort()).toEqual(['address', 'amount', 'boolean', 'country', 'date', 'file', 'list', 'multiselect', 'percent', 'radio', 'select', 'text']);
+        expect([...covered].sort()).toEqual([
+            'address',
+            'amount',
+            'boolean',
+            'country',
+            'countryMultiselect',
+            'currency',
+            'date',
+            'file',
+            'list',
+            'multiselect',
+            'number',
+            'percent',
+            'radio',
+            'select',
+            'text',
+        ]);
     });
 });

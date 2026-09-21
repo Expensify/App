@@ -1,3 +1,4 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import formatDynamicFieldValue from '@components/DynamicForm/formatDynamicFieldValue';
 import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
@@ -6,21 +7,28 @@ import FormProvider from '@components/Form/FormProvider';
 import type {FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
-import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import Modal from '@components/Modal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getLetterAvatarURL} from '@libs/UserAvatarUtils';
 
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import variables from '@src/styles/variables';
 import type {DynamicFormField, DynamicFormListItem} from '@src/types/onyx/DynamicFormField';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -41,8 +49,14 @@ type ListFieldAdapterProps = {
 
     errorText?: string;
 
-    /** Field label, used as the item editor's title */
+    /** Field label, used as the fallback editor title */
     label?: string;
+
+    /** Noun for one item, such as "owner", for the add row and the editor title */
+    itemLabel?: string;
+
+    /** Hint shown under the add row */
+    addItemDescription?: string;
 
     /** The fields of one item */
     itemFields: DynamicFormField[];
@@ -51,19 +65,41 @@ type ListFieldAdapterProps = {
 
     /** Renders the item's fields inside the editor form */
     renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
+
+    /** Opens the flow's editor page for an item; without it the editor is a modal on this page */
+    onOpenEditor?: (itemID?: string) => void;
 };
 
-/** First answer names the row, the remaining answers describe it */
+/** The first text answer names the row, the remaining answers describe it; sensitive answers never show */
 function summarizeItem(item: DynamicFormListItem, itemFields: DynamicFormField[], translate: LocalizedTranslate): {title: string; description: string} {
-    const [title = '', ...rest] = itemFields.map((field) => formatDynamicFieldValue(field, item, translate)).filter((answer) => answer !== '');
-    return {title, description: rest.join(', ')};
+    const shownFields = itemFields.filter((field) => !field.sensitive);
+    const titleField = shownFields.find((field) => field.type === 'text' && typeof item[field.key] === 'string' && item[field.key] !== '') ?? shownFields.at(0);
+    const title = titleField ? formatDynamicFieldValue(titleField, item, translate) : '';
+    const description = shownFields
+        .filter((field) => field !== titleField)
+        .map((field) => formatDynamicFieldValue(field, item, translate))
+        .filter((answer) => answer !== '')
+        .join(', ');
+    return {title, description};
 }
 
-/** Repeating group of sub-fields: a row per item, an add row, and a right-docked editor rendered through DynamicFormFields */
-function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', label = '', itemFields, maxItems, renderFields}: ListFieldAdapterProps) {
+function ListFieldAdapter({
+    value,
+    onInputChange = () => {},
+    errorText = '',
+    label = '',
+    itemLabel,
+    addItemDescription,
+    itemFields,
+    maxItems,
+    renderFields,
+    onOpenEditor,
+}: ListFieldAdapterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const theme = useTheme();
+    const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Close']);
     const [editingID, setEditingID] = useState<string | null>(null);
     const [, itemDraftMetadata] = useOnyx(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT);
     const items = Array.isArray(value) ? value : [];
@@ -71,8 +107,13 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
     const editingItem = items.find((existing) => existing.id === editingID);
     const isEditorOpen = editingID !== null;
     const canAddMore = maxItems === undefined || items.length < maxItems;
+    const addTitle = itemLabel ? translate('dynamicForm.addItem', {item: itemLabel}) : translate('common.add');
 
     const openEditor = (item?: DynamicFormListItem) => {
+        if (onOpenEditor) {
+            onOpenEditor(item?.id);
+            return;
+        }
         clearDraftValues(ITEM_FORM_ID);
         if (item) {
             const {id, ...answers} = item;
@@ -99,36 +140,79 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
             return;
         }
         const item: DynamicFormListItem = {...withKeptSensitiveAnswers(answers), id: editingID};
-        const isExisting = items.some((existing) => existing.id === editingID);
-        onInputChange(isExisting ? items.map((existing) => (existing.id === editingID ? item : existing)) : [...items, item]);
+        onInputChange(editingItem ? items.map((existing) => (existing.id === editingID ? item : existing)) : [...items, item]);
         closeEditor();
     };
 
-    const removeItem = () => {
-        onInputChange(items.filter((existing) => existing.id !== editingID));
-        closeEditor();
+    const confirmRemoval = (item: DynamicFormListItem) => {
+        const name = summarizeItem(item, itemFields, translate).title;
+        showConfirmModal({
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            title: translate('dynamicForm.removeItemTitle', {name}),
+            prompt: translate('dynamicForm.removeItemPrompt', {name}),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            onInputChange(items.filter((existing) => existing.id !== item.id));
+        });
     };
-
-    const isEditingExisting = editingItem !== undefined;
 
     return (
         <>
             {items.map((item) => {
                 const summary = summarizeItem(item, itemFields, translate);
+                const [firstName = '', ...otherNames] = summary.title.trim().split(/\s+/);
+                const colorSeed = [...summary.title].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+                const letterAvatarURL = getLetterAvatarURL(colorSeed, firstName, otherNames.at(-1) ?? '', '');
                 return (
-                    <MenuItemAvatarNavigation
-                        key={item.id}
-                        title={summary.title}
-                        description={summary.description}
-                        accountID={CONST.DEFAULT_NUMBER_ID}
-                        onPress={() => openEditor(item)}
-                    />
+                    <MenuItem.Root key={item.id}>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <UserAvatar
+                                    source={letterAvatarURL || undefined}
+                                    accountID={CONST.DEFAULT_NUMBER_ID}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{summary.title}</MenuItem.Title>
+                                {!!summary.description && <MenuItem.Description>{summary.description}</MenuItem.Description>}
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                                    <Button
+                                        size={CONST.BUTTON_SIZE.SMALL}
+                                        accessibilityLabel={`${translate('common.edit')} ${summary.title}`}
+                                        onPress={() => openEditor(item)}
+                                    >
+                                        <Button.Text>{translate('common.edit')}</Button.Text>
+                                    </Button>
+                                    <PressableWithFeedback
+                                        sentryLabel="DynamicFormList-RemoveItem"
+                                        accessibilityLabel={`${translate('common.remove')} ${summary.title}`}
+                                        accessibilityRole={CONST.ROLE.BUTTON}
+                                        onPress={() => confirmRemoval(item)}
+                                    >
+                                        <Icon
+                                            src={icons.Close}
+                                            fill={theme.icon}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                        />
+                                    </PressableWithFeedback>
+                                </View>
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 );
             })}
             {canAddMore && (
                 <MenuItem
                     icon={icons.Plus}
-                    title={translate('common.add')}
+                    title={addTitle}
+                    description={addItemDescription}
                     onPress={() => openEditor()}
                 />
             )}
@@ -150,7 +234,7 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
                     testID="ListFieldEditor"
                 >
                     <HeaderWithBackButton
-                        title={label}
+                        title={editingItem ? summarizeItem(editingItem, itemFields, translate).title || label : addTitle}
                         onBackButtonPress={closeEditor}
                     />
                     {isEditorOpen && !isLoadingOnyxValue(itemDraftMetadata) && (
@@ -161,18 +245,6 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
                             onSubmit={saveItem}
                             style={[styles.mh5, styles.flexGrow1]}
                             submitButtonStyles={styles.mb0}
-                            footerContent={
-                                isEditingExisting ? (
-                                    <Button
-                                        variant={CONST.BUTTON_VARIANT.DANGER}
-                                        size={CONST.BUTTON_SIZE.LARGE}
-                                        style={styles.mt3}
-                                        onPress={removeItem}
-                                    >
-                                        <Button.Text>{translate('common.remove')}</Button.Text>
-                                    </Button>
-                                ) : undefined
-                            }
                             enabledWhenOffline
                         >
                             {({inputValues}) => renderFields(itemFields, inputValues)}
@@ -185,3 +257,4 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
 }
 
 export default ListFieldAdapter;
+export {summarizeItem};

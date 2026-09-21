@@ -3778,14 +3778,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     dynamicForm: {
         error: {
             tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
-            tooLong: ({maxLength}: {maxLength: number}) => `最多 ${maxLength} 个字符`,
             invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
-            invalidDate: '请输入有效日期',
             invalidOption: '请从可用选项中选择',
             tooFewItems: ({min}: {min: number}) => `至少添加 ${min} 项`,
             tooManyItems: ({max}: {max: number}) => `最多添加 ${max} 项`,
             outOfRange: ({min, max}: {min: number; max: number}) => `请输入 ${min} 到 ${max} 之间的值`,
         },
+        addItem: ({item}: {item: string}) => `添加${item}`,
+        removeItemTitle: ({name}: {name: string}) => `移除${name}？`,
+        removeItemPrompt: ({name}: {name: string}) => `确定要移除${name}吗？`,
     },
     wiseKYC: {
         title: 'Wise 需要更多信息',

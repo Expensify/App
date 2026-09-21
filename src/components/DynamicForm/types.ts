@@ -20,6 +20,9 @@ type DynamicFieldContext = {
 
     /** Renders a nested set of fields, so a list item's editor reuses the renderer without importing it */
     renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
+
+    /** Opens the flow's editor page for a list item; absent when the page has no flow, so the list uses a modal */
+    openListItemEditor?: (fieldKey: string, itemID?: string) => void;
 };
 
 type DynamicFieldInput = {
@@ -33,6 +36,9 @@ type DynamicFieldInput = {
 
     /** The component has no label of its own, so the renderer draws the field label above it */
     shouldRenderLabelAbove?: boolean;
+
+    /** Draw the label above as a body-text question prompt, as SingleChoiceQuestion does, instead of a form label */
+    isLabelAboveQuestion?: boolean;
 };
 
 type DynamicFieldFactory = (field: DynamicFormField, context: DynamicFieldContext) => DynamicFieldInput;

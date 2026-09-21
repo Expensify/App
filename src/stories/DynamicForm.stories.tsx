@@ -2,6 +2,7 @@ import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
 import DynamicFormPage from '@components/DynamicForm/DynamicFormPage';
 import DynamicFormShell from '@components/DynamicForm/DynamicFormShell';
 import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
+import getInputComponentForField from '@components/DynamicForm/getInputComponentForField';
 import groupFieldsIntoPages from '@components/DynamicForm/groupFieldsIntoPages';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
@@ -19,8 +20,9 @@ import type {DynamicFormListItem} from '@src/types/onyx/DynamicFormField';
 
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import {useArgs} from 'storybook/preview-api';
 
 import allFieldTypes from '../../tests/fixtures/dynamicForm/allFieldTypes';
 
@@ -42,15 +44,14 @@ type DynamicFormStory = StoryFn<DynamicFormStoryProps>;
 
 type LayoutProps = Omit<DynamicFormStoryProps, 'layout'>;
 
-/** Seeds the draft once per mount and reports when Onyx holds it, so the form mounts with the draft as a real page would */
+/** Seeds the draft after mount and reports once the write has landed, so the form mounts with the draft as a real page would */
 function useSeededDraft(draftValues: DynamicFormStoryProps['draftValues']): boolean {
-    useState(() => {
+    const [isSeeded, setIsSeeded] = useState(false);
+    useEffect(() => {
         clearDraftValues(STORYBOOK_FORM_ID);
-        setDraftValues(STORYBOOK_FORM_ID, draftValues);
-        return null;
-    });
-    const [draft] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
-    return Object.keys(draftValues).every((key) => draft?.[key] !== undefined);
+        setDraftValues(STORYBOOK_FORM_ID, draftValues).then(() => setIsSeeded(true));
+    }, [draftValues]);
+    return isSeeded;
 }
 
 function SinglePage({fields, draftValues}: LayoutProps) {
@@ -146,6 +147,9 @@ const story: Meta<DynamicFormStoryProps> = {
 };
 
 const seededBankAccount = {
+    numberOfEmployees: '25',
+    settlementCurrency: 'USD',
+    operatingCountries: ['GB'],
     legalType: 'PRIVATE',
     accountNumber: '12345678',
     accountType: 'CHECKING',
@@ -155,6 +159,98 @@ const seededBankAccount = {
     country: 'GB',
     address: '1 High Street',
     ownershipPercentage: '40',
+};
+
+const PLAYGROUND_PRESETS: Record<PlaygroundPreset, Pick<DynamicFormStoryProps, 'fields' | 'draftValues'>> = {
+    bankAccount: {
+        fields: allFieldTypes.filter((field) => field.group !== 'Ownership'),
+        draftValues: seededBankAccount,
+    },
+    singleQuestion: {
+        fields: allFieldTypes.filter((field) => field.key === 'useCases'),
+        draftValues: {},
+    },
+    owners: {
+        fields: allFieldTypes.filter((field) => field.key === 'legalEntityShareholders'),
+        draftValues: {
+            legalEntityShareholders: [
+                {id: '1', name: 'Alice Nguyen', country: 'GB', ownershipPercentage: '25'},
+                {id: '2', name: 'Marcus Webb', country: 'US', ownershipPercentage: '25'},
+            ],
+        },
+    },
+};
+
+type PlaygroundPreset = 'bankAccount' | 'singleQuestion' | 'owners';
+
+type PlaygroundProps = DynamicFormStoryProps & {
+    /** Loads a starting schema and draft into the editable `fields` and `draftValues` controls */
+    preset: PlaygroundPreset;
+};
+
+function flattenSchema(fields: DynamicFormField[]): DynamicFormField[] {
+    return fields.flatMap((field) => [field, ...flattenSchema(field.itemFields ?? [])]);
+}
+
+/** Editable schema: pick a preset, then change the field JSON in the Controls panel and watch the form follow */
+function Playground({preset, fields, draftValues, layout}: PlaygroundProps) {
+    const {translate} = useLocalize();
+    const [, updateArgs] = useArgs();
+    useEffect(() => {
+        updateArgs(PLAYGROUND_PRESETS[preset]);
+    }, [preset, updateArgs]);
+
+    const schema = Array.isArray(fields) ? fields : [];
+    const problems = flattenSchema(schema).flatMap((field, index) => {
+        const name = field.key ?? `field ${index + 1}`;
+        if (!field.key || !field.group) {
+            return [`${name}: every field needs a key and a group`];
+        }
+        try {
+            getInputComponentForField(field, {values: {}, translate, renderFields: () => null, isAloneOnPage: false});
+            return [];
+        } catch {
+            return [`${name}: unknown type '${String(field.type)}'`];
+        }
+    });
+
+    if (problems.length > 0) {
+        return (
+            <View style={defaultStyles.p5}>
+                <Text style={defaultStyles.textHeadlineLineHeightXXL}>Schema problems</Text>
+                {problems.map((problem) => (
+                    <Text
+                        key={problem}
+                        style={[defaultStyles.textDanger, defaultStyles.mt2]}
+                    >
+                        {problem}
+                    </Text>
+                ))}
+            </View>
+        );
+    }
+
+    return (
+        <Template
+            key={`${preset}-${JSON.stringify(draftValues)}-${schema.length}`}
+            fields={schema}
+            draftValues={draftValues ?? {}}
+            layout={layout}
+        />
+    );
+}
+
+const PlaygroundStory: StoryFn<PlaygroundProps> = Playground.bind({});
+PlaygroundStory.storyName = 'Playground';
+PlaygroundStory.args = {
+    preset: 'bankAccount',
+    ...PLAYGROUND_PRESETS.bankAccount,
+    layout: 'pages',
+};
+PlaygroundStory.argTypes = {
+    preset: {options: ['bankAccount', 'singleQuestion', 'owners'], control: {type: 'select'}},
+    fields: {control: {type: 'object'}},
+    draftValues: {control: {type: 'object'}},
 };
 
 const AllFieldTypes: DynamicFormStory = Template.bind({});
@@ -242,4 +338,4 @@ LargeSelect.args = {
 };
 
 export default story;
-export {AllFieldTypes, AmountWithCurrency, HiddenFileField, LargeSelect, OwnersList, PageByPageFlow, SingleQuestion, YesNoQuestion};
+export {AllFieldTypes, AmountWithCurrency, HiddenFileField, LargeSelect, OwnersList, PageByPageFlow, PlaygroundStory, SingleQuestion, YesNoQuestion};

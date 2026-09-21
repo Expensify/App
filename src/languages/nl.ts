@@ -3904,14 +3904,15 @@ ${amount} voor ${merchant} - ${date}`,
     dynamicForm: {
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
-            tooLong: ({maxLength}: {maxLength: number}) => `Mag maximaal ${maxLength} tekens bevatten`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
-            invalidDate: 'Voer een geldige datum in',
             invalidOption: 'Kies een van de beschikbare opties',
             tooFewItems: ({min}: {min: number}) => `Voeg er minimaal ${min} toe`,
             tooManyItems: ({max}: {max: number}) => `Voeg er maximaal ${max} toe`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Voer een waarde in tussen ${min} en ${max}`,
         },
+        addItem: ({item}: {item: string}) => `${item} toevoegen`,
+        removeItemTitle: ({name}: {name: string}) => `${name} verwijderen?`,
+        removeItemPrompt: ({name}: {name: string}) => `Weet je zeker dat je ${name} wilt verwijderen?`,
     },
     wiseKYC: {
         title: 'Wise heeft meer informatie nodig',

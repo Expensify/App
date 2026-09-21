@@ -3932,14 +3932,15 @@ ${amount} dla ${merchant} - ${date}`,
     dynamicForm: {
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Musi mieć co najmniej ${minLength} znaków`,
-            tooLong: ({maxLength}: {maxLength: number}) => `Może mieć maksymalnie ${maxLength} znaków`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Nieprawidłowy format. Przykład: ${example}` : 'Nieprawidłowy format'),
-            invalidDate: 'Wprowadź prawidłową datę',
             invalidOption: 'Wybierz jedną z dostępnych opcji',
             tooFewItems: ({min}: {min: number}) => `Dodaj co najmniej ${min}`,
             tooManyItems: ({max}: {max: number}) => `Dodaj maksymalnie ${max}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Wprowadź wartość od ${min} do ${max}`,
         },
+        addItem: ({item}: {item: string}) => `Dodaj ${item}`,
+        removeItemTitle: ({name}: {name: string}) => `Usunąć ${name}?`,
+        removeItemPrompt: ({name}: {name: string}) => `Czy na pewno chcesz usunąć ${name}?`,
     },
     wiseKYC: {
         title: 'Wise potrzebuje więcej informacji',

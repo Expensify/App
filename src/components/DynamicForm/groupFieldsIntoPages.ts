@@ -10,6 +10,9 @@ type DynamicFormPage = {
     fields: DynamicFormField[];
 };
 
+/** The flow's confirmation page uses this route segment, so no group may take it */
+const CONFIRM_PAGE_SLUG = 'confirm';
+
 function toSlug(name: string): string {
     return name
         .toLowerCase()
@@ -27,7 +30,7 @@ function groupFieldsIntoPages(fields: DynamicFormField[]): DynamicFormPage[] {
             pages.push({name: field.group, slug: toSlug(field.group), fields: [field]});
         }
     }
-    const taken = new Set<string>();
+    const taken = new Set<string>([CONFIRM_PAGE_SLUG]);
     for (const [index, page] of pages.entries()) {
         let slug = page.slug || `page-${index + 1}`;
         for (let suffix = 2; taken.has(slug); suffix++) {
@@ -40,4 +43,5 @@ function groupFieldsIntoPages(fields: DynamicFormField[]): DynamicFormPage[] {
 }
 
 export default groupFieldsIntoPages;
+export {CONFIRM_PAGE_SLUG};
 export type {DynamicFormPage};

@@ -3,13 +3,15 @@ import {render, screen} from '@testing-library/react-native';
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
 import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
+import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
-import MultiSelectPushRowAdapter from '@components/DynamicForm/adapters/MultiSelectPushRowAdapter';
+import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
@@ -26,6 +28,7 @@ import type {ComponentType} from 'react';
 import React from 'react';
 
 import allFieldTypes from '../fixtures/dynamicForm/allFieldTypes';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 type CapturedInputProps = {
     InputComponent: ComponentType;
@@ -39,6 +42,7 @@ type CapturedInputProps = {
     maxLength?: number;
     hint?: string;
     inputMode?: string;
+    isSearchable?: boolean;
     canSelectMultiple?: boolean;
     valueType?: string;
     currency?: string;
@@ -82,11 +86,14 @@ function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}
 
 const EXPECTED_COMPONENT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...args: never[]) => unknown)> = {
     text: TextInput,
+    number: TextInput,
     select: ValuePicker,
-    multiselect: MultiSelectPushRowAdapter,
+    multiselect: PushRowWithModal,
     radio: RadioButtons,
     date: DatePicker,
     country: PushRowWithModal,
+    countryMultiselect: PushRowWithModal,
+    currency: CurrencyPicker,
     address: AddressSearch,
     boolean: CheckboxWithLabel,
     file: FileUploadAdapter,
@@ -100,7 +107,7 @@ describe('DynamicFormFields', () => {
         const rendered = renderFields(allFieldTypes, {legalType: 'BUSINESS'});
 
         const fieldTypes = new Set(allFieldTypes.map((field) => field.type));
-        expect(fieldTypes.size).toBe(12);
+        expect(fieldTypes.size).toBe(15);
         expect(fieldTypes.size).toBe(Object.keys(EXPECTED_COMPONENT_BY_TYPE).length);
         for (const field of allFieldTypes) {
             expect(rendered.get(field.key)?.InputComponent).toBe(EXPECTED_COMPONENT_BY_TYPE[field.type]);
@@ -121,6 +128,38 @@ describe('DynamicFormFields', () => {
         expect(forPrivate?.items?.map((item) => item.value)).toEqual(['CHECKING', 'SAVINGS']);
         expect(forBusiness?.items?.map((item) => item.value)).toEqual(['CHECKING', 'SAVINGS', 'BUSINESS_CHECKING']);
         expect(unanswered?.items).toEqual([]);
+    });
+
+    it('presents a choice flagged as tabs through the tab selector, alone on its page or not', () => {
+        const ownerType: DynamicFormField = {
+            key: 'ownerType',
+            label: 'Owner type',
+            group: 'Owner',
+            type: 'radio',
+            presentation: 'tabs',
+            required: true,
+            values: [
+                {key: 'INDIVIDUAL', label: 'Individual'},
+                {key: 'COMPANY', label: 'Company/Fund'},
+            ],
+            refreshOnChange: false,
+        };
+        const sibling: DynamicFormField = {
+            key: 'legalName',
+            label: 'Legal name',
+            group: 'Owner',
+            type: 'text',
+            required: true,
+            showWhen: {key: 'ownerType', equals: ['COMPANY']},
+            refreshOnChange: false,
+        };
+
+        expect(renderFields([ownerType]).get('ownerType')?.InputComponent).toBe(TabsAdapter);
+        const withSibling = renderFields([ownerType, sibling], {ownerType: 'COMPANY'});
+        expect(withSibling.get('ownerType')?.InputComponent).toBe(TabsAdapter);
+        expect(withSibling.get('ownerType')?.items?.map((item) => item.label)).toEqual(['Individual', 'Company/Fund']);
+        expect(withSibling.has('legalName')).toBe(true);
+        expect(renderFields([{...ownerType, type: 'select'}, sibling], {ownerType: 'INDIVIDUAL'}).get('ownerType')?.InputComponent).toBe(TabsAdapter);
     });
 
     it('uses PushRowWithModal for a select with more than eight values', () => {
@@ -177,6 +216,17 @@ describe('DynamicFormFields', () => {
         expect(screen.queryByText('Account number')).not.toBeOnTheScreen();
     });
 
+    it('opens a numeric keyboard for number fields and offers every country to a country multiselect', () => {
+        const rendered = renderFields(allFieldTypes, {legalType: 'BUSINESS'});
+
+        expect(rendered.get('numberOfEmployees')?.inputMode).toBe('numeric');
+        expect(rendered.get('numberOfEmployees')?.hint).toBe('common.exampleValue');
+        expect(rendered.get('operatingCountries')?.canSelectMultiple).toBe(true);
+        expect(Object.keys(rendered.get('operatingCountries')?.optionsList ?? {}).length).toBeGreaterThan(200);
+        expect(rendered.get('operatingCountries')?.optionsList?.GB).toBe('allCountries.GB');
+        expect(rendered.get('settlementCurrency')?.label).toBe('Settlement currency');
+    });
+
     it('passes text constraints, the example as a hint and a numeric keyboard for digit-only fields', () => {
         const accountNumber = renderFields(allFieldTypes).get('accountNumber');
 
@@ -207,6 +257,25 @@ describe('DynamicFormFields', () => {
         expect(renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('isSourceOfFund')?.InputComponent).toBe(CheckboxWithLabel);
     });
 
+    it('presents a lone country or currency as a searchable list page and adds search to long lone choice lists', () => {
+        const country = allFieldTypes.find((field) => field.key === 'country');
+        const settlementCurrency = allFieldTypes.find((field) => field.key === 'settlementCurrency');
+        if (!country || !settlementCurrency) {
+            throw new Error('fixture changed');
+        }
+
+        const loneCountry = renderFields([country]).get('country');
+        expect(loneCountry?.InputComponent).toBe(InlineSelectionListAdapter);
+        expect(loneCountry?.isSearchable).toBe(true);
+        expect(loneCountry?.items?.length).toBeGreaterThan(200);
+
+        expect(renderFields([settlementCurrency]).get('settlementCurrency')?.InputComponent).toBe(CurrencyInlineListAdapter);
+
+        const values = Array.from({length: 9}, (_, index) => ({key: `OPTION_${index}`, label: `Option ${index}`}));
+        const longSelect: DynamicFormField = {key: 'industry', label: 'Industry', group: 'Business', type: 'select', required: true, values, refreshOnChange: false};
+        expect(renderFields([longSelect]).get('industry')?.isSearchable).toBe(true);
+    });
+
     it('pins the amount currency without a currencyKey and lets the user choose it with one', () => {
         const pinned = renderFields([{key: 'volume', label: 'Volume', group: 'A', type: 'amount', required: true, refreshOnChange: false}]).get('volume');
         expect(pinned?.InputComponent).toBe(AmountForm);
@@ -218,7 +287,7 @@ describe('DynamicFormFields', () => {
         expect(chosen?.currencyKey).toBe('annualVolumeCurrency');
     });
 
-    it('summarizes each list item from its formatted answers', () => {
+    it('summarizes each list item from its formatted answers', async () => {
         const list = allFieldTypes.find((field) => field.key === 'legalEntityShareholders');
         if (!list) {
             throw new Error('fixture changed');
@@ -230,9 +299,29 @@ describe('DynamicFormFields', () => {
                 renderFields={() => null}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('Alice Nguyen')).toBeOnTheScreen();
         expect(screen.getByText('allCountries.GB, 25%')).toBeOnTheScreen();
+        expect(screen.getByText('AN')).toBeOnTheScreen();
+    });
+
+    it('never prints a sensitive item answer on a list row', async () => {
+        const itemFields: DynamicFormField[] = [
+            {key: 'name', label: 'Name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+            {key: 'ssn', label: 'SSN', group: 'Owner', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+        ];
+        render(
+            <ListFieldAdapter
+                itemFields={itemFields}
+                value={[{id: '1', name: 'Alice Nguyen', ssn: '123456789'}]}
+                renderFields={() => null}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('Alice Nguyen')).toBeOnTheScreen();
+        expect(screen.queryByText('123456789')).not.toBeOnTheScreen();
     });
 
     it('does not draft a list whose items hold a sensitive answer', () => {

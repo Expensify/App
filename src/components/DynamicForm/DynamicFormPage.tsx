@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -14,7 +15,6 @@ import type {DynamicFormValues} from './types';
 
 import DynamicFormFields from './DynamicFormFields';
 import getDynamicFieldErrors from './getDynamicFieldErrors';
-import KEYBOARD_SUBMIT_BEHAVIOR from './keyboardSubmitBehavior';
 
 type DynamicFormPageProps = {
     page: DynamicFormPageSchema;
@@ -30,10 +30,13 @@ type DynamicFormPageProps = {
 
     /** Receives the page's answers, including ones never written to the draft */
     onSubmit: (values: DynamicFormValues) => void;
+
+    /** Opens the flow's editor page for a list item */
+    onOpenListItemEditor?: (fieldKey: string, itemID?: string) => void;
 };
 
 /** One group of a dynamic form: the page title, the group's fields and a Next or Confirm button */
-function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSubmit}: DynamicFormPageProps) {
+function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSubmit, onOpenListItemEditor}: DynamicFormPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -47,7 +50,7 @@ function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSub
             onSubmit={(values) => onSubmit({...values})}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={styles.mb0}
-            keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
+            keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             enabledWhenOffline
         >
             {({inputValues}) => (
@@ -57,6 +60,7 @@ function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSub
                         fields={page.fields}
                         values={withDraft(inputValues)}
                         currency={currency}
+                        onOpenListItemEditor={onOpenListItemEditor}
                     />
                 </>
             )}

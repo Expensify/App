@@ -55,7 +55,7 @@ describe('PushRowModal', () => {
         render(
             <PushRowModal
                 isVisible
-                selectedOption={selectedOptionKey}
+                selectedOptions={[selectedOptionKey]}
                 onOptionChange={jest.fn()}
                 onClose={jest.fn()}
                 optionsList={optionsList}
@@ -78,7 +78,7 @@ describe('PushRowModal', () => {
         render(
             <PushRowModal
                 isVisible
-                selectedOption={selectedOptionKey}
+                selectedOptions={[selectedOptionKey]}
                 onOptionChange={jest.fn()}
                 onClose={jest.fn()}
                 optionsList={optionsList}
