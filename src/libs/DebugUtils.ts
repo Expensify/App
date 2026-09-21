@@ -1528,6 +1528,7 @@ function getReasonForShowingRowInLHN({
     currentUserAccountID,
     conciergeReportID,
     hasGuidesEmails,
+    derivedIsEmptyReport,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1541,6 +1542,7 @@ function getReasonForShowingRowInLHN({
     currentUserAccountID?: number;
     hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
+    derivedIsEmptyReport: boolean | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1561,6 +1563,7 @@ function getReasonForShowingRowInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        derivedIsEmptyReport,
         hasGuidesEmails,
     });
 

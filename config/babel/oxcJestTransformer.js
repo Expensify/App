@@ -6,7 +6,7 @@ const {transformSync} = require('oxc-transform-react');
 
 const babelJest = require('babel-jest');
 const OXC_TRANSFORM_REACT_VERSION = require('oxc-transform-react/package.json').version;
-const BaseReactCompilerConfig = require('./reactCompilerConfig');
+const oxcReactCompilerConfig = require('./oxcReactCompilerConfig');
 
 const babelTransformer = babelJest.createTransformer();
 
@@ -16,13 +16,9 @@ const JEST_SETUP_RE = /[/\\]jest[/\\]/;
 const MOCKS_RE = /[/\\]__mocks__[/\\]/;
 
 const TRANSFORMER_SOURCE = fs.readFileSync(__filename);
-const REACT_COMPILER_CONFIG_KEY = JSON.stringify(BaseReactCompilerConfig);
+const REACT_COMPILER_CONFIG_KEY = JSON.stringify(oxcReactCompilerConfig());
 
-const REACT_COMPILER_OPTIONS = {
-    ...BaseReactCompilerConfig,
-    panicThreshold: 'none',
-    eslintSuppressionRules: [],
-};
+const REACT_COMPILER_OPTIONS = oxcReactCompilerConfig();
 
 function getLang(filename) {
     const ext = path.extname(filename).slice(1);
