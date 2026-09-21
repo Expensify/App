@@ -46,9 +46,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       launchOptions: launchOptions(mergedWith: connectionOptions)
     )
 
-    if let rootView = window.rootViewController?.view as? RCTRootView {
-      RCTBootSplash.initWithStoryboard("BootSplash", rootView: rootView) // <- initialization using the storyboard file name
-    }
+    // Covers the gap between the launch storyboard going away and the JS `SplashScreenHider`
+    // mounting. Both use the `BootSplash` storyboard, so the handoff is seamless.
+    RCTBootSplash.initWithStoryboard("BootSplash", rootView: window)
 
     // A cold-launch URL / user activity arrives in `connectionOptions`, not through the app
     // delegate. The launch options above cover `Linking.getInitialURL()`; replaying it here also
