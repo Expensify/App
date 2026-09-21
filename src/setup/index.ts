@@ -102,8 +102,6 @@ export default function () {
 
     cleanupPreMountedDraftReports();
 
-    // An interrupted swap can leave the receipt only under its backup name. Recovers it without waiting for
-    // the next upload, and waits for idle first so the folder listing does not compete with startup.
     ReceiptStorage.sweepLeftovers();
 
     // Register the commands after Onyx is initialized so every JS runtime can process paginated

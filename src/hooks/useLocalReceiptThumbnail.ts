@@ -44,16 +44,12 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
     const [, startTransition] = useTransition();
     const retainedUriRef = useRef<string | undefined>(undefined);
 
-    // A receipt swapped for a better capture keeps its path, so the image loaders would serve the decode
-    // they already have. Counting the upgrades gives the same file a source they treat as new.
     const upgradeCount = useReceiptUpgradeCount(sourceUri);
 
     // Resolve cached thumbnails synchronously during render (fast path)
     const cachedUri = sourceUri ? thumbnailCache.get(sourceUri) : undefined;
     const resultForCurrentSource = asyncResult?.source === sourceUri ? asyncResult : undefined;
     const resolvedUri = cachedUri ?? resultForCurrentSource?.uri;
-    // The suffix is for the image loaders only. Nothing stores it, so a view handed this source can pass it
-    // back in without the receipt losing its identity.
     const thumbnailUri = resolvedUri && upgradeCount > 0 ? `${resolvedUri.split('#').at(0) ?? resolvedUri}#upgraded${upgradeCount}` : resolvedUri;
 
     const shouldGenerate = !!sourceUri && isLocalFile && !cachedUri;

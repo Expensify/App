@@ -42,8 +42,6 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                     return ReceiptStorage.locate(source).then((localUri) => {
                         if (!localUri) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
-                            // `locate` reports whether the receipt is readable, not why a stat failed, so the reason is
-                            // read back here. This only runs once the receipt is already lost, never on the upload path.
                             return checkFileExistsWithReason(ReceiptStorage.resolve(source) ?? source).then(({error}) => {
                                 logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name, statError: error});
                             });
@@ -58,9 +56,6 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                     });
                 }
 
-                // ReplaceReceipt sends the file object rather than a receipt source, so it never reaches
-                // `locate` and claims here instead. Claiming here rather than before the action keeps the
-                // optimistic write and queue entry immediate, so a receipt replaced offline is never lost.
                 if (name) {
                     return ReceiptStorage.settle(name).then(appendValueAsIs);
                 }

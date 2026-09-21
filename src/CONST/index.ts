@@ -2471,7 +2471,6 @@ const CONST = {
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         ATTRIBUTE_CAPTURE_METHOD: 'capture_method',
         ATTRIBUTE_FLASH_USED: 'flash_used',
-        /** Set on the capture span, which ends in ~120ms and so survives a background that cancels the upgrade span. */
         ATTRIBUTE_UPGRADE_ATTEMPTED: 'upgrade_attempted',
         ATTRIBUTE_UPGRADE_OUTCOME: 'upgrade_outcome',
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',

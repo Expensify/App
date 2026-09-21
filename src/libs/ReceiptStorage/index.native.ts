@@ -16,29 +16,15 @@ import {claimForRead} from './receiptUpgrades';
 // the app data container on most upgrades, so an absolute path stored before the upgrade names a
 // directory the device no longer has, even though iOS carried the file itself across.
 
-/** Do not let a busy launch defer recovery forever. */
 const SWEEP_IDLE_TIMEOUT_MS = 10000;
 
 const STAGED_SUFFIX = '.staged';
 const BACKUP_SUFFIX = '.backup';
 
-/**
- * Swaps running right now, by target path, from the moment `overwrite` is called. Owning an entry stops a
- * second swap over the same receipt and keeps the leftover sweep off one mid-swap.
- */
 const swapsInFlight = new Map<string, Promise<unknown>>();
 
-/**
- * Swaps past their last claim check, by target path. From that point the receipt's own name is about to
- * move and no guard can call it off, so this is the only part of a swap a reader ever waits for.
- */
 const committedSwaps = new Map<string, Promise<void>>();
 
-/**
- * Waits for a committed swap over this path, if one is running. Its outcome is not the caller's business:
- * `overwrite` reports its own failures and leaves the receipt in place either way, so the caller checks the
- * file for itself once the renames are done.
- */
 async function waitForCommittedSwap(target: string) {
     await committedSwaps.get(target)?.catch(() => {});
 }
@@ -88,10 +74,6 @@ const discard: ReceiptStorage['discard'] = async (uriOrPath) => {
     await RNFS.unlink(path);
 };
 
-/**
- * Deletes a file left over by a swap. Never rethrows, since the receipt is already in its final state and
- * a stale copy beside it is not worth failing over.
- */
 async function discardLeftover(path: string) {
     try {
         await discard(path);
@@ -100,19 +82,12 @@ async function discardLeftover(path: string) {
     }
 }
 
-/**
- * Puts a receipt back when a swap was interrupted between its two renames, which leaves the file under the
- * backup name with nothing at the receipt's own path. Resolves to whether the receipt is readable now.
- */
 async function restoreInterruptedSwap(target: string, {shouldWaitForRunningSwap = true} = {}): Promise<boolean> {
     if (await RNFS.exists(target)) {
         return true;
     }
 
-    // A swap running right now is between its own two renames, so the receipt is missing for a moment
-    // rather than stranded. Moving the backup back here would undo the file that swap is installing.
     if (shouldWaitForRunningSwap && swapsInFlight.has(target)) {
-        // Housekeeping, not a read, so it waits for the staging half too.
         await swapsInFlight.get(target)?.catch(() => {});
         return RNFS.exists(target);
     }
@@ -126,7 +101,6 @@ async function restoreInterruptedSwap(target: string, {shouldWaitForRunningSwap 
         await RNFS.moveFile(backupPath, target);
     } catch (error) {
         Log.warn('[ReceiptStorage] could not put back a receipt left by an interrupted swap', {error: error instanceof Error ? error.message : String(error)});
-        // Something else may have put the receipt back in the meantime, which is a success, not a failure.
         return RNFS.exists(target);
     }
 
@@ -145,14 +119,11 @@ async function swapIntoPlace(dir: string, durableName: string, target: string, u
     await discard(backupPath);
     await RNFS.moveFile(fileURIToPath(uriOrPath), stagedPath);
 
-    // Last moment at which nothing under the receipt's own name has moved, and everything above yields, so
-    // an upload can have claimed it since the caller's check. Staging only added a file beside it.
     if (shouldAbort?.()) {
         await discardLeftover(stagedPath);
         throw new Error('[ReceiptStorage] an upload claimed the receipt, so it was left as it stands');
     }
 
-    // Same synchronous block as the check above, so a claim either stops the swap or finds this and waits.
     let releaseCommitted: () => void = () => {};
     committedSwaps.set(
         target,
@@ -165,14 +136,12 @@ async function swapIntoPlace(dir: string, durableName: string, target: string, u
         await RNFS.moveFile(target, backupPath);
         await RNFS.moveFile(stagedPath, target);
     } catch (error) {
-        // A full disk is the likeliest reason the swap failed, so free the staged bytes before restoring.
         await discardLeftover(stagedPath);
 
         if (await RNFS.exists(target)) {
             throw error;
         }
 
-        // The receipt exists only under the backup name now, so a failed move back is what loses it.
         try {
             await RNFS.moveFile(backupPath, target);
         } catch (restoreError) {
@@ -182,40 +151,27 @@ async function swapIntoPlace(dir: string, durableName: string, target: string, u
 
         throw error;
     } finally {
-        // Either the new bytes are under the receipt's name or the original has been put back. Deleting the
-        // spare copy below never touches that name, so a reader has nothing left to wait for.
         committedSwaps.delete(target);
         releaseCommitted();
     }
 
-    // The receipt is in place, so the copy set aside can go.
     await discardLeftover(backupPath);
 
     return verify(dir, durableName);
 }
 
-/**
- * Clears what a swap leaves behind by dying part-way: a `.staged` copy nothing consumed, or a `.backup`
- * holding the only copy of a receipt. Left alone, a full-size `.backup` stays forever and looks like a
- * receipt to anything listing the directory.
- */
 async function sweepInterruptedSwaps(dir: string) {
     const names = (await RNFS.readDir(dir)).map((entry) => entry.name);
 
-    // A `.backup` is the original receipt under a second name, so restore it wherever the receipt's own
-    // path is empty. Must never wait on a running swap: `overwrite` awaits the sweep after registering
-    // itself, so a wait here waits on the caller waiting on us.
     await Promise.all(
         names.filter((name) => name.endsWith(BACKUP_SUFFIX)).map((name) => restoreInterruptedSwap(`${dir}/${name.slice(0, -BACKUP_SUFFIX.length)}`, {shouldWaitForRunningSwap: false})),
     );
 
-    // Anything still under a temporary name has no owner, whether or not the restore above took from it.
     await Promise.all(names.filter((name) => name.endsWith(STAGED_SUFFIX) || name.endsWith(BACKUP_SUFFIX)).map((name) => discardLeftover(`${dir}/${name}`)));
 }
 
 let leftoversSwept: Promise<void> | undefined;
 
-/** Runs the sweep once per launch. A sweep that fails is logged and not retried: it is only housekeeping. */
 function whenLeftoversSwept(dir: string): Promise<void> {
     leftoversSwept ??= sweepInterruptedSwaps(dir).catch((error: unknown) => {
         Log.warn('[ReceiptStorage] could not sweep leftover receipt copies', {error: error instanceof Error ? error.message : String(error)});
@@ -231,17 +187,12 @@ const overwrite: ReceiptStorage['overwrite'] = async (durableName, uriOrPath, sh
 
     const target = `${dir}/${durableName}`;
 
-    // Two swaps would clear each other's staged and backup names, leaving the loser renaming from a path
-    // holding the only copy.
     if (swapsInFlight.has(target)) {
         throw new Error('[ReceiptStorage] a swap is already running for this receipt');
     }
 
-    // Registered before the first await: the checks below read the filesystem, and a reader arriving
-    // during them must not see the path as free.
     const swap = (async () => {
         await whenLeftoversSwept(dir);
-        // This swap already owns `target`, so consulting the map here would be waiting on itself.
         await restoreInterruptedSwap(target, {shouldWaitForRunningSwap: false});
         await verify(dir, durableName);
         return swapIntoPlace(dir, durableName, target, uriOrPath, shouldAbort);
@@ -273,7 +224,6 @@ const settle: ReceiptStorage['settle'] = async (durableName) => {
         return;
     }
 
-    // An upgrade still capturing or rotating gives up here, and the receipt is sent as it stands.
     claimForRead(durableName);
 
     const dir = getReceiptsUploadFolderPath();
@@ -281,8 +231,6 @@ const settle: ReceiptStorage['settle'] = async (durableName) => {
         return;
     }
 
-    // A swap past its own claim check is committed to its renames, so the only safe thing is to let it
-    // finish.
     await waitForCommittedSwap(`${dir}/${durableName}`);
 };
 
@@ -292,13 +240,10 @@ const locate: ReceiptStorage['locate'] = async (source) => {
         return undefined;
     }
 
-    // Claimed before reading, so the file cannot move underneath the read.
     if (isLocalFile(uri)) {
         const dir = getReceiptsUploadFolderPath();
         const target = fileURIToPath(uri);
 
-        // Not awaited: this runs inside the request the sequential queue is processing, and the sweep is
-        // housekeeping for the folder as a whole. The receipt being read has its own recovery below.
         if (dir) {
             whenLeftoversSwept(dir).catch(() => {});
         }
@@ -306,13 +251,10 @@ const locate: ReceiptStorage['locate'] = async (source) => {
         await settle(target.split('/').pop() ?? '');
     }
 
-    // The reason-only helper, so a stat failure here is reported once, by the caller that drops the receipt.
     if ((await checkFileExistsWithReason(uri)).exists) {
         return uri;
     }
 
-    // A receipt that is missing may only be missing from its own name, so look for an interrupted swap
-    // before the caller writes it off.
     if (!isLocalFile(uri) || !(await restoreInterruptedSwap(fileURIToPath(uri)))) {
         return undefined;
     }

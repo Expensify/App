@@ -173,17 +173,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         const path = getReceiptsUploadFolderPath();
 
-        // `takeSnapshot` saves a screen-sized screenshot of the preview, so on that path a full-resolution
-        // `takePhoto` runs alongside it and replaces the receipt file once it lands. Nothing below awaits it.
         const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
 
         // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
         // reads the most recent video frame, which a photo capture can interrupt.
         const receiptCapture = captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode});
 
-        // Handlers attached before the photo capture starts: a synchronous throw from `startPhotoCapture`
-        // would otherwise leave this promise unhandled, losing the receipt with no alert. The native
-        // snapshot request is already out, so this does not change the order they reach the camera.
         receiptCapture
             .then((photo: PhotoFile) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {

@@ -44,8 +44,6 @@ function useReceiptThumbnailSource({transaction, receiptPath, receiptFilename}: 
     // double-render or layout thrash.
     const resolvedReceiptImageStr = resolvedReceiptImage != null ? String(resolvedReceiptImage) : undefined;
 
-    // Pinning the source keeps a late thumbnail from flashing, but a receipt replaced by a better capture
-    // has to get through, so the count of upgrades is part of what is pinned.
     const upgradeCount = useReceiptUpgradeCount(resolvedReceiptImageStr);
     const [initialLocalSource, setInitialLocalSource] = useState<{source: string | undefined; resolvedImage: string | undefined; upgradeCount: number}>({
         source: undefined,

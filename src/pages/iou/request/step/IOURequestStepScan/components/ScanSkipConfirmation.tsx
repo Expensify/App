@@ -454,8 +454,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
-                // Submitting dismisses this screen, which unmounts the camera and cancels a photo still in
-                // flight, so the upgrade could not land here even when it is wanted.
                 canUpgradeReceiptQuality={false}
             />
             <GpsPermissionGate
