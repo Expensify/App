@@ -3,7 +3,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
+import useDisplayTransaction from '@hooks/useDisplayTransaction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -12,18 +12,10 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {
-    getDisplayTransactionWithoutInvalidCommuterExclusion,
-    getExpenseTypeTranslationKey,
-    getOriginalTransactionWithSplitInfo,
-    getTransactionType,
-    isDistanceRequest,
-    removeSettledAndApprovedTransactions,
-} from '@libs/TransactionUtils';
+import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
@@ -49,7 +41,7 @@ import TransactionPreviewContent from './TransactionPreviewContent';
 
 function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {action, chatReport, reportID, transactionID: transactionIDFromProps, onPreviewPressed, shouldHighlight, reportPreviewAction, contextAction} = props;
     const chatReportID = chatReport?.reportID;
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
@@ -78,16 +70,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const transactionPreview = onPreviewPressed ? transaction : (originalTransaction ?? transaction);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
-    const customUnitRateID = isDistanceRequest(transactionPreview) ? transactionPreview?.comment?.customUnit?.customUnitRateID : undefined;
-    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(policy, customUnitRateID);
-    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
-    const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
-        transaction: transactionPreview,
-        isPolicyExpenseChat: isParentPolicyExpenseChat,
-        policy: distanceOriginalPolicy ?? policy,
-        translate,
-        getCurrencySymbol,
-    });
+    const {displayTransaction} = useDisplayTransaction(transactionPreview, isParentPolicyExpenseChat, policy);
     const transactionDetails = getTransactionDetails(displayTransaction);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
 
