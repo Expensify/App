@@ -8,6 +8,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
@@ -20,8 +21,6 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidAddress} from '@libs/ValidationUtils';
-
-import variables from '@styles/variables';
 
 import {removeWaypoint, saveWaypoint} from '@userActions/Transaction';
 
@@ -78,6 +77,7 @@ function DynamicIOURequestStepWaypoint({
     transaction,
 }: DynamicIOURequestStepWaypointProps) {
     const styles = useThemeStyles();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.path);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -198,13 +198,13 @@ function DynamicIOURequestStepWaypoint({
             return;
         }
         textInput.current?.measureInWindow((x, y) => {
-            if (y < variables.contentHeaderHeight) {
+            if (y < contentHeaderHeight) {
                 setCaretHidden(true);
             } else {
                 setCaretHidden(false);
             }
         });
-    }, []);
+    }, [contentHeaderHeight]);
 
     const resetCaretHiddenValue = useCallback(() => {
         setCaretHidden(false);

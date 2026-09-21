@@ -113,6 +113,8 @@ function getConnectionCompanyID(policy: Policy | undefined, connectionName: Conn
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config);
         case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config);
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+            return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config);
         default:
             return undefined;
     }

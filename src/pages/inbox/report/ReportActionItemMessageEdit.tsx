@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearActive, isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
-import {clearAllReportActionDrafts, saveReportActionDraft} from '@libs/actions/Report';
+import {clearAllReportActionDrafts} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
@@ -51,7 +51,7 @@ import useEditMessage from './ReportActionCompose/useEditMessage';
 import {useReportActionActiveEdit, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
 import ReportActionIndexContext, {ReportActionScrollToNewestContext} from './ReportActionIndexContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
-import useDebouncedSaveDraft from './useDebouncedSaveDraft';
+import useDebouncedSaveReportActionDraft from './useDebouncedSaveReportActionDraft';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
 type ReportActionItemMessageEditProps = {
@@ -145,7 +145,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     // Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
-    const {saveDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(saveReportActionDraft);
+    const {saveDraft, isSavePending: isDraftSavePending} = useDebouncedSaveReportActionDraft();
 
     useDraftMessageVideoAttributeCache({
         draftMessage: editingMessage ?? '',
