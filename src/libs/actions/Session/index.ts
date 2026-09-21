@@ -1673,7 +1673,7 @@ function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID 
                   value: {
                       onboardingWorkEmail: workEmail,
                       isLoading: true,
-                      completedTaskReportActionID,
+                      completedTaskReportActionID: completedTaskReportActionID ?? null,
                   },
               },
               {
