@@ -20,6 +20,8 @@ type SharedSearchBarProps = {
     inputValue: string;
     onChangeText?: (text: string) => void;
     onSubmitEditing?: (text: string) => void;
+    onFocus?: BaseTextInputProps['onFocus'];
+    onBlur?: BaseTextInputProps['onBlur'];
     style?: StyleProp<ViewStyle>;
     shouldShowEmptyState?: boolean;
     emptyStateContainerStyle?: StyleProp<ViewStyle>;
@@ -31,7 +33,7 @@ type BaseSearchBarProps = SharedSearchBarProps & {
     textInputProps?: BaseTextInputProps;
 };
 
-function BaseSearchBar({ref, label, style, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle, textInputProps}: BaseSearchBarProps) {
+function BaseSearchBar({ref, label, style, inputValue, onChangeText, onSubmitEditing, onFocus, onBlur, shouldShowEmptyState, emptyStateContainerStyle, textInputProps}: BaseSearchBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -52,6 +54,8 @@ function BaseSearchBar({ref, label, style, inputValue, onChangeText, onSubmitEdi
                     inputMode={CONST.INPUT_MODE.TEXT}
                     selectTextOnFocus
                     spellCheck={false}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
                     onSubmitEditing={() => onSubmitEditing?.(inputValue)}
                     shouldShowClearButton
                     shouldHideClearButton={!inputValue?.length}
