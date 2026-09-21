@@ -8775,6 +8775,23 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
             enableNewAccountsDescription: 'Les nouveaux comptes Campfire seront disponibles en tant que catégories.',
             dimensionsImport: 'Toutes les dimensions Campfire sont importées en tant que tags',
+            exportDescription: 'Configurez comment les données Expensify sont exportées vers Campfire.',
+            exportReimbursable: {label: 'Exporter les dépenses remboursables au format', values: {label: 'Factures fournisseurs'}},
+            exportDate: {
+                label: 'Date de facture fournisseur',
+                description: 'Utiliser cette date lors de l’exportation des notes de frais vers Campfire.',
+                values: {label: 'Date de soumission', description: 'Date à laquelle la note de frais a été soumise pour approbation.'},
+            },
+            exportNonReimbursable: {label: 'Exporter les dépenses de carte entreprise en tant que', values: {label: 'Écritures comptables'}},
+            defaultCompanyCardVendor: {
+                label: 'Fournisseur par défaut pour toutes les cartes de l’entreprise',
+                description: 'Choisissez un fournisseur Campfire par défaut pour les dépenses qui ne correspondent pas automatiquement.',
+            },
+            companyCardAccount: {label: 'Compte de carte professionnelle', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Campfire et synchroniser de nouveau la connexion',
+            noAccountsFound: 'Aucun compte trouvé',
+            noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Campfire et synchroniser à nouveau la connexion',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
