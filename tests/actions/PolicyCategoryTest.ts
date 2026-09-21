@@ -66,7 +66,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            setWorkspaceRequiresCategory(policyData.current, true);
+            setWorkspaceRequiresCategory(policyData.current, true, false);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -158,10 +158,14 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            renamePolicyCategory(policyData.current, {
-                oldName: oldCategoryName ?? '',
-                newName: newCategoryName,
-            });
+            renamePolicyCategory(
+                policyData.current,
+                {
+                    oldName: oldCategoryName ?? '',
+                    newName: newCategoryName,
+                },
+                false,
+            );
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -212,6 +216,7 @@ describe('actions/PolicyCategory', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             setWorkspaceCategoryEnabled({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 categoriesToUpdate,
                 isSetupCategoriesTaskParentReportArchived: false,
@@ -265,7 +270,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            deleteWorkspaceCategories(policyData.current, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
+            deleteWorkspaceCategories(policyData.current, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined, false);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -315,7 +320,7 @@ describe('actions/PolicyCategory', () => {
             });
 
             // Then disable the categories feature
-            enablePolicyCategories({...policyData.current, categories: fakeCategories}, false, false);
+            enablePolicyCategories({...policyData.current, categories: fakeCategories}, false, false, false);
 
             // Then verify the categories feature are disabled and all the lists are disabled too (offline + online behaviour)
             await waitForBatchedUpdates();
@@ -376,7 +381,7 @@ describe('actions/PolicyCategory', () => {
             });
 
             // Then enable the categories feature
-            enablePolicyCategories({...policyData.current, categories: fakeCategories}, true, false);
+            enablePolicyCategories({...policyData.current, categories: fakeCategories}, true, false, false);
 
             // Then verify the categories feature are enabled and all the lists are enabled too (offline + online behaviour)
             await waitForBatchedUpdates();
@@ -737,7 +742,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // When setting receipt required to Never, which should cascade itemized receipt to Never as well
-            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE);
+            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE, false);
             await waitForBatchedUpdates();
 
             // Then both fields should be optimistically updated to Never (DISABLED_MAX_EXPENSE_VALUE) with pending state
@@ -810,7 +815,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // When setting itemized receipt required to Always, which should cascade receipt required to Always as well
-            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, 0, 0);
+            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, 0, 0, false);
             await waitForBatchedUpdates();
 
             // Then both fields should be optimistically updated to Always (0) with pending state

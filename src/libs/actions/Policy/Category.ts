@@ -85,6 +85,7 @@ type SetWorkspaceCategoryEnabledParams = {
     setupCategoriesAndTagsHasOutstandingChildTask?: boolean;
     setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
     policyHasTags?: boolean;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function appendSetupCategoriesOnboardingData(
@@ -189,6 +190,7 @@ function setWorkspaceCategoryEnabled({
     setupCategoriesAndTagsHasOutstandingChildTask,
     setupCategoriesAndTagsParentReportAction,
     policyHasTags,
+    isVendorMatchingBetaEnabled,
 }: SetWorkspaceCategoryEnabledParams) {
     const policyID = policyData.policy?.id;
     const policyCategoriesOptimisticData = {
@@ -257,7 +259,7 @@ function setWorkspaceCategoryEnabled({
 
     const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData, {}, autoSelections);
+    pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {}, policyCategoriesOptimisticData, {}, autoSelections);
     appendSetupCategoriesOnboardingData(
         onyxData,
         setupCategoryTaskReport,
@@ -360,7 +362,7 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number) {
+function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number, isVendorMatchingBetaEnabled: boolean | undefined) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
@@ -414,7 +416,7 @@ function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName:
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {}, policyCategoriesOptimisticData);
 
     const parameters: SetPolicyCategoryReceiptsRequiredParams = {
         policyID,
@@ -425,7 +427,7 @@ function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName:
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string) {
+function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, isVendorMatchingBetaEnabled: boolean | undefined) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
@@ -479,7 +481,7 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {}, policyCategoriesOptimisticData);
 
     const parameters: RemovePolicyCategoryReceiptsRequiredParams = {
         policyID,
@@ -489,7 +491,7 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoItemizedReceipt: number) {
+function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoItemizedReceipt: number, isVendorMatchingBetaEnabled: boolean | undefined) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
     const policyCategoriesOptimisticData = {
@@ -543,7 +545,7 @@ function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categ
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {}, policyCategoriesOptimisticData);
 
     const parameters: SetPolicyCategoryItemizedReceiptsRequiredParams = {
         policyID,
@@ -554,7 +556,7 @@ function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categ
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string) {
+function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, isVendorMatchingBetaEnabled: boolean | undefined) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
     const policyCategoriesOptimisticData = {
@@ -608,7 +610,7 @@ function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, ca
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {}, policyCategoriesOptimisticData);
 
     const parameters: RemovePolicyCategoryItemizedReceiptsRequiredParams = {
         policyID,
@@ -618,7 +620,13 @@ function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, ca
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number, maxAmountNoItemizedReceipt: number) {
+function setPolicyCategoryReceiptsAndItemizedReceiptRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    maxAmountNoReceipt: number,
+    maxAmountNoItemizedReceipt: number,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
@@ -679,7 +687,7 @@ function setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData: PolicyD
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {}, policyCategoriesOptimisticData);
 
     const parameters: SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams = {
         policyID,
@@ -793,7 +801,7 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
     }
 }
 
-function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}) {
+function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}, isVendorMatchingBetaEnabled: boolean | undefined) {
     const policy = policyData.policy;
     const policyID = policy.id;
     const policyCategoryToUpdate = policyData.categories?.[policyCategory.oldName];
@@ -934,7 +942,7 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
         return acc;
     }, {});
 
-    pushTransactionViolationsOnyxData(onyxData, {...policyData, categories: policyCategories}, policyOptimisticData, policyCategoriesOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, {...policyData, categories: policyCategories}, isVendorMatchingBetaEnabled, policyOptimisticData, policyCategoriesOptimisticData);
 
     const parameters = {
         policyID,
@@ -1083,7 +1091,7 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
 }
 
 /** Pass shouldRecomputeViolations = false when tag Required changes in the same save: each recompute SETs violations from the pre-save snapshot, so two overwrite each other. */
-function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean, shouldRecomputeViolations = true) {
+function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean, isVendorMatchingBetaEnabled: boolean | undefined, shouldRecomputeViolations = true) {
     const policyID = policyData.policy?.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresCategory,
@@ -1133,7 +1141,7 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
     };
 
     if (shouldRecomputeViolations) {
-        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+        pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, policyOptimisticData);
     }
 
     const parameters = {
@@ -1234,6 +1242,7 @@ function deleteWorkspaceCategories(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction>,
+    isVendorMatchingBetaEnabled: boolean | undefined,
 ) {
     const policyID = policyData.policy?.id;
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
@@ -1289,7 +1298,7 @@ function deleteWorkspaceCategories(
 
     const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData, {}, autoSelections);
+    pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, optimisticPolicyData, optimisticPolicyCategoriesData, {}, autoSelections);
     appendSetupCategoriesOnboardingData(
         onyxData,
         setupCategoryTaskReport,
@@ -1308,7 +1317,7 @@ function deleteWorkspaceCategories(
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function enablePolicyCategories(policyData: PolicyData, enabled: boolean, shouldGoBack = true) {
+function enablePolicyCategories(policyData: PolicyData, enabled: boolean, isVendorMatchingBetaEnabled: boolean | undefined, shouldGoBack = true) {
     const policyID = policyData.policy?.id;
     const policyUpdate: Partial<Policy> = {
         areCategoriesEnabled: enabled,
@@ -1378,7 +1387,7 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
 
     const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate, {}, autoSelections);
+    pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, policyUpdate, policyCategoriesUpdate, {}, autoSelections);
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 

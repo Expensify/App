@@ -99,7 +99,6 @@ function ReportSubmitToContent({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
@@ -312,7 +311,6 @@ function ReportSubmitToContent({
             currentUserEmailParam: currentUserDetails.email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            betas,
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
@@ -349,7 +347,6 @@ function ReportSubmitToContent({
         currentUserDetails.email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
