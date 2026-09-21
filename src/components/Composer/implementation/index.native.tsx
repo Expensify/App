@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
-import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {getExtensionFromMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import Parser from '@libs/Parser';
 
@@ -22,7 +22,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
 
-import mimeDb from 'mime-db';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet} from 'react-native';
 
@@ -114,7 +113,7 @@ function Composer({
             const fileURI = clipboardContent?.data;
             const baseFileName = fileURI?.split('/').pop() ?? 'file';
             const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-            const fileExtension = originalFileExtension || (mimeDb[mimeType]?.extensions?.[0] ?? 'bin');
+            const fileExtension = originalFileExtension || (getExtensionFromMimeType(mimeType) ?? 'bin');
             const fileName = `${stem}.${fileExtension}`;
             let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
             getFileSize(file.uri ?? '')

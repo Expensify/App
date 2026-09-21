@@ -3,7 +3,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
 
-import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
+import {appendExtensionFromMimeType, cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
 import snapshotPickedFile from './snapshotPickedFile';
 
 type ValidateAttachmentValidResult = {
@@ -62,13 +62,21 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
     }
 
+    /**
+     * Recovering a missing extension is done here so that it covers every upload flow (picker, drag and
+     * drop, copy-paste, share). An attachment stored without an extension downloads as a file the OS
+     * treats as a generic document, even when the bytes are a perfectly valid video or image.
+     * Receipts are unaffected: `isValidReceiptExtension` already rejected names with no extension above.
+     */
+    const fileNameWithExtension = appendExtensionFromMimeType(normalizedFile.name ?? '', normalizedFile.type);
+
     if (normalizedFile instanceof File) {
         /**
          * Cleaning file name, done here so that it covers all cases:
          * upload, drag and drop, copy-paste
          */
         let updatedFile = normalizedFile;
-        const cleanName = cleanFileName(updatedFile.name);
+        const cleanName = cleanFileName(fileNameWithExtension);
         // On web this snapshots the bytes into a memory-backed File so a later change to the OS file
         // can't invalidate the queued request (see snapshotPickedFile); on native it only cleans the name.
         try {
@@ -89,6 +97,10 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         updatedFile.uri = inputSource;
 
         return {isValid: true, file: updatedFile};
+    }
+
+    if (fileNameWithExtension !== normalizedFile.name) {
+        return {isValid: true, file: {...normalizedFile, name: fileNameWithExtension}};
     }
 
     return {isValid: true, file: normalizedFile};
