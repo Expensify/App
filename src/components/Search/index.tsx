@@ -198,7 +198,7 @@ function Search({
     // live results drop `errors`, so the response code is the only failure signal left
     const didLastLivePageFail = shouldUseLiveData && typeof searchResults?.search?.responseJsonCode === 'number';
 
-    const liveRowLimit = useLiveRowLimit(searchResults?.search?.offset, isLivePageInFlight || didLastLivePageFail);
+    const {liveRowLimit, setRevealedLiveRows} = useLiveRowLimit(searchResults?.search?.offset, isLivePageInFlight || didLastLivePageFail);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
@@ -845,6 +845,10 @@ function Search({
     const fetchMoreResults = useCallback(() => {
         // a failed page never writes `hasMoreResults`, and a failure doesn't mean the server is out of rows
         if (!searchResults?.search?.hasMoreResults && !didLastLivePageFail) {
+            // the server has nothing left, but the live scan can still hold rows past the cap: page those in locally
+            if (shouldUseLiveData && allDataLength > liveRowLimit) {
+                setRevealedLiveRows((rows) => rows + CONST.SEARCH.RESULTS_PAGE_SIZE);
+            }
             wantedOffsetRef.current = undefined;
             return;
         }
@@ -856,10 +860,9 @@ function Search({
             return;
         }
 
-        // the cursor rewinds but the cap doesn't, so serverOffset + 1 page can re-request rows already on screen
-        const nextPageOffset = shouldUseLiveData ? Math.max(serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, liveRowLimit) : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        // the cap can outrun the cursor, and pulling the cursor up to it would skip server pages for good
         // failureData parks the cursor on the page it never delivered, so retry that same offset
-        const nextOffset = didLastLivePageFail ? serverOffset : nextPageOffset;
+        const nextOffset = didLastLivePageFail ? serverOffset : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
         // onEndReached refires mid-flight under the skeleton; recording nextOffset would chase past the loading page
         if (shouldUseLiveData && isLoadingMorePage) {
             return;
@@ -890,6 +893,7 @@ function Search({
         isOffline,
         shouldUseLiveData,
         liveRowLimit,
+        setRevealedLiveRows,
         didLastLivePageFail,
         searchResults?.search?.hasMoreResults,
         isLoadingMorePage,
