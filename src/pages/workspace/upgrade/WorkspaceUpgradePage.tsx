@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,7 +43,9 @@ import {
     enablePolicyAutoReimbursementLimit,
     enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyInvoiceFields,
     enablePolicyInvoicing,
+    enablePolicyRecruiting,
     enablePolicyReportFields,
     enablePolicyRules,
     isCurrencySupportedForDirectReimbursement,
@@ -115,14 +118,14 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : isUpgradingFromSubmitPolicy));
     }, [policyID, policy?.type, isUpgradingFromSubmitPolicy]);
 
-    const feature = featureNameAlias
-        ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-              .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-              .find((f) => f.alias === featureNameAlias)
-        : undefined;
+    const upgradeFeatureByAlias = featureNameAlias ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((mappingEntry) => mappingEntry.alias === featureNameAlias) : undefined;
+
+    const feature = upgradeFeatureByAlias?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id ? undefined : upgradeFeatureByAlias;
 
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -136,6 +139,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
         policyDataRef.current = policyData;
@@ -175,6 +179,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                return Navigation.goBack(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
@@ -207,7 +213,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (isUpgradingFromSubmitPolicy) {
-            const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
+            const requiredPlan = upgradeFeatureByAlias && 'requiredPlan' in upgradeFeatureByAlias ? upgradeFeatureByAlias.requiredPlan : undefined;
+            const targetType = upgradePlanType ?? requiredPlan ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
@@ -266,10 +273,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                enablePolicyInvoiceFields(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
                 if (!policy?.areRulesEnabled) {
-                    enablePolicyRules(policy, true, false, policyDataRef.current);
+                    enablePolicyRules(policy, true, isVendorMatchingBetaEnabled, false, policyDataRef.current);
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
@@ -290,9 +300,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 enablePolicyHR(policyID, true);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
+                enablePolicyRecruiting(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser, rules);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
@@ -338,6 +351,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
         }
     }, [
+        isVendorMatchingBetaEnabled,
         policyID,
         feature,
         featureNameAlias,
@@ -355,6 +369,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
         getReviewWorkspaceSettingsTaskCompletion,
         isTrackIntentUser,
+        rules,
     ]);
 
     useWorkspaceUpgradeConfirmation({

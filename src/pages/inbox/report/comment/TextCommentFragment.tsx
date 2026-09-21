@@ -13,9 +13,9 @@ import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmoj
 import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -35,10 +35,7 @@ type TextCommentFragmentProps = {
     /** The reportAction's source */
     source: OriginalMessageSource;
 
-    /** The report action's id */
     reportActionID?: string;
-
-    /** The message fragment needing to be displayed */
     fragment: Message | undefined;
 
     /** Should this message fragment be styled as deleted? */
@@ -70,12 +67,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
-    const endSendMessageVisibleSpanOnLayout = () => {
-        if (!reportActionID) {
-            return;
-        }
-        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
-    };
+    const endSendMessageVisibleSpanOnLayout = useSendMessageSpanMarks(reportActionID);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
@@ -157,7 +149,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                 <>
                     <Text style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight]}> </Text>
                     <Text
-                        fontSize={variables.fontSizeSmall}
+                        fontSize={fontScale.micro}
                         color={theme.textSupporting}
                         style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedbackDeleted, style]}
                     >

@@ -3,11 +3,11 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
@@ -507,11 +507,20 @@ function getInitialPerDiemTargetReport(
 /**
  * Resolves the chat report ID for navigation, generating an optimistic ID if no existing chat is found.
  */
-function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>) {
+function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>, optimisticChatReportID?: string) {
     const existingChat = existingReport?.reportID ? existingReport : getChatByParticipants(participantAccountIDs);
-    const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
-    const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
-    return {optimisticChatReportID, chatReportID};
+    if (existingChat?.reportID) {
+        return {optimisticChatReportID: undefined, chatReportID: existingChat.reportID};
+    }
+
+    const chatReportID = optimisticChatReportID ?? generateReportID();
+    return {optimisticChatReportID: chatReportID, chatReportID};
+}
+
+/** Returns `transactionReportID` if the participant isn't a workspace and has no existing chat, so the ID can be reused for their new chat report; otherwise undefined. */
+function getReusableP2PReportID(participant: Participant, transactionReportID: string | undefined): string | undefined {
+    const isBrandNewP2PRecipient = !participant.isPolicyExpenseChat && !participant.reportID;
+    return isBrandNewP2PRecipient && !!transactionReportID && transactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transactionReportID : undefined;
 }
 
 /**
@@ -571,16 +580,18 @@ function resolveReportForMoneyRequest({
     transactionReport,
     routeReport,
     reportNameValuePair,
+    rules,
 }: {
     transaction: OnyxEntry<Transaction>;
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     reportNameValuePair: OnyxInputOrEntry<ReportNameValuePairs>;
+    rules: OnyxCollection<Rule>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;
     }
-    const canUseTransactionReport = canAddTransaction(transactionReport, isArchivedReport(reportNameValuePair), false);
+    const canUseTransactionReport = canAddTransaction(transactionReport, rules, isArchivedReport(reportNameValuePair), false);
     const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
     if (shouldUseTransactionReport) {
         return transactionReport;
@@ -672,6 +683,7 @@ export {
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
+    getReusableP2PReportID,
     isParticipantP2P,
     isSelfDMSoleDestination,
     isLookingAroundSearchRoutingActive,

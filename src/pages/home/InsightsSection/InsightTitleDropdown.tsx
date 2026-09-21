@@ -11,7 +11,8 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -26,7 +27,6 @@ type InsightTitleDropdownProps = {
     /** The insight options to list in the dropdown, in display order */
     configs: SearchTypeMenuItem[];
 
-    /** The currently selected insight key */
     selectedKey: SearchKey;
 
     /** Called with the newly selected insight key */

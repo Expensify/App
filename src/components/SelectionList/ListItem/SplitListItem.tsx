@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedFullCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -146,7 +147,7 @@ function SplitListItem<TItem extends ListItem>({
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
                             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.gap1]}>
                                 <Text
-                                    fontSize={variables.fontSizeNormal}
+                                    fontSize={fontScale.text}
                                     style={[styles.flexShrink1]}
                                     numberOfLines={1}
                                 >

@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
-import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
 import {formatCancelledDescription, getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
 
 import {openTravelDotLink} from '@userActions/Link';
@@ -78,10 +77,11 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? reportID}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID ?? reportID}`);
 
-    const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
+    const tripID = parentReportNameValuePairs?.tripData?.tripID;
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
-    const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
+    const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, parentReportNameValuePairs, transaction ? [transaction] : []);
 
     const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
     const travelerEmail = reservation?.travelerPersonalInfo?.email;

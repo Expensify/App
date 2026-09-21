@@ -12,7 +12,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type DimensionTypeSelectorProps = {
-    /** Error text to display */
     errorText?: string;
 
     /** Business type to display */

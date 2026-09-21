@@ -8,9 +8,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 type OnboardingWorkEmailValidationProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION>;
 
 type BaseOnboardingWorkEmailValidationProps = {
-    /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
-
     route: RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION>;
 };
 

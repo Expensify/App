@@ -29,7 +29,6 @@ import {View} from 'react-native';
 import type {CloseContextMenuCallback, OpenPickerCallback, PickerRefElement} from './QuickEmojiReactions/types';
 
 type AddReactionBubbleProps = {
-    /** Whether it is for context menu so we can modify its style */
     isContextMenu?: boolean;
 
     /**
@@ -44,9 +43,6 @@ type AddReactionBubbleProps = {
      */
     onWillShowPicker?: (callback?: CloseContextMenuCallback) => void;
 
-    /**
-     * Called when the user selects an emoji.
-     */
     onSelectEmoji: (emoji: Emoji, preferredSkinTone: number) => void;
 
     /**
@@ -54,7 +50,6 @@ type AddReactionBubbleProps = {
      */
     reportAction: ReportAction;
 
-    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 

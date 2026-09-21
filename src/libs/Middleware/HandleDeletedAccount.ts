@@ -1,6 +1,8 @@
 import {signOutAndRedirectToSignIn} from '@libs/actions/Session';
 import type {Middleware} from '@libs/Request';
 
+import CONST from '@src/CONST';
+
 /**
  * Handles the case when the user's copilot has been deleted.
  * If the response contains jsonCode 408 and a message indicating copilot deletion,
@@ -12,7 +14,7 @@ const handleDeletedAccount: Middleware = (requestResponse) =>
         if (response?.jsonCode !== 408 || !response?.message?.includes('The account you are trying to use is deleted.')) {
             return response;
         }
-        signOutAndRedirectToSignIn(true, false, true, true);
+        signOutAndRedirectToSignIn(true, false, true, true, CONST.SIGN_OUT_REASON.ACCOUNT_DELETED);
     });
 
 export default handleDeletedAccount;
