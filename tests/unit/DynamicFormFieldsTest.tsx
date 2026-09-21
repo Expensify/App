@@ -168,6 +168,15 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('legalType')?.items?.map((item) => item.label)).toEqual(['Person', 'Business']);
     });
 
+    it('draws the label above radio, file and list inputs and leaves text labels to the input', () => {
+        renderFields(allFieldTypes, {legalType: 'BUSINESS'});
+
+        expect(screen.getByText('Recipient type')).toBeOnTheScreen();
+        expect(screen.getByText('Business registration document')).toBeOnTheScreen();
+        expect(screen.getByText('Legal entity shareholders')).toBeOnTheScreen();
+        expect(screen.queryByText('Account number')).not.toBeOnTheScreen();
+    });
+
     it('passes text constraints, the example as a hint and a numeric keyboard for digit-only fields', () => {
         const accountNumber = renderFields(allFieldTypes).get('accountNumber');
 
