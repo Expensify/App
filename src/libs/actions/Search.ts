@@ -1319,7 +1319,8 @@ function search({
             .catch(async (error) => {
                 // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
                 // SaveResponseInOnyx, so nothing else applies failureData/finallyData for it. Apply both here so
-                // the snapshot records the error and still reaches the terminal `loaded` state.
+                // the snapshot records the error and still reaches the terminal `loaded` state. NO_RESPONSE stands for
+                // "failed with no usable response code", which is exactly this case.
                 await Onyx.update([
                     ...(failureData ?? []),
                     {
