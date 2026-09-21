@@ -41,6 +41,7 @@ function setup({hideWhenInactive = true, hideRelatedCell = false, inverted = fal
     const data: Item[] = [{key: 'header'}, {key: 'row'}, {key: 'other-header'}];
     const props: FlashListProps<Item> = {
         data,
+        renderItem: () => null,
         stickyHeaderConfig: {hideWhenInactive, hideRelatedCell},
     };
     const layout = {x: 0, y: 0, width: 300, height: 48};
