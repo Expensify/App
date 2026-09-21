@@ -47,7 +47,6 @@ function getComparableScopeValue(value: unknown): string | undefined {
 /**
  * Whether the route is a split navigator with the payload's name but another scope. Workspace and domain splits all
  * share one route name, so only the scope params of their sidebar (policyID, domainAccountID) tell the instances apart.
- * False when there is nothing to compare: no scope params, a non-split route, or a payload for another navigator.
  */
 function hasDifferentSplitScope(route: NavigationRoute, payload: ActionPayload & {name?: string}): boolean {
     const scopeComparisonValues = getSplitScopeComparisonValues(route, payload);

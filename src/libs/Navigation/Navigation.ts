@@ -522,9 +522,6 @@ const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'wait
  * replace is performed so as not to lose the visited pages.
  * If backToRoute is not found in the state, replace is also called then.
  *
- * Going back never adds a screen, so the only actions dispatched from here are pop, replace and jumpTo. A route that
- * cannot be popped to is therefore replaced, not pushed, even when it is missing from its navigator's stack.
- *
  * @param backToRoute - The route to go up.
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
  */
