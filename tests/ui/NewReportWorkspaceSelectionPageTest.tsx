@@ -107,6 +107,18 @@ async function seedBaseOnyx(policyOverrides?: Partial<Policy>) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 }
 
+/**
+ * Selecting a workspace only stages it — the report is created when the user presses Create.
+ * The two-step press keeps these tests aligned with that flow.
+ */
+async function selectWorkspaceAndCreate(workspaceName: string) {
+    fireEvent.press(await screen.findByText(workspaceName));
+    await waitForBatchedUpdatesWithAct();
+
+    fireEvent.press(await screen.findByText('Create'));
+    await waitForBatchedUpdatesWithAct();
+}
+
 describe('NewReportWorkspaceSelectionPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -128,8 +140,7 @@ describe('NewReportWorkspaceSelectionPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(await screen.findByText(POLICY_NAME));
-        await waitForBatchedUpdatesWithAct();
+        await selectWorkspaceAndCreate(POLICY_NAME);
 
         expect(mockOpenCreateReportConfirmation).toHaveBeenCalled();
         expect(mockCreateNewReport).not.toHaveBeenCalled();
@@ -150,8 +161,7 @@ describe('NewReportWorkspaceSelectionPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(await screen.findByText(POLICY_NAME));
-        await waitForBatchedUpdatesWithAct();
+        await selectWorkspaceAndCreate(POLICY_NAME);
 
         expect(mockCreateNewReport).toHaveBeenCalled();
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
