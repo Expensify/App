@@ -63,17 +63,18 @@ function PaymentContent({action, policyID, reportID}: PaymentContentProps) {
         const expectedDate = originalMessage.expectedDate ?? reimbursedExpectedDate;
         const formattedExpectedDate = expectedDate ? DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale) : undefined;
         const expectedDateMessage = formattedExpectedDate
-            ? `. ${translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME)}`
-            : '';
+            ? translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME)
+            : undefined;
+        const paymentMessage = crossBorderMessage ?? translate(wasAutoPaid ? 'iou.automaticallyPaidWithBusinessBankAccount' : 'iou.businessBankAccount', '', last4Digits);
+        const translation = expectedDateMessage ? translate('iou.paymentWithExpectedDate', {paymentMessage, expectedDateMessage}) : paymentMessage;
         if (wasAutoPaid) {
-            const translation = `${crossBorderMessage ?? translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits)}${expectedDateMessage}`;
             return (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${translation}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={`${crossBorderMessage ?? translate('iou.businessBankAccount', '', last4Digits)}${expectedDateMessage}`} />;
+        return <ReportActionItemBasicMessage message={translation} />;
     }
 
     if (wasAutoPaid) {
