@@ -12,7 +12,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
-import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
+import {getHtmlWithAttachmentID, getTextFromHtml, wrapAttachmentAnchorsInBlocks} from '@libs/ReportActionsUtils';
 import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import {fontScale} from '@styles/typography';
@@ -98,7 +98,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
+        htmlWithTag = adjustExpensifyLinksForEnv(wrapAttachmentAnchorsInBlocks(getHtmlWithAttachmentID(htmlWithTag, reportActionID)));
 
         return (
             <View onLayout={endSendMessageVisibleSpanOnLayout}>

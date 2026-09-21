@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
+import {isAttachmentAnchor} from '@libs/ReportActionsUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import CONST from '@src/CONST';
@@ -29,8 +30,6 @@ type AnchorRendererProps = CustomRendererProps<TText | TPhrasing> & {
     key?: string;
 };
 
-const attachmentURLRegex = new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i');
-
 function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -40,9 +39,9 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const {hovered, bind} = useHover();
     // An auth token is needed to download Expensify chat attachments
     // Editing a comment round-trips its HTML through the server, which returns anchors stripped of these attributes.
-    const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || !!htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || attachmentURLRegex.test(htmlAttribs.href ?? '');
-    const tNodeChild = tnode?.domNode?.children?.at(0);
-    const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
+    const isAttachment = isAttachmentAnchor(htmlAttribs.href ?? '', !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE], !!htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE]);
+    // An edited label such as `my_file.csv` can come back wrapped in `<em>`, so the name is gathered from every text node.
+    const displayName = getTextContent(tnode);
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const internalNewExpensifyPath = getInternalNewExpensifyPath(attrHref);

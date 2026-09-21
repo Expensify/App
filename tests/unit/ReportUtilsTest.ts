@@ -210,6 +210,7 @@ import {
     reasonForReportToBeInOptionList,
     replaceLocalAttachmentReferences,
     restoreAttachmentAnchorAttributes,
+    restoreAttachmentAnchorLabels,
     requiresAttentionFromCurrentUser,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
@@ -7283,6 +7284,53 @@ describe('ReportUtils', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
             expect(replaceLocalAttachmentReferences(draft, otherActionHtml, reportActionID)).toBe(draft);
+        });
+    });
+
+    describe('restoreAttachmentAnchorLabels', () => {
+        const url = 'https://www.expensify.com/chat-attachments/123/w_abc.csv';
+
+        it('puts the literal file name back when the parser read its underscores as emphasis', () => {
+            // Given an edit whose label was parsed into emphasis tags
+            const draft = `[_n_d_m_t__ch____ng_.csv](${url})`;
+            const parsed = `<a href="${url}" target="_blank" rel="noreferrer noopener"><em>n_d_m_t</em><em>ch</em>__<em>ng</em>.csv</a>`;
+
+            // When the labels are restored from the draft
+            const restored = restoreAttachmentAnchorLabels(parsed, draft);
+
+            // Then the anchor carries the plain label again
+            expect(restored).toBe(`<a href="${url}" target="_blank" rel="noreferrer noopener">_n_d_m_t__ch____ng_.csv</a>`);
+        });
+
+        it('encodes the restored label and leaves anchors that parsed cleanly alone', () => {
+            // Given one mangled label with a character that needs encoding and one plain anchor
+            const draft = `[a<b_x_y.csv](${url})\n\n[plain.csv](https://www.expensify.com/chat-attachments/456/w_def.csv)`;
+            const parsed = `<a href="${url}">a&lt;b<em>x</em>y.csv</a><br /><br /><a href="https://www.expensify.com/chat-attachments/456/w_def.csv">plain.csv</a>`;
+
+            // When the labels are restored
+            const restored = restoreAttachmentAnchorLabels(parsed, draft);
+
+            // Then only the mangled anchor changes, and its label is HTML-encoded
+            expect(restored).toBe(`<a href="${url}">a&lt;b_x_y.csv</a><br /><br /><a href="https://www.expensify.com/chat-attachments/456/w_def.csv">plain.csv</a>`);
+        });
+        it('leaves an anchor alone when it holds an image or other markup, and ignores image references in the draft', () => {
+            // Given a linked image and an anchor holding an emoji, both parsed from a draft with underscores
+            const draft = `[![shot_1_](${url})](${url})\n\n[report_1_.csv](https://www.expensify.com/chat-attachments/456/w_def.csv)`;
+            const parsed = `<a href="${url}"><img src="${url}" alt="shot_1_" /></a><br /><br /><a href="https://www.expensify.com/chat-attachments/456/w_def.csv">report<em>1</em>.csv<emoji>😀</emoji></a>`;
+
+            // When the labels are restored
+            // Then neither anchor is rewritten
+            expect(restoreAttachmentAnchorLabels(parsed, draft)).toBe(parsed);
+        });
+
+        it('restores each reference to the same attachment with its own label, in order', () => {
+            // Given a draft that links one attachment twice under two labels
+            const draft = `[first_a_.csv](${url}) and [second_b_.csv](${url})`;
+            const parsed = `<a href="${url}">first<em>a</em>.csv</a> and <a href="${url}">second<em>b</em>.csv</a>`;
+
+            // When the labels are restored
+            // Then each anchor gets the label from its own position in the draft
+            expect(restoreAttachmentAnchorLabels(parsed, draft)).toBe(`<a href="${url}">first_a_.csv</a> and <a href="${url}">second_b_.csv</a>`);
         });
     });
 

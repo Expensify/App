@@ -180,6 +180,7 @@ import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
+    getAnchorHref,
     getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
     getIOUActionForTransactionID,
@@ -6976,7 +6977,7 @@ function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalComme
         if (!hasAttachmentAnchorAttributes(attributes)) {
             continue;
         }
-        const href = attributes.match(/href="([^"]*)"/i)?.at(1);
+        const href = getAnchorHref(attributes);
         const attachmentAttributes = attributes.match(/data-[\w-]+="[^"]*"/gi)?.join(' ');
         if (href && attachmentAttributes) {
             attachmentAttributesByHref.set(href, attachmentAttributes);
@@ -6990,9 +6991,38 @@ function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalComme
         if (hasAttachmentAnchorAttributes(attributes)) {
             return match;
         }
-        const href = attributes.match(/href="([^"]*)"/i)?.at(1);
+        const href = getAnchorHref(attributes);
         const attachmentAttributes = href ? attachmentAttributesByHref.get(href) : undefined;
         return attachmentAttributes ? `<a ${attributes} ${attachmentAttributes}>` : match;
+    });
+}
+
+const MARKDOWN_LINK_REGEX = /(!?)\[([^\]]*)\]\(([^)]*)\)/g;
+
+/**
+ * A file name such as `my_report_v2.csv` reads as markdown emphasis when the edit is parsed, which leaves the anchor
+ * with `<em>` children and no plain label to show. The draft still holds the literal label, so it is put back.
+ */
+function restoreAttachmentAnchorLabels(newCommentHtml: string, draftMarkdown: string): string {
+    if (!newCommentHtml.includes('<a ')) {
+        return newCommentHtml;
+    }
+    const labelsBySourceID = new Map<string, string[]>();
+    for (const [, imagePrefix, label, url] of draftMarkdown.matchAll(MARKDOWN_LINK_REGEX)) {
+        const sourceID = url.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1);
+        if (imagePrefix || !sourceID || !label) {
+            continue;
+        }
+        labelsBySourceID.set(sourceID, [...(labelsBySourceID.get(sourceID) ?? []), label]);
+    }
+    if (labelsBySourceID.size === 0) {
+        return newCommentHtml;
+    }
+    return newCommentHtml.replaceAll(/(<a\s[^>]*>)([\s\S]*?)(<\/a>)/gi, (match: string, openTag: string, inner: string, closeTag: string) => {
+        const sourceID = getAnchorHref(openTag)?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1);
+        const label = sourceID ? labelsBySourceID.get(sourceID)?.shift() : undefined;
+        const hasOnlyEmphasisMarkup = /<[a-z]/i.test(inner) && /^(?:[^<]|<\/?(?:em|strong)>)*$/i.test(inner);
+        return label && hasOnlyEmphasisMarkup ? `${openTag}${Str.htmlEncode(label)}${closeTag}` : match;
     });
 }
 
@@ -14739,6 +14769,7 @@ export {
     replaceLocalAttachmentReferences,
     isUploadingAttachmentRemovedFromDraft,
     restoreAttachmentAnchorAttributes,
+    restoreAttachmentAnchorLabels,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
     getUploadingAttachmentLabelFromDraft,
