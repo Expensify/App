@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
-import {getAccessiblePolicies} from '@userActions/Policy/Policy';
+import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {createJoinWorkspaceOnboardingContent, setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 
@@ -331,6 +331,12 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
     };
 
+    const retryAccessiblePoliciesLookup = () => {
+        clearGetAccessiblePoliciesErrors();
+        hasRequestedAccessiblePolicies.current = true;
+        accessiblePoliciesRequestID.current = getAccessiblePolicies();
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -384,15 +390,26 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     ) : null
                 }
                 footerContent={
-                    <Button
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        testID="onboardingWorkSpaceSkipButton"
-                        onPress={skipJoiningWorkspaces}
-                        style={[styles.mt5]}
-                        sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
-                    >
-                        <Button.Text>{translate('onboarding.skipForNow')}</Button.Text>
-                    </Button>
+                    <>
+                        {joinablePoliciesErrors ? (
+                            <Button
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                onPress={retryAccessiblePoliciesLookup}
+                                style={[styles.mt5]}
+                            >
+                                <Button.Text>{translate('common.tryAgain')}</Button.Text>
+                            </Button>
+                        ) : null}
+                        <Button
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            testID="onboardingWorkSpaceSkipButton"
+                            onPress={skipJoiningWorkspaces}
+                            style={[styles.mt5]}
+                            sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
+                        >
+                            <Button.Text>{translate('onboarding.skipForNow')}</Button.Text>
+                        </Button>
+                    </>
                 }
             />
         </ScreenWrapper>
