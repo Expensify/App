@@ -63,13 +63,11 @@ type ConfirmationFooterContentProps = {
     /** Number of expenses that will be created on confirm (drives bulk copy) */
     expensesNumber: number;
 
-    /** Optional callback to show a confirm-modal before removing an expense */
     showRemoveExpenseConfirmModal: (() => void) | undefined;
 
     /** Whether the product-training tooltip should anchor to the button */
     shouldShowProductTrainingTooltip: boolean;
 
-    /** Renders the product-training tooltip content */
     renderProductTrainingTooltip: () => React.ReactElement;
 };
 
@@ -122,12 +120,13 @@ function ConfirmationFooterContent({
         <>
             {expensesNumber > 1 && (
                 <Button
-                    large
-                    text={translate('iou.removeThisExpense')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={showRemoveExpenseConfirmModal}
                     style={styles.mb3}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_REMOVE_EXPENSE_BUTTON}
-                />
+                >
+                    <Button.Text>{translate('iou.removeThisExpense')}</Button.Text>
+                </Button>
             )}
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}

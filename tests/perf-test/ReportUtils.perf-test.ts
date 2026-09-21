@@ -37,7 +37,8 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -95,16 +96,16 @@ describe('ReportUtils', () => {
         });
 
         await waitForBatchedUpdates();
-        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, openOnAdminRoom));
+        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, undefined, openOnAdminRoom));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
         const transaction = createRandomTransaction(1);
-        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
+        const reportAction = createMock<ReportAction>({...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1, undefined));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
@@ -150,13 +151,16 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewReportActionMessage({
-                reportOrID: report,
-                iouReportAction: reportAction,
-                shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
-                isPreviewMessageForParentChatReport,
-                policy,
-            }),
+            getReportPreviewReportActionMessage(
+                {
+                    reportOrID: report,
+                    iouReportAction: reportAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
+                    isPreviewMessageForParentChatReport,
+                    policy,
+                },
+                getCurrencyDecimalsLocal,
+            ),
         );
     });
 
@@ -179,7 +183,6 @@ describe('ReportUtils', () => {
         const report = {...createRandomReport(1, undefined), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
         const currentReportId = '2';
         const isInFocusMode = true;
-        const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
@@ -188,12 +191,14 @@ describe('ReportUtils', () => {
                 chatReport,
                 currentReportId,
                 isInFocusMode,
-                betas,
+                isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
                 draftComment: undefined,
                 isReportArchived: false,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             }),
         );
     });
@@ -212,7 +217,7 @@ describe('ReportUtils', () => {
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants, [CONST.BETAS.ALL]));
+        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants, [CONST.BETAS.ALL], undefined));
     });
 
     test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {
@@ -282,7 +287,7 @@ describe('ReportUtils', () => {
             successData: [],
         };
 
-        await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdateData));
+        await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData, false, policyUpdateData));
     });
 
     test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {
@@ -301,6 +306,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, undefined));
     });
 });

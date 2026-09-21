@@ -74,6 +74,7 @@ function mapFormFieldsToRuleForOnyx(form: MerchantRuleForm, policy: Policy | und
         category: form.category || null,
         tag: form.tag || null,
         tax: buildTaxObject(form.tax, policy) ?? null,
+        vendorID: form.vendorID || null,
         comment: convertCommentToHTML(form.comment),
         reimbursable: form.reimbursable ?? null,
         billable: form.billable ?? null,
@@ -99,6 +100,9 @@ function mapFormFieldsToRuleForAPI(form: MerchantRuleForm, policy: Policy | unde
     const tax = buildTaxObject(form.tax, policy);
     if (tax) {
         rule.tax = tax;
+    }
+    if (form.vendorID) {
+        rule.vendorID = form.vendorID;
     }
     const commentHTML = convertCommentToHTML(form.comment);
     if (commentHTML) {
@@ -282,8 +286,9 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
  * @param policyID - The ID of the policy to import the rules into
  * @param rules - Coding rule values keyed by client-generated ruleID
  * @param invalidCategoryCount - Number of imported categories that don't exist on the policy, reported in the confirmation modal
+ * @param invalidVendorCount - Number of imported vendors that don't exist on the policy, reported in the confirmation modal
  */
-async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, invalidCategoryCount = 0): Promise<ImportFinalModal> {
+async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, invalidCategoryCount = 0, invalidVendorCount = 0): Promise<ImportFinalModal> {
     // The API rejects an empty rules object, so fail fast when the spreadsheet produced no importable rules
     if (Object.keys(rules).length === 0) {
         return getImportFailedFinalModal();
@@ -292,7 +297,15 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     const importFinalModal: ImportFinalModal = {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
-        promptKeyParams: {rules: Object.keys(rules).length, invalidCategories: invalidCategoryCount},
+        promptKeyParams: {count: Object.keys(rules).length},
+        ...(invalidCategoryCount > 0 && {
+            pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
+            pendingMessageKeyParams: {count: invalidCategoryCount},
+        }),
+        ...(invalidVendorCount > 0 && {
+            secondaryPendingMessageKey: 'spreadsheet.importMerchantRulesSkippedVendors',
+            secondaryPendingMessageKeyParams: {count: invalidVendorCount},
+        }),
     };
 
     const parameters: ImportMerchantRulesSpreadsheetParams = {
@@ -678,6 +691,8 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 export {
     openPolicyRulesPage,
     getAgentRuleSuggestions,
+    mapFormFieldsToRuleForOnyx,
+    mapFormFieldsToRuleForAPI,
     setPolicyCodingRule,
     importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,

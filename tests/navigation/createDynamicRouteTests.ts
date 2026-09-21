@@ -1,10 +1,9 @@
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
 
-import type {DynamicRouteSuffix} from '@src/ROUTES';
-
-jest.mock('@libs/Navigation/Navigation', () => ({
-    getActiveRoute: jest.fn(),
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/Log', () => ({
@@ -26,7 +25,7 @@ jest.mock('@src/ROUTES', () => ({
 }));
 
 describe('createDynamicRoute', () => {
-    const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+    const mockGetActiveRoute = jest.mocked(getActiveRoute);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -81,7 +80,7 @@ describe('createDynamicRoute', () => {
 
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
-        const result = createDynamicRoute(suffix as unknown as DynamicRouteSuffix);
+        const result = createDynamicRoute(suffix);
 
         expect(result).toBe(expectedPath);
     });
@@ -89,7 +88,9 @@ describe('createDynamicRoute', () => {
     it('should throw an error if the suffix is invalid', () => {
         const suffix = 'invalid-suffix';
 
-        expect(() => createDynamicRoute(suffix as unknown as DynamicRouteSuffix)).toThrow(`The route name ${suffix} is not supported in createDynamicRoute`);
+        expect(() => {
+            createDynamicRoute(suffix);
+        }).toThrow(`The route name ${suffix} is not supported in createDynamicRoute`);
         expect(mockGetActiveRoute).not.toHaveBeenCalled();
     });
 
@@ -100,7 +101,7 @@ describe('createDynamicRoute', () => {
 
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
-        const result = createDynamicRoute(suffix as unknown as DynamicRouteSuffix);
+        const result = createDynamicRoute(suffix);
 
         expect(result).toBe(expectedPath);
     });
@@ -112,7 +113,7 @@ describe('createDynamicRoute', () => {
 
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
-        const result = createDynamicRoute(suffix as unknown as DynamicRouteSuffix);
+        const result = createDynamicRoute(suffix);
 
         expect(result).toBe(expectedPath);
     });

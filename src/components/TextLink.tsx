@@ -30,13 +30,8 @@ type PressProps = {
 
 type TextLinkProps = (LinkProps | PressProps) &
     TextProps & {
-        /** Additional style props */
         style?: StyleProp<TextStyle>;
-
-        /** Callback that is called when mousedown is triggered */
         onMouseDown?: MouseEventHandler;
-
-        /** Whether to suppress the default link style */
         suppressDefaultStyle?: boolean;
     };
 

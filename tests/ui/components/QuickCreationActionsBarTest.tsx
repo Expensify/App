@@ -6,6 +6,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {openTravelDotLink} from '@libs/openTravelDotLink';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -31,6 +33,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((callback: () => void) => callback()));
+
+jest.mock('@libs/openTravelDotLink', () => ({
+    openTravelDotLink: jest.fn(),
+    shouldOpenTravelDotLinkWeb: jest.fn(() => true),
+}));
+
+const mockShowConfirmModal = jest.fn<void, [{prompt?: string}]>();
+jest.mock('@hooks/useConfirmModal', () => jest.fn().mockImplementation(() => ({showConfirmModal: mockShowConfirmModal, closeModal: jest.fn()})));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => false);
 
@@ -62,7 +72,6 @@ describe('QuickCreationActionsBar - empty report confirmation', () => {
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
                 role: CONST.POLICY.ROLE.ADMIN,
-                isPolicyExpenseChatEnabled: true,
                 pendingAction: null,
                 owner: CURRENT_USER_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
@@ -129,5 +138,83 @@ describe('QuickCreationActionsBar - empty report confirmation', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+});
+
+describe('QuickCreationActionsBar - travel', () => {
+    const TRAVEL_POLICY_ID = 'policy-travel-456';
+
+    const seedTravelWorkspaces = async (defaultPolicyID: string, isTravelWorkspaceProvisioned = true) => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: CURRENT_USER_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, {
+                id: MOCK_POLICY_ID,
+                name: 'Workspace Without Travel',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                pendingAction: null,
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TRAVEL_POLICY_ID}`, {
+                id: TRAVEL_POLICY_ID,
+                name: 'Travel Workspace',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+                pendingAction: null,
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isTravelEnabled: true,
+                travelSettings: isTravelWorkspaceProvisioned
+                    ? {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true}
+                    : undefined,
+            });
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, defaultPolicyID);
+        });
+        await waitForBatchedUpdatesWithAct();
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('blocks opening travel when the default workspace has no travel', async () => {
+        await seedTravelWorkspaces(MOCK_POLICY_ID);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(openTravelDotLink).not.toHaveBeenCalled();
+        expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain('default workspace');
+    });
+
+    it('opens travel when the travel-enabled workspace is the default one', async () => {
+        await seedTravelWorkspaces(TRAVEL_POLICY_ID);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
+    });
+
+    it('does not show travel for a workspace that is not provisioned and has a stale enabled flag', async () => {
+        await seedTravelWorkspaces(TRAVEL_POLICY_ID, false);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(translateLocal('workspace.common.travel'))).toBeNull();
     });
 });

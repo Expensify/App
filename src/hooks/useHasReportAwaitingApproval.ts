@@ -20,10 +20,11 @@ import {useOnyx} from 'react-native-onyx';
  */
 function useHasReportAwaitingApproval(shouldWatchForApprovals = true): boolean {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Holds the last computed result so a frozen (inactive) consumer can keep returning it without recomputing.
     const [frozen, setFrozen] = useState<boolean | null>(null);
@@ -45,6 +46,8 @@ function useHasReportAwaitingApproval(shouldWatchForApprovals = true): boolean {
         bankAccountList: undefined,
         currentUserAccountID,
         login: '',
+        areTransactionsLoaded: transactionsMetadata.status === 'loaded',
+        rules,
     });
     const hasReportAwaitingApproval = reports.length > 0;
 

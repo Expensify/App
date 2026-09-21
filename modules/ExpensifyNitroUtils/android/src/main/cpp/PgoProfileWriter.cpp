@@ -25,10 +25,8 @@ bool writeProfile(void *handle, const std::string &profilePath) {
     setFilename(profilePath.c_str());
     return writeFile() == 0;
 }
-} // namespace
 
-extern "C" JNIEXPORT jint JNICALL
-Java_org_me_mobiexpensifyg_PgoProfileWriter_writeProfiles(JNIEnv *env, jclass, jstring directory) {
+jint writeProfiles(JNIEnv *env, jstring directory) {
     const char *directoryChars = env->GetStringUTFChars(directory, nullptr);
     if (directoryChars == nullptr) {
         return 0;
@@ -51,4 +49,15 @@ Java_org_me_mobiexpensifyg_PgoProfileWriter_writeProfiles(JNIEnv *env, jclass, j
     }
 
     return writtenProfiles;
+}
+} // namespace
+
+extern "C" JNIEXPORT jint JNICALL
+Java_org_me_mobiexpensifyg_PgoProfileWriter_writeProfiles(JNIEnv *env, jclass, jstring directory) {
+    return writeProfiles(env, directory);
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_expensify_chat_PgoProfileWriter_writeProfiles(JNIEnv *env, jclass, jstring directory) {
+    return writeProfiles(env, directory);
 }

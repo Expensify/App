@@ -28,19 +28,10 @@ type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
     label?: string;
 
-    /** The current date values */
     value: SearchDateValues;
-
-    /** The date presets */
     presets?: SearchDatePreset[];
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
-
-    /** Function to call when changes are applied */
     onChange: (value: SearchDateValues) => void;
-
-    /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
 
     /** Function to set the popover width dynamically */
@@ -51,7 +42,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
@@ -59,11 +50,17 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeText, setRangeText] = useState(() =>
-        getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
+        getDateRangeDisplayValueFromFormValue(dateFnsLocale, value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
     const syncedRangeText = useMemo(
-        () => getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
-        [value],
+        () =>
+            getDateRangeDisplayValueFromFormValue(
+                dateFnsLocale,
+                value[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                value[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                value[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+            ),
+        [value, dateFnsLocale],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
     const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);

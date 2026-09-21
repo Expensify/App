@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 import type * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMockScreenNavigation from '../utils/createMockScreenNavigation';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -187,6 +188,8 @@ const DEFAULT_TIME_TRANSACTION: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
 };
 
+const {navigation: mockNavigation} = createMockScreenNavigation();
+
 function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
     return render(
         <OnyxListItemProvider>
@@ -205,8 +208,7 @@ function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
                                         reportID: POLICY_CHAT_REPORT_ID,
                                     },
                                 }}
-                                // @ts-expect-error we don't need navigation param here
-                                navigation={undefined}
+                                navigation={mockNavigation}
                             />
                         </CurrencyListContextProvider>
                     </LocaleContextProvider>
@@ -262,7 +264,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const hoursRow = screen.getByTestId('menu-item-Hours');
+            const hoursRow = screen.getByRole('button', {name: /^Hours/});
             expect(within(hoursRow).getByText('8')).toBeDefined();
         });
 
@@ -272,7 +274,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const rateRow = screen.getByTestId('menu-item-Rate');
+            const rateRow = screen.getByRole('button', {name: /^Rate/});
             expect(within(rateRow).getByText(/\$50\.00 \/ hour/)).toBeDefined();
         });
 
@@ -332,8 +334,8 @@ describe('TimeExpenseConfirmationTest', () => {
             }
 
             // Hours and Rate are only shown during CREATE
-            expect(screen.queryByTestId('menu-item-Hours')).toBeNull();
-            expect(screen.queryByTestId('menu-item-Rate')).toBeNull();
+            expect(screen.queryByRole('button', {name: /^Hours/})).toBeNull();
+            expect(screen.queryByRole('button', {name: /^Rate/})).toBeNull();
         });
     });
 
@@ -354,7 +356,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const rateRow = screen.getByTestId('menu-item-Rate');
+            const rateRow = screen.getByRole('button', {name: /^Rate/});
             expect(within(rateRow).getByText(/€50\.00 \/ hour/)).toBeDefined();
         });
     });
@@ -384,8 +386,11 @@ describe('TimeExpenseConfirmationTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(requestMoney).toHaveBeenCalled();
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            const callArgs = (requestMoney as jest.Mock).mock.calls.at(0)?.[0] as {transactionParams: {taxCode: string; taxAmount: number}};
+            const firstRequestMoneyCall = jest.mocked(requestMoney).mock.calls.at(0);
+            if (!firstRequestMoneyCall) {
+                throw new Error('Expected requestMoney to have been called');
+            }
+            const [callArgs] = firstRequestMoneyCall;
             expect(callArgs.transactionParams.taxCode).toBe('');
             expect(callArgs.transactionParams.taxAmount).toBe(0);
         });

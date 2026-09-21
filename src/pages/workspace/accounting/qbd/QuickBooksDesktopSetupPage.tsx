@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,12 +14,12 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {setConnectionError} from '@userActions/connections';
 import {getQuickbooksDesktopCodatSetupLink} from '@userActions/connections/QuickbooksDesktop';
@@ -37,6 +37,8 @@ type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavig
 function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {environmentURL} = useEnvironment();
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync']);
     const policyID: string = route.params.policyID;
@@ -63,7 +65,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     useEffect(() => {
         // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
-        enablePolicyTaxes(policyID, false);
+        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled);
 
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
@@ -80,11 +82,6 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     });
 
     const shouldShowError = hasError;
-
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'RequireQuickBooksDesktopModal',
-        hasResultOfFetchingSetupLink,
-    };
 
     const navigateToFirstSync = () => {
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID));
@@ -115,7 +112,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                     <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                     <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                         {!hasResultOfFetchingSetupLink ? (
-                            <ActivityIndicator reasonAttributes={activityReasonAttributes} />
+                            <ActivityIndicator />
                         ) : (
                             <CopyTextToClipboard
                                 text={codatSetupLink}

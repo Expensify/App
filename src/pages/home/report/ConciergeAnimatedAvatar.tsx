@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 
@@ -34,9 +34,9 @@ function ConciergeAnimatedAvatar() {
                 transparent placeholder until it loads, so the static image fills the grey gap and the animation
                 paints over it once it starts. */}
             <View style={styles.pAbsolute}>
-                <Avatar
+                <UserAvatar
                     source={CONST.CONCIERGE_ICON_URL}
-                    type={CONST.ICON_TYPE_AVATAR}
+                    accountID={CONST.ACCOUNT_ID.CONCIERGE}
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />
             </View>

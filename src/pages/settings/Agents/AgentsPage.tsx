@@ -1,6 +1,7 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -14,12 +15,11 @@ import useChatWithAgent from '@hooks/useChatWithAgent';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
@@ -32,8 +32,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent, openAgentsPage} from '@userActions/Agent';
 
@@ -52,12 +50,9 @@ function AgentsPage() {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
-    const {isBetaEnabled} = usePermissions();
-    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
@@ -70,11 +65,8 @@ function AgentsPage() {
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
     useEffect(() => {
-        if (!isCustomAgentEnabled) {
-            return;
-        }
         openAgentsPage();
-    }, [isCustomAgentEnabled]);
+    }, []);
 
     const handleErrorClose = (pendingAction: PendingAction | null | undefined, accountID: number) => {
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
@@ -141,7 +133,11 @@ function AgentsPage() {
         const tableAgents = tableRef.current?.getProcessedData() ?? [];
         const newAgentIndex = tableAgents.findIndex((agent) => newAgentKeys.includes(agent.keyForList));
         if (newAgentIndex !== -1) {
-            tableRef.current?.scrollToIndex({index: newAgentIndex, animated: false});
+            tableRef.current?.scrollToIndex({
+                index: newAgentIndex,
+                animated: false,
+                viewPosition: 0.5,
+            });
         }
         tableRef.current?.highlightItems(newAgentKeys);
     }, [agentKeys, prevAgentKeys]);
@@ -183,7 +179,7 @@ function AgentsPage() {
             prompt: translate('agentsPage.deleteAgentsMessage', {count: selectedAgentKeys.length}),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
 
@@ -199,6 +195,7 @@ function AgentsPage() {
             text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
             value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
             icon: icons.Trashcan,
+            shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
         },
     ];
@@ -233,9 +230,16 @@ function AgentsPage() {
         newAgentButton
     );
 
-    if (!isCustomAgentEnabled) {
-        return <NotFoundPage />;
-    }
+    const agentsTableHeaderComponent = (
+        <>
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
+            {hasAgents && (
+                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+                    <RenderHTML html={translate('agentsPage.subtitle')} />
+                </View>
+            )}
+        </>
+    );
 
     return (
         <ScreenWrapper
@@ -246,33 +250,29 @@ function AgentsPage() {
             shouldMobileOfflineIndicatorStickToBottom={false}
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
-                icon={!selectionModeHeader ? illustrations.AiBot : undefined}
-                onBackButtonPress={() => {
-                    if (isMobileSelectionModeEnabled) {
-                        clearSelectedAgents();
-                        turnOffMobileSelectionMode();
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader={!selectionModeHeader}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
-            >
-                {!shouldDisplayButtonsInSeparateLine && headerButtons}
-            </HeaderWithBackButton>
-            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
-            {hasAgents && (
-                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                    <RenderHTML html={translate('agentsPage.subtitle')} />
-                </View>
-            )}
+            <CollapsibleHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    onBackButtonPress={() => {
+                        if (isMobileSelectionModeEnabled) {
+                            clearSelectedAgents();
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
+                >
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                </HeaderWithBackButton>
+            </CollapsibleHeaderOnKeyboard>
             <AgentsTable
                 ref={tableRef}
                 agents={agents}
+                headerComponent={agentsTableHeaderComponent}
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}

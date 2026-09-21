@@ -145,7 +145,8 @@ describe('isReportMessageAttachment', () => {
     it('returns false for undefined or empty message', () => {
         expect(isReportMessageAttachment(undefined)).toBe(false);
         expect(isReportMessageAttachment({text: '', html: '', type: ''})).toBe(false);
-        expect(isReportMessageAttachment({text: 'x', html: undefined as unknown as string, type: ''})).toBe(false);
+        // This scenario verifies the runtime guard against legacy or malformed input with explicitly undefined HTML.
+        expect(isReportMessageAttachment({text: 'x', html: undefined, type: ''})).toBe(false);
     });
 
     it('falls through when translationKey is set but is not the attachment key', () => {

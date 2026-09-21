@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {ConnectPolicyToAccountingIntegrationParams, UpdateXeroGenericTypeParams} from '@libs/API/parameters';
+import type {UpdateXeroGenericTypeParams} from '@libs/API/parameters';
 import type UpdateXeroAccountingMethodParams from '@libs/API/parameters/UpdateXeroAccountingMethodParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -19,9 +19,9 @@ import isObject from 'lodash/isObject';
 import Onyx from 'react-native-onyx';
 
 const getXeroSetupLink = (policyID: string) => {
-    const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
+    const params = new URLSearchParams({policyID});
     const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_XERO, shouldSkipWebProxy: true});
-    return commandURL + new URLSearchParams(params).toString();
+    return commandURL + params.toString();
 };
 
 const getTrackingCategories = (policy: OnyxEntry<OnyxTypes.Policy>): Array<XeroTrackingCategory & {value: string}> => {
@@ -500,14 +500,14 @@ function updateXeroExportNonReimbursableAccount(
     API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
-function updateXeroTravelInvoicingPayableAccount(policyID: string, settingValue: string, oldSettingValue?: string) {
-    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
+function updateXeroTravelBillingPayableAccount(policyID: string, settingValue: string, oldSettingValue?: string) {
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue,
-        idempotencyKey: String(CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+        idempotencyKey: String(CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT),
     };
-    API.write(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
 function updateXeroSyncInvoiceCollectionsAccountID(
@@ -545,6 +545,22 @@ function updateXeroSyncReimbursementAccountID(
     const {optimisticData, failureData, successData} = prepareXeroSyncOptimisticData(policyID, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID, reimbursementAccountID, oldReimbursementAccountID);
 
     API.write(WRITE_COMMANDS.UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroFxExpenseAccount(policyID: string | undefined, settingValue: string, oldSettingValue?: string) {
+    if (!policyID || settingValue === oldSettingValue) {
+        return;
+    }
+
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT, settingValue, oldSettingValue);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_FX_EXPENSE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
 function updateXeroSyncSyncReimbursedReports(
@@ -601,8 +617,9 @@ export {
     updateXeroExportExporter,
     updateXeroExportBillDate,
     updateXeroExportNonReimbursableAccount,
-    updateXeroTravelInvoicingPayableAccount,
+    updateXeroTravelBillingPayableAccount,
     updateXeroSyncInvoiceCollectionsAccountID,
     updateXeroSyncSyncReimbursedReports,
     updateXeroSyncReimbursementAccountID,
+    updateXeroFxExpenseAccount,
 };

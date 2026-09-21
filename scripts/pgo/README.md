@@ -1,169 +1,151 @@
-# Local PGO proof
+# Native profile-guided optimization
 
-This is an experimental, local-only LLVM PGO workflow for Android and iOS. The TypeScript tool shares the build, profile, merge, and benchmark orchestration while each platform adapter handles its native build system and physical-device tooling. It builds React Native, Hermes, Nitro modules, and other source-based native dependencies from source so they can participate in PGO. Precompiled vendored frameworks cannot be instrumented retroactively.
+This directory contains the local LLVM PGO workflow for Android and iOS. The `pgo.ts` command builds release, instrumented, and profile-optimized apps, retrieves native profiles, merges them, and compares startup performance. On Android, the current flags cover source-built React Native, Hermes, and ExpensifyNitroUtils libraries. On iOS, the workflow forces React Native and Hermes source builds and instruments the app and source-based CocoaPods targets. Precompiled frameworks do not participate.
 
-The workflow does not publish artifacts. It uses the existing NewDot `APP_READY` point immediately after the `ManualAppStartup` Sentry span ends as both the profile boundary and startup benchmark marker.
+The command enables the existing `ManualAppStartup` benchmark span in every app it builds. Profile collection waits for that span to finish, then explicitly writes the LLVM counters before the app process is stopped. Benchmarking uses the same native span tooling as the repository's general startup benchmark.
+
+## Prepare local release identifiers
+
+Bootstrap the release projects once so the apps can be installed beside other Expensify builds:
+
+```bash
+scripts/bootstrapForDevice.ts --build-variants release --identifier-suffix pgo
+```
+
+For Christoph Pader's local identifiers, this produces:
+
+| Platform | Identifier |
+| --- | --- |
+| Android | `com.chrispader.expensify.pgo` |
+| iOS | `com.chrispader.expensify.expensifylite.pgo` |
+
+The PGO command reads the Android release application ID from `Mobile-Expensify/Android/build.gradle` and the iOS bundle identifier from the archived app. Pass `--app-id` to override either value.
 
 ## Preconditions
 
-- A physical arm64 Android or iOS device. Simulators are not suitable for collecting a production-device PGO profile.
-- For Android, `ANDROID_NDK_HOME` points at NDK `27.1.12297006`, the version pinned in `Mobile-Expensify/Android/build.gradle`.
-- For iOS, Xcode command-line tools, a connected and unlocked device, and locally valid Apple Development signing settings for the app and its remaining extensions. The tool respects the project development team by default; override it with `IOS_DEVELOPMENT_TEAM`. Select a device with `--device`; `IOS_DEVICE_ID` remains available as an environment fallback. It reads the locally signed bundle identifier from the archived `.app`; `IOS_BUNDLE_IDENTIFIER` is available as an explicit override.
-- A signed-in, seeded test account and the agreed manual NewDot journey.
-- Dependencies have had the repository's patches applied.
+- Prefer physical arm64 Android and iOS devices for final profile collection and measurements. An Android emulator running the same ABI and instrumented native build can provide useful counts, but emulator-only behavior can bias the workload. An iOS simulator builds for a different platform, so do not reuse its native profiles for a device build.
+- Android requires the NDK version pinned in `Mobile-Expensify/Android/build.gradle`. Set `ANDROID_NDK_HOME` if it is not installed in the default SDK directory.
+- iOS requires Xcode command-line tools, an unlocked device, and valid local Apple Development signing for the app and its extensions. Select a team with `IOS_DEVELOPMENT_TEAM` when automatic discovery is insufficient.
+- Install dependencies and apply the repository patches before building.
+- Seed a test account and data set before recording an interactive profile.
 
-Every command starts with a platform:
-
-```bash
-scripts/pgo/local-proof.ts android --help
-scripts/pgo/local-proof.ts ios --help
-```
-
-## Collect one profile
-
-1. Build and install the instrumented application:
-
-   ```bash
-   scripts/pgo/local-proof.ts android build-instrumented
-   scripts/pgo/local-proof.ts android install-instrumented
-   ```
-
-2. Run the manual authenticated journey once: open and scroll chats, send a message, visit and modify reversible workspace settings, attach an image and document, view attachments, then use search.
-3. Persist the counters before force-stopping the application:
-
-   ```bash
-   scripts/pgo/local-proof.ts android dump
-   scripts/pgo/local-proof.ts android pull
-   scripts/pgo/local-proof.ts android merge
-   ```
-
-   Profiles are written to the app's external cache so they can be retrieved from a non-debuggable release APK with `adb pull`.
-
-4. Build the matched optimized application:
-
-   ```bash
-   scripts/pgo/local-proof.ts android build-optimized
-   ```
-
-   The script archives all release outputs under `.pgo/android/arm64-v8a/apk/`: `Expensify-release.apk`, `Expensify-release-instrumented.apk`, and `Expensify-release-optimized.apk`. This keeps them safe when Gradle replaces the contents of its release output directory. The install and benchmark commands use these archived APKs. All builds use the release application ID and are installed consecutively. Install the optimized APK with:
-
-   ```bash
-   scripts/pgo/local-proof.ts android install-optimized
-   ```
-
-### Collect a startup-focused profile
-
-To replace the manual journey with ten cold-process startup runs, then pull and merge the accumulated profiles automatically, run:
+Every command starts with a platform and a workflow:
 
 ```bash
-scripts/pgo/local-proof.ts android record-startups
+scripts/pgo/pgo.ts android --help
+scripts/pgo/pgo.ts ios --help
 ```
 
-The optional arguments set the number of runs and the timeout for NewDot's native app-ready signal respectively:
+## Collect a startup profile
+
+Build, verify, and install the instrumented app:
 
 ```bash
-scripts/pgo/local-proof.ts android record-startups 10 30
+scripts/pgo/pgo.ts android build-instrumented
+scripts/pgo/pgo.ts android verify-instrumented
+scripts/pgo/pgo.ts android install-instrumented
 ```
 
-The command clears only existing `newdot-*.profraw` files on the device before the first run. It clears Logcat before each launch, waits for `NewDotStartup: APP_READY`, and fails rather than recording an incomplete startup if the marker does not appear before the timeout. LLVM's `%m` filename pattern merges each process into the same per-library raw profiles. Each process is dumped exactly once, and the final host-side `merge` converts those raw profiles into `.pgo/android/arm64-v8a/newdot.profdata`.
-
-The metrics build calls Android's `reportFullyDrawn()` and emits the machine-readable `NewDotStartup: APP_READY durationMs=<milliseconds>` native marker from `Expensify.tsx`'s `onSplashHide`, immediately after the `ManualAppStartup` Sentry span ends and after the splash exit animation and startup gates have completed. The duration starts at the same native timestamp used by the Sentry span.
-
-## Benchmark startup
-
-Build the PGO-optimized APK and then the release APK from the same source revision, compiler, NDK, and ABI. Every mode uses Gradle's normal release output path, then the tool copies it into `.pgo/android/arm64-v8a/apk/`. The currently built APK remains in Gradle's release directory:
+Record ten cold-process startups, retrieve the raw profiles, and merge them:
 
 ```bash
-scripts/pgo/local-proof.ts android build-optimized
-scripts/pgo/local-proof.ts android build-release
+scripts/pgo/pgo.ts android record-startups
 ```
 
-Collect each benchmark independently. Each command installs its APK without clearing application data, performs one unmeasured warm-up, then records ten cold-process startup samples by default:
+The optional positional arguments set the run count and span timeout:
 
 ```bash
-scripts/pgo/local-proof.ts android benchmark-release
-scripts/pgo/local-proof.ts android benchmark-optimized
+scripts/pgo/pgo.ts android record-startups 20 45
 ```
 
-The optional arguments select the measured run count and app-ready timeout:
+The command removes only old `newdot-*.profraw` files before collection. It requires `ManualAppStartup` to complete on every run and flushes the native counters after each successful run. A missing span fails the collection instead of adding a partial startup. The merged profile is written to `.pgo/android/arm64-v8a/newdot.profdata` or `.pgo/ios/arm64/newdot.profdata`.
+
+The iOS workflow uses the same commands:
 
 ```bash
-scripts/pgo/local-proof.ts android benchmark-release 20 30
-scripts/pgo/local-proof.ts android benchmark-optimized 20 30
+scripts/pgo/pgo.ts ios build-instrumented
+scripts/pgo/pgo.ts ios verify-instrumented
+scripts/pgo/pgo.ts ios install-instrumented
+scripts/pgo/pgo.ts ios record-startups
 ```
 
-Compare previously collected samples:
+The app must remain in the foreground until each profile write completes. Force-terminating an iOS app is not a reliable profile flush.
+
+## Collect an interactive profile
+
+For a broader profile, install the instrumented app, perform the agreed journey, and write the counters while the app is still running:
 
 ```bash
-scripts/pgo/local-proof.ts android compare-benchmarks
+scripts/pgo/pgo.ts android dump
+scripts/pgo/pgo.ts android pull
+scripts/pgo/pgo.ts android merge
 ```
 
-Or install and benchmark the archived release APK first, then install and benchmark the archived optimized APK, and compare them in one command:
+Use the equivalent `ios` commands on iOS. A representative journey should exercise the common signed-in path: open and scroll chats, send a message, visit a workspace setting, attach and view a file, and run a search. Keep account state, data size, and network conditions stable between collections.
+
+## Build and benchmark the optimized app
+
+Build the optimized app only after recording a fresh profile. Build the baseline release from the same source revision and toolchain:
 
 ```bash
-scripts/pgo/local-proof.ts android benchmark 10 30
+scripts/pgo/pgo.ts android build-optimized
+scripts/pgo/pgo.ts android build-release
+scripts/pgo/pgo.ts android benchmark 20 45
 ```
 
-Select a specific connected device for install or benchmark commands with `--device`. Use an adb serial for Android and any identifier accepted by CoreDevice for iOS, such as a CoreDevice identifier, UDID, serial number, or device name:
+The benchmark installs the archived baseline, runs one warm-up and the requested `ManualAppStartup` samples, then repeats the process with the optimized app. Both builds use the same application identifier, so installing the second artifact preserves the seeded account and data. Results are stored under `.pgo/<platform>/benchmarks/` in the repository benchmark CSV format.
+
+The stages can also run independently:
 
 ```bash
-scripts/pgo/local-proof.ts --device emulator-5554 android install-optimized
-scripts/pgo/local-proof.ts --device emulator-5554 android benchmark 10 30
-scripts/pgo/local-proof.ts --device Chris14Pro ios install-optimized
-scripts/pgo/local-proof.ts --device Chris14Pro ios benchmark 10 30
-scripts/pgo/local-proof.ts --device "Chris14Pro (26.6) (00008120-00065D541E3B401E)" ios benchmark 10 30
+scripts/pgo/pgo.ts android benchmark-release 20 45
+scripts/pgo/pgo.ts android benchmark-optimized 20 45
+scripts/pgo/pgo.ts android compare-benchmarks
 ```
 
-Quote selectors containing spaces or parentheses. The iOS resolver accepts either the plain device name or the complete physical-device entry printed under `== Devices ==` by `xcrun xctrace list devices`; it does not select entries from the simulator section.
-
-Raw samples are stored in `.pgo/android/benchmarks/release.csv` and `.pgo/android/benchmarks/pgo-optimized.csv`. The comparison reports the average, P50, P75, P90, P95, P99, minimum, maximum, and percentage improvements. Percentiles use linear interpolation, and positive improvement percentages mean the optimized build was faster.
-
-The `.pgo/` directory is intentionally local-only. Never apply this profile to another ABI, build mode, NDK version, or substantially different source revision. A production-release comparison additionally needs the repository's R8/SafetyNet dependency issue fixed; this local proof deliberately does not change that unrelated configuration.
-
-## Compare
-
-Install the release and optimized APKs consecutively. For each build, exclude the first post-install run, force-stop before every subsequent run, and record ten repetitions of the same journey with `am start -W` and Perfetto. Keep attachment-upload latency diagnostic only; use cold start and local interaction/frame timing as the primary decision metrics.
-
-## iOS workflow
-
-The iOS commands mirror Android:
+Select a device or override an identifier when discovery is ambiguous:
 
 ```bash
-scripts/pgo/local-proof.ts ios build-instrumented
-scripts/pgo/local-proof.ts ios verify-instrumented
-scripts/pgo/local-proof.ts ios install-instrumented
-scripts/pgo/local-proof.ts ios record-startups 10 30
-scripts/pgo/local-proof.ts ios build-optimized
-scripts/pgo/local-proof.ts ios build-release
-scripts/pgo/local-proof.ts ios benchmark 10 30
+scripts/pgo/pgo.ts android benchmark 20 45 --device DEVICE_SERIAL --app-id com.chrispader.expensify.pgo
+scripts/pgo/pgo.ts ios benchmark 20 45 --device Chris14Pro --app-id com.chrispader.expensify.expensifylite.pgo
 ```
 
-`record-startups` launches the installed instrumented app, clears old counters, performs the requested cold-process startups, explicitly flushes LLVM counters after every `APP_READY`, copies the raw profiles from the app data container, and merges them into `.pgo/ios/arm64/newdot.profdata`. The app must remain in the foreground until each dump completes; force-terminating an iOS app is not a reliable profile-flush mechanism.
+Release, instrumented, and optimized artifacts are archived under `.pgo/android/arm64-v8a/apk/` and `.pgo/ios/arm64/app/`. Do not apply a profile to another architecture, compiler, source revision, dependency graph, or build configuration.
 
-For a broader manual profile, use the same instrumented build, perform the agreed authenticated NewDot journey, and then run:
+## What to collect
 
-```bash
-scripts/pgo/local-proof.ts ios dump
-scripts/pgo/local-proof.ts ios pull
-scripts/pgo/local-proof.ts ios merge
-scripts/pgo/local-proof.ts ios build-optimized
-```
+A startup-only profile is useful, but it tends to overfit initialization and can make post-startup code colder. For startup and overall app performance, use a mixed profile with measured weights:
 
-The iOS adapter uses an arm64 Release device build with local development signing. It forces React Native core, React Native dependencies, and Hermes to build from source. Xcode-level Clang frontend instrumentation and Swift IR instrumentation cover app and source-based CocoaPods targets; a React Native patch forwards the matching flags into Hermes' nested CMake build. Release, instrumented, and optimized `.app` bundles are archived under `.pgo/ios/arm64/app/` and benchmarks under `.pgo/ios/benchmarks/`.
+1. Record a fixed startup suite across the important states, such as a signed-out launch, a signed-in inbox launch, and a launch with a realistically large local data set.
+2. Record a small set of common interactive journeys. Prefer bounded flows with deterministic seeded data and an explicit success signal.
+3. Keep the raw output for each scenario separate. A longer scenario generates more counter volume than a short one, so equal repetition does not give scenarios equal influence.
+4. Keep a separate benchmark suite that does not contribute to the training profile. This catches overfitting.
 
-The source-build preparation also validates the source roots CocoaPods needs for Hermes, `libdav1d`, and `libwebp`. If an existing generated checkout is incomplete, the tool removes only that Pod directory and lets the locked `pod install` restore it before compiling. This prevents missing private-header failures caused by a partially materialized CocoaPods sandbox.
+The current `record-startups` command accumulates and merges the startup runs automatically. For a mixed CI profile, preserve each scenario's output independently, convert it to its own indexed profile, then combine the scenario profiles with `llvm-profdata merge --weighted-input`. Choose weights from measured production flow frequency and performance impact, not from a default startup-to-interaction ratio. A giant tour of every feature is less useful than a stable suite that reflects real traffic.
 
-If signing is temporarily unavailable, `IOS_CODE_SIGNING_ALLOWED=NO scripts/pgo/local-proof.ts ios build-instrumented` builds an unsigned device artifact for compilation and instrumentation verification only. Unsigned apps cannot be installed, profiled, or benchmarked; the connected device and all app-extension bundle identifiers must be covered by valid development provisioning profiles for the complete workflow.
+## A realistic CI design
 
-The three-stage procedure is the same on both platforms, but the mechanics differ:
+Run profile generation as a scheduled or release-candidate job, not on every pull request. Use pinned self-hosted runners or a device farm, preferably with physical arm64 devices, the production compiler versions, stable thermal and power conditions, a seeded account, and deterministic local fixtures where possible. Build one instrumented artifact per platform, run the fixed startup and interaction suites against that exact artifact, flush after every successful scenario, merge the separate outputs with documented weights, then build the optimized artifact without changing the checkout or toolchain.
 
-| Stage | Android | iOS |
-| --- | --- | --- |
-| Build | Gradle/NDK | CocoaPods + `xcodebuild` |
-| Instrument | Clang `-fprofile-generate` | Clang `-fprofile-instr-generate`, Swift `-ir-profile-generate` |
-| Flush | Android broadcast/JNI | Darwin notification/native LLVM runtime |
-| Retrieve | `adb pull` from external cache | CoreDevice copy from the app data container |
-| Merge | NDK `llvm-profdata` | Xcode `llvm-profdata` |
-| Consume | Clang `-fprofile-use` | Clang `-fprofile-instr-use`, Swift `-ir-profile-use` |
+Benchmark both variants on the same device after a cooldown, discard post-install warm-ups, and retain raw samples. The `benchmark` workflow runs all baseline samples before all optimized samples, so thermal or time-dependent drift can bias the comparison. The two archived builds intentionally share an identifier to preserve app data, which prevents side-by-side alternation. CI can reduce drift with ABBA install blocks that preserve the shared identifier and discard each post-install warm-up. Another option is to give the builds distinct identifiers, seed matched state, and use the repository's alternating startup benchmark. Evaluate both startup and held-out interactive journeys that were excluded from training. Gate on several releases of data rather than a single noisy run.
 
-Profiles are tied to the exact compiler, architecture, source, dependencies, and build configuration that produced them. Rebuild all three app variants from the same revision and Xcode version, do not reuse an Android profile on iOS, and regenerate the iOS profile after meaningful native-source or toolchain changes. The release and optimized benchmarks preserve app data and use the same bundle identifier so the authenticated state and data set remain comparable.
+Hosted CI is usually insufficient for the complete workflow because hosted runners rarely expose stable physical devices. Android emulators can validate automation and may contribute useful same-ABI counts when the workload is representative, but final validation should use target devices. iOS device collection also needs signing and physical-device access. A small self-hosted device pool or managed device farm is the realistic route to automation.
+
+## Limitations
+
+- LLVM PGO improves compiled native code. It can optimize a source-built Hermes engine, but it does not directly reorder JavaScript or replace JavaScript startup analysis.
+- Precompiled vendored frameworks cannot be instrumented after the fact.
+- Profiles become stale after native source, dependency, compiler, SDK, ABI, or important build-setting changes. Regenerate them instead of accepting out-of-date warnings.
+- Instrumented builds have overhead. Never use them as the performance baseline.
+- Local bootstrap settings disable Android minification so synthetic identifiers and debug signing work. A production decision still needs a production-like, minified CI build with the repository's signing and dependency issues resolved.
+- Device temperature, battery state, background work, network variability, and test-account drift can overwhelm small gains. Preserve raw samples and use enough repetitions.
+- A profile is only as good as its workload. Narrow startup training can regress later interactions, while an unweighted feature tour can dilute hot production paths.
+
+Android Baseline Profiles are a separate, complementary input to ART compilation of Java and Kotlin. Android Startup Profiles are the related mechanism for DEX layout. Neither replaces this LLVM profile for C, C++, and Swift code.
+
+## References
+
+- [Android NDK profile-guided optimization](https://developer.android.com/ndk/guides/pgo)
+- [Clang profile-guided optimization](https://clang.llvm.org/docs/UsersManual.html#profile-guided-optimization)
+- [`llvm-profdata` weighted inputs](https://llvm.org/docs/CommandGuide/llvm-profdata.html#cmdoption-llvm-profdata-merge-weighted-input)
+- [Android Baseline Profiles](https://developer.android.com/topic/performance/baselineprofiles/overview)

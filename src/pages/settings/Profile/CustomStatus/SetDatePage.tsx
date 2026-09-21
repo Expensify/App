@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getDatePassedError, getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import {updateStatusDraftCustomClearAfterDate} from '@userActions/User';
@@ -53,13 +52,9 @@ function SetDatePage() {
     );
 
     const isLoadingStatusDraft = isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SetDatePage',
-        isLoadingStatusDraft,
-    };
 
     if (isLoadingStatusDraft) {
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

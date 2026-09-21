@@ -18,6 +18,7 @@ import {
     renamePolicyTag,
     renamePolicyTagList,
     setPolicyRequiresTag,
+    setPolicyShowTagGLCodes,
     setPolicyTagApprover,
     setPolicyTagGLCode,
     setPolicyTagsRequired,
@@ -49,8 +50,8 @@ describe('actions/Policy', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -64,7 +65,7 @@ describe('actions/Policy', () => {
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-                    setPolicyRequiresTag(policyData.current, true);
+                    setPolicyRequiresTag(policyData.current, true, false);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -110,7 +111,7 @@ describe('actions/Policy', () => {
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-                    setPolicyRequiresTag(policyData.current, false);
+                    setPolicyRequiresTag(policyData.current, false, false);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -157,7 +158,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-                    setPolicyRequiresTag(policyData.current, false);
+                    setPolicyRequiresTag(policyData.current, false, false);
                     return waitForBatchedUpdates();
                 })
 
@@ -190,7 +191,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            setPolicyRequiresTag(policyData.current, true);
+            setPolicyRequiresTag(policyData.current, true, false);
             await waitForBatchedUpdates();
 
             let updatePolicyTags: PolicyTagLists | undefined;
@@ -201,6 +202,83 @@ describe('actions/Policy', () => {
             });
 
             expect(updatePolicyTags?.[tagListName]?.required).toBeTruthy();
+        });
+    });
+
+    describe('SetPolicyShowTagGLCodes', () => {
+        it('enable show tag GL codes', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.showTagGLCodes = false;
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    setPolicyShowTagGLCodes(fakePolicy.id, true, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+
+                                    expect(policy?.showTagGLCodes).toBeTruthy();
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBeFalsy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+
+        it('reset show tag GL codes when api returns an error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.showTagGLCodes = true;
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    mockFetch?.fail?.();
+                    setPolicyShowTagGLCodes(fakePolicy.id, false, true);
+                    return waitForBatchedUpdates();
+                })
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBeFalsy();
+                                    expect(policy?.errorFields?.showTagGLCodes).toBeTruthy();
+                                    expect(policy?.showTagGLCodes).toBeTruthy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 
@@ -301,6 +379,7 @@ describe('actions/Policy', () => {
 
             // When creating a new tag
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -356,6 +435,7 @@ describe('actions/Policy', () => {
 
             // When the API fails
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -405,6 +485,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -450,6 +531,7 @@ describe('actions/Policy', () => {
 
             // When adding the first tag
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -518,6 +600,7 @@ describe('actions/Policy', () => {
 
             // When using data from useOnyx hook
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -576,7 +659,7 @@ describe('actions/Policy', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdates();
-            setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0);
+            setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0, false);
             await waitForBatchedUpdates();
 
             // Check optimistic updates
@@ -633,7 +716,7 @@ describe('actions/Policy', () => {
 
             mockFetch?.fail?.();
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0);
+            setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0, false);
             await waitForBatchedUpdates();
 
             mockFetch?.resume?.();
@@ -673,7 +756,7 @@ describe('actions/Policy', () => {
                 expect(result.current[0]).toBeDefined();
             });
 
-            setWorkspaceTagEnabled(policyData.current, {[tagName]: {name: tagName, enabled: false}}, 0);
+            setWorkspaceTagEnabled(policyData.current, {[tagName]: {name: tagName, enabled: false}}, 0, false);
 
             await waitForBatchedUpdates();
 
@@ -735,6 +818,7 @@ describe('actions/Policy', () => {
                     newName: newTagName,
                 },
                 0,
+                false,
             );
             await waitForBatchedUpdates();
 
@@ -792,6 +876,7 @@ describe('actions/Policy', () => {
                     newName: newTagName,
                 },
                 0,
+                false,
             );
             await waitForBatchedUpdates();
 
@@ -834,6 +919,7 @@ describe('actions/Policy', () => {
                         newName: 'newTag',
                     },
                     5,
+                    false,
                 );
             }).not.toThrow();
 
@@ -892,6 +978,7 @@ describe('actions/Policy', () => {
                     newName: newTagName,
                 },
                 0,
+                false,
             );
             await waitForBatchedUpdates();
 
@@ -935,6 +1022,7 @@ describe('actions/Policy', () => {
                         newName: newTagName,
                     },
                     0,
+                    false,
                 );
                 await waitForBatchedUpdates();
             });
@@ -1061,7 +1149,7 @@ describe('actions/Policy', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             expect(() => {
-                deletePolicyTags(policyData.current, tagsToDelete);
+                deletePolicyTags(policyData.current, tagsToDelete, false);
             }).not.toThrow();
 
             await mockFetch?.resume?.();
@@ -1101,7 +1189,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             expect(() => {
-                deletePolicyTags(policyData.current, tagsToDelete);
+                deletePolicyTags(policyData.current, tagsToDelete, false);
             }).not.toThrow();
 
             await mockFetch?.resume?.();
@@ -1133,7 +1221,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            deletePolicyTags(policyData.current, tagsToDelete);
+            deletePolicyTags(policyData.current, tagsToDelete, false);
 
             await waitForBatchedUpdates();
 
@@ -1179,7 +1267,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             mockFetch?.fail?.();
-            deletePolicyTags(policyData.current, tagsToDelete);
+            deletePolicyTags(policyData.current, tagsToDelete, false);
             await waitForBatchedUpdates();
 
             await mockFetch?.resume?.();
@@ -1209,7 +1297,7 @@ describe('actions/Policy', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
-            deletePolicyTags(policyData.current, tagsToDelete);
+            deletePolicyTags(policyData.current, tagsToDelete, false);
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -1914,7 +2002,7 @@ describe('actions/Policy', () => {
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When enabling tags
-            enablePolicyTags(policyData.current, true);
+            enablePolicyTags(policyData.current, true, false);
             await waitForBatchedUpdates();
 
             rerender(fakePolicy.id);
@@ -1956,7 +2044,7 @@ describe('actions/Policy', () => {
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When disabling tags
-            enablePolicyTags(policyData.current, false);
+            enablePolicyTags(policyData.current, false, false);
             await waitForBatchedUpdates();
 
             // Then the policy should be updated optimistically
@@ -2000,7 +2088,7 @@ describe('actions/Policy', () => {
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When re-enabling the feature
-            enablePolicyTags(policyData.current, true);
+            enablePolicyTags(policyData.current, true, false);
             await waitForBatchedUpdates();
 
             rerender(fakePolicy.id);
@@ -2035,7 +2123,7 @@ describe('actions/Policy', () => {
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When disabling the feature
-            enablePolicyTags(policyData.current, false);
+            enablePolicyTags(policyData.current, false, false);
             await waitForBatchedUpdates();
 
             rerender(fakePolicy.id);
@@ -2077,7 +2165,7 @@ describe('actions/Policy', () => {
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When re-enabling the feature
-            enablePolicyTags(policyData.current, true);
+            enablePolicyTags(policyData.current, true, false);
             await waitForBatchedUpdates();
 
             rerender(fakePolicy.id);
@@ -2107,7 +2195,7 @@ describe('actions/Policy', () => {
             mockFetch.fail();
 
             // When enabling tags fails
-            enablePolicyTags(policyData.current, true);
+            enablePolicyTags(policyData.current, true, false);
             await waitForBatchedUpdates();
 
             await mockFetch.resume();
@@ -2135,7 +2223,7 @@ describe('actions/Policy', () => {
 
             expect(policyData.current.policy).toBeDefined();
 
-            enablePolicyTags(policyData.current, true);
+            enablePolicyTags(policyData.current, true, false);
             await waitForBatchedUpdates();
             rerender(fakePolicy.id);
 
@@ -2178,7 +2266,7 @@ describe('actions/Policy', () => {
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When setPolicyTagsRequired is called with requiresTag = true
-            setPolicyTagsRequired(policyData.current, true, 0);
+            setPolicyTagsRequired(policyData.current, true, 0, false);
             await waitForBatchedUpdates();
 
             rerender(fakePolicy.id);
@@ -2222,7 +2310,7 @@ describe('actions/Policy', () => {
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When setPolicyTagsRequired is called with requiresTag = false
-            setPolicyTagsRequired(policyData.current, false, 0);
+            setPolicyTagsRequired(policyData.current, false, 0, false);
             await waitForBatchedUpdates();
 
             rerender(fakePolicy.id);
@@ -2267,7 +2355,7 @@ describe('actions/Policy', () => {
 
             // When setPolicyTagsRequired is called and API fails
             mockFetch.fail();
-            setPolicyTagsRequired(policyData.current, true, 0);
+            setPolicyTagsRequired(policyData.current, true, 0, false);
             await waitForBatchedUpdates();
 
             mockFetch.resume();
@@ -2306,7 +2394,7 @@ describe('actions/Policy', () => {
 
             await act(async () => {
                 // When setPolicyTagsRequired is called with data from useOnyx
-                setPolicyTagsRequired(policyData.current, true, 0);
+                setPolicyTagsRequired(policyData.current, true, 0, false);
                 await waitForBatchedUpdates();
             });
 
@@ -2504,6 +2592,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: fakeTaskReport,
@@ -2559,6 +2648,7 @@ describe('actions/Policy', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -2615,6 +2705,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -2672,6 +2763,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             createPolicyTag({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: fakeTaskReport,

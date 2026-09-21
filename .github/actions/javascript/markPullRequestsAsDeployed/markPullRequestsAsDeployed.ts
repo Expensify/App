@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -215,8 +215,8 @@ async function run() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 
-module.exports = run;
+export default run;

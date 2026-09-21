@@ -1,7 +1,6 @@
 import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
-import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -14,7 +13,7 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
-    getAdvancedFiltersToReset,
+    doesQueryMatchDefaultFilterKeysAndType,
     getAllPolicyValues,
     getAllPolicyValuesMap,
     getConnectedIntegrationNamesForPolicies,
@@ -24,19 +23,27 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    queryHasViolationFilter,
+    hasValuesIncludeViolationFilter,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
+    buildQueryStringWithResetFilters,
+    getQueryHashWithoutFilters,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    getValidLastQuery,
+    hasFiltersChangedFromDefault,
     isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
     isSearchBeforeViolationsSnapshotStarted,
     isSearchRootParams,
     serializeQueryJSONForBackend,
+    resolvePolicyIDFromName,
+    sanitizeSearchValue,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
@@ -57,7 +64,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import createMock from 'tests/utils/createMock';
 
 import createRandomPolicy from '../../utils/collections/policies';
-import {localeCompare, translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
 
@@ -68,30 +75,11 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-const personalDetailsFakeData = {
-    'johndoe@example.com': {
-        accountID: 12345,
-    },
-    'janedoe@example.com': {
-        accountID: 78901,
-    },
-} as Record<string, {accountID: number}>;
-
 jest.mock('@libs/SearchParser/searchParser', () => {
     const actual = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser');
     return {
         ...actual,
         parse: jest.fn(actual.parse),
-    };
-});
-
-jest.mock('@libs/PersonalDetailsUtils', () => {
-    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
-    return {
-        ...actual,
-        getPersonalDetailByEmail(email: string) {
-            return personalDetailsFakeData[email];
-        },
     };
 });
 
@@ -265,25 +253,25 @@ describe('SearchQueryUtils', () => {
 
     describe('getDateRangeDisplayValueFromFormValue', () => {
         test('returns full range display when both boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, '2025-03-01,2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', undefined, true));
         });
 
         test('returns single boundary display when only one boundary exists', () => {
-            const result = getDateRangeDisplayValueFromFormValue('2025-03-01');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, '2025-03-01');
 
-            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01'));
+            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01', undefined));
         });
 
         test('falls back to inclusive boundaries when range value is invalid', () => {
-            const result = getDateRangeDisplayValueFromFormValue('invalid', '2025-03-01', '2025-03-10');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, 'invalid', '2025-03-01', '2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', undefined, true));
         });
 
         test('returns empty string when no valid range boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue('invalid');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, 'invalid');
 
             expect(result).toBe('');
         });
@@ -315,16 +303,27 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
         });
 
-        test('returns query with user emails substituted', () => {
+        test('rebuilds a single value containing a comma as one value', () => {
+            expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
+            expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
+        });
+
+        test('rebuilds a comma separated list as separate values', () => {
+            expect(getQueryWithUpdatedValues('category:Travel,Meals')).toEqual(`${defaultQuery} category:Travel,Meals`);
+        });
+
+        // Logins are resolved to account IDs upstream, in getQueryWithSubstitutions, so that the raw query carries
+        // account IDs too. This function only has to leave whatever it is handed alone.
+        test('leaves user logins untouched', () => {
             const userQuery = 'from:johndoe@example.com hello';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
+            expect(result).toEqual(`${defaultQuery} from:johndoe@example.com hello`);
         });
 
-        test('returns query with user emails substituted and preserves user ids', () => {
-            const userQuery = 'from:johndoe@example.com to:112233';
+        test('preserves user ids', () => {
+            const userQuery = 'from:12345 to:112233';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -332,7 +331,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with all of the fields correctly substituted', () => {
-            const userQuery = 'from:9876,87654 to:janedoe@example.com hello amount:150 test';
+            const userQuery = 'from:9876,87654 to:78901 hello amount:150 test';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -340,7 +339,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated groupBy', () => {
-            const userQuery = 'from:johndoe@example.com groupBy:reports';
+            const userQuery = 'from:12345 groupBy:reports';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -348,7 +347,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated view', () => {
-            const userQuery = 'from:johndoe@example.com view:bar';
+            const userQuery = 'from:12345 view:bar';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -411,6 +410,28 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense receiptType:ereceipt,hotel');
         });
 
+        test('transaction status filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                transactionStatus: 'pending',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense transactionStatus:pending');
+        });
+
+        test('negated transaction status filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                transactionStatusNot: 'pending',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -transactionStatus:pending');
+        });
+
         test('negated receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -462,12 +483,12 @@ describe('SearchQueryUtils', () => {
         test('has empty category values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                category: ['equipment', 'consulting', 'none,Uncategorized'],
+                category: ['equipment', 'consulting', CONST.SEARCH.CATEGORY_EMPTY_VALUE],
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
+            expect(result).toEqual(`type:expense category:equipment,consulting,${CONST.SEARCH.CATEGORY_EMPTY_VALUE}`);
         });
 
         test('empty filter values', () => {
@@ -592,6 +613,29 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense total>1 total<1000');
+        });
+
+        test('conversion amount filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                amountDebitedGreaterThan: '1',
+                amountDebitedLessThan: '1000',
+                amountReimbursedEqualTo: '500',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense-report amountDebited>1 amountDebited<1000 amountReimbursed:500');
+        });
+
+        test('conversion amount filters are dropped on an expense search, since a payment pays a whole report', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                amountDebitedEqualTo: '1694',
+                amountReimbursedGreaterThan: '1000',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense');
         });
 
         test('equal to filter values', () => {
@@ -905,6 +949,45 @@ describe('SearchQueryUtils', () => {
                 expect(result).toEqual('type:expense');
             });
         });
+
+        describe('violations column', () => {
+            test('omits violations from columns when no violation has-filter is set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    columns: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual(`type:expense columns:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
+            });
+
+            test('keeps violations in columns when submitted-violation has-filter is set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
+                    columns: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toContain(`columns:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
+                expect(result).toContain(`has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            });
+
+            test('keeps violations in columns when approved-violation has-filter is set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                    columns: [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toContain(`columns:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
+                expect(result).toContain(`has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+            });
+        });
     });
 
     describe('buildUserReadableQueryString', () => {
@@ -940,6 +1023,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -971,6 +1055,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -987,9 +1072,9 @@ describe('SearchQueryUtils', () => {
 
             const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}123`]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: createMock<OnyxTypes.Policy>({
                     name: 'Team Space',
-                } as OnyxTypes.Policy,
+                }),
             };
 
             if (!queryJSON) {
@@ -1007,6 +1092,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1046,6 +1132,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1070,6 +1157,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1094,6 +1182,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1179,6 +1268,22 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 action: undefined,
+            });
+        });
+
+        test('conversion amount filters parse from either spelling of the key', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense-report amount-debited>1000 amountReimbursed<2000');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toMatchObject({
+                type: 'expense-report',
+                amountDebitedGreaterThan: '1000',
+                amountReimbursedLessThan: '2000',
             });
         });
 
@@ -1559,7 +1664,7 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {
+            const policyTags = createMock<OnyxCollection<OnyxTypes.PolicyTagLists>>({
                 [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: {
                     Department: {
                         name: 'Department',
@@ -1570,7 +1675,7 @@ describe('SearchQueryUtils', () => {
                         },
                     },
                 },
-            } as unknown as OnyxCollection<OnyxTypes.PolicyTagLists>;
+            });
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1593,7 +1698,7 @@ describe('SearchQueryUtils', () => {
 
             const policyCategories = {};
             const policyTags = {};
-            const currencyList = {USD: {}, EUR: {}, GBP: {}} as unknown as OnyxTypes.CurrencyList;
+            const currencyList = createMock<OnyxTypes.CurrencyList>({USD: {}, EUR: {}, GBP: {}});
             const personalDetails = {};
             const cardList = {};
             const reports = {};
@@ -1673,6 +1778,57 @@ describe('SearchQueryUtils', () => {
 
             // invalid should be filtered out, ereceipt and hotel are valid CONST.SEARCH.RECEIPT_TYPE values
             expect(result.receiptType).toEqual(['ereceipt', 'hotel']);
+        });
+
+        test('transaction status filter validates against valid statuses', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense transaction-status:pending,invalid';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // Pending and posted are mutually exclusive, so the form holds a single value: the first valid one, with the invalid value discarded
+            expect(result.transactionStatus).toEqual('pending');
+        });
+
+        test('transaction status filter keeps only the first value when a query lists several', () => {
+            // A hand-typed query can carry a comma-separated list, but the filter is single-select so only one value survives into the form.
+            const queryString = 'sortBy:date sortOrder:desc type:expense transaction-status:posted,pending';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result.transactionStatus).toEqual('posted');
+        });
+
+        test('negated transaction status filter populates transactionStatusNot', () => {
+            // Negation in the query syntax uses the "-" prefix, which round-trips to the transactionStatusNot form value.
+            const queryString = 'sortBy:date sortOrder:desc type:expense -transaction-status:pending';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result.transactionStatusNot).toEqual('pending');
+            expect(result.transactionStatus).toBeUndefined();
         });
 
         test('negated receipt type filter populates receiptTypeNot', () => {
@@ -1804,6 +1960,46 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('has:approved-violation filter', () => {
+        test('round-trips a positive has:approved-violation filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+            expect(queryString).toBe(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            const queryJSON = buildSearchQueryJSON(queryString);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            expect(result.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+            expect(result.hasNot).toBeUndefined();
+        });
+
+        test('round-trips a negated -has:approved-violation filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                hasNot: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+            expect(queryString).toBe(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            const queryJSON = buildSearchQueryJSON(queryString);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            expect(result.hasNot).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+            expect(result.has).toBeUndefined();
+        });
+    });
+
     describe('shouldHighlight', () => {
         it('returns false if either input is empty', () => {
             expect(shouldHighlight('', 'test')).toBe(false);
@@ -1897,6 +2093,20 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return different similarSearchHash for queries with different has values', () => {
+            const queryJSONa = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            const queryJSONb = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for queries with the same has value but different dates', () => {
+            const queryJSONa = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            const queryJSONb = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-year has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
         it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
             const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
             const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
@@ -1985,6 +2195,192 @@ describe('SearchQueryUtils', () => {
                 expect(withNegativeLimit?.hash).toEqual(withoutLimit?.hash);
                 expect(withDecimalLimit?.hash).toEqual(withoutLimit?.hash);
             });
+        });
+    });
+
+    describe('buildQueryStringWithResetFilters', () => {
+        function parse(query: string) {
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+            return queryJSON;
+        }
+
+        const currentQuery = parse('type:expense category:travel merchant:Amazon group-currency:USD sortBy:merchant sortOrder:asc groupBy:from columns:merchant,category coffee');
+
+        it('restores the filter chips of the default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense status:approved'));
+
+            expect(resetQuery).toContain('status:approved');
+            expect(resetQuery).not.toContain('category:travel');
+            expect(resetQuery).not.toContain('merchant:Amazon');
+        });
+
+        it('clears every filter chip when there is no default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, undefined);
+
+            expect(resetQuery).not.toContain('category:travel');
+            expect(resetQuery).not.toContain('merchant:Amazon');
+        });
+
+        it('keeps the keyword, sorting, grouping, and columns, which are not filters', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense status:approved'));
+            expect(resetQuery).toContain('sortBy:merchant');
+            expect(resetQuery).toContain('sortOrder:asc');
+            expect(resetQuery).toContain('groupBy:from');
+            expect(resetQuery).toContain('groupCurrency:USD');
+            expect(resetQuery).toContain('columns:merchant,category');
+            expect(resetQuery).toContain('coffee');
+        });
+
+        it('keeps the keyword and the group currency of the current query over the ones of the default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense group-currency:EUR tea'));
+
+            expect(resetQuery).toContain('groupCurrency:USD');
+            expect(resetQuery).toContain('coffee');
+            expect(resetQuery).not.toContain('groupCurrency:EUR');
+            expect(resetQuery).not.toContain('tea');
+        });
+    });
+
+    describe('getQueryHashWithoutFilters', () => {
+        const noExcludedFilters = new Set<SearchFilterKey>();
+        const excludedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+        it('returns the same hash for identical queries', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+
+        it('ignores excluded keyword filters when computing the hash', () => {
+            const withoutKeyword = buildSearchQueryJSON('type:expense category:travel');
+            const withKeyword = buildSearchQueryJSON('type:expense category:travel hello world');
+
+            if (!withoutKeyword || !withKeyword) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withKeyword, excludedFilters)).toEqual(getQueryHashWithoutFilters(withoutKeyword, excludedFilters));
+        });
+
+        it('ignores excluded group-currency filters when computing the hash', () => {
+            const withoutGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category');
+            const withGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
+
+            if (!withoutGroupCurrency || !withGroupCurrency) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withGroupCurrency, excludedFilters)).toEqual(getQueryHashWithoutFilters(withoutGroupCurrency, excludedFilters));
+        });
+
+        it('takes filters that are not excluded into account', () => {
+            const withoutKeyword = buildSearchQueryJSON('type:expense category:travel');
+            const withKeyword = buildSearchQueryJSON('type:expense category:travel hello world');
+
+            if (!withoutKeyword || !withKeyword) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withKeyword, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(withoutKeyword, noExcludedFilters));
+        });
+
+        it('only ignores the filters that are excluded', () => {
+            const onlyKeywordExcluded = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]);
+            const withoutGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category hello');
+            const withGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
+
+            if (!withoutGroupCurrency || !withGroupCurrency) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withGroupCurrency, onlyKeywordExcluded)).not.toEqual(getQueryHashWithoutFilters(withoutGroupCurrency, onlyKeywordExcluded));
+        });
+
+        it('is independent of the order in which filters appear', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+            const queryJSONb = buildSearchQueryJSON('type:expense merchant:Amazon category:travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+
+        it('is independent of the order of values within a filter', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel,food');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:food,travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+
+        it('returns different hashes for queries with different filter values', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:food');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+
+        it('returns different hashes for queries with different filter keys', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel');
+            const queryJSONb = buildSearchQueryJSON('type:expense merchant:travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+    });
+
+    describe('hasFiltersChangedFromDefault', () => {
+        it('returns false when the current query only differs by filters that are kept when resetting', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense groupBy:category category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category category:travel group-currency:USD hello');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when the current query has a different filter value', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:food');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the current query has an extra filter', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
     });
 
@@ -2094,9 +2490,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
-            expect(result).toBe('+15551234567');
+            expect(result).toBe(formatPhoneNumber('+15551234567@expensify.sms'));
             expect(result).not.toContain('@expensify.sms');
         });
 
@@ -2119,6 +2516,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('Jane Doe');
@@ -2143,6 +2541,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -2161,6 +2560,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -2179,6 +2579,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('88888');
@@ -2203,6 +2604,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('Custom Name');
@@ -2228,9 +2630,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
-            expect(result).toBe('+15551112222');
+            expect(result).toBe(formatPhoneNumber('+15551112222@expensify.sms'));
             expect(result).not.toContain('@expensify.sms');
         });
 
@@ -2261,9 +2664,10 @@ describe('SearchQueryUtils', () => {
                     policies: mockPolicies,
                     currentUserAccountID,
                     translate: translateLocal,
+                    formatPhoneNumber,
                 });
 
-                expect(result).toBe('+15553334444');
+                expect(result).toBe(formatPhoneNumber('+15553334444@expensify.sms'));
                 expect(result).not.toContain('@expensify.sms');
             }
         });
@@ -2354,6 +2758,17 @@ describe('SearchQueryUtils', () => {
             const keywordFilter = newQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
             expect(keywordFilter?.filters.at(0)?.value).toBe('status:done');
             expect(getFilterFromQuery(newQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toBe(undefined);
+        });
+
+        test.each([
+            ['a straight quote', 'A"B'],
+            ['a curly quote', 'A“B'],
+            ['a backslash', 'A\\B'],
+        ])('round-trips a bare keyword containing %s', (_label, keyword) => {
+            const result = buildSearchQueryString(buildSearchQueryJSON(`type:expense ${keyword}`));
+
+            const keywordFilter = buildSearchQueryJSON(result)?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(keywordFilter?.filters.at(0)?.value).toBe(keyword);
         });
 
         test('does not add quotes to non-keyword filter values', () => {
@@ -2594,6 +3009,7 @@ describe('SearchQueryUtils', () => {
     describe('shouldResetSortForViewChange', () => {
         test('returns true for line view transitions with time-based groupBy', () => {
             // Line charts need chronological order - reset when entering or leaving line view
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.DAY})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
@@ -2731,6 +3147,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             // The result depends on getReportName internal logic, but
@@ -2750,6 +3167,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('nonexistent-report-id');
@@ -2766,6 +3184,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('1500');
@@ -2782,16 +3201,52 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
         });
 
+        it('should display the label the backend records for the Canadian multiple tax export template', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
+        });
+
+        it('should return a custom export template name as-is', () => {
+            const customTemplateName = 'Custom Export Layout';
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: customTemplateName,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(customTemplateName);
+        });
+
         it('should handle policyID filter by looking up policy name', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: createMock<OnyxTypes.Policy>({
                     name: 'My Workspace',
-                } as OnyxTypes.Policy,
+                }),
             };
 
             const result = getFilterDisplayValue({
@@ -2804,6 +3259,7 @@ describe('SearchQueryUtils', () => {
                 policies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('My Workspace');
@@ -2820,6 +3276,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('GL:travel');
@@ -2827,13 +3284,13 @@ describe('SearchQueryUtils', () => {
 
         it('should format bankAccount filter as "<bank> xx<last4>" using bankAccountList', () => {
             const bankAccountList: OnyxTypes.BankAccountList = {
-                42: {
+                42: createMock<OnyxTypes.BankAccountList[string]>({
                     accountData: {
                         bankAccountID: 42,
                         accountNumber: '123456789012',
                         additionalData: {bankName: CONST.BANK_NAMES.CHASE},
                     },
-                } as OnyxTypes.BankAccountList[string],
+                }),
             };
 
             const result = getFilterDisplayValue({
@@ -2846,6 +3303,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
                 bankAccountList,
             });
 
@@ -2863,6 +3321,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
                 bankAccountList: {},
             });
 
@@ -2901,6 +3360,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(2);
@@ -2929,6 +3389,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -2957,6 +3418,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -2985,6 +3447,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3005,6 +3468,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3033,6 +3497,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3041,11 +3506,11 @@ describe('SearchQueryUtils', () => {
 
         it('should resolve a regular Expensify Card feed filter to its label', () => {
             const cardList: OnyxTypes.CardList = {
-                '111': {
+                '111': createMock<OnyxTypes.Card>({
                     cardID: 111,
                     bank: CONST.EXPENSIFY_CARD.BANK,
                     fundID: '12345',
-                } as OnyxTypes.Card,
+                }),
             };
 
             const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}`}];
@@ -3061,6 +3526,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3069,12 +3535,12 @@ describe('SearchQueryUtils', () => {
 
         it('should resolve a Travel Invoicing feed filter (3-segment key) to the translated label', () => {
             const cardList: OnyxTypes.CardList = {
-                '222': {
+                '222': createMock<OnyxTypes.Card>({
                     cardID: 222,
                     bank: CONST.EXPENSIFY_CARD.BANK,
                     fundID: '12345',
                     nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US},
-                } as OnyxTypes.Card,
+                }),
             };
 
             const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`}];
@@ -3090,6 +3556,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3111,6 +3578,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3131,6 +3599,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(0);
@@ -3171,6 +3640,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3204,6 +3674,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3236,6 +3707,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3260,6 +3732,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: true,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3537,76 +4010,6 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('getAdvancedFiltersToReset', () => {
-        it('should return an empty object when input is empty', () => {
-            const result = getAdvancedFiltersToReset({});
-            expect(result).toEqual({});
-        });
-
-        it('should reset type to EXPENSE when it has a non-EXPENSE value', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            });
-        });
-
-        it('should not include type in reset when it is already EXPENSE', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.type).toBeUndefined();
-        });
-
-        it('should reset other filter keys to undefined', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                merchant: 'Marriott',
-                currency: ['USD', 'EUR'],
-                dateAfter: '2024-01-01',
-                keyword: 'hotel',
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                merchant: undefined,
-                currency: undefined,
-                dateAfter: undefined,
-                keyword: undefined,
-            });
-        });
-
-        it('should exclude columns from being reset if type is expense', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
-                merchant: 'test',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.columns).toBeUndefined();
-            expect(result).toEqual({
-                merchant: undefined,
-            });
-        });
-
-        it('should exclude columns from being reset', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
-                merchant: 'test',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.columns).toBeUndefined();
-            expect(result).toEqual({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                merchant: undefined,
-                columns: undefined,
-            });
-        });
-    });
-
     describe('isNegated', () => {
         it('returns true for negated filter keys (ending with the NOT modifier)', () => {
             expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
@@ -3686,6 +4089,66 @@ describe('SearchQueryUtils', () => {
 
             expect(result.value).toBeUndefined();
             expect(result.isNegated).toBe(false);
+        });
+    });
+
+    describe('queryHasViolationFilter', () => {
+        test('returns true for a positive has:submitted-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns true for a positive has:approved-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            expect(queryHasViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns false when the has filter is negated', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns false when submitted-violation is negated alongside other positive has filters', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns true when submitted-violation is positive alongside other has filters', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns false when the query has no violation has-filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:from');
+
+            expect(queryHasViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns false for an undefined queryJSON', () => {
+            expect(queryHasViolationFilter(undefined)).toBe(false);
+        });
+    });
+
+    describe('hasValuesIncludeViolationFilter', () => {
+        test('returns true when has includes submitted-violation', () => {
+            expect(hasValuesIncludeViolationFilter([CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION])).toBe(true);
+        });
+
+        test('returns true when has includes approved-violation', () => {
+            expect(hasValuesIncludeViolationFilter([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION])).toBe(true);
+        });
+
+        test('returns false when has has no violation values', () => {
+            expect(hasValuesIncludeViolationFilter([CONST.SEARCH.HAS_VALUES.RECEIPT])).toBe(false);
+        });
+
+        test('returns false for undefined has values', () => {
+            expect(hasValuesIncludeViolationFilter(undefined)).toBe(false);
         });
     });
 
@@ -3943,6 +4406,84 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('getValidLastQuery', () => {
+        const defaultSearchQuery = 'type:expense status:all';
+
+        it('returns the default query when the last query is undefined', () => {
+            expect(getValidLastQuery(undefined, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the default query when the last query is an empty string', () => {
+            expect(getValidLastQuery('', defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the default query when the last query cannot be parsed', () => {
+            expect(getValidLastQuery('type:', defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the last query when it contains all default filter keys and matches the type', () => {
+            const lastQuery = 'type:expense status:all merchant:Amazon';
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(lastQuery);
+        });
+
+        it('returns the last query when it is identical to the default query', () => {
+            expect(getValidLastQuery(defaultSearchQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the default query when the last query is missing a default filter key', () => {
+            const lastQuery = 'type:expense';
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the default query when the last query type differs from the default type', () => {
+            const lastQuery = 'type:invoice status:all';
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+    });
+
+    describe('doesQueryMatchDefaultFilterKeysAndType', () => {
+        const defaultQueryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+
+        it('returns true when the query has all default filter keys and the same type', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon category:travel');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the query is identical to the default query', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns false when the query is missing a default filter key', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when the query type differs from the default type', () => {
+            const queryJSON = buildSearchQueryJSON('type:invoice status:all merchant:Amazon');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when the default query has no extra filter keys to satisfy', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+            const bareDefaultQueryJSON = buildSearchQueryJSON('type:expense');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, bareDefaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when both query and default query are undefined', () => {
+            expect(doesQueryMatchDefaultFilterKeysAndType(undefined, undefined)).toBe(true);
+        });
+
+        it('returns true when the query is undefined since there is nothing to compare', () => {
+            expect(doesQueryMatchDefaultFilterKeysAndType(undefined, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the default query is undefined since there are no default filter keys to enforce', () => {
+            const queryJSON = buildSearchQueryJSON('type:invoice');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, undefined)).toBe(true);
+        });
+    });
+
     describe('getDateFilterRange', () => {
         test('returns start and end for an on-date filter', () => {
             const queryJSON = buildSearchQueryJSON('type:expense date:2025-03-15');
@@ -4025,6 +4566,67 @@ describe('SearchQueryUtils', () => {
             }
 
             expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(false);
+        });
+    });
+
+    describe('sanitizeSearchValue', () => {
+        it('leaves a value without a delimiter untouched', () => {
+            expect(sanitizeSearchValue('Acme')).toBe('Acme');
+        });
+
+        it('quotes on a space or a non-breaking space', () => {
+            expect(sanitizeSearchValue('Acme Inc')).toBe('"Acme Inc"');
+            expect(sanitizeSearchValue('Acme\xA0Inc')).toBe('"Acme\xA0Inc"');
+        });
+
+        it('quotes on a comma, so a value containing one is not read back as two', () => {
+            expect(sanitizeSearchValue('Globex,Ltd')).toBe('"Globex,Ltd"');
+        });
+
+        it('escapes quotes and backslashes so the parser reads them as part of the value', () => {
+            expect(sanitizeSearchValue('A"B')).toBe('A\\"B');
+            expect(sanitizeSearchValue('A\\B')).toBe('A\\\\B');
+            expect(sanitizeSearchValue('Acme "US",Inc')).toBe('"Acme \\"US\\",Inc"');
+            expect(sanitizeSearchValue('Acme “US” Inc')).toBe('"Acme \\“US\\” Inc"');
+        });
+
+        it('serializes a value with no character needing escaping exactly as before', () => {
+            expect(sanitizeSearchValue('Acme, Inc.')).toBe('"Acme, Inc."');
+            expect(sanitizeSearchValue('Travel')).toBe('Travel');
+        });
+    });
+
+    describe('resolvePolicyIDFromName', () => {
+        const ACME_ID = '26BE5C4005E188DB';
+        const OTHER_ID = '312ECD05D0CD4B27';
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${ACME_ID}`]: {...createRandomPolicy(1, undefined, 'Acme, Inc.'), id: ACME_ID},
+            [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_ID}`]: {...createRandomPolicy(2, undefined, 'Beta Corp'), id: OTHER_ID},
+        };
+
+        it('resolves a name that matches exactly one workspace', () => {
+            expect(resolvePolicyIDFromName('Acme, Inc.', policies)).toBe(ACME_ID);
+        });
+
+        it('matches the name regardless of case', () => {
+            expect(resolvePolicyIDFromName('acme, inc.', policies)).toBe(ACME_ID);
+        });
+
+        it('leaves a value that is already a policy ID alone', () => {
+            expect(resolvePolicyIDFromName(ACME_ID, policies)).toBe(ACME_ID);
+        });
+
+        it('leaves an unknown name alone', () => {
+            expect(resolvePolicyIDFromName('Nonexistent', policies)).toBe('Nonexistent');
+        });
+
+        it('leaves an ambiguous name alone rather than guessing', () => {
+            const duplicates = {
+                ...policies,
+                [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_ID}`]: {...createRandomPolicy(2, undefined, 'Acme, Inc.'), id: OTHER_ID},
+            };
+
+            expect(resolvePolicyIDFromName('Acme, Inc.', duplicates)).toBe('Acme, Inc.');
         });
     });
 });

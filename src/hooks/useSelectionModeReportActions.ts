@@ -16,6 +16,7 @@ import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesRepor
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {createMoveExpenseReportNVPSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
@@ -26,7 +27,6 @@ import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLifecycleActions from './useLifecycleActions';
 import useLocalize from './useLocalize';
@@ -66,13 +66,16 @@ function useSelectionModeReportActions({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [moveExpenseReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: createMoveExpenseReportNVPSelector(outstandingReportsByPolicyID, report?.reportID),
+    });
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const {isProduction} = useEnvironment();
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const);
@@ -89,6 +92,9 @@ function useSelectionModeReportActions({
         handleSubmitReport: lifecycleHandleSubmitReport,
         shouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
+        approveSubMenuItems,
+        approveSubMenuHeaderText,
+        shouldShowApproveSubMenu,
     } = useLifecycleActions({
         reportID: report?.reportID,
         startApprovedAnimation: () => {},
@@ -143,6 +149,8 @@ function useSelectionModeReportActions({
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin: submitterLogin,
+        rules,
+        isOffline,
     });
 
     const secondaryActions = (() => {
@@ -160,13 +168,14 @@ function useSelectionModeReportActions({
             violations: allTransactionViolations,
             bankAccountList,
             policy,
-            reportNameValuePairs,
+            moveExpenseReportNameValuePairs,
             reportActions,
             reportMetadata,
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
-            isProduction,
+            isOffline,
+            rules,
         });
     })();
 
@@ -227,11 +236,11 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText'>> = [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
-                text: shouldShowMarkAsDone({policy, report, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
+                text: shouldShowMarkAsDone({policy, report, isTrackIntentUser, rules}) ? translate('common.markAsDone') : translate('common.submit'),
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: handleSubmitReport,
@@ -242,7 +251,12 @@ function useSelectionModeReportActions({
                 text: translate('iou.approve'),
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                onSelected: confirmApproval,
+                rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
+                backButtonText: shouldShowApproveSubMenu ? translate('iou.approve') : undefined,
+                subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
+                subMenuHeaderText: shouldShowApproveSubMenu ? approveSubMenuHeaderText : undefined,
+                // Only reached when there is no submenu; otherwise PopoverMenu opens the submenu instead.
+                onSelected: () => confirmApproval(),
             };
         }
         if (hasPayAction && !(isOffline && !canAllowSettlement)) {

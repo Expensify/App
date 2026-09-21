@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import Text from '@components/Text';
 
@@ -80,7 +80,7 @@ function IOURequestStepGPSTripEdit({
     const gpsWaypointMarkers = useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint});
 
     const unit = gpsDraftDetails?.unit ?? 'mi';
-    const displayDistance = DistanceRequestUtils.convertDistanceUnit(trimmedDistance, unit).toFixed(1);
+    const displayDistance = DistanceRequestUtils.getRoundedDistanceInUnits(trimmedDistance, unit);
 
     const saveTrimmedTrip = async () => {
         if (!gpsDraftDetails) {

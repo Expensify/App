@@ -1,7 +1,7 @@
+import * as ts from '@typescript/typescript6';
 import * as fs from 'fs';
 import {globSync} from 'glob';
 import * as path from 'path';
-import * as ts from 'typescript';
 
 import TSCompilerUtils from './utils/TSCompilerUtils';
 
@@ -52,15 +52,23 @@ class ComprehensiveStylesFinder {
 
         console.log(`Scanning ${styleFiles.length} main style files (excluding utils/generators/themes)...`);
 
+        const styleFileContents = new Map<string, string>();
         for (const file of styleFiles) {
             const fullPath = path.join(this.rootDir, file);
             try {
                 const fileContent = fs.readFileSync(fullPath, 'utf8');
                 const sourceFile = ts.createSourceFile(fullPath, fileContent, ts.ScriptTarget.Latest, true);
+                styleFileContents.set(file, fileContent);
                 this.extractStyleKeysFromFile(sourceFile, file);
             } catch (error) {
                 console.warn(`Warning: Could not read style file ${file}:`, error);
             }
+        }
+
+        // Spread crediting must run after every style file has registered its definitions, or glob order decides which spreads count.
+        const indexContent = styleFileContents.get('src/styles/index.ts');
+        if (indexContent) {
+            this.checkSpreadPatternsInStylesFile(indexContent, 'src/styles/index.ts');
         }
     }
 
@@ -91,10 +99,6 @@ class ComprehensiveStylesFinder {
                         if (returnObject && ts.isObjectLiteralExpression(returnObject)) {
                             // Process each property in the returned object
                             this.extractStyleDefinitionsFromObject(returnObject, sourceFile, file);
-
-                            // After processing style definitions, check for spread patterns within this styles file
-                            const fileContent = sourceFile.getFullText();
-                            this.checkSpreadPatternsInStylesFile(fileContent, file);
                         }
                     }
                     return; // Don't continue traversing for styles function

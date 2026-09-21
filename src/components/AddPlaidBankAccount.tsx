@@ -7,7 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handlePlaidError, openPlaidBankAccountSelector, openPlaidBankLogin, setPlaidEvent} from '@libs/actions/BankAccounts';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {handleRestrictedEvent} from '@userActions/App';
 
@@ -31,7 +30,6 @@ import RadioButtons from './RadioButtons';
 import Text from './Text';
 
 type AddPlaidBankAccountProps = {
-    /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
 
     /** Selected account ID from the Picker associated with the end of the Plaid flow */
@@ -40,10 +38,7 @@ type AddPlaidBankAccountProps = {
     /** Fired when the user exits the Plaid flow */
     onExitPlaid?: () => void;
 
-    /** Fired when the user selects an account */
     onSelect?: (plaidAccountID: string) => void;
-
-    /** Additional text to display */
     text?: string;
 
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
@@ -58,7 +53,6 @@ type AddPlaidBankAccountProps = {
     /** Are we adding a withdrawal account? */
     allowDebit?: boolean;
 
-    /** Is displayed in new enable wallet flow */
     isDisplayedInWalletFlow?: boolean;
 
     /** Text to display on error message */
@@ -249,13 +243,9 @@ function AddPlaidBankAccount({
         }
 
         if (plaidData?.isLoading) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddPlaidBankAccount', isLoading: !!plaidData.isLoading};
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             );
         }

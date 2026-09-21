@@ -18,13 +18,23 @@
 #endif
 
 #if EXPENSIFY_PGO_GENERATE
+#include <dlfcn.h>
+
 extern "C" void __llvm_profile_set_filename(const char *FilenamePat);
 extern "C" int __llvm_profile_write_file(void);
 extern "C" void __llvm_profile_reset_counters(void);
+
+using PGOSetFilename = void (*)(const char *);
+using PGOWriteFile = int (*)();
+using PGOResetCounters = void (*)();
+
+template <typename Function>
+static Function HermesPGOFunction(const char *symbol) {
+  return reinterpret_cast<Function>(dlsym(RTLD_DEFAULT, symbol));
+}
 #endif
 
 static NSString *const PGO_DIRECTORY_NAME = @"ExpensifyPGO";
-static NSString *const PGO_APP_READY_MARKER = @"app-ready.txt";
 static NSString *const PGO_STATUS_MARKER = @"profile-status.txt";
 static CFStringRef const PGO_WRITE_NOTIFICATION = CFSTR("com.expensify.pgo.write-profiles");
 static CFStringRef const PGO_CLEAR_NOTIFICATION = CFSTR("com.expensify.pgo.clear-profiles");
@@ -98,15 +108,22 @@ RCT_EXPORT_MODULE();
 #if EXPENSIFY_PGO_GENERATE
     NSString *profilePattern = [[[self pgoDirectoryURL] URLByAppendingPathComponent:@"newdot-%m.profraw"] path];
     __llvm_profile_set_filename(profilePattern.fileSystemRepresentation);
+    PGOSetFilename setHermesFilename = HermesPGOFunction<PGOSetFilename>("expensify_llvm_profile_set_filename");
+    if (setHermesFilename != nullptr) {
+      setHermesFilename(profilePattern.fileSystemRepresentation);
+    }
 #endif
   });
 }
 
 + (void)writePGOProfiles {
 #if EXPENSIFY_PGO_GENERATE
-  int result = __llvm_profile_write_file();
+  int appResult = __llvm_profile_write_file();
+  PGOWriteFile writeHermesFile = HermesPGOFunction<PGOWriteFile>("expensify_llvm_profile_write_file");
+  int hermesResult = writeHermesFile != nullptr ? writeHermesFile() : 1;
+  int result = appResult == 0 && hermesResult == 0 ? 0 : 1;
   [self writePGOStatus:@"written" result:result];
-  NSLog(@"ExpensifyPGO: wrote LLVM profile with result=%d", result);
+  NSLog(@"ExpensifyPGO: wrote LLVM profile with result=%d appResult=%d hermesResult=%d", result, appResult, hermesResult);
 #else
   [self writePGOStatus:@"not-instrumented" result:1];
   NSLog(@"ExpensifyPGO: ignored profile write in a non-instrumented build");
@@ -128,7 +145,12 @@ RCT_EXPORT_MODULE();
 
 #if EXPENSIFY_PGO_GENERATE
   __llvm_profile_reset_counters();
-  [self writePGOStatus:@"cleared" result:0];
+  PGOResetCounters resetHermesCounters = HermesPGOFunction<PGOResetCounters>("expensify_llvm_profile_reset_counters");
+  int result = resetHermesCounters != nullptr ? 0 : 1;
+  if (resetHermesCounters != nullptr) {
+    resetHermesCounters();
+  }
+  [self writePGOStatus:@"cleared" result:result];
 #else
   [self writePGOStatus:@"not-instrumented" result:1];
 #endif
@@ -302,16 +324,6 @@ RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
   }
 
   [self hideImpl:0 resolve:resolve];
-}
-
-RCT_EXPORT_METHOD(reportFullyDrawn) {
-  double startedAt = [[NSUserDefaults standardUserDefaults] doubleForKey:@"AppStartTime"];
-  long long readyAt = CurrentTimeMilliseconds();
-  long long duration = startedAt > 0 ? MAX(0, readyAt - (long long)startedAt) : 0;
-  NSString *contents = [NSString stringWithFormat:@"%lld,%lld", readyAt, duration];
-  NSURL *markerURL = [[RCTBootSplash pgoDirectoryURL] URLByAppendingPathComponent:PGO_APP_READY_MARKER];
-  [contents writeToURL:markerURL atomically:YES encoding:NSUTF8StringEncoding error:nil];
-  NSLog(@"NewDotStartup: APP_READY durationMs=%lld", duration);
 }
 
 @end

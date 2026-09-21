@@ -54,9 +54,9 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
 
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
-        text: translate('delegate.role', {role}),
+        text: translate('delegate.role', role),
         keyForList: role,
-        alternateText: translate('delegate.roleDescription', {role}),
+        alternateText: translate('delegate.roleDescription', role),
         isSelected: role === matchingRole,
     }));
 

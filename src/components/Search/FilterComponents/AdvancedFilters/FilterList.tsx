@@ -38,6 +38,12 @@ type FilterListProps = FilterItemCallbacks & {
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
+    onPointerMove?: (event: {clientX: number; clientY: number}) => void;
+
+    /** Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only. */
+    onPointerLeave?: (event: {clientX: number}) => void;
 };
 
 type FilterItemProps = FilterItemCallbacks & {
@@ -84,10 +90,15 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
                         width={variables.iconSizeSmall}
                         height={variables.iconSizeSmall}
                     />
-                    <Text style={[styles.flex1]}>{translate(labelKey)}</Text>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.flex1]}
+                    >
+                        {translate(labelKey)}
+                    </Text>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isSelected, pressed))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isSelected, isPressed: pressed})})}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />
@@ -97,7 +108,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     );
 }
 
-function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: FilterListProps) {
+function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
     const styles = useThemeStyles();
     const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
 
@@ -106,6 +117,8 @@ function FilterList({type, policyID, selectedFilter, style, contentContainerStyl
             style={[style]}
             contentContainerStyle={[contentContainerStyle]}
             showsVerticalScrollIndicator={false}
+            onMouseMove={onPointerMove}
+            onMouseLeave={onPointerLeave}
         >
             {typeFiltersKeys.map((section, index) => (
                 <View key={`${section.at(0)}`}>

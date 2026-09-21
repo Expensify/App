@@ -334,7 +334,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

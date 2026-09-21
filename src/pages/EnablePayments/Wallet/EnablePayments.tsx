@@ -11,7 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import FailedKYC from '@pages/EnablePayments/shared/FailedKYC';
 
@@ -134,11 +133,7 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
     }, [canonicalPage, shouldWaitForWalletData, currentPage]);
 
     if (shouldWaitForWalletData) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'EnablePaymentsPage',
-            isUserWalletEmpty,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {

@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import {adjustRemainingSplitShares} from '@libs/actions/IOU/Split';
@@ -26,6 +27,7 @@ type SplitBillControllerProps = {
  */
 function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCode, currentUserAccountID, isFocused, onFormError}: SplitBillControllerProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
@@ -63,8 +65,8 @@ function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCo
         if (!isTypeSplit || !transaction?.splitShares) {
             return;
         }
-        adjustRemainingSplitShares(transaction);
-    }, [isTypeSplit, transaction]);
+        adjustRemainingSplitShares(transaction, getCurrencyDecimals);
+    }, [isTypeSplit, transaction, getCurrencyDecimals]);
 
     return null;
 }

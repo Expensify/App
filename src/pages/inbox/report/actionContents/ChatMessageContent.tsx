@@ -30,6 +30,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ChatActionableButtons from './ChatActionableButtons';
+import ConciergeFeedbackPrompt from './ConciergeFeedbackPrompt';
 
 type ChatMessageContentProps = {
     action: OnyxTypes.ReportAction;
@@ -41,9 +42,21 @@ type ChatMessageContentProps = {
     isHidden: boolean;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isOnSearch: boolean;
+    isLatestConciergeFeedbackAction: boolean;
 };
 
-function ChatMessageContent({action, policyID, reportID, originalReportID, displayAsGroup, draftMessage, isHidden, updateHiddenState, isOnSearch}: ChatMessageContentProps) {
+function ChatMessageContent({
+    action,
+    policyID,
+    reportID,
+    originalReportID,
+    displayAsGroup,
+    draftMessage,
+    isHidden,
+    updateHiddenState,
+    isOnSearch,
+    isLatestConciergeFeedbackAction,
+}: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -88,8 +101,10 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                         />
                         {hasBeenFlagged && (
                             <Button
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 style={[styles.mt2, styles.alignSelfStart]}
+                                // Restores the 12px horizontal padding from the legacy implementation.
+                                innerStyles={styles.ph3}
                                 onPress={() => updateHiddenState(!isHidden)}
                                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
                             >
@@ -107,6 +122,13 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                                 originalReportID={originalReportID}
                                 reportID={reportID}
                                 hasPendingFollowupListSkeleton={hasPendingFollowupListSkeleton}
+                            />
+                        )}
+                        {/* A message hidden by moderation has nothing to rate until the user reveals it */}
+                        {isLatestConciergeFeedbackAction && !isOnSearch && !isHidden && (
+                            <ConciergeFeedbackPrompt
+                                action={action}
+                                reportID={reportID}
                             />
                         )}
                     </View>

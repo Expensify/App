@@ -24,7 +24,6 @@ type EmojiPickerButtonProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean;
 
-    /** Unique id for emoji picker */
     emojiPickerID?: string;
 
     /** A callback function when the button is pressed */
@@ -82,7 +81,10 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
         <Tooltip text={translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                style={({hovered, pressed}) => [
+                    styles.chatItemEmojiButton,
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered && !isDisabled, isPressed: pressed && !isDisabled})),
+                ]}
                 disabled={isDisabled}
                 onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
@@ -93,7 +95,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 {({hovered, pressed}) => (
                     <Icon
                         src={icons.Emoji}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered && !isDisabled, isPressed: pressed && !isDisabled})})}
                     />
                 )}
             </PressableWithoutFeedback>

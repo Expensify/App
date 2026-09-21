@@ -16,7 +16,7 @@ import useOnyx from './useOnyx';
 export default function useExpensifyCardRules(policyID: string) {
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -51,7 +51,13 @@ export default function useExpensifyCardRules(policyID: string) {
                 }
 
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], defaultValue: '', shouldFallbackToHidden: false, translate});
+                const displayName = temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: personalDetails?.[accountID],
+                    defaultValue: '',
+                    shouldFallbackToHidden: false,
+                    translate,
+                    formatPhoneNumber,
+                });
                 cardNames.push(getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID);
                 cardOwnerDisplayNames.push(displayName);
             }

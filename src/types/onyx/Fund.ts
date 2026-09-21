@@ -8,16 +8,9 @@ import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of debit card account data */
 type AccountData = {
-    /** Additional account data */
     additionalData?: BankAccountAdditionalData;
-
-    /** Address name */
     addressName?: string;
-
-    /** Address state */
     addressState?: string;
-
-    /** Address street */
     addressStreet?: string;
 
     /** Address zip code */
@@ -50,7 +43,6 @@ type Fund = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** All data related to the debit card */
     accountData?: AccountData;
 
-    /** Debit card type */
     accountType?: typeof CONST.PAYMENT_METHODS.DEBIT_CARD;
 
     /** Debit card description */

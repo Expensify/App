@@ -4,6 +4,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -16,6 +18,20 @@ import Onyx from 'react-native-onyx';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+// Pinned to a wide layout so the column-count assertion below exercises the `shouldUseSingleColumn` prop rather than
+// the narrow-layout fallback, which would collapse the fields to one per row on its own.
+jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
+    __esModule: true,
+    default: () => ({
+        shouldUseNarrowLayout: false,
+        shouldUseNarrowLayoutIgnoringWideRHP: false,
+        isSmallScreenWidth: false,
+        isInNarrowPaneModal: false,
+        isWideRHPDisplayedOnWideLayout: true,
+        isSuperWideRHPDisplayedOnWideLayout: false,
+    }),
+}));
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -112,6 +128,7 @@ const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Polic
 describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+        initOnyxDerivedValues();
     });
 
     afterEach(async () => {
@@ -329,6 +346,7 @@ describe('MoneyReportView report fields visibility', () => {
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+        initOnyxDerivedValues();
     });
 
     afterEach(async () => {
@@ -353,9 +371,34 @@ describe('MoneyReportView report fields visibility', () => {
         renderMoneyReportView(approvedReport, policy, true);
         await waitForBatchedUpdatesWithAct();
 
-        // The custom field (rendered read-only after approval) must still show for the submitter.
+        // The custom field (rendered read-only after approval) must still show for the submitter. It renders as an
+        // inline input now rather than a row that opens the report field editor, so it's found by its label.
         await waitFor(() => {
-            expect(screen.getByText('Test')).toBeOnTheScreen();
+            expect(screen.getByLabelText('Test')).toBeOnTheScreen();
+        });
+    });
+
+    it('stacks the report fields one per row on a wide layout, because this is the one-expense report view', async () => {
+        const customFields = Array.from({length: 4}, (_unused, index) => ({
+            ...buildCustomTextField(),
+            fieldID: `field_test${index}`,
+            name: `Test${index}`,
+            orderWeight: index + 2,
+        }));
+        const fieldList: Record<string, OnyxTypes.PolicyReportField> = {[CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField()};
+        for (const field of customFields) {
+            fieldList[`expensify_${field.fieldID}`] = field;
+        }
+        const policy = buildReportFieldsPolicy(fieldList);
+        const report = buildExpenseReport({fieldList});
+        await seedReportFieldsPolicy(policy, report);
+
+        renderMoneyReportView(report, policy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Four fields would fill two rows of three if this view used the grid, so four rows proves one per row.
+        await waitFor(() => {
+            expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
         });
     });
 

@@ -62,6 +62,7 @@ function EmptyState() {
 
     return (
         <HomeSectionEmptyState
+            testID="forYouEmptyState"
             illustration={illustrations[CONFIG.illustrationName]}
             title={translate(CONFIG.titleKey)}
             description={translate(CONFIG.descriptionKey)}
