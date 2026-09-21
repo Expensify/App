@@ -203,9 +203,8 @@ function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft,
     }
 
     const backTo = Navigation.getActiveRoute();
-    // Corpay fields are shared with business bank accounts. Refresh the personal schema on a genuine Wallet resume,
-    // even when the cached business fields have the same country and currency.
-    setPersonalBankAccount.then(() => Onyx.set(ONYXKEYS.CORPAY_FIELDS, null)).then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo)));
+    // Wait until the Wallet setup state is saved so the destination page reads the updated account data on its first render.
+    setPersonalBankAccount.then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo)));
 }
 
 /**
@@ -896,6 +895,8 @@ function getCorpayBankAccountFields(country: string, currency: string) {
                 value: {
                     isLoading: false,
                     isSuccess: true,
+                    isWithdrawal: true,
+                    isBusinessBankAccount: true,
                 },
             },
         ],
@@ -1552,6 +1553,16 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
                     key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                     value: {
                         isLoading: false,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.CORPAY_FIELDS,
+                    value: {
+                        isWithdrawal: !!isWithdrawal,
+                        isBusinessBankAccount: !!isBusinessBankAccount,
                     },
                 },
             ],

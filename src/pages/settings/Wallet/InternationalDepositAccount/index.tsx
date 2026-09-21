@@ -31,6 +31,8 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const hasMatchingCorpayFields =
         corpayFields?.bankCountry === draftValues?.bankCountry &&
         (!draftValues?.bankCurrency || corpayFields?.bankCurrency === draftValues.bankCurrency) &&
+        corpayFields?.isWithdrawal === false &&
+        corpayFields?.isBusinessBankAccount === false &&
         !!corpayFields?.formFields?.length;
     const resumeFieldsKey = `${draftValues?.bankCountry ?? ''}:${draftValues?.bankCurrency ?? ''}`;
     const requestedResumeFieldsKeyRef = useRef('');

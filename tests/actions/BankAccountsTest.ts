@@ -296,7 +296,7 @@ describe('actions/BankAccounts', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
         });
 
-        test('invalidates matching business Corpay fields without clearing an international Wallet draft', async () => {
+        test('preserves cached Corpay fields and an international Wallet draft until compatibility is checked', async () => {
             const personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET};
             const internationalDraft = {bankCountry: 'DE', bankCurrency: 'EUR', accountNumber: '12345678'};
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
@@ -321,13 +321,15 @@ describe('actions/BankAccounts', () => {
                 ],
                 isLoading: false,
                 isSuccess: true,
+                isWithdrawal: true,
+                isBusinessBankAccount: true,
             });
 
             jest.mocked(Navigation.navigate).mockClear();
             openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft: undefined, internationalDraft});
             await waitForBatchedUpdates();
 
-            expect(await getOnyxValue(ONYXKEYS.CORPAY_FIELDS)).toBeFalsy();
+            expect(await getOnyxValue(ONYXKEYS.CORPAY_FIELDS)).toEqual(expect.objectContaining({isWithdrawal: true, isBusinessBankAccount: true}));
             expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(internationalDraft);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
         });
