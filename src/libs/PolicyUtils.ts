@@ -1652,12 +1652,8 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
- * Resolves a workspace's reimbursement choice to one of the three values the app reasons about.
- *
- * A workspace that never stored a choice gets its answer from an inbox task the backend has since retired, and the
- * backend returns that answer prefixed with `deprecated_`. The prefixed value means exactly what its plain counterpart
- * means, so every comparison against `CONST.POLICY.REIMBURSEMENT_CHOICES` goes through here. Comparing the raw field
- * instead makes such a workspace look like it has no reimbursement set up at all, which hides Pay on approved reports.
+ * Resolves a workspace's reimbursement choice, mapping the deprecated spellings onto their plain counterparts.
+ * Compare against `CONST.POLICY.REIMBURSEMENT_CHOICES` through this, never against the raw field.
  */
 function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | undefined {
     switch (policy?.reimbursementChoice) {

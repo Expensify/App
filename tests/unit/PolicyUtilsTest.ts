@@ -2143,7 +2143,6 @@ describe('PolicyUtils', () => {
             expect(getReimburserEmail(policy)).toBeUndefined();
         });
 
-        // A workspace that never stored a choice gets the deprecated spelling from the backend, and it means Indirect.
         it('should resolve the payer for deprecated manual reimbursement', () => {
             const policy = createMock<Policy>({
                 id: '1',
@@ -2211,7 +2210,7 @@ describe('PolicyUtils', () => {
     });
 
     describe('isPolicyPayer', () => {
-        // The workspace owner is the payer under Indirect reimbursement, whichever spelling the backend returns.
+        // The workspace owner is the payer under Indirect reimbursement, whichever spelling is stored.
         it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
             'should treat the owner as the payer for %s',
             (choice) => {

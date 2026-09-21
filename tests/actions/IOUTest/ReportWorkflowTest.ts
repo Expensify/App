@@ -6082,9 +6082,7 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
     });
     describe('canIOUBePaid with a deprecated reimbursement choice', () => {
-        // A workspace that never stored a reimbursement choice gets its answer from an inbox task the backend has
-        // retired, and the backend returns that answer prefixed with `deprecated_`. The prefixed value means the same
-        // as its plain counterpart, so Pay has to behave identically for both spellings.
+        // Pay has to behave identically for a deprecated spelling and its plain counterpart.
         function buildApprovedExpenseReportScenario(reimbursementChoice: Policy['reimbursementChoice'], seed: number) {
             const policyID = `${seed}`;
             const chatReportID = `${seed + 1}`;

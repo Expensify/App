@@ -3391,10 +3391,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoReportingOffset?: AutoReportingOffset;
 
         employeeList?: OnyxTypes.PolicyEmployeeList;
-        /**
-         * How the workspace pays reimbursable expenses. Read this through `PolicyUtils.getReimbursementChoice`, which
-         * resolves the `deprecated_` spellings the backend still returns for workspaces that never stored a choice.
-         */
+        /** How the workspace pays reimbursable expenses. Read it through `PolicyUtils.getReimbursementChoice`. */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | ValueOf<typeof CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES>;
 
         /** The set reimburser for the policy */

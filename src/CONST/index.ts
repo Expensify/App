@@ -4494,12 +4494,7 @@ const CONST = {
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
 
-        /**
-         * A workspace that never stored a reimbursement choice keeps its answer in an inbox task the backend has since
-         * retired. The backend reads that old answer and returns it with a `deprecated_` prefix, so the value reaching
-         * Onyx carries the same meaning as its plain counterpart. Read the choice through
-         * `PolicyUtils.getReimbursementChoice` so both spellings resolve to one value.
-         */
+        /** Older workspaces report these instead of the values above. Each one means the same as its plain counterpart. */
         DEPRECATED_REIMBURSEMENT_CHOICES: {
             REIMBURSEMENT_NO: 'deprecated_reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'deprecated_reimburseManual', // Indirect
