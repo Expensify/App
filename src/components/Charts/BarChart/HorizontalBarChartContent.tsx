@@ -196,11 +196,13 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     const barThickness = useSharedValue(0);
     const rowHeight = useSharedValue(0);
     const xZero = useSharedValue(0);
+    const plotLeft = useSharedValue(0);
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const plotHeight = bounds.bottom - bounds.top;
         setBarAreaHeight(plotHeight);
         barThickness.set(data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0);
+        plotLeft.set(bounds.left);
     };
 
     const checkIsOverBar = (args: HitTestArgs) => {
@@ -209,11 +211,12 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         // Vertically the target is the bar thickness plus a small pad (thin bars stay easy to hit), never wider
         // than the row spacing so adjacent rows don't overlap. Using the bar thickness rather than the full row
         // gap keeps the empty space above/below a bar inert, including a single bar that spans the whole plot.
-        // Horizontally the target spans the category label column on the left through the bar itself (so hovering
-        // a group label also shows the tooltip), but stops at the bar tip so the plot space beyond a short bar is inert.
+        // Horizontally the target is the category label column on the left OR the bar itself (so hovering a group
+        // label also shows the tooltip), but the empty plot space between them and beyond the bar tip stays inert.
         // The bar runs between the zero axis and its tip. Positive bars point right (tip past the axis), negative
-        // bars point left (tip before the axis). Extend the tolerance outward past the tip, and always include the
-        // label column at the left edge (cursorX 0) so a group label stays hoverable regardless of the bar's sign.
+        // bars point left (tip before the axis). Extend the tolerance outward past the tip. The label column sits
+        // left of the plot area, so treat it as a separate hoverable region rather than merging it with the bar
+        // span, which would otherwise make the empty negative-side plot region between them hoverable too.
         const thickness = barThickness.get();
         if (thickness <= 0) {
             return false;
@@ -224,9 +227,11 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         const isWithinRow = args.cursorY >= rowTop && args.cursorY <= rowBottom;
         const zero = xZero.get();
         const tipEnd = args.targetX >= zero ? args.targetX + HOVER_TIP_TOLERANCE : args.targetX - HOVER_TIP_TOLERANCE;
-        const extentStart = Math.min(0, zero, tipEnd);
-        const extentEnd = Math.max(zero, tipEnd);
-        const isWithinBarExtent = args.cursorX >= extentStart && args.cursorX <= extentEnd;
+        const barStart = Math.min(zero, tipEnd);
+        const barEnd = Math.max(zero, tipEnd);
+        const isWithinBar = args.cursorX >= barStart && args.cursorX <= barEnd;
+        const isWithinLabelColumn = args.cursorX <= plotLeft.get();
+        const isWithinBarExtent = isWithinBar || isWithinLabelColumn;
 
         return isWithinRow && isWithinBarExtent;
     };
