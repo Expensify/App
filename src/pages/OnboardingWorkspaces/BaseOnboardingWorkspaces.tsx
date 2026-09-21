@@ -139,7 +139,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
         // Auto-joining finishes the join-workspace task immediately, so the welcome message drops its task list.
         const joinWorkspaceOnboardingMessage = policy.automaticJoiningEnabled ? {...joinWorkspaceMessages.joinWorkspace, tasks: []} : joinWorkspaceMessages.joinWorkspace;
-        const onboardingMessage = isJoiningCompanyWorkspace ? joinWorkspaceOnboardingMessage : onboardingMessages[onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND];
+        const completionIntent =
+            onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE || onboardingIntent === CONST.ONBOARDING_CHOICES.EMPLOYER
+                ? onboardingIntent
+                : CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+        const onboardingMessage = isJoiningCompanyWorkspace ? joinWorkspaceOnboardingMessage : onboardingMessages[completionIntent];
 
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(
@@ -165,7 +169,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         }
 
         completeOnboarding({
-            engagementChoice: onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            engagementChoice: completionIntent,
             onboardingMessage,
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
