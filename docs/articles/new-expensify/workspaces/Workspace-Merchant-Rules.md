@@ -1,7 +1,7 @@
 ---
 title: Merchant Rules
 description: Learn how to enable and use Merchant Rules to automatically apply consistent expense coding based on the expense merchant name.
-keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, merchant rule deleted tag, tag missing from merchant rule, merchant rule vendor, updated vendor column]
+keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, merchant rule deleted tag, tag missing from merchant rule, merchant rule vendor]
 internalScope: Audience is Workspace Admins on the Control plan. Covers creating, using, and bulk-importing Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
 ---
 
@@ -41,7 +41,7 @@ Instead of creating Merchant Rules one at a time, you can import multiple Mercha
    - **Updated description** — Apply a description (optional).
    - **Reimbursable** — Set reimbursable status to **True** or **False** (optional).
    - **Billable** — Set billable status to **True** or **False** (optional).
-   - **Updated vendor** — Apply a vendor by name (optional, and only on a workspace where vendor matching is active).
+   - **Updated vendor** — Apply a vendor by name (optional).
 2. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
 3. Click **Rules**, then open the **Expense defaults** tab.
 4. Click **More**, then select **Import merchant rules**.
@@ -161,5 +161,5 @@ Merchant Rules can update:
    - Reimbursable status
    - Billable status
    - Tax
-   - Vendor (only on a workspace where vendor matching is active)
+   - Vendor
 
