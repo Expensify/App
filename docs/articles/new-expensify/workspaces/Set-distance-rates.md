@@ -57,6 +57,36 @@ Once **Track tax** is enabled, you can assign a tax rate and tax reclaimable amo
 
 **Note:** You can't assign a tax rate when creating a distance rate. Create the distance rate first, then edit it to configure the tax rate and tax reclaimable amount.
 
+---
+
+## How to exclude commutes from distance expenses
+
+On Control workspaces, you can exclude a portion of each mileage claim that represents ordinary commuting, so members are reimbursed only for the eligible portion of a route.
+
+To configure how commutes are excluded:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Distance rates**.
+3. Select **Settings**.
+4. Select **Exclude commutes**.
+5. Choose **Exclude a fixed distance per claim**.
+6. Enter the fixed distance to subtract from each claim.
+7. Click **Save**.
+
+---
+
+## How the fixed-distance exclusion is applied
+
+When **Exclude a fixed distance per claim** is set: 
+
+- Members can create distance expenses using Map or GPS. Manual and odometer entry are hidden.
+- The fixed distance exclusion applies to all members of the workspace, and the configured distance is subtracted from each distance expense.
+- On each distance expense, members see a message confirming the portion that was removed, such as "removed 3.6 commute miles".
+- If the excluded distance is greater than the trip distance, the reimbursable distance is set to zero.
+- Changing the exclusion method or amount only affects future expenses. Existing expenses are not recalculated.
+
+---
+
 ## How to change a distance rate, effective dates, or tax rate
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
@@ -160,40 +190,5 @@ No. Updating a distance rate only affects future distance expenses. Existing exp
 Yes. When **Distance rates** is enabled, the workspace must always have at least one active distance rate.
 
 ## Why isn't Auto-update government rate turned on for my workspace?
-
----
-
-# Exclude commutes from distance expenses
-
-On Control workspaces, you can exclude part of each mileage claim that represents ordinary commuting, so members are reimbursed only for the eligible portion of a route.
-
-To configure how commutes are excluded:
-
-1. Go to **Workspaces > [Workspace Name] > Distance Rates**.
-2. Click **Settings** in the top-right corner.
-3. Under **Exclude commutes**, choose one of the following:
-   - **Do not exclude commutes** – No commute distance is excluded, and the full route distance is reimbursed.
-   - **Exclude a fixed distance per claim** – A distance you set is subtracted from each eligible distance claim before the rate is applied.
-4. If you select **Exclude a fixed distance per claim**, enter the distance to subtract from each claim.
-5. Click **Save**.
-
-**Note:** When any exclusion method is enabled, members can only create distance expenses using **Map** or **GPS** routes. **Manual** and **Odometer** entry are hidden because they don't provide enough route detail to calculate the excluded distance.
-
-## How the fixed-distance exclusion is applied
-
-When **Exclude a fixed distance per claim** is selected:
-
-- The configured distance is subtracted from each eligible route-based distance claim individually.
-- If the excluded distance is greater than the route distance, the reimbursable distance is set to zero (it never goes negative).
-- The exclusion applies per claim. Expensify does not combine multiple claims in the same day or carry unused excluded distance between claims.
-- Changing the exclusion method or amount only affects future expenses. Existing expenses are not recalculated.
-
-Members see the excluded distance and the resulting reimbursable distance on the confirmation screen when creating the expense, and it's also explained on the receipt and in a system message after the expense is created.
-
-<!-- SCREENSHOT:
-Suggestion: Distance Rates > Settings page showing the Exclude commutes method selector with "Exclude a fixed distance per claim" selected and a fixed distance value entered
-Location: After the steps in "Exclude commutes from distance expenses"
-Purpose: Show admins exactly where the commute exclusion setting lives and how to configure it
--->
 
 **Auto-update government rate** is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
