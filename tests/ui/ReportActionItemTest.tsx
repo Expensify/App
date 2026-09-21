@@ -3325,19 +3325,23 @@ describe('ReportActionItem', () => {
         it('shows the acknowledgement in a second copy of the chat that did not take the press', async () => {
             // The side panel and the central pane each mount their own copy, and the reaction is what they share
             const action = createConciergeComment();
-            await reactWithThumbsUp(action, DateUtils.getDBTime());
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+            });
 
             renderItemWithAction(action, true);
             await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+
+            await reactWithThumbsUp(action, DateUtils.getDBTime());
 
             expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
             expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
         });
 
-        it('stops showing the acknowledgement once the reaction is older than the window', async () => {
+        it('does not acknowledge a rating that was already there when the chat was opened', async () => {
             const action = createConciergeComment();
-            // Well past the few seconds the acknowledgement stays up for
-            await reactWithThumbsUp(action, DateUtils.getDBTime(Date.now() - 60000));
+            await reactWithThumbsUp(action, DateUtils.getDBTime());
 
             renderItemWithAction(action, true);
             await waitForBatchedUpdatesWithAct();

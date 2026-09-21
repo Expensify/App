@@ -104,28 +104,23 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
 
     const thumbsUpReactedAt = getReactedAtTimestamp(thumbsUp, reactions, currentUserAccountID);
 
-    // Holds the reaction the acknowledgement is showing for. Both timers keep the state change out of the render and out of the effect body
-    const [thanksReactedAt, setThanksReactedAt] = useState<number>();
+    // The reaction that was already there when this row mounted is an old rating, so only a reaction that lands while the row is open is acknowledged
+    const [mountedWithThumbsUpReactedAt] = useState(thumbsUpReactedAt);
+    const hasJustReacted = thumbsUpReactedAt !== undefined && thumbsUpReactedAt !== mountedWithThumbsUpReactedAt;
+
+    // Holds the reaction whose acknowledgement has run its course, so a later reaction opens it again
+    const [acknowledgedThumbsUpReactedAt, setAcknowledgedThumbsUpReactedAt] = useState<number>();
 
     useEffect(() => {
-        if (thumbsUpReactedAt === undefined) {
+        if (!hasJustReacted) {
             return;
         }
 
-        const remainingThanksTime = thumbsUpReactedAt + THANKS_VISIBLE_DURATION_MS - Date.now();
-        if (remainingThanksTime <= 0) {
-            return;
-        }
+        const thanksTimeoutID = setTimeout(() => setAcknowledgedThumbsUpReactedAt(thumbsUpReactedAt), THANKS_VISIBLE_DURATION_MS);
+        return () => clearTimeout(thanksTimeoutID);
+    }, [hasJustReacted, thumbsUpReactedAt]);
 
-        const showTimeoutID = setTimeout(() => setThanksReactedAt(thumbsUpReactedAt), 0);
-        const hideTimeoutID = setTimeout(() => setThanksReactedAt(undefined), remainingThanksTime);
-        return () => {
-            clearTimeout(showTimeoutID);
-            clearTimeout(hideTimeoutID);
-        };
-    }, [thumbsUpReactedAt]);
-
-    const isDisplayedThankMessage = thanksReactedAt !== undefined && thanksReactedAt === thumbsUpReactedAt;
+    const isDisplayedThankMessage = hasJustReacted && acknowledgedThumbsUpReactedAt !== thumbsUpReactedAt;
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
