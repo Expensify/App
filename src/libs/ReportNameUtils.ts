@@ -29,6 +29,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
+import getCollator from './CollatorUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
@@ -53,6 +54,7 @@ import {
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCrossBorderReimbursedMessage,
     getCurrencyConversionFeeMessage,
@@ -232,11 +234,13 @@ const buildReportNameFromParticipantNames = ({
     personalDetailsList: personalDetailsData,
     currentUserAccountID,
     translate,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     personalDetailsList?: Partial<PersonalDetailsList>;
     currentUserAccountID?: number;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
@@ -248,7 +252,7 @@ const buildReportNameFromParticipantNames = ({
                 accountID,
                 shouldUseShortForm: true,
                 personalDetailsData,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                formatPhoneNumber,
                 translate,
             }),
         }))
@@ -259,7 +263,7 @@ const buildReportNameFromParticipantNames = ({
                 return getDisplayNameForParticipant({
                     accountID,
                     personalDetailsData,
-                    formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                    formatPhoneNumber,
                     translate,
                 });
             }
@@ -272,7 +276,7 @@ const buildReportNameFromParticipantNames = ({
  * The reason for this is that the computation of default group name should not depend on the locale.
  * This is used to ensure that group name stays consistent across locales.
  */
-const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+const customCollator = getCollator(CONST.LOCALES.EN);
 
 /**
  * Returns the report name if the report is a group chat
@@ -902,6 +906,10 @@ function computeReportNameBasedOnReportAction({
         return getTravelUpdateMessage(translate, parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        return getConciergeAutoSelectDistanceRateMessage(translate, parentReportAction);
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
         return getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, parentReportAction);
     }
@@ -1004,9 +1012,11 @@ function computeChatThreadReportName({
     isArchived,
     report,
     reports,
+    parentReport,
     currentUserAccountID,
     currentUserLogin,
     transactions,
+    conciergeReportID,
     parentReportAction,
     policyTags,
     policy,
@@ -1017,9 +1027,11 @@ function computeChatThreadReportName({
     isArchived: boolean;
     report: Report;
     reports: OnyxCollection<Report>;
+    parentReport: OnyxEntry<Report>;
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
     transactions: OnyxCollection<Transaction>;
+    conciergeReportID: string | undefined;
     parentReportAction?: ReportAction;
     policyTags?: OnyxEntry<PolicyTagLists>;
     policy?: OnyxEntry<Policy>;
@@ -1057,8 +1069,22 @@ function computeChatThreadReportName({
         return translate('parentReportAction.deletedMessage');
     }
 
+    const parentReportActionText = getReportActionText(parentReportAction);
+
+    // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
+    // A thread opened by hand is named after the parent message, and that copy isn't localized (an attachment is stored
+    // as the literal "[Attachment]"), so keep computing the name until Concierge replaces it with a generated title.
+    if (
+        report.reportName &&
+        report.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME &&
+        report.reportName !== parentReportActionText &&
+        isConciergeChatReport(parentReport, conciergeReportID)
+    ) {
+        return report.reportName;
+    }
+
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
-    const reportActionMessage = getReportActionText(parentReportAction).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
+    const reportActionMessage = parentReportActionText.replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
     if (isAttachment && reportActionMessage) {
         return `[${translate('common.attachment')}]`;
     }
@@ -1089,6 +1115,8 @@ function computeChatThreadReportName({
             policy,
             currentUserAccountID,
             currentUserLogin,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            movedFromReportName: undefined,
         });
         // Strip HTML tags for plain text display in report previews
         const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
@@ -1205,9 +1233,11 @@ function computeReportName({
         isArchived: privateIsArchivedValue,
         report,
         reports: reports ?? {},
+        parentReport,
         currentUserAccountID,
         currentUserLogin: currentUserLogin ?? '',
         transactions,
+        conciergeReportID,
         parentReportAction,
         policyTags,
         policy: reportPolicy,
@@ -1288,7 +1318,7 @@ function computeReportName({
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID, translate});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 
@@ -1313,22 +1343,9 @@ function getReportName(report?: Report, derivedReportName?: string): string {
     return derivedReportName ?? report.reportName ?? '';
 }
 
-/**
- * Transitional wrapper for call sites that still hold the whole attributes `Record`. Passing the Record forces a
- * caller to subscribe to *every* report's attributes and re-render when any of them change, when all it needs is one
- * name. Each call site is migrated to `getReportName` incrementally; this wrapper is removed once none remain.
- * See https://github.com/Expensify/App/issues/66427.
- *
- * @deprecated Use `getReportName(report, derivedReportName)`, sourcing the name via `useDerivedReportNameByReportID`.
- */
-function deprecatedGetReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
-    return getReportName(report, report?.reportID ? reportAttributesDerivedValue?.[report.reportID]?.reportName : undefined);
-}
-
 export {
     computeReportName,
     getReportName,
-    deprecatedGetReportName,
     getInvoiceReportName,
     getMoneyRequestReportName,
     buildReportNameFromParticipantNames,
