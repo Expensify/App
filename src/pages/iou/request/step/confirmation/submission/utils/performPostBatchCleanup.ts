@@ -87,4 +87,3 @@ function performPostBatchCleanup({
 }
 
 export default performPostBatchCleanup;
-export type {PerformPostBatchCleanupParams};

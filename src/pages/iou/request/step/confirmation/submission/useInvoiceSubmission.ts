@@ -112,4 +112,3 @@ function useInvoiceSubmission({
 }
 
 export default useInvoiceSubmission;
-export type {UseInvoiceSubmissionParams};

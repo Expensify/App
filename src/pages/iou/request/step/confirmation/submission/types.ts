@@ -24,4 +24,4 @@ type SendMoneyOptions = {
     shouldDeferForSearch?: boolean;
 };
 
-export type {SubmissionHandle, SendMoneyOptions, SendMoneyReportIDs};
+export type {SubmissionHandle, SendMoneyOptions};

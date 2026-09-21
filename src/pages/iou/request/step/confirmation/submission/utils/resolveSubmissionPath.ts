@@ -50,4 +50,4 @@ function resolveSubmissionPath(snapshot: SubmissionPathSnapshot): SubmissionPath
 }
 
 export {SUBMISSION_PATH, resolveSubmissionPath};
-export type {SubmissionPath, SubmissionPathSnapshot};
+export type {SubmissionPath};
