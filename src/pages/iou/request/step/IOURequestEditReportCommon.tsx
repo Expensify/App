@@ -369,7 +369,7 @@ function IOURequestEditReportCommon({
     }, [isOffline, showConfirmModal, translate, autoReport]);
 
     const autoReportOption = useMemo(() => {
-        if (!autoReport || !hasMultipleSubmitters) {
+        if (!CONST.REPORT.IS_AUTO_REPORT_ENABLED || !autoReport || !hasMultipleSubmitters) {
             return undefined;
         }
 

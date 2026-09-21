@@ -2869,6 +2869,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
         // An expense we cannot read fails all three, so it withholds the flow rather than risking a rejected move.
         const canAutoReportAcrossSubmitters =
+            CONST.REPORT.IS_AUTO_REPORT_ENABLED &&
             ownerAccountIDs.size > 1 &&
             !hasUnknownOwner &&
             selectedTransactionsKeys.every((id) => {

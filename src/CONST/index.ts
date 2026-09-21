@@ -1592,6 +1592,12 @@ const CONST = {
         SPLIT_REPORT_ID: '-2',
         // "Auto report" destination: the backend picks each expense's report (its owner's latest draft, or a new one).
         AUTOMATIC_REPORT_ID: '-3',
+        // "Auto report" is hidden until the App can tell whether the backend will resolve a destination for every
+        // selected expense. The current guard only checks that each expense is on a managed card, which says nothing
+        // about whose card feed it is, so a selection holding another submitter's own-workspace card expense is offered
+        // the option and then rejected, leaving an error on the expense. Flip this back on once the guard also confirms
+        // every card belongs to a feed on a workspace the mover administers.
+        IS_AUTO_REPORT_ENABLED: false,
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',

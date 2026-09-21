@@ -47,6 +47,9 @@ const renderIOURequestEditReportCommon = ({
     isPerDiemRequest = false,
     selectReport = jest.fn(),
     createReport,
+    hasMultipleSubmitters = false,
+    areAllManagedCardTransactions = false,
+    autoReport,
 }: {
     selectedReportID: string;
     selectedPolicyID?: string;
@@ -58,6 +61,9 @@ const renderIOURequestEditReportCommon = ({
     isPerDiemRequest?: boolean;
     selectReport?: jest.Mock;
     createReport?: jest.Mock;
+    hasMultipleSubmitters?: boolean;
+    areAllManagedCardTransactions?: boolean;
+    autoReport?: jest.Mock;
 }) =>
     render(
         <NavigationContainer>
@@ -74,6 +80,9 @@ const renderIOURequestEditReportCommon = ({
                     createReport={createReport}
                     backTo=""
                     isPerDiemRequest={isPerDiemRequest}
+                    hasMultipleSubmitters={hasMultipleSubmitters}
+                    areAllManagedCardTransactions={areAllManagedCardTransactions}
+                    autoReport={autoReport}
                 />
             </ComposeProviders>
         </NavigationContainer>,
@@ -329,6 +338,48 @@ describe('IOURequestEditReportCommon', () => {
                     shouldShowCancelButton: false,
                 }),
             );
+        });
+    });
+
+    describe('Auto report', () => {
+        beforeAll(() => {
+            Onyx.init({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL},
+                },
+            });
+            initOnyxDerivedValues();
+            return waitForBatchedUpdatesWithAct();
+        });
+
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            jest.clearAllMocks();
+            return waitForBatchedUpdatesWithAct();
+        });
+
+        it('does not offer "Auto report" while the option is disabled, even for a selection that satisfies every other guard', async () => {
+            // Given a mixed-submitter selection where every expense is on a managed card, which is the only selection
+            // the row was ever offered for
+            const autoReport = jest.fn();
+
+            // When the screen is rendered
+            renderIOURequestEditReportCommon({
+                selectedReportID: FAKE_REPORT_ID,
+                transactionIDs: [FAKE_TRANSACTION_ID],
+                hasMultipleSubmitters: true,
+                areAllManagedCardTransactions: true,
+                autoReport,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the row is not rendered, so the move it would have queued can never be started. The App cannot yet
+            // tell whether the backend will resolve a destination for another submitter's own-workspace card expense.
+            expect(screen.queryByText(translateLocal('iou.autoReport'))).toBeNull();
+            expect(autoReport).not.toHaveBeenCalled();
         });
     });
 
