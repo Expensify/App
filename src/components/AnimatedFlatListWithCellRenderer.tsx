@@ -4,7 +4,7 @@
  * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
  */
 import type {Ref} from 'react';
-import type {FlatListProps, CellRendererProps as RNCellRendererProps} from 'react-native';
+import type {FlatListProps} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
 
 import React, {createContext, useContext} from 'react';
@@ -12,6 +12,8 @@ import {FlatList} from 'react-native';
 import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+
+type RNCellRendererProps<T> = NonNullable<FlatListProps<T>['CellRendererComponent']> extends React.ComponentType<infer P> ? P : never;
 
 type CellRendererComponentProps<T> = React.ComponentType<RNCellRendererProps<T>> | null | undefined;
 
