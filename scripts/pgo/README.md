@@ -85,6 +85,8 @@ scripts/pgo/pgo.ts android merge
 
 Use the equivalent `ios` commands on iOS. A representative journey should exercise the common signed-in path: open and scroll chats, send a message, visit a workspace setting, attach and view a file, and run a search. Keep account state, data size, and network conditions stable between collections.
 
+Write the counters once per app process. Repeated dumps without resetting counters can merge the same accumulated work again. Independent scenarios need a fresh process, cleared device profile files, and separately archived output. The current command automates this lifecycle for startup collection; a mixed-scenario CI runner still needs that orchestration.
+
 ## Build and benchmark the optimized app
 
 Build the optimized app only after recording a fresh profile. Build the baseline release from the same source revision and toolchain:
@@ -128,6 +130,8 @@ The current `record-startups` command accumulates and merges the startup runs au
 ## A realistic CI design
 
 Run profile generation as a scheduled or release-candidate job, not on every pull request. Use pinned self-hosted runners or a device farm, preferably with physical arm64 devices, the production compiler versions, stable thermal and power conditions, a seeded account, and deterministic local fixtures where possible. Build one instrumented artifact per platform, run the fixed startup and interaction suites against that exact artifact, flush after every successful scenario, merge the separate outputs with documented weights, then build the optimized artifact without changing the checkout or toolchain.
+
+Store both repository revisions, dependency locks, compiler and SDK versions, ABI, build settings, scenario version, and test-data fixture with each profile. Reject mismatched artifacts before the optimized build. Keep the instrumented build and raw profiles so a failed collection can be investigated without rerunning it.
 
 Benchmark both variants on the same device after a cooldown, discard post-install warm-ups, and retain raw samples. The `benchmark` workflow runs all baseline samples before all optimized samples, so thermal or time-dependent drift can bias the comparison. The two archived builds intentionally share an identifier to preserve app data, which prevents side-by-side alternation. CI can reduce drift with ABBA install blocks that preserve the shared identifier and discard each post-install warm-up. Another option is to give the builds distinct identifiers, seed matched state, and use the repository's alternating startup benchmark. Evaluate both startup and held-out interactive journeys that were excluded from training. Gate on several releases of data rather than a single noisy run.
 
