@@ -214,6 +214,10 @@ function DateSegmentsInput({
             <PressableWithoutFeedback
                 accessible={false}
                 accessibilityLabel={translate('common.date')}
+                // A press here must not move focus by itself. Chrome focuses this on mouse down, drawing a focus ring
+                // over the empty space and leaving the field unable to take a keystroke, and a double click near the
+                // last digit lands here rather than on the day.
+                onMouseDown={(event) => event.preventDefault()}
                 onPress={focusFirstUnfilledSegment}
                 sentryLabel="DateSegmentsInput-EmptySpace"
                 style={[styles.flex1, styles.cursorText]}
