@@ -83,8 +83,11 @@ jest.mock('@libs/ActiveClientManager', () => ({
 jest.mock('@userActions/App', () => ({
     openApp: jest.fn(),
     reconnectApp: jest.fn(),
-    setUpPoliciesAndNavigate: jest.fn(),
     setLocale: jest.fn(),
+}));
+
+jest.mock('@userActions/Policy/CreateWorkspaceFlow', () => ({
+    setUpPoliciesAndNavigate: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({

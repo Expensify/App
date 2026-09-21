@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
+import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/Policy/CreateWorkspaceFlow';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';

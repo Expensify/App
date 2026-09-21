@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 
-import {createWorkspaceWithPolicyDraft} from '@userActions/App';
+import {createWorkspaceWithPolicyDraft} from '@userActions/Policy/CreateWorkspaceFlow';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
