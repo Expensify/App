@@ -10,13 +10,11 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
@@ -25,8 +23,8 @@ import {View} from 'react-native';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
 type MoneyRequestReportTableHeaderRowProps = {
-    /** List of transactions belonging to one report */
-    transactions: OnyxTypes.Transaction[];
+    /** How many rows Select All covers, counted by the list so the checkbox and the press cannot answer from two lists */
+    selectableCount: number;
 
     /** Select All: the list decides whether that selects every row it can or clears the selection */
     onToggleAll: () => void;
@@ -66,7 +64,7 @@ type MoneyRequestReportTableHeaderRowProps = {
  * The transaction table's header row: the select-all checkbox plus the sortable column headers.
  */
 function MoneyRequestReportTableHeaderRow({
-    transactions,
+    selectableCount,
     onToggleAll,
     pendingAction,
     columns,
@@ -87,7 +85,6 @@ function MoneyRequestReportTableHeaderRow({
     const {selectedTransactionIDs} = useSearchSelectionContext();
 
     const isDesktopTableLayout = !shouldUseNarrowLayout;
-    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
@@ -116,8 +113,8 @@ function MoneyRequestReportTableHeaderRow({
                     <Checkbox
                         onPress={onToggleAll}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
-                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== selectableTransactions.length}
-                        isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === selectableTransactions.length}
+                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== selectableCount}
+                        isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === selectableCount}
                         containerStyle={isDesktopTableLayout && styles.m0}
                         style={isDesktopTableLayout && styles.mr3}
                     />

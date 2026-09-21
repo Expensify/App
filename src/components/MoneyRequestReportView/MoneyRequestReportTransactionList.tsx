@@ -554,7 +554,7 @@ function MoneyRequestReportTransactionList({
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
 
         for (const group of groupedTransactions) {
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            const groupTransactionIDs = group.transactions.filter(isSelectableReportTransaction).map((t) => t.transactionID);
             const groupPendingAction = group.transactions.some((t) => getTransactionPendingAction(t)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 
             if (groupTransactionIDs.length === 0) {
@@ -580,7 +580,7 @@ function MoneyRequestReportTransactionList({
             if (!group) {
                 return;
             }
-            toggleGroup(group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID));
+            toggleGroup(group.transactions.filter(isSelectableReportTransaction).map((t) => t.transactionID));
         },
         [groupedTransactions, toggleGroup],
     );
@@ -800,7 +800,7 @@ function MoneyRequestReportTransactionList({
     const tableColumnHeader =
         isEmptyTransactions || shouldUseNarrowLayout ? null : (
             <MoneyRequestReportTableHeaderRow
-                transactions={transactions}
+                selectableCount={visualOrderTransactionIDs.length}
                 onToggleAll={() => toggleAll(visualOrderTransactionIDs)}
                 pendingAction={reportPendingAction}
                 columns={columnsToShow}

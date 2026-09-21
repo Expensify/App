@@ -31,7 +31,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
 
-import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
+import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import useOpenGroupsRegistry from './hooks/useOpenGroupsRegistry';
@@ -545,7 +545,8 @@ function SearchWriteActionsProvider({
         groupKeyByChildKeyRef.current = groupKeyByChildKey;
         childrenByGroupKeyRef.current = childrenByGroupKey;
     }, [groupKeyByChildKey, childrenByGroupKey]);
-    const isShiftRangeHeaderItem = (item: SearchData[number]): item is TransactionGroupListItemType => isTransactionGroupListItemType(item) && hasValidGroupBy;
+
+    const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     const getGroupCount = (groupKey: string) =>
         getSearchGroupCount(isGroupedItemArray(filteredData) ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ??

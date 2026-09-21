@@ -111,6 +111,7 @@ function useReportTransactionShiftRange({
         endSessionIfSelectionCameFromElsewhere();
         if (selectedTransactionIDs.length !== 0) {
             clearSelectedTransactions(true);
+            lastWrittenSelectionRef.current = null;
             rangeApi.clearAnchor();
             return;
         }
