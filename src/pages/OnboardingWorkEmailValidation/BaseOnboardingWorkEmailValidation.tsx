@@ -14,7 +14,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
-import {createJoinWorkspaceOnboardingContent, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {
+    clearOnboardingMergeAccountBlocked,
+    createJoinWorkspaceOnboardingContent,
+    setOnboardingErrorMessage,
+    setOnboardingMergeAccountStepValue,
+    updateOnboardingValuesAndNavigation,
+} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -127,6 +133,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         if (!isConciergeTaskFlow) {
             return;
         }
+        if (onboardingValues?.isMergingAccountBlocked) {
+            clearOnboardingMergeAccountBlocked();
+            returnToOriginReport();
+            return;
+        }
         const taskWorkEmail = workEmail ?? '';
         const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', taskWorkEmail.split('@').at(1) ?? '', taskWorkEmail, conciergeChat, delegateAccountID);
         if (validateEmailTaskReportID) {
@@ -136,7 +147,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
         returnToOriginReport();
-    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, returnToOriginReport, workEmail]);
+    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, onboardingValues?.isMergingAccountBlocked, returnToOriginReport, workEmail]);
 
     return (
         <ScreenWrapper
@@ -157,7 +168,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
                     <OnboardingMergingAccountBlockedView
                         workEmail={workEmail}
                         isVsb={isVsb}
-                        onConfirm={isConciergeTaskFlow ? returnToOriginReport : undefined}
+                        onConfirm={isConciergeTaskFlow ? handleConciergeTaskExit : undefined}
                     />
                 </View>
             ) : (

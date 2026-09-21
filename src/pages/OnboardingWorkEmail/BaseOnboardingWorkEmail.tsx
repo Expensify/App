@@ -355,7 +355,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                 shouldShowBackButton={isJoiningCompanyWorkspace && !isConciergeTaskFlow}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowCloseButton={isConciergeTaskFlow}
-                onCloseButtonPress={returnToOriginReport}
+                onCloseButtonPress={onboardingValues?.isMergingAccountBlocked ? handleConciergeTaskErrorConfirm : returnToOriginReport}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
