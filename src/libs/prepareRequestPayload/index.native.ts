@@ -60,8 +60,9 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
 
                     return Promise.resolve();
                 }
-                // Use the actual file name if available, otherwise fall back to extracting from path/uri
-                const fileName = name || (path ? (path.split('/').pop() ?? '') : '') || '';
+                // Use the actual file name if available, otherwise fall back to extracting from path/uri, and from
+                // `source` as a last resort. A part sent without a filename is stored under the form field name.
+                const fileName = name || (path ? (path.split('/').pop() ?? '') : '') || (source.split('/').pop() ?? '');
                 return readFileAsync(source, fileName, () => {}, undefined, type).then((file) => {
                     if (!file) {
                         return;

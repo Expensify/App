@@ -6930,6 +6930,20 @@ function getUploadingAttachmentLabelFromDraft(draftMarkdown: string, localSource
 }
 
 /**
+ * The label the still-uploading attachment tag currently shows. This is what the editor turned into the draft's
+ * markdown reference, so it is what a draft label has to be compared against to tell a rename from an untouched name.
+ */
+function getUploadingAttachmentLabel(uploadingAttachmentHtml: string | undefined): string | undefined {
+    if (!uploadingAttachmentHtml) {
+        return undefined;
+    }
+    if (uploadingAttachmentHtml.startsWith('<img')) {
+        return uploadingAttachmentHtml.match(/alt="([^"]*)"/i)?.at(1);
+    }
+    return uploadingAttachmentHtml.match(/>([\s\S]*?)<\/(?:a|video)>$/i)?.at(1);
+}
+
+/**
  * Applies the draft's label to the still-uploading attachment tag. `AnchorRenderer` shows the anchor's own text,
  * so renaming the file in the editor is only kept if that text is carried over rather than the original filename.
  */
@@ -6937,10 +6951,14 @@ function applyLabelToUploadingAttachmentHtml(uploadingAttachmentHtml: string, la
     if (!label) {
         return uploadingAttachmentHtml;
     }
-    if (uploadingAttachmentHtml.startsWith('<img')) {
-        return uploadingAttachmentHtml.replace(/alt="[^"]*"/i, `alt="${label}"`);
+
+    // The original filename stays in `data-name`, so leaving it behind would make the tag disagree with itself and
+    // every later edit would read the stale name and rename the queued file all over again.
+    const labelledHtml = uploadingAttachmentHtml.replace(new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="[^"]*"`, 'i'), `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${label}"`);
+    if (labelledHtml.startsWith('<img')) {
+        return labelledHtml.replace(/alt="[^"]*"/i, `alt="${label}"`);
     }
-    return uploadingAttachmentHtml.replace(/>[\s\S]*?<\/(a|video)>$/i, `>${label}</$1>`);
+    return labelledHtml.replace(/>[\s\S]*?<\/(a|video)>$/i, `>${label}</$1>`);
 }
 
 const uploadingAttachmentSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
@@ -14742,6 +14760,7 @@ export {
     restoreAttachmentAnchorAttributes,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
+    getUploadingAttachmentLabel,
     getUploadingAttachmentLabelFromDraft,
     getUploadingAttachmentSource,
     applyLabelToUploadingAttachmentHtml,

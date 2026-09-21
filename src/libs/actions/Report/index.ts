@@ -156,6 +156,7 @@ import {
     getReportPreviewReportActionMessage,
     getReportTransactions,
     getUploadingAttachmentHtmlFromComment,
+    getUploadingAttachmentLabel,
     getUploadingAttachmentLabelFromDraft,
     getUploadingAttachmentSource,
     hasOutstandingChildRequest,
@@ -3788,8 +3789,10 @@ function editReportComment(
     const draftAttachmentLabel = uploadingAttachmentSource ? getUploadingAttachmentLabelFromDraft(textForNewComment, uploadingAttachmentSource) : undefined;
 
     // The server rebuilds the stored attachment from the uploaded file, so a rename has to travel with the queued
-    // file as well as the optimistic markup, otherwise it reverts as soon as the send goes through.
-    const renamedAttachmentLabel = draftAttachmentLabel === originalUploadingAttachmentHtml?.match(/data-name="([^"]*)"/)?.at(1) ? undefined : draftAttachmentLabel;
+    // file as well as the optimistic markup, otherwise it reverts as soon as the send goes through. The comparison is
+    // against the tag's own label rather than its original filename, so an edit that leaves the label alone never
+    // renames the file, however many edits came before it.
+    const renamedAttachmentLabel = !draftAttachmentLabel || draftAttachmentLabel === getUploadingAttachmentLabel(originalUploadingAttachmentHtml) ? undefined : draftAttachmentLabel;
     const uploadingAttachmentHtml = originalUploadingAttachmentHtml ? applyLabelToUploadingAttachmentHtml(originalUploadingAttachmentHtml, renamedAttachmentLabel) : undefined;
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
     const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;

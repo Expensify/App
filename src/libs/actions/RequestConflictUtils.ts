@@ -280,8 +280,15 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
  * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
  */
 function renameQueuedAttachment(file: unknown, name: string): unknown {
+    // An unnamed multipart part leaves the server to name the attachment after the form field, so an empty label
+    // has to leave the file alone rather than blank out the name it already has.
+    if (!name) {
+        return file;
+    }
     if (typeof File !== 'undefined' && file instanceof File) {
-        return new File([file], name, {type: file.type, lastModified: file.lastModified});
+        // `uri` and `source` are ours, not part of `File`, and the native upload path reads them back off the object
+        // to find the file on disk, so the rebuild has to carry them over.
+        return Object.assign(new File([file], name, {type: file.type, lastModified: file.lastModified}), {uri: file.uri, source: file.source});
     }
     if (typeof file !== 'object' || file === null) {
         return file;

@@ -152,6 +152,7 @@ import {
     getTitleFieldWithFallback,
     getTransactionDetails,
     getTransactionReportName,
+    getUploadingAttachmentLabel,
     getUploadingAttachmentLabelFromDraft,
     getTransactionSortValue,
     getTransactionsWithReceipts,
@@ -7274,6 +7275,29 @@ describe('ReportUtils', () => {
                 const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
 
                 expect(applyLabelToUploadingAttachmentHtml(tag, undefined)).toBe(tag);
+            });
+
+            it('reads the label the attachment tag currently shows', () => {
+                // Given a file attachment tag and an image attachment tag
+                const fileTag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+                const imageTag = getUploadingAttachmentHtmlFromComment(uploadingImageHtml) ?? '';
+
+                // When their current label is read
+                // Then it is the anchor's own text and the image's alt text, which is what the editor shows
+                expect(getUploadingAttachmentLabel(fileTag)).toBe('data.csv');
+                expect(getUploadingAttachmentLabel(imageTag)).toBe('photo.jpg');
+                expect(getUploadingAttachmentLabel(undefined)).toBeUndefined();
+            });
+
+            it('reads back the applied label, so an edit that keeps it is not treated as a rename', () => {
+                // Given an attachment that a first edit already renamed
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+                const renamedTag = applyLabelToUploadingAttachmentHtml(tag, 'renamed.csv');
+
+                // When a second edit reads the label back off the renamed tag
+                // Then it matches the draft's label, so the queued file is left alone instead of renamed again
+                expect(getUploadingAttachmentLabel(renamedTag)).toBe('renamed.csv');
+                expect(renamedTag).toContain('data-name="renamed.csv"');
             });
         });
 
