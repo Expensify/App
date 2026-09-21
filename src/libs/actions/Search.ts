@@ -852,11 +852,10 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    // NO_RESPONSE stands for "failed with no usable response code", which covers a network-level rejection
-                    // that never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
-                    // write of `errors` carries a code this way, so the error view never has to guess.
-                    ...(isSearchRequest && {hash, responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}),
+                    ...(isSearchRequest && {hash}),
                 },
+                // No `responseJsonCode` here: failureData lands before search() can read the real code off the response, and
+                // a placeholder written alongside the errors renders for a frame before the real code replaces it (#101615).
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -1322,8 +1321,16 @@ function search({
             .catch(async (error) => {
                 // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
                 // SaveResponseInOnyx, so nothing else applies failureData/finallyData for it. Apply both here so
-                // the snapshot records the error and still reaches the terminal `loaded` state.
-                await Onyx.update(failureData ?? []);
+                // the snapshot records the error and still reaches the terminal `loaded` state. With no response to read
+                // a code from, NO_RESPONSE is written in the same update as the errors so the two never render apart.
+                await Onyx.update([
+                    ...(failureData ?? []),
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                        value: {search: {responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}},
+                    },
+                ]);
                 await Onyx.update(finallyData ?? []);
                 throw error;
             })

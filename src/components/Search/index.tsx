@@ -390,8 +390,8 @@ function Search({
     // so we never fall through to the empty-state check with stale zero-length data.
     const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
     const isSearchLoadingWithNoResults = isSearchPending(searchResults) && Array.isArray(searchResults?.data) && searchResults.data.length === 0;
-    // Every write of `errors` stores the response code next to them, so a reload keeps the classification
-    // that component state would have lost. `null` means no response has been recorded for this query yet.
+    // The response code is persisted next to the errors it explains, so a reload keeps the classification that
+    // component state would have lost. `null` means search() has not stored the code for these errors yet.
     const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
     const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
@@ -1108,6 +1108,16 @@ function Search({
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
+    // The code that picks the error copy lands one Onyx write after the errors. Hold the loading frame for that tick.
+    if (hasUnresolvedErrors) {
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
+            />
+        );
+    }
+
     if (hasErrors) {
         cancelNavigationSpans();
         const retrySearch = () => {
@@ -1123,8 +1133,8 @@ function Search({
                 isLoading: !!searchResults?.search?.isLoading,
             });
         };
-        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
-        // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
+        // search() stores NO_RESPONSE when the request never got a usable server answer, so only the results' freshness is
+        // in doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
         // and an invalid query gets no button because re-sending it cannot succeed.
         let failureKind: ValueOf<typeof CONST.SEARCH.FAILURE_KIND> = CONST.SEARCH.FAILURE_KIND.FAILED;
         if (responseStatusCode === CONST.JSON_CODE.NO_RESPONSE) {
