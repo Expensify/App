@@ -174,15 +174,16 @@ const onboardingInviteTypes = {
 
 const onboardingCompanySize = {
     MICRO_SMALL: '1-4',
-    MICRO_MEDIUM: '5-10',
-
-    // This range is deprecated in favor of the smaller ranges above, but the constant is kept to compare against saved data for backwards compatibility.
-    MICRO: '1-10',
-
-    SMALL: '11-50',
+    MICRO_MEDIUM: '5-9',
+    SMALL: '10-50',
     MEDIUM_SMALL: '51-100',
     MEDIUM: '101-1000',
     LARGE: '1001+',
+
+    // These ranges are deprecated, but the constants are kept to compare against saved data for backwards compatibility.
+    LEGACY_MICRO_MEDIUM: '5-10',
+    LEGACY_MICRO: '1-10',
+    LEGACY_SMALL: '11-50',
 } as const;
 
 const onboardingPersonalTrackGoals = {
@@ -3157,6 +3158,7 @@ const CONST = {
     QUICKBOOKS_CONFIG: {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CLASSES: 'syncClasses',
+        SYNC_CUSTOM_DIMENSIONS: 'syncCustomDimensions',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_ITEMS: 'syncItems',
@@ -4492,6 +4494,12 @@ const CONST = {
             REIMBURSEMENT_YES: 'reimburseYes', // Direct
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
+        },
+
+        /** Some workspaces report these instead of the values above. They mean the same thing, so resolve them before comparing. */
+        DEPRECATED_REIMBURSEMENT_CHOICES: {
+            REIMBURSEMENT_NO: 'deprecated_reimburseNo', // None
+            REIMBURSEMENT_MANUAL: 'deprecated_reimburseManual', // Indirect
         },
         GLOBAL_REIMBURSEMENT_FX_PREFERENCE: {
             COMPANY: 'company',
@@ -7093,6 +7101,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** How many report fields are shown side by side in the report view on a wide layout */
+    REPORT_FIELDS_PER_ROW: 3,
+
+    /** Below this many options, a report field list is short enough to scan without a search input */
+    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
+
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -7429,6 +7443,11 @@ const CONST = {
                 },
                 MERCHANT: {
                     column: this.TABLE_COLUMNS.MERCHANT,
+                    search: true,
+                    reportView: true,
+                },
+                VENDOR: {
+                    column: this.TABLE_COLUMNS.VENDOR,
                     search: true,
                     reportView: true,
                 },
@@ -7799,6 +7818,7 @@ const CONST = {
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
+            VENDOR: 'vendor',
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
@@ -8044,6 +8064,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.POSTED]: 'posted',
                 [this.TABLE_COLUMNS.EXPORTED]: 'exported',
                 [this.TABLE_COLUMNS.MERCHANT]: 'merchant',
+                [this.TABLE_COLUMNS.VENDOR]: 'vendor',
                 [this.TABLE_COLUMNS.DESCRIPTION]: 'description',
                 [this.TABLE_COLUMNS.FROM]: 'from',
                 [this.TABLE_COLUMNS.TO]: 'to',
