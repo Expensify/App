@@ -42,13 +42,14 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
     const initialMonth = useInitialSelection(currentMonth, {isVisible});
     // Pin the frozen initial month to the top of the full list before search filtering, so it stays pinned while searching.
     const orderedMonths = useMemo(() => moveInitialSelectionToTop(allMonths, [String(initialMonth)]), [allMonths, initialMonth]);
-    const filteredMonths = searchText === '' ? orderedMonths : orderedMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
+
     const {data, headerMessage} = useMemo(() => {
+        const filteredMonths = searchText === '' ? orderedMonths : orderedMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
         return {
             headerMessage: !filteredMonths.length ? translate('common.noResultsFound') : '',
             data: filteredMonths,
         };
-    }, [translate, filteredMonths]);
+    }, [searchText, translate, orderedMonths]);
 
     useEffect(() => {
         if (isVisible) {
