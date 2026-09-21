@@ -222,6 +222,27 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
         });
 
+        it('ends the range when a plain click lands on a row no range can reach, while keeping the anchor it can still use', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+
+            // Given a range painted from 'a' through 'c'
+            act(() => result.current.notifyAnchor(ROW_A));
+            act(() => {
+                result.current.applyShiftClick(ROW_C, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+
+            // When a plain click lands on a row the list does not carry, such as one rendered inside an expanded report
+            act(() => result.current.notifyAnchor({keyForList: 'not-in-the-list'}));
+
+            // Then the next shift+click ranges from 'a' again and gives nothing back, since the click it follows painted nothing
+            act(() => {
+                result.current.applyShiftClick(ROW_B, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b'], toDeselect: []});
+        });
+
         it('matches notifyAnchor by key, so a re-rendered copy of a row still anchors', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));

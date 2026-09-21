@@ -81,6 +81,11 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             const key = keyOf(currentParams, item);
             // Keeping the last reachable anchor beats storing one that sends the next shift+click to the top of the list.
             if (key == null || !canAnchor(currentParams, key)) {
+                // The click still ends the range. Keeping what it painted would let the next shift+click give back rows this click never touched.
+                const session = sessionRef.current;
+                if (session.kind === 'ranging') {
+                    sessionRef.current = {kind: 'anchored', anchor: session.anchor};
+                }
                 return;
             }
             sessionRef.current = {kind: 'anchored', anchor: key};
