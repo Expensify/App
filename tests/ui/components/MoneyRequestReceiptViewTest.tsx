@@ -55,10 +55,15 @@ jest.mock(
         },
 );
 
+const mockReceiptImage = {shouldCompleteLoad: true};
+
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
     function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
         useEffect(() => {
+            if (!mockReceiptImage.shouldCompleteLoad) {
+                return;
+            }
             onLoad?.();
         }, [onLoad]);
         return null;
@@ -246,6 +251,7 @@ describe('MoneyRequestReceiptView', () => {
     });
 
     beforeEach(async () => {
+        mockReceiptImage.shouldCompleteLoad = true;
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
@@ -293,6 +299,23 @@ describe('MoneyRequestReceiptView', () => {
     });
 
     describe('receipt page count badge', () => {
+        it('does not show the page count while the receipt is still loading', async () => {
+            mockReceiptImage.shouldCompleteLoad = false;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
+
         it('shows the page count for a multi-page PDF receipt', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
