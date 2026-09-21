@@ -12,7 +12,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
-import {findSelfDMReportID, generateReportID, getAllPolicyExpenseChatReportActions, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import {generateReportID, getAllPolicyExpenseChatReportActions, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getValidWaypoints} from '@libs/TransactionUtils';
 
 import {trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
@@ -20,7 +20,7 @@ import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTran
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, PolicyCategories, PolicyTagLists, QuickAction, Report, Rule} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -28,16 +28,15 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
 
 import type {SubmissionHandle} from './types';
+import type {DistanceDraftData} from './useDistanceDraftData';
+import type {SubmitWithGpsPoint} from './useGpsCapture';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
 
-import useDistanceDraftData from './useDistanceDraftData';
-import useGpsCapture from './useGpsCapture';
 import getCurrentReceiptState from './utils/getCurrentReceiptState';
 import logSubmittedReceiptMilestone from './utils/logSubmittedReceiptMilestone';
 import performPostBatchCleanup from './utils/performPostBatchCleanup';
@@ -67,6 +66,18 @@ type UseTrackExpenseSubmissionParams = TransactionTaxValues & {
     draftTransactionIDs: string[] | undefined;
     privateIsArchivedMap: Record<string, boolean | undefined>;
     onExpenseWriteWillStart?: () => void;
+
+    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
+     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
+    policyTags: OnyxEntry<PolicyTagLists>;
+    rules: OnyxCollection<Rule>;
+    quickAction: OnyxEntry<QuickAction>;
+    introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean;
+    conciergeChat: OnyxEntry<Report>;
+    selfDMReport: OnyxEntry<Report>;
+    distanceDraftData: DistanceDraftData;
+    submitWithGpsPoint: SubmitWithGpsPoint;
 };
 
 function useTrackExpenseSubmission({
@@ -97,6 +108,15 @@ function useTrackExpenseSubmission({
     transactionTaxAmount,
     transactionTaxValue,
     onExpenseWriteWillStart,
+    policyTags,
+    rules,
+    quickAction,
+    introSelected,
+    isSelfTourViewed,
+    conciergeChat,
+    selfDMReport,
+    distanceDraftData,
+    submitWithGpsPoint,
 }: UseTrackExpenseSubmissionParams): SubmissionHandle {
     const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -106,15 +126,7 @@ function useTrackExpenseSubmission({
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
@@ -124,13 +136,7 @@ function useTrackExpenseSubmission({
     const destinationChatReportID = isSelfDMDestination ? undefined : currentChatReport?.reportID;
     const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationChatReportID}`, {selector: isDraftReportSelector});
 
-    const {gpsDraftDetails, recentWaypoints, odometerDraft, transactionDistance, isModifiedGPSDistanceRequest} = useDistanceDraftData({
-        transaction,
-        isGPSDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-    });
-    const {submitWithGpsPoint} = useGpsCapture();
+    const {gpsDraftDetails, recentWaypoints, odometerDraft, transactionDistance, isModifiedGPSDistanceRequest} = distanceDraftData;
 
     function trackExpense(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {

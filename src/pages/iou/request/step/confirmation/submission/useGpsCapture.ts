@@ -62,4 +62,7 @@ function useGpsCapture() {
     return {submitWithGpsPoint};
 }
 
+type SubmitWithGpsPoint = ReturnType<typeof useGpsCapture>['submitWithGpsPoint'];
+
 export default useGpsCapture;
+export type {SubmitWithGpsPoint};

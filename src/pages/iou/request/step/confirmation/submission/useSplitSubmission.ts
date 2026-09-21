@@ -1,10 +1,8 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
 
 import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
@@ -17,28 +15,24 @@ import {isScanRequest as isScanRequestTransactionUtils} from '@libs/TransactionU
 import {resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import type Policy from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {RefObject} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import type {SubmissionHandle} from './types';
+import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
-
-import useSubmissionRecentlyUsedData from './useSubmissionRecentlyUsedData';
-import useSubmissionViolations from './useSubmissionViolations';
 
 type UseSplitSubmissionParams = TransactionTaxValues & {
     transaction: OnyxEntry<Transaction>;
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
     report: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     participants: Participant[];
@@ -46,6 +40,14 @@ type UseSplitSubmissionParams = TransactionTaxValues & {
     splitParticipants: Participant[];
     isTrackIntentUser: boolean;
     releaseSubmitLock: () => void;
+
+    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
+     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
+    recentlyUsedData: SubmissionRecentlyUsedData;
+    rules: OnyxCollection<Rule>;
+    quickAction: OnyxEntry<QuickAction>;
+    transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
+    reportTransactions: Transaction[];
 };
 
 function useSplitSubmission({
@@ -53,7 +55,6 @@ function useSplitSubmission({
     transactions,
     receiptFiles,
     report,
-    policy,
     personalDetails,
     currentUserPersonalDetails,
     participants,
@@ -61,6 +62,11 @@ function useSplitSubmission({
     splitParticipants,
     isTrackIntentUser,
     releaseSubmitLock,
+    recentlyUsedData,
+    rules,
+    quickAction,
+    transactionViolationsRef,
+    reportTransactions,
     transactionTaxCode,
     transactionTaxAmount,
     transactionTaxValue,
@@ -72,12 +78,8 @@ function useSplitSubmission({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policy?.id);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const {transactionViolationsRef} = useSubmissionViolations();
+    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
-    const reportTransactions = useReportTransactions(report?.reportID);
 
     function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';

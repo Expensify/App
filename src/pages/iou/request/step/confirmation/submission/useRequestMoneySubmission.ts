@@ -27,7 +27,7 @@ import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTran
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -35,17 +35,16 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {RefObject} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 
 import type {SubmissionHandle} from './types';
+import type {SubmitWithGpsPoint} from './useGpsCapture';
+import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
 
-import useGpsCapture from './useGpsCapture';
-import useSubmissionRecentlyUsedData from './useSubmissionRecentlyUsedData';
-import useSubmissionViolations from './useSubmissionViolations';
 import getCurrentReceiptState from './utils/getCurrentReceiptState';
 import logSubmittedReceiptMilestone from './utils/logSubmittedReceiptMilestone';
 import performPostBatchCleanup from './utils/performPostBatchCleanup';
@@ -77,6 +76,16 @@ type UseRequestMoneySubmissionParams = TransactionTaxValues & {
     privateIsArchivedMap: Record<string, boolean | undefined>;
     backToReport?: string;
     onExpenseWriteWillStart?: () => void;
+
+    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
+     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
+    recentlyUsedData: SubmissionRecentlyUsedData;
+    rules: OnyxCollection<Rule>;
+    quickAction: OnyxEntry<QuickAction>;
+    isSelfTourViewed: boolean;
+    conciergeChat: OnyxEntry<Report>;
+    transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
+    submitWithGpsPoint: SubmitWithGpsPoint;
 };
 
 function useRequestMoneySubmission({
@@ -107,6 +116,13 @@ function useRequestMoneySubmission({
     transactionTaxAmount,
     transactionTaxValue,
     onExpenseWriteWillStart,
+    recentlyUsedData,
+    rules,
+    quickAction,
+    isSelfTourViewed,
+    conciergeChat,
+    transactionViolationsRef,
+    submitWithGpsPoint,
 }: UseRequestMoneySubmissionParams): SubmissionHandle {
     const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -115,15 +131,8 @@ function useRequestMoneySubmission({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policy?.id);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const {transactionViolationsRef} = useSubmissionViolations();
-    const {submitWithGpsPoint} = useGpsCapture();
 
     const isIouReport = isMoneyRequestReportReportUtils(report);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({

@@ -13,7 +13,7 @@ import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, Report} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -24,8 +24,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import type {SubmissionHandle} from './types';
-
-import useSubmissionRecentlyUsedData from './useSubmissionRecentlyUsedData';
+import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 
 type UseInvoiceSubmissionParams = {
     transaction: OnyxEntry<Transaction>;
@@ -37,6 +36,11 @@ type UseInvoiceSubmissionParams = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
     draftTransactionIDs: string[] | undefined;
+
+    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
+     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
+    recentlyUsedData: SubmissionRecentlyUsedData;
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 function useInvoiceSubmission({
@@ -49,13 +53,14 @@ function useInvoiceSubmission({
     currentUserPersonalDetails,
     action,
     draftTransactionIDs,
+    recentlyUsedData,
+    policyTags,
 }: UseInvoiceSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
-    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policy?.id);
+    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
 
     const receiverParticipant = transaction?.participants?.find((p) => p?.accountID) ?? report?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;

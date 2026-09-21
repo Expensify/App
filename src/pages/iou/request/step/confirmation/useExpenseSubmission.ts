@@ -1,9 +1,11 @@
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportTransactions from '@hooks/useReportTransactions';
 
 import {isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {findSelfDMReportID} from '@libs/ReportUtils';
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -18,16 +20,21 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useRef, useState} from 'react';
 
 import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 
+import useDistanceDraftData from './submission/useDistanceDraftData';
 import useDistanceSubmission from './submission/useDistanceSubmission';
+import useGpsCapture from './submission/useGpsCapture';
 import useInvoiceSubmission from './submission/useInvoiceSubmission';
 import usePerDiemSubmission from './submission/usePerDiemSubmission';
 import useRequestMoneySubmission from './submission/useRequestMoneySubmission';
 import useSendMoneySubmission from './submission/useSendMoneySubmission';
 import useSplitSubmission from './submission/useSplitSubmission';
+import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
+import useSubmissionViolations from './submission/useSubmissionViolations';
 import useTrackExpenseSubmission from './submission/useTrackExpenseSubmission';
 import getTransactionTaxValues from './submission/utils/getTransactionTaxValues';
 import {resolveSubmissionPath, SUBMISSION_PATH} from './submission/utils/resolveSubmissionPath';
@@ -162,6 +169,27 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isTimeRequest,
     });
 
+    /**
+     * TEMP: shared Onyx reads hoisted here so they open once instead of once per submission hook.
+     *
+     * All six submission hooks mount together while this composer exists, so each one calling these itself
+     * opened ~35 duplicate subscriptions on a page that previously had none. They are passed down as params
+     * until the page forks into per-path variants - at that point only one submission hook mounts, each hook
+     * goes back to reading what it needs, and every `TEMP` param below disappears.
+     */
+    const recentlyUsedData = useSubmissionRecentlyUsedData(policy?.id);
+    const {transactionViolations, transactionViolationsRef} = useSubmissionViolations();
+    const distanceDraftData = useDistanceDraftData({transaction, isGPSDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest});
+    const {submitWithGpsPoint} = useGpsCapture();
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
+    const reportTransactions = useReportTransactions(report?.reportID);
+
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest,
@@ -182,6 +210,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         participants,
         currentUserPersonalDetails,
         setIsConfirmed,
+        quickAction,
+        reportTransactions,
         onExpenseWriteWillStart,
     });
 
@@ -213,6 +243,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transactionTaxAmount,
         transactionTaxValue,
         onExpenseWriteWillStart,
+        recentlyUsedData,
+        rules,
+        quickAction,
+        isSelfTourViewed,
+        conciergeChat,
+        transactionViolationsRef,
+        submitWithGpsPoint,
     });
 
     const trackSubmission = useTrackExpenseSubmission({
@@ -243,6 +280,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transactionTaxAmount,
         transactionTaxValue,
         onExpenseWriteWillStart,
+        policyTags,
+        rules,
+        quickAction,
+        introSelected,
+        isSelfTourViewed,
+        conciergeChat,
+        selfDMReport,
+        distanceDraftData,
+        submitWithGpsPoint,
     });
 
     const splitSubmission = useSplitSubmission({
@@ -250,7 +296,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transactions,
         receiptFiles,
         report,
-        policy,
         personalDetails,
         currentUserPersonalDetails,
         participants,
@@ -261,6 +306,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transactionTaxCode,
         transactionTaxAmount,
         transactionTaxValue,
+        recentlyUsedData,
+        rules,
+        quickAction,
+        transactionViolationsRef,
+        reportTransactions,
     });
 
     const distanceSubmission = useDistanceSubmission({
@@ -288,6 +338,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSelfDMDestination,
         action,
         onExpenseWriteWillStart,
+        recentlyUsedData,
+        rules,
+        quickAction,
+        transactionViolationsRef,
+        distanceDraftData,
     });
 
     const perDiemSubmission = usePerDiemSubmission({
@@ -304,6 +359,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isTrackIntentUser,
         backToReport,
         onExpenseWriteWillStart,
+        recentlyUsedData,
+        policyTags,
+        rules,
+        quickAction,
+        selfDMReport,
+        transactionViolations,
+        reportTransactions,
     });
 
     const invoiceSubmission = useInvoiceSubmission({
@@ -316,6 +378,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         currentUserPersonalDetails,
         action,
         draftTransactionIDs,
+        recentlyUsedData,
+        policyTags,
     });
 
     // Which API command a submission will run. Resolved here rather than inside createTransaction because every

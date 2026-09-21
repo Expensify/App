@@ -3,7 +3,6 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
 
 import {getReusableP2PReportID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -11,13 +10,7 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    findSelfDMReportID,
-    generateReportID,
-    getReportOrDraftReport,
-    hasViolations as hasViolationsReportUtils,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-} from '@libs/ReportUtils';
+import {generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 
@@ -26,18 +19,17 @@ import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemEx
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, PolicyTagLists, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import type {SubmissionHandle} from './types';
-
-import useSubmissionRecentlyUsedData from './useSubmissionRecentlyUsedData';
+import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 
 type UsePerDiemSubmissionParams = {
     transaction: OnyxEntry<Transaction>;
@@ -53,6 +45,16 @@ type UsePerDiemSubmissionParams = {
     isTrackIntentUser: boolean;
     backToReport?: string;
     onExpenseWriteWillStart?: () => void;
+
+    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
+     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
+    recentlyUsedData: SubmissionRecentlyUsedData;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    rules: OnyxCollection<Rule>;
+    quickAction: OnyxEntry<QuickAction>;
+    selfDMReport: OnyxEntry<Report>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    reportTransactions: Transaction[];
 };
 
 function usePerDiemSubmission({
@@ -69,6 +71,13 @@ function usePerDiemSubmission({
     isTrackIntentUser,
     backToReport,
     onExpenseWriteWillStart,
+    recentlyUsedData,
+    policyTags,
+    rules,
+    quickAction,
+    selfDMReport,
+    transactionViolations,
+    reportTransactions,
 }: UsePerDiemSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -78,15 +87,9 @@ function usePerDiemSubmission({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const policyID = policy?.id;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
-    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policyID);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
 
-    const reportTransactions = useReportTransactions(report?.reportID);
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 

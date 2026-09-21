@@ -1,7 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useOnyx from '@hooks/useOnyx';
-import useReportTransactions from '@hooks/useReportTransactions';
 
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
@@ -9,8 +7,7 @@ import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismis
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {QuickAction, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -28,14 +25,27 @@ type UseSendMoneySubmissionParams = {
     participants: Participant[];
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     setIsConfirmed: (isConfirmed: boolean) => void;
+
+    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
+     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
+    quickAction: OnyxEntry<QuickAction>;
+    reportTransactions: Transaction[];
     onExpenseWriteWillStart?: () => void;
 };
 
-function useSendMoneySubmission({transaction, receiptFiles, report, participants, currentUserPersonalDetails, setIsConfirmed, onExpenseWriteWillStart}: UseSendMoneySubmissionParams) {
+function useSendMoneySubmission({
+    transaction,
+    receiptFiles,
+    report,
+    participants,
+    currentUserPersonalDetails,
+    setIsConfirmed,
+    quickAction,
+    reportTransactions,
+    onExpenseWriteWillStart,
+}: UseSendMoneySubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const reportTransactions = useReportTransactions(report?.reportID);
 
     function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
         const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true, shouldDeferForSearch = false} = options ?? {};
