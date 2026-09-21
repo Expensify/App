@@ -37,7 +37,7 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const resumeFieldsKey = `${draftValues?.bankCountry ?? ''}:${draftValues?.bankCurrency ?? ''}`;
     const requestedResumeFieldsKeyRef = useRef('');
     const shouldWaitForResumeFields = personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && !!draftValues?.bankCountry && !hasMatchingCorpayFields;
-    const shouldRefreshResumeFields = shouldWaitForResumeFields && !personalBankAccount?.isLoading && requestedResumeFieldsKeyRef.current !== resumeFieldsKey;
+    const shouldRefreshResumeFields = shouldWaitForResumeFields && !personalBankAccount?.isLoading;
 
     useEffect(() => {
         if (isLoading || !shouldRefreshResumeFields || requestedResumeFieldsKeyRef.current === resumeFieldsKey || !draftValues?.bankCountry) {
