@@ -40,7 +40,6 @@ import {
     buildOptimisticUnapprovedReportAction,
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
-    didCurrentUserPlaceHoldOnReportExpense,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
@@ -64,6 +63,7 @@ import {
     isPayer as isPayerReportUtils,
     isProcessingReport,
     isReportApproved,
+    isReportExcludedForHeldExpenses,
     isReportPendingDelete,
     isSettled,
 } from '@libs/ReportUtils';
@@ -339,13 +339,7 @@ function getBadgeFromIOUReport(
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     const reportTransactions = getReportTransactions(iouReport?.reportID);
 
-    // An all-held report can't move to its next state, so it doesn't get an action badge. Keep it only for a report
-    // awaiting approval or payment where the current user placed a hold, since they can remove it. An open report stays
-    // excluded because only its owner can place a hold there, and that owner is the one who submits.
-    const isExcludedForHeldExpenses =
-        hasOnlyHeldExpenses(reportTransactions) &&
-        (isOpenExpenseReportReportUtils(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(iouReportActions, reportTransactions, currentUserAccountID));
-    if (isExcludedForHeldExpenses) {
+    if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
         return undefined;
     }
 
