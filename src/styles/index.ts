@@ -719,6 +719,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        borderRadiusComponentCardAndTable: {
+            borderRadius: variables.componentBorderRadiusCardAndTable,
+        },
+
         borderRadiusCircle: {
             borderRadius: 999,
         },
@@ -4943,7 +4947,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         purposeMenuItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: 8,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             paddingHorizontal: 8,
             alignItems: 'center',
             marginBottom: 8,
@@ -4951,7 +4955,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         rulesNewMenuItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: 8,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             paddingHorizontal: 12,
             paddingVertical: 16,
             alignItems: 'center',
@@ -5728,7 +5732,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             paddingHorizontal: 16,
             paddingVertical: 20,
             flexGrow: 1,
@@ -5739,7 +5743,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         onboardingInterestedFeaturesItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderRadius: variables.componentBorderRadiusCardAndTable,
             padding: 16,
             display: 'flex',
             flexDirection: 'row',
