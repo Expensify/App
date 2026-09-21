@@ -1,6 +1,6 @@
 ---
 title: Import Merchant Rules using a spreadsheet
-description: Learn how to bulk-create Merchant Rules by importing a spreadsheet, and how Tag values are interpreted for single-level and multi-level tags.
+description: Learn how to bulk-create Merchant Rules by importing a spreadsheet, how Tag values are interpreted for single-level and multi-level tags.
 keywords: [New Expensify, import merchant rules, merchant rules spreadsheet, bulk merchant rules, import rules CSV, workspace rules, multi-level tags import]
 internalScope: Audience is Workspace Admins on the Control plan with Rules enabled. Covers bulk-creating Merchant Rules by importing a spreadsheet and how Tag cells are interpreted for single-level and multi-level tags. Does not cover creating Merchant Rules manually, personal expense rules, or importing tags themselves.
 ---
