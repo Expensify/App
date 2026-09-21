@@ -611,6 +611,61 @@ describe('PolicyUtils', () => {
             // accountID. This is the regression that would reintroduce the original bug
             expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), memberLogin, regularMemberAccountID)).toBe(false);
         });
+
+        describe('approvers auto-added to the expense chat by the approval chain', () => {
+            const approverLogin = 'approver@test.com';
+            const forwardsToLogin = 'forwardsto@test.com';
+            const chainApproverAccountID = 3003;
+            // An approval chain that pulls two non-admin approvers into the member's expense chat: one they submit to,
+            // one their reports forward to. `policy.approver` is the workspace's default approver on top of that
+            const buildPolicyWithApprovalChain = (approverRole: ValueOf<typeof CONST.POLICY.ROLE> = CONST.POLICY.ROLE.USER): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    ownerAccountID: policyOwnerAccountID,
+                    approver: approverLogin,
+                    employeeList: {
+                        [approverLogin]: {role: approverRole},
+                        [forwardsToLogin]: {role: approverRole},
+                        [memberLogin]: {role: CONST.POLICY.ROLE.USER, submitsTo: approverLogin, forwardsTo: forwardsToLogin},
+                    },
+                });
+
+            it('does not protect an approver who holds no admin role of their own', () => {
+                // Given a workspace chat whose participants include two approvers from the submitter's approval
+                // chain, both plain members of the workspace
+                const policy = buildPolicyWithApprovalChain();
+
+                // When each approver's protection is resolved
+                // Then being an approver does not protect them on its own, because only the member's own policy role
+                // and the policy owner do. This matches what the workspace Members page already allows — an admin can
+                // remove an approver outright there, which reroutes their approval workflows to the workspace owner —
+                // so the chat cannot be stricter than the workspace itself. It also matches the behaviour before
+                // https://github.com/Expensify/App/pull/80006, when `isUserPolicyAdmin(policy, login)` looked the
+                // member's own login up in `employeeList`
+                expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, chainApproverAccountID)).toBe(false);
+                expect(isRoomMemberProtectedByPolicyRole(policy, forwardsToLogin, chainApproverAccountID)).toBe(false);
+            });
+
+            it('protects an approver who is also an admin of the policy', () => {
+                // Given the same approval chain, with both approvers holding the admin role
+                const policy = buildPolicyWithApprovalChain(CONST.POLICY.ROLE.ADMIN);
+
+                // When each approver's protection is resolved
+                // Then they are protected, because they are admins. Most approvers are, so this is the common case
+                expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, chainApproverAccountID)).toBe(true);
+                expect(isRoomMemberProtectedByPolicyRole(policy, forwardsToLogin, chainApproverAccountID)).toBe(true);
+            });
+
+            it('protects an approver who is the policy owner', () => {
+                // Given an approval chain whose approvers are plain members, one of whom owns the workspace
+                const policy = buildPolicyWithApprovalChain();
+
+                // When the owning approver's protection is resolved by accountID
+                // Then they are protected as the policy owner, regardless of their role in the employee list
+                expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, policyOwnerAccountID)).toBe(true);
+            });
+        });
     });
 
     describe('useDefaultFundID', () => {
