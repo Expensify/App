@@ -33,6 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
+import {Str} from 'expensify-common';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -91,7 +92,7 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -297,7 +298,13 @@ function WorkspaceCompanyCardsTable({
         const isAssignedCardMatch = assignedKeyword.startsWith(searchLower) && item.isAssigned;
         const isUnassignedCardMatch = unassignedKeyword.startsWith(searchLower) && !item.isAssigned;
 
-        const searchTokens = [item.cardName, item.customCardName ?? '', item.cardholder?.displayName ?? '', item.cardholder?.login ?? ''];
+        const cardholderLogin = item.cardholder?.login ?? '';
+        const searchTokens = [
+            item.cardName,
+            item.customCardName ?? '',
+            item.cardholder?.displayName ?? '',
+            ...(Str.isSMSLogin(cardholderLogin) ? [formatPhoneNumber(cardholderLogin), cardholderLogin] : [cardholderLogin]),
+        ];
 
         const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
         return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
