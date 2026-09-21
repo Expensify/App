@@ -1,5 +1,5 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -182,7 +182,7 @@ function FlagForReviewRulePageBase({
     // The rule IS the category's flag amount, so there is only something to delete once one is set, and the category's
     // own pending state is the rule's: while a delete is in flight, deleting again would fire the same write twice.
     const isRuleBeingDeleted = category?.pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && hasExplicitFlagAmount(category?.maxExpenseAmount) && !isRuleBeingDeleted,
         onDelete: () => {
             deleteFlagForReviewRule(policyID, categoryName ?? '', policyData.categories);
@@ -226,10 +226,15 @@ function FlagForReviewRulePageBase({
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.flagForReviewRule.title')}
-                    {...deleteHeaderProps}
-                />
+                <Header>
+                    <Header.BackButton />
+                    <Header.Title title={translate('workspace.rules.flagForReviewRule.title')} />
+                    {!!deleteIconButtonProps && (
+                        <Header.Right>
+                            <Header.IconButton {...deleteIconButtonProps} />
+                        </Header.Right>
+                    )}
+                </Header>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.flagForReviewRule.subtitle')}</Text>

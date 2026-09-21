@@ -105,10 +105,7 @@ function RulesBillableDefaultPage({
                 shouldEnableMaxHeight
                 testID="RulesBillableDefaultPage"
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.rules.generalTab.billableExpenses')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.billableExpenses')} />
                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb3]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.billableDefaultDescription')}</Text>
                 </Text>

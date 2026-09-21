@@ -1,7 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -57,10 +57,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                 shouldEnableMaxHeight
                 testID="RulesAutoApproveReportsUnderPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}

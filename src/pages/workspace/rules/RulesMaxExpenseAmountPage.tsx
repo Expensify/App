@@ -1,7 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -60,10 +60,7 @@ function RulesMaxExpenseAmountPage({
                 shouldEnableMaxHeight
                 testID="RulesMaxExpenseAmountPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.generalTab.expensesAboveAmount')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.expensesAboveAmount')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM}

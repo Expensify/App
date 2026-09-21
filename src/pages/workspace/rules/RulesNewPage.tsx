@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -117,7 +117,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                 testID="RulesNewPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton title={translate('workspace.rules.newRule.title')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.newRule.title')} />
                 <ScrollView
                     style={[styles.flexGrow1]}
                     addBottomSafeAreaPadding

@@ -1,5 +1,5 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -253,7 +253,7 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const canDeleteRule = canWriteSpendRules && isEditingRule && !!existingRule && !isRuleBeingDeleted;
 
-    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canDeleteRule,
         onDelete: deleteRule,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DELETE,
@@ -451,10 +451,15 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.spendRules.restrictCardSpendTitle')}
-                    {...deleteHeaderProps}
-                />
+                <Header>
+                    <Header.BackButton />
+                    <Header.Title title={translate('workspace.rules.spendRules.restrictCardSpendTitle')} />
+                    {!!deleteIconButtonProps && (
+                        <Header.Right>
+                            <Header.IconButton {...deleteIconButtonProps} />
+                        </Header.Right>
+                    )}
+                </Header>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>{revampFormContent}</ScrollView>
                 {canWriteSpendRules && (
                     <FormAlertWithSubmitButton

@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -479,7 +479,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const canDeleteRule = canWriteRules && !!policy && !isRuleBeingDeleted && (isEditing || canDeleteCategoryTaxRule);
 
-    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canDeleteRule,
         onDelete: deleteRule,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE,
@@ -734,14 +734,18 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')}
-                    {...deleteHeaderProps}
-                >
-                    {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
-                        switch condition type, which the two storage shapes can't express as one edit. */}
-                    {canWriteRules && !isEditingSavedRule && (hasMerchantCondition || hasCategoryCondition) && <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>}
-                </HeaderWithBackButton>
+                <Header>
+                    <Header.BackButton />
+                    <Header.Title title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')} />
+                    <Header.Right>
+                        <Header.Actions>
+                            {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
+                                switch condition type, which the two storage shapes can't express as one edit. */}
+                            {canWriteRules && !isEditingSavedRule && (hasMerchantCondition || hasCategoryCondition) && <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>}
+                        </Header.Actions>
+                        {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
+                    </Header.Right>
+                </Header>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
