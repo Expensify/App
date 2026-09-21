@@ -121,7 +121,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
                 Navigation.goBack(ROUTES.HOME);
-                if (exitTo && !hasCancelledSwitch) {
+                if (exitTo) {
                     Navigation.navigate(exitTo as Route);
                 }
             });
