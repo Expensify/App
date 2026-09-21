@@ -2373,14 +2373,9 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
  * still does. It also does not walk the live tree only — a non-focused tab navigator has its nested state
  * dropped from the tree, so the preserved-state map is consulted as well (see `usePreserveNavigatorState`).
  *
- * Note: `getPreservedNavigatorState` reads a module-level map, so a `useRootNavigationState` selector built
- * on this is only as fresh as the last navigation event — that hook recomputes on the `state` event and
- * nothing else. Most writes are navigation-driven (the `usePreserveNavigatorState` effect, `TabNavigator`,
- * `restoreTabNavigatorRoutes`, and `cleanPreservedNavigatorStates` on state change), but two are not:
- * `clearPreservedNavigatorStates` on logout, which is immediately followed by a `navigationRef.reset` and so
- * self-corrects, and `clearPreservedSearchNavigatorStates` on a delegate connect/disconnect, which fires no
- * navigation event. After a delegate switch a selector can therefore keep serving the previous query until
- * the next navigation; call `getCurrentSearchQueryJSON` imperatively where that would matter.
+ * Note: the preserved-state map has no subscription, so a `useRootNavigationState` selector built on this
+ * only re-reads it on navigation events. Call `getCurrentSearchQueryJSON` imperatively where you need the
+ * value at an arbitrary moment (e.g. right after a delegate switch, which clears the map without navigating).
  */
 function getSearchRootParamsFromRootState(rootState: unknown): SearchRootParams | undefined {
     const lastTabNavigator = getLastRouteByName(rootState, NAVIGATORS.TAB_NAVIGATOR);
