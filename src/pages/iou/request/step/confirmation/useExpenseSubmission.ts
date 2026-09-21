@@ -9,23 +9,17 @@ import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
-import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, getReusableP2PReportID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
@@ -46,7 +40,6 @@ import {
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
-import {resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
@@ -75,6 +68,7 @@ import useDistanceSubmission from './submission/useDistanceSubmission';
 import useInvoiceSubmission from './submission/useInvoiceSubmission';
 import usePerDiemSubmission from './submission/usePerDiemSubmission';
 import useSendMoneySubmission from './submission/useSendMoneySubmission';
+import useSplitSubmission from './submission/useSplitSubmission';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 import useSubmissionViolations from './submission/useSubmissionViolations';
 import getTransactionTaxValues from './submission/utils/getTransactionTaxValues';
@@ -226,7 +220,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    const reportTransactions = useReportTransactions(report?.reportID);
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
@@ -252,7 +245,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         );
     }
     const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
-    const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
 
     // Global Onyx values
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
@@ -323,6 +315,24 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         currentUserPersonalDetails,
         setIsConfirmed,
         onExpenseWriteWillStart,
+    });
+
+    const splitSubmission = useSplitSubmission({
+        transaction,
+        transactions,
+        receiptFiles,
+        report,
+        policy,
+        personalDetails,
+        currentUserPersonalDetails,
+        participants,
+        selectedParticipants,
+        splitParticipants,
+        isTrackIntentUser,
+        releaseSubmitLock,
+        transactionTaxCode,
+        transactionTaxAmount,
+        transactionTaxValue,
     });
 
     const distanceSubmission = useDistanceSubmission({
@@ -755,181 +765,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function submitSplit(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
-        const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
-        const shouldDeferSplitForSearch = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
-        // receiptFiles can hold an entry for a transaction no longer being submitted, so the files are matched against what is actually being submitted.
-        const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
-
-        // The manual split below sends transaction.amount, which stays 0 until SmartScan returns, so a scan with no matching receipt has nothing to write yet rather than a $0 split.
-        if (isScanRequestTransactionUtils(transaction) && scannedItems.length === 0) {
-            // The tap is a silent no-op from the user's side, so leave a trace for whoever has to explain it later.
-            Log.warn('[useExpenseSubmission] Scan split submitted with no receipt file for any transaction being submitted', {
-                transactionCount: transactions.length,
-                receiptFileCount: Object.keys(receiptFiles).length,
-            });
-            releaseSubmitLock();
-            markSubmitExpenseEnd();
-            return;
-        }
-
-        // Split flows usually navigate to the destination report internally, but dismiss-first
-        // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
-        if (scannedItems.length > 0) {
-            const currentUserLogin = currentUserPersonalDetails.login;
-            if (currentUserLogin) {
-                // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
-                const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
-
-                // The action hardcodes shouldDeferForSearch:false, so reserve here for Search. Each scan write flushes the one before it, so only the last one waits.
-                if (shouldDeferSplitForSearch) {
-                    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                }
-
-                for (const [index, item] of scannedItems.entries()) {
-                    const transactionReceiptFile = receiptFiles[item.transactionID];
-                    const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
-
-                    startSplitBill({
-                        getCurrencyDecimals,
-                        participants: selectedParticipants,
-                        currentUserLogin,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        comment: itemTrimmedComment,
-                        receipt: transactionReceiptFile,
-                        existingSplitChatReportID: report?.reportID,
-                        billable: item.billable,
-                        reimbursable: item.reimbursable,
-                        category: item.category,
-                        tag: item.tag,
-                        currency: item.currency,
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
-                        taxValue: transactionTaxValue,
-                        shouldPlaySound: index === scannedItems.length - 1,
-                        optimisticSplitChatReportID,
-                        isFirstSplitInBatch: !(index > 0 && optimisticSplitChatReportID),
-                        policyRecentlyUsedCategories,
-                        policyRecentlyUsedTags,
-                        quickAction,
-                        policyRecentlyUsedCurrencies,
-                        participantsPolicyTags,
-                        delegateAccountID,
-                        formatPhoneNumber,
-                    });
-                }
-                if (shouldHandleNavigation) {
-                    dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
-                }
-            } else {
-                releaseSubmitLock();
-            }
-            markSubmitExpenseEnd();
-            return;
-        }
-
-        // The action hardcodes shouldDeferForSearch:false, so reserve here when a split write will actually run and land back on Search.
-        if (shouldDeferSplitForSearch && currentUserPersonalDetails.login && !!transaction) {
-            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        }
-
-        // IOUs created from a group report will have a reportID param in the route.
-        // Since the user is already viewing the report, we don't need to navigate them to the report
-        if (!transaction?.isFromGlobalCreate) {
-            if (currentUserPersonalDetails.login && !!transaction) {
-                splitBill({
-                    isVendorMatchingBetaEnabled,
-                    getCurrencyDecimals,
-                    participants: splitParticipants,
-                    currentUserLogin: currentUserPersonalDetails.login,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    amount: transaction.amount,
-                    comment: trimmedComment,
-                    currency: transaction.currency,
-                    merchant: transaction.merchant,
-                    created: transaction.created,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    existingSplitChatReportID: report?.reportID,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    iouRequestType: transaction.iouRequestType,
-                    splitShares: transaction.splitShares,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    taxValue: transactionTaxValue,
-                    policyRecentlyUsedCategories,
-                    policyRecentlyUsedTags,
-                    isASAPSubmitBetaEnabled,
-                    transactionViolations: transactionViolationsRef.current,
-                    quickAction,
-                    policyRecentlyUsedCurrencies,
-                    personalDetails,
-                    delegateAccountID,
-                    isTrackIntentUser,
-                    formatPhoneNumber,
-                    participantsPolicyTags,
-                    rules,
-                });
-                if (shouldHandleNavigation) {
-                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
-                    dismissModalAndOpenReportInInboxTab(report?.reportID, undefined, reportTransactions.length > 0);
-                } else {
-                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
-                }
-            }
-            markSubmitExpenseEnd();
-            return;
-        }
-
-        // If the split expense is created from the global create menu, we also navigate the user to the group report
-        if (currentUserPersonalDetails.login && !!transaction) {
-            const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, splitParticipants, currentUserPersonalDetails.accountID);
-            splitBillAndOpenReport({
-                isVendorMatchingBetaEnabled,
-                getCurrencyDecimals,
-                participants: splitParticipants,
-                currentUserLogin: currentUserPersonalDetails.login,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                amount: transaction.amount,
-                comment: trimmedComment,
-                currency: transaction.currency,
-                merchant: transaction.merchant,
-                created: transaction.created,
-                category: transaction.category,
-                tag: transaction.tag,
-                billable: !!transaction.billable,
-                reimbursable: !!transaction.reimbursable,
-                iouRequestType: transaction.iouRequestType,
-                splitShares: transaction.splitShares,
-                taxCode: transactionTaxCode,
-                taxAmount: transactionTaxAmount,
-                taxValue: transactionTaxValue,
-                policyRecentlyUsedCategories,
-                policyRecentlyUsedTags,
-                isASAPSubmitBetaEnabled,
-                transactionViolations: transactionViolationsRef.current,
-                quickAction,
-                policyRecentlyUsedCurrencies,
-                personalDetails,
-                optimisticSplitChatReportID,
-                delegateAccountID,
-                isTrackIntentUser,
-                formatPhoneNumber,
-                participantsPolicyTags,
-                rules,
-            });
-            if (shouldHandleNavigation) {
-                cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
-                // A split lands in a group DM or 1:1 chat, and transactions are never attached to a chat report.
-                dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
-            } else {
-                cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
-            }
-        }
-        markSubmitExpenseEnd();
-    }
-
     function submitTrack(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
@@ -984,7 +819,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const submitByPath: Record<SubmissionPath, (locationPermissionGranted: boolean, shouldHandleNavigation: boolean) => void> = {
         [SUBMISSION_PATH.DISTANCE]: distanceSubmission.createTransaction,
-        [SUBMISSION_PATH.SPLIT]: submitSplit,
+        [SUBMISSION_PATH.SPLIT]: splitSubmission.createTransaction,
         [SUBMISSION_PATH.INVOICE]: invoiceSubmission.createTransaction,
         [SUBMISSION_PATH.TRACK]: submitTrack,
         [SUBMISSION_PATH.PER_DIEM]: perDiemSubmission.createTransaction,
