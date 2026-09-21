@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, Refresh needed, page out of date, results not loading, refresh the Spend page]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -124,6 +124,16 @@ The currency picker can't be opened in these cases:
 
 ---
 
+## What to do when the Spend page shows "Refresh needed"
+
+If Expensify can't load the latest results for the **Spend** page, the page shows the heading **Refresh needed** with the line "This page is out of date, refresh to see the latest".
+
+Nothing has been deleted or changed. Only the list on screen is out of date.
+
+Click **Refresh** to load the current results. If the list still doesn't load, [learn how to troubleshoot a page that won't load](/articles/new-expensify/settings/General-product-troubleshooting).
+
+---
+
 # Filters
 
 ## How to apply filters in New Expensify
@@ -203,6 +213,12 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
+
+## Why does the Spend page say "Refresh needed"?
+Expensify couldn't load the latest results, so the list you're looking at is out of date. Click **Refresh** to load the current results. Your expenses and reports aren't affected — only the view is stale.
+
+## Why do I see "Oops... Something went wrong" instead of "Refresh needed"?
+That message means the search itself wasn't valid, which usually happens when a search operator is typed incorrectly. Refreshing won't fix it, so no **Refresh** button appears. Correct the search and run it again. Learn how to [use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 
 ## Why can't I change the total spend currency?
 The currency picker is only disabled in two cases: when you're offline, or while the totals are still loading. Both happen because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it.
