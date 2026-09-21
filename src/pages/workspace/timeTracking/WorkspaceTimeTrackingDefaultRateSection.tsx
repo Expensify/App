@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 
@@ -34,16 +35,25 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID, canWriteMoreFeatures
             isCentralPane
         >
             <OfflineWithFeedback pendingAction={policy?.pendingFields?.timeTrackingDefaultRate}>
-                <MenuItemWithTopDescription
-                    shouldShowLoadingSpinnerIcon={!policy}
-                    key={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                    shouldShowRightIcon={canWriteMoreFeatures}
-                    title={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
-                    description={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID))}
-                    interactive={canWriteMoreFeatures}
-                    style={styles.sectionMenuItemTopDescription}
-                />
+                <MenuItemSectionRow onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}>
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            {policy ? (
+                                <>
+                                    <MenuItem.FieldName>{translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}</MenuItem.FieldName>
+                                    <MenuItem.FieldValue>{convertToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency)}</MenuItem.FieldValue>
+                                </>
+                            ) : (
+                                <MenuItem.FieldNamePlaceholder>{translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}</MenuItem.FieldNamePlaceholder>
+                            )}
+                        </MenuItem.Content>
+                        {canWriteMoreFeatures && (
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        )}
+                    </MenuItem.Row>
+                </MenuItemSectionRow>
             </OfflineWithFeedback>
         </Section>
     );

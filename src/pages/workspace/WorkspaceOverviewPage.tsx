@@ -674,17 +674,29 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     {shouldShowAddress && (
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                             <View>
-                                <MenuItemWithTopDescription
-                                    title={formattedAddress}
-                                    description={translate('common.companyAddress')}
+                                <MenuItemSectionRow
+                                    onPress={readOnly ? undefined : onPressAddress}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADDRESS}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressAddress}
-                                    copyValue={readOnly ? formattedAddress : undefined}
-                                    copyable={readOnly && !!formattedAddress}
-                                />
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            {formattedAddress ? (
+                                                <>
+                                                    <MenuItem.FieldName>{translate('common.companyAddress')}</MenuItem.FieldName>
+                                                    <MenuItem.FieldValue>{formattedAddress}</MenuItem.FieldValue>
+                                                </>
+                                            ) : (
+                                                <MenuItem.FieldNamePlaceholder>{translate('common.companyAddress')}</MenuItem.FieldNamePlaceholder>
+                                            )}
+                                        </MenuItem.Content>
+                                        {(!readOnly || !!formattedAddress) && (
+                                            <MenuItem.Trailing>
+                                                {readOnly && !!formattedAddress && <MenuItem.Copy value={formattedAddress} />}
+                                                {!readOnly && <MenuItem.Chevron />}
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemSectionRow>
                             </View>
                         </OfflineWithFeedback>
                     )}

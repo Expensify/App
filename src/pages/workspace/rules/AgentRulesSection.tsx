@@ -1,6 +1,7 @@
 import AgentRulesList from '@components/AgentRules/AgentRulesList';
 import useAgentRulesSectionHeader from '@components/AgentRules/useAgentRulesSectionHeader';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import Section from '@components/Section';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,6 +17,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type AgentRulesSectionProps = {
     policyID: string;
@@ -55,22 +57,28 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
                     menuItemWrapperStyle={styles.pv2}
                 />
             )}
-            <MenuItem
-                title={translate('workspace.rules.agentRules.addRule')}
-                titleStyle={styles.textStrong}
-                icon={expensifyIcons.Plus}
-                iconHeight={20}
-                iconWidth={20}
-                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
-                onPress={() => {
-                    if (!canWriteRules) {
-                        showReadOnlyModal();
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
-                }}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AGENT_RULE}
-            />
+            {/* The row stays pressable when the user cannot write rules — pressing it explains why — so it only looks disabled */}
+            <View style={[!hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}>
+                <MenuItemSectionRow
+                    onPress={() => {
+                        if (!canWriteRules) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
+                    }}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AGENT_RULE}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={expensifyIcons.Plus} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('workspace.rules.agentRules.addRule')}</MenuItem.Title>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItemSectionRow>
+            </View>
         </Section>
     );
 }

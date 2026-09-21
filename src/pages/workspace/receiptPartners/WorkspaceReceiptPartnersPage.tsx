@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -368,34 +368,65 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                         </OfflineWithFeedback>
                                         {centralBillingAccountEmail && (
                                             <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.centralBillingAccountEmail}>
-                                                <MenuItemWithTopDescription
-                                                    description={translate('workspace.receiptPartners.uber.centralBillingAccount')}
-                                                    title={integrations?.uber?.centralBillingAccountEmail}
-                                                    shouldShowRightIcon={canWriteMoreFeatures}
-                                                    style={[styles.sectionMenuItemTopDescription, styles.mt5]}
-                                                    onPress={
-                                                        canWriteMoreFeatures
-                                                            ? () =>
-                                                                  Navigation.navigate(
-                                                                      ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER),
-                                                                  )
-                                                            : undefined
-                                                    }
-                                                />
+                                                <View style={styles.mt5}>
+                                                    <MenuItemSectionRow
+                                                        onPress={
+                                                            canWriteMoreFeatures
+                                                                ? () =>
+                                                                      Navigation.navigate(
+                                                                          ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.getRoute(
+                                                                              policyID,
+                                                                              CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
+                                                                          ),
+                                                                      )
+                                                                : undefined
+                                                        }
+                                                    >
+                                                        <MenuItem.Row>
+                                                            <MenuItem.Content>
+                                                                {integrations?.uber?.centralBillingAccountEmail ? (
+                                                                    <>
+                                                                        <MenuItem.FieldName>{translate('workspace.receiptPartners.uber.centralBillingAccount')}</MenuItem.FieldName>
+                                                                        <MenuItem.FieldValue>{integrations.uber.centralBillingAccountEmail}</MenuItem.FieldValue>
+                                                                    </>
+                                                                ) : (
+                                                                    <MenuItem.FieldNamePlaceholder>
+                                                                        {translate('workspace.receiptPartners.uber.centralBillingAccount')}
+                                                                    </MenuItem.FieldNamePlaceholder>
+                                                                )}
+                                                            </MenuItem.Content>
+                                                            {canWriteMoreFeatures && (
+                                                                <MenuItem.Trailing>
+                                                                    <MenuItem.Chevron />
+                                                                </MenuItem.Trailing>
+                                                            )}
+                                                        </MenuItem.Row>
+                                                    </MenuItemSectionRow>
+                                                </View>
                                             </OfflineWithFeedback>
                                         )}
                                         {canWriteMoreFeatures && (
-                                            <MenuItem
-                                                title={translate('workspace.receiptPartners.uber.manageInvites')}
-                                                shouldShowRightIcon
-                                                icon={icons.Mail}
-                                                style={[styles.sectionMenuItemTopDescription, styles.mbn3, !centralBillingAccountEmail && styles.mt6]}
-                                                onPress={() =>
-                                                    Navigation.navigate(
-                                                        buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)),
-                                                    )
-                                                }
-                                            />
+                                            <View style={[styles.mbn3, !centralBillingAccountEmail && styles.mt6]}>
+                                                <MenuItemSectionRow
+                                                    onPress={() =>
+                                                        Navigation.navigate(
+                                                            buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)),
+                                                        )
+                                                    }
+                                                >
+                                                    <MenuItem.Row>
+                                                        <MenuItem.Leading>
+                                                            <MenuItem.Icon src={icons.Mail} />
+                                                        </MenuItem.Leading>
+                                                        <MenuItem.Content>
+                                                            <MenuItem.Title>{translate('workspace.receiptPartners.uber.manageInvites')}</MenuItem.Title>
+                                                        </MenuItem.Content>
+                                                        <MenuItem.Trailing>
+                                                            <MenuItem.Chevron />
+                                                        </MenuItem.Trailing>
+                                                    </MenuItem.Row>
+                                                </MenuItemSectionRow>
+                                            </View>
                                         )}
                                     </>
                                 )}
