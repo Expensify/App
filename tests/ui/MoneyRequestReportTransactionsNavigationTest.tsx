@@ -99,6 +99,14 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: () => ({}),
 }));
 
+// usePermissions reads its beta contexts from the module mocked above, which no longer exports them. The only beta the
+// transaction table consults decides whether the vendor column is offered, and these tests assert row order rather
+// than columns, so reporting every beta as off is enough.
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
+}));
+
 const mockIsOffline = {value: false};
 
 jest.mock('@hooks/useNetwork', () => ({
@@ -333,6 +341,12 @@ describe('MoneyRequestReportTransactionList - RHP arrow order', () => {
         buildExpenseReportTransaction('4', '2026-09-18', 'Travel', 3),
     ];
 
+    // Expense 3 is the one carrying an RBR, and it has to be an expense that is not already first: it is the second row
+    // of the alphabetically-first group, so an RBR-first ordering would visibly pull it to the top. Without a
+    // violation anywhere in the report the order assertions below hold whether or not the table hoists RBR rows, so
+    // they would guard nothing against the hoist being reintroduced.
+    const RBR_TRANSACTION_ID = '3';
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -346,6 +360,9 @@ describe('MoneyRequestReportTransactionList - RHP arrow order', () => {
         await Onyx.clear();
         await clearActiveTransactionIDs();
         await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${RBR_TRANSACTION_ID}`, [
+            {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+        ]);
         await waitForBatchedUpdates();
     });
 
@@ -354,21 +371,27 @@ describe('MoneyRequestReportTransactionList - RHP arrow order', () => {
     });
 
     it('seeds the arrows with the rendered row order, and re-seeds it when a column is sorted', async () => {
+        // Given a grouped report where one expense that is not the oldest carries a violation, so an RBR-first
+        // ordering and the plain date ordering put different rows in the first position
         render(buildTransactionListElement(transactions, EXPENSE_REPORT_ID));
         await waitForBatchedUpdates();
 
-        // Date ascending, bucketed into alphabetical groups: Meals (1, 3) then Travel (2, 4). The arrows must follow
-        // that rendered order rather than the flat date order the rows were sorted into.
+        // Then the rows must read as Date ascending bucketed into alphabetical groups — Meals (1, 3) then Travel
+        // (2, 4) — because the table obeys the selected column and never pulls the RBR expense (3) out of its date
+        // position, and the arrows must follow that rendered order rather than the flat date order the rows were
+        // sorted into
         const initialRenderedOrder = getRenderedTransactionIDs();
         expect(initialRenderedOrder).toEqual(['1', '3', '2', '4']);
         expect(await getCarouselTransactionIDs()).toEqual(initialRenderedOrder);
 
+        // When the user presses the Date header to switch to descending
         pressDateHeader(CONST.SEARCH.SORT_ORDER.DESC);
         await waitForBatchedUpdates();
 
         const sortedRenderedOrder = getRenderedTransactionIDs();
-        // The rows reverse inside each group while the group headers stay alphabetical, so Meals (3, 1) still renders
-        // before Travel (4, 2). Group order is a separate axis from the column sort and is deliberately unaffected.
+        // Then the rows reverse inside each group while the group headers stay alphabetical, so Meals (3, 1) still
+        // renders before Travel (4, 2), because group order is a separate axis from the column sort and is
+        // deliberately unaffected by it
         expect(sortedRenderedOrder).toEqual(['3', '1', '4', '2']);
         expect(await getCarouselTransactionIDs()).toEqual(sortedRenderedOrder);
     });
