@@ -2812,6 +2812,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `Παρακαλούμε διορθώστε αυτήν τη σύνδεση στις <a href="${companyCardsRoute}">εταιρικές κάρτες</a>`,
             askAdminToFixConnection: 'Παρακαλούμε ζητήστε από έναν διαχειριστή να διορθώσει αυτήν τη σύνδεση',
             reconnectBank: 'Η σύνδεσή σας με την τράπεζα χρειάζεται επαναπιστοποίηση',
+            pending: 'Σε εκκρεμότητα',
         },
         bankAccountStatus: {
             active: 'Ενεργό',

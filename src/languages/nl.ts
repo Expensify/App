@@ -2747,6 +2747,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `Repareer deze verbinding in <a href="${companyCardsRoute}">bedrijfskaarten</a>`,
             askAdminToFixConnection: 'Vraag een/beheerder om deze verbinding te herstellen',
             reconnectBank: 'Je bankverbinding moet opnieuw worden geverifieerd',
+            pending: 'In behandeling',
         },
         bankAccountStatus: {
             active: 'Actief',
