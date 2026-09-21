@@ -106,7 +106,7 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
     };
     const domainPadding = {top: 0, bottom: 0, left: 0, right: VALUE_AXIS_END_PADDING};
 
-    // Grow with the number of rows so every category stays legible; the surrounding page scrolls.
+    // Grow with the number of rows so every category stays legible. The surrounding page scrolls.
     const chartHeight = Math.max(CHART_CONTENT_MIN_HEIGHT, rowCount * MIN_BAR_ROW_HEIGHT + chartPadding.top + chartPadding.bottom);
     const rowHeight = (chartHeight - chartPadding.top - chartPadding.bottom) / rowCount;
     const barThickness = (1 - BAR_INNER_PADDING) * rowHeight;
@@ -222,7 +222,7 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
                         }}
                         yAxis={[
                             {
-                                // Category labels are drawn by ChartYAxisLabels; 0 ticks also stops victory reserving space for its own
+                                // Category labels are drawn by ChartYAxisLabels. Setting 0 ticks also stops victory reserving space for its own.
                                 tickCount: 0,
                                 lineWidth: VictoryTheme.axis.xLineWidth,
                             },
