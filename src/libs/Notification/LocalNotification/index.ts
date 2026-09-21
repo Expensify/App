@@ -33,10 +33,6 @@ function showCommentNotification(report: Report, reportAction: ReportAction, onC
     BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, true, reportAttributes);
 }
 
-function showUpdateAvailableNotification() {
-    BrowserNotifications.pushUpdateAvailableNotification();
-}
-
 function showModifiedExpenseNotification({
     report,
     reportAction,
@@ -74,7 +70,6 @@ function clearReportNotifications(reportID: string | undefined) {
 
 const LocalNotification: LocalNotificationModule = {
     showCommentNotification,
-    showUpdateAvailableNotification,
     showModifiedExpenseNotification,
     clearReportNotifications,
 };

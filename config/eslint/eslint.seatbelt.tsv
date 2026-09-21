@@ -798,7 +798,7 @@
 "../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"no-restricted-imports"	1
-"../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"no-restricted-syntax"	2
+"../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"no-restricted-syntax"	1
 "../../src/libs/Notification/PushNotification/parsePushNotificationPayload.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/Notification/PushNotification/shouldShowPushNotification.ts"	"no-restricted-syntax"	2
 "../../src/libs/Notification/PushNotification/subscribeToPushNotifications.ts"	"no-restricted-syntax"	1

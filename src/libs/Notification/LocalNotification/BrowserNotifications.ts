@@ -2,7 +2,6 @@ import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.p
 
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
 
-import * as AppUpdate from '@libs/actions/AppUpdate';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -216,23 +215,6 @@ export default {
             reportID: report.reportID,
         };
         push(title, body, icon, data, onClick);
-    },
-
-    /**
-     * Create a notification to indicate that an update is available.
-     */
-    pushUpdateAvailableNotification() {
-        push(
-            'Update available',
-            'A new version of this app is available!',
-            '',
-            {},
-            () => {
-                AppUpdate.triggerUpdateAvailable();
-            },
-            false,
-            'UpdateAvailable',
-        );
     },
 
     /**

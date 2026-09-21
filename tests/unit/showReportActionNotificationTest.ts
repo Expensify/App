@@ -29,7 +29,6 @@ jest.mock('@libs/Notification/LocalNotification', () => ({
         showCommentNotification: (...args: Parameters<LocalNotificationModule['showCommentNotification']>) => {
             mockShowCommentNotification(...args);
         },
-        showUpdateAvailableNotification: jest.fn(),
         clearReportNotifications: jest.fn(),
     },
 }));

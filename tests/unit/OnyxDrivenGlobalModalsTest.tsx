@@ -1,7 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useScreenShareRequestPrompt from '@hooks/useScreenShareRequestPrompt';
-import useUpdateAppPrompt from '@hooks/useUpdateAppPrompt';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -16,7 +15,7 @@ jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
 
-// Both hooks render nothing and push their prompt onto the global modal stack, so what they pushed -- and how many
+// The hook renders nothing and pushes its prompt onto the global modal stack, so what it pushed -- and how many
 // times -- is the only observable behaviour there is to assert on.
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
@@ -65,50 +64,6 @@ describe('Onyx-driven global modal prompts', () => {
 
     afterEach(async () => {
         await Onyx.clear();
-    });
-
-    describe('useUpdateAppPrompt', () => {
-        it('should not show the prompt while no update is available', async () => {
-            renderHook(() => useUpdateAppPrompt());
-            await waitForBatchedUpdates();
-
-            expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        });
-
-        it('should show the prompt with the update copy once an update becomes available', async () => {
-            renderHook(() => useUpdateAppPrompt());
-            await waitForBatchedUpdates();
-
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE, true);
-            });
-            await waitForBatchedUpdates();
-
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-            expect(getShowConfirmModalOption('title')).toBe('baseUpdateAppModal.updateApp');
-            expect(getShowConfirmModalOption('prompt')).toBe('baseUpdateAppModal.updatePrompt');
-            expect(getShowConfirmModalOption('confirmText')).toBe('baseUpdateAppModal.updateApp');
-            expect(getShowConfirmModalOption('cancelText')).toBe('common.cancel');
-        });
-
-        it('should not show the prompt again after it has been dismissed', async () => {
-            const {rerender} = renderHook(() => useUpdateAppPrompt());
-            await waitForBatchedUpdates();
-
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE, true);
-            });
-            await waitForBatchedUpdates();
-
-            // The Onyx flag stays `true` forever, so nothing but the hook's own guard keeps this to one showing.
-            resolveShowConfirmModal({action: MockModalActions.CLOSE});
-            await waitForBatchedUpdates();
-
-            rerender({});
-            await waitForBatchedUpdates();
-
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        });
     });
 
     describe('useScreenShareRequestPrompt', () => {
@@ -202,30 +157,6 @@ describe('Onyx-driven global modal prompts', () => {
             await setScreenShareRequest({accessToken: 'token-2', roomName: 'room-2'});
 
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
-        });
-    });
-
-    describe('prompt ordering', () => {
-        it('should run the update prompt effect last so it sits above the screen-share prompt', async () => {
-            // DeferredGlobalModals calls the hooks in this order on purpose: only the top of the modal stack renders,
-            // so whichever effect runs last owns the prompt the user sees when both are pending at once.
-            renderHook(() => {
-                useScreenShareRequestPrompt();
-                useUpdateAppPrompt();
-            });
-            await waitForBatchedUpdates();
-
-            await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SCREEN_SHARE_REQUEST]: SCREEN_SHARE_REQUEST,
-                    [ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE]: true,
-                });
-            });
-            await waitForBatchedUpdates();
-
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
-            expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({title: 'guides.screenShare'}));
-            expect(mockShowConfirmModal.mock.calls.at(1)?.at(0)).toEqual(expect.objectContaining({title: 'baseUpdateAppModal.updateApp'}));
         });
     });
 });
