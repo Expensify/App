@@ -417,8 +417,19 @@ function getPayMoneyRequestParams({
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            // Revert only the fields the optimistic payment update touched. Restoring the whole local snapshot here
+            // would clobber fresh report data (like the total) that a failure response just pushed, leaving the cached
+            // total permanently stale so that retrying a pay that failed with "the amount changed" always fails again.
             value: {
-                ...iouReport,
+                lastMessageText: iouReport?.lastMessageText,
+                lastMessageHtml: iouReport?.lastMessageHtml,
+                lastVisibleActionCreated: iouReport?.lastVisibleActionCreated,
+                hasOutstandingChildRequest: iouReport?.hasOutstandingChildRequest,
+                statusNum: iouReport?.statusNum,
+                stateNum: iouReport?.stateNum,
+                pendingFields: iouReport?.pendingFields,
+                nextStep: iouReport?.nextStep,
+                errors: iouReport?.errors,
             },
         },
     );

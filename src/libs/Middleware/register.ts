@@ -6,6 +6,7 @@ import {
     GlobalReimbursementPayError,
     handleDeletedAccount,
     HandleMovedScanFailedExpenses,
+    HandleStaleTotalPayError,
     HandleUnusedOptimisticID,
     LoadPostDataForOpenOrReconnect,
     LoadTest,
@@ -55,6 +56,11 @@ function registerMiddlewares() {
 
     // Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows.
     addMiddleware(GlobalReimbursementPayError);
+
+    // When a pay fails because the cached report total the payer sent is stale, the backend pushes the refreshed report
+    // in the failure response. Detect the mismatch and surface an actionable "amount changed" error instead of the
+    // generic one. Must run before SaveResponseInOnyx so the replacement error lands with the rest of failureData.
+    addMiddleware(HandleStaleTotalPayError);
 
     // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
     addMiddleware(HandleUnusedOptimisticID);
