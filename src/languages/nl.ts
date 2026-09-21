@@ -8714,6 +8714,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subsidiarySelectDescription: 'Selecteer de Dynamics 365 Business Central-dochteronderneming om met deze workspace te synchroniseren.',
             noCompaniesFound: 'Geen bedrijven gevonden',
             noCompaniesFoundDescription: 'Voeg een bedrijf toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in Business Central en synchroniseer de koppeling opnieuw',
         },
     },
     getAssistancePage: {

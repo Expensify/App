@@ -8957,6 +8957,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική του Dynamics 365 Business Central για συγχρονισμό με αυτόν τον χώρο εργασίας.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Business Central και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {

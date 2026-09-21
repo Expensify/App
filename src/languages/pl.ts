@@ -8735,6 +8735,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             subsidiarySelectDescription: 'Wybierz jednostkę zależną Dynamics 365 Business Central do synchronizacji z tym obszarem roboczym.',
             noCompaniesFound: 'Nie znaleziono firm',
             noCompaniesFoundDescription: 'Dodaj proszę firmę w Dynamics 365 Business Central i zsynchronizuj połączenie ponownie',
+            noVendorsFound: 'Nie znaleziono dostawców',
+            noVendorsFoundDescription: 'Dodaj proszę dostawców w Business Central i zsynchronizuj połączenie ponownie',
         },
     },
     getAssistancePage: {

@@ -8626,6 +8626,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'Selecciona la filial de Dynamics 365 Business Central con la que quieres sincronizar este espacio de trabajo.',
             noCompaniesFound: 'No se encontraron empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en Dynamics 365 Business Central y sincroniza la conexión de nuevo',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en Business Central y vuelve a sincronizar la conexión',
         },
     },
     getAssistancePage: {

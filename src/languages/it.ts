@@ -8738,6 +8738,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             subsidiarySelectDescription: 'Seleziona la consociata Dynamics 365 Business Central da sincronizzare con questo spazio di lavoro.',
             noCompaniesFound: 'Nessuna azienda trovata',
             noCompaniesFoundDescription: "Aggiungi un'azienda in Dynamics 365 Business Central e sincronizza di nuovo la connessione",
+            noVendorsFound: 'Nessun fornitore trovato',
+            noVendorsFoundDescription: 'Aggiungi i fornitori in Business Central e sincronizza di nuovo la connessione',
         },
     },
     getAssistancePage: {

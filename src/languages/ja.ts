@@ -8628,6 +8628,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'このワークスペースと同期する Dynamics 365 Business Central の子会社を選択してください。',
             noCompaniesFound: '会社が見つかりません',
             noCompaniesFoundDescription: 'Dynamics 365 Business Central に会社を追加して、接続をもう一度同期してください',
+            noVendorsFound: '取引先が見つかりませんでした',
+            noVendorsFoundDescription: 'Business Central に仕入先を追加してから、もう一度接続を同期してください',
         },
     },
     getAssistancePage: {
