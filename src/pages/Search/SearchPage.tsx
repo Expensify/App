@@ -126,7 +126,7 @@ function SearchPage({route}: SearchPageProps) {
         setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults});
     }
 
-    // Allow showing sekelton when the query exceeds max hold time
+    // Allow showing skeleon when the query exceeds max hold time
     const [staleHoldTimedOutHash, setStaleHoldTimedOutHash] = useState<number | undefined>(undefined);
     const currentQueryHash = currentSearchQueryJSON?.hash;
 
