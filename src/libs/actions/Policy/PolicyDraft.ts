@@ -202,5 +202,5 @@ function createDraftInitialWorkspace({
     Onyx.update(optimisticData);
 }
 
-export type {CreateDraftInitialWorkspaceParams, OptimisticCustomUnits, PolicyOwner};
+export type {PolicyOwner};
 export {buildOptimisticDistanceRateCustomUnits, createDraftInitialWorkspace, generateCustomUnitID, generateDefaultWorkspaceName, generatePolicyID, getDisplayNameForWorkspace};
