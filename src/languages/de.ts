@@ -10869,6 +10869,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 invalid: 'Dieser Code ist ungültig',
             },
         },
+        paymentHistory: {
+            title: 'Zahlungsverlauf anzeigen',
+            subtitle: 'Dein vollständiger monatlicher Zahlungsverlauf, der diesem Konto belastet wurde.',
+        },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

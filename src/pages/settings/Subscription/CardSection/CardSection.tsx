@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,6 +55,7 @@ import CardSectionUtils from './utils';
 function CardSection() {
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -290,7 +292,7 @@ function CardSection() {
                     wrapperStyle={styles.sectionMenuItemTopDescription}
                     title={translate('subscription.cardSection.viewPaymentHistory')}
                     titleStyle={styles.textStrong}
-                    onPress={viewPurchases}
+                    onPress={isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY) ? () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY) : viewPurchases}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
                 />
             )}

@@ -10669,6 +10669,10 @@ ${reportName}`,
                 invalid: 'このコードは無効です',
             },
         },
+        paymentHistory: {
+            title: '支払い履歴を表示',
+            subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。',
+        },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

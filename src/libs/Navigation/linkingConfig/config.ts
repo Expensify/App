@@ -528,6 +528,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },

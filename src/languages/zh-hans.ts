@@ -10398,6 +10398,10 @@ ${reportName}`,
                 invalid: '此代码无效',
             },
         },
+        paymentHistory: {
+            title: '查看付款历史',
+            subtitle: '此账户完整的每月付款历史记录。',
+        },
         subscriptionSettings: {
             title: '订阅设置',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

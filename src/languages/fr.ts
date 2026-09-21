@@ -10888,6 +10888,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 invalid: "Ce code n'est pas valide",
             },
         },
+        paymentHistory: {
+            title: "Voir l'historique des paiements",
+            subtitle: 'Votre historique mensuel complet des paiements facturés à ce compte.',
+        },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
