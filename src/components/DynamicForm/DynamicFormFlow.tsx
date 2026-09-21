@@ -7,16 +7,22 @@ import useSubPage from '@hooks/useSubPage';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
+
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormListItem} from '@src/types/onyx/DynamicFormField';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
 import type {DynamicFormPage as DynamicFormPageSchema} from './groupFieldsIntoPages';
 import type {DynamicFormValues} from './types';
 
+import {summarizeItem} from './adapters/ListFieldAdapter';
 import DynamicFormPage from './DynamicFormPage';
 import DynamicFormShell from './DynamicFormShell';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
@@ -64,7 +70,24 @@ function EmptyPage() {
 const carriedAnswersByForm = new Map<string, DynamicFormValues>();
 
 function isCarriedOutsideDraft(field: DynamicFormField): boolean {
-    return !!field.sensitive || !!field.itemFields?.some((itemField) => itemField.sensitive);
+    return !!field.sensitive;
+}
+
+const LIST_ITEM_FORM_ID = ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM;
+const ITEM_EDITOR_SEPARATOR = '~';
+const NEW_ITEM_ID = 'new';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isListItems(value: unknown): value is DynamicFormListItem[] {
+    return Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === 'string');
+}
+
+/** Sensitive item answers never reach the draft; they are carried per item under this key and merged back on submit */
+function getCarriedItemKey(listKey: string, itemID: string): string {
+    return `${listKey}${ITEM_EDITOR_SEPARATOR}${itemID}`;
 }
 
 /** A whole dynamic form: one sub page per group, a confirmation page, and a step indicator when the flow is long enough */
@@ -116,7 +139,19 @@ function DynamicFormFlow({
                 return;
             }
             carriedAnswersByForm.delete(formID);
-            onSubmit(draftValues);
+            const visibleFields = fields.filter((field) => isFieldVisible(field, draftValues));
+            const isSubmitted = (key: string) => visibleFields.some((field) => key === field.key || key === field.currencyKey || key.startsWith(`${field.key}.`));
+            const submitted = Object.fromEntries(Object.entries(draftValues).filter(([key]) => isSubmitted(key)));
+            for (const field of visibleFields) {
+                const items = submitted[field.key];
+                if (field.type === 'list' && isListItems(items)) {
+                    submitted[field.key] = items.map((item) => {
+                        const carriedItemAnswers = carriedAnswers[getCarriedItemKey(field.key, item.id)];
+                        return isRecord(carriedItemAnswers) ? {...item, ...carriedItemAnswers} : item;
+                    });
+                }
+            }
+            onSubmit(submitted);
         },
         buildRoute,
     });
@@ -145,7 +180,60 @@ function DynamicFormFlow({
 
     const currentGroupPage = groupPages.find((page) => page.slug === currentPageName);
 
+    const [editorListKey = '', editorItemID = ''] = currentPageName?.includes(ITEM_EDITOR_SEPARATOR) ? currentPageName.split(ITEM_EDITOR_SEPARATOR) : [];
+    const editorField = fields.find((field) => field.type === 'list' && field.key === editorListKey);
+    const editorGroup = editorField ? groupPages.find((page) => page.fields.includes(editorField)) : undefined;
+    const editorItemFields = editorField?.itemFields ?? [];
+    const editorSensitiveKeys = editorItemFields.filter((field) => field.sensitive).map((field) => field.key);
+    const storedItems = draftValues[editorListKey];
+    const editorItems = isListItems(storedItems) ? storedItems : [];
+    const editingItem = editorItems.find((item) => item.id === editorItemID);
+    const carriedEditingAnswers = editingItem ? carriedAnswers[getCarriedItemKey(editorListKey, editingItem.id)] : undefined;
+    const editorDraft: DynamicFormValues = {...editingItem, ...(isRecord(carriedEditingAnswers) ? carriedEditingAnswers : {})};
+    const [seededEditorPage, setSeededEditorPage] = useState<string | undefined>();
+    const editorSensitiveKeysSignature = editorSensitiveKeys.join('\n');
+    useEffect(() => {
+        if (!editorField || !currentPageName) {
+            return;
+        }
+        const sensitiveKeys = editorSensitiveKeysSignature.split('\n');
+        clearDraftValues(LIST_ITEM_FORM_ID);
+        setDraftValues(LIST_ITEM_FORM_ID, Object.fromEntries(Object.entries(editingItem ?? {}).filter(([key]) => key !== 'id' && !sensitiveKeys.includes(key)))).then(() =>
+            setSeededEditorPage(currentPageName),
+        );
+    }, [currentPageName, editorField, editingItem, editorSensitiveKeysSignature]);
+
+    const openListItemEditor = (fieldKey: string, itemID?: string) => Navigation.navigate(buildRoute(getCarriedItemKey(fieldKey, itemID ?? NEW_ITEM_ID)));
+
+    const saveEditorItem = (values: DynamicFormValues) => {
+        if (!editorField || !editorGroup) {
+            return;
+        }
+        const id = editingItem?.id ?? Str.guid();
+        const item: DynamicFormListItem = {...Object.fromEntries(Object.entries(values).filter(([key]) => !editorSensitiveKeys.includes(key))), id};
+        const sensitiveAnswers = Object.fromEntries(Object.entries(values).filter(([key, answer]) => editorSensitiveKeys.includes(key) && answer !== '' && answer !== undefined));
+        setDraftValues(formID, {[editorField.key]: editingItem ? editorItems.map((existing) => (existing.id === id ? item : existing)) : [...editorItems, item]});
+        if (Object.keys(sensitiveAnswers).length > 0) {
+            const carriedItemKey = getCarriedItemKey(editorField.key, id);
+            const existing = carriedAnswers[carriedItemKey];
+            const nextCarried = {...carriedAnswers, [carriedItemKey]: {...(isRecord(existing) ? existing : {}), ...sensitiveAnswers}};
+            carriedAnswersByForm.set(formID, nextCarried);
+            setCarriedAnswers(nextCarried);
+        }
+        Navigation.goBack(buildRoute(editorGroup.slug));
+    };
+
+    const editorItemLabel = editorField?.itemLabelKey ? translate(editorField.itemLabelKey) : editorField?.itemLabel;
+    let editorTitle = editorItemLabel ? translate('dynamicForm.addItem', {item: editorItemLabel}) : translate('common.add');
+    if (editingItem) {
+        editorTitle = summarizeItem(editingItem, editorItemFields, translate).title || editorTitle;
+    }
+
     const handleBackButtonPress = () => {
+        if (editorGroup) {
+            Navigation.goBack(buildRoute(editorGroup.slug));
+            return;
+        }
         if (isEditing) {
             goBackToConfirmation();
             return;
@@ -178,7 +266,8 @@ function DynamicFormFlow({
     const isConfirmationPage = currentPageName === CONFIRM_PAGE_SLUG;
     const visibleGroupPages = groupPages.filter(hasVisibleField);
     const stepNames = visibleGroupPages.map((page) => page.name);
-    const stepIndex = currentGroupPage ? Math.max(0, visibleGroupPages.indexOf(currentGroupPage)) : stepNames.length - 1;
+    const stepGroup = currentGroupPage ?? editorGroup;
+    const stepIndex = stepGroup ? Math.max(0, visibleGroupPages.indexOf(stepGroup)) : stepNames.length - 1;
 
     const summaryItems = groupPages.flatMap((page, index) =>
         page.fields
@@ -192,7 +281,7 @@ function DynamicFormFlow({
             })),
     );
 
-    const isLoading = isRedirecting || isCurrentPageSkipped || isDraftLoading || (!currentGroupPage && !isConfirmationPage);
+    const isLoading = isRedirecting || isCurrentPageSkipped || isDraftLoading || (!currentGroupPage && !isConfirmationPage && !editorField);
 
     let content = <FullScreenLoadingIndicator />;
     if (!isLoading && currentGroupPage && !isConfirmationPage) {
@@ -205,8 +294,23 @@ function DynamicFormFlow({
                 currency={currency}
                 submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onSubmit={handleNext}
+                onOpenListItemEditor={openListItemEditor}
             />
         );
+    } else if (!isLoading && editorField && editorGroup) {
+        if (seededEditorPage === currentPageName && currentPageName) {
+            content = (
+                <DynamicFormPage
+                    key={currentPageName}
+                    page={{name: editorTitle, slug: currentPageName, fields: editorItemFields}}
+                    formID={LIST_ITEM_FORM_ID}
+                    draft={editorDraft}
+                    currency={currency}
+                    submitButtonText={translate('common.save')}
+                    onSubmit={saveEditorItem}
+                />
+            );
+        }
     } else if (!isLoading) {
         content = (
             <ConfirmationStep

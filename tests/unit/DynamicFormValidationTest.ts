@@ -134,6 +134,26 @@ describe('getDynamicFieldErrors for choices and booleans', () => {
     });
 });
 
+describe('getDynamicFieldErrors for list items with sensitive answers', () => {
+    it('does not flag a stored item for a sensitive answer, which the item editor enforces and the draft never holds', () => {
+        const owners: DynamicFormField = {
+            key: 'owners',
+            label: 'Owners',
+            group: 'Owners',
+            type: 'list',
+            required: true,
+            refreshOnChange: false,
+            itemFields: [
+                {key: 'name', label: 'Name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+                {key: 'ssn', label: 'SSN', group: 'Owner', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+            ],
+        };
+
+        expect(getDynamicFieldErrors([owners], {owners: [{id: '1', name: 'Alice Nguyen'}]}, translateLocal)).toEqual({});
+        expect(getDynamicFieldErrors([owners], {owners: [{id: '1', name: ''}]}, translateLocal)).toEqual({owners: translateLocal('common.error.fieldRequired')});
+    });
+});
+
 describe('getDynamicFieldErrors for number and country multiselect fields', () => {
     it('rejects a non-numeric number and an unknown country code', () => {
         expect(getDynamicFieldErrors(allFieldTypes, {...completeAnswers, numberOfEmployees: 'many'}, translateLocal)).toEqual({

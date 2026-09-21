@@ -11,6 +11,7 @@ import colors from '@styles/theme/colors';
 import ComposeProviders from '@src/components/ComposeProviders';
 import HTMLEngineProvider from '@src/components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
+import {ModalProvider} from '@src/components/Modal/Global/ModalContext';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -42,6 +43,7 @@ const decorators = [
                 OnyxListItemProvider,
                 LocaleContextProvider,
                 CurrencyListContextProvider,
+                ModalProvider,
                 HTMLEngineProvider,
                 SafeAreaProvider,
                 PortalProvider,

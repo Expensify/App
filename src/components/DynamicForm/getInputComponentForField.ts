@@ -24,6 +24,7 @@ import AmountWithCurrencyAdapter from './adapters/AmountWithCurrencyAdapter';
 import FileUploadAdapter from './adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from './adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from './adapters/ListFieldAdapter';
+import TabsAdapter from './adapters/TabsAdapter';
 import YesNoAdapter from './adapters/YesNoAdapter';
 import {getFieldOptions, getOptionLabel} from './getFieldOptions';
 import isCountryCode from './isCountryCode';
@@ -57,9 +58,10 @@ function getChoices(field: DynamicFormField, {values, translate}: DynamicFieldCo
     return getFieldOptions(field, values).map((option) => ({value: option.key, label: getOptionLabel(option, translate)}));
 }
 
-const textFactory: DynamicFieldFactory = (field, {translate}) => ({
+const textFactory: DynamicFieldFactory = (field, {translate, values}) => ({
     InputComponent: TextInput,
     inputProps: {
+        ...(field.sensitive && values[field.key] !== undefined ? {defaultValue: values[field.key]} : {}),
         maxLength: field.maxLength,
         hint: getFieldDescription(field, translate) ?? (field.example ? translate('common.exampleValue', {example: field.example}) : undefined),
         inputMode: getInputMode(field),
@@ -94,6 +96,9 @@ const REGISTRY = {
     number: (field, context) => textFactory({...field, keyboard: 'numeric'}, context),
     select: (field, context) => {
         const choices = getChoices(field, context);
+        if (field.presentation === 'tabs') {
+            return {InputComponent: TabsAdapter, inputProps: {items: choices}};
+        }
         if (context.isAloneOnPage) {
             return {InputComponent: InlineSelectionListAdapter, isMenuRow: true, inputProps: {items: choices}};
         }
@@ -114,13 +119,18 @@ const REGISTRY = {
     },
     multiselect: multiselectFactory,
     countryMultiselect: multiselectFactory,
-    radio: (field, context) => ({
-        InputComponent: RadioButtons,
-        isMenuRow: true,
-        shouldRenderLabelAbove: !context.isAloneOnPage,
-        isLabelAboveQuestion: true,
-        inputProps: {items: getChoices(field, context), onSelect: () => {}},
-    }),
+    radio: (field, context) => {
+        if (field.presentation === 'tabs') {
+            return {InputComponent: TabsAdapter, inputProps: {items: getChoices(field, context)}};
+        }
+        return {
+            InputComponent: RadioButtons,
+            isMenuRow: true,
+            shouldRenderLabelAbove: !context.isAloneOnPage,
+            isLabelAboveQuestion: true,
+            inputProps: {items: getChoices(field, context), onSelect: () => {}},
+        };
+    },
     date: (field, {translate}) => ({
         InputComponent: DatePicker,
         inputProps: {placeholder: translate('common.dateFormat')},
@@ -185,11 +195,19 @@ const REGISTRY = {
         InputComponent: PercentageForm,
         inputProps: {},
     }),
-    list: (field, {isAloneOnPage, renderFields}) => ({
+    list: (field, {isAloneOnPage, renderFields, translate, openListItemEditor}) => ({
         InputComponent: ListFieldAdapter,
         isMenuRow: true,
         shouldRenderLabelAbove: !isAloneOnPage,
-        inputProps: {itemFields: field.itemFields ?? [], maxItems: field.maxItems, renderFields, valueType: 'listItems'},
+        inputProps: {
+            itemFields: field.itemFields ?? [],
+            maxItems: field.maxItems,
+            itemLabel: field.itemLabelKey ? translate(field.itemLabelKey) : field.itemLabel,
+            addItemDescription: field.addItemDescriptionKey ? translate(field.addItemDescriptionKey) : field.addItemDescription,
+            renderFields,
+            onOpenEditor: openListItemEditor ? (itemID?: string) => openListItemEditor(field.key, itemID) : undefined,
+            valueType: 'listItems',
+        },
     }),
 } satisfies Record<DynamicFormFieldType, DynamicFieldFactory>;
 

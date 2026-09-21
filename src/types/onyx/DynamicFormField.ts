@@ -62,6 +62,9 @@ type DynamicFormField = {
     /** Allowed values for select, multiselect and radio */
     values?: DynamicFormFieldOption[];
 
+    /** Select and radio only: draw the choice as a segmented tab row, for the switch that decides which fields follow */
+    presentation?: 'tabs';
+
     /** Options filtered by another answer, keyed by that answer's value */
     dependsOn?: {
         key: string;
@@ -108,6 +111,16 @@ type DynamicFormField = {
 
     /** List only: the fields of one repeated item */
     itemFields?: DynamicFormField[];
+
+    /** List only: the noun for one item, such as "owner", for the add row and the editor title */
+    itemLabel?: string;
+
+    itemLabelKey?: TranslationPaths;
+
+    /** List only: hint shown under the add row */
+    addItemDescription?: string;
+
+    addItemDescriptionKey?: TranslationPaths;
 
     minItems?: number;
 

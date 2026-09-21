@@ -3877,6 +3877,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
             outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
         },
+        addItem: ({item}: {item: string}) => `${item}を追加`,
+        removeItemTitle: ({name}: {name: string}) => `${name}を削除しますか？`,
+        removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
     },
     addPersonalBankAccount: {
         countrySelectionStepHeader: '銀行口座はどこにありますか？',

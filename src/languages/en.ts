@@ -4040,6 +4040,9 @@ const translations = {
             tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
         },
+        addItem: ({item}: {item: string}) => `Add ${item}`,
+        removeItemTitle: ({name}: {name: string}) => `Remove ${name}?`,
+        removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
     },
     addPersonalBankAccount: {
         countrySelectionStepHeader: "Where's your bank account located?",

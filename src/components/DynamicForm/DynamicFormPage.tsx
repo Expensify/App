@@ -30,10 +30,13 @@ type DynamicFormPageProps = {
 
     /** Receives the page's answers, including ones never written to the draft */
     onSubmit: (values: DynamicFormValues) => void;
+
+    /** Opens the flow's editor page for a list item */
+    onOpenListItemEditor?: (fieldKey: string, itemID?: string) => void;
 };
 
 /** One group of a dynamic form: the page title, the group's fields and a Next or Confirm button */
-function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSubmit}: DynamicFormPageProps) {
+function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSubmit, onOpenListItemEditor}: DynamicFormPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -57,6 +60,7 @@ function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSub
                         fields={page.fields}
                         values={withDraft(inputValues)}
                         currency={currency}
+                        onOpenListItemEditor={onOpenListItemEditor}
                     />
                 </>
             )}

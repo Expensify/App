@@ -170,6 +170,9 @@ describe('DynamicFormFlow', () => {
     it('summarizes every visible answer on the confirmation page and submits the draft', async () => {
         const onSubmit = jest.fn();
         mockRouteParams.subPage = 'confirm';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {businessRegistrationDocument: ['stale-upload']});
+        });
         await renderFlow(onSubmit);
 
         expect(screen.getByText('Confirm your details')).toBeOnTheScreen();
@@ -181,6 +184,7 @@ describe('DynamicFormFlow', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({accountNumber: '12345678', country: 'GB'}));
+        expect(onSubmit.mock.calls.at(0)?.at(0)).not.toHaveProperty('businessRegistrationDocument');
     });
 
     it('carries a sensitive answer from its page to the submission without writing it to the draft', async () => {
@@ -356,6 +360,67 @@ describe('DynamicFormFlow', () => {
 
         expect(screen.queryByText('Ownership')).not.toBeOnTheScreen();
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'), {forceReplace: true});
+    });
+
+    it('edits a list item on its own page, keeps its sensitive answer out of the draft and merges it back on submit', async () => {
+        const fields: DynamicFormField[] = [
+            {
+                key: 'owners',
+                label: 'Owners',
+                itemLabel: 'owner',
+                group: 'Owners',
+                type: 'list',
+                required: true,
+                minItems: 1,
+                refreshOnChange: false,
+                itemFields: [
+                    {key: 'name', label: 'Name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+                    {key: 'ssn', label: 'SSN', group: 'Owner', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+                ],
+            },
+        ];
+        const onSubmit = jest.fn();
+        const renderAt = async (subPage: string) => {
+            mockRouteParams.subPage = subPage;
+            render(
+                <DynamicFormFlow
+                    fields={fields}
+                    formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
+                    headerTitle="Owners"
+                    testID="DynamicFormFlowListEditor"
+                    buildRoute={buildRoute}
+                    onSubmit={onSubmit}
+                    onBack={jest.fn()}
+                    confirmationTitle="Confirm"
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+        };
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {});
+        });
+
+        await renderAt('owners~new');
+        fireEvent.changeText(screen.getByLabelText('Name'), 'Alice Nguyen');
+        fireEvent.changeText(screen.getByLabelText('SSN'), '123456789');
+        fireEvent.press(screen.getByText('common.save'));
+        await waitForBatchedUpdatesWithAct();
+
+        const draft = await new Promise<Record<string, unknown> | undefined>((resolve) => {
+            Onyx.connect({key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, callback: (value) => resolve(value ?? undefined)});
+        });
+        const savedOwners = draft?.owners;
+        expect(Array.isArray(savedOwners) && savedOwners.length).toBe(1);
+        expect(Array.isArray(savedOwners) ? savedOwners.at(0) : undefined).toEqual(expect.objectContaining({name: 'Alice Nguyen'}));
+        expect(Array.isArray(savedOwners) ? savedOwners.at(0) : undefined).not.toHaveProperty('ssn');
+        expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('owners'));
+
+        screen.unmount();
+        await renderAt('confirm');
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledWith({owners: [expect.objectContaining({name: 'Alice Nguyen', ssn: '123456789'})]});
     });
 
     it('leaves the flow from Back on the first shown page when the first group is hidden', async () => {

@@ -148,6 +148,8 @@ const allFieldTypes: DynamicFormField[] = [
         description: 'Every business that owns 25% or more, directly or indirectly.',
         group: 'Ownership',
         type: 'list',
+        itemLabel: 'shareholder',
+        addItemDescription: 'Only businesses with 25% or more',
         required: false,
         maxItems: 10,
         itemFields: [

@@ -12,6 +12,7 @@ import type AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/Amo
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -96,6 +97,7 @@ type ValidInputs =
     | typeof TimeModalPicker
     | typeof FileUploadAdapter
     | typeof InlineSelectionListAdapter
+    | typeof TabsAdapter
     | typeof YesNoAdapter
     | typeof AmountWithCurrencyAdapter
     | typeof ListFieldAdapter;

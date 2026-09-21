@@ -10,6 +10,7 @@ import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWi
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
@@ -125,6 +126,38 @@ describe('DynamicFormFields', () => {
         expect(forPrivate?.items?.map((item) => item.value)).toEqual(['CHECKING', 'SAVINGS']);
         expect(forBusiness?.items?.map((item) => item.value)).toEqual(['CHECKING', 'SAVINGS', 'BUSINESS_CHECKING']);
         expect(unanswered?.items).toEqual([]);
+    });
+
+    it('presents a choice flagged as tabs through the tab selector, alone on its page or not', () => {
+        const ownerType: DynamicFormField = {
+            key: 'ownerType',
+            label: 'Owner type',
+            group: 'Owner',
+            type: 'radio',
+            presentation: 'tabs',
+            required: true,
+            values: [
+                {key: 'INDIVIDUAL', label: 'Individual'},
+                {key: 'COMPANY', label: 'Company/Fund'},
+            ],
+            refreshOnChange: false,
+        };
+        const sibling: DynamicFormField = {
+            key: 'legalName',
+            label: 'Legal name',
+            group: 'Owner',
+            type: 'text',
+            required: true,
+            showWhen: {key: 'ownerType', equals: ['COMPANY']},
+            refreshOnChange: false,
+        };
+
+        expect(renderFields([ownerType]).get('ownerType')?.InputComponent).toBe(TabsAdapter);
+        const withSibling = renderFields([ownerType, sibling], {ownerType: 'COMPANY'});
+        expect(withSibling.get('ownerType')?.InputComponent).toBe(TabsAdapter);
+        expect(withSibling.get('ownerType')?.items?.map((item) => item.label)).toEqual(['Individual', 'Company/Fund']);
+        expect(withSibling.has('legalName')).toBe(true);
+        expect(renderFields([{...ownerType, type: 'select'}, sibling], {ownerType: 'INDIVIDUAL'}).get('ownerType')?.InputComponent).toBe(TabsAdapter);
     });
 
     it('uses PushRowWithModal for a select with more than eight values', () => {

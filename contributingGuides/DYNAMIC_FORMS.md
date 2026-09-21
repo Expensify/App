@@ -18,6 +18,7 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `required`, `regex`, `minLength`, `maxLength` | Validation, applied by `getDynamicFieldErrors`. Every failing rule is reported. |
 | `rule` | A named check from `ValidationUtils` a regex cannot express: `legalName` (text), `dateOfBirth` (date, past and 18 or older) or `zipCode` (address, against the chosen country). The same checks and copy as the ACH sub-step forms. |
 | `values`, `dependsOn` | Options for choice fields; `dependsOn` filters them by another answer. |
+| `presentation: 'tabs'` | Select and radio only. Draws the choice as a segmented tab row, for the switch whose answer decides which fields follow through `showWhen`. Answers of fields hidden at submit time are not submitted. |
 | `showWhen` | Visibility by another answer. Hidden fields are never validated. |
 | `refreshOnChange` | Re-fetch the schema when this answer changes (`useRefreshOnChange`). |
 | `keyboard`, `multiline` | Text field hints. Digit-only regexes and `number` fields open the numeric keyboard on their own. |
@@ -25,6 +26,7 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `sensitive` | Never saved to the draft. Use for SSNs and account numbers, per FORMS.md. |
 | `currencyKey` | Amount only. Names the sibling key the chosen currency is written to; without it the currency is fixed. |
 | `itemFields`, `minItems`, `maxItems` | List only. The schema of one repeated item and the allowed count. |
+| `itemLabel` / `itemLabelKey`, `addItemDescription` / `addItemDescriptionKey` | List only. The noun for one item ("owner") drives the add row and the editor title; the description is the hint under the add row. |
 
 ## The registry
 
@@ -67,6 +69,8 @@ The `adapters/` folder holds prop mappers that give existing components the `val
 ```
 
 The route must accept a `subPage` segment and an optional `action=edit` parameter, as the existing `useSubPage` routes do. Pages that mount before their draft has loaded must wait for it (`isLoadingOnyxValue` on the draft metadata); the flow does this, and any page that uses `DynamicFormFields` directly must too, because `AmountForm` reads its value only on mount.
+
+Inside the flow a list edits its items on their own page (route `<listKey>~<itemID>`, `~new` to add), with the list's step highlighted. Rows show a letter avatar, an Edit button and a remove control that asks for confirmation. Sensitive item answers stay out of the draft and are merged back into the item on submit. Outside the flow the list falls back to a modal editor.
 
 Pass `onPageSubmit` to persist each page as the ACH flow does. It receives the page and that page's answers before the flow moves on, so the consumer's action can call its API command per group; the page's own button shows the form key's `isLoading` and `errors` without further wiring.
 

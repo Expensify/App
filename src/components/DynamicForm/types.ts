@@ -20,6 +20,9 @@ type DynamicFieldContext = {
 
     /** Renders a nested set of fields, so a list item's editor reuses the renderer without importing it */
     renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
+
+    /** Opens the flow's editor page for a list item; absent when the page has no flow, so the list uses a modal */
+    openListItemEditor?: (fieldKey: string, itemID?: string) => void;
 };
 
 type DynamicFieldInput = {

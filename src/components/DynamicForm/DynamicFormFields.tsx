@@ -26,9 +26,12 @@ type DynamicFormFieldsProps = {
     currency?: string;
 
     shouldSaveDraft?: boolean;
+
+    /** Opens the flow's editor page for a list item; without it lists edit items in a modal */
+    onOpenListItemEditor?: (fieldKey: string, itemID?: string) => void;
 };
 
-function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: DynamicFormFieldsProps) {
+function DynamicFormFields({fields, values, currency, shouldSaveDraft = true, onOpenListItemEditor}: DynamicFormFieldsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -68,6 +71,7 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
                     currency,
                     isAloneOnPage,
                     renderFields,
+                    openListItemEditor: onOpenListItemEditor,
                 });
                 const description = field.type === 'text' ? undefined : getFieldDescription(field, translate);
                 return (
@@ -90,7 +94,7 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
                             InputComponent={InputComponent}
                             inputID={field.key}
                             label={label}
-                            shouldSaveDraft={shouldSaveDraft && !field.sensitive && !field.itemFields?.some((itemField) => itemField.sensitive)}
+                            shouldSaveDraft={shouldSaveDraft && !field.sensitive && (!!onOpenListItemEditor || !field.itemFields?.some((itemField) => itemField.sensitive))}
                             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                             {...inputProps}
                         />

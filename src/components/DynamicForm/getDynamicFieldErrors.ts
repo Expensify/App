@@ -62,7 +62,7 @@ function getListErrors(field: DynamicFormField, value: unknown, translate: Local
     if (field.maxItems !== undefined && items.length > field.maxItems) {
         messages.push(translate('dynamicForm.error.tooManyItems', {max: field.maxItems}));
     }
-    const itemFields = field.itemFields ?? [];
+    const itemFields = (field.itemFields ?? []).filter((itemField) => !itemField.sensitive);
     for (const item of items) {
         if (!isAnswerRecord(item)) {
             continue;
