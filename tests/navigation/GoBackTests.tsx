@@ -838,6 +838,38 @@ describe('Go back on the narrow layout', () => {
             expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
         });
 
+        it('Should collapse onto an underlying tab navigator that already has the target tab active', () => {
+            const initialState: InitialState = {
+                index: 2,
+                routes: [
+                    ...buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA)).routes,
+                    ...buildWorkspaceNavigationStateWithActiveTab(1, buildWorkspaceSplitRoute(policyB)).routes,
+                    {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.RIGHT_MODAL.SETTINGS}]}},
+                ],
+            };
+            render(<TestNavigationContainer initialState={initialState} />);
+            const rootRouteKeyBefore = navigationRef.current?.getRootState().routes.at(0)?.key;
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            // Popping the modal uncovers a tab navigator sitting on Home, and the one below it already has the
+            // workspaces tab active, so going back collapses onto that one rather than jumping tabs in the duplicate.
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR]);
+            expect(rootState?.routes.at(0)?.key).toBe(rootRouteKeyBefore);
+
+            const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(activeSplit?.state?.routes.at(activeSplit.state.index ?? 0)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA},
+            });
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+        });
+
         it('Should leave the other workspace splits alone when the fallback route belongs to the focused one', () => {
             render(<TestNavigationContainer initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
 

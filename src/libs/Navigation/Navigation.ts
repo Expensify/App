@@ -594,11 +594,17 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         const underlyingTabNavIndex = rootState.routes.findLastIndex(
             (route, idx) => idx < topRootIndex && route.name === NAVIGATORS.TAB_NAVIGATOR && route.state?.routes?.at(route.state?.index ?? 0)?.name === payload.name,
         );
+        const jumpParams = 'params' in payload ? payload.params : undefined;
         if (underlyingTabNavIndex !== -1) {
             dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex));
+            // The uncovered tab navigator has the right tab active, but not necessarily the requested screen inside
+            // it, so the jump still has to be applied there rather than to the tab navigator that was popped.
+            const underlyingTabStateKey = rootState.routes.at(underlyingTabNavIndex)?.state?.key;
+            if (underlyingTabStateKey) {
+                dispatch({...TabActions.jumpTo(payload.name, jumpParams), target: underlyingTabStateKey});
+            }
             return true;
         }
-        const jumpParams = 'params' in payload ? payload.params : undefined;
         dispatch({
             ...TabActions.jumpTo(payload.name, jumpParams),
             target: targetState.key,
