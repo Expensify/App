@@ -128,11 +128,20 @@ The currency picker can't be opened in these cases:
 
 ## How to sort the Amount column on the Spend page
 
+On a wide screen:
+
 1. On the **Spend** page, select **Expenses**.
 2. Click the **Amount** column header to sort from largest to smallest.
 3. Click the **Amount** column header again to reverse the order.
 
-The **Amount** column header is only available when your results are shown as a table. When you group your results, this column header reads **Total** instead of **Amount**.
+On mobile, or in a narrow browser window, the column headers aren't shown, so sort from the **Display** menu instead:
+
+1. On the **Spend** page, select **Expenses**.
+2. Tap the **Display** icon.
+3. Tap **Sort by**, select **Amount**, then tap **Apply**.
+4. To change the direction, tap the **Display** icon again, tap **Sort by**, tap **Sort order**, select **Descending** (largest to smallest) or **Ascending** (smallest to largest), then tap **Apply**.
+
+The **Amount** column is only sortable when your results are shown as a table. When you group your results, this column reads **Total** instead of **Amount**.
 
 ## How negative amounts sort in the Amount column on the Spend page
 
