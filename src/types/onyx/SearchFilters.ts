@@ -1,5 +1,4 @@
-import type {SearchKey} from '@libs/SearchUIUtils';
-
+import type {SearchKey} from '@libs/SearchKeyUtils';
 /** Filter criteria for a specific search key. */
 type SearchFilter = {
     /** Timestamp when the filter was created or updated. */

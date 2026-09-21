@@ -24,6 +24,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
+import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
 // useRef gets reset when the reportID changes (the list reuses the same instance per report),
@@ -117,6 +118,7 @@ function useMarkAsRead({
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
     const isReportArchived = useReportIsArchived(reportID);
+    const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
     // A preloaded tab mounts this screen before the user opens it. Marking read assumes the user is looking,
     // so hold every readNewestAction until the tab is focused, which drops the preloaded flag.
@@ -141,7 +143,7 @@ function useMarkAsRead({
     const didMarkReportAsReadInitially = useRef(false);
 
     const lastAction = sortedVisibleReportActions.at(0);
-    const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived) || (!!lastAction && isCurrentActionUnread(report, lastAction));
+    const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport) || (!!lastAction && isCurrentActionUnread(report, lastAction));
 
     const [instanceID] = useState(() => {
         lastInstanceID += 1;
@@ -213,7 +215,7 @@ function useMarkAsRead({
         }
 
         const isLastActionUnread = !!lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
-        if (!isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
+        if (!isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport) && !isLastActionUnread) {
             return;
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;

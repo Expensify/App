@@ -367,6 +367,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Rétrograder l’espace de travail',
         companyID: 'ID de l’entreprise',
         userID: 'ID utilisateur',
+        tenantID: 'ID de locataire',
+        environmentName: 'Nom de l’environnement',
+        clientID: 'ID client',
+        clientSecret: 'Secret client',
         disable: 'Désactiver',
         export: 'Exporter',
         initialValue: 'Valeur initiale',
@@ -532,9 +536,11 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Suivez-nous sur LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge a une réponse !',
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
         enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
+        feedback: {prompt: 'Cette réponse était-elle utile ?', useful: 'Réponse utile', notUseful: 'Réponse inutile', thanks: 'Merci pour votre retour !'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1268,6 +1274,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'L’apparition de nouvelles cartes et transactions peut prendre un certain temps, veuillez patienter.',
         importMembersRolePermissionWarning: 'Vous n’avez pas l’autorisation d’assigner certains rôles de membre. Tous les nouveaux membres concernés ont été invités en tant que membres.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 fournisseur a été ignoré car il n’existe pas dans cet espace de travail.',
+            other: `${count} fournisseurs ont été ignorés car ils n’existent pas dans cet espace de travail.`,
+        }),
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -1294,6 +1304,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
         flash: 'flash',
+        flipCamera: 'inverser la caméra',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
         gallery: 'galerie',
@@ -1807,6 +1818,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'La dépense n’a pas pu être rejetée, car elle a peut-être déjà été déplacée ou rejetée.',
         },
         moveExpenses: 'Déplacer vers le rapport',
+        autoReport: 'Rapport automatique',
+        autoReportDescription: 'Ajouter aux brouillons de rapports au nom de l’employé',
         moveExpensesMaxTransactionsError: `Les rapports sont limités à ${CONST.REPORT.MAX_TRANSACTIONS} dépenses. Veuillez en déplacer certaines vers un autre rapport.`,
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
@@ -2547,7 +2560,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
         copyCodes: 'Copier les codes',
-        twoFactorAuthIsRequiredNetSuiteDescription: "Pour des raisons de sécurité, NetSuite exige une authentification à deux facteurs pour connecter l'intégration.",
     },
     recoveryCodeForm: {
         error: {
@@ -3177,7 +3189,7 @@ ${amount} pour ${merchant} - ${date}`,
             merchantHint: 'Tapez . pour créer une règle qui s’applique à tous les marchands',
             addToReport: 'Ajouter à une note de frais nommée',
             createReport: 'Créer une note de frais si nécessaire',
-            applyToExistingExpenses: 'Appliquer aux dépenses correspondantes existantes',
+            applyToExistingExpenses: 'Appliquer aux dépenses non soumises existantes',
             confirmError: 'Saisissez un commerçant et appliquez au moins une mise à jour',
             confirmErrorMerchant: 'Veuillez saisir le commerçant',
             confirmErrorUpdate: 'Veuillez appliquer au moins une mise à jour',
@@ -5343,6 +5355,9 @@ ${amount} pour ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses payées de votre poche seront exportées une fois remboursées',
                 },
             },
+            fxExpenseAccount: 'Compte de frais de conversion de devise Sage Intacct',
+            fxExpenseAccountDescription:
+                'Lorsque votre entreprise prend en charge le coût de conversion de devise pour un paiement effectué à l’étranger, nous comptabiliserons ce coût dans ce compte dans Sage Intacct sous forme d’écriture de journal.',
         },
         certinia: {
             title: 'Certinia',
@@ -5610,6 +5625,7 @@ ${amount} pour ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans NetSuite et synchroniser à nouveau la connexion',
             tokenInput: {
                 title: 'Configuration NetSuite',
+                connectWithTokenAuthentication: 'Connectez-vous plutôt avec l’authentification par jeton (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Installer le bundle Expensify',
@@ -7190,6 +7206,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7424,6 +7442,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return 'Synchronisation des règlements de carte';
                         case 'campfireSyncTravelSettlements':
                             return 'Synchronisation des règlements de voyage';
+                        case 'businessCentralSyncTitle':
+                            return 'Synchronisation des données Dynamics 365 Business Central';
+                        case 'businessCentralSyncConnection':
+                            return 'Initialisation de la connexion à Dynamics 365 Business Central';
+                        case 'businessCentralSyncImportData':
+                            return 'Chargement des données';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
                         }
@@ -7467,6 +7491,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -7783,6 +7808,12 @@ ${reportName}`,
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Campfire. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Campfire pour une meilleure visibilité financière.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Notre intégration Campfire est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Dynamics 365 Business Central. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Dynamics 365 Business Central pour une meilleure visibilité financière.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration Dynamics 365 Business Central est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approbations avancées',
@@ -8160,6 +8191,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 importColumnUpdatedCategory: 'Catégorie mise à jour',
                 importColumnUpdatedTag: 'Tag mis à jour',
                 importColumnUpdatedDescription: 'Description mise à jour',
+                importColumnUpdatedVendor: 'Fournisseur mis à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
                 applyUpdates: 'Appliquer ces mises à jour :',
@@ -8745,6 +8777,22 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subsidiarySelectDescription: 'Choisissez la filiale dans Campfire à partir de laquelle vous souhaitez importer des données.',
             noSubsidiariesFound: 'Aucune filiale trouvée',
             noSubsidiariesFoundDescription: 'Veuillez ajouter une entité dans Campfire et synchroniser à nouveau la connexion',
+            importDescription: 'Choisissez les configurations de codage à importer depuis Campfire.',
+            accountTypesDescription: 'Vos comptes Campfire seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Campfire seront disponibles en tant que catégories.',
+            dimensionsImport: 'Toutes les dimensions Campfire sont importées en tant que tags',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
+            prerequisitesTitle: 'Avant de vous connecter...',
+            followSteps: 'Suivez les étapes de notre guide « Comment faire : se connecter à Dynamics 365 Business Central »',
+            enterCredentials: 'Saisissez vos informations Dynamics 365 Business Central',
+            helpArticle: `<muted-text>Consultez cet <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">article d'aide</a> pour trouver ces informations.</muted-text>`,
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Sélectionnez la filiale Dynamics 365 Business Central à synchroniser avec cet espace de travail.',
+            noCompaniesFound: 'Aucune entreprise trouvée',
+            noCompaniesFoundDescription: 'Veuillez ajouter une société dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
         },
     },
     getAssistancePage: {
@@ -9560,6 +9608,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 title: 'Aucune dépense à approuver',
                 subtitle: 'Zéro dépense. Détente maximale. Bien joué !',
             },
+            staleResults: {title: 'Actualisation requise', subtitle: 'Cette page n’est plus à jour, actualisez-la pour voir les dernières informations', buttonText: 'Actualiser'},
         },
         columns: 'Colonnes',
         editColumns: 'Modifier les colonnes',
@@ -9672,6 +9721,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Jour',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Année',
@@ -9692,6 +9742,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
             filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
+            transactionStatus: {
+                label: 'Statut de la transaction',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'En attente',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
+                hint: 'S’applique uniquement aux transactions par carte.',
+            },
         },
         display: {
             label: 'Affichage',
@@ -9715,6 +9771,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégories',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçants',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Jours',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaines',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',

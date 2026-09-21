@@ -1,4 +1,5 @@
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
@@ -55,6 +56,7 @@ function initializePusher(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
     // No fallback: CONFIG.PUSHER.APP_KEY defaults to the production key, so falling back would open a QA socket
@@ -72,7 +74,7 @@ function initializePusher(
         appKey,
         cluster: CONFIG.PUSHER.CLUSTER,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, formatPhoneNumber, getReportAttributes);
     });
 }
 
@@ -89,7 +91,7 @@ function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const ownerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -143,6 +145,7 @@ function AuthScreensInitHandler() {
                 currentAccountID,
                 currentEmail,
                 () => topmostOneTransactionThreadReportIDRef.current,
+                formatPhoneNumber,
                 () => reportAttributesRef.current,
             );
         });
@@ -150,6 +153,7 @@ function AuthScreensInitHandler() {
         return () => {
             registerPusherReinitializeHandler(null);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -157,7 +161,8 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -180,7 +185,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 

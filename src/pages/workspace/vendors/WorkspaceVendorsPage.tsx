@@ -36,7 +36,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.vendors');
 
-    const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
     const vendors = getMatchingVendors(policy);
     const sortedVendors = sortVendors(vendors, localeCompare);
     const connectedIntegration = getActiveVendorMatchingIntegration(policy);
