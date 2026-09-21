@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, exclude commutes, commuter exclusion, excluded distance]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, exclude commutes, commuter exclusion, excluded distance, edit stop, trim trip, edit GPS trup, shorten route]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -136,12 +136,12 @@ If you're creating a distance expense outside of a Workspace (e.g., in a DM chat
 
 ---
 
-## How commute exclusions affect Distance expenses
+## How the Exclude commutes setting affects Distance expenses
 
 If your workspace has **Exclude commutes** enabled, a portion of each distance expense may be excluded from reimbursement based on the workspace’s distance settings.
 
 When **Exclude commutes** is set to **Exclude a fixed distance per claim**: 
-- You can create distance expenses using Map or GPS. Manual and odometer entry are unavailable.
+- You can create distance expenses using **Map** or **GPS**. **Manual** and **Odometer** entry are unavailable.
 - A fixed distance, set by your Workspace Admin, is subtracted from each distance expense created on the workspace.
 - The fixed distance is subtracted separately from each distance expense, even if you create multiple expenses on the same day.
 - On each distance expense, you'll see a message confirming the portion that was removed, such as "removed 3.6 commute miles".
