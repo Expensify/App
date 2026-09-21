@@ -20,7 +20,6 @@ import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {LastPaymentMethodType} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
@@ -31,7 +30,6 @@ function DynamicWorkspaceConfirmationPage() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path);
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -73,7 +71,6 @@ function DynamicWorkspaceConfirmationPage() {
             currency: params.currency,
             file: params.avatarFile as File,
             routeToNavigateAfterCreate: routeToNavigate,
-            lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
             activePolicy,
             conciergeChat,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,

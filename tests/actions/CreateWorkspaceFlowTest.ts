@@ -56,8 +56,6 @@ jest.mock('@userActions/Policy/PolicyDraft', () => ({
     generatePolicyID: jest.fn(() => 'generated-policy-id'),
 }));
 
-const policyIDsWithIOUReports: Record<string, true> = {policy1: true};
-
 const baseParams = {
     introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN} as IntroSelected,
     policyName: 'Acme',
@@ -67,7 +65,6 @@ const baseParams = {
     conciergeChat: undefined,
     currentUserAccountIDParam: 1,
     currentUserEmailParam: 'member@test.com',
-    policyIDsWithIOUReportsParam: policyIDsWithIOUReports,
     betas: undefined,
     isSelfTourViewed: undefined,
     hasActiveAdminPolicies: false,
@@ -102,9 +99,7 @@ describe('actions/Policy/CreateWorkspaceFlow', () => {
         createWorkspaceWithPolicyDraft(baseParams);
 
         expect(createDraftInitialWorkspace).toHaveBeenCalledWith(expect.objectContaining({workspaceName: 'Acme', policyID: 'policy-1', currency: 'USD'}));
-        expect(createWorkspace).toHaveBeenCalledWith(
-            expect.objectContaining({policyID: 'policy-1', policyName: 'Acme', policyIDsWithIOUReportsParam: policyIDsWithIOUReports, delegateAccountID: baseParams.delegateAccountID}),
-        );
+        expect(createWorkspace).toHaveBeenCalledWith(expect.objectContaining({policyID: 'policy-1', policyName: 'Acme', delegateAccountID: baseParams.delegateAccountID}));
     });
 
     it('createWorkspaceWithPolicyDraft uses the manage-team engagement choice', () => {
@@ -142,7 +137,6 @@ describe('actions/Policy/CreateWorkspaceFlow', () => {
                 policyOwner: {email: 'owner@test.com', accountID: 2},
                 currentUserAccountIDParam: 7,
                 currentUserEmailParam: 'session@test.com',
-                policyIDsWithIOUReportsParam: undefined,
                 delegateAccountID: setUpParams.delegateAccountID,
             }),
         );

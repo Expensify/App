@@ -38,12 +38,10 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currency: string;
     file?: File;
     routeToNavigateAfterCreate?: Route;
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    policyIDsWithIOUReportsParam?: Record<string, true>;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -69,12 +67,10 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         currency,
         file,
         routeToNavigateAfterCreate,
-        lastUsedPaymentMethod,
         activePolicy,
         conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        policyIDsWithIOUReportsParam,
         shouldCreateControlPolicy,
         type,
         isSelfTourViewed,
@@ -110,13 +106,11 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             makeMeAdmin,
             currency,
             file,
-            lastUsedPaymentMethod,
             introSelected,
             activePolicy,
             conciergeChat,
             currentUserAccountIDParam,
             currentUserEmailParam,
-            policyIDsWithIOUReportsParam,
             shouldCreateControlPolicy,
             type,
             isSelfTourViewed,
@@ -155,12 +149,10 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         policyID = '',
         currency,
         file,
-        lastUsedPaymentMethod,
         activePolicy,
         conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        policyIDsWithIOUReportsParam,
         shouldCreateControlPolicy,
         isSelfTourViewed,
         betas,
@@ -185,13 +177,11 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         makeMeAdmin,
         currency,
         file,
-        lastUsedPaymentMethod,
         introSelected,
         activePolicy,
         conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        policyIDsWithIOUReportsParam,
         shouldCreateControlPolicy,
         isSelfTourViewed,
         betas,
@@ -209,13 +199,11 @@ type SavePolicyDraftByNewWorkspaceParams = {
     makeMeAdmin?: boolean;
     currency?: string;
     file?: File;
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    policyIDsWithIOUReportsParam?: Record<string, true>;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -235,13 +223,11 @@ function savePolicyDraftByNewWorkspace({
     makeMeAdmin = false,
     currency = '',
     file,
-    lastUsedPaymentMethod,
     introSelected,
     activePolicy,
     conciergeChat,
     currentUserAccountIDParam,
     currentUserEmailParam,
-    policyIDsWithIOUReportsParam,
     shouldCreateControlPolicy,
     type,
     isSelfTourViewed,
@@ -259,13 +245,11 @@ function savePolicyDraftByNewWorkspace({
         engagementChoice: isTrackOnboardingChoice(introSelected?.choice) ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
         currency,
         file,
-        lastUsedPaymentMethod,
         introSelected,
         activePolicy,
         conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        policyIDsWithIOUReportsParam,
         shouldCreateControlPolicy,
         type,
         isSelfTourViewed,

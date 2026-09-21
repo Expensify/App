@@ -267,7 +267,6 @@ type BuildPolicyDataOptions = {
     userReportedIntegrationName?: string;
     isAnnualSubscription?: boolean;
     featuresMap?: Array<Pick<Feature, 'id' | 'enabled' | 'enabledByDefault' | 'requiresUpdate'>>;
-    lastUsedPaymentMethod?: LastPaymentMethodType;
     // `doesPersonalDetailExist` is threaded from the caller's useOnyx(PERSONAL_DETAILS_LIST) so createPolicyExpenseChats
     // doesn't read the deprecated module-level copy. It's paired with the participant so it's required whenever an admin is added.
     adminParticipant?: {participant: Participant; doesPersonalDetailExist: boolean};
@@ -276,7 +275,6 @@ type BuildPolicyDataOptions = {
     activePolicy: OnyxEntry<Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    policyIDsWithIOUReportsParam?: Record<string, true>;
     conciergeChat: OnyxEntry<Report>;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
@@ -2578,20 +2576,17 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         userReportedIntegrationName,
         isAnnualSubscription = false,
         featuresMap,
-        lastUsedPaymentMethod,
         adminParticipant,
         hasOutstandingChildRequest = true,
         introSelected,
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        policyIDsWithIOUReportsParam,
         shouldAddGuideWelcomeMessage = true,
         onboardingPurposeSelected,
         shouldCreateControlPolicy = false,
         type,
         isSelfTourViewed,
-        hasActiveAdminPolicies,
         delegateAccountID,
         hasOwnedPaidPolicy,
         personalTrackGoal,
@@ -2997,22 +2992,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
 
     if (optimisticCategoriesData.successData) {
         successData.push(...optimisticCategoriesData.successData);
-    }
-
-    if (!hasActiveAdminPolicies && lastUsedPaymentMethod && !lastUsedPaymentMethod.iou?.name) {
-        for (const reportPolicyID of Object.keys(policyIDsWithIOUReportsParam ?? {})) {
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                value: {
-                    [reportPolicyID]: {
-                        iou: {
-                            name: policyID,
-                        },
-                    },
-                },
-            });
-        }
     }
 
     // We need to clone the file to prevent non-indexable errors.
