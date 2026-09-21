@@ -125,7 +125,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                 isDisabled: isRequired,
                 isDragDisabled,
                 leftElement: (
-                    <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
+                    <View style={[styles.mr3, isDragDisabled ? styles.cursorDisabled : styles.cursorGrab]}>
                         <Icon
                             src={icons.DragHandles}
                             fill={theme.icon}

@@ -6,6 +6,7 @@ import {
     appendTimeToFileName,
     canvasFallback,
     getExportFileName,
+    getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
     isHighResolutionImage,
@@ -42,6 +43,28 @@ describe('FileUtils', () => {
             const file = splitExtensionFromFileName('image');
             expect(file.fileName).toEqual('image');
             expect(file.fileExtension).toEqual('');
+        });
+    });
+
+    describe('getFileNameWithFallback', () => {
+        it('should return the given file name when there is one', () => {
+            expect(getFileNameWithFallback('statement.qfx', 'file:///tmp/other.csv', 'spreadsheet')).toEqual('statement.qfx');
+        });
+
+        it('should read the file name from the URI when the picker returns no name', () => {
+            expect(getFileNameWithFallback(null, 'file:///private/var/mobile/Containers/Data/Application/ABC/tmp/statement.qfx', 'spreadsheet')).toEqual('statement.qfx');
+        });
+
+        it('should decode the file name read from the URI and replace illegal characters', () => {
+            expect(getFileNameWithFallback(null, 'file:///tmp/bank%20statement%3A2026.qfx', 'spreadsheet')).toEqual('bank statement_2026.qfx');
+        });
+
+        it('should return the default file name when the URI has no extension either', () => {
+            expect(getFileNameWithFallback(null, 'content://com.android.providers.media.documents/document/12345', 'spreadsheet')).toEqual('spreadsheet');
+        });
+
+        it('should return the default file name when both the name and the URI are empty', () => {
+            expect(getFileNameWithFallback('', '', 'spreadsheet')).toEqual('spreadsheet');
         });
     });
 
