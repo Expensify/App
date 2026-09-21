@@ -6126,6 +6126,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             ['the current spelling', CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
             ['the deprecated spelling', CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
         ])('should let the workspace owner pay an approved report when indirect reimbursement uses %s', async (_label, reimbursementChoice) => {
+            // Given an approved report on a workspace the current user owns, set to indirect reimbursement
             const {policy, chatReport, expenseReport, policyID, chatReportID, iouReportID} = buildApprovedExpenseReportScenario(reimbursementChoice, 4100);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
@@ -6133,7 +6134,11 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, expenseReport);
             await waitForBatchedUpdates();
 
-            expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, expenseReport, {}, policy)).toBe(true);
+            // When the owner is checked against the report
+            const isReportPayer = isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, expenseReport, {}, policy);
+
+            // Then they are the payer and Pay is offered, so a deprecated value cannot block payment on an approved report
+            expect(isReportPayer).toBe(true);
             expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBe(true);
             expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBe(true);
         });
@@ -6142,6 +6147,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             ['the current spelling', CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
             ['the deprecated spelling', CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
         ])('should keep Pay unavailable on an approved report when reimbursement is disabled using %s', async (_label, reimbursementChoice) => {
+            // Given an approved report on a workspace the current user owns, with reimbursement switched off
             const {policy, chatReport, expenseReport, policyID, chatReportID, iouReportID} = buildApprovedExpenseReportScenario(reimbursementChoice, 4200);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
@@ -6149,7 +6155,11 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, expenseReport);
             await waitForBatchedUpdates();
 
-            expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, expenseReport, {}, policy)).toBe(false);
+            // When the owner is checked against the report
+            const isReportPayer = isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, expenseReport, {}, policy);
+
+            // Then Pay stays hidden, so resolving the deprecated value does not hand out Pay where it was switched off
+            expect(isReportPayer).toBe(false);
             expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBe(false);
             expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBe(false);
         });
