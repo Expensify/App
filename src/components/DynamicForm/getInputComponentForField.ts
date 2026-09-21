@@ -12,7 +12,6 @@ import ValuePicker from '@components/ValuePicker';
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 
 import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
 import type {DynamicFormField, DynamicFormFieldType, DynamicFormKeyboard} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -27,6 +26,7 @@ import ListFieldAdapter from './adapters/ListFieldAdapter';
 import MultiSelectPushRowAdapter from './adapters/MultiSelectPushRowAdapter';
 import YesNoAdapter from './adapters/YesNoAdapter';
 import {getFieldOptions, getOptionLabel} from './getFieldOptions';
+import isCountryCode from './isCountryCode';
 
 const SELECT_MODAL_THRESHOLD = 8;
 const DIGITS_ONLY_REGEX = /^\^?(?:\\d|\[0-9\])(?:\{\d+(?:,\d*)?\}|[+*])?\$?$/;
@@ -37,10 +37,6 @@ const INPUT_MODE_BY_KEYBOARD: Record<DynamicFormKeyboard, ValueOf<typeof CONST.I
     numeric: CONST.INPUT_MODE.NUMERIC,
 };
 const ACCEPTED_FILE_TYPES: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>> = ['png', 'jpg', 'pdf'];
-
-function isCountryCode(code: string): code is Country {
-    return code in CONST.ALL_COUNTRIES;
-}
 
 function getFieldLabel(field: DynamicFormField, translate: LocalizedTranslate): string {
     return field.labelKey ? translate(field.labelKey) : (field.label ?? field.key);
@@ -135,7 +131,7 @@ const REGISTRY = {
     }),
     boolean: (field, {translate, isAloneOnPage}) => {
         if (isAloneOnPage) {
-            return {InputComponent: YesNoAdapter, isMenuRow: true, inputProps: {valueType: 'boolean'}};
+            return {InputComponent: YesNoAdapter, isMenuRow: true, inputProps: {}};
         }
         return {
             InputComponent: CheckboxWithLabel,
@@ -183,4 +179,4 @@ function getInputComponentForField(field: DynamicFormField, context: DynamicFiel
 }
 
 export default getInputComponentForField;
-export {getFieldDescription, getFieldLabel, isCountryCode};
+export {getFieldDescription, getFieldLabel};

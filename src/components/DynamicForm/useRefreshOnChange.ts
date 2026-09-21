@@ -7,6 +7,8 @@ import {useEffect, useRef} from 'react';
 
 import type {DynamicFormValues} from './types';
 
+import groupFieldsIntoPages from './groupFieldsIntoPages';
+
 const REFRESH_DEBOUNCE_MS = 300;
 
 type UseRefreshOnChangeParams = {
@@ -20,7 +22,7 @@ type UseRefreshOnChangeParams = {
 
     formID: OnyxFormKey;
 
-    /** The sub page (group name) the user is on, re-entered after the schema is replaced */
+    /** The sub page the user is on, as its group name or route slug, re-entered after the schema is replaced */
     currentPageName?: string;
 
     resetToPage?: (pageName?: string) => void;
@@ -59,7 +61,7 @@ function useRefreshOnChange({fields, values, fetch, formID, currentPageName, res
             setDraftValues(formID, Object.fromEntries(removedKeys.map((key) => [key, null])));
         }
 
-        const isCurrentPageStillPresent = !!pageName && currentFields.some((field) => field.group === pageName);
+        const isCurrentPageStillPresent = !!pageName && groupFieldsIntoPages(currentFields).some((page) => page.name === pageName || page.slug === pageName);
         reset?.(isCurrentPageStillPresent ? pageName : undefined);
     }, [schemaSignature, formID]);
 }

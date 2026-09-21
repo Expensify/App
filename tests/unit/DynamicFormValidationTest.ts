@@ -1,8 +1,13 @@
 import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
 import groupFieldsIntoPages from '@components/DynamicForm/groupFieldsIntoPages';
 
+import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {DynamicFormField} from '@src/types/onyx';
+
+import {addYears, format, subYears} from 'date-fns';
 
 import allFieldTypes from '../fixtures/dynamicForm/allFieldTypes';
 import {translateLocal} from '../utils/TestHelper';
@@ -126,6 +131,35 @@ describe('getDynamicFieldErrors for choices and booleans', () => {
     });
 });
 
+describe('getDynamicFieldErrors named rules', () => {
+    const firstName: DynamicFormField = {key: 'firstName', label: 'First name', group: 'Owner', type: 'text', required: true, rule: 'legalName', refreshOnChange: false};
+    const dateOfBirth: DynamicFormField = {key: 'dateOfBirth', label: 'Date of birth', group: 'Owner', type: 'date', required: true, rule: 'dateOfBirth', refreshOnChange: false};
+    const address: DynamicFormField = {key: 'address', label: 'Address', group: 'Owner', type: 'address', required: true, rule: 'zipCode', refreshOnChange: false};
+
+    it('rejects digits and symbols in a legal name', () => {
+        expect(getDynamicFieldErrors([firstName], {firstName: 'R2D2'}, translateLocal)).toEqual({firstName: translateLocal('privatePersonalDetails.error.hasInvalidCharacter')});
+        expect(getDynamicFieldErrors([firstName], {firstName: 'Alice'}, translateLocal)).toEqual({});
+    });
+
+    it('requires a date of birth in the past for an adult', () => {
+        const nextYear = format(addYears(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING);
+        const tenYearsAgo = format(subYears(new Date(), 10), CONST.DATE.FNS_FORMAT_STRING);
+
+        expect(getDynamicFieldErrors([dateOfBirth], {dateOfBirth: nextYear}, translateLocal)).toEqual({dateOfBirth: translateLocal('bankAccount.error.dob')});
+        expect(getDynamicFieldErrors([dateOfBirth], {dateOfBirth: tenYearsAgo}, translateLocal)).toEqual({dateOfBirth: translateLocal('bankAccount.error.age')});
+        expect(getDynamicFieldErrors([dateOfBirth], {dateOfBirth: '1990-01-31'}, translateLocal)).toEqual({});
+    });
+
+    it('checks the zip code against the chosen country', () => {
+        const answers = {address: '1 Main Street', ['address.country']: 'US', ['address.zipCode']: 'ABC'};
+
+        expect(getDynamicFieldErrors([address], answers, translateLocal)).toEqual({
+            address: translateLocal('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails('US')?.samples),
+        });
+        expect(getDynamicFieldErrors([address], {...answers, ['address.zipCode']: '10001'}, translateLocal)).toEqual({});
+    });
+});
+
 describe('groupFieldsIntoPages', () => {
     it('groups fields into pages in first-appearance order', () => {
         const pages = groupFieldsIntoPages(allFieldTypes);
@@ -133,5 +167,12 @@ describe('groupFieldsIntoPages', () => {
         expect(pages.map((page) => page.name)).toEqual(['Account details', 'Account holder details', 'Ownership']);
         expect(pages.at(0)?.fields.map((field) => field.key)).toEqual(['accountNumber', 'legalType', 'accountType', 'businessRegistrationDocument', 'annualVolume']);
         expect(pages.at(1)?.fields.map((field) => field.key)).toEqual(['dateOfBirth', 'country', 'address', 'useCases', 'isSourceOfFund']);
+    });
+
+    it('keeps route slugs unique and non-empty when group names collide or have no latin characters', () => {
+        const text = (key: string, group: string): DynamicFormField => ({key, label: key, group, type: 'text', required: true, refreshOnChange: false});
+        const pages = groupFieldsIntoPages([text('a', 'KYC / AML'), text('b', 'KYC & AML'), text('c', '日本')]);
+
+        expect(pages.map((page) => page.slug)).toEqual(['kyc-aml', 'kyc-aml-2', 'page-3']);
     });
 });

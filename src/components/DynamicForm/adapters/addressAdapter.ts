@@ -9,6 +9,8 @@ function addressAdapter(fieldKey: string): Record<string, string> {
         country: `${fieldKey}.country`,
         lat: '',
         lng: '',
+        name: '',
+        address: '',
     };
 }
 

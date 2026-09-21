@@ -1,3 +1,4 @@
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
@@ -22,12 +23,14 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
+import currencyList from '../tests/unit/currencyList.json';
 import './fonts.css';
 
 registerMiddlewares();
 
 Onyx.init({
     keys: ONYXKEYS,
+    initialKeyStates: {[ONYXKEYS.CURRENCY_LIST]: currencyList},
 });
 
 IntlStore.load(CONST.LOCALES.EN);
@@ -38,6 +41,7 @@ const decorators = [
             components={[
                 OnyxListItemProvider,
                 LocaleContextProvider,
+                CurrencyListContextProvider,
                 HTMLEngineProvider,
                 SafeAreaProvider,
                 PortalProvider,
