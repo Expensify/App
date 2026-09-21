@@ -1,7 +1,7 @@
 ---
 title: Close Your Expensify Account
 description: Learn how to permanently close your Expensify account, including the security code confirmation step, what happens after you close it, and how to resolve common issues that can prevent account closure.
-keywords: [New Expensify, delete Expensify account, delete account, remove user, deactivate account, cancel account, cancel Expensify, terminate, how to delete Expensify, how to cancel Expensify, remove account, close account, terminate account, delete Expensify, how to delete, how to cancel, security code, magic code, close account verification]
+keywords: [New Expensify, delete Expensify account, delete account, remove user, deactivate account, cancel account, cancel Expensify, terminate, how to delete Expensify, how to cancel Expensify, remove account, close account, terminate account, delete Expensify, how to delete, how to cancel, security code, close account security code, close account verification]
 internalScope: Audience is all members. Covers how to close an Expensify account, including the security code confirmation required to finish closing it, and how to resolve common errors that block account closure. Does not cover how to delete workspaces or how to remove members from the domain. 
 ---
 
