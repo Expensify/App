@@ -87,3 +87,39 @@ describe('getRHPFrameStyle', () => {
         expect(getWidth(style)).toBe(animatedWidth);
     });
 });
+
+// Regression for PR #101093: the two-factor security-code panel now feeds its fixed sidebar width through getRHPFrameStyle.
+describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
+    const buildMfaPanelWidth = () => Animated.subtract(new Animated.Value(variables.sideBarWidth), new Animated.Value(0));
+    const mfaParams = {styles, shouldUseNarrowLayout: false, shouldUseCenteredFrame: false} as const;
+
+    it('floats the panel as a card on wide web', () => {
+        const style = getRHPFrameStyleWeb({...mfaParams, animatedWidth: buildMfaPanelWidth()});
+
+        expect(style).toContain(styles.RHPFloatingCard);
+        expect(style).not.toContain(styles.r0);
+        expect(style).not.toContain(styles.h100);
+        expect(style).not.toContain(styles.RHPCenteredFrame);
+        expect(readAnimatedValue(getWidth(style))).toBe(variables.sideBarWidth + 2 * variables.rhpFloatingCardBorderWidth);
+    });
+
+    it('keeps the panel full-bleed on native', () => {
+        const animatedWidth = buildMfaPanelWidth();
+
+        const style = getRHPFrameStyleNative({...mfaParams, animatedWidth});
+
+        expect(style).toContain(styles.r0);
+        expect(style).toContain(styles.h100);
+        expect(style).not.toContain(styles.RHPFloatingCard);
+        expect(getWidth(style)).toBe(animatedWidth);
+    });
+
+    it('keeps the panel full width on a narrow layout', () => {
+        const style = getRHPFrameStyleWeb({...mfaParams, shouldUseNarrowLayout: true, animatedWidth: buildMfaPanelWidth()});
+
+        expect(style).toContain(styles.r0);
+        expect(style).toContain(styles.h100);
+        expect(style).not.toContain(styles.RHPFloatingCard);
+        expect(getWidth(style)).toBe('100%');
+    });
+});
