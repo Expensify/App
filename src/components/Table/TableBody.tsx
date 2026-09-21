@@ -286,6 +286,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             style={isColumnScrollEnabled && [columnScrollPageHeaderStyle, tableWidth > 0 && StyleUtils.getWidthStyle(tableWidth)]}
             // Measured unconditionally, so the height is known by the time the columns overflow and need it.
             onLayout={(event) => setPageHeaderHeight(event.nativeEvent.layout.height)}
+            // Pairs with the scroller's marker so a stylesheet rule can suspend the columns on hover (see `web/index.html`).
+            dataSet={{tablePageHeader: true}}
         >
             {renderListComponent(ListHeaderComponent)}
             {listHeaderElement}
@@ -488,7 +490,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 {...restListProps}
                 scrollEnabled={scrollEnabled}
                 // Merged after the spread so a consumer's `overrideProps` and the table's horizontal axis coexist.
-                overrideProps={isColumnScrollEnabled ? {...overrideProps, style: [overrideProps?.style, columnScrollOverrideStyle]} : overrideProps}
+                overrideProps={isColumnScrollEnabled ? {...overrideProps, dataSet: {tableColumnScroller: true}, style: [overrideProps?.style, columnScrollOverrideStyle]} : overrideProps}
             />
         </View>
     );

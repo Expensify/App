@@ -125,6 +125,11 @@
             transition: transform var(--label-transition-duration);
         }
 
+        /* Hold a table's columns still while the pointer is on the filter bar pinned inside their scroller */
+        [data-table-column-scroller]:has([data-table-page-header]:hover) {
+            overflow-x: hidden !important;
+        }
+
         .splash-logo > svg {
             width: 104px;
             height: 104px;
