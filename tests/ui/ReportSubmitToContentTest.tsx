@@ -78,7 +78,7 @@ jest.mock('@hooks/useOnyx', () =>
         }
     }),
 );
-jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false)})));
+jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)})));
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => jest.fn(() => false));
 jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getMinimumHeight: () => ({})})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));

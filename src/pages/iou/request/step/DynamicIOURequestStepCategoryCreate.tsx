@@ -60,7 +60,8 @@ function DynamicIOURequestStepCategoryCreate({
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {currentSearchHash} = useSearchQueryContext();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path);
@@ -162,6 +163,7 @@ function DynamicIOURequestStepCategoryCreate({
             setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, getCurrencyDecimals, getCurrencySymbol, policy);
         } else if (isEditing && report) {
             updateMoneyRequestCategory({
+                isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID ?? transactionID,
                 transaction,
                 transactionThreadReport: report,
