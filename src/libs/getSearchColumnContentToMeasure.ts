@@ -17,7 +17,7 @@ import type {MeasurableFont} from './measureTextWidth/types';
 import {getCompanyCardDescription} from './CardUtils';
 import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
-import {getTagGLCode} from './PolicyUtils';
+import {getTagGLCode, getVendorDisplayName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getReportStatusTranslation} from './ReportUtils';
 import {
@@ -91,6 +91,7 @@ const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
 const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.STATUS,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
@@ -133,6 +134,7 @@ const HUGGED_SEARCH_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLU
 const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, TranslationPaths>> = {
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'common.status',
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'common.merchant',
+    [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: 'common.vendor',
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'common.description',
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'common.category',
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'common.tag',
@@ -219,6 +221,8 @@ function getTransactionColumnContentToMeasure(
             ];
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return [{text: getMerchantName(item, translate)}];
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return [{text: getVendorDisplayName(item.policy, item.comment?.vendor)}];
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return [{text: getDescription(item)}];
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
