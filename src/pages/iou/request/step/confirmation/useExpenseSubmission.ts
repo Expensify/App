@@ -16,28 +16,21 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, getReusableP2PReportID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
-import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {findSelfDMReportID, generateReportID, getAllPolicyExpenseChatReportActions, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
-import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
     getDistanceRequestType,
     getIsFromGlobalCreate,
     getRateID,
     getSelectedRouteDistance,
     getValidWaypoints,
-    hasAllManuallyEnteredScanFields,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
-    isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
@@ -54,7 +47,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -65,38 +57,18 @@ import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 
 import useDistanceDraftData from './submission/useDistanceDraftData';
 import useDistanceSubmission from './submission/useDistanceSubmission';
+import useGpsCapture from './submission/useGpsCapture';
 import useInvoiceSubmission from './submission/useInvoiceSubmission';
 import usePerDiemSubmission from './submission/usePerDiemSubmission';
 import useSendMoneySubmission from './submission/useSendMoneySubmission';
 import useSplitSubmission from './submission/useSplitSubmission';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 import useSubmissionViolations from './submission/useSubmissionViolations';
+import getCurrentReceiptState from './submission/utils/getCurrentReceiptState';
 import getTransactionTaxValues from './submission/utils/getTransactionTaxValues';
+import logSubmittedReceiptMilestone from './submission/utils/logSubmittedReceiptMilestone';
 import performPostBatchCleanup from './submission/utils/performPostBatchCleanup';
 import {resolveSubmissionPath, SUBMISSION_PATH} from './submission/utils/resolveSubmissionPath';
-
-function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
-    const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
-    markSubmitExpenseEnd();
-
-    startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
-        name: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
-        op: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
-        parentSpan,
-    });
-
-    getCurrentPosition(
-        (successData) => {
-            onPosition({lat: successData.coords.latitude, long: successData.coords.longitude});
-            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
-        },
-        (errorData) => {
-            Log.info('[useExpenseSubmission] getCurrentPosition failed', false, errorData);
-            onPosition();
-            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
-        },
-    );
-}
 
 type UseExpenseSubmissionParams = {
     // Transaction data
@@ -247,7 +219,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
 
     // Global Onyx values
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -306,6 +277,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
     // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
     const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+
+    const {submitWithGpsPoint} = useGpsCapture();
 
     const {sendMoney} = useSendMoneySubmission({
         transaction,
@@ -405,35 +378,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSubmittingExpenseToDraftWorkspace,
     });
 
-    /**
-     * `receiptFiles` bakes in the receipt state during an async validation pass, so it lags the field the user just
-     * typed. Deriving it from the live transaction at submit time keeps SmartScan from scanning over entered values.
-     * `undefined` leaves the validated receipt's own state in place, which is what every other flow submits.
-     */
-    function getCurrentReceiptState(item: Transaction): ValueOf<typeof CONST.IOU.RECEIPT_STATE> | undefined {
-        const receipt = receiptFiles[item.transactionID];
-        if (!receipt || !canEnterScanFieldsManually || receipt.isTestReceipt || receipt.isTestDriveReceipt || !isScanRequestTransactionUtils(item)) {
-            return undefined;
-        }
-        return hasAllManuallyEnteredScanFields(item) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
-    }
-
-    /**
-     * Emits the `[Receipt] submitted` log for one expense as it leaves the confirmation page.
-     */
-    function logSubmittedReceiptMilestone(item: Transaction, receipt: Receipt | undefined, optimisticTransactionID: string, command: string) {
-        if (!receipt?.receiptTraceId) {
-            return;
-        }
-        logReceiptSubmitted({
-            receiptTraceId: receipt.receiptTraceId,
-            draftTransactionID: item.transactionID,
-            transactionID: getExistingTransactionID(item.linkedTrackedExpenseReportAction) ?? optimisticTransactionID,
-            command,
-            iouType,
-        });
-    }
-
     function requestMoney(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
@@ -466,12 +410,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         for (const item of transactions) {
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
-            logSubmittedReceiptMilestone(
+            logSubmittedReceiptMilestone({
                 item,
                 receipt,
-                lastOptimisticTransactionID,
-                isMovingTransactionFromTrackExpense ? WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST : WRITE_COMMANDS.REQUEST_MONEY,
-            );
+                optimisticTransactionID: lastOptimisticTransactionID,
+                command: isMovingTransactionFromTrackExpense ? WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST : WRITE_COMMANDS.REQUEST_MONEY,
+                iouType,
+            });
             const isTestReceipt = receipt?.isTestReceipt ?? false;
             const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
             const isLinkedTrackedExpenseReportArchived =
@@ -557,7 +502,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     merchant: merchantToUse,
                     comment: item?.comment?.comment?.trim() ?? '',
                     receipt,
-                    receiptState: getCurrentReceiptState(item),
+                    receiptState: getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually}),
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,
@@ -655,7 +600,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 item.accountant?.login && item.accountant.accountID ? getNewAccountIDsAndLogins({[item.accountant.login]: item.accountant.accountID}, personalDetails) : {};
             lastOptimisticTransactionID = rand64();
             const trackReceipt = receiptFiles[item.transactionID];
-            logSubmittedReceiptMilestone(item, trackReceipt, lastOptimisticTransactionID, submittedCommand);
+            logSubmittedReceiptMilestone({item, receipt: trackReceipt, optimisticTransactionID: lastOptimisticTransactionID, command: submittedCommand, iouType});
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
@@ -694,7 +639,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     merchant: item.merchant,
                     comment: item?.comment?.comment?.trim() ?? '',
                     receipt: trackReceipt,
-                    receiptState: getCurrentReceiptState(item),
+                    receiptState: getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually}),
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,
@@ -766,55 +711,34 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     function submitTrack(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
-        if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
-            // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-            if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace && locationPermissionGranted) {
-                if (userLocation) {
-                    trackExpense(shouldHandleNavigation, {
-                        gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
-                    });
-                    markSubmitExpenseEnd();
-                    return;
-                }
+        const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
+        // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
+        const shouldCaptureGpsPoint =
+            hasAnyReceiptFile &&
+            !!transaction &&
+            transaction.amount === 0 &&
+            !isSharingTrackExpense &&
+            !isCategorizingTrackExpense &&
+            !isSubmittingExpenseToDraftWorkspace &&
+            locationPermissionGranted;
 
-                getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(shouldHandleNavigation, {gpsPoint: gpsCoords}));
-                return;
-            }
-
-            // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-            trackExpense(shouldHandleNavigation);
-            markSubmitExpenseEnd();
-            return;
-        }
-        trackExpense(shouldHandleNavigation);
-        markSubmitExpenseEnd();
+        submitWithGpsPoint({
+            shouldCaptureGpsPoint,
+            shouldHandleNavigation,
+            write: (navigate, gpsPoint) => trackExpense(navigate, {gpsPoint}),
+        });
     }
 
     function submitRequestMoney(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
-        if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && !!transaction) {
-            // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-            if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
-                if (userLocation) {
-                    requestMoney(shouldHandleNavigation, {
-                        lat: userLocation.latitude,
-                        long: userLocation.longitude,
-                    });
-                    markSubmitExpenseEnd();
-                    return;
-                }
+        const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
+        // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
+        const shouldCaptureGpsPoint = hasAnyReceiptFile && !!transaction && transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted;
 
-                getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(shouldHandleNavigation, gpsCoords));
-                return;
-            }
-
-            // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-            requestMoney(shouldHandleNavigation);
-            markSubmitExpenseEnd();
-            return;
-        }
-
-        requestMoney(shouldHandleNavigation);
-        markSubmitExpenseEnd();
+        submitWithGpsPoint({
+            shouldCaptureGpsPoint,
+            shouldHandleNavigation,
+            write: (navigate, gpsPoint) => requestMoney(navigate, gpsPoint),
+        });
     }
 
     const submitByPath: Record<SubmissionPath, (locationPermissionGranted: boolean, shouldHandleNavigation: boolean) => void> = {
