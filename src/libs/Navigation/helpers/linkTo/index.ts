@@ -318,7 +318,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         !isFullScreenName((resolvedAction.payload as {name?: string} | undefined)?.name);
 
     // A new action rather than a mutation: a descent that stops on the first level hands back `action` itself, so
-    // writing `type` in place would reach into the caller's object and flip the conditions above.
+    // writing `type` in place would reach into the caller's object.
     const minimalAction: NavigationAction = shouldPushSiblingSplit || shouldPushTabNavigator ? {...resolvedAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH} : resolvedAction;
     navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(minimalAction) : minimalAction);
 }

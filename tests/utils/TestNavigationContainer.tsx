@@ -50,9 +50,8 @@ const getEmptyComponent = () => jest.fn();
 
 type TestNavigationContainerProps = {initialState: InitialState};
 
-// `usePreserveNavigatorState` keys off `parentRoute.key`, and `SplitRouter` seeds a remounting split from that entry,
-// so the workspace and domain splits get their real route. A shared placeholder key would make sibling splits of
-// different scopes share one preserved state and hide the fallback in `hasDifferentSplitScope`.
+// `usePreserveNavigatorState` keys off `parentRoute.key`, so the workspace and domain splits get their real route:
+// a shared placeholder key would make sibling splits of different scopes share one preserved state.
 function TestWorkspaceSplitNavigator({route}: {route: RouteProp<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>}) {
     return (
         <WorkspaceSplit.Navigator

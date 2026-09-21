@@ -27,8 +27,6 @@ jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
-// `jest.spyOn` here installs on the live navigation container. Each test mounts a fresh one, but restoring keeps a
-// leaked spy from ever outliving the test that made it.
 afterEach(() => {
     jest.restoreAllMocks();
 });
@@ -115,8 +113,7 @@ function renderCentralOnlySplits(...workspaceSplits: WorkspaceScopeRoute[]) {
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, ...buildWorkspaceNavigationState(...workspaceSplits).routes],
         });
     });
-    // `initialState` comes back only so the rerender below can pass the same object. `NavigationContainer` reads the
-    // prop on first mount only, so it is inert there - the rerender is really just flipping the layout.
+    // `initialState` comes back only so a rerender can pass the same object; the prop is read on first mount only.
     return {view, mountInitialState: initialState};
 }
 
@@ -140,8 +137,7 @@ describe('Go back on the narrow layout', () => {
 
         it.each([
             {scope: 'workspace', first: workspaceA, second: workspaceB, route: ROUTES.WORKSPACE_OVERVIEW.getRoute('policy-a'), expectedParams: {policyID: 'policy-a'}},
-            // The fixture builds `domainAccountID: 1` and this expects `'1'`: a route resolved from a path carries
-            // string params, which is why the scope comparison normalizes both sides.
+            // The fixture builds `domainAccountID: 1` and this expects `'1'`: params resolved from a path are strings.
             {scope: 'domain', first: domainA, second: domainB, route: ROUTES.DOMAIN_SAML.getRoute(1), expectedParams: {domainAccountID: '1'}},
         ])('restores central-only $scope history', ({first, second, route, expectedParams}) => {
             renderCentralOnlySplits(first, second);
@@ -544,9 +540,8 @@ describe('Go back on the narrow layout', () => {
         const policyB = 'policy-b';
 
         it('Should preserve each split instance state under its own route key', () => {
-            // `hasDifferentSplitScope` falls back to the preserved state of an unmounted split, and `SplitRouter`
-            // seeds a remounting split from the same entry. Both key off the split's own parent route, so sibling
-            // splits of different scopes must not share one entry.
+            // `hasDifferentSplitScope` and `SplitRouter` both read an unmounted split's preserved state, keyed off its
+            // parent route, so sibling splits of different scopes must not share one entry.
             render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
 
             const workspaceState = navigationRef.current
@@ -680,8 +675,7 @@ describe('Go back on the narrow layout', () => {
         });
 
         it('Should switch tabs without dispatching a pop the tab navigator would drop', () => {
-            // The workspace tab is focused and the settings tab sits before it, so reaching the settings tab means
-            // going backwards within the tab navigator.
+            // The settings tab sits before the focused workspace tab, so reaching it means going backwards in the tab navigator.
             render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
             const tabStateKey = navigationRef.current?.getRootState().routes.at(0)?.state?.key;
             const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
@@ -690,8 +684,7 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack(ROUTES.SETTINGS);
             });
 
-            // TabRouter has no POP case, so a pop targeted at the tab navigator would be dropped as an unhandled
-            // action. Switching tabs is the jumpTo case goBack owns.
+            // TabRouter has no POP case, so a pop targeted at the tab navigator would be dropped as an unhandled action.
             expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.POP, target: tabStateKey}));
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
             expect(tabState?.routes.at(tabState.index ?? 0)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
@@ -717,8 +710,7 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
             });
 
-            // Reaching the matching split would mean popping two routes off the root, which would lose the visited
-            // pages, so the focused route is replaced instead and nothing underneath is touched.
+            // Replacing keeps the visited pages that popping two root routes would throw away, and touches nothing underneath.
             const rootState = navigationRef.current?.getRootState();
             expect(rootState?.routes).toHaveLength(3);
             expect(rootState?.routes.at(-1)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
@@ -790,17 +782,16 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
             });
 
-            // The modal is above the tab navigator, so the descent used to stop at the root and apply the requested
-            // screen to whichever split happened to be focused - workspace B's - which is issue #99034 on the back path.
+            // Issue #99034 on the back path: the modal stopped the descent at the root, so the requested screen was
+            // applied to whichever split happened to be focused - workspace B's.
             const rootState = navigationRef.current?.getRootState();
             expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR]);
 
             const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
-            // Three levels cover the requested route at once here - the modal, workspace B's split and A's own central
-            // screen - so closing the modal and focusing A's split is not enough: the requested screen has to end up
-            // focused inside it too.
+            // Three levels cover the route at once - the modal, B's split, A's central screen - so closing the modal
+            // and focusing A's split is not enough: the requested screen has to end up focused inside it too.
             expect(activeSplit?.state?.routes.every((route) => (route.params as {policyID?: string} | undefined)?.policyID === policyA)).toBe(true);
             expect(activeSplit?.state?.routes.at(activeSplit.state.index ?? 0)).toMatchObject({
                 name: SCREENS.WORKSPACE.PROFILE,
@@ -811,9 +802,8 @@ describe('Go back on the narrow layout', () => {
         });
 
         it('Should restore the tab the fallback route belongs to when the tab navigator is focused elsewhere', () => {
-            // Issue #89006: the tab navigator's index is left on Home by the root stack's state slicing, so popping
-            // the modal alone lands on Home instead of the tab holding the back target. The POP_TO that used to
-            // restore the nested state from the payload is gone. The walk down plus the tab jumpTo replaces it.
+            // Issue #89006: the root stack's state slicing leaves the tab navigator's index on Home, so popping the
+            // modal alone lands there instead of the tab holding the back target. The walk down plus jumpTo fixes it.
             render(<TestNavigationContainer initialState={buildStateWithModalOverTab(0, buildWorkspaceSplitRoute(policyA))} />);
             const tabStateBefore = navigationRef.current?.getRootState().routes.at(0)?.state;
             expect(tabStateBefore?.routes.at(tabStateBefore.index ?? 0)?.name).toBe(SCREENS.HOME);
@@ -833,8 +823,7 @@ describe('Go back on the narrow layout', () => {
                 name: SCREENS.WORKSPACE.PROFILE,
                 params: {policyID: policyA},
             });
-            // Issue #89209: the replacement must not add a screen either, which is what POP_TO did when there was
-            // nothing to pop.
+            // Issue #89209: the replacement must not add a screen either, which is what POP_TO did with nothing to pop.
             expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
         });
 

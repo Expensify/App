@@ -8,8 +8,8 @@ import SCREENS from '@src/SCREENS';
 
 import type {NavigationState, ParamListBase, StackNavigationState} from '@react-navigation/native';
 
-// Every split's sidebar has exactly one scope param today, so the only way to pin the multi-param semantics of
-// `scopeParams.some(...)` is to state the sidebar's params directly. Every test gets the real implementation back.
+// Every split's sidebar has exactly one scope param today, so pinning the multi-param semantics of
+// `scopeParams.some(...)` means stating the sidebar's params directly. Every test gets the real implementation back.
 jest.mock('@libs/Navigation/helpers/getParamsFromRoute');
 
 const actualGetParamsFromRoute = jest.requireActual<{default: typeof getParamsFromRoute}>('@libs/Navigation/helpers/getParamsFromRoute').default;

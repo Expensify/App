@@ -396,8 +396,8 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return false;
     }
 
-    // `routeParamsIgnore` drops `policyID`, and `domainAccountID` only ever appears under the ignored `params`
-    // key, so without this every workspace's split answers for every other.
+    // `routeParamsIgnore` drops `policyID` and `domainAccountID`, so without this every workspace's split would
+    // answer for every other.
     if (hasDifferentSplitScope(route, minimalAction.payload)) {
         return false;
     }
@@ -451,8 +451,8 @@ type GoBackOptions = {
 
 /**
  * @private
- * Whether the located route can be popped to within `targetState`. Callers that cannot replace instead, which is what
- * keeps the visited pages that removing several root routes would throw away.
+ * Whether the located route can be popped to within `targetState`. When it cannot, the caller replaces instead,
+ * which keeps the visited pages that removing several root routes would throw away.
  */
 function canPopToRoute(targetState: State, rootState: State, {indexOfBackToRoute, distanceToPop}: RouteToPopTo): boolean {
     const isRouteInState = indexOfBackToRoute !== -1;
@@ -467,26 +467,22 @@ function canPopToRoute(targetState: State, rootState: State, {indexOfBackToRoute
  * nothing when it is already focused all the way down.
  *
  * `getMinimalAction` descends through the *focused* route of each navigator, so it stops as soon as something else
- * covers the one holding `backToRoute` - a modal, or another workspace's split. `goUp` would then act on that level
- * and land in the wrong place. This walks the same path looking for the route that *matches* instead, and pops every
- * obstacle it finds: one Back can be covered by several at once (a modal over the wrong workspace's split, whose own
- * stack is on the wrong screen), and the resolution that follows only ever handles the level it stops on.
+ * covers the one holding `backToRoute` - a modal, or another workspace's split - and `goUp` would act on that level
+ * instead. This walks the same path looking for the route that *matches*, popping every obstacle on the way.
  *
- * See NAVIGATION.md for the cases where it must not pop.
+ * See NAVIGATION.md for why every level has to be popped and for the cases where it must not pop.
  */
 function getPopsToNavigatorWithBackToRoute(rootState: State, action: NavigationAction, compareParams: boolean): NavigationAction[] {
     const pops: NavigationAction[] = [];
     let state: State | undefined = rootState;
     let currentAction: Writable<NavigationAction> = action;
 
-    // Running out of levels means the match is focused all the way down, so there is nothing left to pop.
-    // Each level is read from the state before any of these pops is dispatched, which stays valid because a pop only
-    // discards the routes above the one it focuses - the matching route and everything nested under it survive.
+    // Every level is read before any of these pops is dispatched, which stays valid because a pop only discards the
+    // routes above the one it focuses.
     while (state) {
         const routeToPopTo = findRouteToPopTo(state, currentAction, compareParams);
 
-        // `goUp` replaces at a level it cannot pop to, and a pop here would discard the very history that replace
-        // preserves. The pops collected above it stay - they only uncovered this level for the resolution.
+        // `goUp` replaces at a level it cannot pop to, and a pop here would discard the history that replace preserves.
         if (!canPopToRoute(state, rootState, routeToPopTo)) {
             return pops;
         }
@@ -505,11 +501,9 @@ function getPopsToNavigatorWithBackToRoute(rootState: State, action: NavigationA
             pops.push({...StackActions.pop(routeToPopTo.distanceToPop), target: state.key});
         }
 
-        // The match is focused here once the pop above is out, so look for the next obstacle one level down.
-        // A negative distance takes this path with nothing popped: the match sits after the focused route, which only
-        // a tab navigator does, so the back target is in another tab. Descending anyway is deliberate - trimming the
-        // target tab's own stacks is what makes the `jumpTo` `goUp` ends on land on the requested screen rather than
-        // whatever that tab was last left on.
+        // A negative distance lands here with nothing popped: the match sits after the focused route, so it is in
+        // another tab. Descending still trims that tab's own stacks, so the `jumpTo` that `goUp` ends on reaches the
+        // requested screen rather than whatever that tab was last left on.
         const nestedState: State | undefined = state.routes.at(routeToPopTo.indexOfBackToRoute)?.state;
         currentAction = nestedState ? getNestedAction(currentAction, nestedState) : currentAction;
         state = nestedState;
@@ -530,7 +524,8 @@ const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'wait
  * replace is performed so as not to lose the visited pages.
  * If backToRoute is not found in the state, replace is also called then.
  *
- * Going back never adds a screen, so the only actions dispatched from here are pop, popTo, replace and jumpTo.
+ * Going back never adds a screen, so the only actions dispatched from here are pop, replace and jumpTo. A route that
+ * cannot be popped to is therefore replaced, not pushed, even when it is missing from its navigator's stack.
  *
  * @param backToRoute - The route to go up.
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
@@ -553,15 +548,13 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return false;
     }
 
-    // Checked before anything is dispatched: resolving the action only narrows the navigator it targets, never its
-    // type, so a non-NAVIGATE action cannot become one further down.
+    // Checked up front: resolving an action only narrows the navigator it targets, never its type.
     if (action.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         Log.hmmm('[Navigation] Unable to go up. Action type is wrong.');
         return false;
     }
 
     // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    // One Back can dispatch several times now, arming the flag once per dispatch. Harmless: they batch into one commit.
     const dispatch = (actionToDispatch: NavigationAction) => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();

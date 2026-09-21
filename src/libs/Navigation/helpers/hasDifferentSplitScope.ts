@@ -15,7 +15,6 @@ function getSplitScopeComparisonValues(route: NavigationRoute, payload: ActionPa
     }
 
     const sidebarScreen = SPLIT_TO_SIDEBAR[route.name];
-    // Nothing to compare is a property of the split, not of the state, so this is answered before reading any.
     const scopeParams = getParamsFromRoute(sidebarScreen);
     if (!scopeParams.length) {
         return;
@@ -25,11 +24,9 @@ function getSplitScopeComparisonValues(route: NavigationRoute, payload: ActionPa
     const routeKey = 'key' in route ? route.key : undefined;
     const splitState = route.state ?? (routeKey ? getPreservedNavigatorState(routeKey) : undefined);
     const sidebarRoute = splitState?.routes.find((nestedRoute) => nestedRoute.name === sidebarScreen);
-    // Sidebar wins. Without one the focused screen carries the scope (narrow splits can hold central screens only),
-    // and with no state at all the split's own creation params are the last resort.
+    // A narrow-layout split can be preserved without its sidebar, and its focused central screen carries the scope too.
     const scopeRoute = sidebarRoute ?? splitState?.routes.at(splitState.index ?? -1);
-    // `getActionFromState` always nests a split's screen params under `params.params`, which is why both sides read
-    // one level down. A payload that ever carried the scope higher up would compare as the same scope.
+    // `getActionFromState` nests a split's screen params under `params.params`, so both sides read one level down.
     const currentParams: unknown = scopeRoute?.params ?? (isRecord(route.params) ? route.params.params : undefined);
     const targetParams = payload.params?.params;
     if (!isRecord(currentParams) || !isRecord(targetParams)) {

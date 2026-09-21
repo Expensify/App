@@ -84,8 +84,7 @@ describe('getMinimalAction', () => {
         const result = getMinimalAction(buildWorkspaceAction(POLICY_A), buildRootState(POLICY_B));
 
         expect(result.isFocusedRouteInDifferentScope).toBe(true);
-        // The action type is left alone. Forward navigation turns this into a PUSH in `linkTo`, going back pops
-        // the siblings of the matching split in `goUp`.
+        // The action type is left alone; the callers decide what to do with the reported boundary.
         expect(result.action).toMatchObject({
             type: 'NAVIGATE',
             target: 'workspace-state',
@@ -103,7 +102,7 @@ describe('getMinimalAction', () => {
         const action: NavigationAction = {...buildWorkspaceAction(POLICY_A), type: 'REPLACE'};
         const result = getMinimalAction(action, buildRootState(POLICY_B));
 
-        // The boundary is reported for every action type. Only `linkTo` cares, and it leaves a replace alone.
+        // The boundary is reported for every action type, and `linkTo` leaves a replace alone.
         expect(result.isFocusedRouteInDifferentScope).toBe(true);
         expect(result.action).toMatchObject({
             type: 'REPLACE',

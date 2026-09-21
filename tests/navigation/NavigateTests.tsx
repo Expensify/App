@@ -27,8 +27,6 @@ jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
-// `jest.spyOn` here installs on the live navigation container. Each test mounts a fresh one, but restoring keeps a
-// leaked spy from ever outliving the test that made it.
 afterEach(() => {
     jest.restoreAllMocks();
 });
