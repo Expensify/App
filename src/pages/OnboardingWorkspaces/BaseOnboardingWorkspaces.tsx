@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -36,6 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -59,9 +61,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         isSmallScreenWidth,
         shouldUseNarrowLayout,
     } = useResponsiveLayout();
-    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [joinablePolicies, joinablePoliciesMetadata] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
+    const isLoadingJoinablePolicies = isLoadingOnyxValue(joinablePoliciesMetadata);
     const joinablePoliciesLoading = getAccessiblePoliciesAction?.loading;
     const joinablePoliciesErrors = getAccessiblePoliciesAction?.errors;
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
@@ -87,6 +90,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const isValidated = isCurrentUserValidated(loginList, session?.email);
+    const defaultPolicy = useDefaultExpensePolicy();
 
     const {isBetaEnabled} = usePermissions();
     const delegateAccountID = useDelegateAccountID();
@@ -133,7 +137,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         returnToOriginReport();
     };
 
-    const handleJoinWorkspace = (policy: JoinablePolicy) => {
+    const finishOnboarding = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
         const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
@@ -144,29 +148,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 ? onboardingIntent
                 : CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
         const onboardingMessage = isJoiningCompanyWorkspace ? joinWorkspaceOnboardingMessage : onboardingMessages[completionIntent];
-
-        if (policy.automaticJoiningEnabled) {
-            joinAccessiblePolicy(
-                policy.policyID,
-                joinWorkspaceTaskReport,
-                joinWorkspaceTaskParentReport,
-                isJoinWorkspaceTaskParentReportArchived,
-                joinWorkspaceTaskHasOutstandingChildTask,
-                joinWorkspaceTaskParentReportAction,
-                currentUserPersonalDetails.accountID,
-            );
-        } else {
-            // Asking to join only sends a request, so the task stays open until an admin approves it.
-            askToJoinPolicy(policy.policyID);
-        }
-
-        // Reached from a Concierge task rather than as an onboarding step. Onboarding is already finished, so
-        // completing it again would post the whole welcome message and task list a second time - just join and return
-        // the user to wherever they opened this from.
-        if (isConciergeTaskFlow) {
-            returnToOriginReport();
-            return;
-        }
 
         completeOnboarding({
             engagementChoice: completionIntent,
@@ -198,6 +179,29 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             undefined,
             false,
         );
+    };
+
+    const handleJoinWorkspace = (policy: JoinablePolicy) => {
+        if (policy.automaticJoiningEnabled) {
+            joinAccessiblePolicy(
+                policy.policyID,
+                joinWorkspaceTaskReport,
+                joinWorkspaceTaskParentReport,
+                isJoinWorkspaceTaskParentReportArchived,
+                joinWorkspaceTaskHasOutstandingChildTask,
+                joinWorkspaceTaskParentReportAction,
+                currentUserPersonalDetails.accountID,
+            );
+        } else {
+            askToJoinPolicy(policy.policyID);
+        }
+
+        if (isConciergeTaskFlow) {
+            returnToOriginReport();
+            return;
+        }
+
+        finishOnboarding(policy);
     };
 
     const allPolicyIDItems = Object.values(joinablePolicies ?? {})
@@ -248,7 +252,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         useCallback(() => {
             // Guarded by a ref instead of by omitting the loading/count dependencies: an empty response leaves the
             // count at 0, so reacting to those updates would immediately issue another request.
-            if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading || hasRequestedAccessiblePolicies.current) {
+            if (!isValidated || isLoadingJoinablePolicies || joinablePoliciesLength > 0 || joinablePoliciesLoading || hasRequestedAccessiblePolicies.current) {
                 return;
             }
 
@@ -293,6 +297,38 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
         createdJoinWorkspaceTaskReportID.current = createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
     }, [conciergeChat, delegateAccountID, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email, shouldCreateJoinWorkspaceTaskOnExit]);
+
+    useEffect(() => {
+        if (isLoadingJoinablePolicies || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
+            return;
+        }
+
+        finishOnboarding({
+            policyID: defaultPolicy.id,
+            policyName: defaultPolicy.name,
+            policyOwner: defaultPolicy.owner,
+            employeeCount: 0,
+            hasPendingAccess: false,
+            automaticJoiningEnabled: false,
+            policyType: defaultPolicy.type,
+        });
+    }, [defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type, finishOnboarding, isLoadingJoinablePolicies, joinablePoliciesLength, joinablePoliciesLoading]);
+
+    useEffect(() => {
+        if (isLoadingJoinablePolicies || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
+            return;
+        }
+
+        finishOnboarding({
+            policyID: defaultPolicy.id,
+            policyName: defaultPolicy.name,
+            policyOwner: defaultPolicy.owner,
+            employeeCount: 0,
+            hasPendingAccess: false,
+            automaticJoiningEnabled: false,
+            policyType: defaultPolicy.type,
+        });
+    }, [isLoadingJoinablePolicies, joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type, finishOnboarding]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
@@ -366,7 +402,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 style={{
                     listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : [],
                 }}
-                shouldShowLoadingPlaceholder={joinablePoliciesLoading}
+                shouldShowLoadingPlaceholder={isLoadingJoinablePolicies || !!joinablePoliciesLoading || policyIDItems.length === 0}
                 shouldStopPropagation
                 showScrollIndicator
                 customListHeader={

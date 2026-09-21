@@ -81,6 +81,9 @@ export type {default as UpdateDualEntryTravelInvoicingSettlementsAccountParams} 
 export type {default as UpdateDualEntryTravelInvoicingPayableAccountParams} from './UpdateDualEntryTravelInvoicingPayableAccountParams';
 export type {default as SyncPolicyToCampfireParams} from './SyncPolicyToCampfireParams';
 export type {default as UpdateCampfireSubsidiaryParams} from './UpdateCampfireSubsidiaryParams';
+export type {default as UpdateCampfireFieldMappingParams} from './UpdateCampfireFieldMappingParams';
+export type {default as UpdateCampfireEnableNewCategoriesParams} from './UpdateCampfireEnableNewCategoriesParams';
+export type {default as UpdateCampfireSyncTaxRatesParams} from './UpdateCampfireSyncTaxRatesParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
@@ -252,6 +255,7 @@ export type {default as EditTaskParams} from './EditTaskParams';
 export type {default as ReopenTaskParams} from './ReopenTaskParams';
 export type {default as CompleteTaskParams} from './CompleteTaskParams';
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
+export type {default as SetPersonalExpenseRulesParams} from './SetPersonalExpenseRulesParams';
 export type {default as SetNameValuePairsParams} from './SetNameValuePairsParams';
 export type {default as SetReportFieldParams} from './SetReportFieldParams';
 export type {default as SetReportNameParams} from './SetReportNameParams';
@@ -363,6 +367,7 @@ export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrenc
 export type {default as UpdateQuickbooksOnlineGenericTypeParams} from './UpdateQuickbooksOnlineGenericTypeParams';
 export type {default as UpdateQuickbooksDesktopGenericTypeParams} from './UpdateQuickbooksDesktopGenericTypeParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
+export type {default as UpdatePolicyConnectionConfigurationParams} from './UpdatePolicyConnectionConfigurationParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as UpdatePolicyTaxCodeParams} from './UpdatePolicyTaxCodeParams';
@@ -597,6 +602,7 @@ export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams
 export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
+export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';

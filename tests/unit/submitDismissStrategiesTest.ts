@@ -45,7 +45,7 @@ jest.mock('@libs/ReportUtils', () => ({
 jest.mock('@libs/SearchQueryUtils', () => ({
     buildCannedSearchQuery: jest.fn(() => 'type:expense'),
 }));
-jest.mock('@libs/SearchUIUtils', () => ({
+jest.mock('@libs/SearchKeyUtils', () => ({
     getSearchKeyForDataType: (type: SearchDataTypes | undefined) => mockGetSearchKeyForDataType(type),
 }));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({

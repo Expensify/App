@@ -1,4 +1,5 @@
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
