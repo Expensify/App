@@ -195,6 +195,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const barThickness = useSharedValue(0);
     const rowHeight = useSharedValue(0);
+    const xZero = useSharedValue(0);
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const plotHeight = bounds.bottom - bounds.top;
@@ -210,6 +211,9 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         // gap keeps the empty space above/below a bar inert, including a single bar that spans the whole plot.
         // Horizontally the target spans the category label column on the left through the bar itself (so hovering
         // a group label also shows the tooltip), but stops at the bar tip so the plot space beyond a short bar is inert.
+        // The bar runs between the zero axis and its tip; positive bars point right (tip past the axis), negative
+        // bars point left (tip before the axis). Extend the tolerance outward past the tip, and always include the
+        // label column at the left edge (cursorX 0) so a group label stays hoverable regardless of the bar's sign.
         const thickness = barThickness.get();
         if (thickness <= 0) {
             return false;
@@ -218,7 +222,11 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         const rowTop = args.targetY - band / 2;
         const rowBottom = args.targetY + band / 2;
         const isWithinRow = args.cursorY >= rowTop && args.cursorY <= rowBottom;
-        const isWithinBarExtent = args.cursorX >= 0 && args.cursorX <= args.targetX + HOVER_TIP_TOLERANCE;
+        const zero = xZero.get();
+        const tipEnd = args.targetX >= zero ? args.targetX + HOVER_TIP_TOLERANCE : args.targetX - HOVER_TIP_TOLERANCE;
+        const extentStart = Math.min(0, zero, tipEnd);
+        const extentEnd = Math.max(zero, tipEnd);
+        const isWithinBarExtent = args.cursorX >= extentStart && args.cursorX <= extentEnd;
 
         return isWithinRow && isWithinBarExtent;
     };
@@ -234,8 +242,10 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         'worklet';
 
         // Anchor the tooltip above the bar's tip (the data end: right for positive values, left for negative),
-        // nudged slightly toward the axis so the pointer sits just inside the tip.
-        return {x: targetX - TOOLTIP_TIP_OFFSET_X, y: targetY - barThickness.get() / 2 - TOOLTIP_TIP_GAP};
+        // nudged slightly toward the axis so the pointer sits just inside the tip. The axis is to the left of a
+        // positive tip and to the right of a negative one, so flip the nudge direction by the tip's side.
+        const nudge = targetX >= xZero.get() ? -TOOLTIP_TIP_OFFSET_X : TOOLTIP_TIP_OFFSET_X;
+        return {x: targetX + nudge, y: targetY - barThickness.get() / 2 - TOOLTIP_TIP_GAP};
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
@@ -246,6 +256,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     });
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        xZero.set(xScale(0));
         const oy = chartData.map((point) => yScale(point.y));
         setPointPositions(
             chartData.map((point) => xScale(point.x)),
