@@ -95,7 +95,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: jest.fn(() => ({isBetaEnabled: () => false})),
+    default: jest.fn(() => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false})),
 }));
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,

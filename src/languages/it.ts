@@ -536,9 +536,11 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Seguici su LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge ha una risposta!',
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
         enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},
+        feedback: {prompt: 'Questa risposta è stata utile?', useful: 'Risposta utile', notUseful: 'Risposta non utile', thanks: 'Grazie per il tuo feedback!'},
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1268,6 +1270,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Le nuove carte e transazioni potrebbero impiegare un po’ di tempo per apparire, attendi per favore.',
         importMembersRolePermissionWarning: "Non hai l'autorizzazione per assegnare alcuni ruoli ai membri. I nuovi membri interessati sono stati invitati come membri.",
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 fornitore è stato ignorato perché non esiste in questo spazio di lavoro.',
+            other: `${count} fornitori sono stati ignorati perché non esistono in questo spazio di lavoro.`,
+        }),
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -1293,6 +1299,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Lascia perdere',
         dropMessage: 'Rilascia qui il tuo file',
         flash: 'flash',
+        flipCamera: 'inverti fotocamera',
         multiScan: 'scansione multipla',
         shutter: 'otturatore',
         gallery: 'galleria',
@@ -1804,6 +1811,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'La spesa non può essere rifiutata perché potrebbe essere già stata spostata o rifiutata.',
         },
         moveExpenses: 'Sposta nel report',
+        autoReport: 'Report automatico',
+        autoReportDescription: 'Aggiungi alle bozze dei report a nome del dipendente',
         moveExpensesMaxTransactionsError: `I report sono limitati a ${CONST.REPORT.MAX_TRANSACTIONS} spese. Spostane alcune in un altro report.`,
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
         submitReportTo: {
@@ -2539,7 +2548,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scansiona il codice QR con il tuo nuovo dispositivo, poi inserisci il codice per completare la configurazione.',
         downloadCodes: 'Scarica codici',
         copyCodes: 'Copia codici',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'Per motivi di sicurezza, NetSuite richiede l’autenticazione a due fattori per collegare l’integrazione.',
     },
     recoveryCodeForm: {
         error: {
@@ -5308,6 +5316,9 @@ ${amount} per ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
+            fxExpenseAccount: 'Conto commissioni conversione valuta Sage Intacct',
+            fxExpenseAccountDescription:
+                'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo quel costo su questo conto in Sage Intacct come scrittura contabile.',
         },
         certinia: {
             title: 'Certinia',
@@ -5575,6 +5586,7 @@ ${amount} per ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Aggiungi una consociata in NetSuite e sincronizza di nuovo la connessione',
             tokenInput: {
                 title: 'Configurazione NetSuite',
+                connectWithTokenAuthentication: 'Connettiti invece con autenticazione basata su token (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Installa il pacchetto Expensify',
@@ -8116,6 +8128,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 importColumnUpdatedCategory: 'Categoria aggiornata',
                 importColumnUpdatedTag: 'Tag aggiornato',
                 importColumnUpdatedDescription: 'Descrizione aggiornata',
+                importColumnUpdatedVendor: 'Fornitore aggiornato',
                 expensesWith: 'Per le spese con:',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente a:',
                 applyUpdates: 'Applica questi aggiornamenti:',
@@ -9646,6 +9659,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Giorno',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Anno',
@@ -9666,6 +9680,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
             filterType: {label: 'Tipo di filtro', has: {positive: 'ha', negative: 'non ha'}, is: {positive: 'è', negative: 'non è'}},
+            transactionStatus: {
+                label: 'Stato transazione',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'In sospeso',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Registrato',
+                hint: 'Si applica solo alle transazioni con carta.',
+            },
         },
         display: {
             label: 'Visualizza',
@@ -9689,6 +9709,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercenti',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Giorni',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Mesi',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimane',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anni',

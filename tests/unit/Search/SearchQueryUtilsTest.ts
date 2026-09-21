@@ -1,7 +1,6 @@
 import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
-import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -77,30 +76,11 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-const personalDetailsFakeData = {
-    'johndoe@example.com': {
-        accountID: 12345,
-    },
-    'janedoe@example.com': {
-        accountID: 78901,
-    },
-} as Record<string, {accountID: number}>;
-
 jest.mock('@libs/SearchParser/searchParser', () => {
     const actual = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser');
     return {
         ...actual,
         parse: jest.fn(actual.parse),
-    };
-});
-
-jest.mock('@libs/PersonalDetailsUtils', () => {
-    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
-    return {
-        ...actual,
-        getPersonalDetailByEmail(email: string) {
-            return personalDetailsFakeData[email];
-        },
     };
 });
 
@@ -342,16 +322,18 @@ describe('SearchQueryUtils', () => {
             expect(getQueryWithUpdatedValues('category:Travel,Meals')).toEqual(`${defaultQuery} category:Travel,Meals`);
         });
 
-        test('returns query with user emails substituted', () => {
+        // Logins are resolved to account IDs upstream, in getQueryWithSubstitutions, so that the raw query carries
+        // account IDs too. This function only has to leave whatever it is handed alone.
+        test('leaves user logins untouched', () => {
             const userQuery = 'from:johndoe@example.com hello';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
+            expect(result).toEqual(`${defaultQuery} from:johndoe@example.com hello`);
         });
 
-        test('returns query with user emails substituted and preserves user ids', () => {
-            const userQuery = 'from:johndoe@example.com to:112233';
+        test('preserves user ids', () => {
+            const userQuery = 'from:12345 to:112233';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -359,7 +341,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with all of the fields correctly substituted', () => {
-            const userQuery = 'from:9876,87654 to:janedoe@example.com hello amount:150 test';
+            const userQuery = 'from:9876,87654 to:78901 hello amount:150 test';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -367,7 +349,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated groupBy', () => {
-            const userQuery = 'from:johndoe@example.com groupBy:reports';
+            const userQuery = 'from:12345 groupBy:reports';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -375,7 +357,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated view', () => {
-            const userQuery = 'from:johndoe@example.com view:bar';
+            const userQuery = 'from:12345 view:bar';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -436,6 +418,28 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense receiptType:ereceipt,hotel');
+        });
+
+        test('transaction status filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                transactionStatus: 'pending',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense transactionStatus:pending');
+        });
+
+        test('negated transaction status filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                transactionStatusNot: 'pending',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -transactionStatus:pending');
         });
 
         test('negated receipt type filter value', () => {
@@ -1868,6 +1872,57 @@ describe('SearchQueryUtils', () => {
             expect(result.receiptType).toEqual(['ereceipt', 'hotel']);
         });
 
+        test('transaction status filter validates against valid statuses', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense transaction-status:pending,invalid';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // Pending and posted are mutually exclusive, so the form holds a single value: the first valid one, with the invalid value discarded
+            expect(result.transactionStatus).toEqual('pending');
+        });
+
+        test('transaction status filter keeps only the first value when a query lists several', () => {
+            // A hand-typed query can carry a comma-separated list, but the filter is single-select so only one value survives into the form.
+            const queryString = 'sortBy:date sortOrder:desc type:expense transaction-status:posted,pending';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result.transactionStatus).toEqual('posted');
+        });
+
+        test('negated transaction status filter populates transactionStatusNot', () => {
+            // Negation in the query syntax uses the "-" prefix, which round-trips to the transactionStatusNot form value.
+            const queryString = 'sortBy:date sortOrder:desc type:expense -transaction-status:pending';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result.transactionStatusNot).toEqual('pending');
+            expect(result.transactionStatus).toBeUndefined();
+        });
+
         test('negated receipt type filter populates receiptTypeNot', () => {
             // Negation in the query syntax uses the "-" prefix, which round-trips to the receiptTypeNot form value.
             const queryString = 'sortBy:date sortOrder:desc type:expense -receipt-type:hotel';
@@ -3129,6 +3184,7 @@ describe('SearchQueryUtils', () => {
     describe('shouldResetSortForViewChange', () => {
         test('returns true for line view transitions with time-based groupBy', () => {
             // Line charts need chronological order - reset when entering or leaving line view
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.DAY})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
