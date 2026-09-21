@@ -1,4 +1,5 @@
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
+import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
@@ -28,7 +29,6 @@ import {View} from 'react-native';
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
 
-    /** The chart this card draws, as its dashboard declares it */
     chart: InsightsChartSpec;
 
     /** Page-level filters every chart on the dashboard is narrowed by */
@@ -37,7 +37,7 @@ type InsightsChartWidgetProps = {
     /** Hash of the dashboard-wide query, which the record naming this chart's snapshot is stored under */
     hash: number | undefined;
 
-    /** Asks for the dashboard again, offered to the reader when this chart's snapshot failed */
+    /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
     containerStyles?: StyleProp<ViewStyle>;
@@ -77,9 +77,9 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
                 ) : null
             }
         >
-            {state === INSIGHTS_CHART_STATE.ERROR ? (
-                <ChartErrorState onRetry={onRetry} />
-            ) : (
+            {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
+            {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
+            {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], chart.view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView
                         queryJSON={queryJSON}

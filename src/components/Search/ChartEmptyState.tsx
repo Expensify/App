@@ -3,39 +3,35 @@ import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
 import React from 'react';
 
-type ChartErrorStateProps = {
-    /** Asks for the chart's data again */
-    onRetry: () => void;
+type ChartEmptyStateProps = {
+    testID?: string;
 };
 
-/** Stands in for a chart whose data failed to arrive. */
-function ChartErrorState({onRetry}: ChartErrorStateProps) {
+/** Stands in for a chart with too little data to plot. */
+function ChartEmptyState({testID}: ChartEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
+    const illustrations = useMemoizedLazyIllustrations(['Chart']);
 
     return (
         <BlockingView
-            icon={illustrations.BrokenMagnifyingGlass}
+            testID={testID}
+            icon={illustrations.Chart}
             iconHeight={variables.iconSizeMegaLarge}
-            title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
+            title={translate('homePage.insightsSection.chartUnavailable')}
             titleStyles={[styles.mt0, styles.mb2]}
-            subtitle={translate('errorPage.subtitle')}
+            subtitle={translate('homePage.insightsSection.notEnoughData')}
             subtitleStyle={styles.textSupporting}
             containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5, styles.pb5]}
             contentFitImage="contain"
-            buttonTranslationKey="common.tryAgain"
-            onButtonPress={onRetry}
         />
     );
 }
 
-export default ChartErrorState;
+export default ChartEmptyState;

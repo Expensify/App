@@ -1,11 +1,12 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,8 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-
-import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
 
 import variables from '@styles/variables';
 
@@ -36,7 +35,6 @@ function InsightsSectionContent() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
-    const illustrations = useMemoizedLazyIllustrations(['Chart']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const insightConfigs = useHomeInsightConfigs();
@@ -95,14 +93,7 @@ function InsightsSectionContent() {
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                 />
             )}
-            {state === INSIGHT_STATE.EMPTY && (
-                <HomeSectionEmptyState
-                    testID="insightsSectionEmptyState"
-                    illustration={illustrations.Chart}
-                    title={translate('homePage.insightsSection.chartUnavailable')}
-                    description={translate('homePage.insightsSection.notEnoughData')}
-                />
-            )}
+            {state === INSIGHT_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHT_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>

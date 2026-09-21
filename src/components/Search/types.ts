@@ -478,7 +478,7 @@ type SearchChartProps = {
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
 
-    /** Color every bar is drawn in. Only a bar chart reads it; a line and a pie take their colors from the theme. */
+    /** Color every bar is drawn in. Only a bar chart reads it. */
     color?: string;
 };
 

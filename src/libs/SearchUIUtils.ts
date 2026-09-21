@@ -680,7 +680,7 @@ function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserE
     );
 }
 
-/** A member breakdown only says something on a group workspace with somebody to compare against, and only to the people allowed to see it. */
+/** Ranking members by spend needs at least two members to compare, and a role allowed to see what other people spend. */
 function isPolicyEligibleForTopSpenders(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
     return isPolicyEligibleForSpendOverTime(policy, currentUserEmail) && Object.keys(policy.employeeList ?? {}).length >= 2;
 }

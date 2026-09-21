@@ -15,7 +15,6 @@ import type {ValueOf} from 'type-fest';
 type InsightsChartSpec = {
     /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
     graphKey: InsightsGraphKey;
-
     titleKey: TranslationPaths;
     view: ChartView;
 
@@ -25,7 +24,7 @@ type InsightsChartSpec = {
     sortOrder?: string;
     limit?: number;
 
-    /** Color every bar is drawn in. Only a bar chart reads it; a line and a pie take their colors from the theme. */
+    /** Color every bar is drawn in. Only a bar chart reads it. */
     color?: string;
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */

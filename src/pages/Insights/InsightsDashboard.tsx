@@ -39,7 +39,7 @@ import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
 
 const INSIGHTS_DASHBOARD_STATE = {
-    DATA: 'data',
+    READY: 'ready',
     LOADING: 'loading',
     ERROR: 'error',
     OFFLINE: 'offline',
@@ -69,7 +69,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboardRecord>, isOffl
     if (headlineSnapshot?.data && !Object.keys(headlineSnapshot.data).some(isGroupEntry)) {
         return INSIGHTS_DASHBOARD_STATE.EMPTY;
     }
-    return INSIGHTS_DASHBOARD_STATE.DATA;
+    return INSIGHTS_DASHBOARD_STATE.READY;
 }
 
 type InsightsDashboardContentProps = {
@@ -83,11 +83,10 @@ type InsightsDashboardContentProps = {
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
-    /** Asks for the dashboard again, offered to the reader when the last request failed */
+    /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 };
 
-/** Everything below the top bar: the charts, or what stands in for them. */
 function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
