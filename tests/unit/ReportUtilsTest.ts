@@ -8608,6 +8608,7 @@ describe('ReportUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
 
             // Then it is excluded, because there would be nothing to render in the option item
