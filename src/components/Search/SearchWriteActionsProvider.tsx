@@ -608,7 +608,7 @@ function SearchWriteActionsProvider({
     const isRowHandPicked = (item: SearchData[number]) => {
         const selectedTransactions = getSelectedTransactions();
         const entry = item.keyForList ? selectedTransactions[item.keyForList] : undefined;
-        // A report row is the row the user clicked, so any selected child makes it hand-picked — and so does its own entry, which is where the click lands until its rows arrive to carry one.
+        // A report row is the row the user clicked, so any selected child makes it hand-picked. So does its own entry, which is where the click lands until its rows arrive to carry one.
         if (isTransactionGroupListItemType(item)) {
             return !!entry?.isSelected || item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
         }
@@ -763,14 +763,22 @@ function SearchWriteActionsProvider({
 
             const selectableTransactions = groupTransactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
             if (selectableTransactions.length === 0) {
-                // Its rows have disproved the entry under its own key, and leaving it counts a row the checkbox does not show.
-                if (!groupKey || !selectedTransactions[groupKey]) {
+                // Nothing under it can be checked, so the press clears whatever it still holds. Leaving any of it counts rows the checkbox does not show, and no checkbox is left to uncheck them.
+                const staleKeys: string[] = [];
+                for (const key of [groupKey, ...groupTransactions.map((transactionItem) => transactionItem.keyForList)]) {
+                    if (key && selectedTransactions[key]) {
+                        staleKeys.push(key);
+                    }
+                }
+                if (staleKeys.length === 0) {
                     // Same map, not an equal one: the commit bails on identity, so this must not re-render every row.
                     return selectedTransactions;
                 }
-                const withoutStaleGroupKey = {...selectedTransactions};
-                delete withoutStaleGroupKey[groupKey];
-                return withoutStaleGroupKey;
+                const withoutStaleKeys = {...selectedTransactions};
+                for (const key of staleKeys) {
+                    delete withoutStaleKeys[key];
+                }
+                return withoutStaleKeys;
             }
             return stampGroupCoverageFlags({
                 selectedTransactions: {

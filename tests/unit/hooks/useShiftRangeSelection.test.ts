@@ -491,6 +491,25 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: ['c', 'd', 'e']});
         });
 
+        it('resolves the seeded anchor against the order on screen at the click, so a re-sort after Select All trims from the new top', () => {
+            const onApplyRange = makeApplyMock();
+            const {result, rerender} = renderHook((props: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({onApplyRange, items: props.items, isItemSelected: () => true})), {
+                initialProps: {items: ROWS},
+            });
+
+            // Given Select All over a b c d e
+            act(() => result.current.seedFullRange());
+
+            // When the list is re-sorted before the next click, as a column press does in the shared table
+            rerender({items: [...ROWS].reverse()});
+            act(() => {
+                result.current.applyShiftClick(ROW_C, true);
+            });
+
+            // Then it trims from the row now at the top down to the click, rather than from wherever the old first row moved to
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['e', 'd', 'c'], toDeselect: ['a', 'b']});
+        });
+
         it('spans only selectable rows, skipping excluded ones', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: MIXED, onApplyRange, isDisabledItem: (row) => !!row.isDisabled})));

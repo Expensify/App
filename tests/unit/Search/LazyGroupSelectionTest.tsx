@@ -1588,6 +1588,32 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['5']?.isSelected).toBe(true);
     });
 
+    it('clears the rows a group still holds once none of them can be selected, since no checkbox is left to uncheck them', async () => {
+        const {result} = renderSelection();
+        const [firstLoadedChild] = loadedChildren;
+
+        // Given a row selected while it could be, which is then on its way out
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstLoadedChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstLoadedChild.keyForList]?.isSelected).toBe(true);
+        const deletedChild = {...firstLoadedChild, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // When its group's header is pressed, on a checkbox that reads unchecked because nothing under it can be selected
+        await act(async () => {
+            result.current.toggle(categoryGroup, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the entry goes with the press, rather than the footer counting a row the user can no longer reach
+        expect(result.current.selectedTransactions[firstLoadedChild.keyForList]).toBeUndefined();
+    });
+
     it('turns select-all-matching off once every group has been unchecked', async () => {
         const {result} = renderSelection(SettledGroupWrapper);
 
