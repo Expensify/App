@@ -27,20 +27,11 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
-import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {
-    findSelfDMReportID,
-    generateReportID,
-    getAllPolicyExpenseChatReportActions,
-    getReportOrDraftReport,
-    hasViolations as hasViolationsReportUtils,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getAllPolicyExpenseChatReportActions, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
@@ -62,22 +53,19 @@ import {
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
-import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
-import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {createDistanceRequest as createDistanceRequestIOUActions, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -91,6 +79,7 @@ import type {SubmissionPath} from './submission/resolveSubmissionPath';
 
 import {resolveSubmissionPath, SUBMISSION_PATH} from './submission/resolveSubmissionPath';
 import useInvoiceSubmission from './submission/useInvoiceSubmission';
+import usePerDiemSubmission from './submission/usePerDiemSubmission';
 import useSendMoneySubmission from './submission/useSendMoneySubmission';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 
@@ -203,7 +192,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
@@ -229,14 +218,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     useEffect(() => {
         transactionViolationsRef.current = transactionViolations;
     }, [transactionViolations]);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
     // Policy-scoped Onyx data
     const policyID = policy?.id;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const isIouReport = isMoneyRequestReportReportUtils(report);
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policyID);
-    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -351,6 +338,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         participants,
         currentUserPersonalDetails,
         setIsConfirmed,
+        onExpenseWriteWillStart,
+    });
+
+    const perDiemSubmission = usePerDiemSubmission({
+        transaction,
+        report,
+        policy,
+        policyCategories,
+        personalDetails,
+        currentUserPersonalDetails,
+        selectedParticipants,
+        isTrackExpense,
+        isSelfDMDestination,
+        isLookingAroundUser,
+        isTrackIntentUser,
+        backToReport,
         onExpenseWriteWillStart,
     });
 
@@ -642,164 +645,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 chatReportID: isExpenseReport ? optimisticChatReportID : (existingIOUReport?.chatReportID ?? optimisticChatReportID),
             },
         });
-    }
-
-    // Early-resolved policyID for the per diem expense's destination report, mirroring iouReportPolicyID above.
-    const perDiemParticipant = selectedParticipants.at(0);
-    const earlyPerDiemExpensePolicyID = perDiemParticipant
-        ? getPerDiemExpensePolicyID({
-              report,
-              participantParams: {
-                  payeeEmail: currentUserPersonalDetails.login,
-                  payeeAccountID: currentUserPersonalDetails.accountID,
-                  participant: perDiemParticipant,
-              },
-              existingIOUReport: undefined,
-              isASAPSubmitBetaEnabled,
-              rules,
-              currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-          })
-        : undefined;
-    const [perDiemExpensePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPerDiemExpensePolicyID}`);
-
-    function submitPerDiemExpense(trimmedComment: string, shouldHandleNavigation: boolean, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) {
-        if (!transaction) {
-            return;
-        }
-
-        const participant = selectedParticipants.at(0);
-        if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
-            return;
-        }
-        onExpenseWriteWillStart?.();
-        if (isTrackExpense) {
-            // Mirror the action's bail: a submit it would no-op must not clean up or dismiss.
-            if (!isEmptyObject(policy) && hasCompletePerDiemCustomUnit(transaction.comment?.customUnit)) {
-                const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
-                submitPerDiemExpenseForSelfDM({
-                    dateFnsLocale,
-                    getCurrencyDecimals,
-                    selfDMReport,
-                    policy,
-                    transactionParams: {
-                        currency: transaction.currency,
-                        created: transaction.created,
-                        comment: trimmedComment,
-                        category: transaction.category,
-                        tag: transaction.tag,
-                        customUnit: transaction.comment?.customUnit,
-                        billable: transaction.billable,
-                        reimbursable: transaction.reimbursable,
-                        attendees: transaction.comment?.attendees,
-                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    },
-                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                    quickAction,
-                    optimisticChatReportID,
-                    delegateAccountID,
-                    isTrackIntentUser,
-                });
-                if (shouldHandleNavigation) {
-                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
-                    dismissModalAndOpenReportInInboxTab(optimisticChatReportID, false, false);
-                } else {
-                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
-                }
-            } else {
-                Log.alert('[useExpenseSubmission] Skipped per diem self-DM submit: missing policy or incomplete custom unit');
-            }
-        } else {
-            const isExpenseReport = isMoneyRequestReportReportUtils(report);
-            let existingChatReport = report;
-            if (isExpenseReport) {
-                existingChatReport = getReportOrDraftReport(report?.chatReportID);
-            } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
-                existingChatReport = getReportOrDraftReport(participant.reportID);
-            }
-            // The recipient can be swapped without this screen remounting, so `existingChatReport` above
-            // can still be whoever was selected before. Use the ID confirmation committed for the current
-            // pick instead, so the pre-mounted report stays aligned with a brand-new P2P recipient.
-            const transactionReportID = transaction.reportID;
-            // Reuse it so the pre-mounted screen subscribes to the report created on submission.
-            const reusableP2PReportID = !isExpenseReport ? getReusableP2PReportID(participant, transactionReportID) : undefined;
-            const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
-            const reportIDs =
-                !isExpenseReport && !participant.isPolicyExpenseChat
-                    ? resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID)
-                    : resolveOptimisticChatReportID(participantAccountIDs, existingChatReport);
-            const {optimisticChatReportID, chatReportID} = reportIDs;
-            const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
-            const notifyReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
-
-            const perDiemParticipantParams = {
-                payeeEmail: currentUserPersonalDetails.login,
-                payeeAccountID: currentUserPersonalDetails.accountID,
-                participant,
-            };
-            const result = submitPerDiemExpenseIOUActions({
-                isVendorMatchingBetaEnabled,
-                dateFnsLocale,
-                getCurrencyDecimals,
-                report,
-                participantParams: perDiemParticipantParams,
-                policyParams: {
-                    policy,
-                    policyTagList: policyTags,
-                    policyRecentlyUsedTags,
-                    policyCategories,
-                    policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
-                },
-                recentlyUsedParams: {
-                    destinations: recentlyUsedDestinations,
-                },
-                transactionParams: {
-                    currency: transaction.currency,
-                    created: transaction.created,
-                    comment: trimmedComment,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    customUnit: transaction.comment?.customUnit,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    attendees: transaction.comment?.attendees,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                },
-                policyTags: perDiemExpensePolicyTags ?? {},
-                isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                hasViolations,
-                policyRecentlyUsedCurrencies,
-                quickAction,
-                personalDetails,
-                optimisticChatReportID,
-                notifyReportID,
-                formatPhoneNumber,
-                delegateAccountID,
-                isTrackIntentUser,
-                rules,
-            });
-            const targetReportID = backToReport ?? activeReportID;
-            // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
-            const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
-
-            if (result) {
-                cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: shouldHandleNavigation});
-            }
-            if (result && targetReportID) {
-                navigateAfterExpenseCreate({
-                    activeReportID: targetReportID,
-                    transactionID: result.transactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
-                    shouldNavigate: shouldHandleNavigation,
-                    isLookingAroundUser,
-                    isSelfDMDestination,
-                });
-            }
-        }
     }
 
     function trackExpense(shouldHandleNavigation: boolean, options?: {gpsPoint?: GpsPoint}) {
@@ -1232,11 +1077,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         markSubmitExpenseEnd();
     }
 
-    function submitPerDiem(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
-        submitPerDiemExpense(transaction?.comment?.comment?.trim() ?? '', shouldHandleNavigation, policyRecentlyUsedCategories);
-        markSubmitExpenseEnd();
-    }
-
     function submitRequestMoney(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && !!transaction) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
@@ -1269,7 +1109,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         [SUBMISSION_PATH.SPLIT]: submitSplit,
         [SUBMISSION_PATH.INVOICE]: invoiceSubmission.createTransaction,
         [SUBMISSION_PATH.TRACK]: submitTrack,
-        [SUBMISSION_PATH.PER_DIEM]: submitPerDiem,
+        [SUBMISSION_PATH.PER_DIEM]: perDiemSubmission.createTransaction,
         [SUBMISSION_PATH.REQUEST_MONEY]: submitRequestMoney,
     };
 
