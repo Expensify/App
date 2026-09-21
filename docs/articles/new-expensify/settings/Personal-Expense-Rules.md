@@ -50,7 +50,8 @@ To create a new Expense Rule:
    - Reimbursable
    - Billable
    - Add to a report
-5. Click or tap **Save rule**
+5. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet
+6. Click or tap **Save rule**
 
 **Note:** Merchant names are case-sensitive. 
 
@@ -63,9 +64,10 @@ To modify an existing Expense Rule:
 1. Go to **Account > Expense Rules**
 2. Click or tap the rule you want to update
 3. Edit the fields you want to change
-4. Click or tap **Save rule**
+4. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the updated rule to matching expenses that haven't been submitted yet
+5. Click or tap **Save rule**
 
-Changes apply to future matching expenses.
+Changes apply to future matching expenses, plus existing unsubmitted expenses when the toggle is enabled.
 
 ---
 
@@ -92,7 +94,7 @@ Expense Rules work as follows:
 - If multiple rules match, they apply from top to bottom
 - Personal Expense Rules override [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
 
-Rules do not apply retroactively unless you manually update existing expenses.
+Rules apply retroactively to unsubmitted expenses only when you enable **Apply to existing unsubmitted expenses** while saving a rule. Submitted expenses need to be edited manually.
 
 ---
 
@@ -118,7 +120,7 @@ Personal Expense Rules are account-based. If you’ve used both experiences, you
 
 ## Can I apply an Expense Rule to existing expenses?
 
-No. Expense Rules apply when expenses are created. They do not automatically update past expenses. You’ll need to manually edit existing expenses if needed.
+Yes, for expenses that haven't been submitted yet. When creating or editing a rule, enable **Apply to existing unsubmitted expenses** before saving. Expenses that have already been submitted are not updated — you'll need to edit those manually if needed.
 
 ## What happens if my personal rule conflicts with a Workspace Merchant Rule?
 

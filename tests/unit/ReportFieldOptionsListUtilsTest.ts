@@ -73,6 +73,37 @@ describe('ReportFieldOptionsListUtils', () => {
             expect(searchData).toHaveLength(3);
         });
 
+        it('leaves the selected value in place when pinning is turned off', () => {
+            const sections = getReportFieldOptionsSection({
+                options: OPTIONS,
+                recentlyUsedOptions: [],
+                selectedOptions: [{text: 'Charlie'}],
+                initiallySelectedValue: 'Charlie',
+                searchValue: '',
+                translate: translateLocal,
+                shouldPinSelectedOption: false,
+            });
+
+            // No "Selected" section, and the value keeps its natural position in the full list while staying checked.
+            expect(sectionByIndex(sections, 1)).toBeUndefined();
+            expect(sectionByIndex(sections, 3)?.data.map((option) => option.keyForList)).toEqual(OPTIONS);
+            expect(sectionByIndex(sections, 3)?.data.find((option) => option.keyForList === 'Charlie')?.isSelected).toBe(true);
+        });
+
+        it('drops the section titles when they are turned off', () => {
+            const sections = getReportFieldOptionsSection({
+                options: OPTIONS,
+                recentlyUsedOptions: ['Delta'],
+                selectedOptions: [],
+                initiallySelectedValue: '',
+                searchValue: '',
+                translate: translateLocal,
+                shouldShowSectionTitles: false,
+            });
+
+            expect(sections.map((section) => section.title)).toEqual(['', '']);
+        });
+
         it('does not force-show the pinned value when it does not match the search', () => {
             const sections = getReportFieldOptionsSection({
                 options: ['Rate A', 'Rate B', 'Zulu'],
