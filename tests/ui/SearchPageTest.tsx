@@ -4,8 +4,12 @@ import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type * as SearchContext from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
+import type * as SearchWriteActionsProviderModule from '@components/Search/SearchWriteActionsProvider';
+import type {SearchData, SearchSelectionActionsValue} from '@components/Search/types';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useNetwork from '@hooks/useNetwork';
@@ -20,6 +24,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import SearchPage from '@pages/Search/SearchPage';
@@ -28,16 +33,19 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type * as CoreNavigation from '@react-navigation/core';
 import type * as reactNavigationNativeImport from '@react-navigation/native';
+import type React from 'react';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 
 registerMiddlewares();
 
@@ -75,15 +83,46 @@ jest.mock('@react-navigation/core', () => ({
     useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
 }));
 
-// FlashList never lays out here, so stand in for it to get at onEndReached.
-const listProps: {onEndReached?: () => void} = {};
+type ListProps = {onEndReached?: () => void; onSelectRow?: (item: SearchListItem) => void};
+
+// Captures the list's handlers, since FlashList never lays out in tests.
+const listProps: ListProps = {};
 jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
     __esModule: true,
-    default: (props: {onEndReached?: () => void}) => {
+    default: (props: ListProps) => {
         listProps.onEndReached = props.onEndReached;
+        listProps.onSelectRow = props.onSelectRow;
         return null;
     },
 }));
+
+type WriteActionsRender = {
+    filteredData: SearchData;
+    applySelection: SearchSelectionActionsValue['applySelection'];
+};
+type WriteActionsProviderProps = Parameters<typeof SearchWriteActionsProviderModule.default>[0];
+
+// The rows <Search> hands this provider are the rows selection can reach.
+const mockRenderWriteActions = jest.fn<void, [WriteActionsRender]>();
+jest.mock('@components/Search/SearchWriteActionsProvider', () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const {useSearchSelectionActions} = jest.requireActual<typeof SearchContext>('@components/Search/SearchContext');
+    const {default: SearchWriteActionsProvider} = jest.requireActual<typeof SearchWriteActionsProviderModule>('@components/Search/SearchWriteActionsProvider');
+    function MockSearchWriteActionsProvider(props: WriteActionsProviderProps) {
+        const {applySelection} = useSearchSelectionActions();
+        mockRenderWriteActions({filteredData: props.filteredData, applySelection});
+        return createElement(SearchWriteActionsProvider, props);
+    }
+    return {__esModule: true, default: MockSearchWriteActionsProvider};
+});
+
+function lastWriteActionsRender() {
+    return mockRenderWriteActions.mock.lastCall?.[0];
+}
+
+function renderedRowKeys() {
+    return lastWriteActionsRender()?.filteredData.map((row) => row.keyForList) ?? [];
+}
 
 const mockIsFocused = jest.fn(() => true);
 jest.mock('@react-navigation/native', () => ({
@@ -261,6 +300,8 @@ describe('SearchPageNarrow', () => {
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
         listProps.onEndReached = undefined;
+        listProps.onSelectRow = undefined;
+        mockRenderWriteActions.mockReset();
     });
 
     it('SearchPageNarrow renders correctly', async () => {
@@ -625,5 +666,272 @@ describe('SearchPageNarrow', () => {
         });
 
         expect(wasSearchedAtNextPage()).toBe(true);
+    });
+
+    describe('a to-do search, which reads live Onyx rows instead of the snapshot', () => {
+        const TODO_EMAIL = 'submitter@expensify.com';
+        const TODO_POLICY_ID = 'todoPolicy';
+        // Without a CurrentUserPersonalDetailsProvider, the screen builds its suggested searches for this ID.
+        const TODO_ACCOUNT_ID = CONST.DEFAULT_NUMBER_ID;
+        // From the screen's own builder, since a hand-written query hashes differently and isn't a to-do search.
+        const TODO_QUERY = getSuggestedSearches(TODO_ACCOUNT_ID, undefined, false, undefined)[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQuery;
+        const todoQueryJSON = SearchQueryUtils.buildSearchQueryJSON(TODO_QUERY);
+
+        // An open expense report with no expenses is a Submit to-do.
+        const buildTodoReport = (index: number) =>
+            createMock<Report>({
+                reportID: `todo_${index}`,
+                chatReportID: `chat_todo_${index}`,
+                policyID: TODO_POLICY_ID,
+                ownerAccountID: TODO_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Draft report',
+                currency: 'USD',
+                total: 0,
+            });
+
+        const seedTodoReports = async (count: number) => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: TODO_ACCOUNT_ID, email: TODO_EMAIL});
+                await Onyx.set(
+                    `${ONYXKEYS.COLLECTION.POLICY}${TODO_POLICY_ID}`,
+                    createMock<Policy>({id: TODO_POLICY_ID, name: 'Todo policy', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER, owner: TODO_EMAIL, outputCurrency: 'USD'}),
+                );
+                // An empty draft only counts once transactions have loaded, and an untouched collection never loads.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}unrelated`, createMock<Transaction>({transactionID: 'unrelated', reportID: 'not_a_todo', amount: -1, currency: 'USD'}));
+                await Promise.all(Array.from({length: count}, (_value, index) => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}todo_${index + 1}`, buildTodoReport(index + 1))));
+            });
+            mockSearchQueryParam.mockReturnValue(TODO_QUERY);
+        };
+
+        const seedTodoSnapshot = (hasMoreResults: boolean, overrides: Record<string, unknown> = {}) =>
+            act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {
+                    search: {
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                        offset: 0,
+                        hash: todoQueryJSON?.hash,
+                        isLoading: false,
+                        state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+                        hasMoreResults,
+                        ...overrides,
+                    },
+                });
+            });
+
+        // The real search() parks the snapshot in its loading state while a page is on the wire; the
+        // live row cap holds there until the answer lands, so the mock has to write it too.
+        const searchWritesLoadingState = () =>
+            mockSearch.mockImplementation((params?: Parameters<typeof search>[0]) => {
+                if ((params?.offset ?? 0) <= 0) {
+                    return Promise.resolve(200);
+                }
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING, isLoading: true}}).then(() => 200);
+            });
+
+        const answerTodoPage = (pageOffset: number, hasMoreResults = false) =>
+            act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {
+                    search: {offset: pageOffset, isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, hasMoreResults},
+                });
+            });
+
+        beforeEach(() => {
+            // clearAllMocks keeps mockImplementation overrides, so pin the default back down per test.
+            mockSearch.mockImplementation(() => Promise.resolve(200));
+        });
+
+        it('asks for its first page exactly once', async () => {
+            await seedTodoReports(3);
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
+        });
+
+        it('asks the server for the next page when the list reaches its end', async () => {
+            // The cursor only pages once the device already holds a full page of live rows.
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true);
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
+
+        it('shows the next rows only once the server answers their page, and ignores ends meanwhile', async () => {
+            const rowCount = CONST.SEARCH.RESULTS_PAGE_SIZE + 20;
+            await seedTodoReports(rowCount);
+            await seedTodoSnapshot(true);
+            searchWritesLoadingState();
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // The page is on the wire: the cap holds at the rows already answered.
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
+
+            // onEndReached refires under the loading footer; the second page must not chase past the one in flight.
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            expect(renderedRowKeys()).toHaveLength(rowCount);
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+        });
+
+        it('pages in live rows past the cap locally once the server reports no more pages', async () => {
+            const rowCount = CONST.SEARCH.RESULTS_PAGE_SIZE + 20;
+            await seedTodoReports(rowCount);
+            await seedTodoSnapshot(false);
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
+            mockSearch.mockClear();
+
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // The Onyx scan still holds rows past the cap: reveal another page without the server.
+            expect(renderedRowKeys()).toHaveLength(rowCount);
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // Nothing left to reveal, so a further end changes nothing.
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(renderedRowKeys()).toHaveLength(rowCount);
+        });
+
+        it('retries the failed page offset instead of skipping ahead past it', async () => {
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE * 2 + 20);
+            // The live response drops errors, so a failed page only leaves its response code behind.
+            await seedTodoSnapshot(true, {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, responseJsonCode: 500});
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE * 2)).toBe(false);
+        });
+
+        it('saves the page it has for report navigation to page on from', async () => {
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true);
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            const report = lastWriteActionsRender()?.filteredData.at(0);
+            await act(async () => {
+                if (!report) {
+                    return;
+                }
+                listProps.onSelectRow?.(report);
+            });
+
+            expect(await getOnyxValue(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY)).toEqual(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
+
+        it('holds a page reached offline and requests it once back online', async () => {
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true);
+
+            // Offline before the list mounts, so the paging closure sees it.
+            mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Nothing goes on the wire offline: the request would only fail and leave an error on the snapshot.
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {search: {isLoading: true}});
+            });
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {search: {isLoading: false}});
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
     });
 });
