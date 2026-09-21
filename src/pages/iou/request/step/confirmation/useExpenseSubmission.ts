@@ -64,7 +64,6 @@ import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolve
 
 import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
-import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {createDistanceRequest as createDistanceRequestIOUActions, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
@@ -73,7 +72,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -93,6 +91,7 @@ import type {SubmissionPath} from './submission/resolveSubmissionPath';
 
 import {resolveSubmissionPath, SUBMISSION_PATH} from './submission/resolveSubmissionPath';
 import useInvoiceSubmission from './submission/useInvoiceSubmission';
+import useSendMoneySubmission from './submission/useSendMoneySubmission';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 
 function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
@@ -169,24 +168,6 @@ type UseExpenseSubmissionParams = {
      * the pre-mounted report if validation then bails with no write.
      */
     onExpenseWriteWillStart?: () => void;
-};
-
-type SendMoneyReportIDs = {
-    /** Optimistic report ID generated before the server round-trip. */
-    optimisticChatReportID: string | undefined;
-    /** Resolved chat report ID (may match an existing report). */
-    chatReportID: string | undefined;
-};
-
-type SendMoneyOptions = {
-    /** Whether the send-money action should handle its own post-submit navigation. */
-    shouldHandleNavigation?: boolean;
-    /** Pre-resolved report IDs to avoid redundant resolution when the caller already resolved them. */
-    resolvedReportIDs?: SendMoneyReportIDs;
-    /** Whether to start telemetry tracking; false when the orchestrator starts tracking externally. */
-    shouldStartTracking?: boolean;
-    /** Whether to defer the API write for the Search skeleton optimization. */
-    shouldDeferForSearch?: boolean;
 };
 
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
@@ -362,6 +343,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
     // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
     const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+
+    const {sendMoney} = useSendMoneySubmission({
+        transaction,
+        receiptFiles,
+        report,
+        participants,
+        currentUserPersonalDetails,
+        setIsConfirmed,
+        onExpenseWriteWillStart,
+    });
 
     const invoiceSubmission = useInvoiceSubmission({
         transaction,
@@ -1299,55 +1290,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
         submitByPath[submissionPath](locationPermissionGranted, shouldHandleNavigation);
-    }
-
-    function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
-        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true, shouldDeferForSearch = false} = options ?? {};
-        const currency = transaction?.currency;
-        const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
-        const participant = participants?.at(0);
-
-        if (!participant || !transaction?.amount || !currency) {
-            return;
-        }
-
-        const {optimisticChatReportID, chatReportID} =
-            resolvedReportIDs ?? resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
-        // An explicit optimistic ID means the selected recipient has no chat yet. Do not let a stale page-level
-        // report override that ID in getSendMoneyParams when the recipient changed without remounting this screen.
-        const sendMoneyReport = optimisticChatReportID ? undefined : report;
-        const sendMoneyParams = {
-            getCurrencyDecimals,
-            report: sendMoneyReport,
-            quickAction,
-            amount: transaction.amount,
-            currency,
-            comment: trimmedComment,
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            recipient: participant,
-            created: transaction.created,
-            merchant: transaction.merchant,
-            receipt: receiptFiles[transaction.transactionID],
-            optimisticChatReportID,
-            shouldStartTracking,
-            shouldDeferForSearch,
-            delegateAccountID,
-        };
-
-        if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            onExpenseWriteWillStart?.();
-            setIsConfirmed(true);
-            sendMoneyElsewhere(sendMoneyParams);
-        } else if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            onExpenseWriteWillStart?.();
-            setIsConfirmed(true);
-            sendMoneyWithWallet(sendMoneyParams);
-        } else {
-            return;
-        }
-        if (shouldHandleNavigation) {
-            dismissModalAndOpenReportInInboxTab(chatReportID, undefined, reportTransactions.length > 0);
-        }
     }
 
     return {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted};
