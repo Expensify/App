@@ -1,5 +1,5 @@
-import type {AlertStatic} from 'react-native';
+import type {Alert as AlertRN} from 'react-native';
 
-type Alert = AlertStatic['alert'];
+type Alert = AlertRN['alert'];
 
 export default Alert;
