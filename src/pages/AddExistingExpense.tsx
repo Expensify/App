@@ -52,7 +52,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
-    const [selectedIds, setSelectedIds] = useState(new Set<string>());
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportToConfirm] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}`);
@@ -123,7 +123,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     // Must not read errorMessage. The Table re-runs its clear-selection effects when this callback's identity changes,
     // so setting the error would immediately clear it again.
     const onRowSelectionChange = (selectedRowKeys: string[]) => {
-        setSelectedIds(new Set(selectedRowKeys));
+        setSelectedIds(selectedRowKeys);
         setErrorMessage('');
     };
 
@@ -211,7 +211,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 title={shouldShowSelectionModeHeader ? translate('common.selectMultiple') : translate('iou.addExistingExpense')}
                 onBackButtonPress={() => {
                     if (shouldShowSelectionModeHeader) {
-                        setSelectedIds(new Set());
+                        setSelectedIds([]);
                         setIsMobileSelectionModeEnabled(false);
                         return;
                     }
@@ -221,7 +221,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             <View style={styles.flex1}>
                 <AddExistingExpenseTable
                     data={unreportedExpenses}
-                    selectedKeys={[...selectedIds]}
+                    selectedKeys={selectedIds}
                     onRowSelectionChange={onRowSelectionChange}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     onMobileSelectionModeChange={setIsMobileSelectionModeEnabled}

@@ -139,7 +139,7 @@ function AddExistingExpenseTable({
             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
             onMobileSelectionModeChange={onMobileSelectionModeChange}
             initialSortColumn="date"
-            initialSortOrder="desc"
+            initialSortOrder={CONST.SEARCH.SORT_ORDER.DESC}
             compareItems={compareItems}
             filters={filters}
             isItemInFilter={isItemInFilter}

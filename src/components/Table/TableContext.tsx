@@ -1,5 +1,7 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
+import CONST from '@src/CONST';
+
 import type {FlashListRef} from '@shopify/flash-list';
 import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 
@@ -135,7 +137,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
         order: 'asc',
     },
     initialSortColumn: undefined,
-    initialSortOrder: 'asc',
+    initialSortOrder: CONST.SEARCH.SORT_ORDER.ASC,
     narrowLayoutSortColumn: undefined,
     activeSearchString: '',
     tableMethods: {} as TableMethods<string, string>,

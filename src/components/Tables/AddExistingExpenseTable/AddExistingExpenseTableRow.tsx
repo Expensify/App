@@ -70,7 +70,6 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
                     amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     isDisabled={isRowDisabled}
-                    shouldShowCheckbox={false}
                     // Without this the row's own radius clips the receipt cell's corner. Table.Row draws the corners.
                     style={styles.noBorderRadius}
                 />

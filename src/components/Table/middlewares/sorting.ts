@@ -1,4 +1,7 @@
+import CONST from '@src/CONST';
+
 import type {SetStateAction} from 'react';
+import type {ValueOf} from 'type-fest';
 
 import {useState} from 'react';
 
@@ -7,7 +10,7 @@ import type {Middleware, MiddlewareHookResult} from './types';
 /**
  * The sort order of a column in the table.
  */
-type SortOrder = 'asc' | 'desc';
+type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 
 /**
  * The active sorting configuration of the table.
@@ -114,7 +117,7 @@ function resolveActiveSorting<ColumnKey extends string = string>(
 function useSorting<T, ColumnKey extends string = string>({
     compareItems,
     initialSortColumn,
-    initialSortOrder = 'asc',
+    initialSortOrder = CONST.SEARCH.SORT_ORDER.ASC,
     narrowLayoutSortColumn,
     shouldUseNarrowTableLayout,
     onSortingChange,

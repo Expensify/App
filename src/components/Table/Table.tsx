@@ -471,9 +471,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         setMobileSelectionModeEnabled(true);
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
-        // setMobileSelectionModeEnabled is omitted from the dependencies below because it closes over the caller's
-        // onMobileSelectionModeChange, which a caller is free to pass inline. This effect must only run when the user
-        // confirms the selection.
+        // This should only run when the user confirms the selection. setMobileSelectionModeEnabled is left out of the
+        // dependencies below because it changes on every render, which would run this again straight away.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
 
@@ -505,7 +504,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         activeFilters: currentFilters,
         activeSorting,
         initialSortColumn,
-        initialSortOrder: initialSortOrder ?? 'asc',
+        initialSortOrder: initialSortOrder ?? CONST.SEARCH.SORT_ORDER.ASC,
         narrowLayoutSortColumn,
         activeSearchString,
         tableMethods,
