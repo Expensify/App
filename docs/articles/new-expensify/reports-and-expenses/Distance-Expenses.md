@@ -13,7 +13,7 @@ Expensify offers four ways to create a Distance expense: **GPS tracking** on mob
 
 ---
 
-## How to create a GPS Distance expense (obile only)
+## How to create a GPS Distance expense (Mobile only)
 
 GPS tracking lets Expensify record your actual driving route in the background while you drive. You can pause and resume tracking to capture multi-segment trips (for example, if you make a stop and then continue driving from a different location).
 
