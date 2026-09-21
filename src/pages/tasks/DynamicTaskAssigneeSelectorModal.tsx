@@ -150,9 +150,7 @@ function DynamicTaskAssigneeSelectorModal() {
     }));
 
     // Focus the saved assignee rather than the staged one, so staging a row doesn't move the initial focus target.
-    const initiallyFocusedOptionKey = sections
-        .flatMap((section) => section.data)
-        .find((mode) => isPersistedAssignee(mode.accountID))?.keyForList;
+    const initiallyFocusedOptionKey = sections.flatMap((section) => section.data).find((mode) => isPersistedAssignee(mode.accountID))?.keyForList;
 
     const selectReport = (option: ListItem) => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
