@@ -1235,7 +1235,11 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
     // This ensures the dates are created in the current/local timezone, not UTC
     const quarterStart = set(new Date(), {year, month: startMonth - 1, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
     const quarterEnd = set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
-    return `Q${quarter} ${year} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
+    // `QQQ` is the locale's own abbreviated quarter — `Q1` in English, `T1` in Spanish, `K1` in Dutch, `I kw.` in
+    // Polish, `第一季` in Chinese. `Intl.DateTimeFormat` has no quarter option at all, so date-fns is the only way
+    // to localize this. The quarter-before-year order is still hand-written, as neither library has a canned
+    // pattern pairing the two.
+    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
 }
 
 /**

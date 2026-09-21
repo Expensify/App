@@ -33,6 +33,15 @@ const LOCALIZED_TOKENS = [
     {token: 'eeee', label: 'eeee (weekday name)'},
     {token: 'eee', label: 'eee (short weekday)'},
     {token: 'do', label: 'do (ordinal day)'},
+    // Quarters. `Q`/`QQ` are plain numbers, but everything wider is a locale's own label — `Q1`, `T1`, `K1`, `I kw.`
+    {token: 'QQQQQ', label: 'QQQQQ (narrow quarter)'},
+    {token: 'QQQQ', label: 'QQQQ (quarter name)'},
+    {token: 'QQQ', label: 'QQQ (short quarter)'},
+    {token: 'Qo', label: 'Qo (ordinal quarter)'},
+    {token: 'qqqqq', label: 'qqqqq (standalone narrow quarter)'},
+    {token: 'qqqq', label: 'qqqq (standalone quarter name)'},
+    {token: 'qqq', label: 'qqq (standalone short quarter)'},
+    {token: 'qo', label: 'qo (standalone ordinal quarter)'},
     // date-fns' localized date/time formats. These exist precisely to defer the clock convention, ordering and
     // separators to the locale, so they are meaningless without one.
     {token: 'PPPP', label: 'PPPP (localized long date with weekday)'},
