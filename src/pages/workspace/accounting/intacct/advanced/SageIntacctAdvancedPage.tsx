@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,6 +42,7 @@ function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbu
 
 function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
     const styles = useThemeStyles();
 
@@ -160,6 +162,20 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         )}
                     </MenuItemField>
                 </OfflineWithFeedback>
+                {canConfigureCurrencyConversionFees && (
+                    <OfflineWithFeedback
+                        key={translate('workspace.sageIntacct.fxExpenseAccount')}
+                        pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}
+                    >
+                        <MenuItemWithTopDescription
+                            title={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}
+                            description={translate('workspace.sageIntacct.fxExpenseAccount')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT.getRoute(policyID))}
+                            brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        />
+                    </OfflineWithFeedback>
+                )}
             </Accordion>
         </ConnectionLayout>
     );

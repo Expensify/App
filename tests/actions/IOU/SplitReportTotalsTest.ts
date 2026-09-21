@@ -511,6 +511,7 @@ describe('actions/IOU', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             rules: undefined,
+            isVendorMatchingBetaEnabled: false,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -747,6 +748,7 @@ describe('actions/IOU', () => {
 
         function buildBaseParams(overrides: Record<string, unknown> = {}) {
             return {
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 allTransactionsList: {},
