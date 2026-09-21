@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -260,6 +261,10 @@ function NewChatPage({ref}: NewChatPageProps) {
      */
     const selectOption = (option?: OptionWithKey) => {
         const latestSelectedOptions = latestSelectedOptionsRef.current;
+
+        // Picking a destination hands composer focus to the main pane. A chat that is already open there mounts no composer to
+        // release the Side Panel's claim, so without this the Side Panel wins the refocus that follows the dismiss.
+        ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
 
         if (option?.isSelfDM) {
             // Keep the self DM inert while a group selection is pending.
