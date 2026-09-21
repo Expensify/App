@@ -19,6 +19,9 @@ module PatchedIOSArtifacts
     # Tarballs fetched during setup, keyed by remote URL, so nothing downloads mid-install.
     @prefetched = {}
 
+    # Separates the hybrid and standalone source links, whose tarballs share a basename.
+    @package_name = nil
+
     # Matches the resolver and Gradle, so one tag covers artifact logging on both platforms.
     LOG_PREFIX = '[PatchedArtifacts]'
 
@@ -38,6 +41,7 @@ module PatchedIOSArtifacts
         # A single decision drives both prebuilt flags, so we never land in a mixed
         # prebuilt-deps / source-core state (which desyncs the CocoaPods sandbox).
         @using_prebuilt = !resolution['buildFromSource']
+        @package_name = resolution['packageName']
         flag = @using_prebuilt ? '1' : '0'
         ENV['RCT_USE_RN_DEP'] = flag
         ENV['RCT_USE_PREBUILT_RNCORE'] = flag
@@ -57,6 +61,26 @@ module PatchedIOSArtifacts
 
     def self.artifacts_stamp_path
         File.join(Pod::Config.instance.project_pods_root, 'ReactNativeCore-artifacts', '.artifacts-version')
+    end
+
+    SOURCE_LINK_ROOT = '/tmp/expensify-react-native-artifacts'
+
+    # Podfile.lock hashes this path, so it has to read the same on every machine.
+    # The tarball itself stays under Pods, where replace-rncore-version.js expects it.
+    def self.stable_source_link(tarball)
+        raise "#{LOG_PREFIX} Cannot build the React-Core-prebuilt source path without a package name; " \
+              'hybrid and standalone would share one link.' if @package_name.to_s.empty?
+
+        link = File.join(SOURCE_LINK_ROOT, @package_name, File.basename(tarball))
+        return link if File.symlink?(link) && File.readlink(link) == tarball
+
+        FileUtils.mkdir_p(File.dirname(link))
+        # A directory here would make ln_s create the link inside it, so the podspec would point at a directory.
+        FileUtils.remove_entry(link) if File.directory?(link) && !File.symlink?(link)
+        staging = "#{link}.#{Process.pid}"
+        File.symlink(tarball, staging)
+        File.rename(staging, link)
+        link
     end
 
     # CocoaPods memoizes external :podspec sources and may skip re-reading ours, whose source is
@@ -114,8 +138,14 @@ module PatchedIOSArtifacts
     # CocoaPods downloads podspec sources itself, without our token, so a remote URL here always 401s.
     # Runs before pods download, to name the cause instead of leaving a bare curl failure.
     def self.assert_local_rncore_source(installer)
-        source = installer.pod_targets.find { |pod| pod.name == 'React-Core-prebuilt' }&.root_spec&.source
+        target = installer.pod_targets.find { |pod| pod.name == 'React-Core-prebuilt' }
+        return if target.nil?
+
+        source = target.root_spec&.source
         url = source.is_a?(Hash) ? source[:http].to_s : ''
+        # react-native rescues our podspec source hook and carries on with no source, so name the cause here.
+        raise "#{LOG_PREFIX} React-Core-prebuilt resolved with no source. Its source hook raised, most likely " \
+              "while writing the link under #{SOURCE_LINK_ROOT}; check that path's ownership and permissions." if url.empty?
         return unless url.start_with?('http://', 'https://')
         raise "#{LOG_PREFIX} React-Core-prebuilt resolved to the remote URL #{url}, which CocoaPods " \
               'cannot authenticate against. Its source must be the tarball we download ourselves — check whether ' \
@@ -267,7 +297,8 @@ class ReactNativeCoreUtils
 
         # URI::File.build validates path components as ASCII, so escape the filesystem path first —
         # matches RN 0.86's own ReactNativePodsUtils.local_file_uri, which this replaces.
-        {:http => URI::File.build(path: URI::DEFAULT_PARSER.escape(debug)).to_s}
+        source_path = PatchedIOSArtifacts.stable_source_link(debug)
+        {:http => URI::File.build(path: URI::DEFAULT_PARSER.escape(source_path)).to_s}
     end
 
     # Overriding this also keeps our artifacts out of react-native's shared cache, where their filenames
