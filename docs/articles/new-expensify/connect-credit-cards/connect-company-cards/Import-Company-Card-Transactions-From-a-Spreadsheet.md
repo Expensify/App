@@ -42,8 +42,7 @@ Only workspace admins can import transactions for company cards.
     - **Amount**
     - **Currency**
 12. Map **Unique ID** to a column that holds a unique reference for each transaction, if your file has one.
-13. Assign each card to a workspace member based on the transactions in the file.
-14. Select **Import**.
+13. Select **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
