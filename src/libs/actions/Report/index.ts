@@ -4158,7 +4158,8 @@ function updateReportField({
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
-    const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
+    const recentlyUsedValuesForField = recentlyUsedReportFields?.[fieldKey];
+    const recentlyUsedValues = Array.isArray(recentlyUsedValuesForField) ? recentlyUsedValuesForField : [];
 
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField, accountID);
     const predictedNextStatus = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
