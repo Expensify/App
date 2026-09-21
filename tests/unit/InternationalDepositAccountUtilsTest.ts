@@ -1,15 +1,16 @@
 // cspell:words SBININBB SBININ asdfgh
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
+import CONST from '@src/CONST';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
 
 import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 
-const strictPattern = '^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$';
 const providerError = 'Beneficiary Bank BIC is invalid. Must be 8 or 11 characters long';
 
-function getFieldsMap(fieldName = 'swiftBicCode', regEx = strictPattern): CorpayFieldsMap {
+function getFieldsMap(fieldName: string = INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, regEx: string = CONST.CORPAY_FIELDS.STRICT_SWIFT_BIC_REGEX): CorpayFieldsMap {
     return createMock<CorpayFieldsMap>({
         [fieldName]: {
             isRequired: true,
@@ -35,7 +36,7 @@ describe('International deposit account validation', () => {
     it.each(['SBININBB', 'SBININBB101', 'asdfgh12'])('clears the format error after correcting the value to %s', (swiftBicCode) => {
         // Given a failed validation with the strict rule.
         const fieldsMap = getFieldsMap();
-        expect(getValidationErrors({swiftBicCode: '12345678'}, fieldsMap, translateLocal)).toHaveProperty('swiftBicCode');
+        expect(getValidationErrors({swiftBicCode: '12345678'}, fieldsMap, translateLocal)).toHaveProperty(INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE);
 
         // When the user corrects the value to match the provider rule.
         const errors = getValidationErrors({swiftBicCode}, fieldsMap, translateLocal);
@@ -45,9 +46,9 @@ describe('International deposit account validation', () => {
     });
 
     it.each([
-        ['swiftBicCode', '^.{0,12}$', '1234567890123'],
-        ['swiftBicCode', '^.{8}$', '123'],
-        ['routingCode', strictPattern, '12345678'],
+        [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, '^.{0,12}$', '1234567890123'],
+        [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, '^.{8}$', '123'],
+        ['routingCode', CONST.CORPAY_FIELDS.STRICT_SWIFT_BIC_REGEX, '12345678'],
     ])('preserves the provider message for %s with %s', (fieldName, pattern, value) => {
         // Given another format or a non-SWIFT field, whose requirements must not be inferred.
         const fieldsMap = getFieldsMap(fieldName, pattern);
@@ -61,7 +62,7 @@ describe('International deposit account validation', () => {
 
     it('accepts numeric codes when the provider only restricts length', () => {
         // Given the permissive provider rule used in production.
-        const fieldsMap = getFieldsMap('swiftBicCode', '^.{0,12}$');
+        const fieldsMap = getFieldsMap(INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, '^.{0,12}$');
 
         // When a numeric code satisfies that rule.
         const errors = getValidationErrors({swiftBicCode: '12345678'}, fieldsMap, translateLocal);
