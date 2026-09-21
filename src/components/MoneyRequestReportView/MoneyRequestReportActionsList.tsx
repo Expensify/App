@@ -21,7 +21,14 @@ import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getFilteredReportActionsForReportView, getLatestConciergeFeedbackActionID, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    canUserPerformWriteAction,
+    chatIncludesChronosWithID,
+    getReportLastVisibleActionCreated,
+    isHarvestCreatedExpenseReport,
+    shouldReportAlignToTop,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
@@ -212,6 +219,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         onListLayout: syncBottomOffsetFromLayout,
     } = useMoneyRequestReportScroll({
         reportID,
+        shouldBeAlignedToTop: shouldReportAlignToTop(report, parentReportAction),
         resetKey: reportID ?? reportIDFromRoute ?? '',
         visibleReportActions,
         reportActionsLength: reportActions.length,

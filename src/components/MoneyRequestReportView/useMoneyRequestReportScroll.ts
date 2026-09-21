@@ -30,6 +30,9 @@ const STICK_TO_BOTTOM_DURATION_MS = 2000;
 type UseMoneyRequestReportScrollParams = {
     reportID: string | undefined;
 
+    /** Whether the report's list is aligned to the top instead of the bottom */
+    shouldBeAlignedToTop: boolean;
+
     /** Key that resets the new-message autoscroll tracking, usually the reportID */
     resetKey: string;
 
@@ -99,6 +102,7 @@ type UseMoneyRequestReportScrollResult = {
  */
 function useMoneyRequestReportScroll({
     reportID,
+    shouldBeAlignedToTop,
     resetKey,
     visibleReportActions,
     reportActionsLength,
@@ -159,6 +163,7 @@ function useMoneyRequestReportScroll({
         unreadMarkerReportActionIndex,
         isInverted: false,
         hasNewerActions,
+        shouldBeAlignedToTop,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             listContentHeightRef.current = contentSize.height;
