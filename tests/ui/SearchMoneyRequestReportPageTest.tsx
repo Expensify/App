@@ -364,4 +364,23 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
 
         expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({transaction: expect.objectContaining({transactionID: 'txn5'})}));
     });
+
+    it('does not self-heal when the loaded report belongs to a different reportID than the route (stale report from a previous navigation)', async () => {
+        const createdAction = buildReportAction({reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
+        const submittedAction = buildReportAction({reportActionID: 'a2', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED});
+        await seedReportActions(REPORT_ID, [createdAction, submittedAction]);
+        const transaction = buildTransaction('txn6', REPORT_ID);
+        // `report` still reflects the previously viewed report (OTHER_REPORT_ID), even though the route,
+        // reportActions and transaction have already moved on to REPORT_ID.
+        const staleReport: OnyxTypes.Report = {...mockReport, reportID: OTHER_REPORT_ID};
+
+        renderPage({
+            allReportTransactions: {[transaction.transactionID]: transaction},
+            reportActions: [createdAction, submittedAction],
+            report: staleReport,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+    });
 });
