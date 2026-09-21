@@ -411,7 +411,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the different split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             });
 
             // Then push the RHP at root level
@@ -475,7 +475,7 @@ describe('Navigate', () => {
         });
 
         it.each([
-            ['add payment card', () => ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD],
+            ['add payment card', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)],
             ['add US bank account', () => ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute()],
             ['personal card details', () => ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute('123')],
             ['enter signer info', () => ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute('1', '2', false)],
@@ -619,7 +619,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             });
 
             // Then push the RHP at root level

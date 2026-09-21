@@ -236,7 +236,7 @@ const SCREENS = {
             SIZE: 'Settings_Subscription_Size',
             EXPENSIFY_CODE: 'Settings_Subscription_ExpensifyCode',
             SETTINGS_DETAILS: 'Settings_Subscription_Details',
-            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
+            DYNAMIC_ADD_PAYMENT_CARD: 'Dynamic_Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR: 'Dynamic_Settings_Subscription_Payment_Card_Currency_Selector',
