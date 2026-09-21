@@ -36,11 +36,13 @@ function SearchRouterOptionsWarmer({onDone}: SearchRouterOptionsWarmerProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const reportAttributes = useReportAttributes();
     const sortedReportActionsData = useSortedReportActionsData();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const churnVersionRef = useRef(0);
     useEffect(() => {
         churnVersionRef.current += 1;
-    }, [reports, policies, personalDetails, reportAttributes, sortedReportActionsData]);
+    }, [reports, policies, personalDetails, reportAttributes, sortedReportActionsData, allPolicyTags, visibleReportActionsData]);
 
     useEffect(() => {
         let attempts = 0;

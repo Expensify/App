@@ -412,17 +412,19 @@ function getExpenseReportPreviewText(
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
 }
 
+type LastActionContext = {
+    lastAction: OnyxEntry<ReportAction>;
+    lastActionReport: OnyxEntry<Report>;
+    movedFromReport: OnyxEntry<Report>;
+    movedToReport: OnyxEntry<Report>;
+};
+
 function resolveLastActionContext(
     report: Report,
     isReportArchived: boolean | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue | undefined,
     oneTransactionThreadReportID?: string,
-): {
-    lastAction: OnyxEntry<ReportAction>;
-    lastActionReport: OnyxEntry<Report>;
-    movedFromReport: OnyxEntry<Report>;
-    movedToReport: OnyxEntry<Report>;
-} {
+): LastActionContext {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
@@ -1770,3 +1772,4 @@ export {
     resolveLastActionContext,
     shouldShowLastActorDisplayName,
 };
+export type {LastActionContext};

@@ -30,6 +30,7 @@ import {
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType, isCardIssuedAction} from '@libs/ReportActionsUtils';
+import type {LastActionContext} from '@libs/ReportAlternateTextUtils';
 import {getExpensifyCardFromReportAction, getLastMessageTextForReport, getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -266,6 +267,8 @@ type GetAlternateTextConfig = {
     workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    /** Resolved by the caller when it already did the lookup, so the last-action scan is not repeated here. */
+    lastActionContext?: LastActionContext;
     rules: OnyxCollection<Rule>;
 };
 
@@ -313,6 +316,7 @@ function getAlternateText(
         workspaceCardList,
         localeCompare,
         formatPhoneNumber,
+        lastActionContext,
         rules,
     }: GetAlternateTextConfig,
 ) {
@@ -328,7 +332,8 @@ function getAlternateText(
         if (report) {
             const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
-            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
+            const {lastAction, lastActionReport, movedFromReport, movedToReport} =
+                lastActionContext ?? resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
             const card = isCardIssuedAction(lastAction)
                 ? getExpensifyCardFromReportAction({
                       reportAction: lastAction,
@@ -565,7 +570,8 @@ function createOption({
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        const {lastAction, movedFromReport, movedToReport} = resolveLastActionContext(report, result.private_isArchived, visibleReportActionsData, transactionThreadIDs?.[report.reportID]);
+        const lastActionContext = resolveLastActionContext(report, result.private_isArchived, visibleReportActionsData, transactionThreadIDs?.[report.reportID]);
+        const {lastAction, movedFromReport, movedToReport} = lastActionContext;
         result.lastMessageText = getLastMessageTextForReport({
             translate: translateFn,
             convertToDisplayString,
@@ -614,6 +620,7 @@ function createOption({
                           isTrackIntentUser,
                           currentUserAccountID,
                           currentUserLogin,
+                          lastActionContext,
                           rules,
                       },
                   );
@@ -2163,7 +2170,11 @@ function syncAlternateTextCache(inputs: unknown[]) {
 /** Returns the cached preview for the key, resolving and storing it on a miss. */
 function getCachedAlternateText(cacheKey: string, resolveAlternateText: () => string | undefined): string | undefined {
     if (alternateTextCache.has(cacheKey)) {
-        return alternateTextCache.get(cacheKey);
+        const cachedAlternateText = alternateTextCache.get(cacheKey);
+        // Re-inserting refreshes recency so a frequently-hit entry is not evicted by misses on other keys.
+        alternateTextCache.delete(cacheKey);
+        alternateTextCache.set(cacheKey, cachedAlternateText);
+        return cachedAlternateText;
     }
 
     const alternateText = resolveAlternateText();
@@ -2870,7 +2881,7 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
-    visibleReportActionsData = {},
+    visibleReportActionsData = EMPTY_VISIBLE_REPORT_ACTIONS,
     policyCollection,
     currentUserAccountID,
     currentUserEmail,

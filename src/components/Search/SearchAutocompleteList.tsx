@@ -382,6 +382,7 @@ function SearchAutocompleteList({
         loginList,
         policies,
         visibleReportActionsData,
+        reportAttributesDerived: reportAttributes,
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
