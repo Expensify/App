@@ -1,8 +1,8 @@
 ---
 title: Close Your Expensify Account
-description: Learn how to permanently close your Expensify account, what happens after you close it, and how to resolve common issues that can prevent account closure.
-keywords: [New Expensify, delete Expensify account, delete account, remove user, deactivate account, cancel account, cancel Expensify, terminate, how to delete Expensify, how to cancel Expensify, remove account, close account, terminate account, delete Expensify, how to delete, how to cancel]
-internalScope: Audience is all members. Covers how to close an Expensify account and resolve common errors that block account closure. Does not cover how to delete workspaces or how to remove members from the domain. 
+description: Learn how to permanently close your Expensify account, including the security code confirmation step, what happens after you close it, and how to resolve common issues that can prevent account closure.
+keywords: [New Expensify, delete Expensify account, delete account, remove user, deactivate account, cancel account, cancel Expensify, terminate, how to delete Expensify, how to cancel Expensify, remove account, close account, terminate account, delete Expensify, how to delete, how to cancel, security code, magic code, close account verification]
+internalScope: Audience is all members. Covers how to close an Expensify account, including the security code confirmation required to finish closing it, and how to resolve common errors that block account closure. Does not cover how to delete workspaces or how to remove members from the domain. 
 ---
 
 # Close Your Expensify Account
@@ -31,8 +31,19 @@ If you are the owner of a workspace on an Annual subscription, you can’t close
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. Under **Security**, click **Close account**.
-3. Follow the prompts and answer the required questions.
-4. Click **Close account** to confirm.
+3. In **Enter message here**, enter the reason you're closing your account.
+4. In **Enter your default contact method**, enter the default contact method shown on the page.
+5. Click **Close account**.
+6. When **Closing your account cannot be undone.** appears, click **Yes, continue**.
+7. On **Let's make sure it's you**, enter the security code sent to your default contact method, then click **Verify**.
+
+<!-- SCREENSHOT:
+Suggestion: The **Let's make sure it's you** screen with the empty security code field and the **Verify** button visible.
+Location: Immediately after step 7.
+Purpose: Members who expect the account to close as soon as they click **Yes, continue** may abandon this screen and later report that closure failed. Showing it confirms a code entry step is expected and is the final action.
+-->
+
+Your account isn't closed until you enter a valid security code. If you leave **Let's make sure it's you** without entering the code, your account stays open and you need to start over.
 
 If you don't see **Close account**, your account may be domain-controlled. Contact a domain admin and ask them to [deactivate your account](/articles/new-expensify/domains/Manage-Domain-Members#how-to-close-or-deactivate-a-domain-members-account). 
 
@@ -50,6 +61,14 @@ After you confirm the account closure:
 ---
 
 # FAQ
+
+## Why do I need to enter a security code to close my account?
+
+Closing an account permanently deletes it, so Expensify verifies that the request came from you. After you confirm the warning, Expensify sends a security code to your default contact method, and the account is only closed after you enter that code and click **Verify**.
+
+## What should I do if I don't receive the security code when closing my account?
+
+On **Let's make sure it's you**, wait for the countdown to finish, then click **Didn't receive a security code?** to send a new one. If the code still doesn't arrive, check the spam folder for your default contact method. [Learn how to troubleshoot security code emails](/articles/new-expensify/settings/Login-Troubleshooting#cant-receive-security-code-login-email).
 
 ## Can I close my account if I have an outstanding balance? 
 
