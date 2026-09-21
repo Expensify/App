@@ -251,7 +251,7 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
 const attachmentAnchorURLRegex = new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i');
 const ANCHOR_HREF_REGEX = /href="([^"]*)"/i;
 // A line break right after the anchor is absorbed: the block already ends the line, so keeping it adds an empty one.
-const ANCHOR_TAG_REGEX = /<a\s([^>]*)>[\s\S]*?<\/a>(?:<br \/>)?/gi;
+const ANCHOR_TAG_REGEX = /<a\s([^>]*)>[\s\S]*?<\/a>(<br \/>)?/gi;
 
 function getAnchorHref(attributes: string): string | undefined {
     return attributes.match(ANCHOR_HREF_REGEX)?.at(1);
@@ -275,13 +275,23 @@ function wrapAttachmentAnchorsInBlocks(html: string): string {
     if (!html.includes('<a ')) {
         return html;
     }
-    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string) => {
+    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, lineBreak?: string) => {
         if (!isAttachmentAnchorAttributes(attributes)) {
             return match;
         }
-        const anchor = match.endsWith('<br />') ? match.slice(0, -'<br />'.length) : match;
+        const anchor = lineBreak ? match.slice(0, -lineBreak.length) : match;
         return `<attachment-block>${anchor}</attachment-block>`;
     });
+}
+
+// The parser only turns an anchor into "[Attachment]" while it still carries `data-expensify-source`, which the server drops on edit.
+function replaceAttachmentAnchorsWithText(html: string): string {
+    if (!html.includes('<a ')) {
+        return html;
+    }
+    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, lineBreak?: string) =>
+        isAttachmentAnchorAttributes(attributes) ? `${CONST.ATTACHMENT_MESSAGE_TEXT}${lineBreak ?? ''}` : match,
+    );
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
@@ -2231,7 +2241,7 @@ function getReportActionText(reportAction: PartialReportAction): string {
 }
 
 function getTextFromHtml(html?: string): string {
-    return html ? Parser.htmlToText(html) : '';
+    return html ? Parser.htmlToText(replaceAttachmentAnchorsWithText(html)) : '';
 }
 
 function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
