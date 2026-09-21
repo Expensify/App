@@ -1,8 +1,8 @@
 ---
 title: Set Distance Rates
 description: Set and manage rates for distance reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands]
-internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, does not cover creating distance expenses.
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands, Require GPS or map entry, disable manual distance, disable odometer entry]
+internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates and requiring GPS or map entry, does not cover creating distance expenses.
 ---
 
 # Set Distance Rates
@@ -88,6 +88,21 @@ To prevent members from using a distance rate, you can either disable it or dele
 
 ---
 
+## How to require GPS or map entry for distance expenses
+
+You can require members to create distance expenses from a GPS-tracked trip or a map-based route, so every expense includes route data. When this is on, **Manual** and **Odometer** entry are disabled for distance expenses on the workspace.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Distance rates**.
+3. Select **Settings**.
+4. Enable **Require GPS or map entry**.
+
+This setting applies only to distance expenses on this workspace. Members can still use **Manual** and **Odometer** for personal distance expenses in **Your space**.
+
+[Learn how members create distance expenses](/articles/new-expensify/reports-and-expenses/Distance-Expenses)
+
+---
+
 ## How to automatically update distance rates when government rates change
 
 Expensify can automatically update distance rates in your workspace when the standard government reimbursement rate changes, such as the IRS standard mileage rate in the United States or equivalent rates in supported countries.
@@ -150,6 +165,10 @@ Yes. **Taxes** must be enabled on the workspace, and **Track tax** must be enabl
 ## What happens if I delete a distance rate?
 
 Deleted distance rates are permanently removed from the workspace and cannot be restored. If you want to prevent members from using a rate without removing it permanently, disable the rate instead.
+
+## Does Require GPS or map entry apply to personal expenses?
+
+No. **Require GPS or map entry** applies only to distance expenses on the workspace. Members keep **Map**, **Manual**, **GPS**, and **Odometer** for personal distance expenses in **Your space**.
 
 ## Can I change the reimbursement rate for existing distance expenses?
 
