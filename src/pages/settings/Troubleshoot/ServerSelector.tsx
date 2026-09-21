@@ -24,7 +24,6 @@ import React, {useState} from 'react';
 type ServerListItem = ListItem & {keyForList: Server};
 
 type ServerSelectorProps = {
-    /** The test tools modal floats, so it leaves this off. */
     shouldAddBottomSafeAreaPadding?: boolean;
 };
 
@@ -37,8 +36,6 @@ function ServerSelector({shouldAddBottomSafeAreaPadding = false}: ServerSelector
     const [pickedServer, setPickedServer] = useState<Server>();
     const selectedServer = pickedServer ?? activeServer;
 
-    // Two separate facts: whether a stored QA would be honored at all, and whether this platform can sign in
-    // to it. Offering QA without both would store a pick the resolver drops on the next read
     const canPickQA = isQASelectable && isQAAuthConfigured();
     const offeredServers = [CONST.SERVER.PRODUCTION, ...(isStagingIgnored ? [] : [CONST.SERVER.STAGING]), ...(canPickQA ? [CONST.SERVER.QA] : [])];
 
