@@ -25,7 +25,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
@@ -185,7 +185,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const isPayable = hasPayAction && canIOUBePaid;
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
-    const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
+    const allExpensesSelected = isEveryReportTransactionSelected(nonPendingDeleteTransactions, selectedTransactionIDs);
 
     // Shared payment hook
     const {handleWorkspaceSelected, onSelectionModePaymentSelect, selectionModeKYCSuccess, paymentSubMenuItems, hasPayInSelectionMode, kycWallRef} = useSelectionModePayment({

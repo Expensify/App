@@ -1,6 +1,12 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, isBillableEnabledOnPolicy, isSelectableReportTransaction, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
+import {
+    getReportIDForTransaction,
+    isBillableEnabledOnPolicy,
+    isEveryReportTransactionSelected,
+    isSelectableReportTransaction,
+    shouldWaitForTransactions,
+} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
@@ -202,6 +208,37 @@ describe('MoneyRequestReportUtils', () => {
 
             // Then nothing may select it, so Select All and a range agree with the checkbox
             expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+    });
+
+    describe('isEveryReportTransactionSelected', () => {
+        const ordinary = createMock<Transaction>({transactionID: '1'});
+        const other = createMock<Transaction>({transactionID: '2'});
+        const rejected = createMock<Transaction>({transactionID: '3', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+        test('counts a report covered once every row Select All can write is selected', () => {
+            // Given a report whose third expense the backend refused to reject, so no checkbox can put it in the selection
+            // When the other two are selected, which is everything Select All writes
+            // Then the report reads covered, or the report-level actions would be unreachable on it for good
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1', '2'])).toBe(true);
+        });
+
+        test('does not count a report while a row the user can still check is out', () => {
+            // Given the same report with only one of its two selectable rows selected
+            // Then it does not read covered, since a checkbox is left the user has not pressed
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1'])).toBe(false);
+        });
+
+        test('does not count an empty selection, whichever rows the report holds', () => {
+            // Given nothing selected
+            // Then the report is not covered, so pressing nothing cannot offer an action over everything
+            expect(isEveryReportTransactionSelected([ordinary, other], [])).toBe(false);
+        });
+
+        test('does not count a report holding no row anything can select', () => {
+            // Given a report whose only expense carries a refused reject, and a selection left holding its ID
+            // Then it does not read covered: `every` over an empty list is vacuously true, which would offer the actions on nothing
+            expect(isEveryReportTransactionSelected([rejected], ['3'])).toBe(false);
         });
     });
 

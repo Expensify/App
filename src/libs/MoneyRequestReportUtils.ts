@@ -40,6 +40,20 @@ function isSelectableReportTransaction(transaction: OnyxEntry<Transaction>): boo
     return !isTransactionPendingDelete(transaction) && !getTransactionRejectErrorKey(transaction);
 }
 
+/**
+ * Whether a selection covers every row of the report it can reach, which is what the report-level actions are offered on.
+ * Asked of the rows Select All writes rather than of every row on the report: an expense the backend refused to reject
+ * stays on the report with an error to dismiss, and no checkbox can put it in the selection.
+ */
+function isEveryReportTransactionSelected(transactions: Transaction[], selectedTransactionIDs: string[]): boolean {
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
+    if (selectedTransactionIDs.length === 0 || selectableTransactions.length === 0) {
+        return false;
+    }
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    return selectableTransactions.every((transaction) => selectedTransactionIDSet.has(transaction.transactionID));
+}
+
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
 }
@@ -243,4 +257,5 @@ export {
     isBillableEnabledOnPolicy,
     getTransactionRejectErrorKey,
     isSelectableReportTransaction,
+    isEveryReportTransactionSelected,
 };
