@@ -627,7 +627,7 @@ describe('FileUtils', () => {
 
     describe('appendExtensionFromMimeType', () => {
         it('should add the extension when the name has none', () => {
-            // Given an extensionless name, as an Android content:// URI or a null picker name produces
+            // Given a name with no extension, as an Android content:// URI or a null picker name produces
             // When the MIME type is known
             // Then the extension is recovered so the downloaded file is not a generic document
             expect(appendExtensionFromMimeType('1000000042', 'video/mp4')).toBe('1000000042.mp4');
@@ -642,7 +642,7 @@ describe('FileUtils', () => {
         });
 
         it('should leave the name alone when the MIME type cannot be resolved', () => {
-            // Given an extensionless name
+            // Given a name with no extension
             // When the MIME type is unknown, empty or undefined
             // Then no extension is invented, because a wrong extension is worse than none
             expect(appendExtensionFromMimeType('1000000042', 'application/not-a-real-type')).toBe('1000000042');

@@ -199,8 +199,8 @@ function getExtensionFromMimeType(mimeType: string | undefined): string | undefi
 /**
  * Adds an extension to a file name that has none, recovering it from the file's MIME type.
  * Some pickers hand us a name with no extension at all (an Android `content://` URI resolves to a bare
- * numeric segment, and the document picker can return `name: null`), and such a file downloads as an
- * extensionless blob the OS treats as a generic document even though the bytes are valid.
+ * numeric segment, and the document picker can return `name: null`), and such a file downloads as a
+ * bare blob the OS treats as a generic document even though the bytes are valid.
  * The name is returned unchanged when it already has an extension or the MIME type can't be resolved,
  * because a wrong extension is worse than no extension.
  */

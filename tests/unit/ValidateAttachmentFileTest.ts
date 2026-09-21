@@ -355,7 +355,7 @@ describe('validateAttachmentFile', () => {
             const result = await validateAttachmentFile(file);
 
             // Then the extension is backfilled, so downloading it later produces a file the OS can open
-            // instead of an extensionless generic document
+            // instead of a generic document with no extension
             expect(result.isValid).toBe(true);
             if (!result.isValid) {
                 throw new Error('validateAttachmentFile should return a valid result');
@@ -380,7 +380,7 @@ describe('validateAttachmentFile', () => {
         });
 
         it('leaves the name untouched when the MIME type is unknown', async () => {
-            // Given an extensionless attachment whose MIME type cannot be mapped to an extension
+            // Given an attachment with no extension whose MIME type cannot be mapped to one
             const file: FileObject = {name: '1000000042', size: 100, type: 'application/not-a-real-type'};
 
             // When it is validated

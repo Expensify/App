@@ -66,7 +66,7 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
      * Recovering a missing extension is done here so that it covers every upload flow (picker, drag and
      * drop, copy-paste, share). An attachment stored without an extension downloads as a file the OS
      * treats as a generic document, even when the bytes are a perfectly valid video or image.
-     * Receipts are unaffected: `isValidReceiptExtension` already rejected extensionless names above.
+     * Receipts are unaffected: `isValidReceiptExtension` already rejected names with no extension above.
      */
     const fileNameWithExtension = appendExtensionFromMimeType(normalizedFile.name ?? '', normalizedFile.type);
 
