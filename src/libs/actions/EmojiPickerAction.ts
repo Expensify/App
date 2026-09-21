@@ -18,7 +18,7 @@ type AnchorOrigin = {
     shiftVertical?: number;
 };
 
-type EmojiPopoverAnchor = RefObject<View | HTMLDivElement | TextInput | null>;
+type EmojiPopoverAnchor = RefObject<React.ComponentRef<typeof View> | HTMLDivElement | React.ComponentRef<typeof TextInput> | null>;
 
 type EmojiPickerOnWillShow = (callback?: CloseContextMenuCallback) => void;
 

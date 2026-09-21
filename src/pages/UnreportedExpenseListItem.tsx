@@ -55,7 +55,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<React.ComponentRef<typeof View>>(null);
 
     const transactionReportID = getNonEmptyStringOnyxID(transactionItem.reportID);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);

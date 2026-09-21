@@ -573,8 +573,8 @@ function MenuItem({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
-    const popoverAnchor = useRef<View>(null);
-    const pressableRef = useRef<View>(null);
+    const popoverAnchor = useRef<React.ComponentRef<typeof View>>(null);
+    const pressableRef = useRef<React.ComponentRef<typeof View>>(null);
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();

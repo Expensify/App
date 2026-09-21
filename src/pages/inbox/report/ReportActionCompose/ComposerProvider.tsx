@@ -71,10 +71,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         textRef.current = v;
     };
 
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<React.ComponentRef<typeof View>>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerWithSuggestionsRef | null>(null);
-    const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
+    const actionButtonRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
 
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();

@@ -48,7 +48,7 @@ function DatePickerModal({
     shouldEnableMonthYearBackdropInNarrowPane = false,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout

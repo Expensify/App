@@ -37,7 +37,7 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow', 'Task']);
     const illustrations = useMemoizedLazyIllustrations(['Computer']);
-    const popoverAnchor = useRef<View | RNText | null>(null);
+    const popoverAnchor = useRef<React.ComponentRef<typeof View> | React.ComponentRef<typeof RNText> | null>(null);
     const policyID: string = route.params.policyID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path);
 

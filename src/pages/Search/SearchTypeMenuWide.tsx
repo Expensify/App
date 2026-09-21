@@ -86,7 +86,7 @@ function SearchTypeMenuWide() {
     const {counts: reportCounts} = useTodoCounts();
 
     const route = useRoute();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
         // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.

@@ -79,7 +79,7 @@ type ExternalScrollDriverProps = Omit<ScrollViewProps, 'ref'> & {
  * FlashList memoizes its scroll component on identity.
  */
 function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style, ref}: ExternalScrollDriverProps) {
-    const nodeRef = useRef<View>(null);
+    const nodeRef = useRef<React.ComponentRef<typeof View>>(null);
 
     useImperativeHandle(
         ref,

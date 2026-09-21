@@ -98,7 +98,7 @@ function useVideoPlayer(..._args: unknown[]): VideoPlayer {
  */
 type VideoViewProps = ViewProps & {player?: VideoPlayer};
 
-const VideoView = forwardRef((props: VideoViewProps, ref: ForwardedRef<View>) => (
+const VideoView = forwardRef((props: VideoViewProps, ref: ForwardedRef<React.ComponentRef<typeof View>>) => (
     <View
         ref={ref}
         accessibilityLabel="MockVideoView"

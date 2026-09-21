@@ -11,7 +11,7 @@ import type NoDropZoneProps from './types';
 
 function NoDropZone({children}: NoDropZoneProps) {
     const styles = useThemeStyles();
-    const noDropZone = useRef<View | HTMLDivElement>(null);
+    const noDropZone = useRef<React.ComponentRef<typeof View> | HTMLDivElement>(null);
 
     useDragAndDrop({
         dropZone: htmlDivElementRef(noDropZone),

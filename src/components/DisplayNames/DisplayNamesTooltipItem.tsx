@@ -8,7 +8,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, Text as RNText, TextStyle} from 'react-native';
 
 import React, {useCallback} from 'react';
 
@@ -33,7 +33,7 @@ type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     textStyles?: StyleProp<TextStyle>;
 
     /** Refs to all the names which will be used to correct the horizontal position of the tooltip */
-    childRefs: RefObject<RNText[]>;
+    childRefs: RefObject<Array<React.ComponentRef<typeof RNText>>>;
 };
 
 function DisplayNamesTooltipItem({

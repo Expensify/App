@@ -26,7 +26,7 @@ type TimeModalPickerProps = {
     errorText?: string;
 
     label: string;
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {

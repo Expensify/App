@@ -33,7 +33,7 @@ type CountrySelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur, ref}: CountrySelectorProps) {

@@ -73,7 +73,7 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
     const shouldScrollHorizontally = isHeaderVisible && minTableWidth > tableWidth;
     const contentTableWidth = Math.max(getTableMinWidth(columns, type, isActionColumnWide, columnContentWidths, isSizingColumns), minTableWidth, tableWidth);
 
-    const horizontalScrollViewRef = useRef<RNScrollView>(null);
+    const horizontalScrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
 
     const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;

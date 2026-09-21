@@ -144,9 +144,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     }, [isLoading, isVideoOffline, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
-    const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
-    const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
-    const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
+    const videoPlayerElementParentRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const videoPlayerElementRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const sharedVideoPlayerParentRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const isReadyForDisplayRef = useRef(false);
     const savedCurrentTimeRef = useRef(0);
     const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
@@ -588,7 +588,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                 {shouldUseSharedVideoElement ? (
                                     <>
                                         <View
-                                            ref={sharedVideoPlayerParentRef as RefObject<View | null>}
+                                            ref={sharedVideoPlayerParentRef as RefObject<React.ComponentRef<typeof View> | null>}
                                             style={[styles.flex1]}
                                         />
                                         {/* We are adding transparent absolute View between appended video component and control buttons to enable

@@ -168,7 +168,7 @@ function DynamicIOURequestStepDistance({
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
     const isLoadingRoute = currentTransaction?.comment?.isLoading ?? false;
     const isLoading = currentTransaction?.isLoading ?? false;
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;

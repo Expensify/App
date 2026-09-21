@@ -66,7 +66,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
-    const formRef = useRef<ScrollView>(null);
+    const formRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
     const {isLoading, startWithLoading} = usePressLoading();

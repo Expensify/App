@@ -57,7 +57,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const ref = useRef<View | HTMLDivElement>(null);
+    const ref = useRef<React.ComponentRef<typeof View> | HTMLDivElement>(null);
     const {translate} = useLocalize();
 
     useEffect(() => resetEmojiPopoverAnchor, []);

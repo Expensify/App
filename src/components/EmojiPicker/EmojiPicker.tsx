@@ -266,7 +266,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
-            anchorRef={getEmojiPopoverAnchor() as RefObject<View | HTMLDivElement>}
+            anchorRef={getEmojiPopoverAnchor() as RefObject<React.ComponentRef<typeof View> | HTMLDivElement>}
             withoutOverlay={isWithoutOverlay}
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,

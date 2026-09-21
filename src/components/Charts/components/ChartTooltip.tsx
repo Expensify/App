@@ -52,7 +52,7 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
      * This prevents the "old" dimensions from being used to calculate the position
      * of "new" content, avoiding visual jumps or "ghosting" effects.
      */
-    const tooltipWrapperRef = useRef<View>(null);
+    const tooltipWrapperRef = useRef<React.ComponentRef<typeof View>>(null);
 
     useLayoutEffect(() => {
         tooltipWrapperRef.current?.measure((x: number, y: number, width: number) => {

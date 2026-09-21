@@ -101,8 +101,8 @@ function KYCWall({
     const reportTransactions = useReportTransactions(iouReport?.reportID);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const anchorRef = useRef<HTMLDivElement | View>(null);
-    const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
+    const anchorRef = useRef<HTMLDivElement | React.ComponentRef<typeof View>>(null);
+    const transferBalanceButtonRef = useRef<HTMLDivElement | React.ComponentRef<typeof View> | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     // Holds the fallback route while the add-payment menu is open. When the user picks "Personal bank account" from the menu,

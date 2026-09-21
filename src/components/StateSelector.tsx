@@ -36,7 +36,7 @@ type StateSelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {

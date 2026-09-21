@@ -34,14 +34,14 @@ type FloatingActionButtonProps = WithSentryLabel & {
     isActive: boolean;
     accessibilityLabel: string;
     role: Role;
-    ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
+    ref?: ForwardedRef<HTMLDivElement | React.ComponentRef<typeof ViewType> | React.ComponentRef<typeof TextType>>;
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
     const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
+    const fabPressable = useRef<HTMLDivElement | React.ComponentRef<typeof ViewType> | React.ComponentRef<typeof TextType> | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
     const {translate} = useLocalize();

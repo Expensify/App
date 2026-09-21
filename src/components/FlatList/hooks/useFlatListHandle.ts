@@ -7,7 +7,7 @@ import type {FlatList as RNFlatList, ScrollView} from 'react-native';
 import {useImperativeHandle} from 'react';
 
 type UseFlatListHandleProps<T> = {
-    ref?: ForwardedRef<RNFlatList<T>>;
+    ref?: ForwardedRef<RNFlatList>;
     listRef: React.RefObject<FlatListInnerRefType<T> | null>;
     setCurrentDataId: (dataId: string | null) => void;
     remainingItemsToDisplay?: number;

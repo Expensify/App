@@ -43,7 +43,7 @@ function DraggableList<T>({
     disableScroll,
     focusedIndex: controlledFocusedIndex,
     ref,
-}: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
+}: DraggableListProps<T> & {ref?: React.ForwardedRef<React.ComponentRef<typeof RNScrollView>>}) {
     const styles = useThemeStyles();
     const isControlled = controlledFocusedIndex !== undefined;
     const hasKeyboardNav = !isControlled && !!onSelectRow;

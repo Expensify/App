@@ -83,7 +83,7 @@ function DynamicIOURequestStepWaypoint({
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const textInput = useRef<TextInput | null>(null);
+    const textInput = useRef<React.ComponentRef<typeof TextInput> | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);

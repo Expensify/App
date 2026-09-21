@@ -222,7 +222,7 @@ function TransactionGroupListItemImpl({
         isLastItem && styles.tableBottomRadius,
         isItemSelected && styles.activeComponentBG,
     ];
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<React.ComponentRef<typeof View>>(null);
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {

@@ -83,7 +83,7 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether this screen should be hidden from accessibility tree */
         shouldHideFromAccessibility?: boolean;
 
-        ref?: ForwardedRef<View>;
+        ref?: ForwardedRef<React.ComponentRef<typeof View>>;
     }>;
 
 function ScreenWrapperContainer({

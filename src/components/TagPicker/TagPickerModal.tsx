@@ -68,7 +68,7 @@ function TagPickerModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive} = useKeyboardState();
 
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const tagListName = getTagList(policyTags, 0).name;

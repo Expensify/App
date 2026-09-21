@@ -25,7 +25,7 @@ function EmojiPickerMenuItem({
     isHighlighted = false,
     isUsingKeyboardMovement = false,
 }: EmojiPickerMenuItemProps) {
-    const ref = useRef<View>(null);
+    const ref = useRef<React.ComponentRef<typeof View>>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
 

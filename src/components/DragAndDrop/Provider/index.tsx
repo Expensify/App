@@ -17,7 +17,7 @@ import {DragAndDropActionsContext, DragAndDropStateContext} from './DragAndDropC
 
 function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = () => {}}: DragAndDropProviderProps) {
     const styles = useThemeStyles();
-    const dropZone = useRef<HTMLDivElement | View>(null);
+    const dropZone = useRef<HTMLDivElement | React.ComponentRef<typeof View>>(null);
     const dropZoneID = useRef(Str.guid('drag-n-drop'));
 
     const onDropHandler = useRef<SetOnDropHandlerCallback>(() => {});

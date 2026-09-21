@@ -104,7 +104,7 @@ function AvatarWithImagePicker({
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
     const {calculatePopoverPosition} = usePopoverPosition();
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 

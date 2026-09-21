@@ -61,7 +61,7 @@ function BasePickerImpl({
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
-    const root = useRef<View>(null);
+    const root = useRef<React.ComponentRef<typeof View>>(null);
 
     // reference to @react-native-picker/picker
     const picker = useRef<RNPickerSelect>(null);
@@ -256,7 +256,7 @@ function BasePickerImpl({
                             disableHighlight();
                         }),
                     }}
-                    scrollViewRef={context?.scrollViewRef as RefObject<ScrollView>}
+                    scrollViewRef={context?.scrollViewRef as RefObject<React.ComponentRef<typeof ScrollView>>}
                     scrollViewContentOffsetY={context?.contentOffsetY}
                 />
             </View>

@@ -67,7 +67,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
 
-    const submitButton = useRef<View>(null);
+    const submitButton = useRef<React.ComponentRef<typeof View>>(null);
 
     useEffect(() => {
         submitButton.current?.focus();

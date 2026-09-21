@@ -53,7 +53,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
 
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
 
     const handleOnContentSizeChange = useCallback(() => {
         if (!shouldScrollToBottom) {

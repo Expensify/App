@@ -67,7 +67,7 @@ function AboutPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<React.ComponentRef<typeof View>>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     useDocumentTitle(translate('initialSettingsPage.about'));

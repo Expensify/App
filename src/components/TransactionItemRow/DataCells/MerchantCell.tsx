@@ -28,7 +28,7 @@ type MerchantOrDescriptionCellProps = {
 function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave}: MerchantOrDescriptionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef<RNTextInput | null>(null);
+    const inputRef = useRef<React.ComponentRef<typeof RNTextInput> | null>(null);
 
     const text = useMemo(() => {
         if (!isDescription) {

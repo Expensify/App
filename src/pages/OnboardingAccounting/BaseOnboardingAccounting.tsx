@@ -141,7 +141,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [userReportedIntegrationName, setUserReportedIntegrationName] = useState('');
     const [shouldScrollToOtherInput, setShouldScrollToOtherInput] = useState(initialSelectedIntegration === 'other');
     const [error, setError] = useState('');
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
     const otherAccountingSoftwareInputRef = useRef<BaseTextInputRef | null>(null);
     const isOtherSelected = selectedIntegration === 'other';
 

@@ -107,7 +107,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     // In tests, skip the popover anchor position calculation. The default values are needed for popover menu to be rendered in tests.
     const defaultPopoverAnchorPosition = process.env.NODE_ENV === 'test' ? {horizontal: 100, vertical: 100} : null;
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
-    const dropdownAnchor = useRef<View | null>(null);
+    const dropdownAnchor = useRef<React.ComponentRef<typeof View> | null>(null);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();

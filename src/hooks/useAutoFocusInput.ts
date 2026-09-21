@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {TextInput} from 'react-native';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -24,7 +24,7 @@ import useSidePanelState from './useSidePanelState';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
-    inputRef: RefObject<TextInput | null>;
+    inputRef: RefObject<ComponentRef<typeof TextInput> | null>;
     cancelAutoFocus: () => void;
 };
 
@@ -39,7 +39,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const {splashScreenState} = useSplashScreenState();
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
 
-    const inputRef = useRef<TextInput | null>(null);
+    const inputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
     const transitionEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isAutoFocusCancelledRef = useRef(false);
 

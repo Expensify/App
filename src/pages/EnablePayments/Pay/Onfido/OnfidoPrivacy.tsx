@@ -39,7 +39,7 @@ type OnfidoPrivacyProps = {
 
 function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPrivacyProps) {
     const {translate} = useLocalize();
-    const formRef = useRef<ScrollView>(null);
+    const formRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const styles = useThemeStyles();
     if (!walletOnfidoData) {
         return;

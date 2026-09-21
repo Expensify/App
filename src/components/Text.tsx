@@ -39,7 +39,7 @@ type TextProps = RNTextProps &
         children: React.ReactNode;
         family?: keyof FontUtilsType['fontFamily']['platform'];
         shouldUseDefaultLineHeight?: boolean;
-        ref?: ForwardedRef<RNText>;
+        ref?: ForwardedRef<React.ComponentRef<typeof RNText>>;
     };
 
 function Text({

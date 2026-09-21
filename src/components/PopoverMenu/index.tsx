@@ -152,7 +152,7 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
 
-    anchorRef: RefObject<View | HTMLDivElement | null>;
+    anchorRef: RefObject<React.ComponentRef<typeof View> | HTMLDivElement | null>;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;

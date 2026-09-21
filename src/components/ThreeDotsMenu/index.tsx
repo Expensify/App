@@ -65,7 +65,7 @@ function ThreeDotsMenu({
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
-    const buttonRef = useRef<View>(null);
+    const buttonRef = useRef<React.ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;

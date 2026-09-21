@@ -27,7 +27,7 @@ function EmojiPickerMenuItem({
     isHighlighted = false,
 }: EmojiPickerMenuItemProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const ref = useRef<HTMLDivElement | View | RNText | null>(null);
+    const ref = useRef<HTMLDivElement | React.ComponentRef<typeof View> | React.ComponentRef<typeof RNText> | null>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
 

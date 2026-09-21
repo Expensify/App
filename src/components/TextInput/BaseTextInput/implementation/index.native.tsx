@@ -31,7 +31,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle, TextInput} from 'react-native';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -126,7 +126,7 @@ function BaseTextInput({
     const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
     const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
-    const input = useRef<TextInput | null>(null);
+    const input = useRef<React.ComponentRef<typeof TextInput> | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
     const hasLabel = !!label?.length;
 

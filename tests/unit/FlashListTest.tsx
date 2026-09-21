@@ -20,7 +20,7 @@ describe('FlashList - stale onLayout after rapid data change', () => {
         // Map of index -> captured onLayout handler from each ViewHolder render
         const capturedLayoutHandlers = new Map<number, (event: LayoutChangeEvent) => void>();
 
-        const CapturingCell = React.forwardRef<RNView, CellProps>(({index, onLayout, style, children}, ref) => {
+        const CapturingCell = React.forwardRef<React.ComponentRef<typeof RNView>, CellProps>(({index, onLayout, style, children}, ref) => {
             capturedLayoutHandlers.set(index, onLayout);
             return (
                 <View

@@ -42,7 +42,7 @@ type CurrencySelectorProps = {
     /** Whether to show currency symbol in the title */
     shouldShowCurrencySymbol?: boolean;
 
-    ref: ForwardedRef<View>;
+    ref: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 function CurrencySelector({

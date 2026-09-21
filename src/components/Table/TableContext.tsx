@@ -38,7 +38,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     listRef: React.RefObject<FlashListRef<DataType> | null>;
 
     /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
-    listContainerRef: React.RefObject<View | null>;
+    listContainerRef: React.RefObject<React.ComponentRef<typeof View> | null>;
 
     /** Tracks the list scroll offset for the focused-input scroll helper; wired into the list's onScroll. */
     trackScrollOffset: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;

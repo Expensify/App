@@ -112,7 +112,7 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
-    const bottomDockedDismissButtonRef = useRef<View>(null);
+    const bottomDockedDismissButtonRef = useRef<React.ComponentRef<typeof View>>(null);
     const [fallbackModalID] = useState(() => ComposerFocusManager.getId());
     const coveringModalID = fallbackModalID;
     // On Android the hide callback fires from the reanimated exit-animation snapshot taken when the close began,

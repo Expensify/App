@@ -440,7 +440,7 @@ function CopilotPage() {
         openSecuritySettingsPage();
     }, []);
 
-    const delegateAnchorRef = delegateButtonRef as RefObject<View | null>;
+    const delegateAnchorRef = delegateButtonRef as RefObject<React.ComponentRef<typeof View> | null>;
 
     return (
         <ScreenWrapper

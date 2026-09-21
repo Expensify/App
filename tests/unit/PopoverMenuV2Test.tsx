@@ -231,7 +231,7 @@ function focus(title: string): void {
 /** Publishes `activeAnchor` synthetically; stays mounted across open/close. Rect is fabricated — the mock ignores it. */
 function AutoSetAnchor() {
     const {setActiveAnchor} = useRootActions('AutoSetAnchor');
-    const ref: AnchorRef = useRef<RNViewType>(null);
+    const ref: AnchorRef = useRef<React.ComponentRef<typeof RNViewType>>(null);
     useLayoutEffect(() => {
         setActiveAnchor({ref, rect: {x: 0, y: 0, width: 0, height: 0}});
     }, [setActiveAnchor, ref]);
@@ -531,7 +531,7 @@ describe('PopoverMenu V2', () => {
         });
 
         it('merges the consumer ref with the internal anchor ref', () => {
-            const consumerRef = React.createRef<RNViewType>();
+            const consumerRef = React.createRef<React.ComponentRef<typeof RNViewType>>();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
@@ -555,8 +555,8 @@ describe('PopoverMenu V2', () => {
         it('handles two Triggers as independent instances (multi-instance composition)', () => {
             const consumerOnPressA = jest.fn();
             const consumerOnPressB = jest.fn();
-            const refA = React.createRef<RNViewType>();
-            const refB = React.createRef<RNViewType>();
+            const refA = React.createRef<React.ComponentRef<typeof RNViewType>>();
+            const refB = React.createRef<React.ComponentRef<typeof RNViewType>>();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>

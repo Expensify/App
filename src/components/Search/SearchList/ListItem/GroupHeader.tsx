@@ -347,7 +347,7 @@ function GroupHeader({
     );
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<React.ComponentRef<typeof View>>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 

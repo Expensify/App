@@ -24,7 +24,7 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
     route: Route;
 
     /** Reference to the outer element */
-    ref: ForwardedRef<View>;
+    ref: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 function InitialListValueSelector({value = '', label = '', rightLabel, errorText = '', onInputChange, route, ref}: InitialListValueSelectorProps) {

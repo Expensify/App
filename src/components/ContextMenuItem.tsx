@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle, View} from 'react-native';
 
 import React from 'react';
 
@@ -47,7 +47,7 @@ type ContextMenuItemProps = WithSentryLabel & {
     shouldPreventDefaultFocusOnPress?: boolean;
 
     /** The ref of mini context menu item */
-    buttonRef?: React.RefObject<View | null>;
+    buttonRef?: React.RefObject<React.ComponentRef<typeof View> | null>;
 
     onFocus?: () => void;
 

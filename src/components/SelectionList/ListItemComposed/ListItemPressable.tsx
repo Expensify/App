@@ -61,7 +61,7 @@ function ListItemPressable<TItem extends ListItem>({
     } = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<React.ComponentRef<typeof View>>(null);
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);

@@ -29,7 +29,7 @@ const Stack = createPlatformStackNavigator<TestToolsModalModalNavigatorParamList
 function TestToolsModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const outerViewRef = useRef<View>(null);
+    const outerViewRef = useRef<React.ComponentRef<typeof View>>(null);
     const isAuthenticated = useIsAuthenticated();
 
     const handleOuterClick = useCallback(() => {

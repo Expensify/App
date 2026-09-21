@@ -110,7 +110,7 @@ type BaseReportActionContextMenuProps = {
      */
     isThreadReportParentAction?: boolean;
 
-    contentRef?: RefObject<View | null>;
+    contentRef?: RefObject<React.ComponentRef<typeof View> | null>;
     checkIfContextMenuActive?: () => void;
     disabledActions?: ContextMenuAction[];
     setIsEmojiPickerActive?: (state: boolean) => void;
@@ -168,7 +168,7 @@ function BaseReportActionContextMenu({
     const {isOffline} = useNetwork();
     const {isProduction, isDevelopment, environment} = useEnvironment();
     const isStaging = environment === CONST.ENVIRONMENT.STAGING;
-    const threeDotRef = useRef<View>(null);
+    const threeDotRef = useRef<React.ComponentRef<typeof View>>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: withDEWRoutedActionsObject,
@@ -347,7 +347,7 @@ function BaseReportActionContextMenu({
         }
     };
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<React.ComponentRef<typeof View> | null>) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,

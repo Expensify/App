@@ -208,8 +208,8 @@ function MoneyRequestReceiptView({
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
     const {isOffline} = useNetwork();
-    const receiptContainerRef = useRef<View | null>(null);
-    const addButtonRef = useRef<View | null>(null);
+    const receiptContainerRef = useRef<React.ComponentRef<typeof View> | null>(null);
+    const addButtonRef = useRef<React.ComponentRef<typeof View> | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);

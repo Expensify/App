@@ -50,7 +50,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
     const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const formRef = useRef<ScrollView>(null);
+    const formRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
     const {isLoading, startWithLoading} = usePressLoading();
 

@@ -1,7 +1,7 @@
 import {DragAndDropStateContext} from '@components/DragAndDrop/Provider/DragAndDropContext';
 
 import type {ReactNode, RefObject} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle, View} from 'react-native';
 
 import React, {useState} from 'react';
 
@@ -12,7 +12,7 @@ type ReceiptScanDropZoneProps = {
     children: ReactNode;
 
     /** Ref to the container receipts are dropped onto */
-    dropZoneRef: RefObject<View | HTMLDivElement | null>;
+    dropZoneRef: RefObject<React.ComponentRef<typeof View> | HTMLDivElement | null>;
 
     /** Whether the drop zone is disabled, keeping the scan logic unmounted */
     isDisabled?: boolean;

@@ -41,7 +41,7 @@ type DistanceMapTabContentProps = {
     waypoints: WaypointCollection;
     extractKey: (key: string) => string;
     updateWaypoints: (data: {data: string[]}) => void;
-    scrollViewRef: React.RefObject<RNScrollView | null>;
+    scrollViewRef: React.RefObject<React.ComponentRef<typeof RNScrollView> | null>;
     renderItem: (params: RenderItemParams<string>) => React.JSX.Element;
     navigateToWaypointEditPage: (index: number) => void;
     transaction: OnyxEntry<Transaction>;

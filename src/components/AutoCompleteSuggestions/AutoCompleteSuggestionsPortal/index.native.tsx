@@ -28,7 +28,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     const StyleUtils = useStyleUtils();
     const {height: windowHeight} = useWindowDimensionsForAutoCompleteSuggestions();
     const {keyboardHeight} = useKeyboardState();
-    const hostFrameRef = useRef<View>(null);
+    const hostFrameRef = useRef<React.ComponentRef<typeof View>>(null);
 
     const [hostBottomInset, setHostBottomInset] = useState<number | null>(null);
 

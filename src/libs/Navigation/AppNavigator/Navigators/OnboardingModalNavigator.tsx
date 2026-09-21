@@ -49,7 +49,7 @@ let signUpEventPublishedForAccountID: number | undefined;
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const outerViewRef = React.useRef<View>(null);
+    const outerViewRef = React.useRef<React.ComponentRef<typeof View>>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 

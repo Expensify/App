@@ -42,7 +42,7 @@ function BaseAnchorForCommentsOnly({
 }: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const linkRef = useRef<RNText>(null);
+    const linkRef = useRef<React.ComponentRef<typeof RNText>>(null);
     const flattenStyle = StyleSheet.flatten(style);
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
 

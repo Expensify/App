@@ -46,7 +46,7 @@ type InteractiveStepWrapperProps = {
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
     onEntryTransitionEnd?: () => void;
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 const INPUT_HEADER_HEIGHT = variables.lineHeightXXLarge;

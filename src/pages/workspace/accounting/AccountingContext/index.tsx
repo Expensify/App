@@ -33,7 +33,7 @@ type AccountingContextProviderProps = ChildrenProps & {
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
-    const popoverAnchorRefs = useRef<Record<string, RefObject<View | null>>>(popoverAnchorRefsInitialValue);
+    const popoverAnchorRefs = useRef<Record<string, RefObject<React.ComponentRef<typeof View> | null>>>(popoverAnchorRefsInitialValue);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;

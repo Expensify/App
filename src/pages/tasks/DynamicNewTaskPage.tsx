@@ -113,7 +113,7 @@ function DynamicNewTaskPage() {
     const {paddingBottom} = useSafeAreaPaddings();
 
     const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK.path);
-    const confirmButtonRef = useRef<View>(null);
+    const confirmButtonRef = useRef<React.ComponentRef<typeof View>>(null);
 
     const navigateToAssignee = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path));
     const navigateToShareDestination = task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path));

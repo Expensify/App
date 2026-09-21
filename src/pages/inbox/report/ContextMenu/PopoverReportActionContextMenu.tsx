@@ -102,8 +102,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
-    const contentRef = useRef<View>(null);
-    const anchorRef = useRef<View | HTMLDivElement | null>(null);
+    const contentRef = useRef<React.ComponentRef<typeof View>>(null);
+    const anchorRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
     const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);

@@ -58,7 +58,7 @@ function GenericPressable({
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
     const [isHovered, setIsHovered] = useState(false);
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
-    const internalRef = useRef<View | null>(null);
+    const internalRef = useRef<React.ComponentRef<typeof View> | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
     const routeKey = useRouteKey();
     // `||` so empty strings skip — never key off an empty prop.

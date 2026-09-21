@@ -31,7 +31,7 @@ function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItems
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'CheckSquare']);
     const {currentSearchResults} = useSearchResultsContext();
     const {selectAllMatchingItems} = useSearchSelectionActions();
-    const selectAllAnchorRef = useRef<View>(null);
+    const selectAllAnchorRef = useRef<React.ComponentRef<typeof View>>(null);
     const [isSelectAllMenuVisible, setIsSelectAllMenuVisible] = useState(false);
     const [selectAllMenuPosition, setSelectAllMenuPosition] = useState({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();

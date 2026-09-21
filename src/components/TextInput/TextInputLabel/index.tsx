@@ -14,7 +14,7 @@ import type TextInputLabelProps from './types';
 function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, isMultiline, shouldLabelStayOnSingleLine}: TextInputLabelProps) {
     const shouldClipToSingleLine = !isMultiline || shouldLabelStayOnSingleLine;
     const styles = useThemeStyles();
-    const labelRef = useRef<Text | HTMLFormElement>(null);
+    const labelRef = useRef<React.ComponentRef<typeof Text> | HTMLFormElement>(null);
 
     useEffect(() => {
         if (!inputId || !labelRef.current || !('setAttribute' in labelRef.current)) {

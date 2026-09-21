@@ -34,7 +34,7 @@ function BusinessCentralPrerequisitesPage({route}: BusinessCentralPrerequisitesP
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Task']);
     const illustrations = useMemoizedLazyIllustrations(['Computer']);
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<React.ComponentRef<typeof View>>(null);
     const policyID: string = route.params.policyID;
 
     const menuItems = [

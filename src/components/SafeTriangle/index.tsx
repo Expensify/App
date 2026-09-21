@@ -13,8 +13,8 @@ import type SafeTriangleProps from './types';
 type Point = [number, number];
 
 type SafeTriangleOverlayProps = {
-    submenuRef: React.RefObject<View | null>;
-    containerRef: React.RefObject<View | null>;
+    submenuRef: React.RefObject<React.ComponentRef<typeof View> | null>;
+    containerRef: React.RefObject<React.ComponentRef<typeof View> | null>;
 };
 
 type Rect = {
@@ -176,7 +176,7 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
  */
 function SafeTriangle({submenuRef, children}: SafeTriangleProps) {
     const styles = useThemeStyles();
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<React.ComponentRef<typeof View>>(null);
 
     if (isMobile()) {
         return children;

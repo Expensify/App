@@ -57,7 +57,7 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     shouldSaveDraft?: boolean;
 
     accessibilityLabel?: string;
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 function CheckboxWithLabel({

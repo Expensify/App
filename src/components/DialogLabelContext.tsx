@@ -7,7 +7,7 @@ import React, {createContext, useCallback, useContext, useLayoutEffect, useMemo,
 type LabelEntry = {id: number; text: string};
 
 type DialogLabelData = {
-    containerRef: React.RefObject<View | null>;
+    containerRef: React.RefObject<React.ComponentRef<typeof View> | null>;
     isInsideDialog: boolean;
     /**
      * Accessible name for the dialog — applied as a React `aria-label` prop (not via DOM setAttribute).
@@ -50,7 +50,7 @@ function DialogLabelProvider({children, containerNode, hasDialogSemantics: hasDi
     const nextIdRef = useRef(0);
     const labelStackRef = useRef<LabelEntry[]>([]);
     const initialFocusClaimedRef = useRef(false);
-    const containerRef = useRef<View | null>(null);
+    const containerRef = useRef<React.ComponentRef<typeof View> | null>(null);
     const [activeLabel, setActiveLabel] = useState<string | undefined>();
 
     useLayoutEffect(() => {

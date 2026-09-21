@@ -104,7 +104,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const requestorStepRef = useRef<View>(null);
+    const requestorStepRef = useRef<React.ComponentRef<typeof View>>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
     const isKYBDocumentsRequired = getRequiredKYBDocuments(reimbursementAccount?.achData?.verifications?.externalApiResponses).length > 0;
 

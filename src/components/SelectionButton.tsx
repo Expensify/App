@@ -62,7 +62,7 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         /** Used to locate this view in end-to-end tests. */
         testID?: string;
 
-        ref?: ForwardedRef<View>;
+        ref?: ForwardedRef<React.ComponentRef<typeof View>>;
         tabIndex?: 0 | -1;
 
         /** Whether the button is accessible to screen readers */

@@ -77,7 +77,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const delegators = account?.delegatedAccess?.delegators ?? [];
     const personalDetailsByLogin = usePersonalDetailsByLogins([delegate, ...delegators.map((delegator) => delegator.email)]);
 
-    const buttonRef = useRef<View>(null);
+    const buttonRef = useRef<React.ComponentRef<typeof View>>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {calculatePopoverPosition} = usePopoverPosition();
 

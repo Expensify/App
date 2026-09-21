@@ -20,7 +20,7 @@ type DropZoneWrapperProps = {
 
 function DropZoneWrapper({onDrop, children}: DropZoneWrapperProps) {
     const styles = useThemeStyles();
-    const dropZone = useRef<HTMLDivElement | View>(null);
+    const dropZone = useRef<HTMLDivElement | React.ComponentRef<typeof View>>(null);
 
     const {isDraggingOver} = useDragAndDrop({
         shouldAcceptDrop,

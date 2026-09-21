@@ -334,12 +334,12 @@ type ContextMenuActionPayload = {
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: RefObject<HTMLDivElement | View | Text | null>;
+    anchor?: RefObject<HTMLDivElement | React.ComponentRef<typeof View> | Text | null>;
     checkIfContextMenuActive?: () => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<React.ComponentRef<typeof View> | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
-    anchorRef?: RefObject<View | null>;
+    anchorRef?: RefObject<React.ComponentRef<typeof View> | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;

@@ -193,7 +193,7 @@ function ColumnsSettingsList({
     const combinedItems = isGrouped ? [...groupColumnsList, ...typeColumnsList] : [];
     const groupLength = groupColumnsList.length;
     const disabledIndexes = combinedItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<React.ComponentRef<typeof View>>(null);
 
     const {focusedIndex, setFocusedIndex} = useListKeyboardNav({
         containerRef,

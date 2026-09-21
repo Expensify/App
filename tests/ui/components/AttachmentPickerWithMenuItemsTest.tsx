@@ -102,7 +102,7 @@ const MOCK_PERSONAL_DETAILS: PersonalDetails = {
 };
 
 function renderComponent() {
-    const actionButtonRef = React.createRef<View>();
+    const actionButtonRef = React.createRef<React.ComponentRef<typeof View>>();
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <AttachmentPickerWithMenuItems

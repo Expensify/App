@@ -33,7 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {Route} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle, View} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 
 import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
@@ -120,7 +120,7 @@ function ScreenWrapper({
     const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
-    const screenWrapperRef = useRef<View | HTMLElement>(null);
+    const screenWrapperRef = useRef<React.ComponentRef<typeof View> | HTMLElement>(null);
     const mergedScreenWrapperRef = mergeRefs(screenWrapperRef, ref);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens

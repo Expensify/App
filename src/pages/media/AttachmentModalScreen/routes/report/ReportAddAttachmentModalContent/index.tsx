@@ -63,7 +63,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
-    const submitRef = useRef<View | HTMLElement>(null);
+    const submitRef = useRef<React.ComponentRef<typeof View> | HTMLElement>(null);
 
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
     const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);

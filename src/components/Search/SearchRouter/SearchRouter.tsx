@@ -80,7 +80,7 @@ type SearchRouterProps = {
     onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
-    ref?: React.Ref<View>;
+    ref?: React.Ref<React.ComponentRef<typeof View>>;
 };
 
 function searchForReportsAndUsersInServer(searchInput: string) {

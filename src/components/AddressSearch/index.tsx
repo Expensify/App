@@ -144,7 +144,7 @@ function AddressSearch({
     const [isListEmpty, setIsListEmpty] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<React.ComponentRef<typeof View>>(null);
 
     useDebouncedAccessibilityAnnouncement(
         translate('common.suggestionsAvailableFor', searchValue.trim()),

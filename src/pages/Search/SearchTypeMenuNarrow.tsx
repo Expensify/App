@@ -53,7 +53,7 @@ type SearchTypeMenuNarrowContentProps = {
     onActiveTabPress?: (key: SearchKey) => void;
     onTabPress?: (key: SearchKey) => void;
     onLongTabPress?: (key: SearchKey) => void;
-    containerRef?: React.RefObject<View | null>;
+    containerRef?: React.RefObject<React.ComponentRef<typeof View> | null>;
     children?: React.ReactNode;
 };
 
@@ -123,7 +123,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     });
 
     const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<SearchKey | null>(null);
-    const menuAnchorRef = useRef<View>(null);
+    const menuAnchorRef = useRef<React.ComponentRef<typeof View>>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
     const {copiedID, handleShare} = useShareSavedSearch();

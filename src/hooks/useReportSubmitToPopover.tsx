@@ -51,7 +51,7 @@ type UseReportSubmitToPopoverParams = {
     onSubmitSuccess?: () => void;
     anchorAlignment?: AnchorAlignment;
     /** When provided, resolves the anchor at open time (used by the shared Search host). */
-    getAnchorRef?: () => RefObject<View | null> | null;
+    getAnchorRef?: () => RefObject<React.ComponentRef<typeof View> | null> | null;
 };
 
 function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, getAnchorRef}: UseReportSubmitToPopoverParams) {
@@ -77,7 +77,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
 
         return Math.min(popoverDimensions.height, contentHeightLandscapeMode);
     }, [isInLandscapeMode, windowHeight, keyboardActiveHeight, topSafeAreaInset]);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
     const canSubmitRef = useRef(true);

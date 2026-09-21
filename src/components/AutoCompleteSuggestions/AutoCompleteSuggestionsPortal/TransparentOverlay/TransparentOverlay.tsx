@@ -26,7 +26,7 @@ type OnPressHandler = PressableProps['onPress'];
 function TransparentOverlay({onPress: onPressProp, style}: TransparentOverlayProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const dropZone = useRef<HTMLDivElement | View>(null);
+    const dropZone = useRef<HTMLDivElement | React.ComponentRef<typeof View>>(null);
 
     const {isDraggingOver} = useDragAndDrop({
         dropZone: htmlDivElementRef(dropZone),

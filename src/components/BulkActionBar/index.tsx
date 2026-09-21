@@ -71,7 +71,7 @@ function BulkActionBarContent<TValueType>({
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const moreAnchorRef = useRef<View | null>(null);
+    const moreAnchorRef = useRef<React.ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 

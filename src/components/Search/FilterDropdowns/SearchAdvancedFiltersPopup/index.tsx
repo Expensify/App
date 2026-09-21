@@ -109,7 +109,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const filterContentRef = useRef<View>(null);
+    const filterContentRef = useRef<React.ComponentRef<typeof View>>(null);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
         activeFilter: INITIAL_FILTER,
         mountedFilters: [INITIAL_FILTER],

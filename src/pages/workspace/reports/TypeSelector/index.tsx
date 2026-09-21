@@ -22,7 +22,7 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'error
     /** Route to the type picker */
     route: Route;
 
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 function TypeSelector({value, label = '', rightLabel, errorText = '', route, ref}: TypeSelectorProps) {

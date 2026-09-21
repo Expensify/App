@@ -19,7 +19,7 @@ type SingleChoiceQuestionProps = ForwardedFSClassProps & {
     possibleAnswers: Choice[];
     currentQuestionIndex: number;
     onInputChange: (value: string) => void;
-    ref?: ForwardedRef<RNText>;
+    ref?: ForwardedRef<React.ComponentRef<typeof RNText>>;
 };
 
 function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange, forwardedFSClass, ref}: SingleChoiceQuestionProps) {

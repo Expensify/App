@@ -91,8 +91,8 @@ function CalendarPicker({
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const pressableRef = useRef<View>(null);
-    const monthPressableRef = useRef<View>(null);
+    const pressableRef = useRef<React.ComponentRef<typeof View>>(null);
+    const monthPressableRef = useRef<React.ComponentRef<typeof View>>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);

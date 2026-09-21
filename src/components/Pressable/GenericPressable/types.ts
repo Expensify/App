@@ -6,7 +6,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, StyleProp, Text as RNText, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
@@ -160,7 +160,7 @@ type PressableProps = RNPressableProps &
         ref?: PressableRef;
     };
 
-type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;
+type PressableRef = ForwardedRef<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | undefined>;
 
 export default PressableProps;
 export type {PressableRef};

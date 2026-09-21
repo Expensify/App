@@ -27,7 +27,7 @@ function DesktopVictoryChartExpandedContent({availableSize, layout, isVisible}: 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const scrollableRef = useRef<RNView & HTMLDivElement>(null);
+    const scrollableRef = useRef<React.ComponentRef<typeof RNView> & HTMLDivElement>(null);
 
     // No headroom (very large displays) means clicking couldn't enlarge anything
     const canZoom = layout.zoomHeadroom > 1;

@@ -3,9 +3,9 @@ import type {ButtonVariant} from '@styles/utils/types';
 import type CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type React from 'react';
-import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, View, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, ViewStyle, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ButtonEventsProps = {
@@ -107,7 +107,7 @@ type BaseButtonProps = WithSentryLabel &
         /** Accessibility state to pass to the pressable */
         accessibilityState?: AccessibilityState;
 
-        ref?: ForwardedRef<View>;
+        ref?: ForwardedRef<ComponentRef<typeof View>>;
     };
 
 type ButtonProps = BaseButtonProps & {

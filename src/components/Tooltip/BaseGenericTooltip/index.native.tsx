@@ -55,7 +55,7 @@ function BaseGenericTooltip({
     // The height of tooltip's wrapper.
     const [wrapperMeasuredHeightState, setWrapperMeasuredHeight] = useState<number>();
     const wrapperMeasuredHeightAnimated = useSharedValue<number>(0);
-    const rootWrapper = useRef<RNView>(null);
+    const rootWrapper = useRef<React.ComponentRef<typeof RNView>>(null);
 
     const StyleUtils = useStyleUtils();
     const {rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(

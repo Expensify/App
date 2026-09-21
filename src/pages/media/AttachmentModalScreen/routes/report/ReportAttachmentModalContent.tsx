@@ -66,7 +66,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
-    const submitRef = useRef<View | HTMLElement>(null);
+    const submitRef = useRef<React.ComponentRef<typeof View> | HTMLElement>(null);
 
     const shouldFetchReport = isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
 

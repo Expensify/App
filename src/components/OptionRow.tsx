@@ -90,7 +90,7 @@ function OptionRow({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark']);
-    const pressableRef = useRef<View | HTMLDivElement>(null);
+    const pressableRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
     useEffect(() => {

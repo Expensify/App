@@ -68,7 +68,7 @@ function ReanimatedModal({
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
-    const containerRef = useRef<View | null>(null);
+    const containerRef = useRef<React.ComponentRef<typeof View> | null>(null);
 
     const styles = useThemeStyles();
 

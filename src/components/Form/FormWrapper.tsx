@@ -18,7 +18,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle, ScrollView as RNScrollView} from 'react-native';
 
 import React, {useContext, useImperativeHandle, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -114,8 +114,8 @@ function FormWrapper({
     submitButtonInnerStyles,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const formRef = useRef<RNScrollView>(null);
-    const formContentRef = useRef<View>(null);
+    const formRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
+    const formContentRef = useRef<React.ComponentRef<typeof View>>(null);
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
     const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();

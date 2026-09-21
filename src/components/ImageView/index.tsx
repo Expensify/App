@@ -36,7 +36,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const scrollableRef = useRef<View & HTMLDivElement>(null);
+    const scrollableRef = useRef<React.ComponentRef<typeof View> & HTMLDivElement>(null);
     const canUseTouchScreen = canUseTouchScreenUtil();
 
     const [isLoading, setIsLoading] = useState(true);

@@ -35,7 +35,7 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** The checked value, if you're using this component as a controlled input. */
     value?: string;
 
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, ref}: RadioButtonsProps) {

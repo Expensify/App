@@ -49,7 +49,7 @@ function SignInPageLayout({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {top: topInsets, bottom: bottomInsets} = useSafeAreaInsets();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 

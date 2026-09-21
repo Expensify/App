@@ -95,7 +95,7 @@ function SearchPageWide({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
-    const receiptDropTargetRef = useRef<View>(null);
+    const receiptDropTargetRef = useRef<React.ComponentRef<typeof View>>(null);
 
     return (
         <Animated.View

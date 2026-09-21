@@ -21,7 +21,7 @@ function MockIcon() {
 
 const defaultProps = {
     text: 'Edit Avatar',
-    anchorRef: createRef<View>(),
+    anchorRef: createRef<React.ComponentRef<typeof View>>(),
     avatarStyle: {width: 80, height: 80},
     onPress: jest.fn(),
     avatar: null,
@@ -102,7 +102,7 @@ describe('AvatarButtonWithIcon', () => {
 
         it('should render with all props provided', () => {
             const onPressMock = jest.fn();
-            const anchorRef = createRef<View>();
+            const anchorRef = createRef<React.ComponentRef<typeof View>>();
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'Camera']));
 
             renderWithProvider(

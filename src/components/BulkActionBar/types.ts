@@ -1,8 +1,8 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
-import type {RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {ComponentRef, RefObject} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle, View} from 'react-native';
 
 type BulkActionBarProps<TValueType> = {
     /** How many rows the selection covers. Rendered as the bar's leading "N selected" label, unless `customText` overrides it. */
@@ -41,7 +41,7 @@ type BulkActionBarProps<TValueType> = {
      * Anchor for popovers a caller opens against the bar, such as the KYC wall Search puts behind its pay action.
      * Attached to the bar itself, since which button opened the flow is not something the bar exposes.
      */
-    barRef?: RefObject<View | null>;
+    barRef?: RefObject<ComponentRef<typeof View> | null>;
 
     /**
      * Extra styles for the absolutely positioned layer the bar floats in. Pass a `bottom` here to lift the bar above

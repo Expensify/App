@@ -14,7 +14,7 @@ import GenericPressable from './GenericPressable';
  * https://github.com/Expensify/App/issues/6806
  */
 function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: PressableProps) {
-    const ref = useRef<View>(null);
+    const ref = useRef<React.ComponentRef<typeof View>>(null);
 
     const pressAndBlur = () => {
         ref?.current?.blur();

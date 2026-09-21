@@ -816,7 +816,7 @@ function WalletPage() {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<React.ComponentRef<typeof View> | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
@@ -824,7 +824,7 @@ function WalletPage() {
                                             if (hasActivatedWallet) {
                                                 return (
                                                     <MenuItem
-                                                        ref={buttonRef as ForwardedRef<View>}
+                                                        ref={buttonRef as ForwardedRef<React.ComponentRef<typeof View>>}
                                                         title={translate('common.transferBalance')}
                                                         icon={icons.Transfer}
                                                         onPress={(event) => {
@@ -871,7 +871,7 @@ function WalletPage() {
                                                 <MenuItem
                                                     title={translate('walletPage.enableWallet')}
                                                     icon={icons.Wallet}
-                                                    ref={buttonRef as ForwardedRef<View>}
+                                                    ref={buttonRef as ForwardedRef<React.ComponentRef<typeof View>>}
                                                     onPress={() => {
                                                         if (isAccountLocked) {
                                                             showLockedAccountModal();

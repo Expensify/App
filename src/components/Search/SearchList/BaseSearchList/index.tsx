@@ -29,7 +29,7 @@ import type BaseSearchListProps from './types';
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
 type CellRendererComponentProps = ViewProps & {
-    ref?: React.Ref<View>;
+    ref?: React.Ref<React.ComponentRef<typeof View>>;
     style?: StyleProp<ViewStyle>;
 };
 

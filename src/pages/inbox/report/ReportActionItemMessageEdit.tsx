@@ -90,7 +90,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const shouldDisableEmojiPicker = (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<React.ComponentRef<typeof View>>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();

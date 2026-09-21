@@ -41,7 +41,7 @@ type ApprovalWorkflowEditorProps = {
     policy: OnyxEntry<Policy>;
 
     policyID: string;
-    ref: ForwardedRef<ScrollViewRN>;
+    ref: ForwardedRef<React.ComponentRef<typeof ScrollViewRN>>;
 };
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {

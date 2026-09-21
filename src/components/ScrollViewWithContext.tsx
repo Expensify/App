@@ -12,7 +12,7 @@ import ScrollView from './ScrollView';
 
 type ScrollContextValue = {
     contentOffsetY: number;
-    scrollViewRef?: ForwardedRef<RNScrollView>;
+    scrollViewRef?: ForwardedRef<React.ComponentRef<typeof RNScrollView>>;
 };
 
 const ScrollContext = createContext<ScrollContextValue>({
@@ -35,7 +35,7 @@ type ScrollViewWithContextProps = Partial<ScrollViewProps> & {
  */
 function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ...restProps}: ScrollViewWithContextProps) {
     const [contentOffsetY, setContentOffsetY] = useState(0);
-    const defaultScrollViewRef = useRef<RNScrollView>(null);
+    const defaultScrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
     const scrollViewRef = ref ?? defaultScrollViewRef;
 
     const setContextScrollPosition = (event: NativeSyntheticEvent<NativeScrollEvent>) => {

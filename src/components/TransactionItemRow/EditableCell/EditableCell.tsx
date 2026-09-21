@@ -44,7 +44,7 @@ type EditableCellProps = {
     onStartEditing: () => void;
 
     /** Ref attached to the cell wrapper — used as popover anchor for date/category pickers */
-    anchorRef?: RefObject<View | null>;
+    anchorRef?: RefObject<React.ComponentRef<typeof View> | null>;
 
     /** Which side should show the edit icon in display mode */
     editIconPosition?: EditIconPosition;

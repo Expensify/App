@@ -29,7 +29,7 @@ type DateTimeSelectorProps = {
     inputID: string;
 
     /** The ref is required by InputWrapper, even though it's not used in this component yet */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

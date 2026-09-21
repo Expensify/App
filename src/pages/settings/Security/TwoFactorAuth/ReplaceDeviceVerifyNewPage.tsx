@@ -36,7 +36,7 @@ function ReplaceDeviceVerifyNewPage() {
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
 
     const errorMessage = getLatestErrorMessage(account);
 

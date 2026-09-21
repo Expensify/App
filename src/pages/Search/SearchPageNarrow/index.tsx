@@ -93,7 +93,7 @@ function SearchPageNarrow({
     const triggerScrollEvent = useScrollEventEmitter();
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
-    const receiptDropTargetRef = useRef<View>(null);
+    const receiptDropTargetRef = useRef<React.ComponentRef<typeof View>>(null);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);

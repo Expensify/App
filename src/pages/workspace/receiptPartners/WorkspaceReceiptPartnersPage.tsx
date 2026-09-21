@@ -56,7 +56,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {showConfirmModal} = useConfirmModal();
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
-    const threeDotsMenuContainerRef = useRef<View>(null);
+    const threeDotsMenuContainerRef = useRef<React.ComponentRef<typeof View>>(null);
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);

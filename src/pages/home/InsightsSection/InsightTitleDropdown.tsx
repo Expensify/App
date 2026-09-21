@@ -45,7 +45,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'CalendarSolid', 'User', 'Folder', 'Basket']) as Partial<Record<ExpensifyIconName, IconAsset>>;
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const triggerRef = useRef<View>(null);
+    const triggerRef = useRef<React.ComponentRef<typeof View>>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
 

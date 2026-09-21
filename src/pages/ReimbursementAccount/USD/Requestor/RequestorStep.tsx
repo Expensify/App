@@ -12,7 +12,7 @@ type RequestorStepProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
 
     /** Back to URL for preserving navigation context */
     backTo?: string;

@@ -14,7 +14,7 @@ type FocusableMenuItemProps = MenuItemProps & {
 };
 
 function FocusableMenuItem({shouldSyncFocus = true, ...props}: FocusableMenuItemProps) {
-    const ref = useRef<View>(null);
+    const ref = useRef<React.ComponentRef<typeof View>>(null);
 
     // Sync focus on an item
     useSyncFocus(ref, !!props.focused, shouldSyncFocus);

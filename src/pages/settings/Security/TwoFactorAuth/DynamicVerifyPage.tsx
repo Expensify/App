@@ -81,7 +81,7 @@ function DynamicVerifyPage() {
         return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
     const handleInputFocus = useCallback(() => {
         requestAnimationFrame(() => {
             scrollViewRef.current?.scrollToEnd({animated: true});

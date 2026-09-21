@@ -66,7 +66,7 @@ type ReportActionContextMenu = {
     instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
-    contentRef: RefObject<View | null>;
+    contentRef: RefObject<React.ComponentRef<typeof View> | null>;
     isContextMenuOpening: boolean;
     composerToRefocusOnCloseEmojiPicker?: ComposerType;
 };

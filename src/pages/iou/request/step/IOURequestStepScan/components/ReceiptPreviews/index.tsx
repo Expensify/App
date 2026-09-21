@@ -105,7 +105,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
         return receiptsWithPlaceholders;
     })();
     const isScrollEnabled = optimisticTransactionsReceipts.length >= receipts.length;
-    const flatListRef = useRef<FlatListType<ReceiptWithTransactionID | undefined>>(null);
+    const flatListRef = useRef<FlatListType>(null);
     const receiptsPhotosLength = optimisticTransactionsReceipts.length;
     const previousReceiptsPhotosLength = usePrevious(receiptsPhotosLength);
 

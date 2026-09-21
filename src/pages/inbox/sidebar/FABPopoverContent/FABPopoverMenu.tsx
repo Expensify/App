@@ -35,7 +35,7 @@ type FABPopoverMenuProps = {
     isVisible: boolean;
     onClose: () => void;
     onItemSelected: () => void;
-    anchorRef: RefObject<View | HTMLDivElement | null>;
+    anchorRef: RefObject<React.ComponentRef<typeof View> | HTMLDivElement | null>;
     animationInTiming?: number;
     animationOutTiming?: number;
     children: React.ReactNode;

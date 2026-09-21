@@ -114,7 +114,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const requestorStepRef = useRef<View>(null);
+    const requestorStepRef = useRef<React.ComponentRef<typeof View>>(null);
     const hasRequestedNewBankAccountRef = useRef(false);
     const hasClearedStalePlaidErrorsRef = useRef(false);
     const isChangingBankAccountRef = useRef(isChangingBankAccount);

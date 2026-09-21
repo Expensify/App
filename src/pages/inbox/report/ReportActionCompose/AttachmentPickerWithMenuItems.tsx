@@ -91,7 +91,7 @@ type AttachmentPickerWithMenuItemsProps = {
     /** Called when the menu item is selected */
     onItemSelected: () => void;
 
-    actionButtonRef: React.RefObject<HTMLDivElement | View | null>;
+    actionButtonRef: React.RefObject<HTMLDivElement | React.ComponentRef<typeof View> | null>;
 
     /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
     raiseIsScrollLikelyLayoutTriggered: () => void;
@@ -401,7 +401,7 @@ function AttachmentPickerWithMenuItems({
             return;
         }
 
-        calculatePopoverPosition(actionButtonRef as React.RefObject<View>, {
+        calculatePopoverPosition(actionButtonRef as React.RefObject<React.ComponentRef<typeof View>>, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
         }).then((position) => {

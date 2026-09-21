@@ -32,7 +32,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import type {RefObject} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle, TextInput} from 'react-native';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
@@ -130,7 +130,7 @@ function BaseTextInput({
     const isLabelActive = useRef(initialActiveLabel);
     const didScrollToEndRef = useRef(false);
 
-    useHtmlPaste(input as RefObject<TextInput | null>, undefined, isMarkdownEnabled, maxLength);
+    useHtmlPaste(input as RefObject<React.ComponentRef<typeof TextInput> | null>, undefined, isMarkdownEnabled, maxLength);
 
     // AutoFocus which only works on mount:
     useEffect(() => {

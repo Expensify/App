@@ -51,7 +51,7 @@ function CategoryPickerModal({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive} = useKeyboardState();
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection

@@ -85,7 +85,7 @@ function WorkspaceConfirmationForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isApprovedAccountant = !!account?.isApprovedAccountant;
 

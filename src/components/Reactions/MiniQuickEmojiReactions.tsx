@@ -46,7 +46,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const ref = useRef<View>(null);
+    const ref = useRef<React.ComponentRef<typeof View>>(null);
     const {translate, preferredLocale} = useLocalize();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);

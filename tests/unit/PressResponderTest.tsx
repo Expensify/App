@@ -73,7 +73,7 @@ describe('PressResponder', () => {
 
         it('useResponderRef returns the consumer ref unchanged', () => {
             const probeRef = React.createRef<ProbeHandle>();
-            const consumerRef = React.createRef<RNViewType>();
+            const consumerRef = React.createRef<React.ComponentRef<typeof RNViewType>>();
             render(
                 <Probe
                     consumerRef={consumerRef as PressableProps['ref']}
@@ -181,8 +181,8 @@ describe('PressResponder', () => {
     describe('ref handling', () => {
         it('merges the consumer ref with the responder ref', () => {
             const probeRef = React.createRef<ProbeHandle>();
-            const responderRef = React.createRef<RNViewType>();
-            const consumerRef = React.createRef<RNViewType>();
+            const responderRef = React.createRef<React.ComponentRef<typeof RNViewType>>();
+            const consumerRef = React.createRef<React.ComponentRef<typeof RNViewType>>();
             render(
                 <PressResponder
                     ref={responderRef as PressableProps['ref']}
@@ -200,7 +200,7 @@ describe('PressResponder', () => {
 
         it('returns the consumer ref unchanged when responder has no ref', () => {
             const probeRef = React.createRef<ProbeHandle>();
-            const consumerRef = React.createRef<RNViewType>();
+            const consumerRef = React.createRef<React.ComponentRef<typeof RNViewType>>();
             render(
                 <PressResponder
                     ref={undefined}

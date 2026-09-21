@@ -65,7 +65,7 @@ function DatePicker({
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.

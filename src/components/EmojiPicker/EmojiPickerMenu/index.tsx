@@ -65,13 +65,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         spacersIndexes,
     } = useEmojiPickerMenu();
 
-    const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
+    const headerRefs = useRef<Record<number, React.RefObject<React.ComponentRef<typeof View> | null>>>({});
     const pendingHeaderFocusIndexRef = useRef<number | null>(null);
     const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
 
     const getHeaderRef = useCallback((index: number) => {
         if (!headerRefs.current[index]) {
-            headerRefs.current[index] = React.createRef<View>();
+            headerRefs.current[index] = React.createRef<React.ComponentRef<typeof View>>();
         }
         return headerRefs.current[index];
     }, []);

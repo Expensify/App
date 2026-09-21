@@ -71,7 +71,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
-    const dropdownButtonRef = useRef<View>(null);
+    const dropdownButtonRef = useRef<React.ComponentRef<typeof View>>(null);
     const isFocused = useIsFocused();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
