@@ -36,6 +36,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@libs/actions/Search', () => ({
     search: (...args: unknown[]) => mockSearch(...args),
     openSearch: (...args: [unknown, number | undefined]) => mockOpenSearch(...args),
+    markPageRequestedSearch: jest.fn(),
 }));
 
 jest.mock('@libs/actions/ReportNavigation', () => ({

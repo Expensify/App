@@ -433,6 +433,31 @@ describe('SearchPageNarrow', () => {
 
         expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
     });
+    it('does not repeat the first page the page-level setup already requested', async () => {
+        // Given a query with no snapshot yet, so the page-level setup owns the first request
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+
+        // When the page renders and only the loading skeleton is up
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then exactly one request went out, for the first page
+        const firstPageCallCount = () => mockSearch.mock.calls.filter(([params]) => params?.offset === 0).length;
+        expect(firstPageCallCount()).toBe(1);
+
+        // When that request lands and Search mounts behind the skeleton
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the mount does not ask for the same first page again
+        expect(firstPageCallCount()).toBe(1);
+    });
     it('loads the next page after a request that was in flight when the list hit its end resolves', async () => {
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
         await act(async () => {

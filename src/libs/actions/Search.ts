@@ -1116,6 +1116,23 @@ type InFlightSearchRequest = {
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
+// Search mounts only after the page's request has finished, so the map above no longer holds it.
+// One slot, not a set: a new query replaces the old token, so a token left behind by an abandoned query cannot skip a later refresh of it.
+let pageRequestedSearch: {hash: number; shouldCalculateTotals: boolean} | undefined;
+
+function markPageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
+    pageRequestedSearch = {hash, shouldCalculateTotals};
+}
+
+/** True once for the query the page just requested, and only if that request also asked for the totals wanted here. */
+function consumePageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
+    if (pageRequestedSearch?.hash !== hash || (shouldCalculateTotals && !pageRequestedSearch.shouldCalculateTotals)) {
+        return false;
+    }
+    pageRequestedSearch = undefined;
+    return true;
+}
+
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
@@ -2513,5 +2530,7 @@ export {
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
+    markPageRequestedSearch,
+    consumePageRequestedSearch,
 };
 export type {TransactionPreviewData};
