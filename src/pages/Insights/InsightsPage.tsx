@@ -23,6 +23,7 @@ import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 
+import InsightsPageControls from './controls/InsightsPageControls';
 import buildInsightsJsonQuery from './insightsQueries';
 import useInsightsFilters from './useInsightsFilters';
 
@@ -32,7 +33,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-    const {filters, isResolved} = useInsightsFilters();
+    const {filters, isResolved, setFilters} = useInsightsFilters(dashboardID);
 
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
     const jsonQuery = query?.jsonQuery;
@@ -55,6 +56,11 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
+            />
+            <InsightsPageControls
+                shouldShowGroupBy
+                filters={filters}
+                onChange={setFilters}
             />
             <ScrollView addBottomSafeAreaPadding />
         </ScreenWrapper>

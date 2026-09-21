@@ -3,7 +3,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
-import buildInsightsJsonQuery, {applyInsightsFilters} from '@pages/Insights/insightsQueries';
+import buildInsightsJsonQuery, {applyInsightsFilters, buildInsightsQueryString} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 
@@ -88,17 +88,28 @@ describe('insightsQueries', () => {
             // Given a dashboard filtered to a range rather than a preset
             const filters: InsightsFilters = {
                 ...FILTERS,
-                date: {after: '2026-01-01', before: '2026-03-31'},
+                date: {from: '2026-01-01', to: '2026-03-31'},
             };
 
             // When its request is built
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
-            // Then the query is bounded by the range, and the charts ask for snapshots of it
-            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date>2026-01-01 date<2026-03-31');
+            // Then the query is bounded by the range, both ends included, and the charts ask for snapshots of it
+            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date>=2026-01-01 date<=2026-03-31');
             expect(parsePayload(request)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
 
+        it('reports on a single day', () => {
+            // Given a dashboard filtered to one day rather than a preset
+            const filters: InsightsFilters = {...FILTERS, date: {on: '2026-03-04'}};
+
+            // When its request is built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
+
+            // Then the query names that day, the same way it names a preset
+            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date:2026-03-04');
+            expect(parsePayload(request)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
+        });
         it('leaves the workspaces out of the query until some are selected', () => {
             // Given a dashboard requested with no workspace selected
             const allWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS);
@@ -111,6 +122,19 @@ describe('insightsQueries', () => {
             expect(parsePayload(allWorkspaces)?.inputQuery).not.toContain('policyID');
             expect(parsePayload(twoWorkspaces)?.inputQuery).toContain('policyID:A1,B2');
             expect(parsePayload(twoWorkspaces)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
+        });
+    });
+
+    describe('buildInsightsQueryString', () => {
+        it('builds the query the dashboard is requested with, so the stored selections and the request cannot drift', () => {
+            // Given a dashboard filtered to a workspace and a custom range
+            const filters: InsightsFilters = {...FILTERS, policyIDs: ['A1'], date: {from: '2026-01-01', to: '2026-03-31'}};
+
+            // When the dashboard's query string is built on its own
+            const queryString = buildInsightsQueryString(filters);
+
+            // Then it is the very query the request carries
+            expect(queryString).toBe(parsePayload(buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters))?.inputQuery);
         });
     });
 

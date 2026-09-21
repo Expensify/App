@@ -3,9 +3,7 @@
 import type {SearchGroupBy, SearchView} from '@components/Search/types';
 
 import CONST from '@src/CONST';
-import type {InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
-
-import type {ValueOf} from 'type-fest';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from '@src/types/onyx';
 
 type InsightsChartSpec = {
     /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
@@ -21,7 +19,7 @@ type InsightsChartSpec = {
 
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
-    searchKey: ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
+    searchKey: InsightsSearchKey;
 
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
