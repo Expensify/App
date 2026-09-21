@@ -239,9 +239,10 @@ function DebugTabView({selectedTab}: Props) {
     if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize - sidePanelOffset};
+        positionStyle = {...verticalAnchor, left: variables.flatNavigationBarWidth, width: windowWidth - variables.flatNavigationBarWidth - sidePanelOffset};
     } else {
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
+        const lhnWidth = selectedTab === NAVIGATION_TABS.INBOX ? variables.inboxSideBarWidth : variables.sideBarWithLHBWidth;
+        positionStyle = {...verticalAnchor, left: variables.flatNavigationBarWidth, width: lhnWidth - variables.cropBorderWidth};
     }
 
     // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent

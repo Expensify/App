@@ -43,7 +43,7 @@ function InboxTabSelector() {
     const {activeTab, inboxTabCounts, hasStaleUnreadReport} = useSidebarOrderedReportsState();
     const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Feed', 'ChatBubbleUnread', 'Task']);
     const {showConfirmModal} = useConfirmModal();
     // Only show the tooltip if we have unread message > 3 months old.
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -114,6 +114,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
+            icon: icons.Feed,
             tabRef: allTabRef,
             // Every tab opens the "Mark all as read" menu on long-press / right-click, so they all wire the secondary
             // interaction (which suppresses the native browser context menu on web).
@@ -122,6 +123,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
+            icon: icons.ChatBubbleUnread,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
@@ -142,6 +144,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.TODO,
             title: translate('inboxTabs.todo'),
+            icon: icons.Task,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,

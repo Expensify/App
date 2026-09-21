@@ -11,6 +11,12 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark exactly that wide. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -120,19 +126,19 @@ export default {
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
-    sideBarWithLHBWidth: 320,
+    sideBarWithLHBWidth: 260,
+    inboxSideBarWidth: 360,
     superWideRHPLeftMargin: 147,
-    searchSidebarExpandedWidth: 320,
+    searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
-    flatNavigationBarWidth: 220,
-    flatNavigationBarItemHeight: 44,
+    flatNavigationBarWidth: 200,
+    flatNavigationBarItemHeight: 40,
     flatNavigationBarSubItemHeight: 36,
     flatNavigationBarAccountItemHeight: 56,
     flatNavigationBarHeaderPaddingRight: 12,
-    flatNavigationBarLogoWidth: 100,
-    // expensify-wordmark.svg has a 78x19 viewBox, so deriving the height from it keeps the wordmark exactly flatNavigationBarLogoWidth wide
-    flatNavigationBarLogoHeight: (100 * 19) / 78,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
@@ -167,7 +173,8 @@ export default {
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
     sectionMenuItemHeight: 52,
-    sectionMenuItemHeightCompact: 44,
+    // Wide layouts match the global navigation bar's row height; narrow layouts keep the taller touch target.
+    sectionMenuItemHeightCompact: 40,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
     // fontSizeExtraSmall is fixed at 9, so the line height must never scale below the font's natural line height (~1.18em = 10.62),

@@ -244,7 +244,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14]}>
+                {/* The bottom padding clears the floating scan button, which only floats over the list on narrow layouts. */}
+                <ScrollView contentContainerStyle={[styles.flexColumn, shouldUseNarrowLayout && styles.pb14]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}

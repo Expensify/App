@@ -125,8 +125,11 @@ type Styles = Record<string, StyleObject | StyleFunction>;
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
-/** Horizontal padding inside a flat navigation bar row, also used to line nested rows up with their parent's label. */
-const flatNavigationBarItemPaddingHorizontal = 12;
+/**
+ * Horizontal padding inside a navigation row, shared by the global navigation bar and the Account, Workspace and
+ * Domain editor menus so their labels line up. Also used to indent the global bar's nested rows to their parent's label.
+ */
+const navigationRowPaddingHorizontal = 12;
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
@@ -804,7 +807,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             height: variables.flatNavigationBarItemHeight,
-            paddingHorizontal: flatNavigationBarItemPaddingHorizontal,
+            paddingHorizontal: navigationRowPaddingHorizontal,
             marginHorizontal: 8,
             borderRadius: variables.componentBorderRadiusNormal,
         },
@@ -825,7 +828,7 @@ const staticStyles = (theme: ThemeColors) =>
         // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
         // at the same x as the labels of the rows above them.
         flatNavigationBarSubItem: {
-            paddingLeft: flatNavigationBarItemPaddingHorizontal + variables.iconSizeNormal,
+            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeNormal,
             height: variables.flatNavigationBarSubItemHeight,
         },
 
@@ -867,7 +870,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         flatNavigationBarAccountAvatar: {
-            width: variables.avatarSizeMedium,
+            width: variables.avatarSizeSmall,
             alignItems: 'center',
             justifyContent: 'center',
         },
@@ -7012,7 +7015,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
@@ -7241,8 +7245,8 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
-            paddingLeft: 16,
-            paddingRight: 16,
+            paddingLeft: navigationRowPaddingHorizontal,
+            paddingRight: navigationRowPaddingHorizontal,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',

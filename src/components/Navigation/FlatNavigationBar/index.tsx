@@ -321,10 +321,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                         label={currentUserPersonalDetails.displayName ?? translate('initialSettingsPage.account')}
                         leftElement={
                             <View style={styles.flatNavigationBarAccountAvatar}>
-                                <ProfileAvatarWithIndicator
-                                    isSelected={isAccountSelected}
-                                    size={CONST.AVATAR_SIZE.DEFAULT}
-                                />
+                                <ProfileAvatarWithIndicator isSelected={isAccountSelected} />
                             </View>
                         }
                         isSelected={isAccountSelected}
