@@ -13,7 +13,7 @@ import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInA
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 
-import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {isAnonymousUser, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -49,7 +49,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const linkEmail = new URLSearchParams(transitionURL ?? undefined).get('email');
 
         if (isLoggingInAsNewUser) {
-            if (isSupportalLogin) {
+            if (isSupportalLogin || isAnonymousUser(session)) {
                 // We don't want to close react-native app in this particular case.
                 signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
                 return;
