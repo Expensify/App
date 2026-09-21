@@ -13,6 +13,7 @@ import {
     deleteWorkspaceCategories,
     enablePolicyCategories,
     importPolicyCategories,
+    isDefaultMccGroupID as isDefaultMccGroupIDFromCategory,
     renamePolicyCategory,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryTax,
@@ -24,6 +25,7 @@ import {
     buildOptimisticPolicyCategories,
     buildOptimisticPolicyWithExistingCategories,
     DEFAULT_MCC_GROUP,
+    isDefaultMccGroupID,
 } from '@libs/actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 
 import CONST from '@src/CONST';
@@ -971,11 +973,26 @@ describe('actions/PolicyCategory', () => {
             expect(mccGroupData.failureData).toStrictEqual({mccGroup: null});
         });
 
+        it('isDefaultMccGroupID only accepts IDs present in the default MCC groups', () => {
+            // Given the default MCC group IDs from CONST
+            for (const groupID of Object.keys(CONST.POLICY.DEFAULT_MCC_GROUPS)) {
+                // When the ID is checked
+                // Then it is recognized as a default group ID
+                expect(isDefaultMccGroupID(groupID)).toBe(true);
+            }
+
+            // Given an ID that is not a default MCC group
+            // When it is checked
+            // Then it is rejected
+            expect(isDefaultMccGroupID('notAMccGroupID')).toBe(false);
+        });
+
         it('Category re-exports every builder it no longer defines', () => {
             expect(buildOptimisticMccGroupFromCategory).toBe(buildOptimisticMccGroup);
             expect(buildOptimisticPolicyCategoriesFromCategory).toBe(buildOptimisticPolicyCategories);
             expect(buildOptimisticPolicyWithExistingCategoriesFromCategory).toBe(buildOptimisticPolicyWithExistingCategories);
             expect(DEFAULT_MCC_GROUP_FROM_CATEGORY).toBe(DEFAULT_MCC_GROUP);
+            expect(isDefaultMccGroupIDFromCategory).toBe(isDefaultMccGroupID);
         });
     });
 });

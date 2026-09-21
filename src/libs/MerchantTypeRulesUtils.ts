@@ -9,7 +9,7 @@ import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 
-import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
+import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';

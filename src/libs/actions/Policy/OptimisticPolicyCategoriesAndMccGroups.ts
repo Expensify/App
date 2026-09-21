@@ -137,6 +137,12 @@ const DEFAULT_MCC_GROUP: Record<string, MccGroup> = Object.fromEntries(
     ]),
 );
 
+type DefaultMccGroupID = keyof typeof CONST.POLICY.DEFAULT_MCC_GROUPS;
+
+function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
+    return Object.hasOwn(CONST.POLICY.DEFAULT_MCC_GROUPS, groupID);
+}
+
 function buildOptimisticMccGroup() {
     const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
         mccGroup: Object.fromEntries(Object.entries(DEFAULT_MCC_GROUP).map(([groupID, group]) => [groupID, {...group}])),
@@ -156,4 +162,4 @@ function buildOptimisticMccGroup() {
     return mccGroupData;
 }
 
-export {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories, DEFAULT_MCC_GROUP};
+export {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories, DEFAULT_MCC_GROUP, isDefaultMccGroupID};

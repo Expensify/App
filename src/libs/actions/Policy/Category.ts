@@ -51,7 +51,13 @@ import type {PartialDeep} from 'type-fest';
 import lodashCloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
-import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories, DEFAULT_MCC_GROUP} from './OptimisticPolicyCategoriesAndMccGroups';
+import {
+    buildOptimisticMccGroup,
+    buildOptimisticPolicyCategories,
+    buildOptimisticPolicyWithExistingCategories,
+    DEFAULT_MCC_GROUP,
+    isDefaultMccGroupID,
+} from './OptimisticPolicyCategoriesAndMccGroups';
 
 type CreatePolicyCategoryParams = {
     policyID: string;
@@ -118,12 +124,6 @@ function appendSetupCategoriesOnboardingData(
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
     return onyxData;
-}
-
-type DefaultMccGroupID = keyof typeof CONST.POLICY.DEFAULT_MCC_GROUPS;
-
-function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
-    return Object.hasOwn(CONST.POLICY.DEFAULT_MCC_GROUPS, groupID);
 }
 
 /**
