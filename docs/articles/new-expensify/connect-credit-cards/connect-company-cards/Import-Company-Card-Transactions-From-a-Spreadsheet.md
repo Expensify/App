@@ -123,7 +123,7 @@ Your file must include a way to identify each card so transactions can be matche
 - Date
 - Merchant
 - Amount
-- Currency (optional but recommended)
+- Currency
 
 **Unique ID** is optional, but map it whenever your file has a unique reference for each transaction so re-uploading the file doesn't create duplicates.
 
