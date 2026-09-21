@@ -22,7 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
-import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {isBillableEnabledOnPolicy, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -505,10 +505,7 @@ function MoneyRequestReportTransactionList({
         [groupedTransactions, resolvedTransactions, shouldGroupTransactions],
     );
 
-    const visualOrderTransactionIDs = useMemo(
-        () => visualOrderTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID),
-        [visualOrderTransactions],
-    );
+    const visualOrderTransactionIDs = useMemo(() => visualOrderTransactions.filter(isSelectableReportTransaction).map((transaction) => transaction.transactionID), [visualOrderTransactions]);
 
     const {toggleTransaction, toggleGroup, toggleAll} = useReportTransactionShiftRange({
         reportID,

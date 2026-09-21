@@ -35,6 +35,11 @@ function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): stri
     return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
 }
 
+/** The rows a click can select, which Select All and a range both have to reach or the three disagree about one row. */
+function isSelectableReportTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return !isTransactionPendingDelete(transaction) && !getTransactionRejectErrorKey(transaction);
+}
+
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
 }
@@ -237,4 +242,5 @@ export {
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
     getTransactionRejectErrorKey,
+    isSelectableReportTransaction,
 };

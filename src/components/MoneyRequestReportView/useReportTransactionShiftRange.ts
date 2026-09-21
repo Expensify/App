@@ -4,9 +4,8 @@
  */
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
-import {getTransactionRejectErrorKey} from '@libs/MoneyRequestReportUtils';
+import {isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -61,7 +60,7 @@ function useReportTransactionShiftRange({
         getItemKey: (transaction) => transaction.transactionID ?? null,
         isItemSelected: (transaction) => selectedTransactionIDsSet.has(transaction.transactionID),
         // The rows the checkbox disables, so a range cannot check what a click cannot.
-        isDisabledItem: (transaction) => isTransactionPendingDelete(transaction) || !!getTransactionRejectErrorKey(transaction),
+        isDisabledItem: (transaction) => !isSelectableReportTransaction(transaction),
         onApplyRange: (batch) => writeSelection(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (transaction) => transaction.transactionID)),
     });
 
@@ -92,6 +91,10 @@ function useReportTransactionShiftRange({
 
     const toggleGroup = (groupTransactionIDs: string[]) => {
         endSessionIfSelectionCameFromElsewhere();
+        // A group with no row to act on writes nothing and seeds nothing, so the session it would replace is still the truth.
+        if (groupTransactionIDs.length === 0) {
+            return;
+        }
         const groupTransactionIDSet = new Set(groupTransactionIDs);
         const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDsSet.has(id));
         writeSelection(anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDSet.has(id)) : [...selectedTransactionIDs, ...groupTransactionIDs]);

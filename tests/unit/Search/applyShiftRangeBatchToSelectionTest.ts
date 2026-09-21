@@ -39,6 +39,22 @@ const batchOf = (toSelect: SearchListItem[] = [], toDeselect: SearchListItem[] =
 const selectionOf = (...items: TransactionListItemType[]): SelectedTransactions => Object.fromEntries(items.map(buildEntry));
 
 describe('applyShiftRangeBatchToSelection', () => {
+    it('commits a group written out into its rows even when the row it was asked to drop has none to drop', () => {
+        // Given a group selected under its own key, whose loaded rows are one ordinary row and one being deleted
+        const kept = makeChild(1, 'c1');
+        const deleted = {...makeChild(2, 'c2'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        const group = makeGroup('groupA', [kept, deleted]);
+        const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(group);
+        const lookups = lookupsFor(new Map([['c2', 'groupA']]), new Map([['groupA', [kept, deleted]]]));
+
+        // When a range gives back the row being deleted, which the group never held an entry for
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [deleted]), {[groupKey]: groupEntry}, false, lookups);
+
+        // Then the write survives: the group is spelled out into the row it does hold, rather than the batch bailing on identity
+        expect(updated.groupA).toBeUndefined();
+        expect(updated.c1?.groupKey).toBe('groupA');
+    });
+
     it('selects the rows a range covers', () => {
         const first = makeChild(1, 't1');
         const second = makeChild(2, 't2');

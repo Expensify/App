@@ -10,9 +10,9 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -87,7 +87,7 @@ function MoneyRequestReportTableHeaderRow({
     const {selectedTransactionIDs} = useSearchSelectionContext();
 
     const isDesktopTableLayout = !shouldUseNarrowLayout;
-    const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
@@ -116,8 +116,8 @@ function MoneyRequestReportTableHeaderRow({
                     <Checkbox
                         onPress={onToggleAll}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
-                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                        isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== selectableTransactions.length}
+                        isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === selectableTransactions.length}
                         containerStyle={isDesktopTableLayout && styles.m0}
                         style={isDesktopTableLayout && styles.mr3}
                     />

@@ -1,9 +1,9 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
+import {getReportIDForTransaction, isBillableEnabledOnPolicy, isSelectableReportTransaction, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -119,6 +119,9 @@ const transactionItemBaseMock: TransactionListItemType = {
     violations: [],
 };
 
+/** Errors the backend records are keyed by when they happened. */
+const REJECTED_AT = '1700000000000';
+
 describe('MoneyRequestReportUtils', () => {
     describe('getReportIDForTransaction', () => {
         it('returns transaction thread ID if its not from one transaction report', () => {
@@ -173,6 +176,32 @@ describe('MoneyRequestReportUtils', () => {
         test('returns false when policy is non-paid group', () => {
             const policy = createMock<Policy>({type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
+        });
+    });
+
+    describe('isSelectableReportTransaction', () => {
+        test('accepts an ordinary expense, which is what a click, Select All and a range all reach', () => {
+            // Given an expense with nothing against it
+            const transaction = createMock<Transaction>({transactionID: '1'});
+
+            // Then it counts as selectable
+            expect(isSelectableReportTransaction(transaction)).toBe(true);
+        });
+
+        test('refuses an expense being deleted, since its checkbox is disabled', () => {
+            // Given an expense the user has deleted, still on screen until the server drops it
+            const transaction = createMock<Transaction>({transactionID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // Then nothing may select it
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+
+        test('refuses an expense the backend rejected, whose checkbox is disabled for the same reason', () => {
+            // Given an expense carrying a reject the backend recorded against it
+            const transaction = createMock<Transaction>({transactionID: '1', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+            // Then nothing may select it, so Select All and a range agree with the checkbox
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
         });
     });
 

@@ -139,6 +139,27 @@ describe('MoneyRequestReport shift+click', () => {
         expect(state.selectedTransactionIDs).toEqual(['1', '2', '3']);
     });
 
+    it('writes nothing for a group with no row it can act on, and leaves the block a later shift+click narrows', () => {
+        const {result, state, settle, setSelectedTransactions} = renderShiftRange();
+
+        // Given a Select All, which seeds the block the next shift+click collapses
+        act(() => result.current.toggleAll(['1', '2', '3', '4']));
+        settle();
+        setSelectedTransactions.mockClear();
+
+        // When a group header is pressed whose rows are all unselectable
+        act(() => result.current.toggleGroup([]));
+        settle();
+
+        // Then nothing is written, rather than a new list of the same rows re-rendering every row
+        expect(setSelectedTransactions).not.toHaveBeenCalled();
+
+        // And the Select All block is still what the next shift+click narrows
+        act(() => result.current.toggleTransaction('2', true));
+
+        expect(state.selectedTransactionIDs).toEqual(['1', '2']);
+    });
+
     it('collapses a Select All onto the span the next shift+click lands in', () => {
         const {result, state, settle} = renderShiftRange();
 
