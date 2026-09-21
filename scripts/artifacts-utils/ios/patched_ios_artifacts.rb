@@ -72,7 +72,7 @@ module PatchedIOSArtifacts
               'hybrid and standalone would share one link.' if @package_name.to_s.empty?
 
         link = File.join(SOURCE_LINK_ROOT, @package_name, File.basename(tarball))
-        return link if File.symlink?(link) && File.readlink(link) == tarball
+        return link if File.symlink?(link) && File.identical?(link, tarball)
 
         FileUtils.mkdir_p(File.dirname(link))
         # A directory here would make ln_s create the link inside it, so the podspec would point at a directory.
