@@ -184,7 +184,7 @@ function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft,
     }
 
     // Replace entry-specific metadata from another flow while retaining only the Wallet resume location.
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+    const setPersonalBankAccount = Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
         source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
         currentPage: personalBankAccount.currentPage,
     });
@@ -202,7 +202,10 @@ function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft,
         return;
     }
 
-    Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+    const backTo = Navigation.getActiveRoute();
+    // Corpay fields are shared with business bank accounts. Refresh the personal schema on a genuine Wallet resume,
+    // even when the cached business fields have the same country and currency.
+    setPersonalBankAccount.then(() => Onyx.set(ONYXKEYS.CORPAY_FIELDS, null)).then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo)));
 }
 
 /**

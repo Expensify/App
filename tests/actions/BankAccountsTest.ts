@@ -296,6 +296,42 @@ describe('actions/BankAccounts', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
         });
 
+        test('invalidates matching business Corpay fields without clearing an international Wallet draft', async () => {
+            const personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET};
+            const internationalDraft = {bankCountry: 'DE', bankCurrency: 'EUR', accountNumber: '12345678'};
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+            await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, internationalDraft);
+            await Onyx.set(ONYXKEYS.CORPAY_FIELDS, {
+                bankCountry: 'DE',
+                bankCurrency: 'EUR',
+                classification: 'business',
+                destinationCountry: 'DE',
+                paymentMethods: [],
+                preferredMethod: '',
+                formFields: [
+                    {
+                        id: 'businessAccountNumber',
+                        errorMessage: '',
+                        isRequired: true,
+                        isRequiredInValueSet: false,
+                        label: 'Business account number',
+                        regEx: '',
+                        validationRules: [],
+                    },
+                ],
+                isLoading: false,
+                isSuccess: true,
+            });
+
+            jest.mocked(Navigation.navigate).mockClear();
+            openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft: undefined, internationalDraft});
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.CORPAY_FIELDS)).toBeFalsy();
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(internationalDraft);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
+        });
+
         test('starts a fresh flow when a completed international setup was dismissed from the Success page', async () => {
             const personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET};
             const internationalDraft = {bankCountry: 'DE', bankCurrency: 'EUR'};
