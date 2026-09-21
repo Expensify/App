@@ -6,6 +6,7 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 /**
  * Encapsulates the data fetching and navigation logic for opening a DM chat with an agent.
@@ -18,7 +19,7 @@ function useChatWithAgent() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
 
     const chatWithAgent = (accountID: number) => {
         navigateToAndOpenReportWithAccountIDs(

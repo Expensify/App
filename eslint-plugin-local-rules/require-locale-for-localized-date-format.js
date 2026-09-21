@@ -33,6 +33,16 @@ const LOCALIZED_TOKENS = [
     {token: 'eeee', label: 'eeee (weekday name)'},
     {token: 'eee', label: 'eee (short weekday)'},
     {token: 'do', label: 'do (ordinal day)'},
+    // date-fns' localized date/time formats. These exist precisely to defer the clock convention, ordering and
+    // separators to the locale, so they are meaningless without one.
+    {token: 'PPPP', label: 'PPPP (localized long date with weekday)'},
+    {token: 'PPP', label: 'PPP (localized long date)'},
+    {token: 'PP', label: 'PP (localized medium date)'},
+    {token: 'P', label: 'P (localized short date)'},
+    {token: 'pppp', label: 'pppp (localized full time)'},
+    {token: 'ppp', label: 'ppp (localized long time)'},
+    {token: 'pp', label: 'pp (localized medium time)'},
+    {token: 'p', label: 'p (localized short time)'},
     {token: 'aaaa', label: 'aaaa (AM/PM)'},
     {token: 'aaa', label: 'aaa (AM/PM)'},
     {token: 'aa', label: 'aa (AM/PM)'},
@@ -55,16 +65,7 @@ const DATE_FNS_MODULES = new Set(['date-fns', 'date-fns-tz']);
  * `CONST.DATE.*` formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized, so a
  * newly added format is guarded by default rather than silently escaping this rule.
  */
-const MACHINE_DATE_CONSTANTS = new Set([
-    'FNS_FORMAT_STRING',
-    'FNS_DATE_TIME_FORMAT_STRING',
-    'FNS_DB_FORMAT_STRING',
-    'FNS_TIMEZONE_FORMAT_STRING',
-    'YEAR_MONTH_FORMAT',
-    'SHORT_DATE_FORMAT',
-    'LOCAL_TIME_FORMAT_WITHOUT_PERIOD',
-    'TIME_FORMAT_WITHOUT_PERIOD',
-]);
+const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT', 'SHORT_DATE_FORMAT']);
 
 /**
  * Strips the single-quoted escaped literals date-fns supports (e.g. the "T" in `yyyy-MM-dd'T'HH:mm`)

@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -15,6 +16,7 @@ import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
@@ -48,6 +50,8 @@ type AccountSwitcherProps = {
     /** Whether the screen is focused. Used to hide the product training tooltip */
     isScreenFocused: boolean;
 };
+
+const filterMenuItem = (item: PopoverMenuItem, searchInput: string) => tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '']).length > 0;
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -136,10 +140,108 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         [calculatePopoverPosition],
     );
 
+    // Keep the menu anchored to the button if the window is resized while it is open.
+    useLayoutEffect(() => {
+        if (!shouldShowDelegatorMenu) {
+            return;
+        }
+        measureDelegatorMenuPosition().then(setPopoverPosition);
+    }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
+
+    const createBaseMenuItem = (
+        personalDetails: PersonalDetails | undefined,
+        errors?: Errors,
+        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
+    ): PopoverMenuItem => {
+        const error = Object.values(errors ?? {}).at(0) ?? '';
+        return {
+            text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
+            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
+            avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            icon: personalDetails?.avatar ?? '',
+            iconType: CONST.ICON_TYPE_AVATAR,
+            outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
+            shouldIgnoreCompactStyle: true,
+            numberOfLinesDescription: 1,
+            errorText: error ?? '',
+            shouldShowRedDotIndicator: !!error,
+            errorTextStyle: styles.mt2,
+            ...additionalProps,
+        };
+    };
+
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+        delegators
+            .filter(({email}) => email !== currentUserPersonalDetails.login)
+            .map(({email, role}) => {
+                const errorFields = account?.delegatedAccess?.errorFields ?? {};
+                const error = getLatestError(errorFields?.connect?.[email]);
+                const personalDetails = personalDetailsByLogin[email];
+                return createBaseMenuItem(personalDetails, error, {
+                    badgeText: translate('delegate.role', role),
+                    onSelected: () => {
+                        if (isOffline) {
+                            close(showOfflineModal);
+                            return;
+                        }
+                        if (isTrackingGPS) {
+                            close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
+                            return;
+                        }
+                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                    },
+                });
+            }),
+        'text',
+        localeCompare,
+    );
+    const allMenuItems = [currentUserMenuItem, ...delegatorMenuItems];
+    const [searchInput, setSearchInput, filteredMenuItems] = useSearchResults(allMenuItems, filterMenuItem);
+    const shouldShowSearchInput = !isActingAsDelegate && delegators.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const menuItems = (): PopoverMenuItem[] => {
+        if (isActingAsDelegate) {
+            // Avoid duplicating the current user in the list when switching accounts
+            if (delegate === currentUserPersonalDetails.login) {
+                return [currentUserMenuItem];
+            }
+
+            const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
+
+            return [
+                createBaseMenuItem(personalDetailsByLogin[delegate], error, {
+                    onSelected: () => {
+                        if (isOffline) {
+                            close(showOfflineModal);
+                            return;
+                        }
+
+                        if (isTrackingGPS) {
+                            close(() => showGpsInProgressModal(() => disconnect({stashedCredentials, stashedSession})));
+                            return;
+                        }
+
+                        disconnect({stashedCredentials, stashedSession});
+                    },
+                }),
+                currentUserMenuItem,
+            ];
+        }
+
+        return shouldShowSearchInput ? filteredMenuItems : allMenuItems;
+    };
+
+    const hideDelegatorMenu = () => {
+        setShouldShowDelegatorMenu(false);
+        setSearchInput('');
+        clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
+    };
+
     const onPressSwitcher = () => {
         hideProductTrainingTooltip();
         if (shouldShowDelegatorMenu) {
-            setShouldShowDelegatorMenu(false);
+            hideDelegatorMenu();
             return;
         }
         // Measure the button before opening so the menu renders at the right spot on the first frame.
@@ -148,14 +250,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             setShouldShowDelegatorMenu(true);
         });
     };
-
-    // Keep the menu anchored to the button if the window is resized while it is open.
-    useLayoutEffect(() => {
-        if (!shouldShowDelegatorMenu) {
-            return;
-        }
-        measureDelegatorMenuPosition().then(setPopoverPosition);
-    }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
 
     // A landscape phone is still a narrow layout, but the tall stacked header would eat most of the screen height there.
     const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
@@ -185,93 +279,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
               text: translate('delegate.copilotAccess'),
               shouldRender: canSwitchAccounts,
           };
-
-    const createBaseMenuItem = (
-        personalDetails: PersonalDetails | undefined,
-        errors?: Errors,
-        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
-    ): PopoverMenuItem => {
-        const error = Object.values(errors ?? {}).at(0) ?? '';
-        return {
-            text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
-            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
-            avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            icon: personalDetails?.avatar ?? '',
-            iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
-            shouldIgnoreCompactStyle: true,
-            numberOfLinesDescription: 1,
-            errorText: error ?? '',
-            shouldShowRedDotIndicator: !!error,
-            errorTextStyle: styles.mt2,
-            ...additionalProps,
-        };
-    };
-
-    const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
-
-        if (isActingAsDelegate) {
-            // Avoid duplicating the current user in the list when switching accounts
-            if (delegate === currentUserPersonalDetails.login) {
-                return [currentUserMenuItem];
-            }
-
-            const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
-
-            return [
-                createBaseMenuItem(personalDetailsByLogin[delegate], error, {
-                    onSelected: () => {
-                        if (isOffline) {
-                            close(showOfflineModal);
-                            return;
-                        }
-
-                        if (isTrackingGPS) {
-                            close(() => showGpsInProgressModal(() => disconnect({stashedCredentials, stashedSession})));
-                            return;
-                        }
-
-                        disconnect({stashedCredentials, stashedSession});
-                    },
-                }),
-                currentUserMenuItem,
-            ];
-        }
-
-        const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
-            delegators
-                .filter(({email}) => email !== currentUserPersonalDetails.login)
-                .map(({email, role}) => {
-                    const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                    const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = personalDetailsByLogin[email];
-                    return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', role),
-                        onSelected: () => {
-                            if (isOffline) {
-                                close(showOfflineModal);
-                                return;
-                            }
-                            if (isTrackingGPS) {
-                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
-                                return;
-                            }
-                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-                        },
-                    });
-                }),
-            'text',
-            localeCompare,
-        );
-
-        return [currentUserMenuItem, ...delegatorMenuItems];
-    };
-
-    const hideDelegatorMenu = () => {
-        setShouldShowDelegatorMenu(false);
-        clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
-    };
 
     const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
     const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
@@ -374,7 +381,18 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     }}
                     menuItems={menuItems()}
                     headerText={translate('delegate.switchAccount')}
-                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
+                    searchInputOptions={
+                        shouldShowSearchInput
+                            ? {
+                                  label: translate('workspace.people.findMember'),
+                                  value: searchInput,
+                                  onChangeText: setSearchInput,
+                                  shouldShowEmptyState: filteredMenuItems.length === 0 && searchInput.length > 0,
+                                  style: styles.mb2,
+                              }
+                            : undefined
+                    }
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}
                     shouldUseScrollView
