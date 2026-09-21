@@ -30,6 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
 import type {PersonalDetails} from '@src/types/onyx';
 
+import {conciergeChatSelector} from '@selectors/Report';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -60,7 +61,7 @@ function HelpPage() {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 

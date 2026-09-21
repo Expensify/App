@@ -3,6 +3,7 @@ import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {conciergeChatSelector} from '@selectors/Report';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
@@ -18,7 +19,7 @@ function useChatWithAgent() {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const [personalDetails] = useAllPersonalDetails();
 
     const chatWithAgent = (accountID: number) => {

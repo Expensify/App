@@ -16,6 +16,7 @@ import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/o
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {conciergeChatSelector} from '@selectors/Report';
 import {useCallback, useMemo} from 'react';
 
 import useDelegateAccountID from './useDelegateAccountID';
@@ -58,7 +59,7 @@ function useAutoCreateTrackWorkspace() {
     const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
 
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`, {selector: conciergeChatSelector});
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);

@@ -34,6 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {conciergeChatSelector} from '@selectors/Report';
 import React, {useEffect} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
@@ -84,7 +85,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [betas] = useOnyx(ONYXKEYS.BETAS);
             const {isBetaEnabled} = usePermissions();
             const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-            const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
             const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});

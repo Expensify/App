@@ -45,6 +45,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
+import {conciergeChatSelector} from '@selectors/Report';
 import {useEffect, useRef} from 'react';
 
 function initializePusher(
@@ -98,7 +99,7 @@ function AuthScreensInitHandler() {
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const policyOwnerLogin = ownerEmail ?? session?.email;
     const policyOwnerAccountID = usePersonalDetailByLogin(policyOwnerLogin, accountIDSelector);

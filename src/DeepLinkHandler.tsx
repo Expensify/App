@@ -17,6 +17,7 @@ import {endSpan} from './libs/telemetry/activeSpans';
 import {hasSecureLinkKey} from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
 import {guidedSetupAndTourStatusSelector} from './selectors/Onboarding';
+import {conciergeChatSelector} from './selectors/Report';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
@@ -39,7 +40,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
