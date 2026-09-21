@@ -1,6 +1,6 @@
 import {useChartParagraphs} from '@components/Charts/hooks';
-import {getFontLineMetrics} from '@components/Charts/utils';
-import VictoryTheme, {GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
+import {getFontLineMetrics, measureTextWidth, truncateLabel} from '@components/Charts/utils';
+import VictoryTheme, {ELLIPSIS, GLYPH_PADDING, LABEL_PADDING, MAX_X_AXIS_LABEL_WIDTH, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {ChartBounds, Scale} from 'victory-native';
@@ -54,7 +54,13 @@ function ChartYAxisLabels({
 }: ChartYAxisLabelsProps) {
     const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
-    const paragraphs = useChartParagraphs(formattedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
+    // Truncate to a single line: labels wider than the max would otherwise wrap onto a second line and
+    // overflow the row height (positioning below assumes one line).
+    const ellipsisWidth = measureTextWidth(ELLIPSIS, fontManager, fontSize);
+    const truncatedLabels = formattedLabels.map((label) => truncateLabel(label, measureTextWidth(label, fontManager, fontSize), MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth));
+
+    // Lay out at the wide width so the already-truncated labels never wrap.
+    const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
     const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
 
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
