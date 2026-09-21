@@ -75,6 +75,13 @@ jest.mock('@libs/SubscriptionUtils', () => ({
     shouldRestrictUserBillableActions: (...args: Parameters<typeof mockShouldRestrictUserBillableActions>) => mockShouldRestrictUserBillableActions(...args),
 }));
 
+const mockUsePreferredPolicy = jest.fn(() => ({
+    isRestrictedToPreferredPolicy: false,
+    preferredPolicyID: undefined as string | undefined,
+    isRestrictedPolicyCreation: false,
+}));
+jest.mock('@hooks/usePreferredPolicy', () => () => mockUsePreferredPolicy());
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const POLICY_ID = 'policy-123';
@@ -102,7 +109,7 @@ function setupUseCreateReportOnyx({activePolicy, emptyReportsConfirmationDismiss
         if (key === ONYXKEYS.NVP_ACTIVE_POLICY_ID) {
             return [activePolicy?.id, {status: 'loaded'}];
         }
-        if (key === `${ONYXKEYS.COLLECTION.POLICY}${activePolicy?.id}`) {
+        if (activePolicy && key === `${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`) {
             return [activePolicy, {status: 'loaded'}];
         }
         if (key === ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED) {
@@ -119,8 +126,54 @@ describe('useCreateReport', () => {
         jest.clearAllMocks();
         reportIDCounter.value = 100;
         mockShouldRestrictUserBillableActions.mockReturnValue(false);
+        mockUsePreferredPolicy.mockReturnValue({isRestrictedToPreferredPolicy: false, preferredPolicyID: undefined, isRestrictedPolicyCreation: false});
         mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
         setupUseCreateReportOnyx();
+    });
+
+    describe('domain preferred workspace restriction', () => {
+        const personalPolicy: OnyxEntry<Policy> = {...makePaidPolicy('personal-1'), type: CONST.POLICY.TYPE.PERSONAL};
+
+        it.each([
+            ['creates on the preferred workspace instead of the active one', makePaidPolicy('p1'), 'preferred-1', false, 'create'],
+            ['creates on the preferred workspace when the active one is personal and multiple workspaces exist', personalPolicy, 'preferred-1', false, 'create'],
+            ['shows the billing restriction page instead of the selector when the preferred workspace is billing-restricted', makePaidPolicy('p1'), 'preferred-1', true, 'restricted'],
+            ['falls back to the normal rules when the preferred workspace is not one the user can create reports on', personalPolicy, 'not-eligible', false, 'selector'],
+        ])('%s', (_description, activePolicy, preferredPolicyID, isBillingRestricted, expected) => {
+            setupUseCreateReportOnyx({activePolicy});
+            mockUsePreferredPolicy.mockReturnValue({
+                isRestrictedToPreferredPolicy: true,
+                preferredPolicyID,
+                isRestrictedPolicyCreation: false,
+            });
+            mockShouldRestrictUserBillableActions.mockReturnValue(isBillingRestricted);
+            const onCreateReport = jest.fn();
+            const policies = [makePaidPolicy('p1'), makePaidPolicy('p2'), makePaidPolicy('preferred-1')];
+
+            const {result} = renderHook(() =>
+                useCreateReport({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: policies,
+                }),
+            );
+
+            act(() => {
+                result.current.createReport();
+            });
+
+            const selectorRoute = DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute();
+            if (expected === 'create') {
+                expect(onCreateReport).toHaveBeenCalledWith(expect.objectContaining({id: 'preferred-1'}), false);
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            } else if (expected === 'restricted') {
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute('preferred-1'));
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(selectorRoute);
+                expect(onCreateReport).not.toHaveBeenCalled();
+            } else {
+                expect(Navigation.navigate).toHaveBeenCalledWith(selectorRoute);
+                expect(onCreateReport).not.toHaveBeenCalled();
+            }
+        });
     });
 
     describe('upgrade path (no policies)', () => {
@@ -232,7 +285,7 @@ describe('useCreateReport', () => {
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-            expect(onCreateReport).toHaveBeenCalledWith(false);
+            expect(onCreateReport).toHaveBeenCalledWith(expect.anything(), false);
         });
 
         it('does NOT show selector when default is a Submit workspace, even with 2+ Submit workspaces', () => {
@@ -254,7 +307,7 @@ describe('useCreateReport', () => {
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-            expect(onCreateReport).toHaveBeenCalledWith(false);
+            expect(onCreateReport).toHaveBeenCalledWith(expect.anything(), false);
         });
 
         it('does NOT show selector when default is personal but only 1 non-personal workspace exists', () => {
@@ -279,7 +332,7 @@ describe('useCreateReport', () => {
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-            expect(onCreateReport).toHaveBeenCalledWith(false);
+            expect(onCreateReport).toHaveBeenCalledWith(expect.anything(), false);
         });
     });
 
@@ -299,7 +352,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(onCreateReport).toHaveBeenCalledWith(false);
+            expect(onCreateReport).toHaveBeenCalledWith(expect.anything(), false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -383,7 +436,7 @@ describe('useCreateReport', () => {
             });
 
             // Should call onCreateReport directly, not navigate to upgrade
-            expect(onCreateReport).toHaveBeenCalledWith(false);
+            expect(onCreateReport).toHaveBeenCalledWith(expect.anything(), false);
             const calls = jest.mocked(Navigation.navigate).mock.calls;
             const navigatedToUpgrade = calls.some((call) => {
                 const firstArg = call.at(0);
@@ -412,7 +465,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(onCreateReport).toHaveBeenCalledWith(false);
+            expect(onCreateReport).toHaveBeenCalledWith(expect.anything(), false);
             expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
         });
     });
