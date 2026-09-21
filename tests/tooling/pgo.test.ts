@@ -1,4 +1,5 @@
 import {describe, expect, it} from 'bun:test';
+// cspell:ignore chrispader
 
 import {PROFILE_BROADCAST_ACTION, androidApplicationID, androidProfileReceiverComponent} from '@scripts/pgo/android';
 import {percentageImprovement} from '@scripts/pgo/pgo';

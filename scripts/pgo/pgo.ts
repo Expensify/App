@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+// cspell:ignore profraw Profdata profdata
+
 import type {TupleToUnion} from 'type-fest';
 
 import CLI from 'expensify-common/CLI';

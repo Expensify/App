@@ -1,3 +1,5 @@
+// cspell:ignore sdcard profdata Ppatched Ppgo profraw Readelf readelf zipinfo libreactnative libhermesvm libjsi cnts
+
 /** Android-specific release builds, native profile persistence, retrieval, and instrumentation checks. */
 
 import {copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';

@@ -1,3 +1,5 @@
+// cspell:ignore hermesv profdata devicectl libdav intops libwebp fprofile CPLUSPLUSFLAGS ARCHS profraw cnts hermesvm
+
 /** iOS-specific release builds, signing, native profile persistence, retrieval, and instrumentation checks. */
 
 import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';

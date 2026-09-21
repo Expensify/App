@@ -1,5 +1,7 @@
 # Native profile-guided optimization
 
+<!-- cspell:ignore Pader chrispader profraw profdata overfit overfitting cooldown -->
+
 This directory contains the local LLVM PGO workflow for Android and iOS. The `pgo.ts` command builds release, instrumented, and profile-optimized apps, retrieves native profiles, merges them, and compares startup performance. On Android, the current flags cover source-built React Native, Hermes, and ExpensifyNitroUtils libraries. On iOS, the workflow forces React Native and Hermes source builds and instruments the app and source-based CocoaPods targets. Precompiled frameworks do not participate.
 
 The command enables the existing `ManualAppStartup` benchmark span in every app it builds. Profile collection waits for that span to finish, then explicitly writes the LLVM counters before the app process is stopped. Benchmarking uses the same native span tooling as the repository's general startup benchmark.
