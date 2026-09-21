@@ -22,6 +22,7 @@ import {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
 } from '@libs/actions/Welcome';
+import {getEmailDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -145,7 +146,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         const validateEmailTaskReportID =
             validateEmailTaskReport?.reportID ??
             createdValidateEmailTaskReportID.current ??
-            createJoinWorkspaceOnboardingContent('validateEmail', taskWorkEmail.split('@').at(1) ?? '', taskWorkEmail, conciergeChat, delegateAccountID);
+            createJoinWorkspaceOnboardingContent('validateEmail', getEmailDomain(taskWorkEmail), taskWorkEmail, conciergeChat, delegateAccountID);
         createdValidateEmailTaskReportID.current = validateEmailTaskReportID;
         if (validateEmailTaskReportID) {
             Navigation.dismissModal({
