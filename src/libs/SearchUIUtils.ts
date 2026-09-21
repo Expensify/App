@@ -118,6 +118,7 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import memoize from './memoize';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -216,7 +217,6 @@ import {
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
-import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getAmount,
     getAttendees,
@@ -324,6 +324,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
@@ -4390,6 +4391,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'search.filters.exported';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return 'common.vendor';
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -5502,6 +5505,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'search.receiptType',
         icon: 'Receipt',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS]: {
+        labelKey: 'search.filters.transactionStatus.label',
+        icon: 'CreditCardHourglass',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: {
         labelKey: 'search.exportedTo',
         icon: 'Export',
@@ -5874,6 +5881,11 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
+    if (key === FILTER_KEYS.TRANSACTION_STATUS) {
+        const transactionStatus = form[key];
+        return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
+    }
+
     const formValue = form[key];
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
@@ -6083,6 +6095,13 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
 
     if (filterKey === FILTER_KEYS.WITHDRAWAL_TYPE) {
         return getWithdrawalTypeOptions(translate);
+    }
+
+    if (filterKey === FILTER_KEYS.TRANSACTION_STATUS || filterKey === FILTER_KEYS.TRANSACTION_STATUS_NOT) {
+        return Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((transactionStatus) => ({
+            text: translate(`search.filters.transactionStatus.${transactionStatus}`),
+            value: transactionStatus,
+        }));
     }
 
     return [];
@@ -6429,6 +6448,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
@@ -6459,6 +6479,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
@@ -6602,6 +6623,10 @@ function getColumnsToShow({
 
             if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+            }
+
+            if (transaction.comment?.vendor?.externalID) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
             }
 
             // Only show tax columns when the user explicitly chooses to display them.
@@ -7073,6 +7098,7 @@ function shouldShowDeleteOption(
 
 const FLEX_COLUMNS = new Set<string>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
