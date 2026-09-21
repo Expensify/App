@@ -8644,12 +8644,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Sincronizzazione ${provider} completata`,
-                successTitle: (provider: string) => `Connessione ${provider} sincronizzata correttamente!`,
-                added: 'Aggiunto',
-                removed: 'Rimosso',
-                skipped: 'Saltato',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 dipendente',
                     other: (count: number) => `${count} dipendenti`,
                 }),
@@ -8680,6 +8675,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             defaultApprover: 'Approvatore predefinito',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
             subtitle: 'Collega gli strumenti di recruiting e mantieni sincronizzate le approvazioni dei candidati.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidato',
+                    other: (count: number) => `${count} candidati`,
+                }),
+            },
         },
         merge: {
             connections: 'Connessioni',
@@ -8708,6 +8709,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             syncingModalTitle: 'La tua connessione è in sincronizzazione',
             syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
             syncLimitReached: {title: 'Riprova domani', prompt: 'Hai raggiunto il limite di sincronizzazioni per oggi.'},
+            syncResults: {
+                title: (provider: string) => `Sincronizzazione ${provider} completata`,
+                successTitle: (provider: string) => `Connessione ${provider} sincronizzata correttamente!`,
+                added: 'Aggiunto',
+                removed: 'Rimosso',
+                skipped: 'Saltato',
+            },
         },
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',
