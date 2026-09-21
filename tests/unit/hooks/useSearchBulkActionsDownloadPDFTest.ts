@@ -509,9 +509,9 @@ describe('useSearchBulkActions - Download report', () => {
         // Then the query sent to the backend includes the search key, because it changes which records the
         // search matches and omitting it could export a different report set than the one shown as selected
         expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
-        const [reportIDs, serializedQuery] = (exportReportsToPDF as jest.Mock).mock.calls.at(0) as [string[], string];
+        const [reportIDs, serializedQuery] = jest.mocked(exportReportsToPDF).mock.calls.at(0) ?? [];
         expect(reportIDs).toEqual([]);
-        expect(JSON.parse(serializedQuery)).toEqual(expect.objectContaining({searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}));
+        expect(JSON.parse(serializedQuery ?? '{}')).toEqual(expect.objectContaining({searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}));
         expect(exportReportToPDF).not.toHaveBeenCalled();
     });
 
