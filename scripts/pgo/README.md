@@ -141,6 +141,7 @@ Hosted CI is usually insufficient for the complete workflow because hosted runne
 
 - LLVM PGO improves compiled native code. It can optimize a source-built Hermes engine, but it does not directly reorder JavaScript or replace JavaScript startup analysis.
 - Precompiled vendored frameworks cannot be instrumented after the fact.
+- The iOS flush currently exports the app executable's profile runtime and Hermes's separate runtime. Other dynamically linked frameworks need their own export path before their instrumentation can contribute to the merged profile.
 - Profiles become stale after native source, dependency, compiler, SDK, ABI, or important build-setting changes. Regenerate them instead of accepting out-of-date warnings.
 - Instrumented builds have overhead. Never use them as the performance baseline.
 - Local bootstrap settings disable Android minification so synthetic identifiers and debug signing work. A production decision still needs a production-like, minified CI build with the repository's signing and dependency issues resolved.
