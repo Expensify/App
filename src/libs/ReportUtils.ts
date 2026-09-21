@@ -1219,16 +1219,6 @@ Onyx.connect({
     },
 });
 
-// getBadgeFromIOUReport needs violations of every transaction of the report to decide the SUBMIT badge, and it runs inside
-// the reportAttributes derivation, which has no violations collection to take as a parameter.
-let allTransactionViolationsCache: NonNullable<OnyxCollection<TransactionViolations>> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (value) => {
-        allTransactionViolationsCache = value ?? {};
-    },
-});
-
 let onboarding: OnyxEntry<Onboarding>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -3361,6 +3351,7 @@ function getBadgeFromIOUReport(
     invoiceReceiverPolicy: OnyxEntry<Policy>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    allViolations?: OnyxCollection<TransactionViolations>,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
@@ -3388,8 +3379,7 @@ function getBadgeFromIOUReport(
         policy,
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getReportTransactions(iouReport?.reportID),
-        // TODO: https://github.com/Expensify/App/issues/66512
-        allTransactionViolationsCache,
+        allViolations,
         currentUserLogin,
         currentUserAccountID,
         getAllReportActions(iouReport?.reportID),
@@ -3423,6 +3413,7 @@ function getIOUReportActionWithBadge(
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<ReportActions>,
     allReports?: OnyxCollection<Report>,
+    allViolations?: OnyxCollection<TransactionViolations>,
 ): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -3456,7 +3447,7 @@ function getIOUReportActionWithBadge(
             continue;
         }
 
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, allViolations);
         if (badge) {
             if (!earliestAction || isOlderReportAction(action, earliestAction)) {
                 earliestAction = action;
@@ -4801,6 +4792,7 @@ function getReasonAndReportActionThatRequiresAttention(
     reports?: OnyxCollection<Report>,
     policiesParam?: OnyxCollection<Policy>,
     reportMetadataParam?: OnyxEntry<ReportMetadata>,
+    transactionViolations?: OnyxCollection<TransactionViolations>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -4863,6 +4855,7 @@ function getReasonAndReportActionThatRequiresAttention(
         currentUserAccountID,
         reportActions,
         reports,
+        transactionViolations,
     );
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
@@ -4889,7 +4882,16 @@ function getReasonAndReportActionThatRequiresAttention(
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         if (isAssigneeExpenseAction) {
-            const assigneeBadge = getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+            const assigneeBadge = getBadgeFromIOUReport(
+                optionOrReport,
+                undefined,
+                policy,
+                optionReportMetadata,
+                invoiceReceiverPolicy,
+                currentUserLogin,
+                currentUserAccountID,
+                transactionViolations,
+            );
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
                 ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
@@ -13816,6 +13818,7 @@ function generateReportAttributes({
             reports,
             policies,
             reportMetadata,
+            transactionViolations,
         ) ?? {};
 
     return {

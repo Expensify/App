@@ -5164,7 +5164,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`, [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}]);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions, undefined, {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
+            });
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
