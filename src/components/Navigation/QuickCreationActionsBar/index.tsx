@@ -46,7 +46,6 @@ function QuickCreationActionsBar() {
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -105,7 +104,6 @@ function QuickCreationActionsBar() {
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
-                allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
@@ -119,7 +117,7 @@ function QuickCreationActionsBar() {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser, getCurrencyDecimals, rules],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

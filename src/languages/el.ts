@@ -371,6 +371,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Υποβιβασμός χώρου εργασίας',
         companyID: 'ID εταιρείας',
         userID: 'Αναγνωριστικό χρήστη',
+        tenantID: 'Αναγνωριστικό μισθωτή',
+        environmentName: 'Όνομα περιβάλλοντος',
+        clientID: 'Αναγνωριστικό πελάτη',
+        clientSecret: 'Μυστικό πελάτη',
         disable: 'Απενεργοποίηση',
         export: 'Εξαγωγή',
         initialValue: 'Αρχική τιμή',
@@ -419,7 +423,10 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Δευτερεύουσα χρέωση',
         perDiem: 'Ημερήσια αποζημίωση',
         validate: 'Επικυρώστε',
-        downloadAsPDF: 'Λήψη ως PDF',
+        downloadReport: () => ({
+            one: 'Λήψη αναφοράς',
+            other: 'Λήψη αναφορών',
+        }),
         downloadAsCSV: 'Λήψη ως CSV',
         print: 'Εκτύπωση',
         help: 'Βοήθεια',
@@ -515,7 +522,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Εξάγει σε',
         expand: 'Ανάπτυξη',
         dialogOpened: 'διάλογος',
-        downloadReceipts: 'Λήψη αποδείξεων',
+        downloadReceipt: () => ({
+            one: 'Λήψη απόδειξης',
+            other: 'Λήψη αποδείξεων',
+        }),
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
     },
     socials: {
@@ -526,12 +536,14 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Ακολουθήστε μας στο LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Ο Concierge έχει απάντηση!',
         collapseReasoning: 'Σύμπτυξη αιτιολόγησης',
         expandReasoning: 'Επεκτείνετε την αιτιολόγηση',
         enableNotifications: {
             prompt: 'Θέλετε να ειδοποιείστε όταν απαντά ο Concierge;',
             cta: 'Ειδοποίηση',
         },
+        feedback: {prompt: 'Ήταν χρήσιμη αυτή η απάντηση;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
     },
     supportalNoAccess: {
         title: 'Όχι τόσο γρήγορα',
@@ -1047,6 +1059,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Απαιτούνται στοιχεία υπογράφοντος',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Τραπεζικός λογαριασμός ${bankAccountLastFour}`,
             },
+            payOverdueInvoice: {
+                cta: 'Έλεγχος',
+                dueSoonTitle: ({date}: {date: string}) => `Πληρώστε το τιμολόγιό σας έως ${date} για να αποφύγετε τη διακοπή της υπηρεσίας`,
+                overdueTitle: 'Η πληρωμή σας έχει λήξει, παρακαλούμε εξοφλήστε το τιμολόγιό σας',
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1302,6 +1319,10 @@ const translations: TranslationDeepObject<typeof en> = {
         importMerchantRulesRequiredColumns:
             'Ουπς! Πρέπει να αντιστοιχίσετε τουλάχιστον μία στήλη «Ο έμπορος είναι» ή «Ο έμπορος περιέχει», καθώς και τουλάχιστον ένα πεδίο για ενημέρωση. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.',
         importMembersRolePermissionWarning: 'Δεν έχετε δικαίωμα να αναθέσετε ορισμένους ρόλους μέλους. Τυχόν επηρεαζόμενα νέα μέλη προσκλήθηκαν ως μέλη.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 προμηθευτής παραλήφθηκε επειδή δεν υπάρχει σε αυτόν τον χώρο εργασίας.',
+            other: `Παραλείφθηκαν ${count} προμηθευτές επειδή δεν υπάρχουν σε αυτόν τον χώρο εργασίας.`,
+        }),
     },
     receipt: {
         upload: 'Μεταφορτώστε απόδειξη',
@@ -1328,6 +1349,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Άφησέ το να πάει',
         dropMessage: 'Αποθέστε το αρχείο σας εδώ',
         flash: 'φλας',
+        flipCamera: 'περιστροφή κάμερας',
         multiScan: 'πολλαπλή σάρωση',
         shutter: 'κλείστρο',
         gallery: 'συλλογή',
@@ -1842,8 +1864,11 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Αυτή η αναφορά απορρίφθηκε. Περιμένουμε από εσάς να διορθώσετε τα προβλήματα και να την υποβάλετε ξανά χειροκίνητα.',
             selectMemberError: 'Επιλέξτε μέλος στο οποίο θα απορρίψετε αυτήν την αναφορά.',
             couldNotReject: 'Η αναφορά δεν μπόρεσε να απορριφθεί. Παρακαλούμε προσπαθήστε ξανά.',
+            couldNotRejectExpense: 'Η δαπάνη δεν ήταν δυνατό να απορριφθεί, επειδή μπορεί να έχει ήδη μετακινηθεί ή απορριφθεί.',
         },
         moveExpenses: 'Μετακίνηση στην αναφορά',
+        autoReport: 'Αυτόματη αναφορά',
+        autoReportDescription: 'Προσθήκη σε προσχέδια αναφορών εκ μέρους του εργαζομένου',
         moveExpensesMaxTransactionsError: `Οι αναφορές περιορίζονται σε ${CONST.REPORT.MAX_TRANSACTIONS} έξοδα. Μετακινήστε ορισμένα σε άλλη αναφορά.`,
         moveExpensesError:
             'Δεν μπορείτε να μετακινήσετε έξοδα ημερήσιας αποζημίωσης σε αναφορές άλλων χώρων εργασίας, επειδή οι τιμές ημερήσιας αποζημίωσης μπορεί να διαφέρουν μεταξύ των χώρων εργασίας.',
@@ -1933,6 +1958,7 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsHoldExplainDM: 'Η αναμονή είναι σαν να πατάτε «παύση» σε μία δαπάνη μέχρι να είστε έτοιμοι να τη στείλετε.',
         holdIsLeftBehindDM: 'Οι δεσμευμένες δαπάνες δεν θα αποσταλούν μέχρι να καταργήσετε τη δέσμευση.',
         unholdWhenReadyDM: 'Αποδεσμεύστε τις δαπάνες όταν είστε έτοιμοι να τις στείλετε.',
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `οι τιμές αποζημίωσης χιλιομέτρων ενημερώθηκαν για το νέο χώρο εργασίας - ${policyName}`,
     },
     transactionMerge: {
         listPage: {
@@ -2586,7 +2612,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescriptionWithRecovery: 'Εισαγάγετε έναν έγκυρο κωδικό ανάκτησης για να επιβεβαιώσετε ότι έχετε πρόσβαση στον λογαριασμό σας.',
         verifyNewDeviceTitle: 'Ρύθμιση νέας συσκευής',
         verifyNewDeviceDescription: 'Σαρώστε τον κωδικό QR με τη νέα σας συσκευή και κατόπιν εισαγάγετε τον κωδικό για να ολοκληρώσετε τη ρύθμιση.',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'Για λόγους ασφαλείας, το NetSuite απαιτεί έλεγχο ταυτότητας δύο παραγόντων για τη σύνδεση της ενοποίησης.',
     },
     recoveryCodeForm: {
         error: {
@@ -3212,7 +3237,7 @@ ${amount} για ${merchant} - ${date}`,
             merchantHint: 'Πληκτρολογήστε . για να δημιουργήσετε έναν κανόνα που ισχύει για όλους τους εμπόρους',
             addToReport: 'Προσθήκη σε αναφορά με όνομα',
             createReport: 'Δημιουργήστε αναφορά αν χρειάζεται',
-            applyToExistingExpenses: 'Εφαρμογή σε υπάρχουσες αντιστοιχισμένες δαπάνες',
+            applyToExistingExpenses: 'Εφαρμογή σε υφιστάμενες μη υποβληθείσες δαπάνες',
             confirmError: 'Εισαγάγετε τον έμπορο και εφαρμόστε τουλάχιστον μία ενημέρωση',
             confirmErrorMerchant: 'Παρακαλούμε εισαγάγετε τον έμπορο',
             confirmErrorUpdate: 'Παρακαλούμε εφαρμόστε τουλάχιστον μία ενημέρωση',
@@ -3854,8 +3879,15 @@ ${amount} για ${merchant} - ${date}`,
         vacationDelegateError: 'Παρουσιάστηκε σφάλμα κατά την ενημέρωση του αναπληρωτή σας για την άδεια.',
         asVacationDelegate: (nameOrEmail: string) => `ως εκπρόσωπος αδειών του/της ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `στον/στη ${submittedToName} ως αναπληρωτής/τρια αδειούχου για τον/τη ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Ορίζετε τον/την ${nameOrEmail} ως αναπληρωτή/τριά σας κατά τις διακοπές. Δεν συμμετέχει ακόμη σε όλους τους χώρους εργασίας σας. Αν επιλέξετε να συνεχίσετε, θα σταλεί email σε όλους τους διαχειριστές των χώρων εργασίας σας για να τον/την προσθέσουν.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θα ζητηθεί από τους διαχειριστές των χώρων εργασίας που δεν διαχειρίζεστε να τον/την προσθέσουν.`,
+            notAMemberInviteThemNow: (delegate: string) => `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θέλετε να τον/την προσκαλέσετε τώρα;`,
+            notAMemberMixed: (delegate: string) =>
+                `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θα ζητηθεί από τους διαχειριστές των χώρων εργασίας που δεν διαχειρίζεστε να τον/την προσθέσουν. Θέλετε να τον/την προσκαλέσετε τώρα σε αυτούς που διαχειρίζεστε ως διαχειριστής;`,
+            youAreAMemberOf: 'Είστε μέλος αυτών των χώρων εργασίας:',
+            youAreAnAdminOf: 'Είστε διαχειριστής αυτών των χώρων εργασίας:',
+        },
     },
     stepCounter: (step, total, text) => {
         let result = `Βήμα ${step}`;
@@ -4805,6 +4837,7 @@ ${amount} για ${merchant} - ${date}`,
             defaultDescription: 'Ένα μέρος για όλες τις αποδείξεις και τα έξοδά σας.',
             descriptionHint: 'Κοινοποιήστε πληροφορίες σχετικά με αυτόν τον χώρο εργασίας σε όλα τα μέλη.',
             welcomeNote: 'Παρακαλούμε χρησιμοποιήστε το Expensify για να υποβάλετε τις αποδείξεις σας για αποζημίωση, ευχαριστούμε!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# Ο/Η ${inviterName} σας προσκάλεσε στο ${workspaceName}`,
             subscription: 'Συνδρομή',
             markAsEntered: 'Σήμανση ως καταχωρισμένο χειροκίνητα',
             markAsExported: 'Επισήμανση ως εξαχθέν',
@@ -5394,6 +5427,9 @@ ${amount} για ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εξοφληθούν',
                 },
             },
+            fxExpenseAccount: 'λογαριασμός χρέωσης μετατροπής νομίσματος Sage Intacct',
+            fxExpenseAccountDescription:
+                'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή που γίνεται στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Sage Intacct ως λογιστική εγγραφή.',
         },
         certinia: {
             title: 'Certinia',
@@ -5671,6 +5707,7 @@ ${amount} για ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια θυγατρική στο NetSuite και συγχρονίστε ξανά τη σύνδεση',
             tokenInput: {
                 title: 'Ρύθμιση NetSuite',
+                connectWithTokenAuthentication: 'Συνδεθείτε με έλεγχο ταυτότητας βάσει διακριτικού (SOAP) αντ’ αυτού',
                 formSteps: {
                     installBundle: {
                         title: 'Εγκαταστήστε το πακέτο Expensify',
@@ -7288,6 +7325,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7522,6 +7561,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Συγχρονισμός διακανονισμών κάρτας';
                         case 'campfireSyncTravelSettlements':
                             return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
+                        case 'businessCentralSyncTitle':
+                            return 'Συγχρονισμός δεδομένων Dynamics 365 Business Central';
+                        case 'businessCentralSyncConnection':
+                            return 'Γίνεται προετοιμασία σύνδεσης με το Dynamics 365 Business Central';
+                        case 'businessCentralSyncImportData':
+                            return 'Φόρτωση δεδομένων';
                         default: {
                             return `Λείπει η μετάφραση για το στάδιο: ${stage}`;
                         }
@@ -7565,6 +7610,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         hr: {
             title: 'HR',
@@ -7577,8 +7623,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             providerApprovalMode: (providerName: string) => `λειτουργία έγκρισης ${providerName}`,
             providerFinalApprover: (providerName: string) => `τελικός εγκριτής ${providerName}`,
             syncing: 'Γίνεται συγχρονισμός υπαλλήλων',
-            syncingModalTitle: 'Η σύνδεσή σας συγχρονίζεται',
-            syncingModalDescription: 'Η πρώτη σύνδεση μπορεί να πάρει λίγο χρόνο. Θα ενημερωθείτε για τυχόν σφάλματα.',
             approvalModeDescription: (providerName: string) => `Τα μέλη και οι υπεύθυνοι έχουν ρυθμιστεί ώστε να συγχρονίζονται με το ${providerName}.`,
             approvalModeWarningTitle: 'Αλλαγή λειτουργίας έγκρισης;',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -7675,6 +7719,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 custom: 'Προσαρμοσμένη έγκριση',
                 advanced: 'Προηγμένη έγκριση',
             },
+            syncingModalTitle: 'Η σύνδεσή σας συγχρονίζεται',
+            syncingModalDescription: 'Η πρώτη σύνδεση μπορεί να πάρει λίγο χρόνο. Θα ενημερωθείτε για τυχόν σφάλματα.',
             syncLimitReached: {
                 title: 'Δοκιμάστε ξανά αύριο',
                 prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
@@ -7858,7 +7904,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             notAllowedToAddBankAccount:
                 'Ο χώρος εργασίας σας είναι ρυθμισμένος σε μη υποστηριζόμενο νόμισμα. Επικοινωνήστε με έναν διαχειριστή χώρου εργασίας που έχει δικαίωμα να το αλλάξει.',
             changeBankAccount: 'Αλλαγή τραπεζικού λογαριασμού',
-            updateCurrencyForExpensifyCard: 'Η Κάρτα Expensify είναι διαθέσιμη για έκδοση σε USD. Ενημερώστε αυτόν τον χώρο εργασίας σε USD ή χρησιμοποιήστε έναν διαφορετικό χώρο εργασίας.',
             updateCurrencyForExpensifyCardTitle: 'Αποκτήστε την Κάρτα Expensify',
             euUkUpdateCurrencyForExpensifyCard:
                 'Η Κάρτα Expensify είναι διαθέσιμη για έκδοση σε USD, GBP και EUR. Ενημερώστε αυτόν τον χώρο εργασίας σε ένα υποστηριζόμενο νόμισμα ή χρησιμοποιήστε έναν διαφορετικό χώρο εργασίας.',
@@ -8003,6 +8048,12 @@ ${reportName}`,
                 description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Campfire. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Campfire για πιο ξεκάθαρη οικονομική εικόνα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η ενοποίησή μας με το Campfire είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Dynamics 365 Business Central. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Dynamics 365 Business Central για πιο ξεκάθαρη οικονομική εικόνα.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Η ενοποίησή μας με το Dynamics 365 Business Central είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Προηγμένες εγκρίσεις',
@@ -8477,6 +8528,7 @@ ${reportName}`,
                 importColumnUpdatedCategory: 'Ενημερωμένη κατηγορία',
                 importColumnUpdatedTag: 'Ενημερωμένη ετικέτα',
                 importColumnUpdatedDescription: 'Ενημερωμένη περιγραφή',
+                importColumnUpdatedVendor: 'Ενημερώθηκε ο προμηθευτής',
                 vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 supplierUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία',
@@ -8875,6 +8927,22 @@ ${reportName}`,
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο Campfire από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noSubsidiariesFound: 'Δεν βρέθηκαν θυγατρικές',
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια οντότητα στο Campfire και συγχρονίστε ξανά τη σύνδεση',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το Campfire.',
+            accountTypesDescription: 'Οι λογαριασμοί Campfire σας θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Campfire θα είναι διαθέσιμοι ως κατηγορίες.',
+            dimensionsImport: 'Όλες οι διαστάσεις Campfire εισάγονται ως ετικέτες',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
+            prerequisitesTitle: 'Πριν συνδεθείτε...',
+            followSteps: 'Ακολουθήστε τα βήματα στις οδηγίες μας «Οδηγός: σύνδεση με το Dynamics 365 Business Central»',
+            enterCredentials: 'Εισαγάγετε τα στοιχεία του Dynamics 365 Business Central σας',
+            helpArticle: `<muted-text>Ανατρέξτε σε αυτό το <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">άρθρο βοήθειας</a> για να βρείτε αυτές τις πληροφορίες.</muted-text>`,
+            subsidiary: 'Θυγατρική',
+            subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική του Dynamics 365 Business Central για συγχρονισμό με αυτόν τον χώρο εργασίας.',
+            noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
+            noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {
@@ -9729,6 +9797,7 @@ ${reportName}`,
             emptyViolationSnapshotResults: {
                 subtitle: (formattedDate) => `Οι παραβάσεις παρακολουθούνται μόνο από ${formattedDate} και μετά. Δοκιμάστε να προσαρμόσετε τα φίλτρα ημερομηνίας σας.`,
             },
+            staleResults: {title: 'Απαιτείται ανανέωση', subtitle: 'Αυτή η σελίδα είναι παρωχημένη, κάντε ανανέωση για να δείτε τα πιο πρόσφατα', buttonText: 'Ανανέωση'},
         },
         columns: 'Στήλες',
         editColumns: 'Επεξεργασία στηλών',
@@ -9840,6 +9909,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Κατηγορία',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Έμπορος',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Ετικέτα',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Ημέρα',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Μήνας',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδα',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτος',
@@ -9864,6 +9934,12 @@ ${reportName}`,
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
             },
+            transactionStatus: {
+                label: 'Κατάσταση συναλλαγής',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Σε εκκρεμότητα',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Καταχωρίστηκε',
+                hint: 'Ισχύει μόνο για συναλλαγές με κάρτα.',
+            },
         },
         display: {
             label: 'Εμφάνιση',
@@ -9887,6 +9963,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Κατηγορίες',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Έμποροι',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Ετικέτες',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Ημέρες',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Μήνες',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδες',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτη',
@@ -11518,9 +11595,9 @@ ${reportName}`,
             permissions: 'Δικαιώματα ομάδας',
             createNewGroupButton: 'Νέα ομάδα',
             createGroupSubmitButton: 'Δημιουργία ομάδας',
-            expensifyCardPreferredWorkspace: 'Προτιμώμενος χώρος εργασίας για την Κάρτα Expensify',
+            expensifyCardPreferredWorkspace: 'Προτιμώμενος χώρος εργασίας κάρτας',
             expensifyCardPreferredWorkspaceDescription:
-                'Όλες οι συναλλαγές με Κάρτα Expensify θα δημιουργούνται στο προτιμώμενο χώρο εργασίας Κάρτας Expensify αντί για τον προτιμώμενο χώρο εργασίας. Η ενεργοποίηση αυτής της δυνατότητας θα παρακάμψει τη ρύθμιση προτιμώμενου χώρου εργασίας μόνο για τις συναλλαγές με Κάρτα Expensify.',
+                'Όλες οι συναλλαγές με Κάρτα Expensify και εταιρική κάρτα θα δημιουργούνται στον προτιμώμενο χώρο εργασίας για κάρτες αντί για τον προτιμώμενο χώρο εργασίας. Η ενεργοποίηση αυτής της δυνατότητας θα παρακάμψει τη ρύθμιση προτιμώμενου χώρου εργασίας μόνο για συναλλαγές με κάρτα.',
             strictlyEnforceWorkspaceRules: 'Επιβάλετε αυστηρά τους κανόνες του χώρου εργασίας',
             strictlyEnforceWorkspaceRulesDescription: 'Πρέπει να πληρούνται όλοι οι κανόνες του χώρου εργασίας πριν από την υποβολή μιας αναφοράς. Δεν επιτρέπονται χειροκίνητες εξαιρέσεις.',
             restrictExpenseWorkspaceCreation: 'Περιορισμός δημιουργίας/διαγραφής χώρου εργασίας εξόδων',
@@ -11539,7 +11616,7 @@ ${reportName}`,
             restrictDefaultLoginSelectionDescription:
                 'Αποτρέψτε τα μέλη από το να αλλάζουν το email σύνδεσής τους σε διεύθυνση εκτός του εταιρικού τους domain, ώστε να αποφύγετε περιορισμούς πολιτικών.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Για να ενεργοποιήσετε αυτήν τη ρύθμιση, ενεργοποιήστε πρώτα ένα προτιμώμενο χώρο εργασίας και ρυθμίστε τις Κάρτες Expensify στον τομέα σας.',
+                'Για να ενεργοποιήσετε αυτήν τη ρύθμιση, ενεργοποιήστε πρώτα ένα προτιμώμενο χώρο εργασίας και ρυθμίστε μια Κάρτα Expensify ή μια ροή εταιρικής κάρτας στον τομέα σας.',
             findGroup: 'Εύρεση ομάδας',
         },
     },

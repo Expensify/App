@@ -17,6 +17,7 @@ import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQuer
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import SearchBarChart from './SearchBarChart';
+import {useSearchQueryContext} from './SearchContext';
 import SearchLineChart from './SearchLineChart';
 import SearchPieChart from './SearchPieChart';
 
@@ -51,6 +52,7 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
 function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
@@ -72,7 +74,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         };
 
         const newQueryString = buildSearchQueryString(newQueryJSON);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
+        // Drilling into a chart segment stays within the same search, so the key travels with it.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString, searchKey: currentSearchKey}));
     };
 
     const firstItem = data.at(0);
