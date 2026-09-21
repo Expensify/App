@@ -1795,7 +1795,9 @@ function openReport(params: OpenReportActionParams) {
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
             value: {
                 hasOnceLoadedReportActions: hasOptimisticReportActions ? true : undefined,
-                isLoadingInitialReportActions: !hasOptimisticReportActions,
+                // Offline this only ever clears from the OpenReport response, which never arrives, so setting it for a
+                // report whose actions are already in Onyx pins the skeleton over content we could render right away.
+                isLoadingInitialReportActions: !hasOptimisticReportActions && !(isOfflineNetwork() && hasReportActions),
                 isLoadingOlderReportActions: false,
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,

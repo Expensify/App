@@ -811,7 +811,7 @@ function getRecalculatedDistanceMerchant(
 }
 
 /**
- * Given the edit made to the expense, return an updated transaction object.
+ * Given the edit made to the expense, return an updated transaction object. Tracked expenses store the opposite sign, so the amount follows the report the expense ends up on: a merge moves it to Self-DM in the same change set.
  */
 function getUpdatedTransaction({
     transaction,
@@ -836,8 +836,6 @@ function getUpdatedTransaction({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): Transaction {
-    // Tracked expenses store the opposite sign, so this has to follow the report the expense ends up on rather than
-    // the one it is on now: a merge moves the expense to Self-DM in the same change set.
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || transactionChanges.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Only changing the first level fields so no need for deep clone now
