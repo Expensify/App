@@ -1,6 +1,7 @@
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -150,20 +151,14 @@ const REGISTRY = {
         inputProps: {placeholder: translate('common.dateFormat')},
     }),
     country: (field, context) => {
-        const choices = getChoices(field, context);
         if (context.isAloneOnPage) {
-            return {InputComponent: InlineSelectionListAdapter, isMenuRow: true, inputProps: {items: choices, isSearchable: true, searchInputLabel: context.translate('common.country')}};
+            return {
+                InputComponent: InlineSelectionListAdapter,
+                isMenuRow: true,
+                inputProps: {items: getChoices(field, context), isSearchable: true, searchInputLabel: context.translate('common.country')},
+            };
         }
-        return {
-            InputComponent: PushRowWithModal,
-            isMenuRow: true,
-            inputProps: {
-                optionsList: Object.fromEntries(choices.map((choice) => [choice.value, choice.label])),
-                description: getFieldLabel(field, context.translate),
-                modalHeaderTitle: context.translate('countryStep.selectCountry'),
-                searchInputTitle: context.translate('common.country'),
-            },
-        };
+        return {InputComponent: CountryPicker, isMenuRow: true, inputProps: {}};
     },
     currency: (field, {translate, isAloneOnPage}) => {
         if (isAloneOnPage) {

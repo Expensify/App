@@ -3,6 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
@@ -91,7 +92,7 @@ const EXPECTED_COMPONENT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | (
     multiselect: PushRowWithModal,
     radio: RadioButtons,
     date: DatePicker,
-    country: PushRowWithModal,
+    country: CountryPicker,
     countryMultiselect: PushRowWithModal,
     currency: CurrencyPicker,
     address: AddressSearch,
@@ -173,12 +174,8 @@ describe('DynamicFormFields', () => {
         expect(Object.keys(rendered?.optionsList ?? {})).toHaveLength(9);
     });
 
-    it('offers every country in a searchable push row', () => {
-        const country = renderFields(allFieldTypes).get('country');
-
-        expect(country?.InputComponent).toBe(PushRowWithModal);
-        expect(country?.optionsList?.GB).toBe('allCountries.GB');
-        expect(Object.keys(country?.optionsList ?? {}).length).toBeGreaterThan(200);
+    it('renders a country row through the existing CountryPicker', () => {
+        expect(renderFields(allFieldTypes).get('country')?.InputComponent).toBe(CountryPicker);
     });
 
     it('passes maxFiles and accepted types to UploadFile', () => {

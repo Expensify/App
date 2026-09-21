@@ -1,4 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+import type {SummaryGroup, SummaryGroupRow} from '@components/SubStepForms/ConfirmationStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,12 +21,10 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
-import type {SummaryGroup, SummaryRow} from './DynamicFormConfirmation';
 import type {DynamicFormPage as DynamicFormPageSchema} from './groupFieldsIntoPages';
 import type {DynamicFormValues} from './types';
 
 import {summarizeItem} from './adapters/ListFieldAdapter';
-import DynamicFormConfirmation from './DynamicFormConfirmation';
 import DynamicFormPage from './DynamicFormPage';
 import DynamicFormShell from './DynamicFormShell';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
@@ -276,7 +276,7 @@ function DynamicFormFlow({
             name: getPageTitle(page, translate),
             rows: page.fields
                 .filter((field) => isFieldVisible(field, draftValues))
-                .flatMap((field): SummaryRow[] => {
+                .flatMap((field): SummaryGroupRow[] => {
                     const stored = draftValues[field.key];
                     if (field.type === 'list' && isListItems(stored)) {
                         return stored.map((item) => {
@@ -339,12 +339,15 @@ function DynamicFormFlow({
         }
     } else if (!isLoading) {
         content = (
-            <DynamicFormConfirmation
+            <ConfirmationStep
                 pageTitle={confirmationTitle}
                 groups={summaryGroups}
+                showOnfidoLinks={false}
                 isLoading={isSubmitting}
                 error={submitError}
-                onConfirm={nextPage}
+                isEditing={false}
+                onNext={nextPage}
+                onMove={moveTo}
             />
         );
     }
