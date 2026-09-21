@@ -230,5 +230,6 @@ describe('groupFieldsIntoPages', () => {
 
         expect(pages.map((page) => page.slug)).toEqual(['kyc-aml', 'kyc-aml-2', 'page-3']);
         expect(groupFieldsIntoPages([text('d', 'Confirm')]).at(0)?.slug).toBe('confirm-2');
+        expect(groupFieldsIntoPages([{...text('e', 'Owners'), groupLabelKey: 'common.owner'}]).at(0)?.labelKey).toBe('common.owner');
     });
 });

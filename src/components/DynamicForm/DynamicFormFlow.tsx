@@ -30,7 +30,7 @@ import DynamicFormShell from './DynamicFormShell';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
 import getDynamicFieldErrors from './getDynamicFieldErrors';
 import {getFieldLabel} from './getInputComponentForField';
-import groupFieldsIntoPages, {CONFIRM_PAGE_SLUG} from './groupFieldsIntoPages';
+import groupFieldsIntoPages, {CONFIRM_PAGE_SLUG, getPageTitle} from './groupFieldsIntoPages';
 import isFieldVisible from './isFieldVisible';
 
 type DynamicFormFlowProps = {
@@ -267,13 +267,13 @@ function DynamicFormFlow({
 
     const isConfirmationPage = currentPageName === CONFIRM_PAGE_SLUG;
     const visibleGroupPages = groupPages.filter(hasVisibleField);
-    const stepNames = visibleGroupPages.map((page) => page.name);
+    const stepNames = visibleGroupPages.map((page) => getPageTitle(page, translate));
     const stepGroup = currentGroupPage ?? editorGroup;
     const stepIndex = stepGroup ? Math.max(0, visibleGroupPages.indexOf(stepGroup)) : stepNames.length - 1;
 
     const summaryGroups: SummaryGroup[] = groupPages
         .map((page, index) => ({
-            name: page.name,
+            name: getPageTitle(page, translate),
             rows: page.fields
                 .filter((field) => isFieldVisible(field, draftValues))
                 .flatMap((field): SummaryRow[] => {

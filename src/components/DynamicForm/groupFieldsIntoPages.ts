@@ -1,8 +1,14 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import type {TranslationPaths} from '@src/languages/types';
 import type {DynamicFormField} from '@src/types/onyx';
 
 type DynamicFormPage = {
-    /** The fields' shared `group`, shown as the page title and step name */
+    /** The fields' shared `group`, shown as the page title and step name unless `labelKey` is set */
     name: string;
+
+    /** Our translation of the title, from the first field in the group that declares `groupLabelKey` */
+    labelKey?: TranslationPaths;
 
     /** URL-safe form of the name, used as the sub page route segment */
     slug: string;
@@ -27,7 +33,7 @@ function groupFieldsIntoPages(fields: DynamicFormField[]): DynamicFormPage[] {
         if (page) {
             page.fields.push(field);
         } else {
-            pages.push({name: field.group, slug: toSlug(field.group), fields: [field]});
+            pages.push({name: field.group, slug: toSlug(field.group), labelKey: field.groupLabelKey, fields: [field]});
         }
     }
     const taken = new Set<string>([CONFIRM_PAGE_SLUG]);
@@ -42,6 +48,10 @@ function groupFieldsIntoPages(fields: DynamicFormField[]): DynamicFormPage[] {
     return pages;
 }
 
+function getPageTitle(page: DynamicFormPage, translate: LocalizedTranslate): string {
+    return page.labelKey ? translate(page.labelKey) : page.name;
+}
+
 export default groupFieldsIntoPages;
-export {CONFIRM_PAGE_SLUG};
+export {CONFIRM_PAGE_SLUG, getPageTitle};
 export type {DynamicFormPage};
