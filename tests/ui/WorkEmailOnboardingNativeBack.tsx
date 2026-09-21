@@ -124,12 +124,17 @@ async function getOnboardingValues() {
 
 describe('Onboarding work email validation (Android system back)', () => {
     let backHandlerSpy: jest.SpyInstance;
-    let hardwareBackCallback: ((event: HardwareBackPressEvent) => boolean | null | undefined) | undefined;
+    const hardwareBackHandlers: Array<(event: HardwareBackPressEvent) => boolean | null | undefined> = [];
 
-    const pressHardwareBack = (): boolean | null | undefined => {
-        let consumed: boolean | null | undefined;
+    /**
+     * React Native calls `hardwareBackPress` subscribers newest first and stops at the first one that returns true, so
+     * this does the same. NavigationContainer subscribes too (it pops the stack when it can go back), and asserting
+     * against a single captured handler would only ever test whichever one happened to subscribe last.
+     */
+    const pressHardwareBack = (): boolean => {
+        let consumed = false;
         act(() => {
-            consumed = hardwareBackCallback?.(mockHardwareBackPressEvent);
+            consumed = [...hardwareBackHandlers].reverse().some((handler) => handler(mockHardwareBackPressEvent) === true);
         });
         return consumed;
     };
@@ -142,10 +147,18 @@ describe('Onboarding work email validation (Android system back)', () => {
     });
 
     beforeEach(() => {
-        hardwareBackCallback = undefined;
+        hardwareBackHandlers.length = 0;
         backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((event, handler) => {
-            hardwareBackCallback = handler;
-            return {remove: jest.fn()};
+            hardwareBackHandlers.push(handler);
+            return {
+                remove: () => {
+                    const index = hardwareBackHandlers.indexOf(handler);
+                    if (index < 0) {
+                        return;
+                    }
+                    hardwareBackHandlers.splice(index, 1);
+                },
+            };
         });
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
             createMock<ResponsiveLayoutResult>({
