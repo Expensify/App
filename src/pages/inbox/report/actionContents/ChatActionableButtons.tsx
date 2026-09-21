@@ -230,7 +230,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
             preferredPolicyID,
             actionName: CONST.IOU.ACTION.SUBMIT,
             submitDestination,
-            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
+            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', personalDetail.displayName, lastWorkspaceNumber, translate),
         });
     };
 

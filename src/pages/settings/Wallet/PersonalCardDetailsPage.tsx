@@ -16,12 +16,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getCardFeedIcon, getPlaidInstitutionIconUrl, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isPersonalCard, isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -69,7 +70,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const {isOffline} = useNetwork();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -77,12 +77,14 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
-    const isCardBroken = card ? isCardConnectionBroken(card) : false;
+    const isCardBroken = isPersonalCardBrokenConnection(card);
     const isUserPersonalCard = !!(card && isPersonalCard(card));
+
+    const [cardholderPersonalDetails] = usePersonalDetail(card?.accountID);
 
     // Personal cards always belong to the current user, so fall back to the current user's personal details
     // if the personal details list doesn't yet have an entry for the card's accountID.
-    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID] ?? (isUserPersonalCard ? currentUserPersonalDetails : undefined);
+    const cardholder = cardholderPersonalDetails ?? (isUserPersonalCard ? currentUserPersonalDetails : undefined);
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate, formatPhoneNumber});
     const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));

@@ -1,6 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
-import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
@@ -25,22 +24,27 @@ import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, hasNextActionMadeBySameActor, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {getFilteredReportActionsForReportView, getLatestConciergeFeedbackActionID, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
+import {
+    canUserPerformWriteAction,
+    chatIncludesChronosWithID,
+    getReportLastVisibleActionCreated,
+    isHarvestCreatedExpenseReport,
+    shouldReportAlignToTop,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-
-import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
-import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
+import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
-import {getOlderActions, openReport, subscribeToNewActionEvent} from '@userActions/Report';
+import {openReport, subscribeToNewActionEvent} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +55,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-/* eslint-disable rulesdir/prefer-early-return */
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
@@ -61,6 +64,7 @@ import {View} from 'react-native';
 import MoneyRequestReportEmptyStateView from './MoneyRequestReportEmptyStateView';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import SelectionToolbar from './SelectionToolbar';
+import useMoneyRequestReportPagination from './useMoneyRequestReportPagination';
 import useMoneyRequestReportVisibleActions from './useMoneyRequestReportVisibleActions';
 
 /**
@@ -70,10 +74,6 @@ const EmptyParentReportActionForTransactionThread = undefined;
 
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
-
-// The server page size for report actions is ~50. Gaps from IOU prioritization only happen
-// when the initial load is truncated, so skip backfill for smaller reports.
-const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
 
 type MoneyRequestReportListProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -197,97 +197,27 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         return reportActions?.map((action) => action.reportActionID) ?? [];
     }, [reportActions]);
 
-    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
+    const conciergeFeedbackForReportActionID = reportNameValuePairs?.conciergeFeedbackForReportActionID;
+
+    // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
+    const latestConciergeFeedbackActionID = useMemo(
+        () =>
+            conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
+                ? undefined
+                : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs),
+        [conciergeFeedbackForReportActionID, isDraftPendingCompletion, hasNewerActions, visibleReportActionsNewestFirst, reportActionIDs],
+    );
+
+    const {onStartReached, onEndReached} = useMoneyRequestReportPagination({
         reportID,
         reportActions,
-        allReportActionIDs: reportActionIDs,
         transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
-        newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
+        isOffline,
+        reportPaginationState,
+        reportLoadingState,
     });
-
-    const hasFinishedInitialLoad = reportLoadingState?.isLoadingInitialReportActions === false;
-    const prevNewestFetchedIDRef = useRef<string | undefined>(undefined);
-    useEffect(() => {
-        if (hasFinishedInitialLoad && hasNewerActions && reportActions.length > 0 && !isOffline && !reportLoadingState?.isLoadingNewerReportActions) {
-            // Safety guard: if the cursor hasn't advanced since the last call, the server
-            // isn't returning new data. Stop to prevent an infinite request loop.
-            const currentCursor = reportPaginationState?.newestFetchedReportActionID;
-            if (prevNewestFetchedIDRef.current !== undefined && prevNewestFetchedIDRef.current === currentCursor) {
-                return;
-            }
-            prevNewestFetchedIDRef.current = currentCursor;
-            loadNewerChats(false);
-        }
-    }, [
-        hasFinishedInitialLoad,
-        reportActions.length,
-        hasNewerActions,
-        isOffline,
-        reportLoadingState?.isLoadingNewerReportActions,
-        reportPaginationState?.newestFetchedReportActionID,
-        loadNewerChats,
-    ]);
-
-    // Backfill loop: the backend prioritizes IOU actions in OpenReport/GetNewerActions for money
-    // request reports, which can leave non-IOU chat messages in a gap between the IOU-biased cursor
-    // and older messages. After auto-pagination finishes, walk backwards from the IOU cursor using
-    // getOlderActions. Each response advances oldestFetchedReportActionID so the next call picks up
-    // where the previous one left off, until the cursor stops advancing (gap filled).
-    const prevBackfillCursorRef = useRef<string | undefined>(undefined);
-    const isBackfillingRef = useRef(false);
-    useEffect(() => {
-        if (!hasFinishedInitialLoad || isOffline || hasNewerActions || reportLoadingState?.isLoadingNewerReportActions || reportLoadingState?.isLoadingOlderReportActions) {
-            return;
-        }
-
-        if (!isBackfillingRef.current) {
-            const hasIOUActions = reportActions.some((action) => isMoneyRequestAction(action));
-            if (!hasIOUActions || reportActions.length < BACKFILL_MIN_ACTIONS_THRESHOLD || !reportPaginationState?.newestFetchedReportActionID) {
-                return;
-            }
-        }
-
-        const cursor = isBackfillingRef.current ? reportPaginationState?.oldestFetchedReportActionID : reportPaginationState?.newestFetchedReportActionID;
-        if (!cursor) {
-            return;
-        }
-
-        if (prevBackfillCursorRef.current === cursor) {
-            return;
-        }
-
-        isBackfillingRef.current = true;
-        prevBackfillCursorRef.current = cursor;
-        const handle = TransitionTracker.runAfterTransitions({callback: () => getOlderActions(reportID, cursor)});
-
-        return () => handle.cancel();
-    }, [
-        hasFinishedInitialLoad,
-        isOffline,
-        hasNewerActions,
-        reportLoadingState?.isLoadingNewerReportActions,
-        reportLoadingState?.isLoadingOlderReportActions,
-        reportPaginationState?.newestFetchedReportActionID,
-        reportPaginationState?.oldestFetchedReportActionID,
-        reportActions,
-        reportID,
-    ]);
-
-    const onStartReached = useCallback(() => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadOlderChats(false);
-            return;
-        }
-        TransitionTracker.runAfterTransitions({
-            callback: () => loadOlderChats(false),
-        });
-    }, [loadOlderChats]);
-
-    const onEndReached = useCallback(() => {
-        loadNewerChats(false);
-    }, [loadNewerChats]);
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(false);
     const listLayoutHeightRef = useRef(0);
@@ -330,6 +260,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         unreadMarkerReportActionIndex,
         isInverted: false,
         hasNewerActions,
+        shouldBeAlignedToTop: shouldReportAlignToTop(report, parentReportAction),
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
 
@@ -453,26 +384,33 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                 hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
             const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+            const isNewestReportAction = indexWithinReportActions === visibleReportActions.length - 1;
 
             return (
-                <ReportActionIndexContext.Provider value={indexWithinReportActions}>
-                    <ReportActionsListItemRenderer
-                        reportAction={reportAction}
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                        report={reportStable}
-                        transactionThreadReport={transactionThreadReport}
-                        chatReport={chatReport}
-                        displayAsGroup={displayAsGroup}
-                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                        shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                        shouldHideThreadDividerLine
-                        linkedReportActionID={linkedReportActionID}
-                        isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
-                        shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                    />
-                </ReportActionIndexContext.Provider>
+                <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
+                    <ReportActionPositionContextProvider
+                        index={indexWithinReportActions}
+                        isNewest={isNewestReportAction}
+                    >
+                        <ReportActionsListItemRenderer
+                            reportAction={reportAction}
+                            parentReportAction={parentReportAction}
+                            parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
+                            report={reportStable}
+                            transactionThreadReport={transactionThreadReport}
+                            chatReport={chatReport}
+                            displayAsGroup={displayAsGroup}
+                            shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                            shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                            isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                            shouldHideThreadDividerLine
+                            linkedReportActionID={linkedReportActionID}
+                            isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
+                            shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                            isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                        />
+                    </ReportActionPositionContextProvider>
+                </ReportActionScrollToNewestContext.Provider>
             );
         },
         [
@@ -488,10 +426,15 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
             shouldShowHarvestCreatedAction,
             draftReportActionID,
             isDraftPendingCompletion,
+            latestConciergeFeedbackActionID,
+            scrollToBottom,
         ],
     );
 
-    const reportActionsExtraData = useMemo(() => [draftReportActionID, isDraftPendingCompletion], [draftReportActionID, isDraftPendingCompletion]);
+    const reportActionsExtraData = useMemo(
+        () => [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID],
+        [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID],
+    );
 
     const scrollToLatestMessages = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);

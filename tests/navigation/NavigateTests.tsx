@@ -28,14 +28,12 @@ const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 /**
- * Looks the Workspace navigator up by name rather than by a hardcoded index, so adding a tab to TAB_SCREENS
- * doesn't silently shift the index and make these assertions read `undefined`.
+ * Looks the Tab and Workspace navigators up by name rather than by hardcoded indexes, so adding or reordering routes
+ * doesn't silently shift an index and make these assertions read `undefined`.
  */
 function getWorkspaceNavigatorState() {
-    return navigationRef.current
-        ?.getRootState()
-        .routes.at(0)
-        ?.state?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+    const tabNavigatorState = navigationRef.current?.getRootState().routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)?.state;
+    return tabNavigatorState?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
 }
 
 describe('Navigate', () => {
@@ -284,6 +282,7 @@ describe('Navigate', () => {
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
