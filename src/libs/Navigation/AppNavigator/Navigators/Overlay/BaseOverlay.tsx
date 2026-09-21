@@ -26,10 +26,13 @@ type BaseOverlayProps = {
     /** Overlay position from the right edge of the container */
     positionRightValue?: OverlayPositionValue;
 
+    /** Peak opacity the overlay fades to, defaults to variables.overlayOpacity */
     maxOpacity?: number;
 
+    /** Overlay position from the top edge of the container, in px */
     positionTopValue?: number;
 
+    /** Overlay position from the bottom edge of the container, in px */
     positionBottomValue?: number;
 
     /** Stays positioned and pressable, just paints nothing. */
