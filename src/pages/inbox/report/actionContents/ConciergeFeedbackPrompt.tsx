@@ -104,8 +104,8 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
 
     const thumbsUpReactedAt = getReactedAtTimestamp(thumbsUp, reactions, currentUserAccountID);
 
-    // Holds the reaction the acknowledgement has already been shown for, so a later reaction opens the window again
-    const [closedThanksReactedAt, setClosedThanksReactedAt] = useState<number>();
+    // Holds the reaction the acknowledgement is showing for. Both timers keep the state change out of the render and out of the effect body
+    const [thanksReactedAt, setThanksReactedAt] = useState<number>();
 
     useEffect(() => {
         if (thumbsUpReactedAt === undefined) {
@@ -117,11 +117,15 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             return;
         }
 
-        const thanksTimeoutID = setTimeout(() => setClosedThanksReactedAt(thumbsUpReactedAt), remainingThanksTime);
-        return () => clearTimeout(thanksTimeoutID);
+        const showTimeoutID = setTimeout(() => setThanksReactedAt(thumbsUpReactedAt), 0);
+        const hideTimeoutID = setTimeout(() => setThanksReactedAt(undefined), remainingThanksTime);
+        return () => {
+            clearTimeout(showTimeoutID);
+            clearTimeout(hideTimeoutID);
+        };
     }, [thumbsUpReactedAt]);
 
-    const isDisplayedThankMessage = thumbsUpReactedAt !== undefined && closedThanksReactedAt !== thumbsUpReactedAt && Date.now() < thumbsUpReactedAt + THANKS_VISIBLE_DURATION_MS;
+    const isDisplayedThankMessage = thanksReactedAt !== undefined && thanksReactedAt === thumbsUpReactedAt;
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
