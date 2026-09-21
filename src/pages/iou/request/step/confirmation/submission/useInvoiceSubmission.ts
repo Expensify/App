@@ -23,7 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import type {SubmissionHandle} from './types';
+import type {CreateTransactionParams, SubmissionHandle} from './types';
 import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 
 type UseInvoiceSubmissionParams = {
@@ -69,7 +69,7 @@ function useInvoiceSubmission({
     const [senderWorkspacePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${senderWorkspaceID}`);
     const existingInvoiceReport = useParticipantsInvoiceReport(receiverAccountID, receiverType, senderWorkspaceID);
 
-    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+    function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
         const invoiceChatReportID = invoiceChatReport ? undefined : reportID;

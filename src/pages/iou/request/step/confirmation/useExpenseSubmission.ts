@@ -23,6 +23,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useRef, useState} from 'react';
 
+import type {CreateTransactionParams} from './submission/types';
 import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 
 import useDistanceDraftData from './submission/useDistanceDraftData';
@@ -397,7 +398,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSubmittingExpenseToDraftWorkspace,
     });
 
-    const submitByPath: Record<SubmissionPath, (locationPermissionGranted: boolean, shouldHandleNavigation: boolean) => void> = {
+    const submitByPath: Record<SubmissionPath, (params: CreateTransactionParams) => void> = {
         [SUBMISSION_PATH.DISTANCE]: distanceSubmission.createTransaction,
         [SUBMISSION_PATH.SPLIT]: splitSubmission.createTransaction,
         [SUBMISSION_PATH.INVOICE]: invoiceSubmission.createTransaction,
@@ -406,7 +407,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
-    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true}: CreateTransactionParams) {
         if (blockDistanceRequestIfNeeded()) {
             return;
         }
@@ -422,7 +423,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        submitByPath[submissionPath](locationPermissionGranted, shouldHandleNavigation);
+        submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation});
     }
 
     return {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted};

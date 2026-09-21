@@ -28,7 +28,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {SubmissionHandle} from './types';
+import type {CreateTransactionParams, SubmissionHandle} from './types';
 import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 
 type UsePerDiemSubmissionParams = {
@@ -110,7 +110,7 @@ function usePerDiemSubmission({
         : undefined;
     const [perDiemExpensePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPerDiemExpensePolicyID}`);
 
-    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+    function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
         if (!transaction) {
             markSubmitExpenseEnd();
             return;

@@ -1,5 +1,13 @@
+type CreateTransactionParams = {
+    /** Whether the user granted the location permission, which decides if GPS coordinates are attached to a scan. */
+    locationPermissionGranted?: boolean;
+
+    /** Whether the submission handler should handle its own post-submit navigation. */
+    shouldHandleNavigation?: boolean;
+};
+
 type SubmissionHandle = {
-    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => void;
+    createTransaction: (params: CreateTransactionParams) => void;
 };
 
 type SendMoneyReportIDs = {
@@ -24,4 +32,4 @@ type SendMoneyOptions = {
     shouldDeferForSearch?: boolean;
 };
 
-export type {SubmissionHandle, SendMoneyOptions};
+export type {SubmissionHandle, SendMoneyOptions, CreateTransactionParams};

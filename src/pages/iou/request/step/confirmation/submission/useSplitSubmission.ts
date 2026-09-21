@@ -24,7 +24,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {RefObject} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {SubmissionHandle} from './types';
+import type {CreateTransactionParams, SubmissionHandle} from './types';
 import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
 
@@ -81,7 +81,7 @@ function useSplitSubmission({
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
 
-    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+    function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const shouldDeferSplitForSearch = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
         // receiptFiles can hold an entry for a transaction no longer being submitted, so the files are matched against what is actually being submitted.

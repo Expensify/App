@@ -40,7 +40,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 
-import type {SubmissionHandle} from './types';
+import type {CreateTransactionParams, SubmissionHandle} from './types';
 import type {SubmitWithGpsPoint} from './useGpsCapture';
 import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
@@ -341,7 +341,7 @@ function useRequestMoneySubmission({
         });
     }
 
-    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true}: CreateTransactionParams) {
         const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
         // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
         const shouldCaptureGpsPoint = hasAnyReceiptFile && !!transaction && transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted;

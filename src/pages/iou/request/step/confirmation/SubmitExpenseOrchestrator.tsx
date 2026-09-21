@@ -31,6 +31,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
+import type {CreateTransactionParams} from './submission/types';
 
 import getSubmitExpenseSearchType from './getSubmitExpenseSearchType';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
@@ -43,7 +44,7 @@ type SubmitExpenseOrchestratorRenderProps = {
 
 type SubmitExpenseOrchestratorProps = {
     /** Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction. */
-    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => void;
+    createTransaction: (params: CreateTransactionParams) => void;
 
     /** Report that the expense will land on (undefined when destination is unknown, e.g. global create to Search). */
     destinationReportID: string | undefined;
@@ -231,7 +232,7 @@ function SubmitExpenseOrchestrator({
             // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
             // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
             // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-            createTransaction(locationPermissionGranted);
+            createTransaction({locationPermissionGranted});
             setIsConfirming(false);
         });
     };
@@ -242,7 +243,7 @@ function SubmitExpenseOrchestrator({
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const afterTransition = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: false});
             setIsConfirming(false);
         };
 
@@ -258,7 +259,7 @@ function SubmitExpenseOrchestrator({
         reserveDeferredWriteChannel(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: false});
             setIsConfirming(false);
         };
 
@@ -292,7 +293,7 @@ function SubmitExpenseOrchestrator({
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: false});
             setIsConfirming(false);
         };
 
@@ -344,7 +345,7 @@ function SubmitExpenseOrchestrator({
             // is intentionally the same approach used in handleDefaultSubmit so
             // this fallback behaves identically to the standard submit path.
             requestAnimationFrame(() => {
-                createTransaction(locationPermissionGranted);
+                createTransaction({locationPermissionGranted});
                 requestAnimationFrame(() => {
                     setIsConfirming(false);
                 });
@@ -357,7 +358,7 @@ function SubmitExpenseOrchestrator({
 
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
             afterTransition: () => {
-                createTransaction(locationPermissionGranted, false);
+                createTransaction({locationPermissionGranted, shouldHandleNavigation: false});
                 setIsConfirming(false);
             },
         });
@@ -367,7 +368,7 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
         reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
-            createTransaction(locationPermissionGranted);
+            createTransaction({locationPermissionGranted});
             requestAnimationFrame(() => {
                 setIsConfirming(false);
             });
@@ -396,7 +397,7 @@ function SubmitExpenseOrchestrator({
             if (isDestinationEmpty) {
                 flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             }
-            createTransaction(locationPermissionGranted, false);
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: false});
             setIsConfirming(false);
         };
 

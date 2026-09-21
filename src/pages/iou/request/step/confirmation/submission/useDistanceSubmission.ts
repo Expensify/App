@@ -26,7 +26,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {RefObject} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {SubmissionHandle} from './types';
+import type {CreateTransactionParams, SubmissionHandle} from './types';
 import type {DistanceDraftData} from './useDistanceDraftData';
 import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
@@ -116,7 +116,7 @@ function useDistanceSubmission({
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
     const [iouReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
 
-    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+    function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
         if (!transaction) {
             markSubmitExpenseEnd();
             return;
