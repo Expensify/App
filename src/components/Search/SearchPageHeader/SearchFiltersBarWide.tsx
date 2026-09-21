@@ -1,7 +1,10 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React from 'react';
+import {View} from 'react-native';
 
 import SearchFilterBar from './SearchFilterBar';
 import SearchFiltersResetButton from './SearchFiltersResetButton';
@@ -13,6 +16,7 @@ type SearchFiltersBarWideProps = {
 };
 
 function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
+    const styles = useThemeStyles();
     const {filters, hasErrors, shouldShowFiltersBarLoading, hasFiltersChanged, resetFilters} = useSearchFiltersBar(queryJSON);
 
     if (hasErrors) {
@@ -32,10 +36,10 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
                 />
             ))}
             {hasFiltersChanged && (
-                <>
+                <View style={[styles.flexRow]}>
                     <SearchFiltersResetButton onPress={resetFilters} />
                     <SearchFiltersSaveButton />
-                </>
+                </View>
             )}
         </>
     );

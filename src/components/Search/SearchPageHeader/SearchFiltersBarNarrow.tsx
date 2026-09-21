@@ -62,7 +62,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             onEndReachedThreshold={0.75}
             ListFooterComponent={
                 hasFiltersChanged ? (
-                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <SearchFiltersResetButton onPress={resetFilters} />
                         <SearchFiltersSaveButton />
                     </View>
