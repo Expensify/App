@@ -122,7 +122,7 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             layout="horizontal"
             style={styles.alignItemsCenter}
         >
-            <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.prompt')}</Text>
+            <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('concierge.feedback.prompt')}</Text>
             {/* The thumbs share one child so the container gap does not separate them */}
             <View style={styles.flexRow}>
                 <ConciergeFeedbackThumb

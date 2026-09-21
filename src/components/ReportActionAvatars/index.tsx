@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 
+import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -187,16 +188,20 @@ function ReportActionAvatars({
         return null;
     }
 
-    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : source.action?.delegateAccountID;
-    const singleAvatar: AvatarIcon = delegateAccountIDFromAction
-        ? {
-              ...primaryAvatar,
-              copilot: {
-                  accountID: delegateAccountIDFromAction,
-                  actedForAccountID: delegateAccountID,
-              },
-          }
-        : primaryAvatar;
+    // Read the copilot through `getDelegateAccountIDFromReportAction` rather than off the action: the server stamps
+    // `delegateAccountID` on every action a copilot's request creates, including Concierge-authored ones, and the
+    // accessor suppresses it there so Concierge never renders as "<copilot> (as copilot for Concierge)".
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : getDelegateAccountIDFromReportAction(source.action);
+    const singleAvatar: AvatarIcon =
+        delegateAccountID && delegateAccountIDFromAction
+            ? {
+                  ...primaryAvatar,
+                  copilot: {
+                      accountID: delegateAccountIDFromAction,
+                      actedForAccountID: delegateAccountID,
+                  },
+              }
+            : primaryAvatar;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED && subscriptCardFeed) {
         return (
