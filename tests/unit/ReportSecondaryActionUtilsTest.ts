@@ -540,19 +540,18 @@ describe('getSecondaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             total: -10000,
             isWaitingOnBankAccount: false,
+            // Auth reports the bank reimbursement as still cancellable so the outcome depends on the access gate alone.
+            canCancelReimbursement: true,
         });
         const transaction = createMock<Transaction>({reportID: REPORT_ID, amount: 10000});
 
         function buildPayAction(paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, bankAccountID?: number): ReportAction {
-            // Tomorrow keeps a bank payment before the NACHA cutoff so the outcome depends on the access gate alone.
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
             return createMock<ReportAction>({
                 reportActionID: PAY_ACTION_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: ADMIN_ACCOUNT_ID,
                 message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType, bankAccountID},
-                created: tomorrow.toISOString(),
+                created: '2020-01-01 00:00:00.000',
             });
         }
 
