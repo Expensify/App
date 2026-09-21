@@ -91,6 +91,10 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
 import {useEffect, useRef, useState} from 'react';
 
+import type {SubmissionPath} from './submission/resolveSubmissionPath';
+
+import {resolveSubmissionPath, SUBMISSION_PATH} from './submission/resolveSubmissionPath';
+
 function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
     const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
     markSubmitExpenseEnd();
@@ -362,6 +366,27 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
+    });
+
+    // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
+    // through trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted
+    // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
+    // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
+    const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+
+    // Which API command a submission will run. Resolved here rather than inside createTransaction because every
+    // input is render-time state - that is what lets each path own its own hook once this file is split up.
+    const submissionPath = resolveSubmissionPath({
+        iouType,
+        action,
+        isDistanceRequest,
+        isPerDiemRequest,
+        isCategorizingTrackExpense,
+        isSharingTrackExpense,
+        isSelfDMDestination,
+        isMovingTransactionFromTrackExpense,
+        isUnreported,
+        isSubmittingExpenseToDraftWorkspace,
     });
 
     function performPostBatchCleanup({
@@ -1010,38 +1035,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
-        if (blockDistanceRequestIfNeeded()) {
-            return;
-        }
+    function submitDistance(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
+        createDistanceRequest(transaction?.comment?.comment?.trim() ?? '', shouldHandleNavigation);
+        markSubmitExpenseEnd();
+    }
 
-        setIsConfirmed(true);
+    function submitSplit(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
-
-        // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
-        if (formHasBeenSubmitted.current) {
-            return;
-        }
-
-        formHasBeenSubmitted.current = true;
-
-        const isDeferredSearchSubmit = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
-
-        // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
-        // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        if (!isTrackExpense && !isSelfDMDestination && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
-            createDistanceRequest(trimmedComment, shouldHandleNavigation);
-            markSubmitExpenseEnd();
-            return;
-        }
-
-        const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
-        const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
+        const shouldDeferSplitForSearch = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
         // receiptFiles can hold an entry for a transaction no longer being submitted, so the files are matched against what is actually being submitted.
         const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
 
         // The manual split below sends transaction.amount, which stays 0 until SmartScan returns, so a scan with no matching receipt has nothing to write yet rather than a $0 split.
-        if (iouType === CONST.IOU.TYPE.SPLIT && isScanRequestTransactionUtils(transaction) && scannedItems.length === 0) {
+        if (isScanRequestTransactionUtils(transaction) && scannedItems.length === 0) {
             // The tap is a silent no-op from the user's side, so leave a trace for whoever has to explain it later.
             Log.warn('[useExpenseSubmission] Scan split submitted with no receipt file for any transaction being submitted', {
                 transactionCount: transactions.length,
@@ -1054,7 +1060,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
-        if (iouType === CONST.IOU.TYPE.SPLIT && scannedItems.length > 0) {
+        if (scannedItems.length > 0) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
                 // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
@@ -1114,7 +1120,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
-        if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
+        if (!transaction?.isFromGlobalCreate) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 splitBill({
                     isVendorMatchingBetaEnabled,
@@ -1162,132 +1168,123 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
 
         // If the split expense is created from the global create menu, we also navigate the user to the group report
-        if (iouType === CONST.IOU.TYPE.SPLIT) {
-            if (currentUserPersonalDetails.login && !!transaction) {
-                const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, splitParticipants, currentUserPersonalDetails.accountID);
-                splitBillAndOpenReport({
-                    isVendorMatchingBetaEnabled,
-                    getCurrencyDecimals,
-                    participants: splitParticipants,
-                    currentUserLogin: currentUserPersonalDetails.login,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    amount: transaction.amount,
-                    comment: trimmedComment,
-                    currency: transaction.currency,
-                    merchant: transaction.merchant,
-                    created: transaction.created,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    billable: !!transaction.billable,
-                    reimbursable: !!transaction.reimbursable,
-                    iouRequestType: transaction.iouRequestType,
-                    splitShares: transaction.splitShares,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    taxValue: transactionTaxValue,
-                    policyRecentlyUsedCategories,
-                    policyRecentlyUsedTags,
-                    isASAPSubmitBetaEnabled,
-                    transactionViolations: transactionViolationsRef.current,
-                    quickAction,
-                    policyRecentlyUsedCurrencies,
-                    personalDetails,
-                    optimisticSplitChatReportID,
-                    delegateAccountID,
-                    isTrackIntentUser,
-                    formatPhoneNumber,
-                    participantsPolicyTags,
-                    rules,
-                });
-                if (shouldHandleNavigation) {
-                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
-                    // A split lands in a group DM or 1:1 chat, and transactions are never attached to a chat report.
-                    dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
-                } else {
-                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
-                }
-            }
-            markSubmitExpenseEnd();
-            return;
-        }
-
-        if (iouType === CONST.IOU.TYPE.INVOICE) {
-            const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
-            const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
-
-            sendInvoice({
+        if (currentUserPersonalDetails.login && !!transaction) {
+            const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, splitParticipants, currentUserPersonalDetails.accountID);
+            splitBillAndOpenReport({
+                isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
+                participants: splitParticipants,
+                currentUserLogin: currentUserPersonalDetails.login,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
-                transaction,
-                policyRecentlyUsedCurrencies,
-                invoiceChatReport,
-                invoiceChatReportID,
-                receiptFile: currentTransactionReceiptFile,
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
+                amount: transaction.amount,
+                comment: trimmedComment,
+                currency: transaction.currency,
+                merchant: transaction.merchant,
+                created: transaction.created,
+                category: transaction.category,
+                tag: transaction.tag,
+                billable: !!transaction.billable,
+                reimbursable: !!transaction.reimbursable,
+                iouRequestType: transaction.iouRequestType,
+                splitShares: transaction.splitShares,
+                taxCode: transactionTaxCode,
+                taxAmount: transactionTaxAmount,
+                taxValue: transactionTaxValue,
                 policyRecentlyUsedCategories,
-                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
-                senderPolicyTags: senderWorkspacePolicyTags ?? {},
-                formatPhoneNumber,
+                isASAPSubmitBetaEnabled,
+                transactionViolations: transactionViolationsRef.current,
+                quickAction,
+                policyRecentlyUsedCurrencies,
+                personalDetails,
+                optimisticSplitChatReportID,
                 delegateAccountID,
+                isTrackIntentUser,
+                formatPhoneNumber,
+                participantsPolicyTags,
+                rules,
             });
             if (shouldHandleNavigation) {
-                cleanupAndNavigateAfterExpenseCreate({
-                    report: undefined,
-                    action,
-                    draftTransactionIDs,
-                    transactionID: transaction?.transactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
-                    isInvoice: true,
-                });
+                cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+                // A split lands in a group DM or 1:1 chat, and transactions are never attached to a chat report.
+                dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
             } else {
-                cleanupAfterExpenseCreate({draftTransactionIDs});
+                cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
             }
-            markSubmitExpenseEnd();
-            return;
         }
+        markSubmitExpenseEnd();
+    }
 
-        // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
-        // through trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted
-        // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
-        // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
-        const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+    function submitInvoice(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
+        const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
+        const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
+        const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
-        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense || isSelfDMDestination || isSubmittingExpenseToDraftWorkspace)) {
-            if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
-                // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace && locationPermissionGranted) {
-                    if (userLocation) {
-                        trackExpense(shouldHandleNavigation, {
-                            gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
-                        });
-                        markSubmitExpenseEnd();
-                        return;
-                    }
+        sendInvoice({
+            getCurrencyDecimals,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            transaction,
+            policyRecentlyUsedCurrencies,
+            invoiceChatReport,
+            invoiceChatReportID,
+            receiptFile: currentTransactionReceiptFile,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            policyRecentlyUsedCategories,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+            policyRecentlyUsedTags,
+            senderPolicyTags: senderWorkspacePolicyTags ?? {},
+            formatPhoneNumber,
+            delegateAccountID,
+        });
+        if (shouldHandleNavigation) {
+            cleanupAndNavigateAfterExpenseCreate({
+                report: undefined,
+                action,
+                draftTransactionIDs,
+                transactionID: transaction?.transactionID,
+                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
+                isInvoice: true,
+            });
+        } else {
+            cleanupAfterExpenseCreate({draftTransactionIDs});
+        }
+        markSubmitExpenseEnd();
+    }
 
-                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(shouldHandleNavigation, {gpsPoint: gpsCoords}));
+    function submitTrack(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
+        if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
+            // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
+            if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace && locationPermissionGranted) {
+                if (userLocation) {
+                    trackExpense(shouldHandleNavigation, {
+                        gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
+                    });
+                    markSubmitExpenseEnd();
                     return;
                 }
 
-                // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                trackExpense(shouldHandleNavigation);
-                markSubmitExpenseEnd();
+                getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(shouldHandleNavigation, {gpsPoint: gpsCoords}));
                 return;
             }
+
+            // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
             trackExpense(shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
         }
+        trackExpense(shouldHandleNavigation);
+        markSubmitExpenseEnd();
+    }
 
-        if (isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT) {
-            submitPerDiemExpense(trimmedComment, shouldHandleNavigation, policyRecentlyUsedCategories);
-            markSubmitExpenseEnd();
-            return;
-        }
+    function submitPerDiem(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
+        submitPerDiemExpense(transaction?.comment?.comment?.trim() ?? '', shouldHandleNavigation, policyRecentlyUsedCategories);
+        markSubmitExpenseEnd();
+    }
 
+    function submitRequestMoney(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && !!transaction) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
             if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
@@ -1312,6 +1309,34 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         requestMoney(shouldHandleNavigation);
         markSubmitExpenseEnd();
+    }
+
+    const submitByPath: Record<SubmissionPath, (locationPermissionGranted: boolean, shouldHandleNavigation: boolean) => void> = {
+        [SUBMISSION_PATH.DISTANCE]: submitDistance,
+        [SUBMISSION_PATH.SPLIT]: submitSplit,
+        [SUBMISSION_PATH.INVOICE]: submitInvoice,
+        [SUBMISSION_PATH.TRACK]: submitTrack,
+        [SUBMISSION_PATH.PER_DIEM]: submitPerDiem,
+        [SUBMISSION_PATH.REQUEST_MONEY]: submitRequestMoney,
+    };
+
+    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
+
+        setIsConfirmed(true);
+
+        // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
+        if (formHasBeenSubmitted.current) {
+            return;
+        }
+
+        formHasBeenSubmitted.current = true;
+
+        // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
+        // are started by SubmitExpenseOrchestrator before calling createTransaction.
+        submitByPath[submissionPath](locationPermissionGranted, shouldHandleNavigation);
     }
 
     function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
