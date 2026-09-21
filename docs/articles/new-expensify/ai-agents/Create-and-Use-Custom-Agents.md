@@ -1,8 +1,8 @@
 ---
 title: Create and Use Agents
-description: Create personal agents in New Expensify, chat with them, and Copilot into their accounts. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
-keywords: [custom agents, agents, new agent, ai agent, agent instructions, agent template, build custom agent, copilot into account, agent copilot permissions, agent edit expenses, agent edit access, new expensify]
-internalScope: Audience is individual New Expensify users. Covers creating, configuring, and managing agents from the Agents page in Account settings. Does not cover Agent Rules, RuleBot, or workspace-level automation.
+description: Create personal agents in New Expensify, chat with them, review their message history, and Copilot into their accounts. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
+keywords: [custom agents, agents, new agent, ai agent, agent instructions, agent template, build custom agent, copilot into account, view agent history, agent message history, agent copilot permissions, agent edit expenses, agent edit access, new expensify]
+internalScope: Audience is individual New Expensify users. Covers creating, configuring, reviewing, and managing agents from the Agents page in Account settings. Does not cover Agent Rules, RuleBot, or workspace-level automation.
 ---
 
 # Create and Use Agents
@@ -67,7 +67,7 @@ After you create an agent:
 - You become the agent's owner.
 - You're automatically added as a full-access Copilot on the agent's account.
 - The agent is automatically added as a full-access Copilot on your own account, so it can use your personal context and act on your behalf.
-- The agent appears in your **Agents** list, where you can chat with it, edit its instructions, or Copilot into its account.
+- The agent appears in your **Agents** list, where you can chat with it, edit its instructions, review its message history, or Copilot into its account.
 - The agent can be added to workspaces as a member and selected anywhere a workspace member can be chosen, such as approval workflows.
 
 The agent follows the instructions you provide and operates from its own Expensify account. Because it's also a Copilot on your account, it can use your personal context and take actions on your behalf. You can review or remove the agent's Copilot access at any time in the **Copilot: Delegated Access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
@@ -105,6 +105,27 @@ Use Copilot to see what the agent has done, review its activity, and inspect any
 3. Find the agent in the list and click **Copilot**.
 
 [Learn more about Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
+
+---
+
+## How to view an agent's history
+
+**View agent history** collects every message the agent has sent into a single list, so you can review what it has been doing without opening each chat. It opens **Chats** search with a **From** filter already applied for that agent.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
+2. Click **Agents**.
+3. Find the agent you want to review, then click **Edit**.
+4. On the **Edit agent** screen, click **View agent history**.
+
+You land on the **Chats** search results with a **From: [Agent name]** filter applied. Add search terms or filters to narrow the list, or click **Reset** to start a new search.
+
+You can also open the same list from the agent's **Profile** page. [Learn how to view a person's or agent's message history from their profile](/articles/new-expensify/chat/View-User-History).
+
+<!-- SCREENSHOT:
+Suggestion: The Edit agent screen with View agent history visible between the custom instructions field and Chat with agent
+Location: How to view an agent's history
+Purpose: Shows that the history action lives on the Edit agent screen rather than the Agents list, which is where members look for it first
+-->
 
 ---
 
