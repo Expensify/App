@@ -209,22 +209,32 @@ describe('useShiftRangeSelection', () => {
         it('keeps the last usable anchor when notifyAnchor is passed a row the list does not contain', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            // Given 'b' clicked plainly, and then a row that can never be a range endpoint, such as an expanded child in a report list
             act(() => result.current.notifyAnchor(ROW_B));
-            // A row that can never be a range endpoint, such as an expanded child in a report list
             act(() => result.current.notifyAnchor({keyForList: 'not-in-the-list'}));
+
+            // When a shift+click lands further down
             act(() => {
                 result.current.applyShiftClick(ROW_D, true);
             });
+
+            // Then it still ranges from 'b', since a row no range can reach must not cost the user the anchor
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
         });
 
         it('matches notifyAnchor by key, so a re-rendered copy of a row still anchors', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+
+            // Given the anchor notified with a copy of the row rather than the object the list holds
             act(() => result.current.notifyAnchor({...ROW_B}));
+
+            // When a shift+click lands further down
             act(() => {
                 result.current.applyShiftClick(ROW_D, true);
             });
+
+            // Then it ranges from there, since the list builds a new object for every row on every render
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
         });
     });
@@ -517,46 +527,64 @@ describe('useShiftRangeSelection', () => {
         it('leaves the session alone when the block turns out to hold no rows, since nothing was selected', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            // Given 'b' clicked plainly, and then a block seeded that holds no rows at all
             act(() => result.current.notifyAnchor(ROW_B));
             act(() => result.current.seedRangeFromSelection([]));
+
+            // When a shift+click lands further down
             act(() => {
                 result.current.applyShiftClick(ROW_D, true);
             });
+
+            // Then it ranges from 'b' as if nothing had been seeded, since a block holding nothing selected nothing to narrow
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
         });
 
         it('starts at the clicked row when a seeded block resolves to no rows on screen, rather than sweeping from the top', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+
+            // Given a block seeded for rows that are not on screen, as a collapsed group's are not
             act(() => result.current.seedRangeFromSelection((key) => key === 'not-in-this-list'));
+
+            // When a shift+click lands
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
+
+            // Then it takes the clicked row alone: the block is what it would have narrowed, and none of it is here
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c'], toDeselect: []});
         });
 
         it('resolves a seeded block against the rows the list holds at shift+click, not the ones it held when seeded', () => {
             const onApplyRange = makeApplyMock();
-            // Seeded while only `a` is in the list, so none of the block's rows can be resolved yet.
+            // Given a block seeded while only `a` is in the list, so none of its rows can be resolved yet
             const {result, rerender} = renderHook((props: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({onApplyRange, items: props.items})), {initialProps: {items: [ROW_A]}});
             act(() => result.current.seedRangeFromSelection(['b', 'c', 'd']));
 
-            // The rest of the block arrives, the way a group's children do once it is expanded.
+            // When the rest of the block arrives, the way a group's children do once it is expanded, and a shift+click lands inside it
             rerender({items: ROWS});
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
 
+            // Then it narrows onto the rows now on screen, rather than onto the empty list it was seeded against
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
         });
 
         it('accepts a membership test, so a block can be seeded before any of its rows are known', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+
+            // Given a block seeded as a test of what belongs to it rather than as a list of keys
             act(() => result.current.seedRangeFromSelection((key) => key === 'b' || key === 'c' || key === 'd'));
+
+            // When a shift+click lands inside it
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
+
+            // Then it narrows the same way a listed block does, which is what lets Select All seed before a row is known
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
         });
     });
@@ -588,7 +616,7 @@ describe('useShiftRangeSelection', () => {
 
         it('adopts an unprotected block on a cold click, anchoring in it and narrowing it in one go', () => {
             const onApplyRange = makeApplyMock();
-            // Rows b..e read as selected but none of them were picked on their own, which is how a group-level selection looks.
+            // Given rows b..e reading as selected with none of them picked on their own, which is how a group-level selection looks
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
                     makeParams({
@@ -598,10 +626,16 @@ describe('useShiftRangeSelection', () => {
                     }),
                 ),
             );
+
+            // When the first shift+click of all lands inside that block
             act(() => {
                 result.current.applyShiftClick(ROW_D, true);
             });
+
+            // Then it anchors in the block and narrows it at once, rather than a cold click only ever adding
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: ['e']});
+
+            // And the session carries on from that anchor, so the next click narrows again
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
@@ -614,12 +648,16 @@ describe('useShiftRangeSelection', () => {
                 ({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange, isItemSelected: (row) => row.keyForList !== 'a', isItemProtected: () => false})),
                 {initialProps: {items: [...ROWS]}},
             );
-            // Anchored on 'a', which the next render drops from the list
+            // Given a session anchored on 'a', which the next render drops from the list
             act(() => result.current.notifyAnchor(ROW_A));
             rerender({items: ROWS.slice(1)});
+
+            // When a shift+click lands inside the block of selected rows
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
+
+            // Then the block is adopted and narrowed, since an anchor the list no longer holds is a session that is over
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d', 'e']});
         });
 
@@ -634,11 +672,15 @@ describe('useShiftRangeSelection', () => {
                     }),
                 ),
             );
-            // A plain click starts the session, so the block was not part of it.
+            // Given 'd' and 'e' selected as a block, and a plain click on 'a' that starts a session the block was never part of
             act(() => result.current.notifyAnchor(ROW_A));
+
+            // When a shift+click lands next to that anchor
             act(() => {
                 result.current.applyShiftClick(ROW_B, true);
             });
+
+            // Then only the span is written and the block is left standing, rather than an unrelated range dissolving it
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: []});
         });
 

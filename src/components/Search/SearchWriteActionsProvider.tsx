@@ -649,10 +649,15 @@ function SearchWriteActionsProvider({
         const groupTransactions = isTransactionGroupListItemType(item) ? (itemTransactions ?? item.transactions ?? []) : [];
 
         if (isShiftRangeHeaderItem(item)) {
+            // What the press below writes: an unloaded group unless it is being deleted, a loaded one only for the rows it can still select.
+            const willSelectRows =
+                groupTransactions.length === 0
+                    ? item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                    : groupTransactions.some((transactionItem) => !isTransactionPendingDelete(transactionItem));
             if (isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions))) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
-            } else if (groupTransactions.length === 0 || groupTransactions.some((transactionItem) => !isTransactionPendingDelete(transactionItem))) {
+            } else if (willSelectRows) {
                 // Just this block: seeding the whole selection would span unrelated rows and deselect them.
                 seedGroup(item.keyForList);
             }

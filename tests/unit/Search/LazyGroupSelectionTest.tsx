@@ -363,6 +363,7 @@ describe('Lazily loaded group selection', () => {
     });
 
     it('keeps the row actions stable when a group opens, so expanding one does not re-render every row', async () => {
+        // Given the actions every row is handed while the list stands collapsed
         const {result} = renderSelection();
         const toggleBefore = result.current.toggle;
         const toggleAllBefore = result.current.toggleAll;
@@ -379,6 +380,7 @@ describe('Lazily loaded group selection', () => {
     });
 
     it('stores the selection under the group key while the children are still unknown', async () => {
+        // Given a group that has never been expanded, so the list holds no rows for it
         const {result} = renderSelection();
 
         // When the checkbox is pressed before the group has been expanded, so no children are loaded yet
@@ -886,6 +888,7 @@ describe('Lazily loaded group selection', () => {
     });
 
     it('selects every child of a group that was not already selected once its children loaded', async () => {
+        // Given an expanded group, none of whose rows are selected
         const {result} = renderSelection();
 
         // When the checkbox is pressed on an expanded, unselected group whose children have loaded
@@ -912,6 +915,7 @@ describe('Lazily loaded group selection', () => {
             throw new Error('Expected two loaded children');
         }
 
+        // Given only the first of the group's two rows clicked, which covers part of the group
         await act(async () => {
             result.current.toggle(firstChild);
             await waitForBatchedUpdatesWithAct();
@@ -919,11 +923,13 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
         expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
 
+        // When the second one is clicked too
         await act(async () => {
             result.current.toggle(secondChild);
             await waitForBatchedUpdatesWithAct();
         });
 
+        // Then both rows record the group as wholly covered, so a delete can act on the group rather than the rows
         expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
         expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBeFalsy();
         expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
@@ -931,14 +937,17 @@ describe('Lazily loaded group selection', () => {
     });
 
     it('does not mark isEntireGroupSelected when the group checkbox selects fewer children than the group count', async () => {
+        // Given a group that counts five rows but has only two of them loaded
         const {result} = renderSelection();
         const truncatedGroup = {...categoryGroup, count: 5};
 
+        // When its header checkbox is pressed
         await act(async () => {
             result.current.toggle(truncatedGroup, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
+        // Then the two are selected without claiming the group is covered, since the three that never loaded are not
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
@@ -956,6 +965,7 @@ describe('Lazily loaded group selection', () => {
             throw new Error('Expected two loaded children');
         }
 
+        // Given both of the group's rows selected, so it reads as wholly covered
         await act(async () => {
             result.current.toggle(firstChild);
             result.current.toggle(secondChild);
@@ -964,10 +974,12 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
 
+        // When a third row pages in under it
         pagingGroup = {...categoryGroup, count: 3, transactions: [...loadedChildren, buildChild(3, '3', GROUP_KEY)]};
         rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
+        // Then the claim is withdrawn, or a delete would take the row that arrived unselected
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['3']).toBeUndefined();
@@ -978,6 +990,7 @@ describe('Lazily loaded group selection', () => {
     it('clears the parent exclusion when an expanded group is reselected', async () => {
         const {result} = renderSelection();
 
+        // Given a group unchecked while collapsed under select-all-matching, which records it as excluded
         await act(async () => {
             result.current.toggleAll();
             result.current.selectAllMatchingItems(true);
@@ -989,42 +1002,84 @@ describe('Lazily loaded group selection', () => {
         });
         expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
 
+        // When its rows have loaded and the header is pressed again
         await act(async () => {
             result.current.toggle(categoryGroup, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
+        // Then the exclusion goes with it, rather than the rows reading as checked while the group is still excluded
         expect(result.current.excludedTransactions).toEqual({});
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
+    it('keeps a child checked on its own inside an excluded group, rather than the refresh dropping it with its parent', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild] = loadedChildren;
+
+        // Given a group unchecked while collapsed under select-all-matching, whose rows then arrive
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(pagingGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+        pagingGroup = {...categoryGroup, count: 2, transactions: loadedChildren};
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Given one of those rows checked on its own, which its checkbox reads from its own entry rather than the group
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+
+        // When the data refreshes, which re-derives the selection from the rows on screen
+        pagingGroup = {...categoryGroup, count: 2, transactions: [...loadedChildren]};
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then it is still checked: an entry of its own outranks the exclusion covering the group it sits in
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+    });
+
     it('refreshes an excluded expense when its live row changes', async () => {
+        // Given an expense taken back out of a select-all-matching selection at its current amount
         const {result, rerender} = renderFlatSelection();
         await excludeFlatExpense(result);
         expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]?.groupAmount).toBe(-3000);
 
+        // When the row itself changes
         flatExpense = makeFlatExpense(-5000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
         rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
+        // Then the exclusion carries the new amount, since the footer total is what it is subtracted from
         expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]?.groupAmount).toBe(-5000);
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
     it('prunes an excluded expense after it leaves the settled search results', async () => {
+        // Given an expense taken back out of a select-all-matching selection
         const {result, rerender} = renderFlatSelection();
         await excludeFlatExpense(result);
         expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]).toBeDefined();
 
+        // When it stops matching the search
         flatFilteredData = [];
         flatSearchResults = makeFlatSearchResults(undefined);
         rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
+        // Then its exclusion is dropped, rather than a row that is no longer in the results subtracting from the total
         expect(result.current.excludedTransactions).toEqual({});
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
@@ -1151,11 +1206,13 @@ describe('Lazily loaded group selection', () => {
         const {result} = renderSelection(ExpenseReportWrapper);
         const [firstReport, secondReport] = reportGroups;
 
-        // Given the first report clicked, then a shift+click on the second
+        // Given the first report clicked, which is the anchor the next click ranges from
         await act(async () => {
             result.current.toggle(firstReport, firstReport.transactions);
             await waitForBatchedUpdatesWithAct();
         });
+
+        // When a shift+click lands on the second report
         await act(async () => {
             result.current.toggle(secondReport, secondReport.transactions, true);
             await waitForBatchedUpdatesWithAct();
@@ -1439,6 +1496,38 @@ describe('Lazily loaded group selection', () => {
 
         // Then the key it was held under goes, rather than the press doing nothing while the footer still counts it
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+    });
+
+    it('keeps the session when a group being deleted writes nothing, so a press that changes nothing cannot cost the anchor', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [firstChild, , thirdChild] = threeLoadedChildren;
+
+        // Given the first row of an expanded group clicked plainly, which is the anchor the next shift+click ranges from
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the header of another group is pressed while that group is being deleted, which its own branch refuses to write
+        await act(async () => {
+            result.current.toggle({...earlierGroup, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click lands two rows further down
+        await act(async () => {
+            result.current.toggle(thirdChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the row between them comes with it: the press wrote nothing, so it had no block to seed and no session to end
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['5']?.isSelected).toBe(true);
     });
 
     it('turns select-all-matching off once every group has been unchecked', async () => {
@@ -1734,11 +1823,13 @@ describe('Lazily loaded group selection', () => {
         const {result} = renderSelection(ExpenseReportWrapper);
         const [firstReport, , emptyReport] = reportGroups;
 
-        // When a range stretches from the first report onto one that carries no expenses
+        // Given the first report clicked
         await act(async () => {
             result.current.toggle(firstReport, firstReport.transactions);
             await waitForBatchedUpdatesWithAct();
         });
+
+        // When a range stretches from it onto a report that carries no expenses
         await act(async () => {
             result.current.toggle(emptyReport, emptyReport.transactions, true);
             await waitForBatchedUpdatesWithAct();

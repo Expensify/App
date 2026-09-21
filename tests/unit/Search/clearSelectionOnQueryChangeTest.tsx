@@ -81,11 +81,14 @@ describe('clearing the selection when the search query changes', () => {
     });
 
     it('leaves the selection alone while the query is unchanged', () => {
+        // Given every matching item selected
         const {rerender} = render(<Harness hash={111} />);
-
         fireEvent.press(screen.getByTestId('probe'));
+
+        // When the page renders again on the same query
         rerender(<Harness hash={111} />);
 
+        // Then the selection stands, so an ordinary re-render cannot cost the user what they picked
         expect(screen.getByTestId('probe')).toHaveTextContent('all-matching');
     });
 });

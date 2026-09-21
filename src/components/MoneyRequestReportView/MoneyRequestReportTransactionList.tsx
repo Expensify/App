@@ -505,7 +505,14 @@ function MoneyRequestReportTransactionList({
         [groupedTransactions, resolvedTransactions, shouldGroupTransactions],
     );
 
-    const visualOrderTransactionIDs = useMemo(() => visualOrderTransactions.filter(isSelectableReportTransaction).map((transaction) => transaction.transactionID), [visualOrderTransactions]);
+    // The rows the carousel steps through, which is every row on screen that is not on its way out.
+    const visualOrderTransactionIDs = useMemo(
+        () => visualOrderTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID),
+        [visualOrderTransactions],
+    );
+
+    // The rows a selection may hold, which is narrower: a rejected expense renders and navigates but cannot be checked.
+    const selectableTransactionIDs = useMemo(() => visualOrderTransactions.filter(isSelectableReportTransaction).map((transaction) => transaction.transactionID), [visualOrderTransactions]);
 
     const {toggleTransaction, toggleGroup, toggleAll} = useReportTransactionShiftRange({
         reportID,
@@ -800,8 +807,8 @@ function MoneyRequestReportTransactionList({
     const tableColumnHeader =
         isEmptyTransactions || shouldUseNarrowLayout ? null : (
             <MoneyRequestReportTableHeaderRow
-                selectableCount={visualOrderTransactionIDs.length}
-                onToggleAll={() => toggleAll(visualOrderTransactionIDs)}
+                selectableTransactionIDs={selectableTransactionIDs}
+                onToggleAll={() => toggleAll(selectableTransactionIDs)}
                 pendingAction={reportPendingAction}
                 columns={columnsToShow}
                 sortBy={sortBy}

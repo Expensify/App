@@ -94,9 +94,11 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
     });
 
     it('keeps all-matching active and records a row exclusion', () => {
+        // Given every matching item selected, with two rows loaded
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
 
+        // When one of them is unchecked
         act(() => {
             result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
                 totalSelectableItemsCount: 2,
@@ -104,6 +106,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
 
+        // Then the flag stays on and the dropped row is named, which is the only way to say "everything but this"
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(result.current.state.hasSelectedTransactions).toBe(true);
         expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2']);
@@ -111,9 +114,11 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
     });
 
     it('keeps a semantic selection when every loaded row is excluded and more results exist', () => {
+        // Given every matching item selected, with more results still to page in
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
 
+        // When every row on screen is unchecked
         act(() => {
             result.current.actions.applySelection(() => ({}), {
                 totalSelectableItemsCount: 2,
@@ -121,6 +126,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
 
+        // Then the selection still means something: an empty map plus exclusions is "every match except these"
         expect(result.current.state.selectedTransactions).toEqual({});
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_1', 'tx_2']);
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
@@ -128,11 +134,14 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
     });
 
     it('does not visually reselect a lazy child whose parent group is excluded', () => {
+        // Given a group selected under its own key while every matching item is selected
         const {result} = renderSelection();
         act(() => {
             result.current.actions.selectAllMatchingItems(true);
             result.current.actions.setSelectedTransactions(buildSelected('group_1'));
         });
+
+        // When the group is taken back out of the selection
         act(() => {
             result.current.actions.applySelection(() => ({}), {
                 totalSelectableItemsCount: 1,
@@ -140,6 +149,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
 
+        // Then its children read unchecked, since the group's exclusion covers the rows it stands for
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['group_1']);
         expect(result.current.groupedChildState.isSelected).toBe(false);
@@ -169,9 +179,11 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
     });
 
     it('clears all-matching selection when every result is excluded', () => {
+        // Given every matching item selected, in a search with nothing left to page in
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
 
+        // When the last row is unchecked
         act(() => {
             result.current.actions.applySelection(() => ({}), {
                 totalSelectableItemsCount: 2,
@@ -180,6 +192,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
 
+        // Then the flag goes off, rather than a footer advertising every match over a selection the user emptied
         expect(result.current.state.selectedTransactions).toEqual({});
         expect(result.current.state.excludedTransactions).toEqual({});
         expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
@@ -187,6 +200,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
     });
 
     it('removes an exclusion when the row is rechecked', () => {
+        // Given a row unchecked out of an all-matching selection, and then checked again
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
         const tx1 = result.current.state.selectedTransactions.tx_1;
@@ -200,6 +214,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
                 shouldPreserveAllMatchingSelection: true,
             });
         });
+        // When it is put back
         act(() => {
             result.current.actions.applySelection(
                 (selectedTransactions) => {
@@ -214,12 +229,14 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             );
         });
 
+        // Then nothing is left excluded, or a bulk action would skip the row the user just re-checked
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual([]);
         expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2', 'tx_1']);
     });
 
     it('atomically refreshes and prunes exclusions during data reconciliation', () => {
+        // Given a row excluded from an all-matching selection
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
 
@@ -230,6 +247,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
 
+        // When a data push rebuilds that exclusion with a new amount, and later prunes it
         const refreshedExclusion = buildSelected('tx_1');
         if (!refreshedExclusion.tx_1) {
             throw new Error('Expected tx_1 exclusion fixture');
@@ -239,6 +257,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {reconciledExcludedTransactions: refreshedExclusion});
         });
 
+        // Then the exclusion follows the live row, and the flag survives both commits
         expect(result.current.state.excludedTransactions.tx_1?.amount).toBe(500);
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
 
@@ -251,9 +270,11 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
     });
 
     it('exits all-matching and clears exclusions when the header deselects all', () => {
+        // Given an all-matching selection carrying one exclusion
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
 
+        // When the header checkbox clears everything, which commits without asking to preserve the flag
         act(() => {
             result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
                 totalSelectableItemsCount: 2,
@@ -264,12 +285,14 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             result.current.actions.applySelection(() => ({}), {totalSelectableItemsCount: 2});
         });
 
+        // Then the flag and its exclusions go together, rather than leaving exclusions nothing is selected against
         expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
         expect(result.current.state.selectedTransactions).toEqual({});
         expect(result.current.state.excludedTransactions).toEqual({});
     });
 
     it('clears exclusions when selection is cleared or a new all-matching session starts', () => {
+        // Given an all-matching selection carrying one exclusion
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
 
@@ -279,18 +302,22 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
                 shouldPreserveAllMatchingSelection: true,
             });
         });
+        // When a fresh all-matching session starts, the exclusions it overrode are gone
         act(() => result.current.actions.selectAllMatchingItems(true));
         expect(result.current.state.excludedTransactions).toEqual({});
 
+        // Then a clear takes the flag with it, so nothing survives to be subtracted from the next selection
         act(() => result.current.actions.clearSelectedTransactions());
         expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
         expect(result.current.state.excludedTransactions).toEqual({});
     });
 
     it('retains ordinary page-selection behavior', () => {
+        // Given two rows picked on the page, with no all-matching selection behind them
         const {result} = renderSelection();
         act(() => result.current.actions.setSelectedTransactions(buildSelected('tx_1', 'tx_2')));
 
+        // When one is unchecked
         act(() => {
             result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
                 totalSelectableItemsCount: 2,
@@ -298,16 +325,19 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
 
+        // Then it simply leaves the map: exclusions are for all-matching, the one state that can carry them
         expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
         expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2']);
         expect(result.current.state.excludedTransactions).toEqual({});
     });
 
     it('keeps the original expense-report behavior when a report is deselected', () => {
+        // Given an all-matching selection in a Reports search, where a row is a whole report
         mockCurrentSearchQueryJSON = expenseReportQueryJSON;
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
 
+        // When a report is deselected, which commits without asking to preserve the flag
         act(() => {
             result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
                 totalSelectableItemsCount: 2,
@@ -315,17 +345,21 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
 
+        // Then the flag drops, which is main's behaviour for that surface and is left as it was
         expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
         expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2']);
         expect(result.current.state.excludedTransactions).toEqual({});
     });
 
     it('does not treat an empty expense-report all-matching state as a loaded selection', () => {
+        // Given a Reports search with nothing loaded
         mockCurrentSearchQueryJSON = expenseReportQueryJSON;
         const {result} = renderSelection();
 
+        // When every matching item is selected from the menu
         act(() => result.current.actions.selectAllMatchingItems(true));
 
+        // Then the flag is on while nothing is loaded to act on, which is what the bulk bar reads
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(result.current.state.hasSelectedTransactions).toBe(false);
     });

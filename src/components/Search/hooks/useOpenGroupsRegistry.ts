@@ -10,7 +10,6 @@ import {useState} from 'react';
 const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
 const NO_OPEN_GROUP_COUNTS: ReadonlyMap<string, number> = new Map();
 
-/** Whatever can answer that a group is open: a set of keys going in, the registry's counts coming back out */
 /** Anything that can answer whether a group is open: a set of keys going in, the registry's counts coming back */
 type OpenGroupKeys = {has: (groupKey: string) => boolean};
 

@@ -23,8 +23,8 @@ import {View} from 'react-native';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
 type MoneyRequestReportTableHeaderRowProps = {
-    /** How many rows Select All covers, counted by the list so the checkbox and the press cannot answer from two lists */
-    selectableCount: number;
+    /** The rows Select All covers, from the list that writes them, so the checkbox and the press cannot answer from two lists */
+    selectableTransactionIDs: string[];
 
     /** Select All: the list decides whether that selects every row it can or clears the selection */
     onToggleAll: () => void;
@@ -64,7 +64,7 @@ type MoneyRequestReportTableHeaderRowProps = {
  * The transaction table's header row: the select-all checkbox plus the sortable column headers.
  */
 function MoneyRequestReportTableHeaderRow({
-    selectableCount,
+    selectableTransactionIDs,
     onToggleAll,
     pendingAction,
     columns,
@@ -83,6 +83,8 @@ function MoneyRequestReportTableHeaderRow({
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const {selectedTransactionIDs} = useSearchSelectionContext();
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    const isSelectAllChecked = selectableTransactionIDs.length > 0 && selectableTransactionIDs.every((transactionID) => selectedTransactionIDSet.has(transactionID));
 
     const isDesktopTableLayout = !shouldUseNarrowLayout;
 
@@ -113,8 +115,8 @@ function MoneyRequestReportTableHeaderRow({
                     <Checkbox
                         onPress={onToggleAll}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
-                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== selectableCount}
-                        isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === selectableCount}
+                        isIndeterminate={selectedTransactionIDs.length > 0 && !isSelectAllChecked}
+                        isChecked={isSelectAllChecked}
                         containerStyle={isDesktopTableLayout && styles.m0}
                         style={isDesktopTableLayout && styles.mr3}
                     />
