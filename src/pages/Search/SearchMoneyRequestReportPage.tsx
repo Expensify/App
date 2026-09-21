@@ -256,7 +256,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         if (
             hasCreatedLegacyThreadRef.current ||
             transactionThreadReportID ||
-            !report?.reportID ||
+            report?.reportID !== reportIDFromRoute ||
             (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction) ||
             !reportLoadingState?.hasOnceLoadedReportActions ||
             reportActions.length === 0
