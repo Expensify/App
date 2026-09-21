@@ -10,7 +10,7 @@ import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceS
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
+import {getReimbursementChoice, getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -38,7 +38,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
     const {environmentURL} = useEnvironment();
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable =
-        !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
+        !policy?.areWorkflowsEnabled || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         const moreFeaturesLink = `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
@@ -79,7 +79,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 : translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
-            isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
+            isActive: (!!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit !== undefined && policy.autoApproval.limit > 0)) && !workflowApprovalsUnavailable,
             disabled: workflowApprovalsUnavailable || !canWriteApprovals,
             disabledAction: withApprovalsReadOnlyFallback(),
             showLockIcon: workflowApprovalsUnavailable || !canWriteApprovals,
@@ -92,14 +92,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     return;
                 }
 
-                enableAutoApprovalOptions(
-                    policyID,
-                    isEnabled,
-                    policy?.shouldShowAutoApprovalOptions,
-                    policy?.autoApproval?.limit,
-                    policy?.autoApproval?.auditRate,
-                    getReviewWorkspaceSettingsTaskCompletion(),
-                );
+                const effectiveIsActive = !!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit ?? 0) > 0;
+                enableAutoApprovalOptions(policyID, isEnabled, effectiveIsActive, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate, getReviewWorkspaceSettingsTaskCompletion());
             },
             subMenuItems: [
                 <OfflineWithFeedback

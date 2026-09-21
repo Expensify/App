@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
@@ -47,6 +48,8 @@ function RulesRequireFieldsPage({
     const {policy} = policyData;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     // The self-heal below writes to the server, so it needs the same Tags write check the Tags table uses.
@@ -107,9 +110,9 @@ function RulesRequireFieldsPage({
                 continue;
             }
 
-            setPolicyTagsRequired(policyData, false, tagList.orderWeight);
+            setPolicyTagsRequired(policyData, false, tagList.orderWeight, isVendorMatchingBetaEnabled);
         }
-    }, [canWriteTags, hasPerLevelTagRequired, policyData, tagLists, tagRequiredByLevel]);
+    }, [canWriteTags, hasPerLevelTagRequired, policyData, tagLists, tagRequiredByLevel, isVendorMatchingBetaEnabled]);
 
     useEffect(() => {
         if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
@@ -142,15 +145,20 @@ function RulesRequireFieldsPage({
 
         if (hasCategoryChange) {
             // With a tag change in the same save, the tag action owns the one violation recompute and carries requiresCategory into it.
-            setWorkspaceRequiresCategory(policyData, categoryRequired, !hasTagLevelChanges && !hasSingleTagChange, reviewWorkspaceSettingsTaskData);
+            setWorkspaceRequiresCategory(policyData, categoryRequired, isVendorMatchingBetaEnabled, !hasTagLevelChanges && !hasSingleTagChange, reviewWorkspaceSettingsTaskData);
             reviewWorkspaceSettingsTaskData = {};
         }
 
         if (hasTagLevelChanges) {
             // One call for every changed level, so violations are recomputed once from the combined end state.
-            setPolicyTagLevelsRequired(policyData, Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, !tagList.required])), categoryUpdateForTagRecompute);
+            setPolicyTagLevelsRequired(
+                policyData,
+                Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, !tagList.required])),
+                isVendorMatchingBetaEnabled,
+                categoryUpdateForTagRecompute,
+            );
         } else if (hasSingleTagChange) {
-            setPolicyRequiresTag(policyData, tagRequired, categoryUpdateForTagRecompute, reviewWorkspaceSettingsTaskData);
+            setPolicyRequiresTag(policyData, tagRequired, isVendorMatchingBetaEnabled, categoryUpdateForTagRecompute, reviewWorkspaceSettingsTaskData);
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
@@ -232,8 +240,8 @@ function RulesRequireFieldsPage({
             return;
         }
 
-        enablePolicyCategories(policyData, true, false);
-        setWorkspaceRequiresCategory(policyData, true);
+        enablePolicyCategories(policyData, true, isVendorMatchingBetaEnabled, false);
+        setWorkspaceRequiresCategory(policyData, true, isVendorMatchingBetaEnabled);
         setCategoryRequired(true);
     };
 
@@ -280,7 +288,7 @@ function RulesRequireFieldsPage({
 
         // Only turn the feature on. Enabling Tags seeds an empty tag list, so requiring a tag here would set a rule the
         // workspace can't meet yet; the admin flips Required themselves once a tag exists.
-        enablePolicyTags(policyData, true);
+        enablePolicyTags(policyData, true, isVendorMatchingBetaEnabled);
     };
 
     return (

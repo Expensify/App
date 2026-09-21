@@ -174,15 +174,16 @@ const onboardingInviteTypes = {
 
 const onboardingCompanySize = {
     MICRO_SMALL: '1-4',
-    MICRO_MEDIUM: '5-10',
-
-    // This range is deprecated in favor of the smaller ranges above, but the constant is kept to compare against saved data for backwards compatibility.
-    MICRO: '1-10',
-
-    SMALL: '11-50',
+    MICRO_MEDIUM: '5-9',
+    SMALL: '10-50',
     MEDIUM_SMALL: '51-100',
     MEDIUM: '101-1000',
     LARGE: '1001+',
+
+    // These ranges are deprecated, but the constants are kept to compare against saved data for backwards compatibility.
+    LEGACY_MICRO_MEDIUM: '5-10',
+    LEGACY_MICRO: '1-10',
+    LEGACY_SMALL: '11-50',
 } as const;
 
 const onboardingPersonalTrackGoals = {
@@ -423,6 +424,11 @@ const CONST = {
     // Allowed extensions for text files that are used as spreadsheets
     TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
 
+    // Bank statement extensions, parsed by the backend instead of the spreadsheet library
+    OFX_STATEMENT_EXTENSIONS: ['ofx', 'qfx'],
+
+    DEFAULT_IMPORTED_CARD_NAME: 'Imported Card',
+
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
@@ -599,6 +605,7 @@ const CONST = {
         ZENEFITS: 'Zenefits',
         DUALENTRY: 'DualEntry',
         CAMPFIRE: 'Campfire',
+        BUSINESS_CENTRAL: 'Dynamics 365 Business Central',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
@@ -692,9 +699,11 @@ const CONST = {
     DATE: {
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
-        LOCAL_TIME_FORMAT: 'h:mm a',
-        LOCAL_TIME_FORMAT_WITHOUT_PERIOD: 'h:mm',
-        TIME_FORMAT_WITHOUT_PERIOD: 'hh:mm',
+        // `p` is date-fns' localized time: it resolves each locale's own clock convention rather than fixing the
+        // US 12-hour one. Ten of the eleven shipped locales use a 24-hour clock, so `h:mm a` was wrong for them
+        // and the translated AM/PM marker only made a wrong convention read as deliberate. Greek keeps its
+        // 12-hour clock and its own `μ.μ.` marker. `p` is a date-fns extension, and still needs `{locale}`.
+        LOCAL_TIME_FORMAT: 'p',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
         WEEKDAY_TIME_FORMAT: 'eeee',
@@ -1088,14 +1097,12 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        DUALENTRY: 'dualEntry',
         CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
@@ -1455,20 +1462,23 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
+    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
-        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-mastercard-commercial-feed',
+        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-mastercard-commercial-card-feed-cdf',
     COMPANY_CARDS_DELIVERY_FILE_HELP: {
-        cdf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-mastercard-commercial-feed',
-        vcf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-visa-commercial-feed',
-        gl1025: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-an-american-express-corporate-feed',
+        cdf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-mastercard-commercial-card-feed-cdf',
+        vcf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-visa-commercial-card-feed-vcf',
+        gl1025: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-an-american-express-commercial-card-feed-gl1025',
     },
-    COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
+    COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP:
+        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-visa-commercial-card-feed-vcf',
     COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP:
-        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
+        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-an-american-express-commercial-card-feed-gl1025',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
-    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet',
+    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL:
+        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Import-Company-Card-Transactions-From-a-Spreadsheet',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
     CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals#configure-approval-workflows',
@@ -1580,6 +1590,8 @@ const CONST = {
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
+        // "Auto report" destination: the backend picks each expense's report (its owner's latest draft, or a new one).
+        AUTOMATIC_REPORT_ID: '-3',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -1754,6 +1766,7 @@ const CONST = {
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
+                CONCIERGE_AUTO_SELECT_DISTANCE_RATE: 'CONCIERGEAUTOSELECTDISTANCERATE',
                 MOVED: 'MOVED',
                 MOVED_TRANSACTION: 'MOVEDTRANSACTION',
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
@@ -1954,7 +1967,6 @@ const CONST = {
                 REJECTED_TRANSACTION_MARKASRESOLVED: 'REJECTEDTRANSACTIONMARKASRESOLVED',
             },
             THREAD_DISABLED: ['CREATED'],
-            LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
             AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
@@ -2667,6 +2679,8 @@ const CONST = {
         UTILITIES: 'Utilities',
     },
     JSON_CODE: {
+        // Client-side placeholder, never sent by the server: the request failed without a usable response code
+        NO_RESPONSE: 0,
         SUCCESS: 200,
         BAD_REQUEST: 400,
         INVALID_SEARCH_QUERY: 401,
@@ -3144,6 +3158,7 @@ const CONST = {
     QUICKBOOKS_CONFIG: {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CLASSES: 'syncClasses',
+        SYNC_CUSTOM_DIMENSIONS: 'syncCustomDimensions',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_ITEMS: 'syncItems',
@@ -3324,6 +3339,7 @@ const CONST = {
         DIMENSION_PREFIX: 'dimension_',
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     SAGE_INTACCT: {
@@ -3462,6 +3478,9 @@ const CONST = {
                 CREDENTIALS: 'credentials',
                 OAUTH: 'enable-oauth',
                 REST: 'enable-rest',
+            },
+            AUTH_TYPE: {
+                TBA: 'tba',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -3903,6 +3922,16 @@ const CONST = {
         VENDOR: 'vendor',
         CUSTOMER: 'customer',
         EMPLOYEE: 'employee',
+    },
+
+    BUSINESS_CENTRAL_CONFIG: {
+        COMPANY_ID: 'companyID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+    },
+
+    BUSINESS_CENTRAL_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -4466,6 +4495,12 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+
+        /** Some workspaces report these instead of the values above. They mean the same thing, so resolve them before comparing. */
+        DEPRECATED_REIMBURSEMENT_CHOICES: {
+            REIMBURSEMENT_NO: 'deprecated_reimburseNo', // None
+            REIMBURSEMENT_MANUAL: 'deprecated_reimburseManual', // Indirect
+        },
         GLOBAL_REIMBURSEMENT_FX_PREFERENCE: {
             COMPANY: 'company',
             EMPLOYEE: 'employee',
@@ -4674,6 +4709,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualEntry',
                 CAMPFIRE: 'campfire',
+                BUSINESS_CENTRAL: 'businessCentral',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4693,6 +4729,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualentry',
                 CAMPFIRE: 'campfire',
+                BUSINESS_CENTRAL: 'business-central',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4708,6 +4745,7 @@ const CONST = {
                 rillet: 'Rillet',
                 dualEntry: 'DualEntry',
                 campfire: 'Campfire',
+                businessCentral: 'Dynamics 365 Business Central',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4733,6 +4771,7 @@ const CONST = {
                     this.NAME.RILLET,
                     this.NAME.DUALENTRY,
                     this.NAME.CAMPFIRE,
+                    this.NAME.BUSINESS_CENTRAL,
                 ] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
@@ -4748,6 +4787,7 @@ const CONST = {
                     [this.NAME.RILLET]: 'rillet',
                     [this.NAME.DUALENTRY]: 'dualentry',
                     [this.NAME.CAMPFIRE]: 'campfire',
+                    [this.NAME.BUSINESS_CENTRAL]: 'businessCentral',
                 } as const;
             },
             get HR_CONNECTION_NAMES() {
@@ -4765,6 +4805,7 @@ const CONST = {
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
+                businessCentral: 'https://help.expensify.com/new-expensify/hubs/connections/',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -4866,6 +4907,9 @@ const CONST = {
                 CAMPFIRE_SYNC_PAYMENTS: 'campfireSyncPayments',
                 CAMPFIRE_SYNC_CARD_SETTLEMENTS: 'campfireSyncCardSettlements',
                 CAMPFIRE_SYNC_TRAVEL_SETTLEMENTS: 'campfireSyncTravelSettlements',
+                BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
+                BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
+                BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -4999,6 +5043,7 @@ const CONST = {
         XX_SMALL: 'xx-small',
         X_SMALL: 'x-small',
         SMALL: 'small',
+        MID_SMALL: 'mid-small',
         // The default avatar size, mapping to the medium avatar dimensions (variables.avatarSizeMedium)
         DEFAULT: 'medium',
         LARGE: 'large',
@@ -5175,6 +5220,8 @@ const CONST = {
         },
     },
     PERSONAL_CARDS: {
+        // Account-not-found is ignored for company feed health, but a personal cardholder can reconnect this card.
+        ACCOUNT_NOT_FOUND_SCRAPE_STATUS: 434,
         STEP: {
             SELECT_BANK: 'SelectBank',
             BANK_CONNECTION: 'BankConnection',
@@ -5662,7 +5709,9 @@ const CONST = {
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
         REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
-        DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
+        // The distance and the rate can carry a group separator (the backend formats them with one, e.g. "1,234.56 mi")
+        // or a locale decimal separator (e.g. "€0,67"), so both numbers accept "," as well as ".".
+        DISTANCE_MERCHANT: /^[0-9.,]+ \w+ @ (-|-\()?[^0-9.,\s]{1,3} ?[0-9.,]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
 
         get EXPENSIFY_POLICY_DOMAIN_NAME() {
@@ -6648,6 +6697,35 @@ const CONST = {
         DANGER: 'danger',
     },
 
+    BULK_ACTION_BAR: {
+        /** How many of a selection's actions get a button of their own in the bar before the rest move behind "More". */
+        MAX_INLINE_ACTIONS: 3,
+
+        /** The same at the in-between widths, which do not have the room for a third button. */
+        MAX_INLINE_ACTIONS_MEDIUM_SCREEN: 2,
+
+        /**
+         * Room left between the bar and the edges of the container it floats in. The bar sheds an action before it gets
+         * this close to an edge, rather than only once it has already touched one.
+         */
+        EDGE_MARGIN: 24,
+
+        /** How far the bar floats above the bottom of the container it is rendered in. */
+        BOTTOM_OFFSET: 20,
+
+        /** Breathing room left between the bar and the last row of the list it floats over. */
+        LIST_GAP: 12,
+
+        /** How far below its resting place the bar starts before it springs up into view. */
+        SLIDE_IN_DISTANCE: 24,
+
+        /**
+         * Spring the bar settles into place with. Overdamped, matching the canvas gestures, so it arrives quickly and
+         * without a bounce. The default spring wobbles noticeably over this short a travel.
+         */
+        SLIDE_IN_SPRING: {mass: 1, stiffness: 1000, damping: 500},
+    },
+
     BUTTON_REMOVE_BORDER_RADIUS: {
         LEFT: 'left',
         RIGHT: 'right',
@@ -7023,6 +7101,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** How many report fields are shown side by side in the report view on a wide layout */
+    REPORT_FIELDS_PER_ROW: 3,
+
+    /** Below this many options, a report field list is short enough to scan without a search input */
+    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
+
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -7193,6 +7277,11 @@ const CONST = {
             LOADING: 'loading',
             LOADED: 'loaded',
         },
+        FAILURE_KIND: {
+            STALE: 'stale',
+            INVALID_QUERY: 'invalidQuery',
+            FAILED: 'failed',
+        },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -7254,6 +7343,10 @@ const CONST = {
             ITEMIZED: 'itemized',
             HOTEL: 'hotel',
         },
+        TRANSACTION_STATUS: {
+            PENDING: 'pending',
+            POSTED: 'posted',
+        },
         // Hotel needs historical receipts backfilled with isHotelReservation before it can return results
         SELECTABLE_RECEIPT_TYPES: ['ereceipt', 'itemized'],
         WITHDRAWAL_TYPE: {
@@ -7292,6 +7385,7 @@ const CONST = {
             CATEGORY: 'category',
             MERCHANT: 'merchant',
             TAG: 'tag',
+            DAY: 'day',
             MONTH: 'month',
             WEEK: 'week',
             YEAR: 'year',
@@ -7349,6 +7443,11 @@ const CONST = {
                 },
                 MERCHANT: {
                     column: this.TABLE_COLUMNS.MERCHANT,
+                    search: true,
+                    reportView: true,
+                },
+                VENDOR: {
+                    column: this.TABLE_COLUMNS.VENDOR,
                     search: true,
                     reportView: true,
                 },
@@ -7588,6 +7687,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                DAY: {
+                    DAY: this.TABLE_COLUMNS.GROUP_DAY,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
                 MONTH: {
                     MONTH: this.TABLE_COLUMNS.GROUP_MONTH,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
@@ -7656,6 +7760,7 @@ const CONST = {
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                DAY: [this.TABLE_COLUMNS.GROUP_DAY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
@@ -7713,6 +7818,7 @@ const CONST = {
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
+            VENDOR: 'vendor',
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
@@ -7770,6 +7876,7 @@ const CONST = {
             GROUP_CATEGORY: 'groupCategory',
             GROUP_MERCHANT: 'groupMerchant',
             GROUP_TAG: 'groupTag',
+            GROUP_DAY: 'groupday',
             GROUP_MONTH: 'groupmonth',
             GROUP_WEEK: 'groupweek',
             GROUP_YEAR: 'groupyear',
@@ -7812,6 +7919,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             RECEIPT_TYPE: 'receiptType',
+            TRANSACTION_STATUS: 'transactionStatus',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
@@ -7898,6 +8006,7 @@ const CONST = {
             AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
+            TRANSACTION_STATUS: 'transaction-status',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
@@ -7955,6 +8064,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.POSTED]: 'posted',
                 [this.TABLE_COLUMNS.EXPORTED]: 'exported',
                 [this.TABLE_COLUMNS.MERCHANT]: 'merchant',
+                [this.TABLE_COLUMNS.VENDOR]: 'vendor',
                 [this.TABLE_COLUMNS.DESCRIPTION]: 'description',
                 [this.TABLE_COLUMNS.FROM]: 'from',
                 [this.TABLE_COLUMNS.TO]: 'to',
@@ -8004,6 +8114,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
                 [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
                 [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
+                [this.TABLE_COLUMNS.GROUP_DAY]: 'group-day',
                 [this.TABLE_COLUMNS.GROUP_MONTH]: 'group-month',
                 [this.TABLE_COLUMNS.GROUP_WEEK]: 'group-week',
                 [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
@@ -8156,6 +8267,7 @@ const CONST = {
                 title: 'workspace.upgrade.reportFields.title' as const,
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             invoiceFields: {
                 id: 'invoiceFields' as const,
@@ -8170,6 +8282,7 @@ const CONST = {
                 alias: 'policy-prevent-member-changing-title',
                 name: undefined,
                 icon: undefined,
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             preventSelfApproval: {
                 id: 'preventSelfApproval' as const,
@@ -8213,6 +8326,7 @@ const CONST = {
                 title: 'workspace.upgrade.multiLevelTags.title' as const,
                 description: 'workspace.upgrade.multiLevelTags.description' as const,
                 icon: 'Tag',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
 
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
@@ -8280,6 +8394,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.description` as const,
                 icon: 'CampfireSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                id: this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
+                alias: 'businessCentral',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.businessCentral,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL}.description` as const,
+                icon: 'BusinessCentralSquare',
+            },
             approvals: {
                 id: 'approvals' as const,
                 alias: 'approvals' as const,
@@ -8287,6 +8409,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             multiApprovalLevels: {
                 id: 'multiApprovalLevels' as const,
@@ -8295,6 +8418,7 @@ const CONST = {
                 title: `workspace.upgrade.multiApprovalLevels.title` as const,
                 description: `workspace.upgrade.multiApprovalLevels.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             glCodes: {
                 id: 'glCodes' as const,
@@ -8303,6 +8427,7 @@ const CONST = {
                 title: 'workspace.upgrade.glCodes.title' as const,
                 description: 'workspace.upgrade.glCodes.description' as const,
                 icon: 'Tag',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             glAndPayrollCodes: {
                 id: 'glAndPayrollCodes' as const,
@@ -8311,6 +8436,7 @@ const CONST = {
                 title: 'workspace.upgrade.glAndPayrollCodes.title' as const,
                 description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
                 icon: 'FolderOpen',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             taxCodes: {
                 id: 'taxCodes' as const,
@@ -8319,6 +8445,7 @@ const CONST = {
                 title: 'workspace.upgrade.taxCodes.title' as const,
                 description: 'workspace.upgrade.taxCodes.description' as const,
                 icon: 'Coins',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             companyCards: {
                 id: 'companyCards' as const,
@@ -8371,6 +8498,15 @@ const CONST = {
                 title: 'workspace.upgrade.hr.title' as const,
                 description: 'workspace.upgrade.hr.description' as const,
                 icon: 'Members',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
+            recruiting: {
+                id: 'recruiting' as const,
+                alias: 'recruiting',
+                name: 'Recruiting',
+                title: 'workspace.upgrade.recruiting.title' as const,
+                description: 'workspace.upgrade.recruiting.description' as const,
+                icon: 'NewUser',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             travel: {
@@ -8567,6 +8703,7 @@ const CONST = {
         UPDATED_MERCHANT: 'updatedMerchant',
         REIMBURSABLE: 'reimbursable',
         BILLABLE: 'billable',
+        VENDOR: 'vendor',
     },
 
     IMPORT_SPREADSHEET: {
@@ -8577,7 +8714,8 @@ const CONST = {
         MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags',
         MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
-        IMPORT_TRANSACTIONS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet',
+        IMPORT_TRANSACTIONS_ARTICLE_LINK:
+            'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet',
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
@@ -8760,6 +8898,7 @@ const CONST = {
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
         MARK_ALL_AS_READ: 'markAllAsRead',
+        ACCOUNT_MOVED_TO_TOP_BAR: 'accountMovedToTopBar',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
@@ -8936,6 +9075,10 @@ const CONST = {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
         },
+        BULK_ACTION_BAR: {
+            CLEAR_SELECTION: 'BulkActionBar-ClearSelection',
+            MORE: 'BulkActionBar-More',
+        },
         ACCOUNT_MANAGER_BOOK_CALL: {
             BUTTON: 'AccountManagerBookCallButton-Button',
         },
@@ -8981,6 +9124,13 @@ const CONST = {
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
         },
+        ATTACHMENT_CAMERA: {
+            CLOSE: 'AttachmentCamera-Close',
+            FLASH: 'AttachmentCamera-Flash',
+            SHUTTER: 'AttachmentCamera-Shutter',
+            FLIP_CAMERA: 'AttachmentCamera-FlipCamera',
+            PERMISSION_PROMPT_BUTTON: 'AttachmentCamera-PermissionPromptButton',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
@@ -9009,6 +9159,7 @@ const CONST = {
         },
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',
+            ACCOUNT_BUTTON: 'TopBar-AccountButton',
         },
         COLLAPSIBLE_SECTION: {
             TOGGLE: 'CollapsibleSection-Toggle',
@@ -9029,6 +9180,7 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
             VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
+            VICTORY_CHART_ZOOM: 'HTMLRenderer-VictoryChartZoom',
             TABLE_ROW: 'HTMLRenderer-TableRow',
         },
         RECEIPT: {
@@ -9066,7 +9218,6 @@ const CONST = {
             FILTER_LIMIT: 'Search-FilterLimit',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
-            BULK_ACTIONS_DROPDOWN: 'Search-BulkActionsDropdown',
             SELECT_ALL_CHECKBOX: 'Search-SelectAllCheckbox',
             SELECTION_MODE_MENU_ITEM: 'Search-SelectionModeMenuItem',
             FILTER_RESET_BUTTON: 'Search-FilterResetButton',
@@ -9277,6 +9428,9 @@ const CONST = {
             REACTION_BUBBLE: 'EmojiReactions-ReactionBubble',
             ADD_REACTION_BUBBLE: 'EmojiReactions-AddReactionBubble',
         },
+        CONCIERGE_FEEDBACK: {
+            THUMB: 'ConciergeFeedback-Thumb',
+        },
         MINI_CONTEXT_MENU: {
             QUICK_REACTION: 'MiniContextMenu-QuickReaction',
             EMOJI_PICKER_BUTTON: 'MiniContextMenu-EmojiPickerButton',
@@ -9450,6 +9604,7 @@ const CONST = {
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
                 HR: 'WorkspaceInitial-HR',
+                RECRUITING: 'WorkspaceInitial-Recruiting',
                 RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',
@@ -9897,6 +10052,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+        },
+        SEARCH_KEY: {
+            SPEND: 'insightsSpend',
+        },
+        GRAPH: {
+            SPEND_OVER_TIME: 'spendOverTime',
+            TOP_MERCHANTS: 'topMerchants',
+            TOP_CATEGORIES: 'topCategories',
+            TOP_SPENDERS: 'topSpenders',
         },
     },
 

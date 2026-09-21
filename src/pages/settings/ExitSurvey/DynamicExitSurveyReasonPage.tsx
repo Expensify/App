@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -57,6 +58,7 @@ function DynamicExitSurveyReasonPage() {
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const {inputCallbackRef} = useAutoFocusInput(true);
 
     // Device safe area top and bottom insets.
@@ -99,7 +101,7 @@ function DynamicExitSurveyReasonPage() {
             keyboardHeight -
             safeAreaInsetsTop -
             // Minus the height of HeaderWithBackButton
-            variables.contentHeaderHeight -
+            contentHeaderHeight -
             // Minus the top margins on the form
             formTopMarginsStyle.marginTop,
     );

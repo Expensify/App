@@ -7,6 +7,7 @@ import YourSpendSection from '@pages/home/YourSpendSection';
 import type * as UseYourSpendDataModule from '@pages/home/YourSpendSection/useYourSpendData';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/useYourSpendData';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
@@ -220,7 +221,7 @@ describe('YourSpendSection', () => {
         // useLocalize is mocked to (key) => key).
         const description = screen.getByText('homePage.yourSpend.awaitingApproval');
         fireEvent.press(description);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('renders a card row for each entry in cardRows', () => {
@@ -312,7 +313,7 @@ describe('YourSpendSection — third-party rows', () => {
         // requires a Pressable target, so we press the description text (the card's last four) inside the row.
         const description = within(row).getByText('9876');
         fireEvent.press(description);
-        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY}));
+        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('renders no skeleton inside the third-party card row (R-6)', () => {
