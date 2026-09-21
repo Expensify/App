@@ -52,8 +52,11 @@ type DynamicFormField = {
 
     descriptionKey?: TranslationPaths;
 
-    /** Section name; pages are built from it */
+    /** Section identity; pages are built from it and it is the page title unless `groupLabelKey` is set */
     group: string;
+
+    /** Our translation of the page title; required for App-owned schemas */
+    groupLabelKey?: TranslationPaths;
 
     type: DynamicFormFieldType;
 

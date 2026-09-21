@@ -14,7 +14,7 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `type` | One of the closed set of fifteen in `DynamicFormFieldType`. See the registry below. |
 | `label` / `labelKey` | Server wording, or our translation. `labelKey` wins. App-owned schemas must use `labelKey` only. |
 | `description` / `descriptionKey` | Supporting text: a hint under a text field, a line above anything else. |
-| `group` | Page. Fields with the same group render on one page, in first-appearance order. |
+| `group` / `groupLabelKey` | Page. Fields with the same group render on one page, in first-appearance order. The group string is the title unless `groupLabelKey` names our translation; App-owned schemas must set it. |
 | `required`, `regex`, `minLength`, `maxLength` | Validation, applied by `getDynamicFieldErrors`. Every failing rule is reported. |
 | `rule` | A named check from `ValidationUtils` a regex cannot express: `legalName` (text), `dateOfBirth` (date, past and 18 or older) or `zipCode` (address, against the chosen country). The same checks and copy as the ACH sub-step forms. |
 | `values`, `dependsOn` | Options for choice fields; `dependsOn` filters them by another answer. |

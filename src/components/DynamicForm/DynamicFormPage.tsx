@@ -15,6 +15,7 @@ import type {DynamicFormValues} from './types';
 
 import DynamicFormFields from './DynamicFormFields';
 import getDynamicFieldErrors from './getDynamicFieldErrors';
+import {getPageTitle} from './groupFieldsIntoPages';
 
 type DynamicFormPageProps = {
     page: DynamicFormPageSchema;
@@ -55,7 +56,7 @@ function DynamicFormPage({page, formID, draft, currency, submitButtonText, onSub
         >
             {({inputValues}) => (
                 <>
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{page.name}</Text>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{getPageTitle(page, translate)}</Text>
                     <DynamicFormFields
                         fields={page.fields}
                         values={withDraft(inputValues)}
