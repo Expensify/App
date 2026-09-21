@@ -8506,7 +8506,7 @@ function buildOptimisticReceiptAddedAction(reportID: string | undefined, transac
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? String(deprecatedCurrentUserAccountID),
                 type: 'TEXT',
             },
         ],
