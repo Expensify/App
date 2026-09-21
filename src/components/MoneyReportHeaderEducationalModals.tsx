@@ -3,12 +3,12 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isDM, rejectMoneyRequestReason} from '@libs/ReportUtils';
 
-import {changeMoneyRequestHoldStatus} from '@userActions/IOU/Hold';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 
 import CONST from '@src/CONST';

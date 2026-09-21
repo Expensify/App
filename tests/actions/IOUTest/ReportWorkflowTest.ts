@@ -23,6 +23,7 @@ import {
     getIOUReportActionWithBadge,
     getInvoiceReceiverPolicyID,
     isPayer,
+    requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
@@ -5169,6 +5170,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
+
+            // Then the chat does not require attention either: the option list and unread count take this path and must see the same violations
+            expect(
+                requiresAttentionFromCurrentUser(fakeChatReport, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
+                }),
+            ).toBe(false);
         });
 
         it('should not return SUBMIT actionBadge when the open report only has pending card transactions', async () => {
