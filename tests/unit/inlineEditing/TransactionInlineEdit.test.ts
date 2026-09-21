@@ -624,6 +624,7 @@ describe('TransactionInlineEdit', () => {
 
         function buildParams(): TransactionInlineEditParams {
             return {
+                isVendorMatchingBetaEnabled: false,
                 hash: 123456,
                 isOffline: false,
                 transactionID: TRANSACTION_ID,
