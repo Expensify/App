@@ -28,7 +28,7 @@ import type {Route} from '@src/ROUTES';
 
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET} from 'expensify-common';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingPrivateDomainProps} from './types';
@@ -74,6 +74,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const returnToOriginReport = useReturnToOriginReport();
+    const createdValidateEmailTaskReportID = useRef<string | undefined>(undefined);
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -128,7 +129,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (!isConciergeTaskFlow) {
             return;
         }
-        const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', domain, email, conciergeChat, delegateAccountID);
+        const validateEmailTaskReportID =
+            validateEmailTaskReport?.reportID ??
+            createdValidateEmailTaskReportID.current ??
+            createJoinWorkspaceOnboardingContent('validateEmail', domain, email, conciergeChat, delegateAccountID);
+        createdValidateEmailTaskReportID.current = validateEmailTaskReportID;
         if (validateEmailTaskReportID) {
             Navigation.dismissModal({
                 afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(validateEmailTaskReportID)),

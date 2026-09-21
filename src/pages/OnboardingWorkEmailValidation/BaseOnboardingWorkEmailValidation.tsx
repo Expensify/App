@@ -7,6 +7,7 @@ import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeFo
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
@@ -33,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
@@ -55,6 +56,8 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues) && route.params?.isJoinWorkspaceTask === 'true';
     const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, session?.email) || (!!account?.validated && !loginList?.[session?.email ?? '']);
     const returnToOriginReport = useReturnToOriginReport();
+    const {taskReport: validateEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
+    const createdValidateEmailTaskReportID = useRef<string | undefined>(undefined);
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -139,7 +142,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
         const taskWorkEmail = workEmail ?? '';
-        const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', taskWorkEmail.split('@').at(1) ?? '', taskWorkEmail, conciergeChat, delegateAccountID);
+        const validateEmailTaskReportID =
+            validateEmailTaskReport?.reportID ??
+            createdValidateEmailTaskReportID.current ??
+            createJoinWorkspaceOnboardingContent('validateEmail', taskWorkEmail.split('@').at(1) ?? '', taskWorkEmail, conciergeChat, delegateAccountID);
+        createdValidateEmailTaskReportID.current = validateEmailTaskReportID;
         if (validateEmailTaskReportID) {
             Navigation.dismissModal({
                 afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(validateEmailTaskReportID)),
@@ -147,7 +154,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
         returnToOriginReport();
-    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, onboardingValues?.isMergingAccountBlocked, returnToOriginReport, workEmail]);
+    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, onboardingValues?.isMergingAccountBlocked, returnToOriginReport, validateEmailTaskReport?.reportID, workEmail]);
 
     return (
         <ScreenWrapper
