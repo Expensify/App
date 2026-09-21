@@ -1119,7 +1119,8 @@ function addActions({
     snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = optimisticReport;
     snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = optimisticReportActions;
 
-    optimisticData.push(...getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
+    // Reuse the same effective author the comment itself was stamped with, so the thread summary avatars can never disagree with the comment's avatar.
+    optimisticData.push(...getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, lastAction?.delegateAccountID ?? currentUserAccountID));
 
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
@@ -4187,7 +4188,7 @@ function updateReportField({
     report: Report;
     reportField: PolicyReportField;
     previousReportField: PolicyReportField;
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
