@@ -10,6 +10,8 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNextMoneyRequestReportSortConfig from '@libs/getNextMoneyRequestReportSortConfig';
+import {isSortableColumnName} from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -137,7 +139,14 @@ function MoneyRequestReportTableHeaderRow({
                         postedColumnSize={postedColumnSize}
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
-                        onSortPress={onSortPress}
+                        onSortPress={(selectedSortBy, selectedSortOrder) => {
+                            if (!isSortableColumnName(selectedSortBy)) {
+                                onSortPress(selectedSortBy, selectedSortOrder);
+                                return;
+                            }
+                            const nextSortConfig = getNextMoneyRequestReportSortConfig({sortBy, sortOrder}, selectedSortBy, selectedSortOrder);
+                            onSortPress(nextSortConfig.sortBy, nextSortConfig.sortOrder);
+                        }}
                     />
                 )}
             </View>
