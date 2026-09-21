@@ -256,14 +256,18 @@ function AuthScreensInitHandler() {
             return;
         }
 
-        const task = Scheduler.scheduleWhenIdle(() => {
-            const target = getReportsTabPreloadTarget(navigationRef.getRootState());
-            if (!target) {
-                return;
-            }
+        // Mounting the whole Reports tab off-idle would compete with the flows that made the thread busy in the first place.
+        const task = Scheduler.scheduleWhenIdle(
+            () => {
+                const target = getReportsTabPreloadTarget(navigationRef.getRootState());
+                if (!target) {
+                    return;
+                }
 
-            navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target});
-        });
+                navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target});
+            },
+            {shouldUseFallbackTimer: false},
+        );
 
         return () => task.cancel();
     }, [isLoadingApp, tabNavigatorStateKey]);
