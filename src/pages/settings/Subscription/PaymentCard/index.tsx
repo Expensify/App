@@ -72,6 +72,10 @@ function AddPaymentCard() {
     const isSaveTheWorldAddPaymentCardRoute = route.name === SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD;
     const shouldShowBlockingView = isSaveTheWorldAddPaymentCardRoute && !!billingCard;
 
+    // The pending flag is one global key, shared with the Subscription page's Authenticate payment button, so a
+    // verification started on another screen would otherwise cover this form. Only a submission made here may block it.
+    const shouldShowVerificationSpinner = hasSubmittedPaymentCard && !!isVerifyingSetupIntent;
+
     const subscriptionPricingInfo =
         hasTeam2025Pricing && isCollect
             ? translate('subscription.yourPlan.pricePerMemberPerMonth', convertToShortDisplayString(subscriptionPrice, preferredCurrency))
@@ -128,7 +132,7 @@ function AddPaymentCard() {
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
                     <View style={styles.containerWithSpaceBetween}>
-                        {!!isVerifyingSetupIntent && (
+                        {shouldShowVerificationSpinner && (
                             <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
                                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                             </View>
