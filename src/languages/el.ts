@@ -3992,7 +3992,7 @@ ${amount} για ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
-        swiftBicFormatError: 'Ο κωδικός SWIFT/BIC πρέπει να έχει 8 ή 11 χαρακτήρες: 6 γράμματα και στη συνέχεια 2 ή 5 γράμματα ή αριθμούς.',
+        swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
         countrySelectionStepHeader: 'Πού βρίσκεται ο τραπεζικός σας λογαριασμός;',
         accountDetailsStepHeader: 'Ποια είναι τα στοιχεία του λογαριασμού σας;',
         accountTypeStepHeader: 'Τι τύπος λογαριασμού είναι αυτός;',

@@ -3886,7 +3886,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
     },
     addPersonalBankAccount: {
-        swiftBicFormatError: 'SWIFT/BICは8文字または11文字で、最初の6文字は英字、その後の2文字または5文字は英字または数字である必要があります。',
+        swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
         countrySelectionStepHeader: '銀行口座はどこにありますか？',
         accountDetailsStepHeader: 'あなたの口座情報は何ですか？',
         accountTypeStepHeader: 'これはどの種類のアカウントですか？',

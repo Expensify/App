@@ -3919,7 +3919,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
-        swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens bevatten: 6 letters gevolgd door 2 of 5 letters of cijfers.',
+        swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
         countrySelectionStepHeader: 'Waar is je bankrekening gevestigd?',
         accountDetailsStepHeader: 'Wat zijn je accountgegevens?',
         accountTypeStepHeader: 'Wat voor type account is dit?',
