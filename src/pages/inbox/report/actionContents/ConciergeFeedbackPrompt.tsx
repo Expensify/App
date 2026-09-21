@@ -103,19 +103,25 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const thumbsDown = findEmojiByName('-1');
 
     const thumbsUpReactedAt = getReactedAtTimestamp(thumbsUp, reactions, currentUserAccountID);
-    const [isDisplayedThankMessage, setIsDisplayedThankMessage] = useState(false);
+
+    // Holds the reaction the acknowledgement has already been shown for, so a later reaction opens the window again
+    const [closedThanksReactedAt, setClosedThanksReactedAt] = useState<number>();
 
     useEffect(() => {
-        const remainingThanksTime = thumbsUpReactedAt === undefined ? 0 : thumbsUpReactedAt + THANKS_VISIBLE_DURATION_MS - Date.now();
-        setIsDisplayedThankMessage(remainingThanksTime > 0);
+        if (thumbsUpReactedAt === undefined) {
+            return;
+        }
 
+        const remainingThanksTime = thumbsUpReactedAt + THANKS_VISIBLE_DURATION_MS - Date.now();
         if (remainingThanksTime <= 0) {
             return;
         }
 
-        const thanksTimeoutID = setTimeout(() => setIsDisplayedThankMessage(false), remainingThanksTime);
+        const thanksTimeoutID = setTimeout(() => setClosedThanksReactedAt(thumbsUpReactedAt), remainingThanksTime);
         return () => clearTimeout(thanksTimeoutID);
     }, [thumbsUpReactedAt]);
+
+    const isDisplayedThankMessage = thumbsUpReactedAt !== undefined && closedThanksReactedAt !== thumbsUpReactedAt && Date.now() < thumbsUpReactedAt + THANKS_VISIBLE_DURATION_MS;
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
@@ -124,8 +130,8 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
 
     const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
 
-    // The acknowledgement also requires the reaction, so removing it from the reaction row brings the prompt back right away
-    if (isDisplayedThankMessage && thumbsUpReactedAt !== undefined) {
+    // The acknowledgement comes from the reaction, so removing it from the reaction row brings the prompt back right away
+    if (isDisplayedThankMessage) {
         return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
     }
 
