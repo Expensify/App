@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {useExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -76,6 +77,7 @@ function ConfirmationFieldList({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
     const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isDistanceRequest, isPerDiemRequest, isTimeRequest, isTypeInvoice} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const policyTagLists = getTagLists(policyTags);
 
     const flags = useFooterDerivedFlags({
@@ -119,6 +121,11 @@ function ConfirmationFieldList({
     });
     const shouldShowMoreButton = hasBelowShowMore(fieldVisibility);
 
+    // Every bordered field carries its own 8px, so the group's own top margin would stack on top of the section
+    // label's and open a 24px gap where the rest of the form sits at 16px. The push-row layouts have no margin of
+    // their own and still need it.
+    const groupTopSpacing = shouldUseDropdownRows ? undefined : styles.mt2;
+
     const detailsFields = {
         fieldVisibility,
         isCompactMode: compactState.isCompactMode,
@@ -129,7 +136,7 @@ function ConfirmationFieldList({
 
     return (
         <DetailsFieldsContext.Provider value={detailsFields}>
-            <View style={[styles.mb5, styles.mt2]}>
+            <View style={[styles.mb5, groupTopSpacing]}>
                 {compactState.isCompactMode && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.pr10]}>
                         <Icon

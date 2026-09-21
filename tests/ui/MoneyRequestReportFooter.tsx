@@ -53,7 +53,9 @@ jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', (
             testID={`menu-item-${props.name}`}
             accessibilityLabel={props.name}
             onPress={props.onPress}
-            accessibilityState={{disabled: !props.isInteractive}}
+            // Mirrors the component's own `isInteractive = true` default, so a row that simply omits the prop
+            // does not read as disabled.
+            accessibilityState={{disabled: !(props.isInteractive ?? true)}}
         >
             <Text>{props.name}</Text>
             <Text>{props.value}</Text>
