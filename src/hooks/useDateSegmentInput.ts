@@ -25,6 +25,7 @@ import type {TextInputKeyPressEvent} from 'react-native';
 
 import {useState} from 'react';
 
+const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
 const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 
 const BACKSPACE_KEY = 'Backspace';
@@ -88,6 +89,9 @@ type UseDateSegmentInputResult = {
 
     /** Called once focus has left the field altogether rather than moved between segments */
     onFieldBlur: () => void;
+
+    /** Called when the field's clear button empties it, so the segments start again rather than being left behind */
+    onClear: () => void;
 };
 
 function isMoveKey(key: string): key is keyof typeof MOVE_KEYS {
@@ -271,6 +275,17 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         setSegments(EMPTY_SEGMENTS);
     };
 
+    /**
+     * Emptying the field puts the user back at its first segment. The clear button unmounts as it is pressed, so the
+     * press lands on whatever is underneath, and leaving it to decide where focus goes makes that a race.
+     */
+    const handleClear = () => {
+        setSegments(EMPTY_SEGMENTS);
+        setHasInvalidEntry(false);
+        setViewDate(undefined);
+        enterSegment(FIRST_SEGMENT_NAME);
+    };
+
     if (!isEnabled) {
         return {
             displayValue: value,
@@ -281,6 +296,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             hasTypedDigits: false,
             getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}}),
             onFieldBlur: () => {},
+            onClear: () => {},
         };
     }
 
@@ -303,6 +319,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             onFocus: handleSegmentFocus,
         }),
         onFieldBlur: handleFieldBlur,
+        onClear: handleClear,
     };
 }
 

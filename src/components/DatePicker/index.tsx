@@ -241,6 +241,7 @@ function DatePicker({
         onTouched?.();
         onInputChange?.('');
         setSelectedDate('');
+        segmentInput.onClear();
     };
 
     useEffect(() => {
