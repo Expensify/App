@@ -1,5 +1,7 @@
 import type {InsightsDashboardID} from '@src/types/onyx';
 
+import type {ValueOf} from 'type-fest';
+
 import type {SearchKey} from './SearchKeyUtils';
 
 /**
@@ -12,7 +14,18 @@ import type {SearchKey} from './SearchKeyUtils';
  * This is deliberately session-scoped module state rather than Onyx: it is a navigation convenience, and outliving a
  * reload would mean persisting a pointer to a search that may no longer exist.
  */
+/** The rows the More page offers, so the tab can reopen whichever the user last chose. */
+const MORE_DESTINATIONS = {
+    ACCOUNTING: 'accounting',
+    SAVED_SEARCHES: 'savedSearches',
+    INSIGHTS: 'insights',
+    WORKSPACES: 'workspaces',
+} as const;
+
+type MoreDestination = ValueOf<typeof MORE_DESTINATIONS>;
+
 const lastVisitedSearchKeyByGroup = new Map<string, SearchKey>();
+let lastVisitedMoreDestination: MoreDestination | undefined;
 let lastVisitedInsightsDashboard: InsightsDashboardID | undefined;
 
 /** Records the Spend search the user is on, under the group it belongs to. */
@@ -25,6 +38,20 @@ function getLastVisitedSearchKey(groupID: string): SearchKey | undefined {
     return lastVisitedSearchKeyByGroup.get(groupID);
 }
 
+/** Records which More row the user opened, so tapping More again returns there instead of the list. */
+function setLastVisitedMoreDestination(destination: MoreDestination) {
+    lastVisitedMoreDestination = destination;
+}
+
+function getLastVisitedMoreDestination(): MoreDestination | undefined {
+    return lastVisitedMoreDestination;
+}
+
+/** Clears the remembered row, so More opens on its list again. */
+function clearLastVisitedMoreDestination() {
+    lastVisitedMoreDestination = undefined;
+}
+
 function setLastVisitedInsightsDashboard(dashboardID: InsightsDashboardID) {
     lastVisitedInsightsDashboard = dashboardID;
 }
@@ -33,4 +60,14 @@ function getLastVisitedInsightsDashboard(): InsightsDashboardID | undefined {
     return lastVisitedInsightsDashboard;
 }
 
-export {getLastVisitedInsightsDashboard, getLastVisitedSearchKey, setLastVisitedInsightsDashboard, setLastVisitedSearchKey};
+export {
+    clearLastVisitedMoreDestination,
+    getLastVisitedInsightsDashboard,
+    getLastVisitedMoreDestination,
+    getLastVisitedSearchKey,
+    MORE_DESTINATIONS,
+    setLastVisitedInsightsDashboard,
+    setLastVisitedMoreDestination,
+    setLastVisitedSearchKey,
+};
+export type {MoreDestination};

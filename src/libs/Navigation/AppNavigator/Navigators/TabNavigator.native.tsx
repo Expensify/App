@@ -7,6 +7,7 @@ import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
 import InsightsPage from '@pages/Insights/InsightsPage';
+import MorePage from '@pages/More/MorePage';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -36,7 +37,7 @@ const Tab = createBottomTabNavigator<TabNavigatorParamList>();
  * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
  * WORKSPACE.INITIAL is intentionally excluded — swiping back from it returns to the workspace list.
  */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
+const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.MORE, SCREENS.SETTINGS.ROOT]);
 
 const TAB_SCREEN_OPTIONS_BASE = {
     headerShown: false,
@@ -115,6 +116,10 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.INSIGHTS}
                 component={InsightsPage}
+            />
+            <Tab.Screen
+                name={SCREENS.MORE}
+                component={MorePage}
             />
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}

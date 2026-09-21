@@ -28,6 +28,9 @@ const ACCOUNTING_KEYS: SearchKey[] = [
 /** Saved searches have no fixed key list, so their group needs an id of its own. */
 const SAVED_SEARCHES_GROUP_ID = 'savedSearches';
 
+/** Group id for the Accounting searches. Matches what getSpendGroupID returns for any of its keys. */
+const ACCOUNTING_GROUP_ID: TranslationPaths = 'search.tabs.accounting';
+
 const GROUPS: Array<{keys: SearchKey[]; translationPath: TranslationPaths}> = [
     {keys: EXPENSES_KEYS, translationPath: 'search.tabs.expenses'},
     {keys: REPORTS_KEYS, translationPath: 'common.reports'},
@@ -79,6 +82,7 @@ function getSpendGroupTranslationPath(searchKey: SearchKey | undefined): Transla
 }
 
 export {
+    ACCOUNTING_GROUP_ID,
     ACCOUNTING_KEYS,
     EXPENSES_KEYS,
     getGroupedSearchTranslationPath,

@@ -5,6 +5,7 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearLastVisitedMoreDestination} from '@libs/MoreDestinationHistory';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
@@ -121,6 +122,15 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
                     <TopBarWithLoadingBar
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
+                        // Workspaces has no tab of its own on narrow layouts - it is reached through More.
+                        onBackButtonPress={
+                            shouldUseNarrowLayout
+                                ? () => {
+                                      clearLastVisitedMoreDestination();
+                                      Navigation.navigate(ROUTES.MORE);
+                                  }
+                                : undefined
+                        }
                     >
                         {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
                     </TopBarWithLoadingBar>

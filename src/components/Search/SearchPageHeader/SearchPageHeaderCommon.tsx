@@ -3,11 +3,14 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 
-import {setLastVisitedSearchKey} from '@libs/MoreDestinationHistory';
-import {getSpendGroupID, getSpendGroupTranslationPath} from '@libs/SpendNavigationGroups';
+import {clearLastVisitedMoreDestination, setLastVisitedSearchKey} from '@libs/MoreDestinationHistory';
+import Navigation from '@libs/Navigation/Navigation';
+import {ACCOUNTING_GROUP_ID, getSpendGroupID, getSpendGroupTranslationPath, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
 
+import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import React, {useEffect} from 'react';
@@ -37,6 +40,9 @@ function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar, shouldUseG
         setLastVisitedSearchKey(groupID, currentSearchKey);
     }, [groupID, currentSearchKey]);
 
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // Accounting and Saved have no tab of their own on narrow layouts - they are reached through More.
+    const shouldShowBackToMore = shouldUseNarrowLayout && (groupID === ACCOUNTING_GROUP_ID || groupID === SAVED_SEARCHES_GROUP_ID);
     const groupTranslationPath = shouldUseGroupTitle ? getSpendGroupTranslationPath(currentSearchKey) : undefined;
     const title = groupTranslationPath ? translate(groupTranslationPath) : getSearchPageHeaderTitle({translate, type: queryJSONType, activeSavedSearch, selectedItem});
 
@@ -44,6 +50,14 @@ function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar, shouldUseG
         <TopBar
             shouldShowLoadingBar={shouldShowLoadingBar}
             breadcrumbLabel={title}
+            onBackButtonPress={
+                shouldShowBackToMore
+                    ? () => {
+                          clearLastVisitedMoreDestination();
+                          Navigation.navigate(ROUTES.MORE);
+                      }
+                    : undefined
+            }
             shouldDisplayHelpButton
         />
     );

@@ -8,14 +8,17 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {getInsights} from '@libs/actions/Insights';
-import {setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
+import {clearLastVisitedMoreDestination, setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
+import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
@@ -32,6 +35,7 @@ type InsightsPageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCRE
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const {filters, isResolved} = useInsightsFilters();
 
@@ -60,6 +64,15 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         >
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
+                // Insights has no tab of its own on narrow layouts - it is reached through More.
+                onBackButtonPress={
+                    shouldUseNarrowLayout
+                        ? () => {
+                              clearLastVisitedMoreDestination();
+                              Navigation.navigate(ROUTES.MORE);
+                          }
+                        : undefined
+                }
                 shouldDisplayHelpButton
             />
             <ScrollView addBottomSafeAreaPadding />
