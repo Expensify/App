@@ -1,3 +1,7 @@
+/**
+ * Derives telemetry attributes describing the camera's capabilities (autofocus system, lens count, focus distance, zoom)
+ * so they can be attached to the SPAN_CAMERA_INIT span. Reads values the device already exposes; no behavior change.
+ */
 import CONST from '@src/CONST';
 
 import type {SpanAttributeValue} from '@sentry/core';
