@@ -32,7 +32,7 @@ type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<M
  * `MenuItemField` preset when the row needs siblings inside the same `Root` (an error or a hint
  * line under the row).
  */
-function MenuItemFieldRow({name, value, nnumberOfLinesValue, children}: MenuItemFieldRowProps) {
+function MenuItemFieldRow({name, value, numberOfLinesValue, children}: MenuItemFieldRowProps) {
     return (
         <MenuItemRow>
             <MenuItemContent>
@@ -54,7 +54,7 @@ function MenuItemFieldRow({name, value, nnumberOfLinesValue, children}: MenuItem
  * Field preset: a field name plus its value. With no `value` the name takes over the row.
  * `children` land in the trailing cell, next to the chevron.
  */
-function MenuItemFieldPreset({name, value, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
+function MenuItemFieldPreset({name, value, numberOfLinesValue, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
     return (
         <MenuItemRoot
             onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
@@ -65,6 +65,7 @@ function MenuItemFieldPreset({name, value, children, onPress, isDisabled = false
             <MenuItemFieldRow
                 name={name}
                 value={value}
+                numberOfLinesValue={numberOfLinesValue}
             >
                 {(!!children || !!onPress) && (
                     <>
