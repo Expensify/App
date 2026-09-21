@@ -405,12 +405,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 introSelected,
                 isSelfTourViewed,
                 betas,
+                personalDetails,
             );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, personalDetails, isWorkspaceMemberLeavingWorkspaceRoom);
     }, [
         isRootGroupChat,
         isPolicyEmployee,
@@ -422,6 +423,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         introSelected,
         isSelfTourViewed,
         betas,
+        personalDetails,
     ]);
 
     const showLastMemberLeavingModal = useCallback(async () => {

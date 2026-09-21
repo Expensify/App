@@ -332,6 +332,8 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             currentUserAccountID: ADMIN_ACCOUNT_ID,
             isSelfTourViewed: false,
             betas: undefined,
+            // Narrowed to Concierge only, which is not in the personal details list here
+            personalDetails: {},
         });
     });
 });
