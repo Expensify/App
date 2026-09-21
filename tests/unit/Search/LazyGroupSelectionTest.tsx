@@ -264,6 +264,35 @@ const reportGroups = [
     buildReportGroup(8, 'report-3', []),
 ];
 
+/** The same shape, with the middle report holding a single row on its way out. */
+const reportGroupsWithDeletedRow = [
+    buildReportGroup(6, 'report-1', [buildChild(6, '6', 'report-1')]),
+    buildReportGroup(7, 'report-2', [{...buildChild(7, '7', 'report-2'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
+    buildReportGroup(8, 'report-3', [buildChild(8, '8', 'report-3')]),
+];
+
+function DeletedRowReportWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={reportGroupsWithDeletedRow}
+                renderedData={reportGroupsWithDeletedRow}
+                totalSelectableItemsCount={2}
+                searchResults={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+                areItemsGrouped
+                isExpenseReportType
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 function ExpenseReportWrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
@@ -1817,6 +1846,28 @@ describe('Lazily loaded group selection', () => {
             await waitForBatchedUpdatesWithAct();
         });
         expect(Object.keys(result.current.selectedTransactions)).toEqual(['6']);
+    });
+
+    it('never anchors on a report whose only selected row is on its way out, since its checkbox reads unchecked', async () => {
+        const {result} = renderSelection(DeletedRowReportWrapper);
+        const [, secondReport, thirdReport] = reportGroupsWithDeletedRow;
+        const [deletedRow] = secondReport.transactions;
+
+        // Given the middle report's only row still in the selection after it started being deleted, which its checkbox stops counting
+        await act(async () => {
+            result.current.applySelection((selectedTransactions) => ({...selectedTransactions, [deletedRow.keyForList]: mapEmptyReportToSelectedEntry(secondReport)[1]}), {});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the first shift+click of the session lands on the last report
+        await act(async () => {
+            result.current.toggle(thirdReport, thirdReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it ranges from the top of the list rather than from that report, since the engine and the checkbox read the same rows
+        expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['8']?.isSelected).toBe(true);
     });
 
     it('selects a report with no expenses of its own when a range reaches it', async () => {

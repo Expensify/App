@@ -56,7 +56,7 @@ type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
     filteredData: SearchData;
 
-    /** As rendered, so a range spans on-screen order rather than the pre-sort `filteredData` */
+    /** In on-screen order, which `filteredData` is not. The grouped view additionally drops rows being deleted while online, which `isDisabledItem` keeps out of a range anyway */
     renderedData: SearchListItem[];
 
     /** Keeps "select all matching" in lock-step: select-all unchecks once the selection no longer covers every item. */
@@ -589,10 +589,8 @@ function SearchWriteActionsProvider({
         const selectedTransactions = getSelectedTransactions();
         const excludedTransactions = getExcludedTransactions();
         const areAllMatchingItemsSelected = getAreAllMatchingItemsSelected();
-        if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
-            return item.transactions.some((transaction) =>
-                isRowChecked({rowKey: transaction.keyForList, parentGroupKey: item.keyForList, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
-            );
+        if (isTransactionGroupListItemType(item)) {
+            return isGroupSelected(groupSelectionParams(item.keyForList, item.transactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected));
         }
         if (!item.keyForList) {
             return false;

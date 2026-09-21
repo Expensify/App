@@ -104,10 +104,13 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 
 jest.mock('@components/Search/primitives/SelectionTopBar', () => ({__esModule: true, default: () => null}));
 
+/** Stable by construction, as the registry's own are: a subscriber lists these in its effect dependencies. */
+const mockShiftRangeGroups = {addGroupToRange: jest.fn(), removeGroupFromRange: jest.fn(), registryGeneration: 0};
+
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchRowSelectionActions: () => ({toggle: jest.fn(), toggleAll: jest.fn()}),
     useSearchSelectionContext: () => ({selectedTransactions: {}}),
-    useSearchShiftRangeGroups: () => ({addGroupToRange: jest.fn(), removeGroupFromRange: jest.fn()}),
+    useSearchShiftRangeGroups: () => mockShiftRangeGroups,
 }));
 
 const STABLE_QUERY_JSON: SearchQueryJSON = {
