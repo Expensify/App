@@ -1,5 +1,6 @@
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -51,6 +52,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const delegateAccountID = useDelegateAccountID();
 
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
@@ -82,6 +84,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
                 transactionReport,
+                delegateAccountID,
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);

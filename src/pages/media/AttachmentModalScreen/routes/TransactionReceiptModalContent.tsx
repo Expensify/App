@@ -5,6 +5,7 @@ import type {CropRect} from '@components/ReceiptCropView';
 
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -84,6 +85,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policy = usePolicy(report?.policyID);
+    const delegateAccountID = useDelegateAccountID();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
@@ -340,6 +342,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             transactionPolicyTagList: policyTagList,
                             transactionViolations,
                             transactionReport,
+                            delegateAccountID,
                             ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                         });
                     }
@@ -358,6 +361,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             transactionViolations,
             transactionReport,
             isVendorMatchingBetaEnabled,
+            delegateAccountID,
         ],
     );
 

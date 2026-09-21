@@ -22,6 +22,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
@@ -166,6 +167,7 @@ describe('actions/IOU/Receipt', () => {
                 transactionPolicyTagList: undefined,
                 transactionReport: undefined,
                 isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -187,6 +189,7 @@ describe('actions/IOU/Receipt', () => {
                 transactionPolicyTagList: undefined,
                 transactionReport: undefined,
                 isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -214,6 +217,7 @@ describe('actions/IOU/Receipt', () => {
                 transactionPolicy: undefined,
                 transactionPolicyTagList: undefined,
                 transactionReport: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -240,6 +244,7 @@ describe('actions/IOU/Receipt', () => {
                 transactionPolicyTagList: undefined,
                 transactionReport: undefined,
                 isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -268,6 +273,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -300,6 +306,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -346,6 +353,7 @@ describe('actions/IOU/Receipt', () => {
                 transactionPolicyTagList: undefined,
                 transactionReport: undefined,
                 isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -370,6 +378,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -403,6 +412,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -435,6 +445,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -465,6 +476,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -496,6 +508,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -531,6 +544,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     isSameReceipt: true,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -589,6 +603,7 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     transactionViolations: existingViolations,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -596,6 +611,81 @@ describe('actions/IOU/Receipt', () => {
                 const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
                 const violationsFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, Onyx.METHOD.MERGE);
                 expect(violationsFailure.value).toEqual(existingViolations);
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should post an optimistic "added a receipt" action to the existing transaction thread', async () => {
+            // Given an expense whose IOU action already has a transaction thread, replaced by a copilot
+            const expenseReportID = 'replaceReceiptThreadExpenseReportID';
+            const threadReportID = 'replaceReceiptThreadReportID';
+            const previousThreadTime = '2024-01-01 00:00:00';
+            const delegateAccountID = 99;
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: expenseReportID,
+                receipt: OLD_RECEIPT,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+                ...createRandomReport(2, undefined),
+                reportID: threadReportID,
+                lastVisibleActionCreated: previousThreadTime,
+                lastReadTime: previousThreadTime,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
+                iouActionID: {
+                    ...createRandomReportAction(1),
+                    reportActionID: 'iouActionID',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    childReportID: threadReportID,
+                    originalMessage: {IOUTransactionID: transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const writeSpy = mockApiWrite();
+            try {
+                // When the receipt is replaced with a different one
+                replaceReceipt({
+                    isVendorMatchingBetaEnabled: false,
+                    transaction,
+                    file: createFile(),
+                    source,
+                    transactionPolicy: undefined,
+                    transactionPolicyTagList: undefined,
+                    transactionReport: undefined,
+                    delegateAccountID,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the thread timestamps move to the new action so it is treated as the newest one
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const threadReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                const {lastVisibleActionCreated, lastReadTime} = threadReportUpdate.value;
+                expect(lastVisibleActionCreated).not.toBe(previousThreadTime);
+                expect(lastReadTime).toBe(lastVisibleActionCreated);
+
+                // And the thread receives the action, attributed to the copilot so the actor does not change once the server responds
+                const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                expect(Object.values(threadActionsUpdate.value).at(0)).toEqual(
+                    expect.objectContaining({
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        delegateAccountID,
+                        created: lastVisibleActionCreated,
+                        originalMessage: expect.objectContaining({receiptAdded: true}),
+                    }),
+                );
+
+                // And a failed upload restores the timestamps the thread had before
+                const threadReportFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                expect(threadReportFailure.value).toEqual({
+                    lastVisibleActionCreated: previousThreadTime,
+                    lastReadTime: previousThreadTime,
+                });
             } finally {
                 writeSpy.mockRestore();
             }

@@ -588,6 +588,7 @@ function MoneyRequestReceiptView({
             transactionPolicyTagList: policyTagList,
             transactionViolations: rawTransactionViolations,
             transactionReport,
+            delegateAccountID,
         });
     };
 

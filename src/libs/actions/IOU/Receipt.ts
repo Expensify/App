@@ -8,7 +8,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
-import {getAllReportActions, getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {buildOptimisticDetachReceipt, buildOptimisticReceiptAddedAction, getReportOrDraftReport, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
@@ -44,8 +44,11 @@ type ReplaceReceipt = {
     transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    delegateAccountID: number | undefined;
 };
-type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transactionReport'> & {transactionID: string};
+// delegateAccountID is left out because a retry builds a fresh optimistic action, so it has to
+// reflect who is copiloting at retry time rather than who was copiloting when the upload failed.
+type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transactionReport' | 'delegateAccountID'> & {transactionID: string};
 
 function detachReceipt(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -175,7 +178,7 @@ function detachReceipt(
 
     const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
 
-    const transactionThreadReportID = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction?.reportID)), transactionID)?.childReportID;
+    const transactionThreadReportID = getIOUActionForReportID(transaction?.reportID, transactionID)?.childReportID;
 
     API.write(
         WRITE_COMMANDS.DETACH_RECEIPT,
@@ -199,6 +202,7 @@ function replaceReceipt({
     transactionViolations,
     transactionReport,
     isVendorMatchingBetaEnabled,
+    delegateAccountID,
 }: ReplaceReceipt) {
     const transactionID = transaction?.transactionID;
 
@@ -338,9 +342,10 @@ function replaceReceipt({
 
     // Show "added a receipt" right away, but not for a crop or rotate (isSameReceipt) and only if the
     // thread already exists. Otherwise the backend creates the thread and message and it syncs in.
-    const transactionThreadReportID = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction?.reportID)), transactionID)?.childReportID;
+    const transactionThreadReportID = getIOUActionForReportID(transaction?.reportID, transactionID)?.childReportID;
     const transactionThread = transactionThreadReportID ? getReportOrDraftReport(transactionThreadReportID) : undefined;
-    const optimisticReceiptAddedAction = !isSameReceipt && transactionThreadReportID ? buildOptimisticReceiptAddedAction(transactionThreadReportID, transactionID) : undefined;
+    const optimisticReceiptAddedAction =
+        !isSameReceipt && transactionThreadReportID ? buildOptimisticReceiptAddedAction(transactionThreadReportID, transactionID, delegateAccountID) : undefined;
 
     if (optimisticReceiptAddedAction && transactionThreadReportID) {
         optimisticData.push(
@@ -355,6 +360,7 @@ function replaceReceipt({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
                 value: {
+                    lastVisibleActionCreated: optimisticReceiptAddedAction.created,
                     lastReadTime: optimisticReceiptAddedAction.created,
                 },
             },
@@ -381,6 +387,7 @@ function replaceReceipt({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
                 value: {
+                    lastVisibleActionCreated: transactionThread?.lastVisibleActionCreated ?? null,
                     lastReadTime: transactionThread?.lastReadTime ?? null,
                 },
             },

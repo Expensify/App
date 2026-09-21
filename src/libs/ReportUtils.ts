@@ -8483,7 +8483,7 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
  * Builds an optimistic "added a receipt" action for the transaction thread.
  * It shares a reportActionID with the server action so the two reconcile.
  */
-function buildOptimisticReceiptAddedAction(reportID: string | undefined, transactionID: string) {
+function buildOptimisticReceiptAddedAction(reportID: string | undefined, transactionID: string, delegateAccountID: number | undefined) {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: deprecatedCurrentUserAccountID,
@@ -8514,6 +8514,7 @@ function buildOptimisticReceiptAddedAction(reportID: string | undefined, transac
         reportActionID: rand64(),
         reportID,
         shouldShow: true,
+        delegateAccountID,
     };
 }
 
