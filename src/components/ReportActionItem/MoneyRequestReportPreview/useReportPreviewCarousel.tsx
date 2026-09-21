@@ -16,7 +16,9 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import type {ViewToken} from 'react-native';
+import type {FlatListProps} from 'react-native';
+
+type ViewToken = Parameters<NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>>[0]['viewableItems'][number];
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';

@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import type {ReactElement, ReactNode} from 'react';
-import type {LayoutChangeEvent, FlatList as RNFlatList, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+import type {FlatListProps, LayoutChangeEvent, FlatList as RNFlatList, ViewStyle} from 'react-native';
 
 import React, {cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, Platform, View} from 'react-native';
@@ -20,6 +20,9 @@ import CloseButton from './primitives/CloseButton';
 import Illustration from './primitives/Illustration';
 import Page from './primitives/Page';
 import PaginationDots from './primitives/PaginationDots';
+
+type ViewabilityConfig = FlatListProps<unknown>['viewabilityConfig'];
+type ViewToken = Parameters<NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>>[0]['viewableItems'][number];
 
 const CAROUSEL_VIEWABILITY_CONFIG: ViewabilityConfig = {itemVisiblePercentThreshold: 95};
 
