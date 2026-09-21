@@ -131,6 +131,16 @@ describe('getDynamicFieldErrors for choices and booleans', () => {
     });
 });
 
+describe('getDynamicFieldErrors counts readonly rows like the renderer', () => {
+    it('treats a consent box beside a readonly row as a box that must be ticked', () => {
+        const legalName: DynamicFormField = {key: 'legalName', label: 'Legal name', group: 'Business', type: 'text', required: true, readonly: true, refreshOnChange: false};
+        const consent: DynamicFormField = {key: 'consent', label: 'I agree', group: 'Business', type: 'boolean', required: true, refreshOnChange: false};
+
+        expect(getDynamicFieldErrors([legalName, consent], {legalName: 'Acme Inc', consent: false}, translateLocal)).toEqual({consent: translateLocal('common.error.fieldRequired')});
+        expect(getDynamicFieldErrors([consent], {consent: false}, translateLocal)).toEqual({});
+    });
+});
+
 describe('getDynamicFieldErrors named rules', () => {
     const firstName: DynamicFormField = {key: 'firstName', label: 'First name', group: 'Owner', type: 'text', required: true, rule: 'legalName', refreshOnChange: false};
     const dateOfBirth: DynamicFormField = {key: 'dateOfBirth', label: 'Date of birth', group: 'Owner', type: 'date', required: true, rule: 'dateOfBirth', refreshOnChange: false};

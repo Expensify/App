@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
 import type {DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormListItem} from '@src/types/onyx/DynamicFormField';
 
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
@@ -31,7 +32,7 @@ type DynamicFormStoryProps = {
     fields: DynamicFormField[];
 
     /** Answers seeded into the form draft before the first render */
-    draftValues: Record<string, string | boolean | string[]>;
+    draftValues: Record<string, string | boolean | string[] | DynamicFormListItem[]>;
 
     /** One group per step through DynamicFormShell and DynamicFormPage, or every group on one page for screenshots */
     layout: 'pages' | 'single';

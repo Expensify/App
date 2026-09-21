@@ -61,6 +61,13 @@ function EmptyPage() {
     return null;
 }
 
+/** Each sub page is a separate route mount, so answers kept out of the draft live here for the length of one visit to the flow */
+const carriedAnswersByForm = new Map<string, DynamicFormValues>();
+
+function isCarriedOutsideDraft(field: DynamicFormField): boolean {
+    return !!field.sensitive || !!field.itemFields?.some((itemField) => itemField.sensitive);
+}
+
 /** A whole dynamic form: one sub page per group, a confirmation page, and a step indicator when the flow is long enough */
 function DynamicFormFlow({
     fields,
@@ -79,10 +86,10 @@ function DynamicFormFlow({
 }: DynamicFormFlowProps) {
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
-    const [pageAnswers, setPageAnswers] = useState<DynamicFormValues>({});
+    const [carriedAnswers, setCarriedAnswers] = useState<DynamicFormValues>(() => carriedAnswersByForm.get(formID) ?? {});
     const groupPages = groupFieldsIntoPages(fields);
     const pages = [...groupPages.map((page) => ({pageName: page.slug, component: EmptyPage})), {pageName: CONFIRM_PAGE, component: EmptyPage}];
-    const draftValues: DynamicFormValues = {...draft, ...pageAnswers};
+    const draftValues: DynamicFormValues = {...draft, ...carriedAnswers};
     const hasVisibleField = (page: DynamicFormPageSchema) => page.fields.some((field) => isFieldVisible(field, draftValues));
     const skipPages = groupPages.filter((page) => !hasVisibleField(page)).map((page) => page.slug);
 
@@ -92,6 +99,13 @@ function DynamicFormFlow({
         onFinished: () => onSubmit(draftValues),
         buildRoute,
     });
+
+    useEffect(() => {
+        if (!isRedirecting) {
+            return;
+        }
+        carriedAnswersByForm.delete(formID);
+    }, [isRedirecting, formID]);
 
     const isCurrentPageSkipped = !!currentPageName && skipPages.includes(currentPageName);
     const pageNames = pages.map((page) => page.pageName);
@@ -115,6 +129,7 @@ function DynamicFormFlow({
             return;
         }
         if (pageIndex === 0) {
+            carriedAnswersByForm.delete(formID);
             onBack();
             return;
         }
@@ -122,7 +137,12 @@ function DynamicFormFlow({
     };
 
     const handleNext = (values: DynamicFormValues) => {
-        setPageAnswers((previous) => ({...previous, ...values}));
+        const carriedKeys = currentGroupPage?.fields.filter(isCarriedOutsideDraft).map((field) => field.key) ?? [];
+        if (carriedKeys.length > 0) {
+            const nextCarried = {...carriedAnswers, ...Object.fromEntries(carriedKeys.map((key) => [key, values[key]]))};
+            carriedAnswersByForm.set(formID, nextCarried);
+            setCarriedAnswers(nextCarried);
+        }
         if (currentGroupPage) {
             onPageSubmit?.(currentGroupPage, values);
         }

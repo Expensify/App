@@ -104,4 +104,4 @@ type DynamicFormField = {
 /** One entry of a list field; `id` is generated on the device for row keys */
 type DynamicFormListItem = Record<string, unknown> & {id: string};
 
-export type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldRule, DynamicFormFieldType, DynamicFormKeyboard, DynamicFormListItem};
+export type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType, DynamicFormKeyboard, DynamicFormListItem};

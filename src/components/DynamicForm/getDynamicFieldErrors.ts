@@ -132,9 +132,12 @@ function getFieldErrors(field: DynamicFormField, values: DynamicFormValues, tran
 
 function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormValues, translate: LocalizedTranslate): DynamicFieldErrors {
     const errors: DynamicFieldErrors = {};
-    const visibleFields = fields.filter((field) => !field.readonly && isFieldVisible(field, values));
+    const visibleFields = fields.filter((field) => isFieldVisible(field, values));
     const isAloneOnPage = visibleFields.length === 1;
     for (const field of visibleFields) {
+        if (field.readonly) {
+            continue;
+        }
         for (const message of getFieldErrors(field, values, translate, isAloneOnPage)) {
             addErrorMessage(errors, field.key, message);
         }

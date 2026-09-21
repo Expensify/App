@@ -209,6 +209,34 @@ describe('DynamicFormFlow', () => {
         });
         expect(draft?.ssn).toBeUndefined();
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('profile'));
+
+        const renderPage = async (subPage: string) => {
+            screen.unmount();
+            mockRouteParams.subPage = subPage;
+            render(
+                <DynamicFormFlow
+                    fields={fields}
+                    formID={FORM_ID}
+                    headerTitle="Identity"
+                    testID="DynamicFormFlowSensitive"
+                    buildRoute={buildRoute}
+                    onSubmit={onSubmit}
+                    onBack={jest.fn()}
+                    confirmationTitle="Confirm"
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        await renderPage('profile');
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        await renderPage('confirm');
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ssn: '123456789'}));
     });
 
     it('skips a group whose fields are all hidden', async () => {
