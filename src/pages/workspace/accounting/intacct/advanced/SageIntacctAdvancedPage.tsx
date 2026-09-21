@@ -164,13 +164,15 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         key={translate('workspace.sageIntacct.fxExpenseAccount')}
                         pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}
                     >
-                        <MenuItemWithTopDescription
-                            title={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}
-                            description={translate('workspace.sageIntacct.fxExpenseAccount')}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            name={translate('workspace.sageIntacct.fxExpenseAccount')}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT.getRoute(policyID))}
-                            brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
+                            value={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}
+                        >
+                            {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                 )}
             </Accordion>
