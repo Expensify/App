@@ -33,7 +33,8 @@ const LOCALIZED_TOKENS = [
     {token: 'eeee', label: 'eeee (weekday name)'},
     {token: 'eee', label: 'eee (short weekday)'},
     {token: 'do', label: 'do (ordinal day)'},
-    // Quarters. `Q`/`QQ` are plain numbers, but everything wider is a locale's own label — `Q1`, `T1`, `K1`, `I kw.`
+    // Quarters. `Q` and `QQ` are plain numbers, but everything wider is a locale's own label such as `Q1`, `T1`,
+    // `K1` or `I kw.`
     {token: 'QQQQQ', label: 'QQQQQ (narrow quarter)'},
     {token: 'QQQQ', label: 'QQQQ (quarter name)'},
     {token: 'QQQ', label: 'QQQ (short quarter)'},

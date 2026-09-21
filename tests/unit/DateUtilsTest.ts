@@ -354,8 +354,9 @@ describe('DateUtils', () => {
         });
 
         it('uses the standalone month, which Greek and Polish inflect differently from the one beside a day', () => {
-            // `MONTH_FORMAT` is `LLLL`, not `MMMM`. With `MMMM` a picker list would read the genitive `Ιανουαρίου` /
-            // `stycznia` — "of January" — because those languages decline the month when a day number follows it.
+            // `MONTH_FORMAT` is `LLLL`, not `MMMM`. With `MMMM` a picker list would read the genitive `Ιανουαρίου`
+            // or `stycznia`, meaning "of January", because those languages decline the month when a day number
+            // follows it.
             expect(DateUtils.getMonthNames(el).at(0)).toBe('Ιανουάριος');
             expect(DateUtils.getMonthNames(pl).at(0)).toBe('styczeń');
             expect(DateUtils.getMonthNames(pl).at(11)).toBe('grudzień');
@@ -373,7 +374,8 @@ describe('DateUtils', () => {
         it('labels the quarter the way the locale does', () => {
             // `QQQ` rather than a hardcoded `Q`. `Intl.DateTimeFormat` has no quarter option, so date-fns is the only
             // source for these. The day range inside the parentheses is still the hand-written US-ordered `MMM d`,
-            // which is why French reads `janv. 1` rather than `1 janv.`; localizing that is a separate change.
+            // which is why French reads `janv. 1` rather than `1 janv.`. Localizing that ordering is a separate
+            // change.
             expect(DateUtils.getFormattedQuarterForSearch(2026, 1, fr)).toBe('1er trim. 2026 (janv. 1 - mars 31)');
             expect(DateUtils.getFormattedQuarterForSearch(2026, 1, pl)).toBe('I kw. 2026 (sty 1 - mar 31)');
             expect(DateUtils.getFormattedQuarterForSearch(2026, 1, nl)).toBe('K1 2026 (jan. 1 - mrt. 31)');

@@ -706,8 +706,8 @@ const CONST = {
         LOCAL_TIME_FORMAT: 'p',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         // `LLLL` is the standalone month, not `MMMM`. Greek and Polish inflect the month name when it accompanies
-        // a day (`stycznia` = "of January"), so a month shown on its own — a picker list, a statement heading —
-        // needs the nominative form (`styczeń`). Both uses of this constant are a month standing alone.
+        // a day, so `stycznia` means "of January". A month shown on its own, like a picker list or a statement
+        // heading, needs the nominative `styczeń` instead. Both uses of this constant are a month standing alone.
         MONTH_FORMAT: 'LLLL',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
