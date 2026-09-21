@@ -9310,6 +9310,8 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
             filterType: {label: '筛选类型', has: {positive: '有', negative: '没有'}, is: {positive: '是', negative: '不是'}},
+            created: '已创建',
+            createdDate: '创建日期',
             transactionStatus: {
                 label: '交易状态',
                 [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: '待处理',

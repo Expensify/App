@@ -9562,6 +9562,8 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
+            created: '作成しました',
+            createdDate: '作成日',
             transactionStatus: {
                 label: '取引ステータス',
                 [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: '保留中',

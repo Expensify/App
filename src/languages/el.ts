@@ -9945,6 +9945,8 @@ ${reportName}`,
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
             },
+            created: 'Δημιουργήθηκε',
+            createdDate: 'Ημερομηνία δημιουργίας',
             transactionStatus: {
                 label: 'Κατάσταση συναλλαγής',
                 [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Σε εκκρεμότητα',

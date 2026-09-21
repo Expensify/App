@@ -9734,6 +9734,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
+            created: 'Erstellt',
+            createdDate: 'Erstellungsdatum',
             transactionStatus: {
                 label: 'Transaktionsstatus',
                 [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Ausstehend',
