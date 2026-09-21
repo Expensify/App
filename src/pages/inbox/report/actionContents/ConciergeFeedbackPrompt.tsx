@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +22,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 const THANKS_VISIBLE_DURATION_MS = 4000;
@@ -108,19 +109,9 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const [mountedWithThumbsUpReactedAt] = useState(thumbsUpReactedAt);
     const hasJustReacted = thumbsUpReactedAt !== undefined && thumbsUpReactedAt !== mountedWithThumbsUpReactedAt;
 
-    // Holds the reaction whose acknowledgement has run its course, so a later reaction opens it again
-    const [acknowledgedThumbsUpReactedAt, setAcknowledgedThumbsUpReactedAt] = useState<number>();
-
-    useEffect(() => {
-        if (!hasJustReacted) {
-            return;
-        }
-
-        const thanksTimeoutID = setTimeout(() => setAcknowledgedThumbsUpReactedAt(thumbsUpReactedAt), THANKS_VISIBLE_DURATION_MS);
-        return () => clearTimeout(thanksTimeoutID);
-    }, [hasJustReacted, thumbsUpReactedAt]);
-
-    const isDisplayedThankMessage = hasJustReacted && acknowledgedThumbsUpReactedAt !== thumbsUpReactedAt;
+    // The debounced copy catches up once the window has passed, which is what takes the acknowledgement back down
+    const hasSettledAfterReacting = useDebouncedValue(hasJustReacted, THANKS_VISIBLE_DURATION_MS);
+    const isDisplayedThankMessage = hasJustReacted && !hasSettledAfterReacting;
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
