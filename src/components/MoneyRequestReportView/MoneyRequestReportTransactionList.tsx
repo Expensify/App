@@ -51,8 +51,6 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {FlatListProps, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
-type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
-
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import isEmpty from 'lodash/isEmpty';
@@ -72,6 +70,8 @@ import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import useMoneyRequestReportColumns from './useMoneyRequestReportColumns';
 import useMoneyRequestReportLayout from './useMoneyRequestReportLayout';
+
+type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */

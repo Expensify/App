@@ -23,8 +23,6 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-
-type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
@@ -38,6 +36,8 @@ import usePrevious from './usePrevious';
 import useReportScrollManager from './useReportScrollManager';
 import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageReceived';
 import useWindowDimensions from './useWindowDimensions';
+
+type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
 
 type UseReportActionsScrollParams = {
     /** The Concierge chat report */

@@ -3,11 +3,11 @@ import CONST from '@src/CONST';
 import type {RefObject} from 'react';
 import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
-type ViewToken = Parameters<ViewableItemsChanged>[0]['viewableItems'][number];
-
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
+
+type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
+type ViewToken = Parameters<ViewableItemsChanged>[0]['viewableItems'][number];
 
 type Args = {
     reportID: string;
