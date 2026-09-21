@@ -628,7 +628,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '¿Cambiar de cuenta?',
             prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
                 `Has iniciado sesión como ${currentEmail}. Este enlace iniciará sesión como ${newEmail} en su lugar.`,
-            confirm: 'cambiar de cuenta',
+            confirm: 'Cambiar de cuenta',
         },
     },
     multifactorAuthentication: {
