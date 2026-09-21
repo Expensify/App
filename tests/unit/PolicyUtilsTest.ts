@@ -15,6 +15,8 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
+    getVendorDisplayName,
+    hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -43,7 +45,11 @@ import {
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getOwnerChangePayerSuccessData,
     getSageIntacctVendors,
+    arePaymentsEnabled,
+    getReimbursementChoice,
+    isPolicyPayer,
     getReimburserEmail,
     getSubmitReportManagerAccountID,
     getSubmitToAccountID,
@@ -73,11 +79,13 @@ import {
     hasVendorFeature,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
+    isInvoiceFieldsEnabled,
     isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
+    isPolicyFeatureEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isRilletVendorMatchingActive,
@@ -1322,15 +1330,15 @@ describe('PolicyUtils', () => {
         const buildRule = (rule: ApprovalWorkflowRule): Rule => ({...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
 
         const submitRule: ApprovalWorkflowRule = {
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
             filters: submitFilter,
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
         };
 
         // After the admin approves, an under-limit report continues to the approver and an over-limit one is
         // escalated to the category approver instead.
         const underLimitRule: ApprovalWorkflowRule = {
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
@@ -1340,10 +1348,10 @@ describe('PolicyUtils', () => {
                     right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                 },
             },
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: approverEmail}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: approverEmail}},
         };
         const overLimitRule: ApprovalWorkflowRule = {
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
@@ -1353,16 +1361,16 @@ describe('PolicyUtils', () => {
                     right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                 },
             },
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: categoryApprover1Email}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: categoryApprover1Email}},
         };
         const terminalRule: ApprovalWorkflowRule = {
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
                 right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approverEmail},
             },
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}},
         };
 
         // A workspace whose employeeList still points somewhere else, so a rule-driven answer is distinguishable
@@ -1421,9 +1429,9 @@ describe('PolicyUtils', () => {
             });
 
             const buildAmountRule = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number): ApprovalWorkflowRule => ({
-                triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
                 filters: {operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right},
-                actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
             });
 
             it.each([
@@ -1452,22 +1460,22 @@ describe('PolicyUtils', () => {
 
             it('does not match a filter on a field this client does not understand', () => {
                 const rule: ApprovalWorkflowRule = {
-                    triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
                     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: 'unsupportedField', right: employeeEmail},
-                    actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                    actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
                 };
                 expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(false);
             });
 
             it('matches an OR filter when either side matches', () => {
                 const rule: ApprovalWorkflowRule = {
-                    triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
                     filters: {
                         operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
                         left: submitFilter,
                         right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [adminEmail]},
                     },
-                    actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                    actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
                 };
 
                 // Only the left side matches this submitter, but OR only needs one side.
@@ -2133,6 +2141,222 @@ describe('PolicyUtils', () => {
                 owner: 'owner@example.com',
             });
             expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+
+        it('should resolve the payer for deprecated manual reimbursement', () => {
+            // Given a workspace on Indirect reimbursement that reports the deprecated value and names no payer
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                owner: 'owner@example.com',
+            });
+
+            // When the payer is resolved
+            const reimburserEmail = getReimburserEmail(policy);
+
+            // Then it falls back to the owner, because the deprecated value means Indirect just like the plain one
+            expect(reimburserEmail).toBe('owner@example.com');
+        });
+
+        it('should return undefined when deprecated reimbursement is disabled', () => {
+            // Given a workspace that reports the deprecated disabled value but still names a payer
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'reimburser@example.com',
+                owner: 'owner@example.com',
+            });
+
+            // When the payer is resolved
+            const reimburserEmail = getReimburserEmail(policy);
+
+            // Then nobody is returned, because a disabled workspace has no payer no matter who is named on it
+            expect(reimburserEmail).toBeUndefined();
+        });
+    });
+
+    describe('getReimbursementChoice', () => {
+        it('should return undefined when there is no policy', () => {
+            // Given no policy, which happens while a workspace is still loading
+
+            // When the choice is resolved
+            const choice = getReimbursementChoice(undefined);
+
+            // Then nothing is returned, so callers fall back to their own defaults instead of guessing a choice
+            expect(choice).toBeUndefined();
+        });
+
+        it('should return undefined when the policy has no choice', () => {
+            // Given a workspace that reports no reimbursement choice at all
+            const policy = createMock<Policy>({id: '1'});
+
+            // When the choice is resolved
+            const choice = getReimbursementChoice(policy);
+
+            // Then nothing is returned, because an absent choice must stay absent rather than become a real value
+            expect(choice).toBeUndefined();
+        });
+
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+            'should pass through the current value %s',
+            (choice) => {
+                // Given a workspace on one of the three values the app already understands
+                const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+
+                // When the choice is resolved
+                const resolvedChoice = getReimbursementChoice(policy);
+
+                // Then it is returned untouched, so resolving cannot change the meaning of a workspace that was already correct
+                expect(resolvedChoice).toBe(choice);
+            },
+        );
+
+        it.each([
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+        ])('should resolve %s to %s', (deprecatedChoice, expectedChoice) => {
+            // Given a workspace that reports a deprecated value
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: deprecatedChoice});
+
+            // When the choice is resolved
+            const resolvedChoice = getReimbursementChoice(policy);
+
+            // Then it becomes the plain value it means, so every comparison downstream treats the workspace correctly
+            expect(resolvedChoice).toBe(expectedChoice);
+        });
+
+        it('should not resolve a value that merely starts with the deprecated prefix', () => {
+            // Given a workspace on an unknown value that only shares the deprecated prefix
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The value outside the type is the scenario under test.
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: 'deprecated_reimburseSomethingElse' as Policy['reimbursementChoice']});
+
+            // When the choice is resolved
+            const resolvedChoice = getReimbursementChoice(policy);
+
+            // Then it is passed through, because matching on the prefix would silently invent a meaning for a value we do not know
+            expect(resolvedChoice).toBe('deprecated_reimburseSomethingElse');
+        });
+    });
+
+    describe('arePaymentsEnabled', () => {
+        it.each([
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+        ])('should return %s -> %s', (choice, expected) => {
+            // Given a workspace on one of the current or deprecated values
+            const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+
+            // When payments availability is checked
+            const paymentsEnabled = arePaymentsEnabled(policy);
+
+            // Then only a disabled workspace turns payments off, whichever of the two values it reports
+            expect(paymentsEnabled).toBe(expected);
+        });
+    });
+
+    describe('isPolicyPayer', () => {
+        // The owner is the payer under Indirect reimbursement, so both values have to resolve to the same payer.
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+            'should treat the owner as the payer for %s',
+            (choice) => {
+                // Given an owner who administers a workspace on Indirect reimbursement
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: choice,
+                    owner: 'owner@example.com',
+                });
+
+                // When they are checked against the workspace
+                const isPayer = isPolicyPayer(policy, 'owner@example.com');
+
+                // Then they can pay, so the deprecated value does not strip an owner of the Pay button
+                expect(isPayer).toBe(true);
+            },
+        );
+
+        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+            'should treat nobody as the payer for %s',
+            (choice) => {
+                // Given an owner who administers a workspace with reimbursement disabled
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: choice,
+                    owner: 'owner@example.com',
+                });
+
+                // When they are checked against the workspace
+                const isPayer = isPolicyPayer(policy, 'owner@example.com');
+
+                // Then not even the owner can pay, so resolving the deprecated value does not hand out Pay where it was switched off
+                expect(isPayer).toBe(false);
+            },
+        );
+    });
+
+    describe('getOwnerChangePayerSuccessData', () => {
+        it('should reassign policy.reimburser when the outgoing owner is the payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({reimburser: 'new@example.com'});
+        });
+
+        it('should reassign achAccount.reimburser when that is where the payer is stored', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                achAccount: {reimburser: 'owner@example.com'},
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({achAccount: {reimburser: 'new@example.com'}});
+        });
+
+        it('should not reassign when the workspace has a bank account, because the backend keeps the former payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@example.com',
+                achAccount: {bankAccountID: 1234, reimburser: 'owner@example.com'},
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should not reassign when someone other than the outgoing owner is the payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'payer@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should not reassign when reimbursement is disabled', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'owner@example.com',
+                owner: 'owner@example.com',
+            });
+
+            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
+        });
+
+        it('should return no payer fields for an undefined policy', () => {
+            expect(getOwnerChangePayerSuccessData(undefined, 'new@example.com')).toEqual({});
         });
     });
 
@@ -3539,6 +3763,44 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('isInvoiceFieldsEnabled', () => {
+            it('returns true for a control policy with areInvoiceFieldsEnabled explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(true);
+            });
+
+            it('returns false for a control policy with areInvoiceFieldsEnabled explicitly false', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
+            });
+
+            it('returns false for a collect policy even when areInvoiceFieldsEnabled is true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
+            });
+
+            it('returns false for an undefined policy', () => {
+                expect(isInvoiceFieldsEnabled(undefined)).toBe(false);
+            });
+        });
+
+        describe('isPolicyFeatureEnabled for ARE_INVOICE_FIELDS_ENABLED', () => {
+            it('returns true for a control policy with invoice fields enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(true);
+            });
+
+            it('returns false for a collect policy even with areInvoiceFieldsEnabled true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
+            });
+
+            it('returns false for a control policy with invoice fields disabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
+            });
+        });
+
         describe('getPolicyByCustomUnitID', () => {
             const transactionWithPerDiemUnit: Transaction = {
                 ...createRandomTransaction(0),
@@ -4283,12 +4545,13 @@ describe('PolicyUtils', () => {
                     },
                 });
 
-            it('requires a configured connection and the matching beta', () => {
+            it('requires a configured connection but not the matching beta', () => {
                 const policy = buildDualEntryPolicy(vendors);
                 expect(isDualEntryVendorMatchingActive(policy)).toBe(true);
                 expect(hasVendorFeature(policy, true)).toBe(true);
-                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(policy, false)).toBe(true);
                 expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), true)).toBe(false);
+                expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), false)).toBe(false);
                 expect(isDualEntryVendorMatchingActive(undefined)).toBe(false);
             });
 
@@ -4402,8 +4665,16 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Intacct CC Charge export is configured because Intacct (R2) is still pre-GA', () => {
-                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
+            it('returns true when beta is disabled and Intacct non-reimbursable export is Credit Card Charge because Intacct (R2) is generally available', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Intacct non-reimbursable export is Vendor Bill because GA did not widen the export mode gate', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled and the Intacct non-reimbursable export destination is not set', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(undefined), false)).toBe(false);
             });
 
             it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {
@@ -4610,6 +4881,51 @@ describe('PolicyUtils', () => {
             it('returns undefined when no supported connection exists', () => {
                 const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
                 expect(getMatchingVendorByID(policy, 'v-1')).toBeUndefined();
+            });
+        });
+
+        describe('hasVendorFeatureOnAnyPolicy', () => {
+            const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
+            const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
+            const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
+            const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
+
+            it('is false when no workspace has the vendor feature', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[plainKey]: plainPolicy}, true)).toBe(false);
+            });
+
+            it('is true for a QBO workspace exporting card expenses as credit card transactions, without the beta', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[qboKey]: qboPolicy, [plainKey]: plainPolicy}, false)).toBe(true);
+            });
+
+            it('is true for a Xero workspace with the beta', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, true)).toBe(true);
+            });
+
+            it('ignores beta-gated integrations while the beta is off', () => {
+                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy}, false)).toBe(false);
+            });
+        });
+
+        describe('getVendorDisplayName', () => {
+            const qboPolicy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+
+            it('returns an empty string when no vendor is assigned', () => {
+                expect(getVendorDisplayName(qboPolicy, undefined)).toBe('');
+            });
+
+            it('prefers the synced vendor name over the name stored on the transaction', () => {
+                expect(getVendorDisplayName(qboPolicy, {externalID: 'v-1', name: 'Old Acme', wasManuallySet: true})).toBe('Acme Co');
+            });
+
+            it('falls back to the stored name when the vendor is no longer in the synced list', () => {
+                expect(getVendorDisplayName(qboPolicy, {externalID: 'gone', name: 'Former Vendor', wasManuallySet: true})).toBe('Former Vendor');
+            });
+
+            it('returns an empty string for a legacy vendor with neither a synced nor a stored name', () => {
+                expect(getVendorDisplayName(undefined, {externalID: 'v-9', wasManuallySet: true})).toBe('');
             });
         });
 

@@ -31,7 +31,7 @@ import {
 import {getAmount, getCurrency} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -124,7 +124,7 @@ type PrepareRejectMoneyRequestDataParams = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserLogin: string;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
@@ -139,7 +139,7 @@ function prepareRejectMoneyRequestData({
     policy,
     currentUserAccountIDParam,
     currentUserLogin,
-    betas,
+    isASAPSubmitBetaEnabled,
     delegateAccountID,
     getCurrencyDecimals,
     rules,
@@ -514,7 +514,7 @@ function prepareRejectMoneyRequestData({
                 nonReimbursableTotal: transactionAmount,
                 optimisticIOUReportID: rejectedToReportID,
                 reportTransactions,
-                betas,
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 rules,
             });
@@ -969,7 +969,7 @@ function rejectMoneyRequest(
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     {rules, options}: RejectMoneyRequestRulesAndOptions,
@@ -981,7 +981,7 @@ function rejectMoneyRequest(
         policy,
         currentUserAccountIDParam,
         currentUserLogin,
-        betas,
+        isASAPSubmitBetaEnabled,
         delegateAccountID,
         getCurrencyDecimals,
         rules,
@@ -1243,15 +1243,5 @@ function rejectExpenseReport(
     API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * Dismiss the "this expense has already been moved" error by dropping the stale local copy of the expense.
- *
- * The reject failed because the server no longer has the expense on the report it was rejected from, so it should
- * stop showing there.
- */
-function dismissRejectExpenseError(transactionID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
-}
-
-export {dismissRejectExpenseError, dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
+export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
 export type {RejectMoneyRequestData};
