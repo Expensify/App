@@ -195,7 +195,10 @@ function Search({
     // gate on state: loading so it self-clears — Onyx resolves loading on every response
     const isLivePageInFlight = shouldUseLiveData && isPagingLive && searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
 
-    const liveRowLimit = useLiveRowLimit(searchResults?.search?.offset, isLivePageInFlight);
+    // live results drop `errors`, so the response code is the only failure signal left
+    const didLastLivePageFail = shouldUseLiveData && typeof searchResults?.search?.responseJsonCode === 'number';
+
+    const liveRowLimit = useLiveRowLimit(searchResults?.search?.offset, isLivePageInFlight || didLastLivePageFail);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
@@ -840,7 +843,8 @@ function Search({
     const wantedOffsetRef = useRef<number | undefined>(undefined);
 
     const fetchMoreResults = useCallback(() => {
-        if (!searchResults?.search?.hasMoreResults) {
+        // a failed page never writes `hasMoreResults`, and a failure doesn't mean the server is out of rows
+        if (!searchResults?.search?.hasMoreResults && !didLastLivePageFail) {
             wantedOffsetRef.current = undefined;
             return;
         }
@@ -853,7 +857,9 @@ function Search({
         }
 
         // the cursor rewinds but the cap doesn't, so serverOffset + 1 page can re-request rows already on screen
-        const nextOffset = shouldUseLiveData ? Math.max(serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, liveRowLimit) : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        const nextPageOffset = shouldUseLiveData ? Math.max(serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, liveRowLimit) : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        // failureData parks the cursor on the page it never delivered, so retry that same offset
+        const nextOffset = didLastLivePageFail ? serverOffset : nextPageOffset;
         // onEndReached refires mid-flight under the skeleton; recording nextOffset would chase past the loading page
         if (shouldUseLiveData && isLoadingMorePage) {
             return;
@@ -884,6 +890,7 @@ function Search({
         isOffline,
         shouldUseLiveData,
         liveRowLimit,
+        didLastLivePageFail,
         searchResults?.search?.hasMoreResults,
         isLoadingMorePage,
         searchResults?.search?.offset,
