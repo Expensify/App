@@ -25,14 +25,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getFilteredReportActionsForReportView, getLatestConciergeFeedbackActionID, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
-import {
-    canUserPerformWriteAction,
-    chatIncludesChronosWithID,
-    getReportLastVisibleActionCreated,
-    isHarvestCreatedExpenseReport,
-    shouldReportAlignToTop,
-    shouldShowMarkAsDone,
-} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
@@ -261,7 +254,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         unreadMarkerReportActionIndex,
         isInverted: false,
         hasNewerActions,
-        shouldBeAlignedToTop: shouldReportAlignToTop(report, parentReportAction),
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
 
