@@ -61,6 +61,7 @@ Use this guide to understand:
 - Mark as exported
 
 **Paid or Done reports**
+- Cancel payment
 - Download report
 - Print
 - Mark as exported
@@ -84,7 +85,7 @@ Use this guide to understand:
 
 **Payer**
 - Pay reports
-- Cancel payment (before processing)
+- Cancel payment (while Expensify can still stop the payment)
 
 **Workspace Admin**
 - Export reports
@@ -131,7 +132,7 @@ Use this guide to understand:
 | **Reject** | Submitted reports | Approver | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
 | **View details** | Any report | All roles | Opens report details |
-| **Cancel payment** | Before payment processing | Payer | Cancels a pending payment |
+| **Cancel payment** | On a manual payment, or on a bank payment while Expensify can still stop the transfer | Payer | Cancels the payment and returns the report to Approved |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
 | **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
@@ -149,7 +150,7 @@ Use this guide to understand:
 | **Approve** | For outstanding reports | Admin | Skips current approver  |
 | **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
 | **Received payment** | On approved, closed, or reimbursed expense reports where no bank payment has been initiated | Submitter | Confirms that payment was received outside of Expensify and marks the report as paid |
-| **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer | Cancels pending payment |
+| **Cancel payment** | Always on a manual payment. On a bank payment, only while Expensify can still stop the transfer, which it confirms when you open the report | Payer | Cancels the payment and returns the report to Approved |
 
 ---
 
@@ -186,7 +187,12 @@ An error message appears with next steps. You can fix the issue and retry the ex
 
 ## Why can’t I cancel a payment?
 
-Payments can only be canceled before processing begins. Manual payments cannot be canceled.
+**Cancel payment** only appears while Expensify can still stop the payment.
+
+- On a bank payment, Expensify checks whether the transfer can still be stopped when you open the report. Once the money is on its way to the recipient’s bank, **Cancel payment** no longer appears. Some payments send the money right away, so **Cancel payment** never appears for them.
+- On a manual payment recorded with **Mark as paid**, **Cancel payment** stays available, because no money moved through Expensify.
+
+If **Cancel payment** is not available on a bank payment, contact your bank directly to ask whether the transfer can still be stopped.
 
 ## Why can’t I see “Bypass approvers”?
 
