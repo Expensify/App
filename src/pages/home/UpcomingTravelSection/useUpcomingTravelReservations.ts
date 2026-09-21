@@ -43,6 +43,9 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
             }
             const reservations = getReservationsFromTripReport(report, tripReportNameValuePairs);
             for (const resData of reservations) {
+                if (resData.isCancelled) {
+                    continue;
+                }
                 const startDate = new Date(resData.reservation.start.date);
                 if (Number.isNaN(startDate.getTime())) {
                     continue;

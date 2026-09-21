@@ -21,6 +21,7 @@ import {
     arePaymentsEnabled,
     canMemberWrite,
     getAccountIDForSubmitManagerEmail,
+    getReimbursementChoice,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
@@ -108,7 +109,6 @@ type ApproveMoneyRequestFunctionParams = {
     hasViolations: boolean;
     isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     full?: boolean;
@@ -131,7 +131,6 @@ type SubmitReportFunctionParams = {
     hasViolations: boolean;
     isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
@@ -226,7 +225,7 @@ function canIOUBePaid(
         return false;
     }
 
-    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
         if (!onlyShowPayElsewhere) {
             return false;
         }
@@ -251,11 +250,11 @@ function canIOUBePaid(
     const canPay =
         isReportPayer ||
         (isGroupPolicy(policy) &&
-            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
             canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
-    const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
+    const isAutoReimbursable = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport ?? undefined, transactions);
     const isProcessing = isProcessingReport(iouReport);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -465,7 +464,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         full,
@@ -765,7 +763,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             policy: expenseReportPolicy,
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
             rules,
@@ -1322,7 +1320,6 @@ function submitReport({
     currentUserEmailParam,
     hasViolations,
     isASAPSubmitBetaEnabled,
-    betas,
     userBillingGracePeriodEnds,
     amountOwed,
     onSubmitted,
@@ -1617,7 +1614,7 @@ function submitReport({
             policy,
             createdTimestamp: getReportOriginalCreationTimestamp(expenseReport),
             isApprovalFlow: false,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
             rules,

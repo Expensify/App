@@ -11,7 +11,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {sortIconsByName} from '@libs/ReportUtils';
 
@@ -58,11 +57,10 @@ type ReportActionAvatarsProps = {
 
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
+    subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
+
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
-
-    /** Whether to show the subscript avatar without margin */
-    noRightMarginOnSubscriptContainer?: boolean;
 
     /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
     backdropColor?: ColorValue;
@@ -106,7 +104,7 @@ function ReportActionAvatars({
     sort: sortAvatars,
     singleAvatarContainerStyle,
     backdropColor,
-    noRightMarginOnSubscriptContainer = false,
+    subscriptAvatarContainerStyle,
     subscriptCardFeed,
     subscriptCardFeedIconSize,
     isInReportAction = false,
@@ -118,7 +116,6 @@ function ReportActionAvatars({
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
     const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const reportID =
@@ -208,7 +205,7 @@ function ReportActionAvatars({
                 cardFeed={subscriptCardFeed}
                 cardFeedIconSize={subscriptCardFeedIconSize}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
+                containerStyle={subscriptAvatarContainerStyle}
                 backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
@@ -221,7 +218,7 @@ function ReportActionAvatars({
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
+                containerStyle={subscriptAvatarContainerStyle}
                 backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />

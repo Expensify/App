@@ -475,6 +475,12 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
     const ownerDisplayName = ownerDetails.displayName ?? '';
 
     return approvalWorkflows.flatMap((workflow) => {
+        // Drop any workflow that has no approvers. There is nothing to update on it, and passing it to
+        // `convertApprovalWorkflowToPolicyEmployees` (which every caller does) would throw.
+        if (workflow.approvers.length === 0) {
+            return [];
+        }
+
         const [currentApprover] = workflow.approvers;
         const isSingleApprover = workflow.approvers.length === 1;
         const isMultipleApprovers = workflow.approvers.length > 1;
@@ -777,9 +783,13 @@ function buildToComparison(email: string): ApprovalWorkflowFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, email);
 }
 
-/** The index-keyed object shape the rules API uses for lists (`['a', 'b'] -> {'0': 'a', '1': 'b'}`). */
+/**
+ * The index-keyed object shape the rules API uses for lists (`['a', 'b'] -> {'1': 'a', '2': 'b'}`). The indices
+ * start at 1 because PHP decodes a 0-keyed JSON object as a list and re-encodes it as a JSON array, which loses
+ * the object shape the rules API expects.
+ */
 function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
 }
 
 function buildSubmitTriggers(): ApprovalWorkflowTriggers {

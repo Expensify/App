@@ -5,7 +5,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -99,7 +99,7 @@ function WorkspaceInviteMessageComponent({
     const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
 
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     // Only read when this page is finishing an approval-workflow fast edit, but useOnyx can't be conditional.
@@ -381,11 +381,10 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
-                                <MenuItemWithTopDescription
-                                    title={memberNames}
-                                    description={translate('common.members')}
-                                    numberOfLinesTitle={2}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    name={translate('common.members')}
+                                    value={memberNames}
+                                    numberOfLinesValue={2}
                                     onPress={() => {
                                         Navigation.goBack(backTo);
                                     }}

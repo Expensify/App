@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,7 +65,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path);
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
