@@ -51,13 +51,7 @@ import type {PartialDeep} from 'type-fest';
 import lodashCloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
-import {
-    buildOptimisticMccGroup,
-    buildOptimisticPolicyCategories,
-    buildOptimisticPolicyWithExistingCategories,
-    DEFAULT_MCC_GROUP,
-    isDefaultMccGroupID,
-} from './OptimisticPolicyCategoriesAndMccGroups';
+import {buildOptimisticPolicyCategories} from './OptimisticPolicyCategoriesAndMccGroups';
 
 type CreatePolicyCategoryParams = {
     policyID: string;
@@ -1995,10 +1989,6 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
 }
 
 export {
-    buildOptimisticPolicyCategories,
-    buildOptimisticMccGroup,
-    DEFAULT_MCC_GROUP,
-    isDefaultMccGroupID,
     clearCategoryErrors,
     deletePolicyCategoryTax,
     deletePolicyCategoryTaxes,
@@ -2016,7 +2006,6 @@ export {
     setPolicyCategoryApprover,
     setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
-    buildOptimisticPolicyWithExistingCategories,
     setPolicyCategoryGLCode,
     setPolicyCategoryMaxAmount,
     setPolicyCategoryPayrollCode,

@@ -5,15 +5,10 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 
 import {
-    buildOptimisticMccGroup as buildOptimisticMccGroupFromCategory,
-    buildOptimisticPolicyCategories as buildOptimisticPolicyCategoriesFromCategory,
-    buildOptimisticPolicyWithExistingCategories as buildOptimisticPolicyWithExistingCategoriesFromCategory,
     createPolicyCategory,
-    DEFAULT_MCC_GROUP as DEFAULT_MCC_GROUP_FROM_CATEGORY,
     deleteWorkspaceCategories,
     enablePolicyCategories,
     importPolicyCategories,
-    isDefaultMccGroupID as isDefaultMccGroupIDFromCategory,
     renamePolicyCategory,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryTax,
@@ -985,14 +980,6 @@ describe('actions/PolicyCategory', () => {
             // When it is checked
             // Then it is rejected
             expect(isDefaultMccGroupID('notAMccGroupID')).toBe(false);
-        });
-
-        it('Category re-exports every builder it no longer defines', () => {
-            expect(buildOptimisticMccGroupFromCategory).toBe(buildOptimisticMccGroup);
-            expect(buildOptimisticPolicyCategoriesFromCategory).toBe(buildOptimisticPolicyCategories);
-            expect(buildOptimisticPolicyWithExistingCategoriesFromCategory).toBe(buildOptimisticPolicyWithExistingCategories);
-            expect(DEFAULT_MCC_GROUP_FROM_CATEGORY).toBe(DEFAULT_MCC_GROUP);
-            expect(isDefaultMccGroupIDFromCategory).toBe(isDefaultMccGroupID);
         });
     });
 });
