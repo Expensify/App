@@ -76,18 +76,19 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const sessionAccountID = session?.accountID;
     const areThereDuplicates = allDuplicateIDs.length > 0 && duplicates.length > 0 && allDuplicateIDs.length === duplicates.length;
 
+    const transactionPreview = onPreviewPressed ? transaction : (originalTransaction ?? transaction);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
-    const customUnitRateID = onPreviewPressed && isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const customUnitRateID = isDistanceRequest(transactionPreview) ? transactionPreview?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(policy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
     const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
-        transaction,
+        transaction: transactionPreview,
         isPolicyExpenseChat: isParentPolicyExpenseChat,
         policy: distanceOriginalPolicy ?? policy,
         translate,
         getCurrencySymbol,
     });
-    const transactionDetails = getTransactionDetails(displayTransaction, undefined, policy, isParentPolicyExpenseChat);
+    const transactionDetails = getTransactionDetails(displayTransaction);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
 
     const contextMenuReportID = contextAction ? chatReportID : reportID;
@@ -107,8 +108,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const navigateToReviewFields = () =>
         Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.reportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
-
-    const transactionPreview = transaction;
 
     const {isBillSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
@@ -138,6 +137,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     chatReport={chatReport}
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
+                    displayTransaction={displayTransaction}
                     transactionRawAmount={transactionRawAmount}
                     report={report}
                     policy={policy}
@@ -162,7 +162,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
-            transaction={originalTransaction ?? transaction}
+            transaction={transactionPreview}
+            displayTransaction={displayTransaction}
             transactionRawAmount={transactionRawAmount}
             report={report}
             policy={policy}

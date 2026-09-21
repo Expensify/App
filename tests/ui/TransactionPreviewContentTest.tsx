@@ -94,6 +94,38 @@ const transaction = {
     comment: {},
 } as Transaction;
 
+const commuterDistanceTransaction = {
+    ...transaction,
+    amount: 415,
+    modifiedAmount: 415,
+    merchant: '5.46 mi @ $0.76 / mi',
+    modifiedMerchant: '5.46 mi @ $0.76 / mi',
+    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+    comment: {
+        customUnit: {
+            customUnitRateID: 'rate1',
+            quantity: 6.46,
+            reimbursableDistance: 5.46,
+            commuterExclusion: 1,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        },
+    },
+} as Transaction;
+
+const fullRouteDisplayTransaction = {
+    ...commuterDistanceTransaction,
+    amount: 491,
+    modifiedAmount: undefined,
+    merchant: '6.46 mi @ $0.76 / mi',
+    modifiedMerchant: undefined,
+} as Transaction;
+
+const policyExpenseChat = {
+    reportID: 'policy_expense_chat_tpc_test',
+    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+    policyID,
+} as Report;
+
 const smartscanFailedViolation: TransactionViolation = {
     name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -105,19 +137,30 @@ const personalDetails: PersonalDetailsList = {
     [approverAccountID]: {accountID: approverAccountID, login: approverEmail, displayName: 'Approver'},
 };
 
-const renderTransactionPreviewContent = () =>
+const renderTransactionPreviewContent = ({
+    transactionToRender = transaction,
+    displayTransaction = transactionToRender,
+    chatReport,
+    violations = [smartscanFailedViolation],
+}: {
+    transactionToRender?: Transaction;
+    displayTransaction?: Transaction;
+    chatReport?: Report;
+    violations?: TransactionViolation[];
+} = {}) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <TransactionPreviewContent
                 action={moneyRequestAction}
                 isWhisper={false}
                 isHovered={false}
-                chatReport={undefined}
+                chatReport={chatReport}
                 personalDetails={personalDetails}
                 report={expenseReport}
                 policy={corporatePolicy}
-                transaction={transaction}
-                violations={[smartscanFailedViolation]}
+                transaction={transactionToRender}
+                displayTransaction={displayTransaction}
+                violations={violations}
                 transactionRawAmount={5000}
                 offlineWithFeedbackOnClose={() => {}}
                 containerStyles={[]}
@@ -186,5 +229,40 @@ describe('TransactionPreviewContent', () => {
         await waitFor(() => {
             expect(screen.getByText('smartscan#false')).toBeOnTheScreen();
         });
+    });
+
+    it('shows full-route values for a self-DM distance expense with commuter exclusion metadata', async () => {
+        // Given a removed distance expense whose stored values still include a commuter exclusion
+        await seedOnyx({[moneyRequestAction.reportActionID]: moneyRequestAction});
+
+        // When the preview receives the normalized display transaction for the self-DM context
+        renderTransactionPreviewContent({
+            transactionToRender: commuterDistanceTransaction,
+            displayTransaction: fullRouteDisplayTransaction,
+            violations: [],
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it renders the full-route merchant instead of the commuter-adjusted merchant
+        expect(screen.getByText('6.46 mi @ $0.76 / mi')).toBeOnTheScreen();
+        expect(screen.queryByText('5.46 mi @ $0.76 / mi')).not.toBeOnTheScreen();
+    });
+
+    it('keeps commuter-adjusted values for a distance expense in a policy expense chat', async () => {
+        // Given a distance expense that still belongs to a policy expense chat
+        await seedOnyx({[moneyRequestAction.reportActionID]: moneyRequestAction});
+
+        // When the preview receives the original commuter-adjusted transaction for display
+        renderTransactionPreviewContent({
+            transactionToRender: commuterDistanceTransaction,
+            displayTransaction: commuterDistanceTransaction,
+            chatReport: policyExpenseChat,
+            violations: [],
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it preserves the commuter-adjusted merchant instead of showing the full route
+        expect(screen.getByText('5.46 mi @ $0.76 / mi')).toBeOnTheScreen();
+        expect(screen.queryByText('6.46 mi @ $0.76 / mi')).not.toBeOnTheScreen();
     });
 });
