@@ -115,7 +115,7 @@ Yes. Each split is treated as a regular expense and follows all workspace requir
 
 ## Why don’t I see the Reimbursable toggle on a split?
 
-The workspace’s **Cash expense default** rule is set to **Always reimbursable** or **Always non-reimbursable**. Those options fix the reimbursable value for every cash expense, so each split is created with the workspace default and the **Reimbursable** toggle is hidden. Imported company card expenses are always non-reimbursable, so their splits don’t show the toggle either. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
+The workspace’s **Cash expenses** rule is set to **Always reimbursable** or **Always non-reimbursable**. Those options fix the reimbursable value for every cash expense, so each split is created with the workspace default and the **Reimbursable** toggle is hidden. Imported company card expenses are always non-reimbursable, so their splits don’t show the toggle either. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
 
 ## Can I split a distance or mileage expense?
 

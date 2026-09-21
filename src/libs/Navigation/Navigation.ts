@@ -47,9 +47,9 @@ import type {
 import {getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import getActiveRoute from './helpers/getActiveRoute';
 import getActiveTabName from './helpers/getActiveTabName';
 import getFocusedReportParams from './helpers/getFocusedReportParams';
-import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
@@ -247,27 +247,6 @@ function closeSidePanelOnNarrowScreen(route: Route) {
 }
 
 /**
- * Returns the current active route.
- */
-function getActiveRoute(): string {
-    if (!navigationRef.isReady()) {
-        return '';
-    }
-
-    const currentRoute = navigationRef.current?.getCurrentRoute();
-    if (!currentRoute?.name) {
-        return '';
-    }
-
-    const routeFromState = getPathFromState(navigationRef.getRootState());
-
-    if (routeFromState) {
-        return routeFromState;
-    }
-
-    return '';
-}
-/**
  * Returns the route of a report opened in RHP.
  */
 function getReportRHPActiveRoute(): string {
@@ -347,6 +326,7 @@ function startOpenReportSpan(route: Route) {
  * @param route - The route to navigate to.
  * @param options - Optional navigation options.
  * @param options.forceReplace - If true, the navigation action will replace the current route instead of pushing a new one.
+ * @param options.shouldSkipInitialSplitNavigatorSidebar - If true, a direct split destination will not add its sidebar as an intermediate Back destination.
  */
 function navigate(route: Route, options?: LinkToOptions) {
     clearSelectedText();

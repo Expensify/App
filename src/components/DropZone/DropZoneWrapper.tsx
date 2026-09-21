@@ -1,6 +1,8 @@
 import useDragAndDrop from '@hooks/useDragAndDrop';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {shouldAcceptDrop} from '@libs/DragAndDropUtils';
+
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 
@@ -21,7 +23,7 @@ function DropZoneWrapper({onDrop, children}: DropZoneWrapperProps) {
     const dropZone = useRef<HTMLDivElement | View>(null);
 
     const {isDraggingOver} = useDragAndDrop({
-        shouldAcceptDrop: (event) => !!event.dataTransfer?.types.some((type) => type === 'Files'),
+        shouldAcceptDrop,
         onDrop,
         shouldStopPropagation: false,
         shouldHandleDragEvent: false,

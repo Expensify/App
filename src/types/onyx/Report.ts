@@ -6,7 +6,6 @@ import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
 import type {PolicyReportField} from './Policy';
-import type {TripData} from './TripData';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -133,6 +132,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The time when user read the last message */
         lastReadTime?: string;
 
+        /** reportActionID the user explicitly marked as unread. Unlike lastReadTime it is stable across the
+         *  optimistic→confirmed transition, so the "New" marker can anchor on a self-authored action. */
+        manuallyMarkedUnreadReportActionID?: string | null;
+
         /** The sequence number of the last report visit */
         lastReadSequenceNumber?: number;
 
@@ -239,20 +242,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
-
-        /** The trip data for a trip room */
-        tripData?: {
-            /** The start date of a trip */
-            startDate?: string;
-
-            /** The end date of a trip */
-            endDate?: string;
-
-            /** The trip ID in spotnana */
-            tripID: string;
-
-            payload?: TripData;
-        };
 
         welcomeMessage?: string;
         nextStep?: ReportNextStep;

@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -7,6 +8,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -14,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 
 import {updateSelectedFeed} from '@libs/actions/Card';
-import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {WebViewNavigation} from 'react-native-webview';
 
@@ -71,6 +73,9 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
+    const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
@@ -104,6 +109,11 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        // A failed import is rendered instead. Clearing isRefreshing must not fall through to the healthy feed close below.
+        if (hasImportError) {
+            return;
+        }
+
         // Handle assign card flow
         if (feed) {
             if (!isFeedExpired) {
@@ -112,13 +122,11 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
                     return;
                 }
-                // When refreshing the feed, a healthy connection must not short-circuit into the assignee step.
-                // RefreshCardFeedConnectionPage can't render it and the modal would spin forever.
+                // The host pages only render the connection steps, so an assign flow that detoured here is not resumed.
+                // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
+                // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
                 if (!assignCard?.isRefreshing) {
-                    setAssignCardStepAndData({
-                        currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                        isEditing: false,
-                    });
+                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
                     return;
                 }
             }
@@ -155,13 +163,13 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         url,
         feed,
         isFeedExpired,
-        assignCard?.cardToAssign?.dateOption,
         assignCard?.isRefreshing,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        hasImportError,
         checkForDuplicateFeed,
     ]);
 
@@ -200,10 +208,22 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
+                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && !hasImportError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
+                    />
+                )}
+                {hasImportError && (
+                    <ConfirmationPage
+                        heading={translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle')}
+                        description={translate('common.genericErrorMessage')}
+                        illustration={illustrations.BrokenCompanyCardBankConnection}
+                        illustrationStyle={styles.errorStateCardIllustration}
+                        containerStyle={styles.h100}
+                        shouldShowButton
+                        buttonText={translate('common.buttonConfirm')}
+                        onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
                     />
                 )}
                 {isNewFeedHasError && (
