@@ -9,7 +9,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
-import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactions from '@hooks/useReportTransactions';
@@ -65,7 +64,6 @@ import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolve
 
 import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
-import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {createDistanceRequest as createDistanceRequestIOUActions, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
@@ -94,6 +92,8 @@ import {useEffect, useRef, useState} from 'react';
 import type {SubmissionPath} from './submission/resolveSubmissionPath';
 
 import {resolveSubmissionPath, SUBMISSION_PATH} from './submission/resolveSubmissionPath';
+import useInvoiceSubmission from './submission/useInvoiceSubmission';
+import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 
 function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
     const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
@@ -254,10 +254,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const policyID = policy?.id;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const isIouReport = isMoneyRequestReportReportUtils(report);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
-    const [policyRecentlyUsedCurrenciesOnyx] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-    const policyRecentlyUsedCurrencies = policyRecentlyUsedCurrenciesOnyx ?? [];
+    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policyID);
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
@@ -300,14 +297,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
     const [iouReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
-
-    // Invoice data
-    const receiverParticipant = transaction?.participants?.find((p) => p?.accountID) ?? report?.invoiceReceiver;
-    const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
-    const receiverType = getReceiverType(receiverParticipant);
-    const senderWorkspaceID = transaction?.participants?.find((p) => p?.isSender)?.policyID;
-    const [senderWorkspacePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${senderWorkspaceID}`);
-    const existingInvoiceReport = useParticipantsInvoiceReport(receiverAccountID, receiverType, senderWorkspaceID);
 
     // Policy tags from participants
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
@@ -373,6 +362,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
     // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
     const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+
+    const invoiceSubmission = useInvoiceSubmission({
+        transaction,
+        receiptFiles,
+        report,
+        reportID,
+        policy,
+        policyCategories,
+        currentUserPersonalDetails,
+        action,
+        draftTransactionIDs,
+    });
 
     // Which API command a submission will run. Resolved here rather than inside createTransaction because every
     // input is render-time state - that is what lets each path own its own hook once this file is split up.
@@ -1215,45 +1216,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         markSubmitExpenseEnd();
     }
 
-    function submitInvoice(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
-        const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
-        const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
-        const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
-
-        sendInvoice({
-            getCurrencyDecimals,
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            transaction,
-            policyRecentlyUsedCurrencies,
-            invoiceChatReport,
-            invoiceChatReportID,
-            receiptFile: currentTransactionReceiptFile,
-            policy,
-            policyTagList: policyTags,
-            policyCategories,
-            policyRecentlyUsedCategories,
-            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-            policyRecentlyUsedTags,
-            senderPolicyTags: senderWorkspacePolicyTags ?? {},
-            formatPhoneNumber,
-            delegateAccountID,
-        });
-        if (shouldHandleNavigation) {
-            cleanupAndNavigateAfterExpenseCreate({
-                report: undefined,
-                action,
-                draftTransactionIDs,
-                transactionID: transaction?.transactionID,
-                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
-                isInvoice: true,
-            });
-        } else {
-            cleanupAfterExpenseCreate({draftTransactionIDs});
-        }
-        markSubmitExpenseEnd();
-    }
-
     function submitTrack(locationPermissionGranted: boolean, shouldHandleNavigation: boolean) {
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
@@ -1314,7 +1276,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const submitByPath: Record<SubmissionPath, (locationPermissionGranted: boolean, shouldHandleNavigation: boolean) => void> = {
         [SUBMISSION_PATH.DISTANCE]: submitDistance,
         [SUBMISSION_PATH.SPLIT]: submitSplit,
-        [SUBMISSION_PATH.INVOICE]: submitInvoice,
+        [SUBMISSION_PATH.INVOICE]: invoiceSubmission.createTransaction,
         [SUBMISSION_PATH.TRACK]: submitTrack,
         [SUBMISSION_PATH.PER_DIEM]: submitPerDiem,
         [SUBMISSION_PATH.REQUEST_MONEY]: submitRequestMoney,
