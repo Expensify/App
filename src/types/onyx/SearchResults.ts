@@ -237,6 +237,21 @@ type SearchTagGroup = SearchGroupBase & {
     tag: string;
 };
 
+/** Model of day grouped search result */
+type SearchDayGroup = {
+    /** Date in YYYY-MM-DD format */
+    day: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
 /** Model of month grouped search result */
 type SearchMonthGroup = SearchGroupBase & {
     /** Year */
@@ -284,6 +299,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchCategoryGroup
         | SearchMerchantGroup
         | SearchTagGroup
+        | SearchDayGroup
         | SearchMonthGroup
         | SearchWeekGroup
         | SearchYearGroup
@@ -318,6 +334,7 @@ export type {
     SearchCategoryGroup,
     SearchMerchantGroup,
     SearchTagGroup,
+    SearchDayGroup,
     SearchMonthGroup,
     SearchWeekGroup,
     SearchYearGroup,

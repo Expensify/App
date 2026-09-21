@@ -857,4 +857,10 @@ describe('DateUtils', () => {
             expect(DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd})).toBe(true);
         });
     });
+
+    describe('Search day formatting', () => {
+        test('formats a compact day label', () => {
+            expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined)).toBe('Sep 15, ’26');
+        });
+    });
 });

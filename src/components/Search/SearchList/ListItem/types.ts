@@ -26,6 +26,7 @@ import type {
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
+    SearchDayGroup,
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchMonthGroup,
@@ -416,6 +417,13 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
         formattedFrom?: string;
     };
 
+type TransactionDayGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.DAY} & SearchDayGroup & {
+        formattedDay: string;
+
+        /** Compact "day" value used where space is tight, e.g. chart axis labels */
+        shortFormattedDay: string;
+    };
+
 type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
         formattedMonth: string;
 
@@ -533,6 +541,7 @@ type GroupHeaderItemType =
     | (TransactionCategoryGroupListItemType & GroupHeaderListItemType)
     | (TransactionMerchantGroupListItemType & GroupHeaderListItemType)
     | (TransactionTagGroupListItemType & GroupHeaderListItemType)
+    | (TransactionDayGroupListItemType & GroupHeaderListItemType)
     | (TransactionMonthGroupListItemType & GroupHeaderListItemType)
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
@@ -586,6 +595,7 @@ export type {
     TransactionListItemType,
     TransactionCardGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionCategoryGroupListItemType,
     TransactionMerchantGroupListItemType,

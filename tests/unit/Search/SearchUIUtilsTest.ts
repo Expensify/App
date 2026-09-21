@@ -4,6 +4,7 @@ import type {
     ReportActionListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
@@ -50,6 +51,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
@@ -2160,6 +2162,31 @@ const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
     },
 };
 
+const searchResultsGroupByDay: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026-09-15` as const]: {
+            day: '2026-09-15',
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+    },
+    search: {
+        count: 5,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        hash: 0,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
+        sortOrder: 'desc',
+        total: 250,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
 const searchResultsGroupByYear: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {},
@@ -3703,6 +3730,86 @@ describe('SearchUIUtils', () => {
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(categoryItem)).toBe(true);
+        });
+
+        it('should build a day section with an exact-day transaction query', () => {
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:day');
+            if (!parsedQuery) {
+                throw new Error('Failed to parse day-grouped search query');
+            }
+
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByDay.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                groupBy: CONST.SEARCH.GROUP_BY.DAY,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+                queryJSON: {...parsedQuery},
+            });
+            expect(sections).toHaveLength(1);
+            expect(sections.at(0)).toEqual(
+                expect.objectContaining({
+                    day: '2026-09-15',
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.DAY,
+                    formattedDay: 'September 15, 2026',
+                    shortFormattedDay: 'Sep 15, ’26',
+                    transactions: [],
+                    keyForList: 'group_2026-09-15',
+                }),
+            );
+            const daySection = sections.at(0);
+            if (!daySection) {
+                throw new Error('Expected a day group section');
+            }
+            expect(SearchUIUtils.isTransactionDayGroupListItemType(daySection)).toBe(true);
+            if (!SearchUIUtils.isTransactionDayGroupListItemType(daySection)) {
+                throw new Error('Expected a day group section');
+            }
+            expect(daySection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(daySection.transactionsQueryJSON?.flatFilters).toEqual(
+                expect.arrayContaining([
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: '2026-09-15'}],
+                    },
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: '2026-09-15'}],
+                    },
+                ]),
+            );
+        });
+
+        it('should match a day group using created when modifiedCreated is empty', () => {
+            const dayGroup: TransactionDayGroupListItemType = {
+                day: '2026-09-15',
+                count: 1,
+                currency: 'USD',
+                total: 100,
+                groupedBy: CONST.SEARCH.GROUP_BY.DAY,
+                formattedDay: 'September 15, 2026',
+                shortFormattedDay: 'Sep 15, ’26',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+                keyForList: 'group_2026-09-15',
+            };
+            const transaction = createMock<OnyxTypes.Transaction>({
+                created: '2026-09-15 12:00:00',
+                modifiedCreated: '',
+            });
+
+            expect(SearchUIUtils.isTransactionMatchWithGroupItem(transaction, dayGroup, CONST.SEARCH.GROUP_BY.DAY)).toBe(true);
         });
 
         it('should return getMonthSections result when type is EXPENSE and groupBy is month', () => {
@@ -11152,6 +11259,25 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
+        test('Should show the vendor column on Search only when picked, and in the report view when an expense has a vendor assigned', () => {
+            const transactionWithoutVendor = createRandomTransaction(1);
+            const transactionWithVendor = {...createRandomTransaction(2), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE})).not.toContain(
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            );
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: pickedColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE})).toContain(
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            );
+            expect(
+                SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithoutVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE, isExpenseReportView: true}),
+            ).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+            expect(
+                SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE, isExpenseReportView: true}),
+            ).toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+        });
+
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
                 CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -14026,6 +14152,12 @@ describe('SearchUIUtils', () => {
                     translateLocal,
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+    });
+
+    describe('vendor column label', () => {
+        test('Should label the vendor column as Vendor', () => {
+            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');
         });
     });
 
