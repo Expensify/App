@@ -1215,6 +1215,9 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: 'Ρωτήστε το Concierge οτιδήποτε',
         },
     },
+    insightsPage: {
+        viewOnSpend: 'Προβολή στο Spend',
+    },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
         domains: 'Τομείς',

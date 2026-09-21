@@ -1169,6 +1169,9 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: 'Demander n’importe quoi à Concierge',
         },
     },
+    insightsPage: {
+        viewOnSpend: 'Voir dans Dépenses',
+    },
     allSettingsScreen: {
         subscription: 'Abonnement',
         domains: 'Domaines',

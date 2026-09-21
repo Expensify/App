@@ -1165,6 +1165,9 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: 'Stel Concierge alles gerust een vraag',
         },
     },
+    insightsPage: {
+        viewOnSpend: 'Bekijken in Uitgaven',
+    },
     allSettingsScreen: {
         subscription: 'Abonnement',
         domains: 'Domeinen',

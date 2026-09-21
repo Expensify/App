@@ -1119,6 +1119,9 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: '向 Concierge 提问任何问题',
         },
     },
+    insightsPage: {
+        viewOnSpend: '在支出中查看',
+    },
     allSettingsScreen: {
         subscription: '订阅',
         domains: '域名',

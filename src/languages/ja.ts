@@ -1153,6 +1153,9 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: 'Concierge に何でも聞いてください',
         },
     },
+    insightsPage: {
+        viewOnSpend: '支出で表示',
+    },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
         domains: 'ドメイン',
