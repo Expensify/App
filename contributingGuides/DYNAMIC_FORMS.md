@@ -35,17 +35,20 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `type` | Renders as | Alone on its page |
 |---|---|---|
 | `text` | `TextInput` | same |
-| `select` | `ValuePicker`, or `PushRowWithModal` above eight options | the option list is the page |
-| `multiselect` | `PushRowWithModal` with `canSelectMultiple`: a searchable modal that saves the selection | the checkbox list is the page |
-| `radio` | `RadioButtons` | same |
+| `number` | `TextInput` with the numeric keyboard and a finite-number check | same |
+| `select` | `ValuePicker`, or `PushRowWithModal` above eight options | the option list is the page, with search above eight options |
+| `multiselect` | `PushRowWithModal` with `canSelectMultiple`: a searchable modal that saves the selection | the checkbox list is the page, with search above eight options |
+| `radio` | `RadioButtons` under a body-text prompt; `presentation: 'tabs'` draws a segmented tab row instead | the radio list is the page |
 | `boolean` | `CheckboxWithLabel` | a Yes/No choice |
 | `date` | `DatePicker` | same |
-| `country` | searchable push row of countries | same |
+| `country` | searchable push row of countries | the searchable country list is the page |
+| `countryMultiselect` | the multiselect push row over every country | the searchable checkbox list is the page |
+| `currency` | `CurrencyPicker` | the searchable currency list is the page |
 | `address` | `AddressSearch`, parts written to `<key>.city` and friends | same |
 | `file` | `UploadFile` | same |
 | `amount` | `AmountForm`, with a currency picker when `currencyKey` is set | same |
 | `percent` | `PercentageForm` | same |
-| `list` | rows with an add row and a right-docked item editor that reuses the renderer | same |
+| `list` | avatar rows with Edit and a confirmed remove, an add row, and an item editor page inside the flow (a modal outside it) | same |
 
 "Alone on its page" means the field is the only visible one; choice fields then present as the page itself, which is how the follow-up form designs work. Everything else renders as a row.
 

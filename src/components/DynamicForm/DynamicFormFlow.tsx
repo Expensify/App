@@ -1,11 +1,11 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getLetterAvatarURL} from '@libs/UserAvatarUtils';
 
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
@@ -19,10 +19,12 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
+import type {SummaryGroup, SummaryRow} from './DynamicFormConfirmation';
 import type {DynamicFormPage as DynamicFormPageSchema} from './groupFieldsIntoPages';
 import type {DynamicFormValues} from './types';
 
 import {summarizeItem} from './adapters/ListFieldAdapter';
+import DynamicFormConfirmation from './DynamicFormConfirmation';
 import DynamicFormPage from './DynamicFormPage';
 import DynamicFormShell from './DynamicFormShell';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
@@ -269,17 +271,41 @@ function DynamicFormFlow({
     const stepGroup = currentGroupPage ?? editorGroup;
     const stepIndex = stepGroup ? Math.max(0, visibleGroupPages.indexOf(stepGroup)) : stepNames.length - 1;
 
-    const summaryItems = groupPages.flatMap((page, index) =>
-        page.fields
-            .filter((field) => isFieldVisible(field, draftValues))
-            .map((field) => ({
-                id: field.key,
-                description: getFieldLabel(field, translate),
-                title: field.sensitive ? '••••' : formatDynamicFieldValue(field, draftValues, translate),
-                shouldShowRightIcon: !field.readonly,
-                onPress: () => moveTo(index),
-            })),
-    );
+    const summaryGroups: SummaryGroup[] = groupPages
+        .map((page, index) => ({
+            name: page.name,
+            rows: page.fields
+                .filter((field) => isFieldVisible(field, draftValues))
+                .flatMap((field): SummaryRow[] => {
+                    const stored = draftValues[field.key];
+                    if (field.type === 'list' && isListItems(stored)) {
+                        return stored.map((item) => {
+                            const summary = summarizeItem(item, field.itemFields ?? [], translate);
+                            const [firstName = '', ...otherNames] = summary.title.trim().split(/\s+/);
+                            const colorSeed = [...summary.title].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+                            return {
+                                kind: 'item',
+                                id: `${field.key}-${item.id}`,
+                                title: summary.title,
+                                description: summary.description,
+                                avatarSource: getLetterAvatarURL(colorSeed, firstName, otherNames.at(-1) ?? '', '') || undefined,
+                                onPress: () => openListItemEditor(field.key, item.id),
+                            };
+                        });
+                    }
+                    return [
+                        {
+                            kind: 'field',
+                            id: field.key,
+                            description: getFieldLabel(field, translate),
+                            title: field.sensitive ? '••••' : formatDynamicFieldValue(field, draftValues, translate),
+                            shouldShowRightIcon: !field.readonly,
+                            onPress: () => moveTo(index),
+                        },
+                    ];
+                }),
+        }))
+        .filter((group) => group.rows.length > 0);
 
     const isLoading = isRedirecting || isCurrentPageSkipped || isDraftLoading || (!currentGroupPage && !isConfirmationPage && !editorField);
 
@@ -313,15 +339,12 @@ function DynamicFormFlow({
         }
     } else if (!isLoading) {
         content = (
-            <ConfirmationStep
+            <DynamicFormConfirmation
                 pageTitle={confirmationTitle}
-                summaryItems={summaryItems}
-                showOnfidoLinks={false}
+                groups={summaryGroups}
                 isLoading={isSubmitting}
                 error={submitError}
-                isEditing={false}
-                onNext={nextPage}
-                onMove={moveTo}
+                onConfirm={nextPage}
             />
         );
     }

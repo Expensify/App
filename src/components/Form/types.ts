@@ -9,6 +9,7 @@ import type CurrencyPicker from '@components/CurrencyPicker';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
 import type AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
+import type CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
@@ -100,6 +101,7 @@ type ValidInputs =
     | typeof TabsAdapter
     | typeof YesNoAdapter
     | typeof AmountWithCurrencyAdapter
+    | typeof CurrencyInlineListAdapter
     | typeof ListFieldAdapter;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart' | 'stringList' | 'files' | 'listItems';

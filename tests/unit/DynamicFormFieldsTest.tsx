@@ -7,6 +7,7 @@ import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
 import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
+import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
@@ -41,6 +42,7 @@ type CapturedInputProps = {
     maxLength?: number;
     hint?: string;
     inputMode?: string;
+    isSearchable?: boolean;
     canSelectMultiple?: boolean;
     valueType?: string;
     currency?: string;
@@ -253,6 +255,25 @@ describe('DynamicFormFields', () => {
         expect(loneBoolean?.InputComponent).toBe(YesNoAdapter);
         expect(loneBoolean?.valueType).toBeUndefined();
         expect(renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('isSourceOfFund')?.InputComponent).toBe(CheckboxWithLabel);
+    });
+
+    it('presents a lone country or currency as a searchable list page and adds search to long lone choice lists', () => {
+        const country = allFieldTypes.find((field) => field.key === 'country');
+        const settlementCurrency = allFieldTypes.find((field) => field.key === 'settlementCurrency');
+        if (!country || !settlementCurrency) {
+            throw new Error('fixture changed');
+        }
+
+        const loneCountry = renderFields([country]).get('country');
+        expect(loneCountry?.InputComponent).toBe(InlineSelectionListAdapter);
+        expect(loneCountry?.isSearchable).toBe(true);
+        expect(loneCountry?.items?.length).toBeGreaterThan(200);
+
+        expect(renderFields([settlementCurrency]).get('settlementCurrency')?.InputComponent).toBe(CurrencyInlineListAdapter);
+
+        const values = Array.from({length: 9}, (_, index) => ({key: `OPTION_${index}`, label: `Option ${index}`}));
+        const longSelect: DynamicFormField = {key: 'industry', label: 'Industry', group: 'Business', type: 'select', required: true, values, refreshOnChange: false};
+        expect(renderFields([longSelect]).get('industry')?.isSearchable).toBe(true);
     });
 
     it('pins the amount currency without a currencyKey and lets the user choose it with one', () => {

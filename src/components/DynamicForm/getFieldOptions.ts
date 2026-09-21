@@ -13,7 +13,7 @@ const COUNTRY_OPTIONS: DynamicFormFieldOption[] = Object.keys(CONST.ALL_COUNTRIE
 
 /** The options a choice field offers right now, filtered by the answer it depends on */
 function getFieldOptions(field: DynamicFormField, values: DynamicFormValues): DynamicFormFieldOption[] {
-    if (field.type === 'countryMultiselect') {
+    if (field.type === 'country' || field.type === 'countryMultiselect') {
         return COUNTRY_OPTIONS;
     }
     if (!field.dependsOn) {

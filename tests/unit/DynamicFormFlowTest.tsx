@@ -176,6 +176,8 @@ describe('DynamicFormFlow', () => {
         await renderFlow(onSubmit);
 
         expect(screen.getByText('Confirm your details')).toBeOnTheScreen();
+        expect(screen.getByText('Account details')).toBeOnTheScreen();
+        expect(screen.getByText('Account holder details')).toBeOnTheScreen();
         expect(screen.getByText('12345678')).toBeOnTheScreen();
         expect(screen.getByText('Person')).toBeOnTheScreen();
         expect(screen.getAllByText('allCountries.GB')).toHaveLength(2);
