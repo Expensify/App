@@ -41,7 +41,7 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `radio` | `RadioButtons` under a body-text prompt; `presentation: 'tabs'` draws a segmented tab row instead | the radio list is the page |
 | `boolean` | `CheckboxWithLabel` | a Yes/No choice |
 | `date` | `DatePicker` | same |
-| `country` | searchable push row of countries | the searchable country list is the page |
+| `country` | `CountryPicker` | the searchable country list is the page |
 | `countryMultiselect` | the multiselect push row over every country | the searchable checkbox list is the page |
 | `currency` | `CurrencyPicker` | the searchable currency list is the page |
 | `address` | `AddressSearch`, parts written to `<key>.city` and friends | same |
