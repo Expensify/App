@@ -50,12 +50,12 @@ describe('SearchResultsProvider live to-do loading flag', () => {
         mockIsTodoSearch = true;
     });
 
-    it('passes the snapshot isLoading through for a live to-do search', () => {
-        // forcing this false would hide the load-more skeleton and let fetchMoreResults re-fire the in-flight page
-        const {result} = renderProvider({isLoading: true, offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hash: 1});
+    it('forces isLoading off for a live to-do search even when the snapshot left it stuck true', () => {
+        // a stale true survives a reload and would strand the skeletons
+        const {result} = renderProvider({isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING, offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hash: 1});
 
         expect(result.current.shouldUseLiveData).toBe(true);
-        expect(result.current.currentSearchResults?.search.isLoading).toBe(true);
+        expect(result.current.currentSearchResults?.search.isLoading).toBe(false);
         expect(result.current.currentSearchResults?.search.offset).toBe(CONST.SEARCH.RESULTS_PAGE_SIZE);
     });
 

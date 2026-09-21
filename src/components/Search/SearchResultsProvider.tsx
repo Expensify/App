@@ -62,9 +62,9 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         const hasResults = Object.keys(liveData.data).length > 0;
         // For to-do searches, always return a valid SearchResults object (even with empty data)
         // This ensures we show the empty state instead of loading/blocking views
-        // don't force isLoading off, the load-more skeleton reads it to tell a page is in flight
+        // isLoading forced off: the shared flag survives a reload and would strand the skeletons
         currentSearchResults = {
-            search: {...searchInfo, hasResults},
+            search: {...searchInfo, isLoading: false, hasResults},
             data: liveData.data,
         };
     } else {

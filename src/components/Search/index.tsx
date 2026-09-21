@@ -160,6 +160,8 @@ function Search({
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const [offset, setOffset] = useState(0);
+    // live paging owns its in-flight flag; the shared snapshot isLoading is forced off for live
+    const [isPagingLive, setIsPagingLive] = useState(false);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -190,7 +192,10 @@ function Search({
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
-    const liveRowLimit = useLiveRowLimit(searchResults?.search?.offset, searchResults?.search?.isLoading);
+    // gate on state: loading so it self-clears — Onyx resolves loading on every response
+    const isLivePageInFlight = shouldUseLiveData && isPagingLive && searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+
+    const liveRowLimit = useLiveRowLimit(searchResults?.search?.offset, isLivePageInFlight);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
@@ -397,7 +402,8 @@ function Search({
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
 
-    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+    const isLoadingMorePage = shouldUseLiveData ? isLivePageInFlight : !!searchResults?.search?.isLoading;
+    const shouldShowLoadingMoreItems = !shouldShowLoadingState && isLoadingMorePage && (searchResults?.search?.offset ?? 0) > 0;
 
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
@@ -444,7 +450,8 @@ function Search({
             return;
         }
 
-        if (searchResults?.search?.isLoading) {
+        // the offset change from paging would otherwise fire a duplicate page alongside fetchMoreResults
+        if (isLoadingMorePage) {
             if (validGroupBy || (shouldCalculateTotals && isRequiredAllMatchingTotalMissing)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
             }
@@ -847,9 +854,13 @@ function Search({
 
         // the cursor rewinds but the cap doesn't, so serverOffset + 1 page can re-request rows already on screen
         const nextOffset = shouldUseLiveData ? Math.max(serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, liveRowLimit) : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        // onEndReached refires mid-flight under the skeleton; recording nextOffset would chase past the loading page
+        if (shouldUseLiveData && isLoadingMorePage) {
+            return;
+        }
         wantedOffsetRef.current = nextOffset;
         // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
-        if (searchResults?.search?.isLoading || isOffline) {
+        if (isLoadingMorePage || isOffline) {
             return;
         }
 
@@ -864,13 +875,17 @@ function Search({
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
+        // offline path returned above, so we never arm with no request running
+        if (shouldUseLiveData) {
+            setIsPagingLive(true);
+        }
     }, [
         isFocused,
         isOffline,
         shouldUseLiveData,
         liveRowLimit,
         searchResults?.search?.hasMoreResults,
-        searchResults?.search?.isLoading,
+        isLoadingMorePage,
         searchResults?.search?.offset,
         shouldShowLoadingState,
         allDataLength,
@@ -892,7 +907,7 @@ function Search({
         }
 
         const wantedOffset = wantedOffsetRef.current;
-        if (wantedOffset === undefined || searchResults?.search?.isLoading) {
+        if (wantedOffset === undefined || isLoadingMorePage) {
             return;
         }
 
@@ -902,7 +917,7 @@ function Search({
         }
 
         fetchMoreResults();
-    }, [fetchMoreResults, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.isLoading, searchResults?.search?.offset]);
+    }, [fetchMoreResults, isLoadingMorePage, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.offset]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;

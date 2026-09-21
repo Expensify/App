@@ -130,17 +130,6 @@ describe('useSearchPageSetup', () => {
         expect(mockSearch).not.toHaveBeenCalled();
     });
 
-    it('resumes a stranded page on a live to-do tab', async () => {
-        const queryJSON = getQueryJSON();
-        mockShouldUseLiveData = true;
-        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
-
-        renderHook(() => useSearchPageSetup(queryJSON));
-
-        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
-        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, isLoading: false}));
-    });
-
     it('does not fetch a first page for a live to-do tab with nothing stranded', async () => {
         const queryJSON = getQueryJSON();
         mockShouldUseLiveData = true;
@@ -152,9 +141,10 @@ describe('useSearchPageSetup', () => {
         expect(mockSearch).not.toHaveBeenCalled();
     });
 
-    it('keeps asking for a stranded live page, leaving it to search() to drop the duplicate', async () => {
+    it('never restarts a stranded page on a live to-do tab; paging owns its own requests', async () => {
         const queryJSON = getQueryJSON();
         mockShouldUseLiveData = true;
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
 
         const {rerender} = renderHook(
             ({isLoading}) => {
@@ -164,21 +154,8 @@ describe('useSearchPageSetup', () => {
             {initialProps: {isLoading: true}},
         );
 
-        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
-
+        await Promise.resolve();
         rerender({isLoading: false});
-
-        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(2));
-        expect(mockSearch).toHaveBeenLastCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
-    });
-
-    it('does not resume a live stranded page belonging to a different query', async () => {
-        const queryJSON = getQueryJSON();
-        mockShouldUseLiveData = true;
-        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash + 1, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
-
-        renderHook(() => useSearchPageSetup(queryJSON));
-
         await Promise.resolve();
         expect(mockSearch).not.toHaveBeenCalled();
     });

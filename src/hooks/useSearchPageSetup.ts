@@ -51,9 +51,6 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
     const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
 
-    // a `loading` state surviving a reload means a dead request; re-firing is safe, search() drops a live duplicate
-    const pendingLiveOffset = shouldUseLiveData && isSnapshotForCurrentQuery && isSearchPending(currentSearchResults) ? (currentSearchResults?.search?.offset ?? 0) : undefined;
-
     // The server already judged the query itself malformed, so re-sending it cannot succeed.
     const isInvalidQuery = currentSearchResults?.search?.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
 
@@ -84,11 +81,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
 
-        // live rows come from Onyx, so only a stranded page needs a request here
+        // live rows come from Onyx, so this page-level fetch is never needed for them
         if (shouldUseLiveData) {
-            if (pendingLiveOffset !== undefined) {
-                search({queryJSON, searchKey: currentSearchKey, offset: pendingLiveOffset, isLoading: false});
-            }
             return;
         }
 
@@ -108,7 +102,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         requestedHashesRef.current.add(hash);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, pendingLiveOffset, currentSearchKey, shouldCalculateTotals]);
+    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
 
     // Stable callback: useFocusEffect re-subscribes on a new identity and would fire an extra request.
     useFocusEffect(
