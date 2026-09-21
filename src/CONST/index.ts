@@ -174,15 +174,16 @@ const onboardingInviteTypes = {
 
 const onboardingCompanySize = {
     MICRO_SMALL: '1-4',
-    MICRO_MEDIUM: '5-10',
-
-    // This range is deprecated in favor of the smaller ranges above, but the constant is kept to compare against saved data for backwards compatibility.
-    MICRO: '1-10',
-
-    SMALL: '11-50',
+    MICRO_MEDIUM: '5-9',
+    SMALL: '10-50',
     MEDIUM_SMALL: '51-100',
     MEDIUM: '101-1000',
     LARGE: '1001+',
+
+    // These ranges are deprecated, but the constants are kept to compare against saved data for backwards compatibility.
+    LEGACY_MICRO_MEDIUM: '5-10',
+    LEGACY_MICRO: '1-10',
+    LEGACY_SMALL: '11-50',
 } as const;
 
 const onboardingPersonalTrackGoals = {
@@ -7092,6 +7093,12 @@ const CONST = {
     ONBOARDING_ACCOUNTING_MAPPING,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    /** How many report fields are shown side by side in the report view on a wide layout */
+    REPORT_FIELDS_PER_ROW: 3,
+
+    /** Below this many options, a report field list is short enough to scan without a search input */
+    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
 
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
