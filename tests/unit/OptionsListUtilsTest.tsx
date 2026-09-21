@@ -5770,6 +5770,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should fall back to the raw report lastMessageText when no last action is available', async () => {
+            // Given a report whose actions are not loaded, so only report.lastMessageText is available
             const report = buildDMReport({
                 lastMessageText: '<b>test</b>',
                 lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED,
@@ -5783,7 +5784,30 @@ describe('OptionsListUtils', () => {
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
+            // Then the stored text is returned untouched, which is what the LHN shows for the same report
             expect(result).toBe('<b>test</b>');
+        });
+
+        it('should strip HTML from the last message when the last action is not ADD_COMMENT', async () => {
+            // Given a report whose last action is not a comment and carries HTML in its message
+            const reportID = '9251';
+            await setReport(
+                buildDMReport({
+                    reportID,
+                    lastMessageText: '<b>test</b>',
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                }),
+            );
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.HOLD, 3, undefined, '<b>test</b>'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+            };
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+
+            // Then the markup is stripped (https://github.com/Expensify/App/issues/82036)
+            expect(result).toBe('test');
         });
 
         it('should prefix the room preview with the last actor display name', async () => {
