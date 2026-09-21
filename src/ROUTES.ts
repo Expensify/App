@@ -4304,7 +4304,10 @@ const ROUTES = {
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
+        // `isPostWorkEmailMerge` marks the one entry point that the work email merge force-replaces into. That screen has
+        // nothing behind it, unlike every later visit to this same screen, which is why it is passed explicitly.
+        getRoute: (backTo?: string, isPostWorkEmailMerge?: boolean) =>
+            getUrlWithBackToParam(isPostWorkEmailMerge ? (`onboarding/join-workspaces?isPostWorkEmailMerge=true` as const) : `onboarding/join-workspaces`, backTo),
     },
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',

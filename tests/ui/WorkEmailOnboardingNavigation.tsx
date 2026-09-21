@@ -17,6 +17,7 @@ import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
+import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -59,6 +60,11 @@ function OnboardingWorkspacesStub() {
     return <View testID="onboarding-workspaces-stub" />;
 }
 
+// Stands in for whatever screen precedes a later visit to "Join a workspace"; only its presence on the stack matters.
+function OnboardingPersonalDetailsStub() {
+    return <View testID="onboarding-personal-details-stub" />;
+}
+
 function OnboardingModalNavigator() {
     return (
         <OnboardingStack.Navigator screenOptions={{headerShown: false}}>
@@ -78,6 +84,22 @@ function OnboardingModalNavigator() {
     );
 }
 
+// The back button is what is under test in the second-visit case, so that one navigator renders the real screen.
+function OnboardingModalNavigatorWithWorkspaces() {
+    return (
+        <OnboardingStack.Navigator screenOptions={{headerShown: false}}>
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                component={OnboardingPersonalDetailsStub}
+            />
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.WORKSPACES}
+                component={OnboardingWorkspaces}
+            />
+        </OnboardingStack.Navigator>
+    );
+}
+
 function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
     return <HTMLEngineProvider>{children}</HTMLEngineProvider>;
 }
@@ -87,7 +109,7 @@ function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
  * an actual navigation state. The per-screen tests in `WorkEmailOnboarding.tsx` spy on `Navigation.navigate` and render
  * one screen at a time, so they structurally cannot see a screen that is still mounted underneath another one.
  */
-function renderOnboardingStack(initialRouteNames: Array<keyof OnboardingModalNavigatorParamList>) {
+function renderOnboardingStack(initialRouteNames: Array<keyof OnboardingModalNavigatorParamList>, navigator: React.ComponentType = OnboardingModalNavigator) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
@@ -109,7 +131,7 @@ function renderOnboardingStack(initialRouteNames: Array<keyof OnboardingModalNav
                     <RootStack.Navigator screenOptions={{headerShown: false}}>
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                            component={OnboardingModalNavigator}
+                            component={navigator}
                         />
                     </RootStack.Navigator>
                 </NavigationContainer>
@@ -265,5 +287,36 @@ describe('Onboarding work email navigation', () => {
             },
         });
         expect(onboardingValues?.shouldValidate).toBeUndefined();
+    });
+
+    it('should keep Back working on a later visit to Join a workspace after the merge', async () => {
+        await TestHelper.signInWithTestUser();
+
+        // The merge already happened, so its Onyx flags stay set for the rest of onboarding. They cannot tell the
+        // post-merge entry point apart from this later visit, which is why the entry point is flagged by route param.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                isMergeAccountStepCompleted: true,
+                isMergeAccountStepSkipped: false,
+            });
+        });
+
+        // Skip for now -> Employer -> Personal Details -> forward to here again, so a real screen sits behind it.
+        renderOnboardingStack([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.WORKSPACES], OnboardingModalNavigatorWithWorkspaces);
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+        });
     });
 });

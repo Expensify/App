@@ -219,8 +219,9 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        // The merge flow replaces the screens before this one and passes no `backTo`, so there is nothing to go back to.
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
+        // The merge flow replaces the screens before this one, and flags the screen it lands on with
+        // `isPostWorkEmailMerge`, so there is nothing to go back to. The param arrives from the URL as a string.
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined, isPostWorkEmailMerge: 'true'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -232,11 +233,38 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should show the back button on a later visit to join workspace after merging a work email', async () => {
+        await TestHelper.signInWithTestUser();
+
+        // The merge flags stay set for the rest of onboarding. Reaching this screen again — Skip for now, Employer,
+        // Personal Details, forward to here — leaves a real screen behind it, so Back must work. Only the screen the
+        // merge force-replaces into carries `isPostWorkEmailMerge`.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                isMergeAccountStepCompleted: true,
+                isMergeAccountStepSkipped: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should show the back button on join workspace when the work email merge was skipped', async () => {
         await TestHelper.signInWithTestUser();
 
-        // Skipping the merge also sets `isMergeAccountStepCompleted`, so that flag alone does not identify the merge
-        // entry point. A skipped merge routes through ONBOARDING_PURPOSE, leaving real screens behind this one.
+        // A skipped merge routes through ONBOARDING_PURPOSE rather than force-replacing into this screen, so it never
+        // carries `isPostWorkEmailMerge` and the screens behind it are still reachable.
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
