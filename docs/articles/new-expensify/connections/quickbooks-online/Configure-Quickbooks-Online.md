@@ -25,6 +25,8 @@ To choose how data is imported from QuickBooks Online to Expensify:
 - **Taxes**: Import tax rates and defaults.
 - **Vendors**: When Credit card or Debit card is selected as the company card export type, vendor records are imported from QuickBooks Online and shown in a **Vendors** tab in workspace settings. Learn how vendors are imported, matched, and exported in [QuickBooks Online Vendor Matching](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
 
+If your workspace is connected to Intuit Enterprise Suite instead of QuickBooks Online, the **Import** page also lists a row for each active custom dimension in the connected entity. Learn how to [import Intuit Enterprise Suite custom dimensions as tags](/articles/new-expensify/connections/quickbooks-online/Import-Intuit-Enterprise-Suite-Custom-Dimensions).
+
 ## How to Turn Imported Accounts and Tags Off
 
 - Use the toggle on each row to disable individual items

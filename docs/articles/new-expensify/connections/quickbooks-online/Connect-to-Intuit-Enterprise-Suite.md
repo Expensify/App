@@ -13,7 +13,10 @@ Once connected, the integration imports:
 
  - Your chart of accounts as categories.
  - Your dimensions, like Departments, Projects, and Classes, as tags.
+ - Your custom dimensions as tags (when enabled).
  - Tax rates (when enabled).
+
+Custom dimensions are turned off until you enable each one. Learn how to [import Intuit Enterprise Suite custom dimensions as tags](/articles/new-expensify/connections/quickbooks-online/Import-Intuit-Enterprise-Suite-Custom-Dimensions).
 
 ---
 
