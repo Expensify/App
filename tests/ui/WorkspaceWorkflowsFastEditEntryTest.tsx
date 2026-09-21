@@ -177,19 +177,23 @@ describe('WorkflowsApprovalsTab — "+N more" fast edit entry point', () => {
     });
 
     it('marks the session as a fast edit when the workflow list is the screen the admin is on', async () => {
+        // Given the workflows list with no Edit page open on top of it
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin taps a workflow's "+N more" chip
         await pressShowAllMembers(WORKFLOW_ONE);
 
-        // No Edit page is in the stack, so expenses-from is the only screen that will ever save this workflow.
+        // Then the session is flagged as a fast edit, because no Edit page is in the stack and expenses-from is
+        // the only screen that will ever save this workflow
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.isFastEdit).toBe(true);
         expect(draft?.approvers.at(0)?.email).toBe(WORKFLOW_ONE.approverEmail);
     });
 
     it('does not mark a fast edit while the Edit RHP is already open for that workflow', async () => {
-        // On a large layout the list stays visible underneath the Edit RHP, so "+N more" is still tappable there.
+        // Given this same workflow's Edit RHP already open. On a large layout the list stays visible underneath
+        // it, so the chip is still tappable
         jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(
             `/${ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, WORKFLOW_ONE.approverEmail, workflowMemberEmail(WORKFLOW_ONE, 1))}`,
         );
@@ -197,19 +201,21 @@ describe('WorkflowsApprovalsTab — "+N more" fast edit entry point', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin taps that workflow's "+N more" chip
         await pressShowAllMembers(WORKFLOW_ONE);
 
-        // The Edit page is still mounted and owns the save. Flagging this as a fast edit would let expenses-from
-        // persist immediately and clear the draft out from under it.
+        // Then the flag stays off, because the Edit page is still mounted and owns the save. Flagging a fast edit
+        // would let expenses-from persist immediately and clear the draft out from under it
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.isFastEdit).toBe(false);
-        // The draft still has to be seeded, so expenses-from opens with this workflow's members and goes back to Edit.
+        // Then the draft is still seeded, so expenses-from opens with this workflow's members and goes back to Edit
         expect(draft?.members).toHaveLength(WORKFLOW_ONE.memberCount);
     });
 
     it('leaves the draft alone when the open Edit page shares the first approver but anchors a different member', async () => {
-        // A first approver is not unique once rule-based chains diverge: A→B and A→C are two workflows with one
-        // approver. Keyed on the approver alone this row would be mistaken for the mounted Edit session.
+        // Given an Edit page open for a sibling workflow that shares this row's first approver. A first approver
+        // is not unique once rule-based chains diverge, since A to B and A to C are two workflows with one
+        // approver, so keyed on the approver alone this row would be mistaken for the mounted Edit session
         jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(
             `/${ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, WORKFLOW_ONE.approverEmail, 'sibling-workflow-member@example.com')}`,
         );
@@ -220,15 +226,18 @@ describe('WorkflowsApprovalsTab — "+N more" fast edit entry point', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin taps this row's "+N more" chip
         await pressShowAllMembers(WORKFLOW_ONE);
 
-        // Untouched: the mounted Edit page still owns the single APPROVAL_WORKFLOW slot.
+        // Then nothing is seeded and nothing navigates, because the mounted Edit page still owns the single
+        // APPROVAL_WORKFLOW slot and writing over it would corrupt both sessions
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.members.map((member) => member.email)).toEqual(['someone@example.com']);
         expect(jest.mocked(Navigation.navigate)).not.toHaveBeenCalled();
     });
 
     it('leaves the draft alone when another workflow Edit page is open', async () => {
+        // Given workflow one's Edit page open and holding the draft
         jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(
             `/${ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, WORKFLOW_ONE.approverEmail, workflowMemberEmail(WORKFLOW_ONE, 1))}`,
         );
@@ -239,11 +248,11 @@ describe('WorkflowsApprovalsTab — "+N more" fast edit entry point', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Workflow two's chip, while workflow one's Edit page holds the draft.
+        // When the admin taps a different workflow's "+N more" chip
         await pressShowAllMembers(WORKFLOW_TWO);
 
-        // Seeding here would Onyx.set over the mounted Edit page's draft, and the fast-edit Save would then
-        // persist workflow two and clear that page's draft from under it.
+        // Then nothing is seeded and nothing navigates. Seeding would Onyx.set over the mounted Edit page's
+        // draft, and the fast-edit Save would then persist workflow two and clear that page's draft from under it
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.members.map((member) => member.email)).toEqual(['someone@example.com']);
         expect(jest.mocked(Navigation.navigate)).not.toHaveBeenCalled();

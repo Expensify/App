@@ -819,8 +819,8 @@ function getWorkflowMemberEmails(members: Member[]): string[] {
 
 /**
  * The members a workflow had that it no longer does, i.e. the `membersToRemove` side of `updateApprovalWorkflow`.
- * Compared by email because that is the identity the policy's `employeeList` is keyed by; `displayName` and `avatar`
- * are cosmetic and can differ between the saved workflow and the picker's version of the same member.
+ * Compared by email because that is the identity the policy's `employeeList` is keyed by. `displayName` and
+ * `avatar` are cosmetic and can differ between the saved workflow and the picker's version of the same member.
  */
 function getRemovedApprovalWorkflowMembers(originalMembers: Member[], members: Member[]): Member[] {
     return originalMembers.filter((originalMember) => !members.some((member) => member.email === originalMember.email));
@@ -839,9 +839,9 @@ type OpenApprovalWorkflowEdit = {
  * Identifies the approval workflow whose Edit page is mounted in `activeRoute`, or `undefined` when no Edit page
  * for `policyID` is in it. Pure: the caller reads the active route and passes it in.
  *
- * Both halves of the identity matter. A first approver is not unique once rule-based chains diverge — `A → B` and
- * `A → C` share one — which is why the workflows list keys its rows and builds its Edit route on a member as well.
- * Matching on the approver alone would report an unrelated workflow's Edit page as this row's.
+ * Both halves of the identity matter. A first approver is not unique once rule-based chains diverge, since `A → B`
+ * and `A → C` share one. That is why the workflows list keys its rows and builds its Edit route on a member as
+ * well. Matching on the approver alone would report an unrelated workflow's Edit page as this row's.
  *
  * The Edit segment is matched anywhere in the path rather than only at its end, because a sub-page opened from Edit
  * is appended to that route (`.../{approver}/edit/expenses-from`) and inherits its query params. That page still
@@ -864,7 +864,7 @@ function getOpenApprovalWorkflowEdit(activeRoute: string, policyID: string): Ope
     try {
         firstApproverEmail = decodeURIComponent(encodedApproverEmail);
     } catch {
-        // A malformed segment can't be decoded; compare it raw rather than dropping the match, which would let a
+        // A malformed segment can't be decoded. Compare it raw rather than dropping the match, which would let a
         // fast edit seed over the draft the mounted Edit page owns.
     }
 

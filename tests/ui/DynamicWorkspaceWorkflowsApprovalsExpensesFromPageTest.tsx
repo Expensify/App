@@ -58,7 +58,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // The real helper defers the callback until the screen transition finishes, which never happens in a test. Callbacks
-// run synchronously by default; set `shouldDefer` to hold them so a test can interleave work with an in-flight save
+// run synchronously by default. Set `shouldDefer` to hold them so a test can interleave work with an in-flight save
 // the way the real helper does (it can wait up to MAX_TRANSITION_START_WAIT_MS + MAX_TRANSITION_DURATION_MS).
 const mockPredictedTransition = {
     shouldDefer: false,
@@ -230,13 +230,17 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
     });
 
     it('saves the workflow itself on a fast edit, removing the member the admin deselected', async () => {
+        // Given a "+N more" fast edit with Bob deselected, which is the state right before Save is pressed
         await seedWorkflowWithBobDeselected(true);
 
         renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin presses Save
         await pressSave();
 
+        // Then this page performs the save itself, with Bob in membersToRemove. A fast edit returns to the
+        // workflows page, so no other screen would ever write the change and it would silently vanish
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [savedWorkflow, membersToRemove] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(savedWorkflow?.members.map((member) => member.email)).toEqual([ALICE_EMAIL]);
@@ -244,56 +248,69 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
     });
 
     it('leaves saving to the edit page when the sub-page was not opened as a fast edit', async () => {
+        // Given the same page reached from an edit-page session rather than a "+N more" chip
         await seedWorkflowWithBobDeselected(false);
 
         renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin presses Save
         await pressSave();
 
+        // Then nothing is written here, because the edit page is still in the stack and owns the save. Writing
+        // from both would double-write the same workflow
         expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
     });
 
     it('saves through the rules-based path when the MULTIPLE_APPROVERS beta is enabled', async () => {
+        // Given the same fast edit on a workspace with the rules-based approvals beta on
         await enableMultipleApproversBeta();
         await seedWorkflowWithBobDeselected(true);
 
         renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin presses Save
         await pressSave();
 
+        // Then the save goes through the rules backend instead of employeeList, and is handed the original
+        // members as the "before" side because that path diffs membership itself
         expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
         expect(updateApprovalWorkflowRulesMock).toHaveBeenCalledTimes(1);
         const [rulesParams] = updateApprovalWorkflowRulesMock.mock.calls.at(0) ?? [];
-        // The rules path diffs membership itself, so it needs the original members as the "before" side.
         expect(rulesParams?.approvalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL]);
         expect(rulesParams?.initialApprovalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL]);
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
 
     it('clears the draft after a fast-edit save', async () => {
+        // Given a fast edit ready to save
         await seedWorkflowWithBobDeselected(true);
 
         renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin presses Save
         await pressSave();
 
-        // updateApprovalWorkflow is mocked here, so the draft can only be gone if the page cleared it itself.
+        // Then the draft is gone. updateApprovalWorkflow is mocked here, so it can only have been cleared by the
+        // page itself, which matters because a stranded isFastEdit would let a later sub-page save on its own
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
 
     it('clears the draft when a fast edit is saved with no effective change', async () => {
-        // Members match originalMembers, so updateApprovalWorkflow's employee diff comes out empty and the
-        // real action returns before the optimistic data that would otherwise clear the draft.
+        // Given a fast edit where the members match originalMembers, so the real updateApprovalWorkflow's
+        // employee diff comes out empty and it returns before the optimistic data that would clear the draft
         await seedWorkflow({isFastEdit: true, members: [ALICE_MEMBER], originalMembers: [ALICE_MEMBER]});
 
         renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin presses Save without having changed anything
         await pressSave();
 
+        // Then the page still tears the draft down itself, so the next "+N more" opens clean rather than
+        // inheriting a stale isFastEdit from an apparently successful save
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [, membersToRemove] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(membersToRemove).toEqual([]);
@@ -301,29 +318,35 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
     });
 
     it('does not block a fast edit on approver-level errors this page cannot fix', async () => {
-        // A circular forwardsTo is approver-level state this page has no field for. Rejecting the save on it would
-        // dead-end every fast edit on such a policy: a generic alert the admin can't act on, and a Back that
-        // discards the member change. That validation belongs on the edit page.
+        // Given a workflow whose approver chain is already circular, which is approver-level state this page has
+        // no field for
         await seedWorkflow({isFastEdit: true, approvers: [{...CAROL_APPROVER, isCircularReference: true}], originalApprovers: [CAROL_APPROVER]});
 
         renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin presses Save
         await pressSave();
 
+        // Then the save goes through anyway. Rejecting here would dead-end every fast edit on such a policy
+        // behind a generic alert the admin cannot act on, and a Back that discards their member change
         expect(goBackMock).toHaveBeenCalledTimes(1);
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
     });
 
     it('discards the draft when a fast edit is abandoned without saving', async () => {
+        // Given a fast edit the admin backs out of instead of saving
         await seedWorkflowWithBobDeselected(true);
 
         const {unmount} = renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the page is torn down
         unmount();
         await waitForBatchedUpdatesWithAct();
 
+        // Then nothing is written and the draft goes with it. This page is the only screen in a fast-edit
+        // session, so leaving isFastEdit behind would hand a later edit page's sub-page a licence to save
         expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
@@ -352,13 +375,17 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         }
 
         it('keeps both drafts for the invite page while the hand-off is genuinely in flight', async () => {
+            // Given a hand-off where the invite-message route really is the screen being opened
             getActiveRouteMock.mockReturnValue(`workspaces/${POLICY_ID}/workflows/approvals/expenses-from/invite-message`);
 
             const {unmount} = await seedStagedNonMemberAndSave();
+
+            // When this page is torn down behind that hand-off
             unmount();
             await waitForBatchedUpdatesWithAct();
 
-            // The invite page reads both, and it is the screen that will save the workflow.
+            // Then both drafts survive, because the invite page reads them and is the screen that will finish
+            // the save. Clearing here would lose the member the admin picked
             const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
             expect(draft?.members.map((member) => member.email)).toEqual([ALICE_EMAIL, DANA_EMAIL]);
             expect(draft?.isFastEdit).toBe(true);
@@ -366,48 +393,54 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         });
 
         it('discards both drafts when the invite detour is dismissed instead of completed', async () => {
+            // Given the same hand-off, but the admin dismisses the whole RHP with close, Escape, the backdrop,
+            // or any dismissModal. The hand-off flag is still latched and no invite page is left behind
             const {unmount} = await seedStagedNonMemberAndSave();
 
-            // Dismissing the whole RHP (close, Escape, backdrop, any dismissModal) unmounts this page with the
-            // hand-off flag still latched, and leaves no invite page behind to consume either draft.
             getActiveRouteMock.mockReturnValue(`workspaces/${POLICY_ID}/workflows`);
+
+            // When this page is torn down
             unmount();
             await waitForBatchedUpdatesWithAct();
 
-            // Nothing was saved, so nothing may be left in persisted Onyx — least of all isFastEdit plus a
-            // never-invited member, which a later session would inherit.
+            // Then both drafts go with it. Nothing was saved, so leaving isFastEdit plus a never-invited member
+            // in persisted Onyx would hand them to whichever session runs next
             await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
             await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`)).resolves.toEqual({});
         });
     });
 
     it('keeps the draft when a non-fast-edit session unmounts, so the edit page can resume it', async () => {
+        // Given an edit-page session, where this sub-page is only one step of a longer edit
         await seedWorkflowWithBobDeselected(false);
 
         const {unmount} = renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When this page is torn down
         unmount();
         await waitForBatchedUpdatesWithAct();
 
+        // Then the draft survives with the pending selection intact, because the edit page behind it resumes
+        // that draft and would otherwise lose the admin's unsaved edits
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.members.map((member) => member.email)).toEqual([ALICE_EMAIL]);
     });
 
     it('lets a superseded in-flight save land without wiping the draft a newer session already seeded', async () => {
+        // Given a saved fast edit whose draft teardown is held behind the screen transition, the way the real
+        // helper holds it for up to about two seconds, with this page already unmounted
         await seedWorkflowWithBobDeselected(true);
-        // Hold the save behind the screen transition, the way the real helper does for up to ~2s.
         mockPredictedTransition.shouldDefer = true;
 
         const {unmount} = renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
         await pressSave();
-        // Navigating back tears this page down while its save is still queued.
         unmount();
         await waitForBatchedUpdatesWithAct();
 
-        // The admin taps another workflow's "+N more" before the queued save runs.
+        // When the admin taps another workflow's "+N more" and the held teardown then runs
         await act(async () => {
             selectApprovalWorkflowForEdit({
                 workflow: {members: [{email: CAROL_EMAIL, displayName: 'carol'}], approvers: [{email: ALICE_EMAIL, displayName: 'alice'}], isDefault: false},
@@ -423,11 +456,13 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // The write the admin already confirmed still has to land...
+        // Then the write the admin already confirmed still lands, because dropping it would lose the change they
+        // pressed Save on
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [, membersToRemove, , , shouldClearApprovalWorkflowDraft] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(membersToRemove?.map((member) => member.email)).toEqual([BOB_EMAIL]);
-        // ...but it must not clear the newer draft, directly or through its optimistic data.
+        // Then the newer draft survives, both from the teardown and from the write's optimistic data, so the
+        // session the admin just started does not open with an empty picker
         expect(shouldClearApprovalWorkflowDraft).toBe(false);
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.members.map((member) => member.email)).toEqual([CAROL_EMAIL]);
@@ -435,6 +470,9 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
     });
 
     it('leaves a newer "+N more" draft alone when this page is torn down after that session started', async () => {
+        // Given the other ordering of the same race: the admin taps another workflow's "+N more" while this page
+        // is still sliding away, so the newer draft is seeded before this page unmounts and its cleanup runs
+        // against a draft belonging to a session it never owned
         await seedWorkflowWithBobDeselected(true);
         mockPredictedTransition.shouldDefer = true;
 
@@ -443,9 +481,6 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
 
         await pressSave();
 
-        // The other ordering of the superseded save: the admin taps another workflow's "+N more" while this page is
-        // still sliding away, so the newer draft is seeded BEFORE this page unmounts. The unmount cleanup then runs
-        // against a draft that belongs to a session it never owned.
         await act(async () => {
             selectApprovalWorkflowForEdit({
                 workflow: {members: [{email: CAROL_EMAIL, displayName: 'carol'}], approvers: [{email: ALICE_EMAIL, displayName: 'alice'}], isDefault: false},
@@ -456,6 +491,7 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        // When this page is torn down and the held teardown then runs
         unmount();
         await waitForBatchedUpdatesWithAct();
 
@@ -464,24 +500,26 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // The confirmed write still lands...
+        // Then the confirmed write still lands
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [, membersToRemove] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(membersToRemove?.map((member) => member.email)).toEqual([BOB_EMAIL]);
-        // ...and the newer session's draft survives, so its picker doesn't open empty.
+        // Then the newer session's draft survives the unmount too, so its picker does not open empty. The
+        // deferred teardown is guarded, but an unguarded unmount would wipe the draft before it ever ran
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.members.map((member) => member.email)).toEqual([CAROL_EMAIL]);
         expect(draft?.isFastEdit).toBe(true);
     });
 
     it('discards the newer draft when a second "+N more" reuses this still-open page and is then abandoned', async () => {
+        // Given a fast edit that is still on screen when a second "+N more" is tapped. That navigates to this
+        // same dynamic route, so the draft is swapped without remounting and this page becomes the screen for
+        // the newer session
         await seedWorkflowWithBobDeselected(true);
 
         const {unmount} = renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
-        // "+N more" navigates to this same dynamic route, so tapping another one on the list underneath swaps the
-        // draft without remounting. This page is now the screen for that newer session.
         await act(async () => {
             selectApprovalWorkflowForEdit({
                 workflow: {members: [{email: CAROL_EMAIL, displayName: 'carol'}], approvers: [{email: ALICE_EMAIL, displayName: 'alice'}], isDefault: false},
@@ -492,47 +530,52 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // Backing out without saving has to take the newer draft with it. A session snapshot latched on first
-        // sight would still be holding the first session's id and strand this one, isFastEdit and all.
+        // When the admin backs out without saving
         unmount();
         await waitForBatchedUpdatesWithAct();
 
+        // Then the newer draft goes too. A session snapshot latched on first sight would still be holding the
+        // first session's id and would strand this one in persisted Onyx, isFastEdit and all
         expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
 
     it('queues the save before navigating on a successful fast edit', async () => {
+        // Given a fast edit ready to save
         await seedWorkflowWithBobDeselected(true);
 
         renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin presses Save
         await pressSave();
 
+        // Then the write is queued before the navigation, so it is already persisted in the request queue if the
+        // app reloads during the transition. Only the draft teardown waits for that transition
         expect(goBackMock).toHaveBeenCalledTimes(1);
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
-        // The write must be queued before the navigation, so it is already persisted in the request queue if the
-        // app reloads during the transition. Only the draft teardown waits for the transition.
         expect(updateApprovalWorkflowMock.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(goBackMock.mock.invocationCallOrder.at(0) ?? 0);
-        // The save never touches APPROVAL_WORKFLOW, so it can't blank the list mid-transition.
+        // Then that early write stays off APPROVAL_WORKFLOW, so it cannot blank the list on a page still on screen
         const [, , , , shouldClearApprovalWorkflowDraft] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(shouldClearApprovalWorkflowDraft).toBe(false);
     });
 
     it('still saves a confirmed fast edit when the transition callback never runs', async () => {
+        // Given a fast edit where everything waiting on the transition is held and never released, standing in
+        // for the app being reloaded or closed inside that window so any in-memory callback is gone
         await seedWorkflowWithBobDeselected(true);
-        // Hold everything that waits on the transition, and never flush it — the app was reloaded or closed
-        // during the ~2s window, so any in-memory callback is gone.
         mockPredictedTransition.shouldDefer = true;
 
         const {unmount} = renderExpensesFromPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin presses Save and the page is torn down without the transition ever completing
         await pressSave();
         unmount();
         await waitForBatchedUpdatesWithAct();
 
-        // The save was queued up front, so the member the admin deselected is still removed.
+        // Then the member the admin deselected is still removed, because the save was queued up front rather
+        // than deferred. Deferring it would have lost the change to the reload with nothing left to recover it
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [, membersToRemove] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(membersToRemove?.map((member) => member.email)).toEqual([BOB_EMAIL]);

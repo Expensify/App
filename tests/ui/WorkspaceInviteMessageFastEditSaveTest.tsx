@@ -35,7 +35,7 @@ const BOB_EMAIL = 'bob@example.com';
 const BOB_ACCOUNT_ID = 2;
 const CAROL_EMAIL = 'carol@example.com';
 const CAROL_ACCOUNT_ID = 3;
-// Not in the workspace yet — picking them on the expenses-from page is what detours through the invite page.
+// Not in the workspace yet, so picking them on the expenses-from page is what detours through the invite page.
 const DANA_EMAIL = 'dana@example.com';
 const DANA_ACCOUNT_ID = 4;
 
@@ -66,7 +66,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // The real helper defers the callback until the screen transition finishes, which never happens in a test. Callbacks
-// run synchronously by default; set `shouldDefer` to hold them so a test can interleave work with an in-flight save
+// run synchronously by default. Set `shouldDefer` to hold them so a test can interleave work with an in-flight save
 // the way the real helper does (it can wait up to MAX_TRANSITION_START_WAIT_MS + MAX_TRANSITION_DURATION_MS).
 const mockPredictedTransition = {
     shouldDefer: false,
@@ -235,38 +235,47 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
     });
 
     it('saves the workflow after inviting a new member on a fast edit', async () => {
+        // Given a fast edit that detoured here to invite Dana, who is not a workspace member yet
         await seedFastEditHandOff();
 
         renderInviteMessagePage(FAST_EDIT_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin sends the invite
         await pressInvite();
 
+        // Then the workflow is saved with Dana in it. There is no edit page behind a fast edit, so if this page
+        // did not save, Dana would be invited with no submitsTo and the workflow would come back unchanged
         expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [savedWorkflow, membersToRemove] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
-        // The invited member has to reach the save, or they never get a submitsTo and the workflow comes back unchanged.
         expect(savedWorkflow?.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL, DANA_EMAIL]);
         expect(membersToRemove).toEqual([]);
-        // Back to the workflows page, not the approver step of the create flow.
+        // Then the admin lands on the workflows page rather than the create flow's approver step, because this
+        // session already has an approver and is only changing who submits to it
         expect(goBackMock).toHaveBeenCalledTimes(1);
         expect(goBackMock.mock.calls.at(0)?.at(0)).toBe(`workspaces/${POLICY_ID}/workflows`);
         expect(navigateMock).not.toHaveBeenCalled();
     });
 
     it('clears the draft after the fast-edit save, so the next session starts clean', async () => {
+        // Given a fast edit that detoured here to invite a new member
         await seedFastEditHandOff();
 
         renderInviteMessagePage(FAST_EDIT_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin sends the invite and the save runs
         await pressInvite();
 
-        // updateApprovalWorkflow is mocked here, so the draft can only be gone if the page cleared it itself.
+        // Then the draft is gone. updateApprovalWorkflow is mocked here, so it can only have been cleared by the
+        // page itself, which matters because neither real save path reliably clears it and a stranded isFastEdit
+        // would let a later sub-page save on its own
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
 
     it('saves through the rules-based path when the MULTIPLE_APPROVERS beta is enabled', async () => {
+        // Given the same invite detour on a workspace with the rules-based approvals beta on
         await act(async () => {
             await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
             await waitForBatchedUpdatesWithAct();
@@ -276,84 +285,98 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
         renderInviteMessagePage(FAST_EDIT_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin sends the invite
         await pressInvite();
 
+        // Then the save goes through the rules backend instead of employeeList, and is handed the original
+        // members as the "before" side because that path diffs membership itself
         expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
         expect(updateApprovalWorkflowRulesMock).toHaveBeenCalledTimes(1);
         const [rulesParams] = updateApprovalWorkflowRulesMock.mock.calls.at(0) ?? [];
         expect(rulesParams?.approvalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL, DANA_EMAIL]);
-        // The rules path diffs membership itself, so it needs the original members as the "before" side.
         expect(rulesParams?.initialApprovalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL]);
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
 
     it('hides the Approver row on a fast-edit invite, so it cannot fight the workflow save', async () => {
+        // Given a fast edit that detoured here on a Control workspace, where the Approver row would normally show
         await seedFastEditHandOff();
 
         renderInviteMessagePage(FAST_EDIT_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
-        // The row is seeded from the policy's *default* approver, not the workflow being edited. Offering it here
-        // asks the admin a question this path has no way to honour.
+        // When the page renders and the admin sends the invite
+        // Then the row is not offered, because it is seeded from the policy's default approver rather than the
+        // workflow being edited, so it asks the admin a question this path has no way to honor
         expect(screen.queryByText(TestHelper.translateLocal('workflowsPage.approver'))).not.toBeOnTheScreen();
 
         await pressInvite();
 
-        // With no row there is no submitsTo to pass, so the workflow save is the only thing that routes this member:
-        // the legacy path would otherwise overwrite the admin's pick with the workflow's first approver, and the
-        // rules path would leave submitsTo pointing at the row while the rules route them to the edited workflow.
+        // Then no submitsTo is passed to the invite, leaving the workflow save as the only thing that routes this
+        // member. Otherwise the legacy path would overwrite the admin's pick with the workflow's first approver,
+        // and the rules path would leave submitsTo on the row's value while the rules sent them somewhere else
         expect(addMembersToWorkspaceMock.mock.calls.at(0)?.at(8)).toBeUndefined();
     });
 
     it('still offers the Approver row on an invite that is not a fast edit', async () => {
-        // Scope check: the generic invite flow does choose an approver, and nothing here changes that.
+        // Given the generic member invite flow on the same Control workspace
         await seedFastEditHandOff({isFastEdit: false});
 
         renderInviteMessagePage(`workspaces/${POLICY_ID}/members` as Route);
         await waitForBatchedUpdatesWithAct();
 
+        // When the page renders
+        // Then the Approver row is still there, because that flow really is choosing an approver and nothing
+        // else will set one for the invited member
         expect(screen.getByText(TestHelper.translateLocal('workflowsPage.approver'))).toBeOnTheScreen();
     });
 
     it('leaves the save to the edit page when the invite came from an edit-page session', async () => {
+        // Given an invite reached from an edit-page session, which carries a nested backTo to that page
         await seedFastEditHandOff({isFastEdit: false});
 
         renderInviteMessagePage(EDIT_PAGE_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin sends the invite
         await pressInvite();
 
+        // Then nothing is saved here and the admin goes back to the edit page, because that page is still in the
+        // stack and owns the save. Saving twice would double-write the same workflow
         expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
         expect(updateApprovalWorkflowRulesMock).not.toHaveBeenCalled();
-        // The nested backTo wins: the edit page is still in the stack and owns the save.
         expect(goBackMock.mock.calls.at(0)?.at(0)).toBe(EDIT_PAGE_ROUTE);
-        // The draft must survive for that page to save.
+        // Then the draft survives, because the edit page needs it to save
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL, DANA_EMAIL]);
     });
 
     it('still routes a create-flow invite to the approver step', async () => {
-        // The create flow also opens expenses-from with no nested backTo, but the approver step is the next
-        // legitimate step there, so it must not be diverted by the fast-edit save.
+        // Given a create-flow invite, which also opens expenses-from with no nested backTo and so looks like a
+        // fast edit from here
         await seedFastEditHandOff({action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE, isInitialFlow: true, isFastEdit: undefined});
 
         renderInviteMessagePage(FAST_EDIT_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
+        // When the admin sends the invite
         await pressInvite();
 
+        // Then nothing is saved and the admin continues to the approver step, because a workflow being created
+        // has no approver yet and saving now would write it back incomplete
         expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
         expect(navigateMock).toHaveBeenCalledTimes(1);
         expect(navigateMock.mock.calls.at(0)?.at(0)).toBe(`workspaces/${POLICY_ID}/workflows/approvals/approver?approverIndex=0`);
     });
 
     it('lets a superseded in-flight save land without wiping the draft a newer session already seeded', async () => {
+        // Given a fast-edit invite whose draft teardown is still held behind the screen transition, and a newer
+        // "+N more" session seeded into the single APPROVAL_WORKFLOW slot before it is released
         await seedFastEditHandOff();
 
         renderInviteMessagePage(FAST_EDIT_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
-        // Hold the deferred teardown, then start a newer "+N more" session before releasing it.
         mockPredictedTransition.shouldDefer = true;
 
         await pressInvite();
@@ -368,15 +391,18 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
             await waitForBatchedUpdatesWithAct();
         });
 
+        // When the held teardown finally runs
         await act(async () => {
             mockPredictedTransition.flush();
             await waitForBatchedUpdatesWithAct();
         });
 
-        // The invite already happened, so the write it belongs to still has to land...
+        // Then the write still lands, because the invite already happened and the member would otherwise be left
+        // with no submitsTo
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [, , , , shouldClearApprovalWorkflowDraft] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
-        // ...but it must not clear the newer draft, directly or through its optimistic data.
+        // Then the newer draft survives, both from the teardown and from the write's optimistic data, so the
+        // session the admin just started does not open with an empty picker
         expect(shouldClearApprovalWorkflowDraft).toBe(false);
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.members.map((member) => member.email)).toEqual([CAROL_EMAIL]);
@@ -384,25 +410,28 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
     });
 
     it('queues the save before navigating, so a reload during the pop cannot lose it', async () => {
+        // Given a fast-edit invite where the transition never completes, standing in for the app being reloaded
+        // or closed during the pop so any in-memory callback is gone
         await seedFastEditHandOff();
 
         renderInviteMessagePage(FAST_EDIT_BACK_TO);
         await waitForBatchedUpdatesWithAct();
 
-        // Never release the transition: the app was reloaded or closed during the pop, so the in-memory
-        // teardown callback is gone.
         mockPredictedTransition.shouldDefer = true;
 
+        // When the admin sends the invite
         await pressInvite();
 
-        // The invite is already queued at this point, so the workflow write has to be queued too — otherwise the
-        // member is invited with no submitsTo, the exact silent no-op this save exists to prevent.
+        // Then the workflow write is already queued, before the navigation, because the invite itself is queued
+        // by this point and leaving the member invited with no submitsTo is the exact silent no-op this exists
+        // to prevent
         expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         expect(updateApprovalWorkflowMock.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(goBackMock.mock.invocationCallOrder.at(0) ?? 0);
         const [savedWorkflow, , , , shouldClearApprovalWorkflowDraft] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(savedWorkflow?.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL, DANA_EMAIL]);
-        // The save must stay off APPROVAL_WORKFLOW so it can run before the transition without blanking the page.
+        // Then that early write stays off APPROVAL_WORKFLOW, so running before the transition cannot blank the
+        // page that is still on screen
         expect(shouldClearApprovalWorkflowDraft).toBe(false);
     });
 });

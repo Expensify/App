@@ -439,9 +439,9 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
                                                           // A different workflow's Edit page is holding the draft. Seeding here would
                                                           // Onyx.set straight over it, and the fast-edit Save would then persist this
-                                                          // workflow and clear the draft out from under that still-mounted page — while
-                                                          // expenses-from, appended to whatever route is active, went back to the wrong Edit
-                                                          // page. Leave the other session alone rather than corrupt both.
+                                                          // workflow and clear the draft out from under that still-mounted page. Meanwhile
+                                                          // expenses-from, appended to whatever route is active, would go back to the wrong
+                                                          // Edit page. Leave the other session alone rather than corrupt both.
                                                           if (openEdit && !isEditOpenForThisWorkflow) {
                                                               return;
                                                           }

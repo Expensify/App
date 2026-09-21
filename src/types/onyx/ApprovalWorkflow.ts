@@ -175,11 +175,13 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     isInitialFlow?: boolean;
 
     /**
-     * Identifies the edit session that seeded this draft. Bumped every time a new draft replaces the previous one
-     * in the single `APPROVAL_WORKFLOW` slot, so a screen can tell the draft it is showing apart from one a later
-     * session seeded over it.
+     * Identifies the edit session that seeded this draft. A fresh random id is minted every time a new draft
+     * replaces the previous one in the single `APPROVAL_WORKFLOW` slot, so a screen can tell the draft it is
+     * showing apart from one a later session seeded over it. Random rather than sequential because this draft is
+     * persisted, so it outlives the process that wrote it and a restarting counter would eventually repeat an id
+     * a restored screen still holds.
      */
-    sessionID?: number;
+    sessionID?: string;
 
     /**
      * Whether this edit session was opened straight from the workflows page, skipping the edit page.

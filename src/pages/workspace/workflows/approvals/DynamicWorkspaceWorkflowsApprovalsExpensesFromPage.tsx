@@ -90,12 +90,12 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     // Tracks whether this session was opened as a fast edit, so the cleanup effect can discard the draft.
     const isFastEditRef = useRef(false);
     // The approval-workflow session this page's unmount teardown is allowed to discard. Saving navigates away, and
-    // the admin can tap another workflow's "+N more" before this page is torn down; that seeds a newer draft and
-    // bumps the session ID. Without this, the unconditional clear below would wipe the draft that newer session is
+    // the admin can tap another workflow's "+N more" before this page is torn down. That seeds a newer draft under
+    // a new session id, and without this the unconditional clear below would wipe the draft that newer session is
     // editing.
-    const ownedSessionIDRef = useRef<number | undefined>(undefined);
-    // Set once this page has navigated away — saved, handed off to the invite page, or simply gone back. From then
-    // on another screen decides what happens to the draft, so the snapshot above must stop following Onyx.
+    const ownedSessionIDRef = useRef<string | undefined>(undefined);
+    // Set once this page has navigated away, whether it saved, handed off to the invite page, or simply went back.
+    // From then on another screen decides what happens to the draft, so the snapshot above must stop following Onyx.
     const hasNavigatedAwayRef = useRef(false);
 
     const excludedUsers = useMemo(() => {
@@ -492,7 +492,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
         // Only a fast edit validates and saves from this page, so it is the only case that can leave errors on the
         // draft for this footer to report. Translate the error rather than falling through to FormAlertWrapper's
-        // generic "please fix the errors in the form" — this form has no field to point that at, and no
+        // generic "please fix the errors in the form". This form has no field to point that at, and no
         // onFixTheErrorsLinkPressed to jump to one.
         const validationError = approvalWorkflow?.isFastEdit ? Object.values(approvalWorkflow?.errors ?? {}).at(0) : undefined;
 
@@ -533,10 +533,10 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         if ((!isInitialCreationFlow && !approvalWorkflow?.isFastEdit) || hasNavigatedAwayRef.current) {
             return;
         }
-        // Fall back to the live counter for a draft that carries no sessionID — one written straight to Onyx
-        // rather than through setApprovalWorkflow, or persisted before the field existed. That is the value this
-        // session would have been given, so the teardown still recognizes a later session as someone else's.
-        ownedSessionIDRef.current = approvalWorkflow?.sessionID ?? getApprovalWorkflowSessionID();
+        // A draft written straight to Onyx rather than through setApprovalWorkflow carries no sessionID, leaving
+        // this undefined. The teardown below compares that against the live value all the same, so such a draft
+        // is still only discarded while nothing identified has replaced it.
+        ownedSessionIDRef.current = approvalWorkflow?.sessionID;
     }, [isInitialCreationFlow, approvalWorkflow?.isFastEdit, approvalWorkflow?.sessionID]);
 
     // Clean up invite draft when leaving the expenses-from page to prevent
@@ -564,7 +564,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             // goBack, which unmounts this page too). Wiping that draft would empty the picker the newer session
             // just opened. The deferred teardown the save leaves behind is guarded the same way.
             if (isInitialCreationFlowRef.current || isFastEditRef.current) {
-                if (ownedSessionIDRef.current !== undefined && getApprovalWorkflowSessionID() !== ownedSessionIDRef.current) {
+                // Compared even when both are undefined, which is the case for a draft written straight to Onyx
+                // rather than through setApprovalWorkflow. Equal means the slot still holds what we owned, so
+                // clear it. Unequal covers both a newer session having seeded over us and the deferred teardown
+                // having already emptied the slot, and in neither case is there anything of ours left to discard.
+                if (getApprovalWorkflowSessionID() !== ownedSessionIDRef.current) {
                     return;
                 }
                 clearApprovalWorkflow();

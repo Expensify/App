@@ -1048,10 +1048,8 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should leave a circular approver chain alone when only the members changed', () => {
-            // 1 forwards to 2 and 2 forwards back to 1, so calculateApprovers pushes the repeat before it breaks
-            // and the approvers array arrives as [1, 2, 1]. Rebuilding every entry would let that trailing 1
-            // overwrite the first one's forwardsTo with '', cutting a chain the caller never touched — a member
-            // only edit (e.g. the "+N more" fast edit, which cannot fix an approver) must not do that.
+            // Given a policy where 1 forwards to 2 and 2 forwards back to 1. calculateApprovers pushes the repeat
+            // before it breaks the cycle, so the approvers array arrives as [1, 2, 1]
             const previousEmployeeList: PolicyEmployeeList = {
                 '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com', submitsTo: '1@example.com'},
                 '2@example.com': {email: '2@example.com', forwardsTo: '1@example.com', submitsTo: '1@example.com'},
@@ -1068,6 +1066,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
+            // When only the members change, which is all a "+N more" fast edit can do since it has no approver field
             const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
                 previousEmployeeList,
                 approvalWorkflow,
@@ -1076,14 +1075,15 @@ describe('WorkflowUtils', () => {
                 defaultApprover: '1@example.com',
             });
 
-            // Before the dedupe, the trailing repeat of 1 overwrote the first entry's forwardsTo with '', so a
-            // member-only edit silently cut the chain. Both approvers keep pointing where they already did.
+            // Then both approvers keep pointing where they already did. Rebuilding every entry let the trailing
+            // repeat of 1 overwrite the first one's forwardsTo with '', silently cutting a chain the caller never
+            // touched
             expect(convertedEmployees['1@example.com']?.forwardsTo).toBe('2@example.com');
             expect(convertedEmployees['2@example.com']?.forwardsTo).toBe('1@example.com');
-            // Neither forwardsTo is reported as changed, so nothing marks it pending either.
+            // Then neither forwardsTo is reported as changed, so nothing marks it pending and no rewrite is sent
             expect(convertedEmployees['1@example.com']?.pendingFields?.forwardsTo).toBeUndefined();
             expect(convertedEmployees['2@example.com']?.pendingFields?.forwardsTo).toBeUndefined();
-            // The member change the caller actually made still lands.
+            // Then the member change the caller actually made still lands, so protecting the chain costs nothing
             expect(convertedEmployees['4@example.com']?.submitsTo).toBe('1@example.com');
         });
     });
@@ -2215,45 +2215,79 @@ describe('WorkflowUtils', () => {
             `/workspaces/${POLICY_ID}/workflows/approvals/${encodeURIComponent(approverEmail)}/edit${memberEmail ? `?memberEmail=${encodeURIComponent(memberEmail)}` : ''}`;
 
         it('reads both halves of the workflow identity back out of the route', () => {
-            expect(getOpenApprovalWorkflowEdit(editRoute('a@example.com', 'm@example.com'), POLICY_ID)).toEqual({
-                firstApproverEmail: 'a@example.com',
-                memberEmail: 'm@example.com',
-            });
+            // Given an Edit route carrying both the URL-encoded first approver and the member anchor
+            const route = editRoute('a@example.com', 'm@example.com');
+
+            // When the workflows list asks which workflow that mounted Edit page belongs to
+            const openEdit = getOpenApprovalWorkflowEdit(route, POLICY_ID);
+
+            // Then both halves come back decoded, because the caller compares them against the plain emails on the
+            // workflow it rendered and would never match percent-encoded ones
+            expect(openEdit).toEqual({firstApproverEmail: 'a@example.com', memberEmail: 'm@example.com'});
         });
 
         it('distinguishes two workflows that share a first approver', () => {
-            // A→B and A→C are separate workflows with one first approver, so the member anchor is the only thing
-            // that tells the caller which of them the mounted Edit page belongs to.
-            const openEdit = getOpenApprovalWorkflowEdit(editRoute('a@example.com', 'b@example.com'), POLICY_ID);
+            // Given an Edit route for the A to B workflow, where A to B and A to C are separate workflows that
+            // happen to share a first approver
+            const route = editRoute('a@example.com', 'b@example.com');
 
+            // When the caller reads the identity of the open Edit page
+            const openEdit = getOpenApprovalWorkflowEdit(route, POLICY_ID);
+
+            // Then the member anchor comes back too, because it is the only thing that tells A to B apart from
+            // A to C. Without it the list would treat the wrong row as the one the Edit page is holding
             expect(openEdit?.firstApproverEmail).toBe('a@example.com');
             expect(openEdit?.memberEmail).not.toBe('c@example.com');
         });
 
         it('reports an Edit session that has a sub-page open on top of it', () => {
-            // A sub-page opened from Edit is appended to that route and inherits its query params. The Edit page is
-            // still mounted underneath, so it still owns the draft.
-            expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows/approvals/a%40example.com/edit/expenses-from?memberEmail=m%40example.com`, POLICY_ID)).toEqual({
-                firstApproverEmail: 'a@example.com',
-                memberEmail: 'm@example.com',
-            });
+            // Given an Edit route with a sub-page appended to it, which is how expenses-from is opened from Edit
+            const route = `/workspaces/${POLICY_ID}/workflows/approvals/a%40example.com/edit/expenses-from?memberEmail=m%40example.com`;
+
+            // When the caller reads the identity of the open Edit page
+            const openEdit = getOpenApprovalWorkflowEdit(route, POLICY_ID);
+
+            // Then the Edit page is still reported, because it stays mounted underneath its sub-page and still
+            // owns the draft. Matching only at the end of the path would miss it and let a fast edit seed over it
+            expect(openEdit).toEqual({firstApproverEmail: 'a@example.com', memberEmail: 'm@example.com'});
         });
 
         it('reports an empty member anchor when the route carried none', () => {
-            expect(getOpenApprovalWorkflowEdit(editRoute('a@example.com'), POLICY_ID)).toEqual({firstApproverEmail: 'a@example.com', memberEmail: ''});
+            // Given an Edit route opened before the member anchor existed, so it has no memberEmail param
+            const route = editRoute('a@example.com');
+
+            // When the caller reads the identity of the open Edit page
+            const openEdit = getOpenApprovalWorkflowEdit(route, POLICY_ID);
+
+            // Then the anchor is empty rather than absent, so a caller comparing it against a row's member email
+            // gets a plain mismatch instead of accidentally matching an undefined on both sides
+            expect(openEdit).toEqual({firstApproverEmail: 'a@example.com', memberEmail: ''});
         });
 
         it('returns undefined for routes with no Edit page in them', () => {
-            // The workflows list itself, and the fast-edit expenses-from route opened straight from it.
+            // Given the routes a fast edit is actually started from: the workflows list, the expenses-from page
+            // opened straight from it, the create page, and an empty route before navigation is ready
+
+            // When each is checked for an open Edit page
+
+            // Then none reports one, because a fast edit started from these has no Edit page to defer to and must
+            // be allowed to seed its own draft
             expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows?tab=approvals`, POLICY_ID)).toBeUndefined();
             expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows/expenses-from?tab=approvals`, POLICY_ID)).toBeUndefined();
-            // The approvals sub-routes that are not an Edit page.
             expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows/approvals/new`, POLICY_ID)).toBeUndefined();
             expect(getOpenApprovalWorkflowEdit('', POLICY_ID)).toBeUndefined();
         });
 
         it('returns undefined when the Edit page belongs to another policy', () => {
-            expect(getOpenApprovalWorkflowEdit(editRoute('a@example.com', 'm@example.com'), 'policy2')).toBeUndefined();
+            // Given an Edit route under policy1
+            const route = editRoute('a@example.com', 'm@example.com');
+
+            // When a workflows list rendered for policy2 checks it
+            const openEdit = getOpenApprovalWorkflowEdit(route, 'policy2');
+
+            // Then nothing is reported, because another workspace's Edit page holds a draft for a different
+            // policy and must not block this list from starting its own fast edit
+            expect(openEdit).toBeUndefined();
         });
     });
 });

@@ -189,7 +189,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         if (isResumingEdit) {
             // A draft left over from an abandoned fast edit can match this check (it also seeds EDIT mode with
             // the same first approver). Once this page owns the draft it is no longer a fast edit, so drop the
-            // flag — otherwise the expenses-from sub-page would save and clear the draft on its own, blanking
+            // flag. Otherwise the expenses-from sub-page would save and clear the draft on its own, blanking
             // this page underneath it and double-writing if the admin then presses Save here.
             if (approvalWorkflow?.isFastEdit) {
                 clearApprovalWorkflowFastEdit();

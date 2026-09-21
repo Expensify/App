@@ -103,7 +103,7 @@ function WorkspaceInviteMessageComponent({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     // Only read when this page is finishing an approval-workflow fast edit, but useOnyx can't be conditional.
-    // The draft carries `isFastEdit` and the removed-members baseline; the rules collection is what the
+    // The draft carries `isFastEdit` and the removed-members baseline. The rules collection is what the
     // MULTIPLE_APPROVERS save path needs. See saveFastEditApprovalWorkflow below.
     // Scope the rules to this policy the way the workflow pages do: this component also serves the generic member
     // invite flow, and subscribing to the whole collection would rerender every one of those on any policy's rule
@@ -207,7 +207,7 @@ function WorkspaceInviteMessageComponent({
      * Finishes an approval-workflow fast edit that detoured through this page to invite a new member.
      *
      * A "+N more" fast edit opens `expenses-from` with no nested `backTo`, so no edit page is waiting to save the
-     * workflow — and the expenses-from Save handler returned early at its `usersToInvite` branch to run this invite.
+     * workflow. The expenses-from Save handler returned early at its `usersToInvite` branch to run this invite.
      * Without this, the invite succeeds and the member the admin picked never gets a `submitsTo`, so the workflow
      * comes back unchanged. The draft still holds the pending selection: the expenses-from cleanup skips its
      * teardown while handing off to this page.

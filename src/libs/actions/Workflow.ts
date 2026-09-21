@@ -2,6 +2,7 @@ import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {rand64} from '@libs/NumberUtils';
 import {getDefaultApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
 import {
@@ -634,18 +635,35 @@ function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
 }
 
 /**
- * Bumped every time a new draft is seeded into `ONYXKEYS.APPROVAL_WORKFLOW`, i.e. every time an edit session
- * starts. There is only one such slot, so a screen that outlives its own session has to be able to tell the draft
- * it is responsible for apart from one a later session seeded over it:
+ * Identifies the edit session that seeded the draft currently held in `ONYXKEYS.APPROVAL_WORKFLOW`. There is only
+ * one such slot, so a screen that outlives its own session has to be able to tell the draft it is responsible for
+ * apart from one a later session seeded over it:
  *
  * - the fast-edit save defers its draft teardown until after the screen transition, which
  *   `runAfterPredictedTransition` can stretch to `MAX_TRANSITION_START_WAIT_MS + MAX_TRANSITION_DURATION_MS`, and
  * - the expenses-from page discards an abandoned draft when it unmounts.
  *
- * Both capture this value and re-read it when they run. It is also written into the draft as `sessionID`, so a
- * mounted screen can react to the draft being replaced underneath it.
+ * Both capture the id of the draft they are showing and compare it against this value when they run.
+ *
+ * The id is minted at random rather than counted up. `APPROVAL_WORKFLOW` is persisted, so a draft outlives the
+ * process that seeded it, and a counter restarting from zero on the next launch would eventually hand a fresh
+ * session the very id a restored screen is still holding, letting that screen's teardown discard someone else's
+ * draft.
  */
-let approvalWorkflowSessionID = 0;
+let approvalWorkflowSessionID: string | undefined;
+
+/**
+ * Mirror the live draft's session id for the two cleanups described above. Both run outside React, after their
+ * screen has already unmounted, so neither can read this through `useOnyx`. Reading it back out of Onyx rather
+ * than trusting a variable `setApprovalWorkflow` owns also survives a reload: the draft is persisted but the
+ * variable is not, and a teardown comparing against an empty variable would refuse to discard the draft it owns.
+ */
+Onyx.connectWithoutView({
+    key: ONYXKEYS.APPROVAL_WORKFLOW,
+    callback: (approvalWorkflow) => {
+        approvalWorkflowSessionID = approvalWorkflow?.sessionID;
+    },
+});
 
 /** @see approvalWorkflowSessionID */
 function getApprovalWorkflowSessionID() {
@@ -653,7 +671,9 @@ function getApprovalWorkflowSessionID() {
 }
 
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
-    approvalWorkflowSessionID++;
+    // Assign before the write so a caller that reads the id back in the same tick already sees its own session
+    // rather than the one being replaced. The subscription above confirms it once Onyx settles.
+    approvalWorkflowSessionID = rand64();
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, {...approvalWorkflow, sessionID: approvalWorkflowSessionID});
 }
 
@@ -746,8 +766,8 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
  *
  * `validateApprovalWorkflow` rejects the whole workflow, including approver-level state such a page has no field
  * for: a circular `forwardsTo`, or an `approvalLimit` and `overLimitForwardsTo` that don't agree. On a policy that
- * already carries one of those, every fast edit would fail with an error the admin cannot fix from that screen —
- * the edit looks like a no-op, and backing out discards the member change. Those rules belong on the edit page,
+ * already carries one of those, every fast edit would fail with an error the admin cannot fix from that screen.
+ * The edit looks like a no-op, and backing out discards the member change. Those rules belong on the edit page,
  * which has the fields to fix them.
  *
  * What is still checked is the structure the save itself depends on: a workflow with no members (unless it is the
