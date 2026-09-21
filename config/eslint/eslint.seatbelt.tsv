@@ -871,7 +871,6 @@
 "../../src/libs/QuickActionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReceiptUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportActionFollowupUtils/tokenizeForReveal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction?.originalMessage"	2
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction.sequenceNumber"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	109
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	2
