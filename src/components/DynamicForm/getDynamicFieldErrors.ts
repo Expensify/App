@@ -24,7 +24,7 @@ type DynamicFieldErrors = Record<string, string>;
 const PERCENT_MIN = 1;
 const PERCENT_MAX = 100;
 
-const CHOICE_TYPES = new Set<DynamicFormField['type']>(['select', 'multiselect', 'radio']);
+const CHOICE_TYPES = new Set<DynamicFormField['type']>(['select', 'multiselect', 'radio', 'countryMultiselect']);
 
 /** A boolean alone on its page is a Yes/No question, so No is an answer; among other fields it is a consent box that must be ticked */
 function isAnswered(value: unknown, isAloneOnPage: boolean): boolean {
@@ -100,6 +100,9 @@ function getFieldErrors(field: DynamicFormField, values: DynamicFormValues, tran
     if (typeof value !== 'string' || value === '') {
         return messages;
     }
+    if (field.type === 'number' && !Number.isFinite(Number(value))) {
+        messages.push(translate('dynamicForm.error.invalidFormat', {example: field.example}));
+    }
     if (field.type === 'percent') {
         const percent = Number(value);
         if (!Number.isFinite(percent) || percent < PERCENT_MIN || percent > PERCENT_MAX) {
@@ -120,7 +123,7 @@ function getFieldErrors(field: DynamicFormField, values: DynamicFormValues, tran
     }
     if (field.type === 'date') {
         if (!isValidDate(value)) {
-            messages.push(translate('dynamicForm.error.invalidDate'));
+            messages.push(translate('common.error.dateInvalid'));
         } else if (field.rule === 'dateOfBirth' && (!isValidPastDate(value) || !meetsMaximumAgeRequirement(value))) {
             messages.push(translate('bankAccount.error.dob'));
         } else if (field.rule === 'dateOfBirth' && !meetsMinimumAgeRequirement(value)) {

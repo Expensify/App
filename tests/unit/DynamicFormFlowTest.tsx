@@ -18,6 +18,7 @@ import allFieldTypes from '../fixtures/dynamicForm/allFieldTypes';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockRouteParams: {subPage?: string; action?: 'edit'} = {};
+const mockSetParams = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -34,7 +35,7 @@ jest.mock('@react-navigation/native', () => {
         ...actual,
         useIsFocused: () => true,
         useRoute: jest.fn(() => ({name: '', key: '', params: mockRouteParams})),
-        useNavigation: jest.fn(() => ({addListener: jest.fn(() => jest.fn()), getState: jest.fn(() => ({routes: []})), isFocused: () => true, setParams: jest.fn()})),
+        useNavigation: jest.fn(() => ({addListener: jest.fn(() => jest.fn()), getState: jest.fn(() => ({routes: []})), isFocused: () => true, setParams: mockSetParams})),
         useFocusEffect: jest.fn(),
     };
 });
@@ -85,6 +86,9 @@ const buildRoute = (pageName: string, action?: 'edit') => ROUTES.SETTINGS_ADD_BA
 
 const completeDraft = {
     accountNumber: '12345678',
+    numberOfEmployees: '25',
+    settlementCurrency: 'USD',
+    operatingCountries: ['GB'],
     legalType: 'PRIVATE',
     accountType: 'CHECKING',
     annualVolume: '1000',
@@ -171,7 +175,7 @@ describe('DynamicFormFlow', () => {
         expect(screen.getByText('Confirm your details')).toBeOnTheScreen();
         expect(screen.getByText('12345678')).toBeOnTheScreen();
         expect(screen.getByText('Person')).toBeOnTheScreen();
-        expect(screen.getByText('allCountries.GB')).toBeOnTheScreen();
+        expect(screen.getAllByText('allCountries.GB')).toHaveLength(2);
 
         fireEvent.press(screen.getByText('common.confirm'));
         await waitForBatchedUpdatesWithAct();
@@ -304,6 +308,30 @@ describe('DynamicFormFlow', () => {
         expect(onPageSubmit).toHaveBeenCalledTimes(1);
         expect(onPageSubmit).toHaveBeenCalledWith(expect.objectContaining({slug: 'account-details', name: 'Account details'}), expect.objectContaining({accountNumber: '12345678'}));
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('account-holder-details'));
+    });
+
+    it('starts a fresh form on its first page and resumes a started one at its first incomplete page', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {});
+        });
+        await renderFlow();
+        expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'account-details'});
+
+        screen.unmount();
+        mockSetParams.mockClear();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {...completeDraft, dateOfBirth: '', country: ''});
+        });
+        await renderFlow();
+        expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'account-holder-details'});
+
+        screen.unmount();
+        mockSetParams.mockClear();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, completeDraft);
+        });
+        await renderFlow();
+        expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'confirm'});
     });
 
     it('redirects away from a page whose fields are all hidden when it is opened directly', async () => {

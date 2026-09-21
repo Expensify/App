@@ -33,6 +33,9 @@ type DynamicFieldInput = {
 
     /** The component has no label of its own, so the renderer draws the field label above it */
     shouldRenderLabelAbove?: boolean;
+
+    /** Draw the label above as a body-text question prompt, as SingleChoiceQuestion does, instead of a form label */
+    isLabelAboveQuestion?: boolean;
 };
 
 type DynamicFieldFactory = (field: DynamicFormField, context: DynamicFieldContext) => DynamicFieldInput;

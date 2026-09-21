@@ -62,14 +62,29 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
                         </View>
                     );
                 }
-                const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove} = getInputComponentForField(field, {values, translate, currency, isAloneOnPage, renderFields});
+                const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove, isLabelAboveQuestion} = getInputComponentForField(field, {
+                    values,
+                    translate,
+                    currency,
+                    isAloneOnPage,
+                    renderFields,
+                });
                 const description = field.type === 'text' ? undefined : getFieldDescription(field, translate);
                 return (
                     <View
                         key={field.key}
                         style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
                     >
-                        {!!shouldRenderLabelAbove && <Text style={[styles.mutedTextLabel, styles.mb3, isMenuRow && styles.ph5]}>{label}</Text>}
+                        {!!shouldRenderLabelAbove && (
+                            <Text
+                                style={[
+                                    isLabelAboveQuestion ? styles.mt3 : [styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong, styles.mb3],
+                                    isMenuRow && styles.ph5,
+                                ]}
+                            >
+                                {label}
+                            </Text>
+                        )}
                         {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
                         <InputWrapper
                             InputComponent={InputComponent}

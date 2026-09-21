@@ -17,6 +17,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getLetterAvatarURL} from '@libs/UserAvatarUtils';
+
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -115,12 +117,16 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
         <>
             {items.map((item) => {
                 const summary = summarizeItem(item, itemFields, translate);
+                const [firstName = '', ...otherNames] = summary.title.trim().split(/\s+/);
+                const colorSeed = [...summary.title].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+                const letterAvatarURL = getLetterAvatarURL(colorSeed, firstName, otherNames.at(-1) ?? '', '');
                 return (
                     <MenuItemAvatarNavigation
                         key={item.id}
                         title={summary.title}
                         description={summary.description}
                         accountID={CONST.DEFAULT_NUMBER_ID}
+                        avatarSource={letterAvatarURL || undefined}
                         onPress={() => openEditor(item)}
                     />
                 );

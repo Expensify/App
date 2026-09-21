@@ -3,13 +3,13 @@ import {render, screen} from '@testing-library/react-native';
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import addressAdapter from '@components/DynamicForm/adapters/addressAdapter';
 import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
-import MultiSelectPushRowAdapter from '@components/DynamicForm/adapters/MultiSelectPushRowAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
@@ -26,6 +26,7 @@ import type {ComponentType} from 'react';
 import React from 'react';
 
 import allFieldTypes from '../fixtures/dynamicForm/allFieldTypes';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 type CapturedInputProps = {
     InputComponent: ComponentType;
@@ -82,11 +83,14 @@ function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}
 
 const EXPECTED_COMPONENT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...args: never[]) => unknown)> = {
     text: TextInput,
+    number: TextInput,
     select: ValuePicker,
-    multiselect: MultiSelectPushRowAdapter,
+    multiselect: PushRowWithModal,
     radio: RadioButtons,
     date: DatePicker,
     country: PushRowWithModal,
+    countryMultiselect: PushRowWithModal,
+    currency: CurrencyPicker,
     address: AddressSearch,
     boolean: CheckboxWithLabel,
     file: FileUploadAdapter,
@@ -100,7 +104,7 @@ describe('DynamicFormFields', () => {
         const rendered = renderFields(allFieldTypes, {legalType: 'BUSINESS'});
 
         const fieldTypes = new Set(allFieldTypes.map((field) => field.type));
-        expect(fieldTypes.size).toBe(12);
+        expect(fieldTypes.size).toBe(15);
         expect(fieldTypes.size).toBe(Object.keys(EXPECTED_COMPONENT_BY_TYPE).length);
         for (const field of allFieldTypes) {
             expect(rendered.get(field.key)?.InputComponent).toBe(EXPECTED_COMPONENT_BY_TYPE[field.type]);
@@ -177,6 +181,17 @@ describe('DynamicFormFields', () => {
         expect(screen.queryByText('Account number')).not.toBeOnTheScreen();
     });
 
+    it('opens a numeric keyboard for number fields and offers every country to a country multiselect', () => {
+        const rendered = renderFields(allFieldTypes, {legalType: 'BUSINESS'});
+
+        expect(rendered.get('numberOfEmployees')?.inputMode).toBe('numeric');
+        expect(rendered.get('numberOfEmployees')?.hint).toBe('common.exampleValue');
+        expect(rendered.get('operatingCountries')?.canSelectMultiple).toBe(true);
+        expect(Object.keys(rendered.get('operatingCountries')?.optionsList ?? {}).length).toBeGreaterThan(200);
+        expect(rendered.get('operatingCountries')?.optionsList?.GB).toBe('allCountries.GB');
+        expect(rendered.get('settlementCurrency')?.label).toBe('Settlement currency');
+    });
+
     it('passes text constraints, the example as a hint and a numeric keyboard for digit-only fields', () => {
         const accountNumber = renderFields(allFieldTypes).get('accountNumber');
 
@@ -218,7 +233,7 @@ describe('DynamicFormFields', () => {
         expect(chosen?.currencyKey).toBe('annualVolumeCurrency');
     });
 
-    it('summarizes each list item from its formatted answers', () => {
+    it('summarizes each list item from its formatted answers', async () => {
         const list = allFieldTypes.find((field) => field.key === 'legalEntityShareholders');
         if (!list) {
             throw new Error('fixture changed');
@@ -230,9 +245,11 @@ describe('DynamicFormFields', () => {
                 renderFields={() => null}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('Alice Nguyen')).toBeOnTheScreen();
         expect(screen.getByText('allCountries.GB, 25%')).toBeOnTheScreen();
+        expect(screen.getByText('AN')).toBeOnTheScreen();
     });
 
     it('does not draft a list whose items hold a sensitive answer', () => {

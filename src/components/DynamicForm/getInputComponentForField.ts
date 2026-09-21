@@ -1,6 +1,7 @@
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
@@ -23,7 +24,6 @@ import AmountWithCurrencyAdapter from './adapters/AmountWithCurrencyAdapter';
 import FileUploadAdapter from './adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from './adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from './adapters/ListFieldAdapter';
-import MultiSelectPushRowAdapter from './adapters/MultiSelectPushRowAdapter';
 import YesNoAdapter from './adapters/YesNoAdapter';
 import {getFieldOptions, getOptionLabel} from './getFieldOptions';
 import isCountryCode from './isCountryCode';
@@ -57,18 +57,41 @@ function getChoices(field: DynamicFormField, {values, translate}: DynamicFieldCo
     return getFieldOptions(field, values).map((option) => ({value: option.key, label: getOptionLabel(option, translate)}));
 }
 
-const REGISTRY = {
-    text: (field, {translate}) => ({
-        InputComponent: TextInput,
+const textFactory: DynamicFieldFactory = (field, {translate}) => ({
+    InputComponent: TextInput,
+    inputProps: {
+        maxLength: field.maxLength,
+        hint: getFieldDescription(field, translate) ?? (field.example ? translate('common.exampleValue', {example: field.example}) : undefined),
+        inputMode: getInputMode(field),
+        multiline: field.multiline,
+        autoGrowHeight: field.multiline,
+        ...(field.multiline ? {} : getTextInputAutocorrectProps()),
+    },
+});
+
+const multiselectFactory: DynamicFieldFactory = (field, context) => {
+    const choices = getChoices(field, context);
+    if (context.isAloneOnPage) {
+        return {InputComponent: InlineSelectionListAdapter, isMenuRow: true, inputProps: {items: choices, canSelectMultiple: true, valueType: 'stringList'}};
+    }
+    const label = getFieldLabel(field, context.translate);
+    return {
+        InputComponent: PushRowWithModal,
+        isMenuRow: true,
         inputProps: {
-            maxLength: field.maxLength,
-            hint: getFieldDescription(field, translate) ?? (field.example ? translate('common.exampleValue', {example: field.example}) : undefined),
-            inputMode: getInputMode(field),
-            multiline: field.multiline,
-            autoGrowHeight: field.multiline,
-            ...(field.multiline ? {} : getTextInputAutocorrectProps()),
+            canSelectMultiple: true,
+            optionsList: Object.fromEntries(choices.map((choice) => [choice.value, choice.label])),
+            description: label,
+            modalHeaderTitle: label,
+            searchInputTitle: label,
+            valueType: 'stringList',
         },
-    }),
+    };
+};
+
+const REGISTRY = {
+    text: textFactory,
+    number: (field, context) => textFactory({...field, keyboard: 'numeric'}, context),
     select: (field, context) => {
         const choices = getChoices(field, context);
         if (context.isAloneOnPage) {
@@ -89,22 +112,13 @@ const REGISTRY = {
         }
         return {InputComponent: ValuePicker, isMenuRow: true, inputProps: {items: choices}};
     },
-    multiselect: (field, context) => {
-        const choices = getChoices(field, context);
-        if (context.isAloneOnPage) {
-            return {InputComponent: InlineSelectionListAdapter, isMenuRow: true, inputProps: {items: choices, canSelectMultiple: true, valueType: 'stringList'}};
-        }
-        const label = getFieldLabel(field, context.translate);
-        return {
-            InputComponent: MultiSelectPushRowAdapter,
-            isMenuRow: true,
-            inputProps: {items: choices, description: label, modalHeaderTitle: label, valueType: 'stringList'},
-        };
-    },
+    multiselect: multiselectFactory,
+    countryMultiselect: multiselectFactory,
     radio: (field, context) => ({
         InputComponent: RadioButtons,
         isMenuRow: true,
         shouldRenderLabelAbove: !context.isAloneOnPage,
+        isLabelAboveQuestion: true,
         inputProps: {items: getChoices(field, context), onSelect: () => {}},
     }),
     date: (field, {translate}) => ({
@@ -124,6 +138,11 @@ const REGISTRY = {
             modalHeaderTitle: translate('countryStep.selectCountry'),
             searchInputTitle: translate('common.country'),
         },
+    }),
+    currency: (field, {translate}) => ({
+        InputComponent: CurrencyPicker,
+        isMenuRow: true,
+        inputProps: {label: getFieldLabel(field, translate)},
     }),
     address: (field) => ({
         InputComponent: AddressSearch,

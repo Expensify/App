@@ -20,6 +20,7 @@ import type {DynamicFormValues} from './types';
 import DynamicFormPage from './DynamicFormPage';
 import DynamicFormShell from './DynamicFormShell';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
+import getDynamicFieldErrors from './getDynamicFieldErrors';
 import {getFieldLabel} from './getInputComponentForField';
 import groupFieldsIntoPages from './groupFieldsIntoPages';
 import isFieldVisible from './isFieldVisible';
@@ -93,9 +94,23 @@ function DynamicFormFlow({
     const hasVisibleField = (page: DynamicFormPageSchema) => page.fields.some((field) => isFieldVisible(field, draftValues));
     const skipPages = groupPages.filter((page) => !hasVisibleField(page)).map((page) => page.slug);
 
+    const isDraftLoading = isLoadingOnyxValue(draftMetadata);
+    const hasProgress = fields.some((field) => {
+        const answer = draftValues[field.key];
+        return answer !== undefined && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
+    });
+    const firstIncompleteIndex = groupPages.findIndex((page) => hasVisibleField(page) && Object.keys(getDynamicFieldErrors(page.fields, draftValues, translate)).length > 0);
+    let startFrom = 0;
+    if (isDraftLoading) {
+        startFrom = -1;
+    } else if (hasProgress) {
+        startFrom = firstIncompleteIndex === -1 ? pages.length - 1 : firstIncompleteIndex;
+    }
+
     const {isEditing, nextPage, prevPage, pageIndex, moveTo, currentPageName, isRedirecting} = useSubPage({
         pages,
         skipPages,
+        startFrom,
         onFinished: () => onSubmit(draftValues),
         buildRoute,
     });
@@ -111,7 +126,7 @@ function DynamicFormFlow({
     const pageNames = pages.map((page) => page.pageName);
     const nextShownIndex = pageNames.findIndex((name, index) => index > pageIndex && !skipPages.includes(name));
     const previousShownIndex = pageNames.findLastIndex((name, index) => index < pageIndex && !skipPages.includes(name));
-    const redirectIndex = isCurrentPageSkipped && !isRedirecting && !isLoadingOnyxValue(draftMetadata) ? Math.max(nextShownIndex, previousShownIndex) : -1;
+    const redirectIndex = isCurrentPageSkipped && !isRedirecting && !isDraftLoading ? Math.max(nextShownIndex, previousShownIndex) : -1;
     useEffect(() => {
         if (redirectIndex === -1) {
             return;
@@ -170,7 +185,7 @@ function DynamicFormFlow({
             })),
     );
 
-    const isLoading = isRedirecting || isCurrentPageSkipped || isLoadingOnyxValue(draftMetadata) || (!currentGroupPage && !isConfirmationPage);
+    const isLoading = isRedirecting || isCurrentPageSkipped || isDraftLoading || (!currentGroupPage && !isConfirmationPage);
 
     let content = <FullScreenLoadingIndicator />;
     if (!isLoading && currentGroupPage && !isConfirmationPage) {

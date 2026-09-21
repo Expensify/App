@@ -15,6 +15,9 @@ import {translateLocal} from '../utils/TestHelper';
 const completeAnswers = {
     ownershipPercentage: '40',
     accountNumber: '12345678',
+    numberOfEmployees: '25',
+    settlementCurrency: 'USD',
+    operatingCountries: ['GB'],
     legalType: 'PRIVATE',
     accountType: 'CHECKING',
     annualVolume: '1000',
@@ -55,7 +58,7 @@ describe('getDynamicFieldErrors', () => {
     it('flags an invalid date', () => {
         const errors = getDynamicFieldErrors(allFieldTypes, {...completeAnswers, dateOfBirth: '1990-13-45'}, translateLocal);
 
-        expect(errors).toEqual({dateOfBirth: translateLocal('dynamicForm.error.invalidDate')});
+        expect(errors).toEqual({dateOfBirth: translateLocal('common.error.dateInvalid')});
     });
 
     it('never flags a field hidden by showWhen', () => {
@@ -131,6 +134,18 @@ describe('getDynamicFieldErrors for choices and booleans', () => {
     });
 });
 
+describe('getDynamicFieldErrors for number and country multiselect fields', () => {
+    it('rejects a non-numeric number and an unknown country code', () => {
+        expect(getDynamicFieldErrors(allFieldTypes, {...completeAnswers, numberOfEmployees: 'many'}, translateLocal)).toEqual({
+            numberOfEmployees: translateLocal('dynamicForm.error.invalidFormat', {example: '25'}),
+        });
+        expect(getDynamicFieldErrors(allFieldTypes, {...completeAnswers, operatingCountries: ['GB', 'XX']}, translateLocal)).toEqual({
+            operatingCountries: translateLocal('dynamicForm.error.invalidOption'),
+        });
+        expect(getDynamicFieldErrors(allFieldTypes, completeAnswers, translateLocal)).toEqual({});
+    });
+});
+
 describe('getDynamicFieldErrors counts readonly rows like the renderer', () => {
     it('treats a consent box beside a readonly row as a box that must be ticked', () => {
         const legalName: DynamicFormField = {key: 'legalName', label: 'Legal name', group: 'Business', type: 'text', required: true, readonly: true, refreshOnChange: false};
@@ -177,8 +192,16 @@ describe('groupFieldsIntoPages', () => {
         const pages = groupFieldsIntoPages(allFieldTypes);
 
         expect(pages.map((page) => page.name)).toEqual(['Account details', 'Account holder details', 'Ownership']);
-        expect(pages.at(0)?.fields.map((field) => field.key)).toEqual(['accountNumber', 'legalType', 'accountType', 'businessRegistrationDocument', 'annualVolume']);
-        expect(pages.at(1)?.fields.map((field) => field.key)).toEqual(['dateOfBirth', 'country', 'address', 'useCases', 'isSourceOfFund']);
+        expect(pages.at(0)?.fields.map((field) => field.key)).toEqual([
+            'accountNumber',
+            'legalType',
+            'accountType',
+            'businessRegistrationDocument',
+            'annualVolume',
+            'numberOfEmployees',
+            'settlementCurrency',
+        ]);
+        expect(pages.at(1)?.fields.map((field) => field.key)).toEqual(['operatingCountries', 'dateOfBirth', 'country', 'address', 'useCases', 'isSourceOfFund']);
     });
 
     it('keeps route slugs unique and non-empty when group names collide or have no latin characters', () => {

@@ -4036,7 +4036,6 @@ const translations = {
             tooShort: ({minLength}: {minLength: number}) => `Must be at least ${minLength} characters`,
             tooLong: ({maxLength}: {maxLength: number}) => `Must be at most ${maxLength} characters`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
-            invalidDate: 'Please enter a valid date',
             invalidOption: 'Choose one of the available options',
             tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
             tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
