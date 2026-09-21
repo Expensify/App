@@ -1,7 +1,5 @@
 import useFindLastAccessedReport from '@hooks/useFindLastAccessedReport';
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
