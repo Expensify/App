@@ -249,7 +249,8 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {RefObject} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
@@ -334,7 +335,7 @@ type ContextMenuActionPayload = {
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: RefObject<HTMLDivElement | React.ComponentRef<typeof View> | Text | null>;
+    anchor?: RefObject<HTMLDivElement | React.ComponentRef<typeof View> | React.ComponentRef<typeof Text> | null>;
     checkIfContextMenuActive?: () => void;
     openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<React.ComponentRef<typeof View> | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;

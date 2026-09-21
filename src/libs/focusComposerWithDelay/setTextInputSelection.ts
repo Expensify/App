@@ -10,7 +10,7 @@ const setTextInputSelection = (textInput: InputType, forcedSelectionRange: Selec
     if (setSelectionRange) {
         (textInput as HTMLTextAreaElement).setSelectionRange?.(forcedSelectionRange.start, forcedSelectionRange.end);
     } else {
-        (textInput as TextInput).setSelection?.(forcedSelectionRange.start, forcedSelectionRange.end);
+        (textInput as React.ComponentRef<typeof TextInput>).setSelection?.(forcedSelectionRange.start, forcedSelectionRange.end);
     }
 };
 

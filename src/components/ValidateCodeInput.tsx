@@ -40,7 +40,7 @@ const useValidateCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>
                 return;
             }
 
-            const isFocused = (inputRef.current as RNTextInput)?.isFocused?.() ?? false;
+            const isFocused = (inputRef.current as React.ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
             if (!isFocused) {
                 return;
             }

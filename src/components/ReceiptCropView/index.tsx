@@ -607,7 +607,7 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
             <Animated.View
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.w100]}
                 onLayout={onContainerLayout}
-                ref={(el: View | null) => ControlSelection.blockElement(el as HTMLElement | null)}
+                ref={(el: React.ComponentRef<typeof View> | null) => ControlSelection.blockElement(el as HTMLElement | null)}
             >
                 <View style={[styles.flex1, styles.w100]}>
                     {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}

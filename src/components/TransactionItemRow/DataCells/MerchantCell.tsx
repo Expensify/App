@@ -59,7 +59,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
     };
 
     const handleRef = (element: BaseTextInputRef | null) => {
-        inputRef.current = element as RNTextInput | null;
+        inputRef.current = element as React.ComponentRef<typeof RNTextInput> | null;
     };
 
     // Multiline TextInputs with autoFocus default cursor to the beginning; manually position it at the end on focus

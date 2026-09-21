@@ -259,7 +259,7 @@ function DynamicIOURequestStepWaypoint({
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
                             ref={(e: HTMLElement | null) => {
-                                textInput.current = e as unknown as TextInput;
+                                textInput.current = e as unknown as React.ComponentRef<typeof TextInput>;
                             }}
                             hint={!isOffline ? translate('distance.error.selectSuggestedAddress') : ''}
                             containerStyles={[styles.mt4]}

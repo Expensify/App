@@ -8,7 +8,7 @@ import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 type ModalId = number | undefined;
 
-type InputElement = (TextInput & HTMLElement) | null;
+type InputElement = (React.ComponentRef<typeof TextInput> & HTMLElement) | null;
 
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
 

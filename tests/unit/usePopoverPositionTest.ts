@@ -16,7 +16,7 @@ type MeasureInWindow = (callback: (x: number, y: number, width: number, height: 
 
 const createAnchorRef = (x: number, y: number, width: number, height: number) => {
     const measureInWindow: MeasureInWindow = (callback) => callback(x, y, width, height);
-    return {current: createMock<View>({measureInWindow})};
+    return {current: createMock<React.ComponentRef<typeof View>>({measureInWindow})};
 };
 
 describe('usePopoverPosition', () => {

@@ -37,7 +37,7 @@ const DialogLabelActionsContext = createContext<DialogLabelActions>({
 type DialogLabelProviderProps = {
     children: React.ReactNode;
     /** Pass via `useState`/callback-ref so the provider observes node identity changes; a `RefObject` would pin the MutationObserver to the original node across Animated.View remounts. */
-    containerNode: View | HTMLElement | null;
+    containerNode: React.ComponentRef<typeof View> | HTMLElement | null;
     /**
      * When provided, used instead of observing the container's role/aria-modal attributes.
      * Prefer this in production so dialog semantics stay in React props (resize updates `isSmallScreenWidth`).
@@ -54,7 +54,7 @@ function DialogLabelProvider({children, containerNode, hasDialogSemantics: hasDi
     const [activeLabel, setActiveLabel] = useState<string | undefined>();
 
     useLayoutEffect(() => {
-        containerRef.current = (containerNode as View | null) ?? null;
+        containerRef.current = (containerNode as React.ComponentRef<typeof View> | null) ?? null;
     }, [containerNode]);
 
     const hasDialogSemanticsFromDom = useSyncExternalStore(

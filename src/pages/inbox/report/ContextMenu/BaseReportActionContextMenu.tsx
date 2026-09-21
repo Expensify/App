@@ -352,7 +352,7 @@ function BaseReportActionContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
-            contextMenuAnchor: anchorRef?.current as ViewType | RNText | null,
+            contextMenuAnchor: anchorRef?.current as React.ComponentRef<typeof ViewType> | React.ComponentRef<typeof RNText> | null,
             report: {
                 reportID,
                 originalReportID,

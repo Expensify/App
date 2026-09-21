@@ -23,7 +23,7 @@ import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
 
 type UseAutoFocusInput = {
-    inputCallbackRef: (ref: TextInput | null) => void;
+    inputCallbackRef: (ref: ComponentRef<typeof TextInput> | null) => void;
     inputRef: RefObject<ComponentRef<typeof TextInput> | null>;
     cancelAutoFocus: () => void;
 };
@@ -150,7 +150,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         }
     }
 
-    const inputCallbackRef = (ref: TextInput | null) => {
+    const inputCallbackRef = (ref: ComponentRef<typeof TextInput> | null) => {
         inputRef.current = ref;
         if (isInputInitialized) {
             return;

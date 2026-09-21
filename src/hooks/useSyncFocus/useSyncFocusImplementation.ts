@@ -9,7 +9,7 @@ import {useContext, useLayoutEffect} from 'react';
 // It enables external actions like calling .focus() from outside this hook,
 // as demonstrated in this PR: https://github.com/Expensify/App/pull/59206
 // eslint-disable-next-line import/no-mutable-exports
-let focusedItemRef: View | HTMLElement | null;
+let focusedItemRef: ComponentRef<typeof View> | HTMLElement | null;
 
 /**
  * Custom React hook created to handle sync of focus on an element when the user navigates through the app with keyboard.

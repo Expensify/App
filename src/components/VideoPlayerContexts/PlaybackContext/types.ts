@@ -1,7 +1,7 @@
 import type {Report} from '@src/types/onyx';
 
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -53,12 +53,12 @@ type PlaybackStateContextValues = {
     /**
      * The original parent container of the shared video element.
      */
-    originalParent: View | HTMLDivElement | null;
+    originalParent: ComponentRef<typeof View> | HTMLDivElement | null;
 
     /**
      * The shared video element container, if one exists.
      */
-    sharedElement: View | HTMLDivElement | null;
+    sharedElement: ComponentRef<typeof View> | HTMLDivElement | null;
 
     /**
      * Array of currently mounted Video Player instances
@@ -101,8 +101,8 @@ type PlaybackActionsContextValues = {
     shareVideoPlayerElements: (
         playerRef: VideoPlayer | null,
         viewRef: VideoView | null,
-        parent: View | HTMLDivElement | null,
-        child: View | HTMLDivElement | null,
+        parent: ComponentRef<typeof View> | HTMLDivElement | null,
+        child: ComponentRef<typeof View> | HTMLDivElement | null,
         isUploading: boolean,
         videoElementData: VideoElementData,
     ) => void;

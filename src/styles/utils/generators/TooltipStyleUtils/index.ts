@@ -38,7 +38,7 @@ type TooltipStyles = {
 };
 
 type TooltipParams = {
-    tooltip: View | HTMLDivElement | null;
+    tooltip: React.ComponentRef<typeof View> | HTMLDivElement | null;
     windowWidth: number;
     xOffset: number;
     yOffset: number;

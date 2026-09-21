@@ -12,7 +12,7 @@ import React, {act} from 'react';
 import mockCreateMock from '../../utils/createMock';
 
 // Store mocked inputs by testID so we can access them in tests
-const mockInputs: Record<string, TextInput> = {};
+const mockInputs: Record<string, React.ComponentRef<typeof TextInput>> = {};
 
 // Tests currently run against index.ios.ts source, where functions that call
 // native code (such as `isFocused` or `setNativeProps`) are not implemented.
@@ -20,7 +20,7 @@ const mockInputs: Record<string, TextInput> = {};
 jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
     const originalReact: typeof React = jest.requireActual('react');
 
-    function TextInputMock(props: TextInputProps & {ref: Ref<TextInput>; testID?: string}) {
+    function TextInputMock(props: TextInputProps & {ref: Ref<React.ComponentRef<typeof TextInput>>; testID?: string}) {
         const [isFocused, setIsFocused] = originalReact.useState(false);
 
         const mockInstance = originalReact.useMemo(

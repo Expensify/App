@@ -51,8 +51,8 @@ type MinimalScrollRef = {
     scrollTo: () => void;
     scrollToEnd: () => void;
     flashScrollIndicators: () => void;
-    getScrollableNode: () => View | null;
-    getNativeScrollRef: () => View | null;
+    getScrollableNode: () => React.ComponentRef<typeof View> | null;
+    getNativeScrollRef: () => React.ComponentRef<typeof View> | null;
 };
 
 // `store` and `offsetTop` are injected at runtime by FlashList via `overrideProps`, never by FlashList's own typed

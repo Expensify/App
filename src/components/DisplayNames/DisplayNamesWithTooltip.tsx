@@ -15,7 +15,7 @@ import type DisplayNamesProps from './types';
 
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 
-type HTMLElementWithText = HTMLElement & RNText;
+type HTMLElementWithText = HTMLElement & React.ComponentRef<typeof RNText>;
 
 function DisplayNamesWithToolTip({
     shouldUseFullTitle,

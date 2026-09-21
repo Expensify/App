@@ -140,7 +140,7 @@ function AnimatedSettlementButton({
         icon = expensifyIcons.Checkmark;
     }
 
-    const animatedViewRef = (el: View | null) => {
+    const animatedViewRef = (el: React.ComponentRef<typeof View> | null) => {
         if (!el || !isAnimationRunning) {
             return;
         }

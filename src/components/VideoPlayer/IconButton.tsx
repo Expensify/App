@@ -26,7 +26,7 @@ type IconButtonProps = WithSentryLabel & {
     small?: boolean;
     shouldForceRenderingTooltipBelow?: boolean;
     /** Forwarded to the underlying pressable so callers can use the button as a popover anchor. */
-    ref?: PressableRef | Ref<View>;
+    ref?: PressableRef | Ref<React.ComponentRef<typeof View>>;
 };
 
 function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false, sentryLabel, ref}: IconButtonProps) {

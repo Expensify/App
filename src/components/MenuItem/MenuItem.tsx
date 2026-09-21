@@ -90,7 +90,7 @@ type NoIcon = {
 type MenuItemBaseProps = ForwardedFSClassProps &
     WithSentryLabel &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
-        ref?: PressableRef | Ref<View>;
+        ref?: PressableRef | Ref<React.ComponentRef<typeof View>>;
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
         interactive?: boolean;
 

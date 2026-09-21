@@ -159,7 +159,7 @@ function AnimatedSubmitButton({
         <Animated.View style={[containerStyles, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el: View | null) => {
+                    ref={(el: React.ComponentRef<typeof View> | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}

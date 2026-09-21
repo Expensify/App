@@ -164,7 +164,7 @@ type BackdropProps = {
 
 type ContainerProps = {
     /** Host node of the modal's content, used to tell whether focus is still inside this modal. */
-    ref?: Ref<View>;
+    ref?: Ref<React.ComponentRef<typeof View>>;
 
     /** This function is called by open animation callback */
     onOpenCallBack: () => void;

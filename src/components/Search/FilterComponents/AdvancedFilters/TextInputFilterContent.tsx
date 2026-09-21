@@ -29,7 +29,7 @@ type TextInputFilterContentProps = {
     onChange: (value: string | undefined, isNegated: boolean) => void;
 };
 
-function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is RNTextInput {
+function isTextInput(element: BaseTextInputRef | React.ComponentRef<typeof RNTextInput> | null): element is React.ComponentRef<typeof RNTextInput> {
     return !!element && 'isFocused' in element;
 }
 

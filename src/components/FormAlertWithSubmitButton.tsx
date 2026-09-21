@@ -61,7 +61,7 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     isAlertVisible?: boolean;
 
     /** React ref being forwarded to the submit button */
-    buttonRef?: Ref<View>;
+    buttonRef?: Ref<React.ComponentRef<typeof View>>;
 
     buttonText: string;
 

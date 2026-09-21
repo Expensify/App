@@ -604,7 +604,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             if (!el) {
                                                 return;
                                             }
-                                            const elHTML = el as View | HTMLDivElement;
+                                            const elHTML = el as React.ComponentRef<typeof View> | HTMLDivElement;
                                             if ('childNodes' in elHTML && elHTML.childNodes[0]) {
                                                 videoPlayerElementRef.current = elHTML.childNodes[0] as HTMLDivElement;
                                             }

@@ -10,7 +10,7 @@ import createMock from '../utils/createMock';
 describe('useSyncFocus', () => {
     it('useSyncFocus should only focus if shouldSyncFocus is true', () => {
         const focusMock = jest.fn();
-        const refMock: RefObject<ComponentRef<typeof View> | null> = {current: createMock<View>({focus: focusMock})};
+        const refMock: RefObject<ComponentRef<typeof View> | null> = {current: createMock<ComponentRef<typeof View>>({focus: focusMock})};
 
         // When useSyncFocus is rendered initially while shouldSyncFocus is false.
         const {rerender} = renderHook(

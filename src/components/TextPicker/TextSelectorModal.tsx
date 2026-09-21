@@ -53,7 +53,7 @@ function TextSelectorModal({
     const inputRef = useRef<React.ComponentRef<typeof TextInputType> | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const inputCallbackRef = (ref: TextInputType | null) => {
+    const inputCallbackRef = (ref: React.ComponentRef<typeof TextInputType> | null) => {
         inputRef.current = ref;
     };
 

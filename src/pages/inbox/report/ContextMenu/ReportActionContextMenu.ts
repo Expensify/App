@@ -3,7 +3,7 @@ import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,7 +19,7 @@ type OnCancel = () => void;
 
 type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
-type ContextMenuAnchor = View | RNText | TextInput | HTMLDivElement | null | undefined;
+type ContextMenuAnchor = ComponentRef<typeof View> | ComponentRef<typeof RNText> | ComponentRef<typeof TextInput> | HTMLDivElement | null | undefined;
 
 type ShowContextMenuParams = {
     type: ContextMenuType;
