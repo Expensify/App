@@ -2,12 +2,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {openLink} from '@libs/actions/Link';
+import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
@@ -141,7 +143,7 @@ describe('ReportActionItem', () => {
 
     function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
@@ -3299,6 +3301,49 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(prompt())).toBeOnTheScreen();
+        });
+
+        const THUMBS_UP_EMOJI_NAME = '+1';
+
+        function buildThumbsUpReaction(timestamp: string) {
+            return {
+                [THUMBS_UP_EMOJI_NAME]: {
+                    createdAt: timestamp,
+                    oldestTimestamp: timestamp,
+                    users: {[ACTOR_ACCOUNT_ID]: {id: String(ACTOR_ACCOUNT_ID), oldestTimestamp: timestamp, skinTones: {[CONST.EMOJI_DEFAULT_SKIN_TONE]: timestamp}}},
+                },
+            };
+        }
+
+        async function reactWithThumbsUp(action: ReportAction, timestamp: string) {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, buildThumbsUpReaction(timestamp));
+            });
+        }
+
+        it('shows the acknowledgement in a second copy of the chat that did not take the press', async () => {
+            // The side panel and the central pane each mount their own copy, and the reaction is what they share
+            const action = createConciergeComment();
+            await reactWithThumbsUp(action, DateUtils.getDBTime());
+
+            renderItemWithAction(action, true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('stops showing the acknowledgement once the reaction is older than the window', async () => {
+            const action = createConciergeComment();
+            // Well past the few seconds the acknowledgement stays up for
+            await reactWithThumbsUp(action, DateUtils.getDBTime(Date.now() - 60000));
+
+            renderItemWithAction(action, true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
         });
 
         it('does not render while moderation has the message hidden', async () => {

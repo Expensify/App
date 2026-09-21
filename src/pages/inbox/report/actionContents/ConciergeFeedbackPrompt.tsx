@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {findEmojiByName, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
+import {findEmojiByName} from '@libs/EmojiUtils';
 
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -34,9 +34,27 @@ type ConciergeFeedbackPromptProps = {
     reportID: string | undefined;
 };
 
-/** A reaction can be stored under the emoji name or under its hexcode, so both keys are checked to keep a rated comment from showing the prompt again */
+/** A reaction can be stored under the emoji name or under its hexcode, so both keys are read */
+function getUserReactions(emoji: Emoji, reactions: OnyxEntry<ReportActionReactions>, accountID: number) {
+    return [reactions?.[emoji.name], emoji.hexcode ? reactions?.[emoji.hexcode] : undefined].map((entry) => entry?.users?.[accountID]).filter((userReaction) => !!userReaction);
+}
+
+/** A rated comment does not show the prompt again */
 function hasReactedWithEmoji(emoji: Emoji, reactions: OnyxEntry<ReportActionReactions>, accountID: number): boolean {
-    return [reactions?.[emoji.name], emoji.hexcode ? reactions?.[emoji.hexcode] : undefined].some((entry) => !!entry && hasAccountIDEmojiReacted(accountID, entry.users));
+    return getUserReactions(emoji, reactions, accountID).length > 0;
+}
+
+/**
+ * Returns when the user added the reaction, which times the acknowledgement from the reaction itself rather than from the press.
+ * Anywhere the same chat is open, such as the side panel next to the central pane, reads the same reaction and shows the acknowledgement too.
+ */
+function getReactedAtTimestamp(emoji: Emoji, reactions: OnyxEntry<ReportActionReactions>, accountID: number): number | undefined {
+    const timestamps = getUserReactions(emoji, reactions, accountID)
+        .flatMap((userReaction) => Object.values(userReaction.skinTones ?? {}))
+        .map((skinToneTimestamp) => new Date(`${skinToneTimestamp.replace(' ', 'T')}Z`).getTime())
+        .filter((timestamp) => !Number.isNaN(timestamp));
+
+    return timestamps.length > 0 ? Math.max(...timestamps) : undefined;
 }
 
 type ConciergeFeedbackThumbProps = {
@@ -81,35 +99,33 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
-    const [isDisplayedThankMessage, setIsDisplayedThankMessage] = useState(false);
-
-    useEffect(() => {
-        if (!isDisplayedThankMessage) {
-            return;
-        }
-
-        const thanksTimeoutID = setTimeout(() => setIsDisplayedThankMessage(false), THANKS_VISIBLE_DURATION_MS);
-        return () => clearTimeout(thanksTimeoutID);
-    }, [isDisplayedThankMessage]);
-
     const thumbsUp = findEmojiByName('+1');
     const thumbsDown = findEmojiByName('-1');
 
-    const rate = (emoji: Emoji, shouldDisplayThankMessage: boolean) => {
-        // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
-        toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true);
+    const thumbsUpReactedAt = getReactedAtTimestamp(thumbsUp, reactions, currentUserAccountID);
+    const [isDisplayedThankMessage, setIsDisplayedThankMessage] = useState(false);
 
-        if (!shouldDisplayThankMessage) {
+    useEffect(() => {
+        const remainingThanksTime = thumbsUpReactedAt === undefined ? 0 : thumbsUpReactedAt + THANKS_VISIBLE_DURATION_MS - Date.now();
+        setIsDisplayedThankMessage(remainingThanksTime > 0);
+
+        if (remainingThanksTime <= 0) {
             return;
         }
 
-        setIsDisplayedThankMessage(true);
+        const thanksTimeoutID = setTimeout(() => setIsDisplayedThankMessage(false), remainingThanksTime);
+        return () => clearTimeout(thanksTimeoutID);
+    }, [thumbsUpReactedAt]);
+
+    const rate = (emoji: Emoji) => {
+        // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
+        toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true);
     };
 
     const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
 
-    // The thanks message also requires the reaction, so removing the reaction from the reaction row brings the prompt back right away
-    if (isDisplayedThankMessage && hasRated) {
+    // The acknowledgement also requires the reaction, so removing it from the reaction row brings the prompt back right away
+    if (isDisplayedThankMessage && thumbsUpReactedAt !== undefined) {
         return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
     }
 
@@ -128,12 +144,12 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
                 <ConciergeFeedbackThumb
                     emoji={thumbsUp}
                     label={translate('concierge.feedback.useful')}
-                    onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp, true))}
+                    onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp))}
                 />
                 <ConciergeFeedbackThumb
                     emoji={thumbsDown}
                     label={translate('concierge.feedback.notUseful')}
-                    onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown, false))}
+                    onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown))}
                 />
             </View>
         </ActionableItemButtons>
