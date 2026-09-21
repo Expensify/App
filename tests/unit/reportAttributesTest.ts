@@ -272,6 +272,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const args: Parameters<ReportAttributesConfig['compute']>[0] = [
             overrideReports ?? reports, // reports
             undefined, // preferredLocale
+            undefined, // countryCodeByIP
             undefined, // transactionViolations
             undefined, // reportActions
             undefined, // reportNameValuePairs
