@@ -26,7 +26,7 @@ function TabsAdapter({items, value, onInputChange = () => {}, errorText}: TabsAd
         <View style={styles.mb3}>
             <TabSelectorBase
                 tabs={items.map((item) => ({key: item.value, title: item.label}))}
-                activeTabKey={value || undefined}
+                activeTabKey={value === '' ? undefined : value}
                 onTabPress={onInputChange}
                 equalWidth
                 shouldShowLabelWhenInactive

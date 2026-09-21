@@ -50,7 +50,7 @@ function PushRowModal({isVisible, canSelectMultiple = false, selectedOptions, on
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const initialSelectedValues = useInitialSelection(selectedOptions, {isVisible}) as string[];
+    const initialSelectedValues = useInitialSelection(selectedOptions, {isVisible});
 
     const options = useMemo(
         () =>
