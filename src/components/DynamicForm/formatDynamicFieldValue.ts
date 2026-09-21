@@ -5,7 +5,7 @@ import type {DynamicFormField} from '@src/types/onyx';
 import type {DynamicFormValues} from './types';
 
 import {getFieldOptions, getOptionLabel} from './getFieldOptions';
-import {isCountryCode} from './getInputComponentForField';
+import isCountryCode from './isCountryCode';
 
 /** Human-readable form of an answer for confirmation rows */
 function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormValues, translate: LocalizedTranslate): string {
@@ -33,6 +33,9 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
     }
     if (typeof answer === 'string' && field.type === 'country' && isCountryCode(answer)) {
         return translate(`allCountries.${answer}`);
+    }
+    if (typeof answer === 'string' && field.type === 'percent') {
+        return `${answer}%`;
     }
     return typeof answer === 'string' || typeof answer === 'number' ? String(answer) : '';
 }

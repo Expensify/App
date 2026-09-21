@@ -12,7 +12,7 @@ import type {Route} from '@src/ROUTES';
 import type {DynamicFormField} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import type {DynamicFormPage as DynamicFormPageSchema} from './groupFieldsIntoPages';
 import type {DynamicFormValues} from './types';
@@ -52,6 +52,9 @@ type DynamicFormFlowProps = {
 
     /** Overrides the step indicator's page-count default: true always shows it, false never does */
     shouldShowStepIndicator?: boolean;
+
+    /** Called with a page and its answers before the flow moves on, for flows that persist each page to the API */
+    onPageSubmit?: (page: DynamicFormPageSchema, values: DynamicFormValues) => void;
 };
 
 function EmptyPage() {
@@ -72,6 +75,7 @@ function DynamicFormFlow({
     isSubmitting = false,
     submitError,
     shouldShowStepIndicator,
+    onPageSubmit,
 }: DynamicFormFlowProps) {
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
@@ -89,7 +93,21 @@ function DynamicFormFlow({
         buildRoute,
     });
 
+    const isCurrentPageSkipped = !!currentPageName && skipPages.includes(currentPageName);
+    const pageNames = pages.map((page) => page.pageName);
+    const nextShownIndex = pageNames.findIndex((name, index) => index > pageIndex && !skipPages.includes(name));
+    const previousShownIndex = pageNames.findLastIndex((name, index) => index < pageIndex && !skipPages.includes(name));
+    const redirectIndex = isCurrentPageSkipped && !isRedirecting && !isLoadingOnyxValue(draftMetadata) ? Math.max(nextShownIndex, previousShownIndex) : -1;
+    useEffect(() => {
+        if (redirectIndex === -1) {
+            return;
+        }
+        moveTo(redirectIndex, false);
+    }, [redirectIndex, moveTo]);
+
     const goBackToConfirmation = () => Navigation.goBack(buildRoute(CONFIRM_PAGE));
+
+    const currentGroupPage = groupPages.find((page) => page.slug === currentPageName);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -105,6 +123,9 @@ function DynamicFormFlow({
 
     const handleNext = (values: DynamicFormValues) => {
         setPageAnswers((previous) => ({...previous, ...values}));
+        if (currentGroupPage) {
+            onPageSubmit?.(currentGroupPage, values);
+        }
         if (isEditing) {
             goBackToConfirmation();
             return;
@@ -112,7 +133,6 @@ function DynamicFormFlow({
         nextPage();
     };
 
-    const currentGroupPage = groupPages.find((page) => page.slug === currentPageName);
     const isConfirmationPage = currentPageName === CONFIRM_PAGE;
     const visibleGroupPages = groupPages.filter(hasVisibleField);
     const stepNames = visibleGroupPages.map((page) => page.name);
@@ -130,7 +150,7 @@ function DynamicFormFlow({
             })),
     );
 
-    const isLoading = isRedirecting || isLoadingOnyxValue(draftMetadata) || (!currentGroupPage && !isConfirmationPage);
+    const isLoading = isRedirecting || isCurrentPageSkipped || isLoadingOnyxValue(draftMetadata) || (!currentGroupPage && !isConfirmationPage);
 
     let content = <FullScreenLoadingIndicator />;
     if (!isLoading && currentGroupPage && !isConfirmationPage) {

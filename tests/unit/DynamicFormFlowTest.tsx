@@ -253,6 +253,55 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'));
     });
 
+    it('hands each page and its answers to onPageSubmit before moving on', async () => {
+        mockRouteParams.subPage = 'account-details';
+        const onPageSubmit = jest.fn();
+        render(
+            <DynamicFormFlow
+                fields={allFieldTypes}
+                formID={FORM_ID}
+                headerTitle="Add bank account"
+                testID="DynamicFormFlowPageSubmit"
+                buildRoute={buildRoute}
+                onSubmit={jest.fn()}
+                onBack={jest.fn()}
+                onPageSubmit={onPageSubmit}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onPageSubmit).toHaveBeenCalledTimes(1);
+        expect(onPageSubmit).toHaveBeenCalledWith(expect.objectContaining({slug: 'account-details', name: 'Account details'}), expect.objectContaining({accountNumber: '12345678'}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('account-holder-details'));
+    });
+
+    it('redirects away from a page whose fields are all hidden when it is opened directly', async () => {
+        mockRouteParams.subPage = 'ownership';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {legalType: 'PRIVATE'});
+        });
+        const hiddenOwnership = allFieldTypes.map((field) => (field.group === 'Ownership' ? {...field, showWhen: {key: 'legalType', equals: ['BUSINESS']}} : field));
+        render(
+            <DynamicFormFlow
+                fields={hiddenOwnership}
+                formID={FORM_ID}
+                headerTitle="Add bank account"
+                testID="DynamicFormFlowRedirect"
+                buildRoute={buildRoute}
+                onSubmit={jest.fn()}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText('Ownership')).not.toBeOnTheScreen();
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'));
+    });
+
     it('lets a flow force the step indicator on or off regardless of page count', async () => {
         const twoGroups = allFieldTypes.filter((field) => field.group !== 'Ownership');
         mockRouteParams.subPage = 'account-details';

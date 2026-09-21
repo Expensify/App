@@ -1,12 +1,14 @@
 import Button from '@components/Button';
+import formatDynamicFieldValue from '@components/DynamicForm/formatDynamicFieldValue';
 import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -51,9 +53,10 @@ type ListFieldAdapterProps = {
     renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
 };
 
-function summarizeItem(item: DynamicFormListItem, itemFields: DynamicFormField[]): {title: string; description: string} {
-    const [first, second] = itemFields.map((field) => item[field.key]).filter((answer) => typeof answer === 'string' && answer !== '');
-    return {title: typeof first === 'string' ? first : '', description: typeof second === 'string' ? second : ''};
+/** First answer names the row, the remaining answers describe it */
+function summarizeItem(item: DynamicFormListItem, itemFields: DynamicFormField[], translate: LocalizedTranslate): {title: string; description: string} {
+    const [title = '', ...rest] = itemFields.map((field) => formatDynamicFieldValue(field, item, translate)).filter((answer) => answer !== '');
+    return {title, description: rest.join(', ')};
 }
 
 /** Repeating group of sub-fields: a row per item, an add row, and a right-docked editor rendered through DynamicFormFields */
@@ -64,6 +67,8 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
     const [editingID, setEditingID] = useState<string | null>(null);
     const [, itemDraftMetadata] = useOnyx(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT);
     const items = Array.isArray(value) ? value : [];
+    const sensitiveKeys = itemFields.filter((field) => field.sensitive).map((field) => field.key);
+    const editingItem = items.find((existing) => existing.id === editingID);
     const isEditorOpen = editingID !== null;
     const canAddMore = maxItems === undefined || items.length < maxItems;
 
@@ -71,7 +76,7 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
         clearDraftValues(ITEM_FORM_ID);
         if (item) {
             const {id, ...answers} = item;
-            setDraftValues(ITEM_FORM_ID, answers);
+            setDraftValues(ITEM_FORM_ID, Object.fromEntries(Object.entries(answers).filter(([key]) => !sensitiveKeys.includes(key))));
             setEditingID(id);
             return;
         }
@@ -83,11 +88,17 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
         clearDraftValues(ITEM_FORM_ID);
     };
 
+    /** Sensitive answers are never drafted, so a blank one while editing keeps the item's stored value */
+    const withKeptSensitiveAnswers = (answers: DynamicFormValues): DynamicFormValues => ({
+        ...answers,
+        ...Object.fromEntries(sensitiveKeys.filter((key) => (answers[key] ?? '') === '' && editingItem?.[key] !== undefined).map((key) => [key, editingItem?.[key]])),
+    });
+
     const saveItem = (answers: FormOnyxValues<typeof ITEM_FORM_ID>) => {
         if (editingID === null) {
             return;
         }
-        const item: DynamicFormListItem = {...answers, id: editingID};
+        const item: DynamicFormListItem = {...withKeptSensitiveAnswers(answers), id: editingID};
         const isExisting = items.some((existing) => existing.id === editingID);
         onInputChange(isExisting ? items.map((existing) => (existing.id === editingID ? item : existing)) : [...items, item]);
         closeEditor();
@@ -98,18 +109,18 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
         closeEditor();
     };
 
-    const isEditingExisting = items.some((existing) => existing.id === editingID);
+    const isEditingExisting = editingItem !== undefined;
 
     return (
         <>
             {items.map((item) => {
-                const {title, description} = summarizeItem(item, itemFields);
+                const summary = summarizeItem(item, itemFields, translate);
                 return (
-                    <MenuItemWithTopDescription
+                    <MenuItemAvatarNavigation
                         key={item.id}
-                        title={title}
-                        description={description}
-                        shouldShowRightIcon
+                        title={summary.title}
+                        description={summary.description}
+                        accountID={CONST.DEFAULT_NUMBER_ID}
                         onPress={() => openEditor(item)}
                     />
                 );
@@ -146,7 +157,7 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText = '', labe
                         <FormProvider
                             formID={ITEM_FORM_ID}
                             submitButtonText={translate('common.save')}
-                            validate={(values) => getDynamicFieldErrors(itemFields, values, translate)}
+                            validate={(values) => getDynamicFieldErrors(itemFields, withKeptSensitiveAnswers(values), translate)}
                             onSubmit={saveItem}
                             style={[styles.mh5, styles.flexGrow1]}
                             submitButtonStyles={styles.mb0}

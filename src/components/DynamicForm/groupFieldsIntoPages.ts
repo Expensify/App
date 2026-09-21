@@ -27,6 +27,15 @@ function groupFieldsIntoPages(fields: DynamicFormField[]): DynamicFormPage[] {
             pages.push({name: field.group, slug: toSlug(field.group), fields: [field]});
         }
     }
+    const taken = new Set<string>();
+    for (const [index, page] of pages.entries()) {
+        let slug = page.slug || `page-${index + 1}`;
+        for (let suffix = 2; taken.has(slug); suffix++) {
+            slug = `${page.slug || `page-${index + 1}`}-${suffix}`;
+        }
+        taken.add(slug);
+        page.slug = slug;
+    }
     return pages;
 }
 

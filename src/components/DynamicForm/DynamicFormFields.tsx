@@ -75,7 +75,7 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true}: D
                             InputComponent={InputComponent}
                             inputID={field.key}
                             label={label}
-                            shouldSaveDraft={shouldSaveDraft && !field.sensitive}
+                            shouldSaveDraft={shouldSaveDraft && !field.sensitive && !field.itemFields?.some((itemField) => itemField.sensitive)}
                             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                             {...inputProps}
                         />

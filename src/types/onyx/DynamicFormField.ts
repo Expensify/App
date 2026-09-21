@@ -18,6 +18,9 @@ type DynamicFormFieldOption = {
     labelKey?: TranslationPaths;
 };
 
+/** A named check from ValidationUtils that a regex cannot express; each applies to one type */
+type DynamicFormFieldRule = 'legalName' | 'dateOfBirth' | 'zipCode';
+
 /** One field of a schema-driven form, as the server emits it or as an App-owned schema declares it */
 type DynamicFormField = {
     /** Unique key within the form; also the Onyx draft key */
@@ -54,6 +57,9 @@ type DynamicFormField = {
     maxFiles?: number;
 
     regex?: string;
+
+    /** legalName for text, dateOfBirth for date, zipCode for address; ignored on other types */
+    rule?: DynamicFormFieldRule;
 
     minLength?: number;
 
@@ -98,4 +104,4 @@ type DynamicFormField = {
 /** One entry of a list field; `id` is generated on the device for row keys */
 type DynamicFormListItem = Record<string, unknown> & {id: string};
 
-export type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType, DynamicFormKeyboard, DynamicFormListItem};
+export type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldRule, DynamicFormFieldType, DynamicFormKeyboard, DynamicFormListItem};

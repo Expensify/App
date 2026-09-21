@@ -26,7 +26,7 @@ function renderRefreshHook(fields: DynamicFormField[], values: DynamicFormValues
     const fetch = jest.fn();
     const resetToPage = jest.fn();
     const hook = renderHook(
-        (props: {fields: DynamicFormField[]; values: DynamicFormValues}) => useRefreshOnChange({...props, fetch, formID: FORM_ID, currentPageName: 'Account details', resetToPage}),
+        (props: {fields: DynamicFormField[]; values: DynamicFormValues}) => useRefreshOnChange({...props, fetch, formID: FORM_ID, currentPageName: 'account-details', resetToPage}),
         {
             initialProps: {fields, values},
         },
@@ -82,7 +82,7 @@ describe('useRefreshOnChange', () => {
 
         expect(setDraftValues).toHaveBeenCalledTimes(1);
         expect(setDraftValues).toHaveBeenCalledWith(FORM_ID, {[STATE_KEY]: null});
-        expect(resetToPage).toHaveBeenCalledWith('Account details');
+        expect(resetToPage).toHaveBeenCalledWith('account-details');
     });
 
     it('after a schema replace that only adds fields, clears nothing', () => {

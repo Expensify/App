@@ -16,6 +16,7 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `description` / `descriptionKey` | Supporting text: a hint under a text field, a line above anything else. |
 | `group` | Page. Fields with the same group render on one page, in first-appearance order. |
 | `required`, `regex`, `minLength`, `maxLength` | Validation, applied by `getDynamicFieldErrors`. Every failing rule is reported. |
+| `rule` | A named check from `ValidationUtils` a regex cannot express: `legalName` (text), `dateOfBirth` (date, past and 18 or older) or `zipCode` (address, against the chosen country). The same checks and copy as the ACH sub-step forms. |
 | `values`, `dependsOn` | Options for choice fields; `dependsOn` filters them by another answer. |
 | `showWhen` | Visibility by another answer. Hidden fields are never validated. |
 | `refreshOnChange` | Re-fetch the schema when this answer changes (`useRefreshOnChange`). |
@@ -66,6 +67,8 @@ The `adapters/` folder holds prop mappers that give existing components the `val
 ```
 
 The route must accept a `subPage` segment and an optional `action=edit` parameter, as the Corpay and enable-GR routes do. Pages that mount before their draft has loaded must wait for it (`isLoadingOnyxValue` on the draft metadata); the flow does this, and any page that uses `DynamicFormFields` directly must too, because `AmountForm` reads its value only on mount.
+
+Pass `onPageSubmit` to persist each page as the ACH flow does. It receives the page and that page's answers before the flow moves on, so the consumer's action can call its API command per group; the page's own button shows the form key's `isLoading` and `errors` without further wiring.
 
 The step indicator appears at three or more pages by default. Pass `shouldShowStepIndicator` to force it on for a shorter flow or off for a longer one; single-screen forms never get one.
 

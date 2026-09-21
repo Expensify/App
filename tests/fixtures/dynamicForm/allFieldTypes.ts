@@ -74,6 +74,7 @@ const allFieldTypes: DynamicFormField[] = [
         labelKey: 'common.dob',
         group: 'Account holder details',
         type: 'date',
+        rule: 'dateOfBirth',
         required: true,
         refreshOnChange: false,
     },

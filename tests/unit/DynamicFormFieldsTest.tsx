@@ -192,7 +192,9 @@ describe('DynamicFormFields', () => {
         expect(loneSelect?.InputComponent).toBe(InlineSelectionListAdapter);
         expect(loneSelect?.items?.map((item) => item.value)).toEqual(['CHECKING', 'SAVINGS']);
 
-        expect(renderFields([isSourceOfFund]).get('isSourceOfFund')?.InputComponent).toBe(YesNoAdapter);
+        const loneBoolean = renderFields([isSourceOfFund]).get('isSourceOfFund');
+        expect(loneBoolean?.InputComponent).toBe(YesNoAdapter);
+        expect(loneBoolean?.valueType).toBeUndefined();
         expect(renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('isSourceOfFund')?.InputComponent).toBe(CheckboxWithLabel);
     });
 
@@ -205,6 +207,41 @@ describe('DynamicFormFields', () => {
         expect(chosen?.InputComponent).toBe(AmountWithCurrencyAdapter);
         expect(chosen?.currency).toBe('GBP');
         expect(chosen?.currencyKey).toBe('annualVolumeCurrency');
+    });
+
+    it('summarizes each list item from its formatted answers', () => {
+        const list = allFieldTypes.find((field) => field.key === 'legalEntityShareholders');
+        if (!list) {
+            throw new Error('fixture changed');
+        }
+        render(
+            <ListFieldAdapter
+                itemFields={list.itemFields ?? []}
+                value={[{id: '1', name: 'Alice Nguyen', country: 'GB', ownershipPercentage: '25'}]}
+                renderFields={() => null}
+            />,
+        );
+
+        expect(screen.getByText('Alice Nguyen')).toBeOnTheScreen();
+        expect(screen.getByText('allCountries.GB, 25%')).toBeOnTheScreen();
+    });
+
+    it('does not draft a list whose items hold a sensitive answer', () => {
+        const owners: DynamicFormField = {
+            key: 'owners',
+            label: 'Owners',
+            group: 'Ownership',
+            type: 'list',
+            required: false,
+            refreshOnChange: false,
+            itemFields: [
+                {key: 'name', label: 'Name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+                {key: 'ssn', label: 'SSN', group: 'Owner', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+            ],
+        };
+
+        expect(renderFields([owners]).get('owners')?.shouldSaveDraft).toBe(false);
+        expect(renderFields(allFieldTypes, {legalType: 'BUSINESS'}).get('legalEntityShareholders')?.shouldSaveDraft).toBe(true);
     });
 
     it('passes the item schema to the list adapter', () => {
@@ -238,6 +275,8 @@ describe('DynamicFormFields', () => {
             country: 'representative.address.country',
             lat: '',
             lng: '',
+            name: '',
+            address: '',
         });
         expect(renderFields(allFieldTypes).get('address')?.renamedInputKeys).toEqual(addressAdapter('address'));
     });

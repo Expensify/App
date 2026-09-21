@@ -1,13 +1,22 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
-import {isValidDate} from '@libs/ValidationUtils';
+import {
+    getCountryZipRegexDetails,
+    isValidDate,
+    isValidLegalName,
+    isValidPastDate,
+    isValidZipCodeForCountry,
+    meetsMaximumAgeRequirement,
+    meetsMinimumAgeRequirement,
+} from '@libs/ValidationUtils';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
 import type {DynamicFormValues} from './types';
 
 import {getFieldOptions} from './getFieldOptions';
+import isCountryCode from './isCountryCode';
 import isFieldVisible from './isFieldVisible';
 
 type DynamicFieldErrors = Record<string, string>;
@@ -79,10 +88,18 @@ function getFieldErrors(field: DynamicFormField, values: DynamicFormValues, tran
     if (hasStaleOption(field, value, values)) {
         return [translate('dynamicForm.error.invalidOption')];
     }
-    if (typeof value !== 'string' || value === '') {
-        return [];
-    }
     const messages: string[] = [];
+    if (field.type === 'address' && field.rule === 'zipCode') {
+        const zipCode = values[`${field.key}.zipCode`];
+        const chosenCountry = values[`${field.key}.country`];
+        const country = typeof chosenCountry === 'string' && isCountryCode(chosenCountry) ? chosenCountry : '';
+        if (typeof zipCode === 'string' && zipCode !== '' && !isValidZipCodeForCountry(zipCode, country)) {
+            messages.push(translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(country)?.samples));
+        }
+    }
+    if (typeof value !== 'string' || value === '') {
+        return messages;
+    }
     if (field.type === 'percent') {
         const percent = Number(value);
         if (!Number.isFinite(percent) || percent < PERCENT_MIN || percent > PERCENT_MAX) {
@@ -98,8 +115,17 @@ function getFieldErrors(field: DynamicFormField, values: DynamicFormValues, tran
     if (field.maxLength !== undefined && value.length > field.maxLength) {
         messages.push(translate('common.error.characterLimitExceedCounter', value.length, field.maxLength));
     }
-    if (field.type === 'date' && !isValidDate(value)) {
-        messages.push(translate('dynamicForm.error.invalidDate'));
+    if (field.type === 'text' && field.rule === 'legalName' && !isValidLegalName(value)) {
+        messages.push(translate('privatePersonalDetails.error.hasInvalidCharacter'));
+    }
+    if (field.type === 'date') {
+        if (!isValidDate(value)) {
+            messages.push(translate('dynamicForm.error.invalidDate'));
+        } else if (field.rule === 'dateOfBirth' && (!isValidPastDate(value) || !meetsMaximumAgeRequirement(value))) {
+            messages.push(translate('bankAccount.error.dob'));
+        } else if (field.rule === 'dateOfBirth' && !meetsMinimumAgeRequirement(value)) {
+            messages.push(translate('bankAccount.error.age'));
+        }
     }
     return messages;
 }

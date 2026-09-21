@@ -173,7 +173,12 @@ PageByPageFlow.args = {
 const OwnersList: DynamicFormStory = Template.bind({});
 OwnersList.args = {
     fields: allFieldTypes.filter((field) => field.key === 'legalEntityShareholders'),
-    draftValues: {},
+    draftValues: {
+        legalEntityShareholders: [
+            {id: '1', name: 'Alice Nguyen', country: 'GB', ownershipPercentage: '25'},
+            {id: '2', name: 'Marcus Webb', country: 'US', ownershipPercentage: '25'},
+        ],
+    },
     layout: 'pages',
 };
 
