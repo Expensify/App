@@ -19,9 +19,12 @@ type CountryPickerProps = {
 
     /** Form Error description */
     errorText?: string;
+
+    /** Row description; the generic Country label when omitted */
+    label?: string;
 };
 
-function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPickerProps) {
+function CountryPicker({value, errorText, onInputChange = () => {}, label}: CountryPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -39,7 +42,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}
-                description={translate('common.country')}
+                description={label ?? translate('common.country')}
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
