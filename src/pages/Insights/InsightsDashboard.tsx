@@ -160,13 +160,13 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const hash = query?.hash;
 
     const requestDashboard = () => {
-        if (!jsonQuery || hash === undefined || isOffline) {
+        if (!query || !jsonQuery || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, jsonQuery);
+        getInsights(dashboardID, hash, jsonQuery, query.snapshotHashes);
     };
 
-    const onQueryChanged = useEffectEvent(() => {
+    const onRequestConditionsChanged = useEffectEvent(() => {
         requestDashboard();
     });
 
@@ -174,7 +174,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         if (!isFocused) {
             return;
         }
-        onQueryChanged();
+        onRequestConditionsChanged();
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
