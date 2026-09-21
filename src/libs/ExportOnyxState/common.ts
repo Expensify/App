@@ -38,6 +38,7 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.AVATAR_CROP_DRAFT,
     ONYXKEYS.AVATAR_CROP_RESULT,
     ONYXKEYS.AGENT_NEW_AVATAR_DRAFT,
+    ONYXKEYS.WISE_KYC_REVIEW_EMBEDDED_LINK,
     ...Object.values(ONYXKEYS.DERIVED),
 ]);
 
@@ -524,6 +525,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.WALLET_STATEMENT,
     ONYXKEYS.WALLET_TERMS,
     ONYXKEYS.WALLET_TRANSFER,
+    ONYXKEYS.WISE_KYC_REQUIREMENTS,
 ]);
 
 // ============================================================
