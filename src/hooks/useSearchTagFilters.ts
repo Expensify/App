@@ -145,6 +145,8 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         setSearchTagFiltersPagination(false, '', query);
 
         // A new search cancels any in-flight request, so it owns the loading state from here on.
+        // The cancelled loadMore skips its own reset when it sees the bumped sequence, so clear its spinner here.
+        setIsLoadingMore(false);
         // The collection is cleared by openSearchTagFiltersPage, so there is no cached data to show silently.
         setIsSearching(true);
 
@@ -165,7 +167,6 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     // Clear persisted pagination and cached pages when the filter closes so a fresh open re-fetches with valid hasMore.
     useEffect(() => {
         return () => {
-            setIsFilteringLocally(false);
             clearSearchTagFiltersState();
         };
     }, []);

@@ -143,6 +143,38 @@ describe('useSearchTagFilters', () => {
         });
     });
 
+    it('clears the page-loading state when a new search supersedes an in-flight page load', async () => {
+        setPartialTagFilterState('');
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({hasMore: true, nextCursor: 'cursor-2'});
+
+        const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        await waitFor(() => {
+            expect(onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]).toEqual(expect.objectContaining({hasMore: true, nextCursor: 'cursor-2'}));
+        });
+
+        // Keep the next page request in flight so the search starts while it is still pending
+        mockOpenSearchTagFiltersPage.mockReturnValueOnce(new Promise(() => {}));
+
+        act(() => {
+            result.current.loadMore();
+        });
+
+        await waitFor(() => {
+            expect(result.current.isLoadingMore).toBe(true);
+        });
+
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({hasMore: false, nextCursor: ''});
+
+        act(() => {
+            result.current.searchTags('marketing');
+        });
+
+        await waitFor(() => {
+            expect(result.current.isLoadingMore).toBe(false);
+        });
+    });
+
     it('re-fetches with the active search query on reconnect while the filter stays mounted', async () => {
         setPartialTagFilterState('travel');
         mockIsOffline = true;
