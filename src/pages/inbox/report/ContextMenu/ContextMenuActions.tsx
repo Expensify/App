@@ -16,6 +16,7 @@ import getClipboardText from '@libs/Clipboard/getClipboardText';
 import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
+import {getDownloadFileName} from '@libs/fileDownload/FileUtils';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -33,6 +34,7 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -43,6 +45,7 @@ import {
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
@@ -70,6 +73,7 @@ import {
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -448,7 +452,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
-        renderContent: (closePopover, {reportID, reportActions, reportAction, currentUserAccountID, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
+        renderContent: (closePopover, {reportID, reportActions, reportAction, currentUserAccountID, close: closeManually, openContextMenu, setIsEmojiPickerActive, isOffline}) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback?: () => void) => {
@@ -463,7 +467,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             };
 
             const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => {
-                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID, reportActions);
+                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID, reportActions, isOffline);
                 closeContextMenu();
                 setIsEmojiPickerActive?.(false);
             };
@@ -651,6 +655,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 childReportActions,
                 currentUserAccountID,
                 conciergeChat,
+                isOffline,
                 personalDetails,
             },
         ) => {
@@ -668,7 +673,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             const editAction = () => {
-                saveReportActionDraft(originalReportID ?? reportID, reportAction, originalReportActions ?? reportActions, Parser.htmlToMarkdown(getActionHtml(reportAction)));
+                saveReportActionDraft(originalReportID ?? reportID, reportAction, originalReportActions ?? reportActions, Parser.htmlToMarkdown(getActionHtml(reportAction)), isOffline);
             };
 
             if (closePopover) {
@@ -1054,7 +1059,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReportPreviewMessageForCopy({
                         reportOrID: iouReportID,
                         iouReportAction: reportAction,
-                        reportAttributes,
+                        derivedReportName: iouReportID ? reportAttributes?.[iouReportID]?.reportName : undefined,
                     });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
@@ -1072,6 +1077,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                         policyTags,
                         currentUserAccountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                        formatPhoneNumber,
+                        movedFromReportName: undefined,
                     });
                     // Convert HTML to markdown for clipboard copy to preserve links and formatting
                     const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
@@ -1168,6 +1175,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getSubmitsToUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
                     Clipboard.setString(getForwardsToUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO) {
+                    Clipboard.setString(getOverLimitForwardsToUpdateMessage(translate, reportAction, convertToDisplayString));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT) {
+                    Clipboard.setString(getApprovalLimitUpdateMessage(translate, reportAction, convertToDisplayString));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
                     Clipboard.setString(getAutoPayApprovedReportsEnabledMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
@@ -1379,6 +1390,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedCardFeedStatementPeriodMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
                     setClipboardMessage(getTravelUpdateMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+                    // setClipboardMessage treats its argument as HTML, and the helper returns plain text, so encode it to copy a workspace name containing an entity literally.
+                    setClipboardMessage(Str.htmlEncode(getConciergeAutoSelectDistanceRateMessage(translate, reportAction)));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
                     setClipboardMessage(getUpdatedAuditRateMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE)) {
@@ -1566,9 +1580,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
         icon: 'Flag',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) =>
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID, currentUserAccountID}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            canFlagReportAction(reportAction, reportID) &&
+            canFlagReportAction(reportAction, reportID, currentUserAccountID) &&
             !isArchivedRoom &&
             !isChronosReport &&
             reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
@@ -1611,7 +1625,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            fileDownload(translate, sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
+            fileDownload(translate, sourceURLWithAuth, getDownloadFileName(originalFileName ?? '', sourceURL ?? ''), '', isAnchorTag && isMobileSafari()).then(() =>
+                setDownload(sourceID, false),
+            );
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

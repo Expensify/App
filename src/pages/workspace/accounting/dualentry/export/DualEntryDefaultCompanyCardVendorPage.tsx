@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDualEntryErrorField, updateDualEntryDefaultVendor} from '@libs/actions/connections/DualEntry';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {getDualEntryVendors, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,24 +30,21 @@ type VendorListItem = ListItem & {
 };
 
 function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const dualentryConfig = policy?.connections?.dualEntry?.config;
-    const dualentryData = policy?.connections?.dualEntry?.data;
     const defaultCompanyCardVendorID = dualentryConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
-    const data: VendorListItem[] =
-        dualentryData?.vendors
-            ?.filter((vendorItem) => vendorItem.isActive)
-            .map((vendorItem) => ({
-                value: vendorItem.id,
-                text: vendorItem.name,
-                keyForList: vendorItem.id,
-                isSelected: defaultCompanyCardVendorID === vendorItem.id,
-            })) ?? [];
+    const sortedVendors = sortVendors(getDualEntryVendors(policy), localeCompare);
+    const data: VendorListItem[] = sortedVendors.map((vendorItem) => ({
+        value: vendorItem.id,
+        text: vendorItem.name,
+        keyForList: vendorItem.id,
+        isSelected: defaultCompanyCardVendorID === vendorItem.id,
+    }));
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
