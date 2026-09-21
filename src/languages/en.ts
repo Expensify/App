@@ -3471,12 +3471,14 @@ const translations = {
         employees: {
             title: 'How many employees do you have?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-9 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10-50 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1,000 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'More than 1,000 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5-10 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1-10 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11-50 employees',
         },
         accounting: {
             title: 'Do you use any accounting software?',
@@ -9869,6 +9871,12 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
             },
             feed: 'Feed',
+            transactionStatus: {
+                label: 'Transaction status',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Pending',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Posted',
+                hint: 'Only applies to card transactions.',
+            },
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',

@@ -377,7 +377,14 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     });
 
     // If needed, update optimistic data for parent report action of the parent report.
-    optimisticData.push(...ReportUtils.getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
+    optimisticData.push(
+        ...ReportUtils.getOptimisticDataForAncestors(
+            ancestors,
+            currentTime,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            optimisticAddCommentReport.reportAction.delegateAccountID ?? currentUserAccountID,
+        ),
+    );
 
     // FOR PARENT REPORT (SHARE DESTINATION)
     successData.push({

@@ -148,7 +148,7 @@ import type {ValueOf} from 'type-fest';
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
+import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -224,7 +224,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     // The report from which a tracked expense would be submitted/categorized/shared, and its actions -
     // createDraftTransactionAndNavigateToParticipantSelector uses them to find the linked track-expense action
-    const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
+    const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID, isOffline);
     const [actionReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`);
 
     const {removeTransaction} = useSearchSelectionActions();
@@ -246,6 +246,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const {getCurrencyDecimals} = useCurrencyListActions();
     const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email), [currentUserPersonalDetails?.email]);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
+    const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {showConfirmModal} = useConfirmModal();
     const reportForHeader = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
@@ -569,14 +570,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
-                    isRestrictedToPreferredPolicy,
-                    preferredPolicyID,
+                    restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
                     transaction: iouTransaction,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
                     currentUserLocalCurrency,
                     filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                    firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                    firstPolicy: filteredPoliciesInfo?.firstPolicy,
                 };
                 // "Submit to someone" splits into two destinations here too, matching the track-expense whisper:
                 // submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
@@ -641,7 +641,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
                             filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                            firstPolicy: filteredPoliciesInfo?.firstPolicy,
                         });
                     },
                 });
@@ -668,7 +668,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
                             filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                            firstPolicy: filteredPoliciesInfo?.firstPolicy,
                         });
                     },
                 });
@@ -805,7 +805,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         showLastMemberLeavingModal,
         isSmallScreenWidth,
         isRestrictedToPreferredPolicy,
-        preferredPolicyID,
+        preferredPolicy,
         introSelected,
         draftTransactionIDs,
         activePolicy,
@@ -816,7 +816,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         iouOriginalTransaction,
         hasWorkspaceToSubmitTo,
         filteredPoliciesInfo?.filteredPoliciesCount,
-        filteredPoliciesInfo?.firstPolicyID,
+        filteredPoliciesInfo?.firstPolicy,
         parentReport,
         delegateEmail,
         conciergeReportID,

@@ -271,7 +271,7 @@
 "../../src/components/ReceiptHoverZoom/useReceiptHoverZoom.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionAvatars/useReportPreviewSenderID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/IssueCardMessage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"rulesdir/no-direct-personal-details-list"	3
@@ -886,7 +886,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	17
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	32
-"../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	14
+"../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	13
 "../../src/libs/sanitizeLogParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	48
@@ -945,7 +945,6 @@
 "../../src/pages/domain/Members/MoveUserBetweenGroupsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Members/TwoFactorAuth/DomainMemberForceTwoFactorAuthPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Members/TwoFactorAuth/DomainMemberResetTwoFactorAuthPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"rulesdir/no-direct-personal-details-list"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
