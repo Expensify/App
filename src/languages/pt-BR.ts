@@ -6838,6 +6838,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 other: (count: number) => `${count} Tags`,
             }),
             showTagGLCodes: 'Mostrar códigos GL ao selecionar uma tag',
+            showTagGLCodesSubtitle: 'Se um código GL não for exibido, ele não está disponível para essa tag no seu sistema contábil.',
         },
         taxes: {
             subtitle: 'Adicione nomes de impostos, taxas e defina padrões.',
