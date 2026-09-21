@@ -14886,7 +14886,6 @@ export {
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getIntegrationNameFromExportMessage,
-    isPayAtEndExpenseReport,
     getApprovalChain,
     isIndividualInvoiceRoom,
     hasOutstandingChildRequest,
