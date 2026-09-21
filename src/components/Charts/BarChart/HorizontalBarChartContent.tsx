@@ -290,7 +290,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     })();
 
     const {ascent, descent} = fontManager ? getFontLineMetrics(fontManager, variables.iconSizeExtraSmall) : {ascent: 0, descent: 0};
-    const valueLabelHeight = Math.abs(ascent) + Math.abs(descent);
+    const valueLabelHeight = ascent + descent;
     const labelSpace = VictoryTheme.axis.labelGap + valueLabelHeight;
 
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
