@@ -2884,12 +2884,18 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         if (businessCentralVendors === undefined) {
             return undefined;
         }
-        return businessCentralVendors.map((vendor) => ({
-            id: vendor.id,
-            name: vendor.name,
-            currency: '',
-            email: vendor.email,
-        }));
+
+        // A vendor blocked as `All` can't be used in Business Central, so coding an expense
+        // to it would export to a record Business Central rejects.
+        // `Payment` only blocks paying the vendor, and purchase invoices can still post
+        return businessCentralVendors
+            .filter((vendor) => vendor.blocked !== CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL)
+            .map((vendor) => ({
+                id: vendor.id,
+                name: vendor.name,
+                currency: '',
+                email: vendor.email,
+            }));
     }
     return undefined;
 }

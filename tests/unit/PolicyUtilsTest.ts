@@ -4530,7 +4530,15 @@ describe('PolicyUtils', () => {
             });
 
         const BUSINESS_CENTRAL_VENDORS_UNSYNCED = Symbol('BUSINESS_CENTRAL_VENDORS_UNSYNCED');
-        const businessCentralVendor = (id: string, name: string, email = '') => ({id, number: '', name, email, blocked: '', expensifyVendorId: '', lastModifiedDateTime: ''});
+        const businessCentralVendor = (id: string, name: string, email = '', blocked: string = CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE) => ({
+            id,
+            number: '',
+            name,
+            email,
+            blocked,
+            expensifyVendorId: '',
+            lastModifiedDateTime: '',
+        });
         const buildBusinessCentralPolicy = (
             vendors: Array<ReturnType<typeof businessCentralVendor>> | typeof BUSINESS_CENTRAL_VENDORS_UNSYNCED = [businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com')],
             {isConfigured = true}: {isConfigured?: boolean} = {},
@@ -4575,6 +4583,27 @@ describe('PolicyUtils', () => {
                     title: translate('workspace.businessCentral.noVendorsFound'),
                     subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
                 });
+            });
+
+            it('excludes vendors blocked as All but keeps ones blocked as Payment', () => {
+                // Given a synced list holding one unblocked, one payment-blocked, and one fully blocked vendor
+                const policy = buildBusinessCentralPolicy([
+                    businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com'),
+                    businessCentralVendor('bc-2', 'Fabrikam', '', CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.PAYMENT),
+                    businessCentralVendor('bc-3', 'Adventure Works', '', CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL),
+                ]);
+
+                // When the matching list is read
+                const vendorIDs = getMatchingVendors(policy).map((vendor) => vendor.id);
+
+                // Then only the All-blocked vendor is dropped, because Business Central still posts
+                // purchase invoices for a payment-blocked vendor but rejects every transaction for an All-blocked one
+                expect(vendorIDs).toEqual(['bc-1', 'bc-2']);
+                expect(getMatchingVendorByID(policy, 'bc-3')).toBeUndefined();
+
+                // And the permissive historical lookup still resolves its name, so an expense coded
+                // before the block renders the vendor instead of the raw external ID
+                expect(findVendorByID(policy, 'bc-3')?.name).toBe('Adventure Works');
             });
 
             it('yields to Rillet, which precedes it in the matching order', () => {
