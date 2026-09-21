@@ -1263,6 +1263,14 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        emptyState: {
+            title: 'Nothing to show',
+            subtitle: 'Try adjusting your criteria above',
+        },
+        noExpensesState: {
+            title: 'See where your money goes',
+            subtitle: 'Once you have expenses, you’ll find spending trends, top merchants, and more.',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',

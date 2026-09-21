@@ -7459,6 +7459,11 @@ const plainStyles = (theme: ThemeColors) =>
                 flexBasis: shouldUseNarrowLayout ? '100%' : '50%',
                 padding: variables.insightsCardGap / 2,
             }) satisfies ViewStyle,
+
+        insightsEmptyStateIllustration: {
+            width: variables.insightsEmptyStateIllustrationSize,
+            height: variables.insightsEmptyStateIllustrationSize,
+        } satisfies ImageStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

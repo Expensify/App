@@ -16,9 +16,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID} from '@src/types/onyx';
+import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -32,6 +34,8 @@ import type {InsightsFilters} from './insightsFilters';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 import buildInsightsJsonQuery from './insightsQueries';
+import InsightsEmptyState from './states/InsightsEmptyState';
+import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
 
 const INSIGHTS_DASHBOARD_STATE = {
@@ -39,12 +43,14 @@ const INSIGHTS_DASHBOARD_STATE = {
     LOADING: 'loading',
     ERROR: 'error',
     OFFLINE: 'offline',
+    EMPTY: 'empty',
+    NO_EXPENSES: 'noExpenses',
 } as const;
 
 type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 
 /** Resolves the page's state from the record stored for the query on screen, which the key it is read under already scopes. */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboardRecord>, isOffline: boolean): InsightsDashboardState {
+function getDashboardState(dashboard: OnyxEntry<InsightsDashboardRecord>, isOffline: boolean, headlineSnapshot: OnyxEntry<SearchResults>): InsightsDashboardState {
     // Only a response sets `inputQuery`, so until one lands the record holds nothing to draw.
     const isDataLoaded = !!dashboard?.inputQuery;
 
@@ -56,6 +62,12 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboardRecord>, isOffl
     }
     if (!isDataLoaded) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
+    }
+    if (dashboard?.hasResults === false) {
+        return INSIGHTS_DASHBOARD_STATE.NO_EXPENSES;
+    }
+    if (headlineSnapshot?.data && !Object.keys(headlineSnapshot.data).some(isGroupEntry)) {
+        return INSIGHTS_DASHBOARD_STATE.EMPTY;
     }
     return INSIGHTS_DASHBOARD_STATE.DATA;
 }
@@ -108,6 +120,14 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
                 addOfflineIndicatorBottomSafeAreaPadding
             />
         );
+    }
+
+    if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES) {
+        return <InsightsNoExpensesState />;
+    }
+
+    if (state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
+        return <InsightsEmptyState />;
     }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
@@ -178,6 +198,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
+    const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart.graphKey]?.snapshotHash}`);
 
     return (
         <ScreenWrapper
@@ -193,7 +214,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             <InsightsDashboardContent
                 dashboardID={dashboardID}
                 hash={hash}
-                state={getDashboardState(dashboard, isOffline)}
+                state={getDashboardState(dashboard, isOffline, headlineSnapshot)}
                 filters={filters}
                 onRetry={requestDashboard}
             />

@@ -171,6 +171,7 @@ import LockClosed from '@assets/images/simple-illustrations/simple-illustration_
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
+import MagnifyingGlassChart from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-chart.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
@@ -356,6 +357,7 @@ const Illustrations = {
     HandCard,
     Hashtag,
     InvoiceBlue,
+    MagnifyingGlassChart,
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
     MoneyReceipts,
