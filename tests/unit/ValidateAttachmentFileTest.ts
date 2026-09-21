@@ -345,6 +345,91 @@ describe('validateAttachmentFile', () => {
         });
     });
 
+    describe('missing file extension', () => {
+        it('recovers the extension from the MIME type for a native file picked without one', async () => {
+            // Given a native attachment whose picker returned no extension (an Android content:// URI
+            // resolves to a bare numeric segment), but which does carry its MIME type
+            const file: FileObject = {name: '1000000042', size: 100, type: 'video/mp4', uri: 'content://media/external/video/media/42'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the extension is backfilled, so downloading it later produces a file the OS can open
+            // instead of an extensionless generic document
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('1000000042.mp4');
+        });
+
+        it('recovers the extension for the chat_attachment fallback name', async () => {
+            // Given a document picker that returned `name: null`, so getDataForUpload fell back to the
+            // literal default attachment name
+            const file: FileObject = {name: CONST.DEFAULT_ATTACHMENT_FILENAME, size: 100, type: 'video/mp4'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the default name gets a real extension
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe(`${CONST.DEFAULT_ATTACHMENT_FILENAME}.mp4`);
+        });
+
+        it('leaves the name untouched when the MIME type is unknown', async () => {
+            // Given an extensionless attachment whose MIME type cannot be mapped to an extension
+            const file: FileObject = {name: '1000000042', size: 100, type: 'application/not-a-real-type'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then no extension is invented, because a wrong extension is worse than none
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('1000000042');
+        });
+
+        it('leaves a name that already has an extension untouched', async () => {
+            // Given an attachment that already carries an extension disagreeing with its MIME type
+            const file: FileObject = {name: 'recording.mov', size: 100, type: 'video/mp4'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the picker's own name is preserved
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('recording.mov');
+        });
+
+        it('recovers the extension on the web File path too', async () => {
+            // Given a web File with a real MIME type but no extension in its name
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+            try {
+                const file: FileObject = new File([new Blob(['content'], {type: 'video/mp4'})], 'screen_recording', {type: 'video/mp4'});
+
+                // When it is validated
+                const result = await validateAttachmentFile(file);
+
+                // Then the snapshotted File is renamed with the recovered extension
+                expect(result.isValid).toBe(true);
+                if (!result.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(result.file.name).toBe('screen_recording.mp4');
+            } finally {
+                createObjectURLSpy.mockRestore();
+            }
+        });
+    });
+
     describe('object URL revocation', () => {
         it('revokes the superseded blob: uri and assigns the new object URL', async () => {
             // In Node/Jest the react-native-url-polyfill throws for createObjectURL (no BlobModule).

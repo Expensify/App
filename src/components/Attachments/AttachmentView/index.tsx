@@ -409,6 +409,7 @@ function AttachmentView({
         return (
             <AttachmentViewVideo
                 source={source}
+                fileName={file?.name}
                 shouldUseSharedVideoElement={!CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix))}
                 isHovered={isHovered}
                 duration={duration}
