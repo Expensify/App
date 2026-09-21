@@ -631,20 +631,28 @@ describe('PolicyUtils', () => {
                     },
                 });
 
-            it('does not protect an approver who holds no admin role of their own', () => {
+            it('protects an approver who holds no admin role of their own', () => {
                 // Given a workspace chat whose participants include two approvers from the submitter's approval
                 // chain, both plain members of the workspace
                 const policy = buildPolicyWithApprovalChain();
 
                 // When each approver's protection is resolved
-                // Then being an approver does not protect them on its own, because only the member's own policy role
-                // and the policy owner do. This matches what the workspace Members page already allows — an admin can
-                // remove an approver outright there, which reroutes their approval workflows to the workspace owner —
-                // so the chat cannot be stricter than the workspace itself. It also matches the behaviour before
-                // https://github.com/Expensify/App/pull/80006, when `isUserPolicyAdmin(policy, login)` looked the
-                // member's own login up in `employeeList`
-                expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, chainApproverAccountID)).toBe(false);
-                expect(isRoomMemberProtectedByPolicyRole(policy, forwardsToLogin, chainApproverAccountID)).toBe(false);
+                // Then they are protected on the strength of being approvers alone. Approvers are auto-added to the
+                // chat of everyone who submits to them, so their membership is governed by the workspace's approval
+                // workflow rather than by this screen: only a member who was invited to the chat can be removed from
+                // it, per the expense chat rules in contributingGuides/philosophies/SECURITY.md
+                expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, chainApproverAccountID)).toBe(true);
+                expect(isRoomMemberProtectedByPolicyRole(policy, forwardsToLogin, chainApproverAccountID)).toBe(true);
+            });
+
+            it('still allows removing an invited member of a workspace that has an approval chain', () => {
+                // Given the same approval chain, and the submitter who is neither an admin, the owner, nor an approver
+                const policy = buildPolicyWithApprovalChain();
+
+                // When their protection is resolved
+                // Then they stay removable. Protecting approvers must not widen back out to every member and
+                // reintroduce the bug this PR fixes
+                expect(isRoomMemberProtectedByPolicyRole(policy, memberLogin, regularMemberAccountID)).toBe(false);
             });
 
             it('protects an approver who is also an admin of the policy', () => {
