@@ -44,15 +44,14 @@ type DynamicFormStory = StoryFn<DynamicFormStoryProps>;
 
 type LayoutProps = Omit<DynamicFormStoryProps, 'layout'>;
 
-/** Seeds the draft after mount and reports when Onyx holds exactly it, so the form mounts with the draft as a real page would */
+/** Seeds the draft after mount and reports once the write has landed, so the form mounts with the draft as a real page would */
 function useSeededDraft(draftValues: DynamicFormStoryProps['draftValues']): boolean {
-    const [draft] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [isSeeded, setIsSeeded] = useState(false);
     useEffect(() => {
         clearDraftValues(STORYBOOK_FORM_ID);
         setDraftValues(STORYBOOK_FORM_ID, draftValues).then(() => setIsSeeded(true));
     }, [draftValues]);
-    return isSeeded && Object.keys(draftValues).every((key) => JSON.stringify(draft?.[key]) === JSON.stringify(draftValues[key]));
+    return isSeeded;
 }
 
 function SinglePage({fields, draftValues}: LayoutProps) {
