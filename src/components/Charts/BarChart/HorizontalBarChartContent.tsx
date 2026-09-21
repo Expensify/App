@@ -211,7 +211,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         // gap keeps the empty space above/below a bar inert, including a single bar that spans the whole plot.
         // Horizontally the target spans the category label column on the left through the bar itself (so hovering
         // a group label also shows the tooltip), but stops at the bar tip so the plot space beyond a short bar is inert.
-        // The bar runs between the zero axis and its tip; positive bars point right (tip past the axis), negative
+        // The bar runs between the zero axis and its tip. Positive bars point right (tip past the axis), negative
         // bars point left (tip before the axis). Extend the tolerance outward past the tip, and always include the
         // label column at the left edge (cursorX 0) so a group label stays hoverable regardless of the bar's sign.
         const thickness = barThickness.get();
