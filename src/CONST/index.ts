@@ -4495,6 +4495,12 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+
+        /** Some workspaces report these instead of the values above. They mean the same thing, so resolve them before comparing. */
+        DEPRECATED_REIMBURSEMENT_CHOICES: {
+            REIMBURSEMENT_NO: 'deprecated_reimburseNo', // None
+            REIMBURSEMENT_MANUAL: 'deprecated_reimburseManual', // Indirect
+        },
         GLOBAL_REIMBURSEMENT_FX_PREFERENCE: {
             COMPANY: 'company',
             EMPLOYEE: 'employee',
