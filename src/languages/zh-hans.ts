@@ -3793,6 +3793,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符，前 6 个为字母，后接 2 或 5 个字母或数字。',
         countrySelectionStepHeader: '您的银行账户位于哪个国家/地区？',
         accountDetailsStepHeader: '你的账户详情是什么？',
         accountTypeStepHeader: '这是哪种类型的账户？',

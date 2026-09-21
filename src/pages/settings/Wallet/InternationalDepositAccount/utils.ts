@@ -143,7 +143,12 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
         for (const rule of field.validationRules) {
             const regExpCheck = new RegExp(rule.regEx);
             if (!regExpCheck.test(values[fieldName])) {
-                addErrorMessage(errors, fieldName, rule.errorMessage);
+                // Corpay's strict SWIFT rule also requires a six-letter prefix, which its message may omit.
+                const errorMessage =
+                    fieldName === 'swiftBicCode' && rule.regEx === '^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$'
+                        ? translate('addPersonalBankAccount.swiftBicFormatError')
+                        : rule.errorMessage;
+                addErrorMessage(errors, fieldName, errorMessage);
             }
         }
     }

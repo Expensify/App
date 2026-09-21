@@ -4049,6 +4049,7 @@ const translations = {
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
         countrySelectionStepHeader: "Where's your bank account located?",
         accountDetailsStepHeader: 'What are your account details?',
         accountTypeStepHeader: 'What type of account is this?',

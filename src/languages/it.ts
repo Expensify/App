@@ -3918,6 +3918,7 @@ ${amount} per ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Il codice SWIFT/BIC deve contenere 8 o 11 caratteri: 6 lettere seguite da 2 o 5 lettere o numeri.',
         countrySelectionStepHeader: 'Dove si trova il tuo conto bancario?',
         accountDetailsStepHeader: 'Quali sono i dettagli del tuo account?',
         accountTypeStepHeader: 'Che tipo di conto è questo?',
