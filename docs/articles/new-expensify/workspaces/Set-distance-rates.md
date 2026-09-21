@@ -71,15 +71,15 @@ To configure how commutes are excluded:
 4. Select **Exclude commutes**.
 5. Choose **Exclude a fixed distance per claim**.
 6. Enter the fixed distance to subtract from each claim.
-7. Click **Save**.
+7. Select **Save**.
 
 ---
 
-## How the fixed-distance exclusion is applied
+## How the Exclude commutes setting is applied
 
 When **Exclude a fixed distance per claim** is set: 
 
-- Members can create distance expenses using Map or GPS. Manual and odometer entry are hidden.
+- Members can create distance expenses using **Map** or **GPS**. **Manual** and **Odometer** entry are hidden.
 - The fixed distance exclusion applies to all members of the workspace, and the configured distance is subtracted from each distance expense.
 - On each distance expense, members see a message confirming the portion that was removed, such as "removed 3.6 commute miles".
 - If the excluded distance is greater than the trip distance, the reimbursable distance is set to zero.
