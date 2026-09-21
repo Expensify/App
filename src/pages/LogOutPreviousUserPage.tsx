@@ -6,6 +6,9 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import Log from '@libs/Log';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
 import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
@@ -34,6 +37,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {initialURL} = useInitialURLState();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
     const {translate} = useLocalize();
@@ -49,9 +53,31 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const linkEmail = new URLSearchParams(transitionURL ?? undefined).get('email');
 
         if (isLoggingInAsNewUser) {
-            if (isSupportalLogin || isAnonymousUser(session)) {
+            if (isSupportalLogin) {
                 // We don't want to close react-native app in this particular case.
                 signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+                return;
+            }
+
+            if (isAnonymousUser(session)) {
+                // We don't want to close react-native app in this particular case.
+                Navigation.isNavigationReady().then(() => {
+                    if (lastVisitedPath) {
+                        try {
+                            // Rebuilt like a cold start restore of this path, so the sign-in modal opens over the last public room instead of a blank loader.
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                            navigationRef.resetRoot({...getAdaptedStateFromPath(lastVisitedPath as Route), stale: true});
+                        } catch (error) {
+                            // A path saved by an older build may no longer exist.
+                            Log.warn('Unable to restore the last visited path for an anonymous user', {error});
+                            Navigation.goBack();
+                        }
+                    } else {
+                        // We must call goBack() to remove the /transition route from history
+                        Navigation.goBack();
+                    }
+                    signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+                });
                 return;
             }
 
