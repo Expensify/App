@@ -270,6 +270,18 @@ describe('CopyPolicySettingsUtils', () => {
             distancePolicy.areDistanceRatesEnabled = true;
             expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', {...baseContext, policy: distancePolicy})).toBe(true);
         });
+
+        it('shows invoices only when the feature is enabled and has invoice configuration', () => {
+            const invoicePolicy = createRandomPolicy(12);
+            invoicePolicy.areInvoicesEnabled = true;
+
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: invoicePolicy, hasInvoiceConfiguration: true})).toBe(true);
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: invoicePolicy, hasInvoiceConfiguration: false})).toBe(false);
+
+            const disabledInvoicePolicy = createRandomPolicy(13);
+            disabledInvoicePolicy.areInvoicesEnabled = false;
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: disabledInvoicePolicy, hasInvoiceConfiguration: true})).toBe(false);
+        });
     });
 
     describe('isTargetCompatibleForAccountingPart', () => {
@@ -446,6 +458,18 @@ describe('CopyPolicySettingsUtils', () => {
 
             it('does not treat rules as Control-only, since Collect can access them', () => {
                 expect(getControlOnlySelectedParts([collectTarget(1)], ['rules'] as Part[])).toEqual([]);
+            });
+
+            it('treats invoices as Control-only when source policy has invoice fields enabled', () => {
+                const sourcePolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['invoices'] as Part[], sourcePolicy);
+                expect(result).toContain('invoices');
+            });
+
+            it('does not treat invoices as Control-only when source policy has no invoice fields', () => {
+                const sourcePolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['invoices'] as Part[], sourcePolicy);
+                expect(result).not.toContain('invoices');
             });
 
             it('returns nothing when there are no Collect targets', () => {

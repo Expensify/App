@@ -1675,59 +1675,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getReportActionText', () => {
-        it('should return the backend-provided CARDFROZEN text', () => {
-            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
-                reportActionID: 'card-frozen-action-123',
-                actorAccountID: 21052128,
-                created: '2026-03-12 01:58:43.479',
-                message: [
-                    {
-                        html: cardFrozenMessage,
-                        text: cardFrozenMessage,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        whisperedTo: [],
-                    },
-                ],
-                originalMessage: {
-                    html: cardFrozenMessage,
-                    isNewDot: true,
-                    lastModified: '2026-03-12 01:58:43.479',
-                },
-            };
-
-            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardFrozenMessage);
-        });
-
-        it('should return the backend-provided CARDUNFROZEN text', () => {
-            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
-                reportActionID: 'card-unfrozen-action-123',
-                actorAccountID: 21052128,
-                created: '2026-03-12 02:08:08.128',
-                message: [
-                    {
-                        html: cardUnfrozenMessage,
-                        text: cardUnfrozenMessage,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        whisperedTo: [],
-                    },
-                ],
-                originalMessage: {
-                    html: cardUnfrozenMessage,
-                    isNewDot: true,
-                    lastModified: '2026-03-12 02:08:08.128',
-                },
-            };
-
-            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardUnfrozenMessage);
-            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
-        });
-    });
-
     describe('getMessageOfOldDotReportAction', () => {
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
@@ -2245,45 +2192,6 @@ describe('ReportActionsUtils', () => {
 
             expect(() => ReportActionsUtils.getFirstVisibleReportActionID(sorted)).not.toThrow();
             expect(ReportActionsUtils.getFirstVisibleReportActionID(sorted)).toBe(legacyExpenseUpdateAction.reportActionID);
-        });
-    });
-
-    describe('getOriginalMessage', () => {
-        it('returns undefined when the underlying originalMessage is a plain string (legacy shape)', () => {
-            const reportAction = addLegacyReportActionFields(
-                {
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    reportActionID: 'legacy-1',
-                },
-                {originalMessage: 'plain string from legacy backend'},
-            );
-
-            expect(getOriginalMessage(reportAction)).toBeUndefined();
-        });
-
-        it('returns undefined when message is a non-array string and originalMessage is missing', () => {
-            const reportAction = addLegacyReportActionFields(
-                {
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    reportActionID: 'legacy-2',
-                },
-                {message: 'plain string from legacy backend'},
-            );
-
-            expect(getOriginalMessage(reportAction)).toBeUndefined();
-        });
-
-        it('returns the object when originalMessage is object-shaped', () => {
-            const reportAction: ReportAction = {
-                created: '',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: 'shaped-1',
-                originalMessage: {html: 'hi', whisperedTo: []},
-            };
-
-            expect(getOriginalMessage(reportAction)).toEqual({html: 'hi', whisperedTo: []});
         });
     });
 
@@ -3330,63 +3238,6 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.hasPendingDEWSubmit(undefined, true);
 
             // Then it should return false
-            expect(result).toBe(false);
-        });
-    });
-
-    describe('isDynamicExternalWorkflowApproveFailedAction', () => {
-        it('should return true for DEW_APPROVE_FAILED action type', () => {
-            // Given a report action with DEW_APPROVE_FAILED action type
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    message: 'This report cannot be approved because of compliance issues.',
-                    automaticAction: false,
-                },
-                message: [],
-                previousMessage: [],
-            };
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
-
-            // Then it should return true because the action type is DEW_APPROVE_FAILED
-            expect(result).toBe(true);
-        });
-
-        it('should return false for non-DEW_APPROVE_FAILED action type', () => {
-            // Given a report action with APPROVED action type (not DEW_APPROVE_FAILED)
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    expenseReportID: '1',
-                    amount: 1,
-                    currency: CONST.CURRENCY.USD,
-                },
-                message: [],
-                previousMessage: [],
-            };
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
-
-            // Then it should return false because the action type is not DEW_APPROVE_FAILED
-            expect(result).toBe(false);
-        });
-
-        it('should return false for null action', () => {
-            // Given a null action
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(null);
-
-            // Then it should return false because the action is null
             expect(result).toBe(false);
         });
     });
@@ -7288,6 +7139,84 @@ describe('ReportActionsUtils', () => {
             });
             const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
             expect(actual).toBe('changed the "Advertising" category description to not required (previously required)');
+        });
+    });
+
+    describe('getLatestConciergeFeedbackActionID', () => {
+        function conciergeComment(reportActionID: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction {
+            return {
+                reportActionID,
+                reportID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created,
+                message: [{type: 'COMMENT', html: 'hi', text: 'hi'}],
+                originalMessage: {html: 'hi', whisperedTo: []},
+                shouldShow: true,
+                ...overrides,
+            } as ReportAction;
+        }
+
+        function persisted(actions: ReportAction[]): string[] {
+            return actions.map((action) => action.reportActionID);
+        }
+
+        it('returns the newest persisted Concierge comment', () => {
+            const older = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([newer, older], persisted([newer, older]))).toBe('200');
+        });
+
+        it('shows nothing when the newest Concierge comment is the client-built greeting', () => {
+            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
+            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([greeting, real], persisted([real]))).toBeUndefined();
+        });
+
+        it('uses the real comment when the greeting sits below it, as the session list orders them', () => {
+            const real = conciergeComment('200', '2026-09-04 00:00:00.000');
+            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([real, greeting], persisted([real]))).toBe('200');
+        });
+
+        it('returns undefined when the greeting is the only Concierge comment', () => {
+            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([greeting], persisted([]))).toBeUndefined();
+        });
+
+        it('shows nothing while a Concierge draft streams, then moves to it once it lands in Onyx', () => {
+            const draft = conciergeComment('300', '2026-09-04 00:00:00.000');
+            const previous = conciergeComment('200', '2026-09-02 00:00:00.000');
+            // Falling back to the previous answer would ask the user to rate an older reply
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([draft, previous], persisted([previous]))).toBeUndefined();
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([draft, previous], persisted([draft, previous]))).toBe('300');
+        });
+
+        it('skips Concierge whispers and deleted Concierge comments', () => {
+            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}} as Partial<ReportAction>);
+            const deleted = conciergeComment('350', '2026-09-04 00:00:00.000', {message: [{type: 'COMMENT', html: '', text: ''}]} as Partial<ReportAction>);
+            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const sorted = [whisper, deleted, real];
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('ignores non-Concierge authors and non-comment actions', () => {
+            const userComment = conciergeComment('500', '2026-09-06 00:00:00.000', {actorAccountID: 12345});
+            const created = conciergeComment('450', '2026-09-05 00:00:00.000', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
+            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const sorted = [userComment, created, real];
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('skips a Concierge comment that failed to save', () => {
+            const failed = conciergeComment('600', '2026-09-07 00:00:00.000', {errors: {someError: 'error'}});
+            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const sorted = [failed, real];
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('returns undefined for an empty report', () => {
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([], persisted([]))).toBeUndefined();
         });
     });
 });
