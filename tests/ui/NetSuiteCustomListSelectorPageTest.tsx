@@ -101,9 +101,9 @@ describe('NetSuiteCustomListSelectorPage', () => {
             />,
         );
 
-        // `includePaddingTop` defaults to true. This page used to pass it as false, which zeroed the top safe-area
-        // inset and drew HeaderWithBackButton at y=0, underneath the status bar. It has no full-bleed header that
-        // would justify opting out.
+        // `includePaddingTop` defaults to true, so `ScreenWrapper` applies the top safe-area inset and
+        // `HeaderWithBackButton` renders below the status bar. This page has no full-bleed header, so it must not
+        // opt out.
         expect(mockedScreenWrapper.mock.lastCall?.[0].includePaddingTop).not.toBe(false);
     });
 

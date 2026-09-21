@@ -128,7 +128,7 @@ describe.each([CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, CONST.NE
         it('keeps the default top safe-area padding so the header is not drawn under the status bar', () => {
             renderPage(importCustomField, 3);
 
-            // `includePaddingTop` defaults to true; passing it as false is what previously pushed a header under the status bar.
+            // `includePaddingTop` defaults to true, so `ScreenWrapper` applies the top safe-area inset and the header renders below the status bar.
             expect(mockedScreenWrapper.mock.lastCall?.[0].includePaddingTop).not.toBe(false);
         });
 
@@ -155,8 +155,8 @@ describe.each([CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, CONST.NE
         it('keeps the add button footer outside the scroll area so it stays docked when the list overflows', () => {
             renderPage(importCustomField, 20);
 
-            // The footer used to live inside the scroll area, so a record list taller than the viewport pushed the add
-            // button into the clipped region and it disappeared.
+            // The footer is a sibling of the scroll area, not a child of it, so a record list taller than the viewport
+            // scrolls underneath while the add button stays docked and visible.
             expect(within(screen.getByTestId(SCROLL_VIEW_TEST_ID)).queryAllByTestId(FIXED_FOOTER_TEST_ID).length).toBe(0);
             expect(screen.getByTestId(FIXED_FOOTER_TEST_ID)).toHaveTextContent(`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`);
         });
@@ -164,8 +164,8 @@ describe.each([CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, CONST.NE
         it('adds the bottom safe-area padding to both the scroll area and the footer', () => {
             renderPage(importCustomField, 3);
 
-            // The footer sits outside the ConnectionLayout ScrollView that used to supply the bottom inset, so each one
-            // now has to ask for it.
+            // The scroll area and the footer are siblings, so neither one inherits a bottom inset from the other and
+            // each has to request its own.
             expect(mockedScrollView.mock.lastCall?.[0].addBottomSafeAreaPadding).toBe(true);
             expect(mockedFixedFooter.mock.lastCall?.[0].addBottomSafeAreaPadding).toBe(true);
         });
