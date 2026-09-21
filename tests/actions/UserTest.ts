@@ -15,7 +15,7 @@ import * as DeviceActions from '../../src/libs/actions/Device';
 import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
 import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';
-import {anyArray, anyObject, anyString} from '../utils/TestHelper';
+import {anyArray, anyObject, anyString, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -1072,7 +1072,7 @@ describe('actions/User', () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateID);
             await waitForBatchedUpdates();
 
-            UserActions.subscribeToUserEvents(1, 'anon@test.com', () => {}, undefined);
+            UserActions.subscribeToUserEvents(1, 'anon@test.com', () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
 
             await PusherUtils.triggerMultiEventHandler(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, []);
@@ -1086,7 +1086,7 @@ describe('actions/User', () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 42);
             await waitForBatchedUpdates();
 
-            UserActions.subscribeToUserEvents(1, 'test@test.com', () => {}, undefined);
+            UserActions.subscribeToUserEvents(1, 'test@test.com', () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
 
             await PusherUtils.triggerMultiEventHandler(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, []);

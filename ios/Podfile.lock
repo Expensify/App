@@ -27,6 +27,30 @@ PODS:
   - AppAuth/ExternalUserAgent (1.7.6):
     - AppAuth/Core
   - AppLogs (0.1.0)
+  - callstack-repack (5.3.0):
+    - hermes-engine
+    - JWTDecode (~> 3.0.0)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - SwiftyRSA (~> 1.7)
+    - Yoga
   - EXConstants (57.0.7):
     - ExpoModulesCore
   - expensify-react-native-background-task (0.0.0):
@@ -304,6 +328,7 @@ PODS:
   - hermes-engine (250829098.0.14):
     - hermes-engine/Pre-built (= 250829098.0.14)
   - hermes-engine/Pre-built (250829098.0.14)
+  - JWTDecode (3.0.1)
   - libavif/core (0.11.1)
   - libavif/libdav1d (0.11.1):
     - libavif/core
@@ -358,7 +383,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroFetch (1.5.4):
+  - NitroFetch (1.6.2):
     - hermes-engine
     - NitroModules
     - RCTRequired
@@ -382,7 +407,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - NitroModules (0.36.3):
+  - NitroModules (0.37.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2295,7 +2320,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-skia (2.4.18):
+  - react-native-skia (2.11.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3389,6 +3414,9 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
   - SwiftUIIntrospect (1.3.0)
+  - SwiftyRSA (1.7.0):
+    - SwiftyRSA/ObjC (= 1.7.0)
+  - SwiftyRSA/ObjC (1.7.0)
   - TrustKit (3.0.7)
   - Turf (4.0.0)
   - TweetNacl (1.0.2)
@@ -3404,6 +3432,7 @@ PODS:
 DEPENDENCIES:
   - AirshipServiceExtension
   - AppLogs (from `../node_modules/react-native-app-logs/AppLogsPod`)
+  - "callstack-repack (from `../node_modules/@callstack/repack`)"
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - "expensify-react-native-background-task (from `../node_modules/@expensify/react-native-background-task`)"
   - "ExpensifyNitroUtils (from `../node_modules/@expensify/nitro-utils`)"
@@ -3575,6 +3604,7 @@ SPEC REPOS:
     - GTMAppAuth
     - GTMSessionFetcher
     - GzipSwift
+    - JWTDecode
     - libavif
     - libdav1d
     - libwebp
@@ -3594,6 +3624,7 @@ SPEC REPOS:
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
     - SwiftUIIntrospect
+    - SwiftyRSA
     - TrustKit
     - Turf
     - TweetNacl
@@ -3601,6 +3632,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   AppLogs:
     :path: "../node_modules/react-native-app-logs/AppLogsPod"
+  callstack-repack:
+    :path: "../node_modules/@callstack/repack"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   expensify-react-native-background-task:
@@ -3909,6 +3942,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
+  callstack-repack: 2c8ad8507fd93905f0956af245ca29cf2d040016
   EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
   expensify-react-native-background-task: 36103a7c2d62b3f5682a6e2773186d08e46338c5
   ExpensifyNitroUtils: d627f58d9dd38c2dd4833f59b2c078cf61ad0171
@@ -3945,6 +3979,7 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: cef4da13a0175c7858fc0fd91e9c26d331631577
+  JWTDecode: 2eed97c2fa46ccaf3049a787004eedf0be474a87
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -3954,8 +3989,8 @@ SPEC CHECKSUMS:
   MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
   MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroFetch: 12ce0e5ad0471fda148796f9201f37e86844da2b
-  NitroModules: 700826960c37e38380b0840d675946b1ae54e90b
+  NitroFetch: 42521ebe6c3f291b2be0e1d73c7fe95c4e4ea0b8
+  NitroModules: 6232dc95a28a7a221227e618733ce0e674e8753b
   NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
@@ -4018,7 +4053,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: a2df4f145f61869507d730062764abca085b6a00
   react-native-quick-base64: e254a406ac7d7f20857c9fbcbfb57fbf91ae21be
   react-native-safe-area-context: 4b3960e27c8a3ca0c1523348f97513e27f8509b7
-  react-native-skia: d77e9be1f11741e39f43ff8df0e3e1c6f4e707ea
+  react-native-skia: b3c25cbcfdc2d4f68b73390ff1b50ef2a9bc5968
   react-native-view-shot: 6da2aaa0404b8d617ab1689550acdb251d759af9
   react-native-wallet: 69c8fde0b0e16899b95b2689f7cb737f4ec247f9
   react-native-webview: 5233e591e6849d953cea601995eab6a1c91f0819
@@ -4085,6 +4120,7 @@ SPEC CHECKSUMS:
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
+  SwiftyRSA: 8c6dd1ea7db1b8dc4fb517a202f88bb1354bc2c6
   TrustKit: 1050f3ce0595f8ed775f1237b7f590e3a4f93e91
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
