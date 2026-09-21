@@ -3688,6 +3688,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether Expensify automatically copies newly published government distance rates onto this policy */
         shouldAutoUpdateGovernmentDistanceRates?: boolean;
 
+        /** ISO country code an EUR workspace auto-updates government distance rates for, since the currency is shared by several supported countries */
+        autoUpdateGovernmentRateCountry?: string;
+
         /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
         requireMapOrGPS?: boolean;
     } & Partial<PendingJoinRequestPolicy>,

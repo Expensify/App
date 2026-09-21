@@ -21,7 +21,16 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getGovernmentRateCountryPhraseTranslationKey, isCommuterExclusionEnabled, isCurrencySupportedForAutoUpdate, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
+import {
+    getAutoUpdateGovernmentRateCountry,
+    getGovernmentRateCountryPhraseTranslationKey,
+    isCommuterExclusionEnabled,
+    isCurrencySupportedForAutoUpdate,
+    isMapOrGPSRequired,
+    isSharedGovernmentRateCurrency,
+    markGovernmentRateCountryPromptShown,
+    wasGovernmentRateCountryPromptShown,
+} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 
@@ -121,8 +130,10 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         clearPolicyDistanceRatesErrorFields(policyID, customUnit.customUnitID, {...errorFields, [fieldName]: null});
     };
 
-    const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(policy?.outputCurrency);
-    const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit && !!countryPhraseTranslationKey;
+    const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
+    const autoUpdateCountry = getAutoUpdateGovernmentRateCountry(policy);
+    const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(autoUpdateCountry);
+    const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit;
 
     const navigateToUpgrade = () => {
         Navigation.navigate(
@@ -153,8 +164,25 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             return;
         }
 
+        // EUR is shared by several supported countries, so the workspace picks its country before anything is written
+        if (isOn && isSharedCurrency && !autoUpdateCountry) {
+            Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID));
+            return;
+        }
+
         setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency);
     };
+
+    // A workspace that switched its currency to EUR while auto-update was on has no country yet, so open the
+    // selection page on the next settings visit. Shown once per session, so dismissing it doesn't re-open it.
+    const shouldPromptGovernmentRateCountry = isSharedCurrency && !!policy?.shouldAutoUpdateGovernmentDistanceRates && !autoUpdateCountry;
+    useEffect(() => {
+        if (!shouldPromptGovernmentRateCountry || wasGovernmentRateCountryPromptShown(policyID)) {
+            return;
+        }
+        markGovernmentRateCountryPromptShown(policyID);
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID));
+    }, [shouldPromptGovernmentRateCountry, policyID]);
 
     // Commuter exclusions are computed from the mapped route, so they enforce the requirement on their own. The
     // toggle is shown on and locked in that case, and the stored setting is left untouched so the admin's own
@@ -253,9 +281,30 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </View>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>
-                                    {translate('workspace.distanceRates.autoUpdateGovernmentRateDescription', translate(countryPhraseTranslationKey))}
+                                    {translate(
+                                        'workspace.distanceRates.autoUpdateGovernmentRateDescription',
+                                        translate(countryPhraseTranslationKey ?? 'workspace.distanceRates.governmentRateCountryGeneric'),
+                                    )}
                                 </Text>
                             </View>
+                        </OfflineWithFeedback>
+                    )}
+                    {isAutoUpdateSupported && isSharedCurrency && !!policy?.shouldAutoUpdateGovernmentDistanceRates && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(policy ?? {}, 'autoUpdateGovernmentRateCountry')}
+                            errorRowStyles={styles.mh5}
+                            pendingAction={policy?.pendingFields?.autoUpdateGovernmentRateCountry}
+                            onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={canWriteDistanceRates}
+                                title={autoUpdateCountry ? translate(`allCountries.${autoUpdateCountry}`) : ''}
+                                description={translate('common.country')}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID))}
+                                interactive={canWriteDistanceRates}
+                                wrapperStyle={[styles.ph5, styles.mt3]}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COUNTRY_SELECTOR}
+                            />
                         </OfflineWithFeedback>
                     )}
                     <ToggleSettingOptionRow

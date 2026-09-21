@@ -173,13 +173,13 @@ describe('PolicyDistanceRatesUtils', () => {
     });
 
     describe('getGovernmentRateCountryPhraseTranslationKey', () => {
-        it('should return the country phrase key for a supported currency', () => {
-            expect(getGovernmentRateCountryPhraseTranslationKey('USD')).toBe('workspace.distanceRates.governmentRateCountries.US');
-            expect(getGovernmentRateCountryPhraseTranslationKey('GBP')).toBe('workspace.distanceRates.governmentRateCountries.GB');
+        it('should return the country phrase key for a supported country', () => {
+            expect(getGovernmentRateCountryPhraseTranslationKey('US')).toBe('workspace.distanceRates.governmentRateCountries.US');
+            expect(getGovernmentRateCountryPhraseTranslationKey('GB')).toBe('workspace.distanceRates.governmentRateCountries.GB');
         });
 
-        it('should return undefined for an unsupported currency', () => {
-            expect(getGovernmentRateCountryPhraseTranslationKey('NZD')).toBeUndefined();
+        it('should return undefined for a missing country', () => {
+            expect(getGovernmentRateCountryPhraseTranslationKey(undefined)).toBeUndefined();
         });
     });
 

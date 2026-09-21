@@ -230,7 +230,7 @@ function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
-/** The country publishing government mileage rates for a currency, or undefined when we can't auto-update them. */
+/** The country publishing government mileage rates for a currency, or undefined when the currency alone cannot pick one. */
 function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateCountry | undefined {
     if (!currency) {
         return undefined;
@@ -240,20 +240,48 @@ function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateC
     return currencyToCountry[currency];
 }
 
+/** Whether the currency is shared by several supported countries, so the workspace chooses the country itself. */
+function isSharedGovernmentRateCurrency(currency?: string): boolean {
+    return currency === CONST.CURRENCY.EUR;
+}
+
 /** Whether we can auto-update government distance rates for this output currency. */
 function isCurrencySupportedForAutoUpdate(currency?: string): boolean {
-    return !!getGovernmentRateCountryForCurrency(currency);
+    return !!getGovernmentRateCountryForCurrency(currency) || isSharedGovernmentRateCurrency(currency);
+}
+
+/** The country whose government mileage rates this policy auto-updates: the stored choice for EUR, derived from the currency otherwise. */
+function getAutoUpdateGovernmentRateCountry(policy: Policy | null | undefined): GovernmentRateCountry | undefined {
+    if (!policy) {
+        return undefined;
+    }
+
+    if (isSharedGovernmentRateCurrency(policy.outputCurrency)) {
+        const supportedEURCountries: readonly string[] = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES;
+        const selectedCountry = policy.autoUpdateGovernmentRateCountry;
+        return selectedCountry && supportedEURCountries.includes(selectedCountry) ? (selectedCountry as GovernmentRateCountry) : undefined;
+    }
+
+    return getGovernmentRateCountryForCurrency(policy.outputCurrency);
+}
+
+/** The unit a country publishes its mileage rates in. */
+function getExpectedUnitForCountry(country?: string): Unit | undefined {
+    if (!country) {
+        return undefined;
+    }
+
+    const countryToUnit: Partial<Record<string, Unit>> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT;
+    return countryToUnit[country];
 }
 
 /** The unit the currency's country publishes its mileage rates in. */
 function getExpectedUnitForCurrency(currency?: string): Unit | undefined {
-    const country = getGovernmentRateCountryForCurrency(currency);
-    return country ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT[country] : undefined;
+    return getExpectedUnitForCountry(getGovernmentRateCountryForCurrency(currency));
 }
 
 /** Translation key for the country phrase in the auto-update copy, e.g. "the United States". */
-function getGovernmentRateCountryPhraseTranslationKey(currency?: string): TranslationPaths | undefined {
-    const country = getGovernmentRateCountryForCurrency(currency);
+function getGovernmentRateCountryPhraseTranslationKey(country?: GovernmentRateCountry): TranslationPaths | undefined {
     if (!country) {
         return undefined;
     }
@@ -263,6 +291,17 @@ function getGovernmentRateCountryPhraseTranslationKey(currency?: string): Transl
 
 function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
     return !!policy?.id && !!policy.commuterExclusions;
+}
+
+/** Policies whose EUR country selection page already auto-opened this session, so it opens once rather than on every settings visit. */
+const shownGovernmentRateCountryPrompts = new Set<string>();
+
+function wasGovernmentRateCountryPromptShown(policyID: string): boolean {
+    return shownGovernmentRateCountryPrompts.has(policyID);
+}
+
+function markGovernmentRateCountryPromptShown(policyID: string): void {
+    shownGovernmentRateCountryPrompts.add(policyID);
 }
 
 /**
@@ -301,10 +340,15 @@ export {
     buildOnyxDataForPolicyDistanceRateUpdates,
     getRateStatus,
     getGovernmentRateCountryForCurrency,
+    isSharedGovernmentRateCurrency,
     isCurrencySupportedForAutoUpdate,
+    getAutoUpdateGovernmentRateCountry,
+    getExpectedUnitForCountry,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     isCommuterExclusionEnabled,
+    wasGovernmentRateCountryPromptShown,
+    markGovernmentRateCountryPromptShown,
     isMapOrGPSRequired,
     getDistanceExpenseTypeForPolicy,
     isGovernmentRateUnmodified,

@@ -17,7 +17,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
+import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCountry, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -694,6 +694,9 @@ function clearPolicyRequireMapOrGPSErrors(policyID: string) {
  * On enable, government reference rates for `outputCurrency` are copied optimistically. `optimisticRateIDs` sends the
  * client-generated IDs so the persisted rates keep them. The distance unit is corrected in the same write when it doesn't match
  * the country's unit - only the unit, not the rate amounts, same as the manual unit change.
+ *
+ * EUR is shared by several supported countries, so an EUR workspace passes `countryCode` to pick one. The choice is stored
+ * on the policy optimistically and `previousCountryCode` restores it on failure.
  */
 function setWorkspaceDistanceAutoUpdate(
     policyID: string,
@@ -701,6 +704,8 @@ function setWorkspaceDistanceAutoUpdate(
     shouldAutoUpdateGovernmentDistanceRates: boolean,
     governmentMileageRates: GovernmentMileageRate[],
     outputCurrency: string | undefined,
+    countryCode?: string,
+    previousCountryCode?: string,
 ) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const customUnitID = customUnit.customUnitID;
@@ -722,6 +727,11 @@ function setWorkspaceDistanceAutoUpdate(
                     rateCurrency: governmentMileageRate.currency,
                     sourceRateID: governmentMileageRate.sourceRateID,
                 });
+                continue;
+            }
+
+            // Several countries share the EUR currency, so also match the selected country from the sourceRateID prefix
+            if (countryCode && governmentMileageRate.sourceRateID.split('_').at(0) !== countryCode) {
                 continue;
             }
 
@@ -756,7 +766,7 @@ function setWorkspaceDistanceAutoUpdate(
     }
 
     const currentUnit = customUnit.attributes?.unit;
-    const expectedUnit = getExpectedUnitForCurrency(outputCurrency);
+    const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
     const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
     const optimisticCustomUnit: NullishDeep<CustomUnit> = {
@@ -771,7 +781,11 @@ function setWorkspaceDistanceAutoUpdate(
                 key: policyKey,
                 value: {
                     shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? true : null,
-                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    ...(countryCode ? {autoUpdateGovernmentRateCountry: countryCode} : {}),
+                    pendingFields: {
+                        shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        ...(countryCode ? {autoUpdateGovernmentRateCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {}),
+                    },
                     errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
                     ...(Object.keys(optimisticCustomUnit).length > 0 ? {customUnits: {[customUnitID]: optimisticCustomUnit}} : {}),
                 },
@@ -782,7 +796,10 @@ function setWorkspaceDistanceAutoUpdate(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+                    pendingFields: {
+                        shouldAutoUpdateGovernmentDistanceRates: null,
+                        ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
+                    },
                     ...(Object.keys(clearedRatePendingActions).length > 0 || shouldCorrectUnit
                         ? {
                               customUnits: {
@@ -801,8 +818,13 @@ function setWorkspaceDistanceAutoUpdate(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? null : true,
-                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+                    // A country change starts from an enabled policy, so its failure restores the flag to on as well
+                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? (previousCountryCode ? true : null) : true,
+                    ...(countryCode ? {autoUpdateGovernmentRateCountry: previousCountryCode ?? null} : {}),
+                    pendingFields: {
+                        shouldAutoUpdateGovernmentDistanceRates: null,
+                        ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
+                    },
                     errorFields: {shouldAutoUpdateGovernmentDistanceRates: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                     ...(Object.keys(failureRates).length > 0 || shouldCorrectUnit
                         ? {
@@ -823,6 +845,7 @@ function setWorkspaceDistanceAutoUpdate(
         policyID,
         shouldAutoUpdateGovernmentDistanceRates,
         ...(Object.keys(optimisticRateIDs).length > 0 ? {optimisticRateIDs: JSON.stringify(optimisticRateIDs)} : {}),
+        ...(countryCode ? {countryCode} : {}),
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE, parameters, onyxData);
@@ -831,7 +854,7 @@ function setWorkspaceDistanceAutoUpdate(
 function clearWorkspaceDistanceAutoUpdateErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
-        pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+        pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null, autoUpdateGovernmentRateCountry: null},
     });
 }
 
