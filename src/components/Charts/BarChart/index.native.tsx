@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import type {BarChartProps} from './BarChartContent';
+import type {BarChartProps} from './types';
 
 import BarChartContent from './BarChartContent';
 

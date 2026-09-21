@@ -24,7 +24,7 @@ import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {CartesianChart} from 'victory-native';
 
-import type {BarChartBodyProps} from './BarChartContent';
+import type {BarChartProps} from './types';
 
 /** Extra pixel spacing between the chart boundary and the data range. `right` keeps the longest bar's tip and its tooltip off the edge. */
 const BASE_DOMAIN_PADDING = {top: 8, bottom: 8, left: 0, right: 8};
@@ -147,7 +147,7 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
     });
 }
 
-function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress}: BarChartBodyProps) {
+function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
