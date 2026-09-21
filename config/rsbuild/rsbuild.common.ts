@@ -602,7 +602,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     // This allows us to interactively inspect JS bundle contents, loader/plugin timings, and duplicate packages
                     ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
                     // Writes a Brotli 11 twin (`foo.js` -> `foo.js.br`) beside every deployable text/bytecode asset, so the CDN
-                    // can serve it instead of gzipping on the fly: 25-30% fewer bytes over the wire.
+                    // can serve it instead of compressing with gzip on the fly: 25-30% fewer bytes over the wire.
                     ...(isDevelopment
                         ? []
                         : [
