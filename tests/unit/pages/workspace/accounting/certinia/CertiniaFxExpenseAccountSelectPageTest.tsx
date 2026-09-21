@@ -3,7 +3,6 @@ import {render} from '@testing-library/react-native';
 import SelectionScreen from '@components/SelectionScreen';
 
 import type {Policy} from '@src/types/onyx';
-import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {ComponentType} from 'react';
 
@@ -13,7 +12,7 @@ import createMock from '../../../../../utils/createMock';
 
 jest.mock('@pages/workspace/withPolicyConnections', () => (Component: ComponentType) => Component);
 
-const CertiniaFxExpenseAccountSelectPage = require<ReactComponentModule>('@pages/workspace/accounting/certinia/advanced/CertiniaFxExpenseAccountSelectPage').default;
+const CertiniaFxExpenseAccountSelectPage = require<{default: ComponentType<{policy: Policy}>}>('@pages/workspace/accounting/certinia/advanced/CertiniaFxExpenseAccountSelectPage').default;
 
 jest.mock('@components/SelectionScreen', () => jest.fn(() => null));
 
