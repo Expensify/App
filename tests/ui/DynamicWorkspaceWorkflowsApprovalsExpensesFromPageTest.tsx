@@ -474,6 +474,33 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         expect(draft?.isFastEdit).toBe(true);
     });
 
+    it('discards the newer draft when a second "+N more" reuses this still-open page and is then abandoned', async () => {
+        await seedWorkflowWithBobDeselected(true);
+
+        const {unmount} = renderExpensesFromPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // "+N more" navigates to this same dynamic route, so tapping another one on the list underneath swaps the
+        // draft without remounting. This page is now the screen for that newer session.
+        await act(async () => {
+            selectApprovalWorkflowForEdit({
+                workflow: {members: [{email: CAROL_EMAIL, displayName: 'carol'}], approvers: [{email: ALICE_EMAIL, displayName: 'alice'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Backing out without saving has to take the newer draft with it. A session snapshot latched on first
+        // sight would still be holding the first session's id and strand this one, isFastEdit and all.
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
+        await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
+    });
+
     it('queues the save before navigating on a successful fast edit', async () => {
         await seedWorkflowWithBobDeselected(true);
 

@@ -88,11 +88,14 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const isInitialCreationFlowRef = useRef(false);
     // Tracks whether this session was opened as a fast edit, so the cleanup effect can discard the draft.
     const isFastEditRef = useRef(false);
-    // The approval-workflow session this page's unmount teardown is allowed to discard, captured the first time
-    // this page sees a draft it owns. Saving navigates away, and the admin can tap another workflow's "+N more"
-    // before this page is torn down; that seeds a newer draft and bumps the session ID. Without this, the
-    // unconditional clear below would wipe the draft that newer session is editing.
+    // The approval-workflow session this page's unmount teardown is allowed to discard. Saving navigates away, and
+    // the admin can tap another workflow's "+N more" before this page is torn down; that seeds a newer draft and
+    // bumps the session ID. Without this, the unconditional clear below would wipe the draft that newer session is
+    // editing.
     const ownedSessionIDRef = useRef<number | undefined>(undefined);
+    // Set once this page has navigated away — saved, handed off to the invite page, or simply gone back. From then
+    // on another screen decides what happens to the draft, so the snapshot above must stop following Onyx.
+    const hasNavigatedAwayRef = useRef(false);
 
     const excludedUsers = useMemo(() => {
         return getExcludedUsers(policy?.employeeList);
@@ -355,6 +358,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
     const goBack = useCallback(() => {
         dropUnconfirmedStagedMembers();
+        hasNavigatedAwayRef.current = true;
         // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
         // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
         Navigation.goBack(backPath, {compareParams: false});
@@ -438,6 +442,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             // The invite-message page reads the draft we just set, so the cleanup
             // effect must skip its clear if this page unmounts during the hand-off.
             isHandingOffToInviteRef.current = true;
+            hasNavigatedAwayRef.current = true;
 
             // The dynamic invite-message route is appended to the current expenses-from URL,
             // so the back navigation parent (with any nested backTo query param) is preserved
@@ -447,6 +452,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         }
 
         if (isInitialCreationFlow) {
+            hasNavigatedAwayRef.current = true;
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
             return;
         }
@@ -458,17 +464,22 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         // instance. A fresh mount of the edit page would re-derive members from policy.employeeList via its
         // useEffect and overwrite the selection we just saved.
         if (!approvalWorkflow?.isFastEdit) {
+            hasNavigatedAwayRef.current = true;
             Navigation.goBack(backPath, {compareParams: false});
             return;
         }
 
         // The invite page runs the same helper when a fast edit detours through it, so the two screens can't drift.
+        // A rejected save leaves us on this page, so only a successful one hands the draft over.
         saveFastEditApprovalWorkflow({
             approvalWorkflow: {...approvalWorkflow, members: allMembers},
             policy,
             rules: rulesCollection,
             isMultipleApproversBetaEnabled,
-            navigateBack: () => Navigation.goBack(backPath, {compareParams: false}),
+            navigateBack: () => {
+                hasNavigatedAwayRef.current = true;
+                Navigation.goBack(backPath, {compareParams: false});
+            },
         });
     }, [route.params.policyID, selectedMembers, isInitialCreationFlow, backPath, policy, approvalWorkflow, isMultipleApproversBetaEnabled, rulesCollection]);
 
@@ -507,15 +518,25 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         isFastEditRef.current = !!approvalWorkflow?.isFastEdit;
     }, [approvalWorkflow?.isFastEdit]);
 
-    // Capture the session the moment this page first sees a draft it is responsible for discarding, and never
-    // move it afterwards: a newer "+N more" seeded while this page is on its way out bumps the session ID, and
-    // the teardown below has to recognize that the draft in Onyx is no longer the one it owns.
+    // Track which session this page is responsible for discarding, for as long as it is the live screen.
+    //
+    // It has to follow the draft rather than latch on first sight: "+N more" navigates to this same dynamic
+    // route, so a second one tapped on the list underneath swaps the draft without remounting, and this page
+    // becomes the screen for that newer session. A latched snapshot would leave the teardown below holding an id
+    // that is no longer current, so an abandoned session would be stranded in persisted Onyx with isFastEdit set.
+    //
+    // It also has to stop the moment this page navigates away, which is the opposite ordering: the save hands the
+    // draft to its own deferred teardown, and a "+N more" seeded during the exit transition belongs to the screen
+    // that replaces us, not to us.
     useEffect(() => {
-        if ((!isInitialCreationFlow && !approvalWorkflow?.isFastEdit) || ownedSessionIDRef.current !== undefined) {
+        if ((!isInitialCreationFlow && !approvalWorkflow?.isFastEdit) || hasNavigatedAwayRef.current) {
             return;
         }
-        ownedSessionIDRef.current = getApprovalWorkflowSessionID();
-    }, [isInitialCreationFlow, approvalWorkflow?.isFastEdit]);
+        // Fall back to the live counter for a draft that carries no sessionID — one written straight to Onyx
+        // rather than through setApprovalWorkflow, or persisted before the field existed. That is the value this
+        // session would have been given, so the teardown still recognizes a later session as someone else's.
+        ownedSessionIDRef.current = approvalWorkflow?.sessionID ?? getApprovalWorkflowSessionID();
+    }, [isInitialCreationFlow, approvalWorkflow?.isFastEdit, approvalWorkflow?.sessionID]);
 
     // Clean up invite draft when leaving the expenses-from page to prevent
     // stale non-member data from persisting in the approval workflow. Skip

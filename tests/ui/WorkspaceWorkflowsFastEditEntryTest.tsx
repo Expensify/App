@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx} from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
@@ -50,32 +51,37 @@ TestHelper.setupGlobalFetchMock();
 const POLICY_ID = 'workflows-fast-edit-entry-test';
 const OWNER_EMAIL = 'test@user.com';
 const OWNER_ACCOUNT_ID = 1;
-const APPROVER_EMAIL = 'approver@example.com';
-const APPROVER_ACCOUNT_ID = 100;
-// UserPills shows 6 avatars and collapses the rest, but only once more than one would be hidden. 8 members is the
-// smallest list that renders the "+2 more" chip this test presses.
-const MEMBER_COUNT = 8;
-const HIDDEN_MEMBER_COUNT = 2;
+
+// Two custom workflows, each big enough to collapse into a "+N more" chip. UserPills shows 6 avatars and only
+// collapses once more than one would be hidden, so 8 members renders "+2 more" and 9 renders "+3 more". The
+// different counts give each row's chip a distinct accessibility label, so a test can press one specific row.
+const WORKFLOW_ONE = {approverEmail: 'approver1@example.com', approverName: 'Approver One', approverAccountID: 101, memberPrefix: 'w1m', memberCount: 8, hiddenCount: 2};
+const WORKFLOW_TWO = {approverEmail: 'approver2@example.com', approverName: 'Approver Two', approverAccountID: 102, memberPrefix: 'w2m', memberCount: 9, hiddenCount: 3};
+
+const workflowMemberEmail = (workflow: typeof WORKFLOW_ONE, index: number) => `${workflow.memberPrefix}${index}@example.com`;
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
-/** One custom workflow: `MEMBER_COUNT` submitters all routed to the same approver, plus the default workflow. */
+/** Employees forming both custom workflows, plus the owner's default one. */
 function buildWorkflowData(): {employeeList: PolicyEmployeeList; personalDetails: PersonalDetailsList} {
     const employeeList: PolicyEmployeeList = {
         [OWNER_EMAIL]: {email: OWNER_EMAIL, submitsTo: OWNER_EMAIL, forwardsTo: undefined},
-        // The approver doesn't submit anywhere, so it never forms a workflow of its own.
-        [APPROVER_EMAIL]: {email: APPROVER_EMAIL, submitsTo: undefined, forwardsTo: undefined},
     };
     const personalDetails: PersonalDetailsList = {
         [OWNER_ACCOUNT_ID]: TestHelper.buildPersonalDetails(OWNER_EMAIL, OWNER_ACCOUNT_ID, 'Owner'),
-        [APPROVER_ACCOUNT_ID]: TestHelper.buildPersonalDetails(APPROVER_EMAIL, APPROVER_ACCOUNT_ID, 'Approver'),
     };
 
-    for (let i = 1; i <= MEMBER_COUNT; i++) {
-        const memberEmail = `member${i}@example.com`;
-        const memberAccountID = 200 + i;
-        employeeList[memberEmail] = {email: memberEmail, submitsTo: APPROVER_EMAIL, forwardsTo: undefined};
-        personalDetails[memberAccountID] = TestHelper.buildPersonalDetails(memberEmail, memberAccountID, `Member ${i}`);
+    for (const workflow of [WORKFLOW_ONE, WORKFLOW_TWO]) {
+        // The approver doesn't submit anywhere, so it never forms a workflow of its own.
+        employeeList[workflow.approverEmail] = {email: workflow.approverEmail, submitsTo: undefined, forwardsTo: undefined};
+        personalDetails[workflow.approverAccountID] = TestHelper.buildPersonalDetails(workflow.approverEmail, workflow.approverAccountID, workflow.approverName);
+
+        for (let i = 1; i <= workflow.memberCount; i++) {
+            const memberEmail = workflowMemberEmail(workflow, i);
+            const memberAccountID = workflow.approverAccountID * 100 + i;
+            employeeList[memberEmail] = {email: memberEmail, submitsTo: workflow.approverEmail, forwardsTo: undefined};
+            personalDetails[memberAccountID] = TestHelper.buildPersonalDetails(memberEmail, memberAccountID, `${workflow.approverName} Member ${i}`);
+        }
     }
 
     return {employeeList, personalDetails};
@@ -115,10 +121,21 @@ const renderPage = () =>
         </ComposeProviders>,
     );
 
-async function pressShowAllMembers() {
-    fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.plusMore', {count: HIDDEN_MEMBER_COUNT})}));
+async function pressShowAllMembers(workflow: typeof WORKFLOW_ONE) {
+    fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.plusMore', {count: workflow.hiddenCount})}));
     await waitForBatchedUpdatesWithAct();
 }
+
+/** A draft left in Onyx by some other session, used to prove a blocked "+N more" did not overwrite it. */
+const OTHER_SESSION_DRAFT = {
+    action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+    approvers: [{email: WORKFLOW_ONE.approverEmail, displayName: WORKFLOW_ONE.approverName}],
+    originalApprovers: [{email: WORKFLOW_ONE.approverEmail, displayName: WORKFLOW_ONE.approverName}],
+    members: [{email: 'someone@example.com', displayName: 'Someone'}],
+    availableMembers: [],
+    usedApproverEmails: [],
+    isDefault: false,
+} satisfies ApprovalWorkflowOnyx;
 
 describe('WorkflowsApprovalsTab — "+N more" fast edit entry point', () => {
     beforeAll(() => {
@@ -163,27 +180,72 @@ describe('WorkflowsApprovalsTab — "+N more" fast edit entry point', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        await pressShowAllMembers();
+        await pressShowAllMembers(WORKFLOW_ONE);
 
-        // No edit page is in the stack, so expenses-from is the only screen that will ever save this workflow.
+        // No Edit page is in the stack, so expenses-from is the only screen that will ever save this workflow.
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.isFastEdit).toBe(true);
+        expect(draft?.approvers.at(0)?.email).toBe(WORKFLOW_ONE.approverEmail);
     });
 
     it('does not mark a fast edit while the Edit RHP is already open for that workflow', async () => {
         // On a large layout the list stays visible underneath the Edit RHP, so "+N more" is still tappable there.
-        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(`/${ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, APPROVER_EMAIL)}`);
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(
+            `/${ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, WORKFLOW_ONE.approverEmail, workflowMemberEmail(WORKFLOW_ONE, 1))}`,
+        );
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        await pressShowAllMembers();
+        await pressShowAllMembers(WORKFLOW_ONE);
 
         // The Edit page is still mounted and owns the save. Flagging this as a fast edit would let expenses-from
         // persist immediately and clear the draft out from under it.
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
         expect(draft?.isFastEdit).toBe(false);
         // The draft still has to be seeded, so expenses-from opens with this workflow's members and goes back to Edit.
-        expect(draft?.members).toHaveLength(MEMBER_COUNT);
+        expect(draft?.members).toHaveLength(WORKFLOW_ONE.memberCount);
+    });
+
+    it('leaves the draft alone when the open Edit page shares the first approver but anchors a different member', async () => {
+        // A first approver is not unique once rule-based chains diverge: A→B and A→C are two workflows with one
+        // approver. Keyed on the approver alone this row would be mistaken for the mounted Edit session.
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(
+            `/${ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, WORKFLOW_ONE.approverEmail, 'sibling-workflow-member@example.com')}`,
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, OTHER_SESSION_DRAFT);
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await pressShowAllMembers(WORKFLOW_ONE);
+
+        // Untouched: the mounted Edit page still owns the single APPROVAL_WORKFLOW slot.
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft?.members.map((member) => member.email)).toEqual(['someone@example.com']);
+        expect(jest.mocked(Navigation.navigate)).not.toHaveBeenCalled();
+    });
+
+    it('leaves the draft alone when another workflow Edit page is open', async () => {
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(
+            `/${ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, WORKFLOW_ONE.approverEmail, workflowMemberEmail(WORKFLOW_ONE, 1))}`,
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, OTHER_SESSION_DRAFT);
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Workflow two's chip, while workflow one's Edit page holds the draft.
+        await pressShowAllMembers(WORKFLOW_TWO);
+
+        // Seeding here would Onyx.set over the mounted Edit page's draft, and the fast-edit Save would then
+        // persist workflow two and clear that page's draft from under it.
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft?.members.map((member) => member.email)).toEqual(['someone@example.com']);
+        expect(jest.mocked(Navigation.navigate)).not.toHaveBeenCalled();
     });
 });

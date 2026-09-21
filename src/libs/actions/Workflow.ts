@@ -635,10 +635,15 @@ function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
 
 /**
  * Bumped every time a new draft is seeded into `ONYXKEYS.APPROVAL_WORKFLOW`, i.e. every time an edit session
- * starts. The expenses-from fast edit defers its save until after the screen transition, which
- * `runAfterPredictedTransition` can stretch to `MAX_TRANSITION_START_WAIT_MS + MAX_TRANSITION_DURATION_MS`. If the
- * admin opens another workflow's "+N more" inside that window, the deferred callback must not write over the draft
- * that newer session is editing, so it captures this value before navigating and re-reads it when it runs.
+ * starts. There is only one such slot, so a screen that outlives its own session has to be able to tell the draft
+ * it is responsible for apart from one a later session seeded over it:
+ *
+ * - the fast-edit save defers its draft teardown until after the screen transition, which
+ *   `runAfterPredictedTransition` can stretch to `MAX_TRANSITION_START_WAIT_MS + MAX_TRANSITION_DURATION_MS`, and
+ * - the expenses-from page discards an abandoned draft when it unmounts.
+ *
+ * Both capture this value and re-read it when they run. It is also written into the draft as `sessionID`, so a
+ * mounted screen can react to the draft being replaced underneath it.
  */
 let approvalWorkflowSessionID = 0;
 
@@ -649,7 +654,7 @@ function getApprovalWorkflowSessionID() {
 
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
     approvalWorkflowSessionID++;
-    Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+    Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, {...approvalWorkflow, sessionID: approvalWorkflowSessionID});
 }
 
 type SelectApprovalWorkflowForEditParams = {

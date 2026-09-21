@@ -207,6 +207,30 @@ describe('actions/Workflow', () => {
             const approvalWorkflow = await getApprovalWorkflowState();
             expect(approvalWorkflow?.isFastEdit).toBeUndefined();
         });
+
+        it('should stamp each seeded draft with a new session id', async () => {
+            const seed = () =>
+                selectApprovalWorkflowForEdit({
+                    workflow: {members: [{email: employee1Email, displayName: 'Employee 1'}], approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                    defaultWorkflowMembers: [],
+                    usedApproverEmails: [],
+                    isFastEdit: true,
+                });
+
+            seed();
+            await waitForBatchedUpdates();
+            const firstSessionID = (await getApprovalWorkflowState())?.sessionID;
+            if (typeof firstSessionID !== 'number') {
+                throw new Error('expected the seeded draft to carry a session id');
+            }
+
+            seed();
+            await waitForBatchedUpdates();
+
+            // A screen still mounted over the first draft has to be able to see that a newer one replaced it in
+            // the single APPROVAL_WORKFLOW slot, so it doesn't tear down a session it no longer owns.
+            expect((await getApprovalWorkflowState())?.sessionID).toBe(firstSessionID + 1);
+        });
     });
 
     describe('clearApprovalWorkflowFastEdit', () => {

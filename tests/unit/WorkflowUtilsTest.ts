@@ -12,6 +12,7 @@ import {
     extractSubmitterEmails,
     filterRulesForPolicy,
     getApprovalLimitDescription,
+    getOpenApprovalWorkflowEdit,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
@@ -2176,6 +2177,54 @@ describe('WorkflowUtils', () => {
         it('returns an empty collection when there is no policy or no rules', () => {
             expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
             expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
+        });
+    });
+
+    describe('getOpenApprovalWorkflowEdit', () => {
+        const POLICY_ID = 'policy1';
+        const editRoute = (approverEmail: string, memberEmail?: string) =>
+            `/workspaces/${POLICY_ID}/workflows/approvals/${encodeURIComponent(approverEmail)}/edit${memberEmail ? `?memberEmail=${encodeURIComponent(memberEmail)}` : ''}`;
+
+        it('reads both halves of the workflow identity back out of the route', () => {
+            expect(getOpenApprovalWorkflowEdit(editRoute('a@example.com', 'm@example.com'), POLICY_ID)).toEqual({
+                firstApproverEmail: 'a@example.com',
+                memberEmail: 'm@example.com',
+            });
+        });
+
+        it('distinguishes two workflows that share a first approver', () => {
+            // A→B and A→C are separate workflows with one first approver, so the member anchor is the only thing
+            // that tells the caller which of them the mounted Edit page belongs to.
+            const openEdit = getOpenApprovalWorkflowEdit(editRoute('a@example.com', 'b@example.com'), POLICY_ID);
+
+            expect(openEdit?.firstApproverEmail).toBe('a@example.com');
+            expect(openEdit?.memberEmail).not.toBe('c@example.com');
+        });
+
+        it('reports an Edit session that has a sub-page open on top of it', () => {
+            // A sub-page opened from Edit is appended to that route and inherits its query params. The Edit page is
+            // still mounted underneath, so it still owns the draft.
+            expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows/approvals/a%40example.com/edit/expenses-from?memberEmail=m%40example.com`, POLICY_ID)).toEqual({
+                firstApproverEmail: 'a@example.com',
+                memberEmail: 'm@example.com',
+            });
+        });
+
+        it('reports an empty member anchor when the route carried none', () => {
+            expect(getOpenApprovalWorkflowEdit(editRoute('a@example.com'), POLICY_ID)).toEqual({firstApproverEmail: 'a@example.com', memberEmail: ''});
+        });
+
+        it('returns undefined for routes with no Edit page in them', () => {
+            // The workflows list itself, and the fast-edit expenses-from route opened straight from it.
+            expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows?tab=approvals`, POLICY_ID)).toBeUndefined();
+            expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows/expenses-from?tab=approvals`, POLICY_ID)).toBeUndefined();
+            // The approvals sub-routes that are not an Edit page.
+            expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows/approvals/new`, POLICY_ID)).toBeUndefined();
+            expect(getOpenApprovalWorkflowEdit('', POLICY_ID)).toBeUndefined();
+        });
+
+        it('returns undefined when the Edit page belongs to another policy', () => {
+            expect(getOpenApprovalWorkflowEdit(editRoute('a@example.com', 'm@example.com'), 'policy2')).toBeUndefined();
         });
     });
 });
