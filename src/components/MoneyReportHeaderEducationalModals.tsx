@@ -6,8 +6,9 @@ import useOnyx from '@hooks/useOnyx';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {changeMoneyRequestHoldStatus, isDM, rejectMoneyRequestReason} from '@libs/ReportUtils';
+import {isDM, rejectMoneyRequestReason} from '@libs/ReportUtils';
 
+import {changeMoneyRequestHoldStatus} from '@userActions/IOU/Hold';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 
 import CONST from '@src/CONST';
@@ -54,6 +55,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
@@ -72,6 +74,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
             changeMoneyRequestHoldStatus(
                 requestParentReportAction,
                 transaction,
+                policy,
                 isOffline,
                 currentUserLogin ?? '',
                 currentUserAccountID,
@@ -90,6 +93,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
                 changeMoneyRequestHoldStatus(
                     requestParentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     currentUserAccountID,

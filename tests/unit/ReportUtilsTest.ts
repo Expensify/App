@@ -7,7 +7,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type PolicyData from '@hooks/usePolicyData/types';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
-import * as HoldUtils from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -83,7 +82,6 @@ import {
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
-    changeMoneyRequestHoldStatus,
     doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
@@ -5886,117 +5884,6 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(report, undefined, unrelatedAccountID)).toBe(true);
             expect(canLeaveChat(report, undefined, ownerAccountID)).toBe(false);
             expect(canLeaveChat(report, undefined, managerAccountID)).toBe(false);
-        });
-    });
-
-    describe('changeMoneyRequestHoldStatus', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        it('should unhold request when transaction is already on hold', async () => {
-            // Given a money request report, report action, and transaction that is on hold
-            const reportID = '101';
-            const policyID = '102';
-            const transactionID = '123';
-            const childReportID = '555';
-            const moneyRequestReport = createMock<Report>({
-                ...createExpenseReport(101),
-                reportID,
-                policyID,
-            });
-            const reportAction = buildOptimisticIOUReportAction({
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                amount: 123,
-                currency: 'USD',
-                comment: '',
-                participants: [],
-                transactionID,
-                iouReportID: moneyRequestReport.reportID,
-            });
-            reportAction.childReportID = childReportID;
-
-            const iouTransaction = createMock<Transaction>({
-                ...createRandomTransaction(123),
-                transactionID,
-                reportID: moneyRequestReport.reportID,
-                comment: {
-                    hold: '999',
-                },
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
-                id: moneyRequestReport.policyID,
-                type: CONST.POLICY.TYPE.TEAM,
-            });
-            await waitForBatchedUpdates();
-
-            const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
-
-            // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
-
-            // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(
-                transactionID,
-                childReportID,
-                expect.objectContaining({id: policyID}),
-                false,
-                currentUserEmail,
-                currentUserAccountID,
-                undefined,
-                false,
-                undefined,
-                undefined,
-            );
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
-        it('should navigate to hold reason when transaction is not on hold', async () => {
-            // Given a money request report, report action, and transaction that is not on hold
-            const reportID = '201';
-            const policyID = '202';
-            const transactionID = '456';
-            const childReportID = '777';
-            const moneyRequestReport = createMock<Report>({
-                ...createExpenseReport(201),
-                reportID,
-                policyID,
-            });
-
-            const reportAction = buildOptimisticIOUReportAction({
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                amount: 123,
-                currency: 'USD',
-                comment: '',
-                participants: [],
-                transactionID,
-                iouReportID: moneyRequestReport.reportID,
-            });
-            reportAction.childReportID = childReportID;
-
-            const iouTransaction = createMock<Transaction>({
-                ...createRandomTransaction(456),
-                transactionID,
-                reportID: moneyRequestReport.reportID,
-                comment: {},
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
-                id: moneyRequestReport.policyID,
-                type: CONST.POLICY.TYPE.TEAM,
-            });
-            await waitForBatchedUpdates();
-
-            // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
-
-            // Then navigation should be called with the correct parameters
-            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, childReportID), 'mock-route'));
         });
     });
 

@@ -48,7 +48,6 @@ import {getOriginalMessage, getTrackExpenseActionableWhisper, isMoneyRequestActi
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
-    changeMoneyRequestHoldStatus,
     generateReportID,
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
@@ -69,6 +68,7 @@ import {
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 
+import {changeMoneyRequestHoldStatus} from '@userActions/IOU/Hold';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
@@ -316,6 +316,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             changeMoneyRequestHoldStatus(
                 parentReportAction,
                 transaction,
+                policy,
                 isOffline,
                 currentUserLogin ?? '',
                 accountID,
@@ -334,6 +335,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 changeMoneyRequestHoldStatus(
                     parentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     accountID,
@@ -422,6 +424,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     changeMoneyRequestHoldStatus(
                         parentReportAction,
                         transaction,
+                        policy,
                         isOffline,
                         currentUserLogin ?? '',
                         accountID,
@@ -454,6 +457,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 changeMoneyRequestHoldStatus(
                     parentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     accountID,
