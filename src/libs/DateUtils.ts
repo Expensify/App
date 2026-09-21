@@ -1219,21 +1219,9 @@ function formatCountdownTimer(translateParam: LocaleContextProps['translate'], h
     return `${hours}${translateParam('common.hourAbbreviation')} : ${paddedMinutes}${translateParam('common.minuteAbbreviation')} : ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
 }
 
-const WIRE_YEAR_PREFIX = /^(\d{4})/;
-
 function doesDateBelongToAPastYear(date: string): boolean {
-    // Read the year off the wire string, so a Dec 31 transaction viewed that evening (already Jan 1 in UTC) is not
-    // suffixed with a year on what is still today's row.
-    const yearMatch = date.match(WIRE_YEAR_PREFIX);
-    // Anything without a leading wire year is unparsable here too, and a NaN year would compare unequal and force the
-    // long format, which renders empty on an invalid date.
-    if (!yearMatch) {
-        return false;
-    }
-    const transactionYear = Number(yearMatch[1]);
-    // Local on the "now" side: the question is whether this differs from the year the viewer is currently in, and a
-    // UTC "now" would put a Dec 31 evening in the Americas into next year, which is what the line above guards against.
-    return transactionYear !== new Date().getFullYear();
+    // A calendar day, not an instant: `new Date('2026-01-01')` is UTC midnight, still last year west of UTC, which put a year suffix on every Jan 1 row and none on the rows beside it.
+    return toLocalDate(date).getFullYear() !== new Date().getFullYear();
 }
 
 /**

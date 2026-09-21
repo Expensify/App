@@ -1412,7 +1412,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('doesDateBelongToAPastYear reads the year off the wire string', () => {
+    describe('doesDateBelongToAPastYear reads a stored date as a calendar day', () => {
         afterEach(() => {
             jest.useRealTimers();
         });
@@ -1424,7 +1424,7 @@ describe('DateUtils', () => {
             // When the row is checked for a past year
             const result = DateUtils.doesDateBelongToAPastYear('2025-12-31');
 
-            // Then it is not, because the year is read off the stored string rather than a date shifted by the timezone
+            // Then it is not: the stored day is parsed as itself, not as an instant a zone can move into another year. The mirror case, a 1 January row west of UTC, needs a non-UTC suite.
             expect(result).toBe(false);
         });
 
@@ -1435,7 +1435,7 @@ describe('DateUtils', () => {
             // When the row is checked for a past year
             const result = DateUtils.doesDateBelongToAPastYear('2023-05-01');
 
-            // Then it is, so reading the year off the string still shows the year when it is needed
+            // Then it is, so a row from an earlier year still shows its year
             expect(result).toBe(true);
         });
     });
