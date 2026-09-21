@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 
 import CONST from '@src/CONST';
@@ -699,8 +700,9 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
         return undefined;
     }
 
-    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
@@ -744,8 +746,9 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     }
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
@@ -817,7 +820,7 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
 function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
     return (personalDetails: PersonalDetailsList | undefined): number => {
         const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, false, false);
 
         return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
             const accountID = policyMemberEmailsToAccountIDs[email];
@@ -869,14 +872,20 @@ const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, currentUserAccountID: number | undefined): boolean =>
+    !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
  *
  * If includeMemberWithErrors is false, We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false, includeMemberWithPendingDelete = true): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(
+    employeeList: PolicyEmployeeList | undefined,
+    personalDetailsByLogins?: PersonalDetailsByLogin,
+    includeMemberWithErrors = false,
+    includeMemberWithPendingDelete = true,
+): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     for (const email of Object.keys(members)) {
@@ -892,7 +901,7 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
                 continue;
             }
         }
-        const personalDetail = getPersonalDetailByEmail(email);
+        const personalDetail = personalDetailsByLogins?.[email] ?? getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
             continue;
         }
@@ -922,7 +931,7 @@ function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, emp
     }
 
     const normalizedEmail = trimmed.toLowerCase();
-    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
 
     for (const [email, accountID] of Object.entries(memberAccountIDs)) {
         if (email.toLowerCase() === normalizedEmail) {
@@ -1649,8 +1658,24 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+/**
+ * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
+ * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
+ * disabled, which hides Pay on its approved reports.
+ */
+function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | undefined {
+    switch (policy?.reimbursementChoice) {
+        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO:
+            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL:
+            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        default:
+            return policy?.reimbursementChoice;
+    }
+}
+
 function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
 /**
@@ -3622,6 +3647,7 @@ export {
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
+    getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
     isTaxTrackingEnabled,
