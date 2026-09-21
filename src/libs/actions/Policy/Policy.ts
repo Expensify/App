@@ -7937,6 +7937,7 @@ function getAccessiblePolicies(
     validateEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
     currentUserAccountID?: number,
 ) {
+    const requestID = NumberUtils.rand64();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7944,6 +7945,7 @@ function getAccessiblePolicies(
             value: {
                 loading: true,
                 errors: null,
+                requestID,
             },
         },
     ];
@@ -7955,6 +7957,7 @@ function getAccessiblePolicies(
             value: {
                 loading: false,
                 errors: null,
+                requestID,
             },
         },
     ];
@@ -7965,6 +7968,7 @@ function getAccessiblePolicies(
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
             value: {
                 loading: false,
+                requestID,
             },
         },
     ];
@@ -7986,6 +7990,8 @@ function getAccessiblePolicies(
     const command = validateCode ? WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES : WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES;
 
     API.write(command, validateCode ? {validateCode, completedTaskReportActionID} : null, {optimisticData, successData, failureData});
+
+    return requestID;
 }
 
 /**

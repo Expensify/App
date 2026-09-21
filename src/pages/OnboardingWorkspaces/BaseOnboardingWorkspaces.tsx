@@ -104,6 +104,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
     const createdJoinWorkspaceTask = useRef(false);
     const hasRequestedAccessiblePolicies = useRef(false);
+    const accessiblePoliciesRequestID = useRef<string>();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     const returnToOriginReport = useReturnToOriginReport();
@@ -229,6 +230,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         useCallback(
             () => () => {
                 hasRequestedAccessiblePolicies.current = false;
+                accessiblePoliciesRequestID.current = undefined;
             },
             [],
         ),
@@ -243,22 +245,36 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             }
 
             hasRequestedAccessiblePolicies.current = true;
-            getAccessiblePolicies();
+            accessiblePoliciesRequestID.current = getAccessiblePolicies();
         }, [isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
     );
 
     useEffect(() => {
-        if (!isConciergeTaskFlow || joinablePoliciesLoading !== false || joinablePoliciesErrors || joinablePoliciesLength > 0) {
+        if (getAccessiblePoliciesAction?.requestID !== accessiblePoliciesRequestID.current || joinablePoliciesLoading !== false || joinablePoliciesErrors || joinablePoliciesLength > 0) {
             return;
         }
 
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
-        if (companyDomain && !createdEmptyWorkspaceContentDomains.current.has(companyDomain)) {
+        if (isConciergeTaskFlow && companyDomain && !createdEmptyWorkspaceContentDomains.current.has(companyDomain)) {
             createdEmptyWorkspaceContentDomains.current.add(companyDomain);
             createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
         }
-        returnToOriginReport();
-    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, joinablePoliciesErrors, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
+        if (isConciergeTaskFlow) {
+            returnToOriginReport();
+            return;
+        }
+        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+    }, [
+        conciergeChat,
+        delegateAccountID,
+        getAccessiblePoliciesAction?.requestID,
+        isConciergeTaskFlow,
+        joinablePoliciesErrors,
+        joinablePoliciesLength,
+        joinablePoliciesLoading,
+        returnToOriginReport,
+        session?.email,
+    ]);
 
     useEffect(() => {
         if (!shouldCreateJoinWorkspaceTaskOnExit || joinablePoliciesLength === 0 || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
