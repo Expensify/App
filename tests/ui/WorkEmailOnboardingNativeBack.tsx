@@ -15,6 +15,7 @@ import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail/index.native';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation/index.native';
+import OnboardingWorkspaces from '@pages/OnboardingWorkspaces/index.native';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -29,7 +30,7 @@ import type {HardwareBackPressEvent} from 'react-native/Libraries/Utilities/Back
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {BackHandler} from 'react-native';
+import {BackHandler, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -52,6 +53,11 @@ const OnboardingStack = createPlatformStackNavigator<OnboardingModalNavigatorPar
 const workEmail = 'testprivateemail@privateEmail.com';
 const mockHardwareBackPressEvent: HardwareBackPressEvent = {type: 'hardwareBackPress', timeStamp: 0};
 
+// Stands in for whatever screen precedes a later visit to "Join a workspace"; only its presence on the stack matters.
+function OnboardingPersonalDetailsStub() {
+    return <View testID="onboarding-personal-details-stub" />;
+}
+
 // The native (`index.native.tsx`) screens are imported directly: only those register the hardware back handler under
 // test, and Jest resolves the web `index.tsx` for a bare `@pages/...` import.
 function OnboardingModalNavigator() {
@@ -64,6 +70,14 @@ function OnboardingModalNavigator() {
             <OnboardingStack.Screen
                 name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
                 component={OnboardingWorkEmailValidation}
+            />
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                component={OnboardingPersonalDetailsStub}
+            />
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.WORKSPACES}
+                component={OnboardingWorkspaces}
             />
         </OnboardingStack.Navigator>
     );
@@ -246,5 +260,61 @@ describe('Onboarding work email validation (Android system back)', () => {
         expect(consumed).toBe(true);
         expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]);
         expect((await getOnboardingValues())?.shouldValidate).toBe(true);
+    });
+
+    it('should swallow a system back press on the post-merge Join a workspace screen', async () => {
+        // Given the stack the merge leaves behind: "Join a workspace" is the only onboarding route, so an unhandled
+        // system back would bubble to the root stack and pop the whole onboarding modal mid-flow
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                isMergeAccountStepCompleted: true,
+                isMergeAccountStepSkipped: false,
+            });
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.WORKSPACES]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORKSPACES]);
+
+        // When Android's system back button is pressed
+        const consumed = pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the press is consumed and the user stays in onboarding, matching the hidden header back button
+        expect(consumed).toBe(true);
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORKSPACES]);
+    });
+
+    it('should let a system back press through on a later visit to Join a workspace', async () => {
+        // Given the same merge flags but a real screen behind this one, which is the state a later visit leaves
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                isMergeAccountStepCompleted: true,
+                isMergeAccountStepSkipped: false,
+            });
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.WORKSPACES]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When Android's system back button is pressed
+        pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no handler swallows it and the onboarding stack pops as normal
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+        });
     });
 });

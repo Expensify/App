@@ -41,6 +41,8 @@ import {View} from 'react-native';
 
 import type {BaseOnboardingWorkspacesProps} from './types';
 
+import useShouldHideBackButton from './useShouldHideBackButton';
+
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
@@ -81,12 +83,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
-    // Only the work email validation screen sets this param, and only on the screen it force-replaces itself into. That
-    // screen replaces everything before it, so there is nothing to go back to and Back is hidden.
-    // The Onyx merge flags can't identify it: they stay set for the rest of onboarding, so a later visit to this same
-    // screen — Skip for now, Employer, Personal Details, back to here — would wrongly hide a Back button that works.
-    const isMergeWorkEmailEntryPoint = route.params?.isPostWorkEmailMerge === 'true';
-    const shouldHideBackButton = (onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()) || isMergeWorkEmailEntryPoint;
+    const shouldHideBackButton = useShouldHideBackButton(route.params?.backTo);
 
     const finishOnboarding = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;

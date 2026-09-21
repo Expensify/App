@@ -67,9 +67,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
 
         if (!onboardingValues?.isMergeAccountStepSkipped) {
-            // Flagged as the post-merge entry point: this replaces the last screen in the stack, so the screen it lands
-            // on has nothing behind it and must not show Back.
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true), {forceReplace: true});
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
             return;
         }
 

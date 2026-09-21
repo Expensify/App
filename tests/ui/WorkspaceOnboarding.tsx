@@ -28,6 +28,7 @@ import SCREENS from '@src/SCREENS';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -77,12 +78,39 @@ const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
 const navigate = jest.spyOn(Navigation, 'navigate');
 
-const renderOnboardingWorkspacesPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORKSPACES, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORKSPACES]) => {
+// Stands in for whatever screen precedes a later visit to "Join a workspace"; only its presence on the stack matters.
+function OnboardingPersonalDetailsStub() {
+    return <View testID="onboarding-personal-details-stub" />;
+}
+
+/**
+ * `shouldRenderScreenBehind` seeds a real route behind "Join a workspace". Leaving it off is not a detail of the
+ * harness: it is the stack the work email merge and the private domain screen actually leave behind when they
+ * force-replace into this screen, which is what makes Back impossible there.
+ */
+const renderOnboardingWorkspacesPage = (
+    initialRouteName: typeof SCREENS.ONBOARDING.WORKSPACES,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORKSPACES],
+    shouldRenderScreenBehind = false,
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
-                <NavigationContainer>
+                <NavigationContainer
+                    initialState={
+                        shouldRenderScreenBehind
+                            ? {
+                                  index: 1,
+                                  routes: [{name: SCREENS.ONBOARDING.PERSONAL_DETAILS}, {name: initialRouteName, params: initialParams}],
+                              }
+                            : undefined
+                    }
+                >
                     <Stack.Navigator initialRouteName={initialRouteName}>
+                        <Stack.Screen
+                            name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                            component={OnboardingPersonalDetailsStub}
+                        />
                         <Stack.Screen
                             name={SCREENS.ONBOARDING.WORKSPACES}
                             component={OnboardingWorkspaces}
@@ -195,7 +223,9 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        // Rendered WITH a screen behind it, so only the `shouldValidate === false` condition can hide Back. Were this
+        // rendered as the sole route, stack depth alone would hide it and the assertion would prove nothing.
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()}, true);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -219,9 +249,9 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        // The merge flow replaces the screens before this one, and flags the screen it lands on with
-        // `isPostWorkEmailMerge`, so there is nothing to go back to. The param arrives from the URL as a string.
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined, isPostWorkEmailMerge: 'true'});
+        // The merge force-replaces into this screen, which discards every route before it, so this screen is the only
+        // one left in the onboarding stack and there is nothing to go back to.
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -236,9 +266,9 @@ describe('OnboardingWorkspaces Page', () => {
     it('should show the back button on a later visit to join workspace after merging a work email', async () => {
         await TestHelper.signInWithTestUser();
 
-        // The merge flags stay set for the rest of onboarding. Reaching this screen again — Skip for now, Employer,
-        // Personal Details, forward to here — leaves a real screen behind it, so Back must work. Only the screen the
-        // merge force-replaces into carries `isPostWorkEmailMerge`.
+        // Identical Onyx state to the post-merge case above: the merge flags stay set for the rest of onboarding and
+        // cannot tell the two apart. What differs is the stack — reaching this screen again (Skip for now, Employer,
+        // Personal Details, forward to here) leaves a real screen behind it, so Back must work.
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
@@ -248,33 +278,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
-
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
-        });
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    it('should show the back button on join workspace when the work email merge was skipped', async () => {
-        await TestHelper.signInWithTestUser();
-
-        // A skipped merge routes through ONBOARDING_PURPOSE rather than force-replacing into this screen, so it never
-        // carries `isPostWorkEmailMerge` and the screens behind it are still reachable.
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-                shouldValidate: true,
-                isMergeAccountStepCompleted: true,
-                isMergeAccountStepSkipped: true,
-            });
-        });
-
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined}, true);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -295,7 +299,8 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        // Same `backTo` as the first case, but without `shouldValidate: false`, so Back stays.
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()}, true);
 
         await waitForBatchedUpdatesWithAct();
 

@@ -84,6 +84,27 @@ function OnboardingModalNavigator() {
     );
 }
 
+// Drives the whole merge like `OnboardingModalNavigator`, but with the real "Join a workspace" screen, so the absence
+// of its Back button can be asserted against the stack the merge actually leaves behind.
+function OnboardingModalNavigatorWithRealWorkspaces() {
+    return (
+        <OnboardingStack.Navigator screenOptions={{headerShown: false}}>
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.WORK_EMAIL}
+                component={OnboardingWorkEmail}
+            />
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                component={OnboardingWorkEmailValidation}
+            />
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.WORKSPACES}
+                component={OnboardingWorkspaces}
+            />
+        </OnboardingStack.Navigator>
+    );
+}
+
 // The back button is what is under test in the second-visit case, so that one navigator renders the real screen.
 function OnboardingModalNavigatorWithWorkspaces() {
     return (
@@ -205,7 +226,7 @@ describe('Onboarding work email navigation', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
         });
 
-        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL]);
+        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL], OnboardingModalNavigatorWithRealWorkspaces);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -232,6 +253,12 @@ describe('Onboarding work email navigation', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORKSPACES]);
+
+        // Nothing is left behind this screen, so it must not offer Back. Asserted here, on the stack the real merge
+        // produced, rather than against an injected prop: this is the only place the whole chain is exercised.
+        await waitFor(() => {
+            expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
 
         // OpenApp lands after the merge and flips the account fields the work email screen's effect depends on. When
         // that screen was pushed rather than replaced it was still mounted here, re-ran its effect, and stacked a
@@ -293,7 +320,7 @@ describe('Onboarding work email navigation', () => {
         await TestHelper.signInWithTestUser();
 
         // The merge already happened, so its Onyx flags stay set for the rest of onboarding. They cannot tell the
-        // post-merge entry point apart from this later visit, which is why the entry point is flagged by route param.
+        // post-merge entry point apart from this later visit; the stack behind the screen is what distinguishes them.
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
