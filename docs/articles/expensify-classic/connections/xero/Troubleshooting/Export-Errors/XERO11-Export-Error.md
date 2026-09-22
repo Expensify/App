@@ -17,7 +17,7 @@ It means the connection between the Workspace and Xero has expired, so the repor
 
 ---
 
-## Why the XERO11 Export Error Happens in Xero
+## Why the XERO11 export error happens in Xero
 
 The XERO11 error typically indicates:
 
@@ -29,7 +29,7 @@ This is a connection issue, not a Xero export mapping configuration error. A rep
 
 ---
 
-## How to Reconnect Xero After the XERO11 Export Error
+## How to reconnect Xero after the XERO11 export error
 
 Reconnecting restores access without removing your imported data or your Xero configuration.
 
@@ -46,7 +46,7 @@ If the Workspace is not connected to Xero at all, [learn how to connect to Xero]
 
 ---
 
-## How to Export the Report Again After Reconnecting Xero
+## How to export the report again after reconnecting Xero
 
 1. Click **Reports** in the left-side navigation menu.
 2. Select the report that failed to export.
@@ -57,14 +57,14 @@ If the Workspace is not connected to Xero at all, [learn how to connect to Xero]
 
 # FAQ
 
-## What Happens to the Report When the XERO11 Export Error Appears
+## What happens to the report when the XERO11 export error appears?
 
 The report is not exported and no data reaches Xero. The report keeps its current state and can be exported again after you reconnect.
 
-## Who Can Reconnect the Xero Integration
+## Who can reconnect the Xero integration?
 
 A Workspace Admin in Expensify who can also sign in to Xero with access to the connected organization.
 
-## Why the XERO11 Export Error Can Appear Again After Reconnecting
+## Why can the XERO11 export error appear again after reconnecting?
 
 If access for Expensify is revoked in Xero, or the Xero login used for the connection loses access to the organization, the connection expires again. Reconnect using a Xero login that retains access to the organization.
