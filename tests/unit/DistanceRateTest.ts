@@ -410,7 +410,6 @@ describe('DistanceRate', () => {
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', policyID: policy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS} as Report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {});
-            await Onyx.set(ONYXKEYS.SESSION, {accountID: 99});
             await waitForBatchedUpdates();
         }
 
@@ -425,7 +424,7 @@ describe('DistanceRate', () => {
             await seedWorkArrangementPolicy(policy);
 
             pause();
-            setEmployeeWorkArrangement(policy.id, [member1AccountID, member2AccountID], true);
+            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -438,7 +437,6 @@ describe('DistanceRate', () => {
             expect(actions).toHaveLength(1);
             expect(actions.at(0)).toMatchObject({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
-                actorAccountID: 99,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 originalMessage: {accountID: member1AccountID, email: member1Email, name: 'Member One', newValue: true, oldValue: false},
             });
@@ -454,7 +452,7 @@ describe('DistanceRate', () => {
             await seedWorkArrangementPolicy(policy);
 
             pause();
-            setEmployeeWorkArrangement(policy.id, [member1AccountID, 999999001], false);
+            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
