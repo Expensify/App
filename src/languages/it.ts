@@ -6873,6 +6873,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 other: (count: number) => `${count} tag`,
             }),
             showTagGLCodes: 'Mostra i codici GL quando selezioni un tag',
+            showTagGLCodesSubtitle: 'Se un codice GL non viene visualizzato, non è disponibile per quel tag nel tuo sistema contabile.',
         },
         taxes: {
             subtitle: 'Aggiungi nomi e aliquote delle imposte e imposta i valori predefiniti.',

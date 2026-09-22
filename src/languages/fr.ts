@@ -6931,6 +6931,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 other: (count: number) => `${count} tags`,
             }),
             showTagGLCodes: 'Afficher les codes GL lors de la sélection d’un tag',
+            showTagGLCodesSubtitle: 'Si un code GL n’est pas affiché, il n’est pas disponible pour ce tag dans votre système comptable.',
         },
         taxes: {
             subtitle: 'Ajoutez des noms de taxes, des taux et définissez des valeurs par défaut.',

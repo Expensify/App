@@ -6785,6 +6785,7 @@ ${amount} para ${merchant} - ${date}`,
                 other: (count: number) => `${count} etiquetas`,
             }),
             showTagGLCodes: 'Mostrar códigos del libro mayor al seleccionar una etiqueta',
+            showTagGLCodesSubtitle: 'Si no se muestra un código del libro mayor, no está disponible para esa etiqueta en tu sistema contable.',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
