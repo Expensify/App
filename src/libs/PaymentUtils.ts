@@ -205,7 +205,7 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
  *
  * @returns true when it navigated, meaning the caller must abandon its payment flow.
  */
-function handleIncompleteBankAccountSelection({state, methodID, policyID}: {state: string | undefined; methodID: number | undefined; policyID: string | undefined}): boolean {
+function selectPartiallySetupBankAccount({state, methodID, policyID}: {state: string | undefined; methodID: number | undefined; policyID: string | undefined}): boolean {
     if (!methodID) {
         return false;
     }
@@ -389,7 +389,7 @@ export {
     getPaymentMethodDescription,
     formatPaymentMethods,
     getBusinessBankAccountOptions,
-    handleIncompleteBankAccountSelection,
+    selectPartiallySetupBankAccount,
     matchesCurrency,
     calculateWalletTransferBalanceFee,
     selectPaymentType,
