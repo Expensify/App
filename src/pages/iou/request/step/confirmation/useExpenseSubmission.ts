@@ -136,19 +136,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     const selectedParticipants = participants.filter((participant) => participant.selected);
-    // Filter out participants with an amount equal to O
-    let splitParticipants = selectedParticipants;
-    if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
-        const participantsWithAmount = new Set(
-            Object.keys(transaction.splitShares ?? {})
-                .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
-                .map((accountID) => Number(accountID)),
-        );
-        splitParticipants = selectedParticipants.filter((participant) =>
-            participantsWithAmount.has(participant.isPolicyExpenseChat ? (participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) : (participant.accountID ?? CONST.DEFAULT_NUMBER_ID)),
-        );
-    }
-    const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -301,7 +288,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         currentUserPersonalDetails,
         participants,
         selectedParticipants,
-        splitParticipants,
+        iouType,
         isTrackIntentUser,
         releaseSubmitLock,
         transactionTaxCode,
@@ -324,7 +311,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         personalDetails,
         currentUserPersonalDetails,
         participants,
-        selectedParticipantsForRequest,
+        selectedParticipants,
         iouType,
         isGPSDistanceRequest,
         isManualDistanceRequest,

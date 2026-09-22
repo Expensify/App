@@ -20,6 +20,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {RefObject} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -27,6 +28,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {CreateTransactionParams, SubmissionHandle} from './types';
 import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
+
+import getSelectedParticipantsForSubmission from './utils/getSelectedParticipantsForSubmission';
 
 type UseSplitSubmissionParams = TransactionTaxValues & {
     transaction: OnyxEntry<Transaction>;
@@ -37,7 +40,7 @@ type UseSplitSubmissionParams = TransactionTaxValues & {
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     participants: Participant[];
     selectedParticipants: Participant[];
-    splitParticipants: Participant[];
+    iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
     isTrackIntentUser: boolean;
     releaseSubmitLock: () => void;
 
@@ -59,7 +62,7 @@ function useSplitSubmission({
     currentUserPersonalDetails,
     participants,
     selectedParticipants,
-    splitParticipants,
+    iouType,
     isTrackIntentUser,
     releaseSubmitLock,
     recentlyUsedData,
@@ -80,6 +83,7 @@ function useSplitSubmission({
 
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
+    const splitParticipants = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
 
     function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';

@@ -31,6 +31,7 @@ import type {DistanceDraftData} from './useDistanceDraftData';
 import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
 
+import getSelectedParticipantsForSubmission from './utils/getSelectedParticipantsForSubmission';
 import performPostBatchCleanup from './utils/performPostBatchCleanup';
 
 type UseDistanceSubmissionParams = TransactionTaxValues & {
@@ -43,7 +44,7 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     participants: Participant[];
-    selectedParticipantsForRequest: Participant[];
+    selectedParticipants: Participant[];
     iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
     isGPSDistanceRequest: boolean;
     isManualDistanceRequest: boolean;
@@ -75,7 +76,7 @@ function useDistanceSubmission({
     personalDetails,
     currentUserPersonalDetails,
     participants,
-    selectedParticipantsForRequest,
+    selectedParticipants,
     iouType,
     isGPSDistanceRequest,
     isManualDistanceRequest,
@@ -107,6 +108,7 @@ function useDistanceSubmission({
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const {gpsDraftDetails, recentWaypoints, odometerDraft, originalTransactionDistance, modifiedTransactionDistance} = distanceDraftData;
 
+    const selectedParticipantsForRequest = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
