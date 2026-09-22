@@ -146,6 +146,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         isSelected,
+        borderRadius: 0,
         shouldApplyOtherStyles: false,
     });
 

@@ -1,6 +1,5 @@
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -33,7 +32,6 @@ function GroupChildrenContainer({
     isLastItem,
     newTransactionID,
 }: GroupChildrenContainerProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const hasBorder = !isFirstItem;
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
@@ -55,15 +53,7 @@ function GroupChildrenContainer({
     }
 
     return (
-        <Animated.View
-            style={[
-                styles.mh5,
-                {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
-                animatedHighlightStyle,
-                isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                hasBorder && styles.tableBorder,
-            ]}
-        >
+        <Animated.View style={[styles.mh5, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}>
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View

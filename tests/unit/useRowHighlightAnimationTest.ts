@@ -95,6 +95,19 @@ describe('useRowHighlightAnimation', () => {
                 shouldApplyOtherStyles: false,
             }),
         ],
+        [
+            'forwards the immediate-entry overrides for rows already on screen',
+            {shouldHighlight: true, skipInitialFade: true, itemEnterDelay: 0},
+            (theme) => ({
+                borderRadius: variables.componentBorderRadius,
+                shouldHighlight: true,
+                highlightColor: theme.messageHighlightBG,
+                backgroundColor: theme.highlightBG,
+                shouldApplyOtherStyles: true,
+                skipInitialFade: true,
+                itemEnterDelay: 0,
+            }),
+        ],
     ])('%s', (_name, params, expected) => {
         const {theme} = renderRowHighlightAnimation(params);
 
