@@ -110,26 +110,28 @@ function DynamicTagGLCodePage({route}: DynamicEditTagGLCodePageProps) {
                     title={translate('workspace.tags.glCode')}
                     onBackButtonPress={goBack}
                 />
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
-                    validate={validate}
-                    onSubmit={editGLCode}
-                    submitButtonText={translate('common.save')}
-                    style={[styles.mh5, styles.flex1]}
-                    enabledWhenOffline
-                    shouldHideFixErrorsAlert
-                    addBottomSafeAreaPadding
-                >
-                    <InputWrapper
-                        ref={inputCallbackRef}
-                        InputComponent={TextInput}
-                        defaultValue={glCode}
-                        label={translate('workspace.tags.glCode')}
-                        accessibilityLabel={translate('workspace.tags.glCode')}
-                        inputID={INPUT_IDS.TAG_GL_CODE}
-                        role={CONST.ROLE.PRESENTATION}
-                    />
-                </FormProvider>
+                {!!currentPolicyTagEntry && (
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
+                        validate={validate}
+                        onSubmit={editGLCode}
+                        submitButtonText={translate('common.save')}
+                        style={[styles.mh5, styles.flex1]}
+                        enabledWhenOffline
+                        shouldHideFixErrorsAlert
+                        addBottomSafeAreaPadding
+                    >
+                        <InputWrapper
+                            ref={inputCallbackRef}
+                            InputComponent={TextInput}
+                            defaultValue={glCode}
+                            label={translate('workspace.tags.glCode')}
+                            accessibilityLabel={translate('workspace.tags.glCode')}
+                            inputID={INPUT_IDS.TAG_GL_CODE}
+                            role={CONST.ROLE.PRESENTATION}
+                        />
+                    </FormProvider>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
