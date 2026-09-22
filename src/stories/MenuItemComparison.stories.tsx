@@ -533,6 +533,35 @@ function Comparison() {
             />
 
             <Card
+                title="description, errorText, hintText, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Limit type"
+                        title="Smart limit"
+                        shouldShowRightIcon
+                        onPress={noop}
+                        errorText="Please select a limit type"
+                        hintText="Resets every month"
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItemField.Row
+                            name="Limit type"
+                            value="Smart limit"
+                        >
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        <MenuItem.HelpText
+                            isError
+                            message="Please select a limit type"
+                        />
+                        <MenuItem.HelpText message="Resets every month" />
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
                 title="description, non-interactive, title"
                 legacy={
                     <MenuItemWithTopDescription
