@@ -100,7 +100,10 @@ function MergeATSFiltersPage({
                 <HeaderWithBackButton title={translate('workspace.recruiting.importSettings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('workspace.recruiting.filters.description', providerName)}</Text>
-                    <OfflineWithFeedback pendingAction={mergeATS?.config.pendingFields?.filters}>
+                    <OfflineWithFeedback
+                        pendingAction={mergeATS?.config.pendingFields?.filters}
+                        contentContainerStyle={[styles.gap3]}
+                    >
                         {filterRows.map(({filterType, toggleTitle, rowDescription}, index) => (
                             <React.Fragment key={filterType}>
                                 <ToggleSettingOptionRow
@@ -110,16 +113,18 @@ function MergeATSFiltersPage({
                                     isActive={!!filters[filterType]?.length}
                                     onToggle={(isEnabled) => toggleFilter(filterType, isEnabled)}
                                     subMenuItems={
-                                        <MenuItemWithTopDescription
-                                            description={rowDescription}
-                                            title={getMergeATSFilterLabel(filterType, filters, mergeATS?.data, translate)}
-                                            shouldShowRightIcon
-                                            style={[styles.ph5]}
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
-                                        />
+                                        <>
+                                            <MenuItemWithTopDescription
+                                                description={rowDescription}
+                                                title={getMergeATSFilterLabel(filterType, filters, mergeATS?.data, translate)}
+                                                shouldShowRightIcon
+                                                style={[styles.ph5, styles.mv3]}
+                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
+                                            />
+                                            {index !== filterRows.length - 1 && <View style={[styles.sectionDividerLine, styles.mh5]} />}
+                                        </>
                                     }
                                 />
-                                {index !== filterRows.length - 1 && <View style={[styles.sectionDividerLine, styles.mv3, styles.mh5]} />}
                             </React.Fragment>
                         ))}
                     </OfflineWithFeedback>
