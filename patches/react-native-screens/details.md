@@ -14,3 +14,19 @@
 - Upstream PR/issue: not reported yet.
 - E/App issue: n/a — found while building the native tab bar in `TabNavigator.native.tsx`.
 - PR introducing patch: n/a
+
+
+### [react-native-screens+4.25.0+003+no-android-tab-icon-tint.patch](react-native-screens+4.25.0+003+no-android-tab-icon-tint.patch)
+
+- Reason: The App builds every native tab icon off-screen in Skia and hands it over already colored, because iOS 26 ignores the inactive icon color from `UITabBarItemAppearance`. React Navigation marks those icons `tinted: false`, but `getPlatformIcon` in `@react-navigation/bottom-tabs` only honors the flag on iOS: Android always receives the plain `imageSource`, and `TabsAppearanceApplicator` then assigns `bottomNavigationView.itemIconTintList` unconditionally. A `ColorStateList` tint is `SRC_IN`, so it flattens the whole bitmap to one color. On the glyph tabs this is invisible, since Material repaints them in the same color Skia used, but the account tab shows the user's avatar and turns into a solid silhouette, gray when the tab is not selected and green when it is, and the status dots painted into the bitmaps lose their own colors too. The patch drops the icon tint list so Android draws the bitmap as supplied, which is what `tinted: false` already means on iOS. Label colors are untouched and keep coming from `tabBarItemTitleFontColor`.
+- Upstream PR/issue: not reported yet.
+- E/App issue: n/a, found while building the native tab bar in `TabNavigator.native.tsx`.
+- PR introducing patch: n/a
+
+
+### [react-native-screens+4.25.0+004+teardown-tabs-color-scheme-coordinator.patch](react-native-screens+4.25.0+004+teardown-tabs-color-scheme-coordinator.patch)
+
+- Reason: `TabsContainer.onAttachedToWindow` calls `colorSchemeCoordinator.setup(...)`, and that setup opens with `check(!isSetUp)`. `ColorSchemeCoordinator.teardown()` is the only thing that clears the flag, and it is never called anywhere in the package, so the coordinator stays marked as set up once the container has been attached a single time. The first time the fragment manager re-adds the container's view, `onAttachedToWindow` runs again and the check throws `[RNScreens] ColorSchemeCoordinator's setup method must not be called again without calling teardown() first`, with `ColorSchemeCoordinator.kt:57` under `TabsContainer.kt:270` under `FragmentStateManager.addViewToContainer`. In a debug build that surfaces as a red box over a dead React tree; in release the `IllegalStateException` propagates. The patch calls `teardown()` from `onDetachedFromWindow`, next to the fragment manager teardown that is already there, so attach and detach are symmetric.
+- Upstream PR/issue: not reported yet.
+- E/App issue: n/a, found while building the native tab bar in `TabNavigator.native.tsx`.
+- PR introducing patch: n/a

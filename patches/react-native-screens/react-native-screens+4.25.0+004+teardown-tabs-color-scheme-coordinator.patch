@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+index 3342c41..2cfa9ad 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+@@ -275,6 +275,9 @@ class TabsContainer internal constructor(
+     override fun onDetachedFromWindow() {
+         super.onDetachedFromWindow()
+         teardownFragmentManager()
++        // Mirrors the setup() in onAttachedToWindow. Without it the coordinator stays marked as set up, and the
++        // next attach trips its own `check(!isSetUp)`.
++        colorSchemeCoordinator.teardown()
+     }
+ 
+     override fun onConfigurationChanged(newConfig: Configuration?) {

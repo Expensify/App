@@ -110,7 +110,9 @@ function drawStatusDot(canvas: SkCanvas, canvasWidth: number, scale: number, col
  * whichever tab is selected — measured to hold for `badgeBackgroundColor` and for `UITabBarItem.badgeColor` alike.
  * The image handed to an item is honored, though, so the glyph is recolored off-screen and the status dot is drawn
  * into it. Both selection states go through this, because RNScreens rejects a tab whose icon and selectedIcon
- * differ in type. Every icon reserves the same room for the dot so the glyphs stay aligned across tabs.
+ * differ in type. The canvas is the glyph's own size, so Android's fixed icon slot draws the glyph at full size
+ * instead of shrinking it to fit reserved room, and the dot overlaps the glyph's top right corner the way the
+ * indicator on the mobile web bar does.
  */
 async function createTabIcon(source: ImageSourcePropType, color: string, dotColor: string | undefined): Promise<NativeBottomTabIcon | undefined> {
     const asset = Image.resolveAssetSource(source);
@@ -122,9 +124,8 @@ async function createTabIcon(source: ImageSourcePropType, color: string, dotColo
     const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
     const image = Skia.Image.MakeImageFromEncoded(encodedImage);
     const scale = asset.scale ?? 1;
-    const padding = variables.nativeTabIconDotRadius * 2 * scale;
-    const canvasWidth = image ? image.width() + padding : 0;
-    const canvasHeight = image ? image.height() + padding : 0;
+    const canvasWidth = image?.width() ?? 0;
+    const canvasHeight = image?.height() ?? 0;
     const surface = image ? Skia.Surface.MakeOffscreen(canvasWidth, canvasHeight) : null;
 
     if (!image || !surface) {
@@ -138,8 +139,7 @@ async function createTabIcon(source: ImageSourcePropType, color: string, dotColo
     paint.setColorFilter(Skia.ColorFilter.MakeBlend(Skia.Color(color), BlendMode.SrcIn));
 
     const canvas = surface.getCanvas();
-    // The glyph sits in the bottom left so the reserved room ends up under the dot.
-    canvas.drawImageRect(image, Skia.XYWHRect(0, 0, image.width(), image.height()), Skia.XYWHRect(0, padding, image.width(), image.height()), paint);
+    canvas.drawImageRect(image, Skia.XYWHRect(0, 0, image.width(), image.height()), Skia.XYWHRect(0, 0, image.width(), image.height()), paint);
 
     if (dotColor) {
         drawStatusDot(canvas, canvasWidth, scale, dotColor);
@@ -159,17 +159,15 @@ async function createTabIcon(source: ImageSourcePropType, color: string, dotColo
 
 /**
  * The account tab shows the user's avatar, and a tab icon has to be a square image, so the avatar is cropped to a
- * circle off-screen and handed over as a data URI. It reserves the same room for the status dot as every other tab
- * icon, so the avatar lines up with the glyphs next to it.
+ * circle off-screen and handed over as a data URI. It fills the same canvas as every other tab icon, so the avatar
+ * is drawn at the size of the glyphs next to it.
  */
 async function createCircularAvatarIcon(uri: string, dotColor: string | undefined): Promise<string | undefined> {
     const response = await fetch(uri);
     const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
     const image = Skia.Image.MakeImageFromEncoded(encodedImage);
     const scale = variables.nativeTabIconScale;
-    const avatarSize = variables.iconBottomBar * scale;
-    const padding = variables.nativeTabIconDotRadius * 2 * scale;
-    const canvasSize = avatarSize + padding;
+    const canvasSize = variables.iconBottomBar * scale;
     const surface = Skia.Surface.MakeOffscreen(canvasSize, canvasSize);
 
     if (!image || !surface) {
@@ -182,12 +180,12 @@ async function createCircularAvatarIcon(uri: string, dotColor: string | undefine
     const sourceX = (image.width() - sourceSize) / 2;
     const sourceY = (image.height() - sourceSize) / 2;
     const circle = Skia.Path.Make();
-    circle.addCircle(avatarSize / 2, padding + avatarSize / 2, avatarSize / 2);
+    circle.addCircle(canvasSize / 2, canvasSize / 2, canvasSize / 2);
 
     const canvas = surface.getCanvas();
     canvas.save();
     canvas.clipPath(circle, ClipOp.Intersect, true);
-    canvas.drawImageRect(image, Skia.XYWHRect(sourceX, sourceY, sourceSize, sourceSize), Skia.XYWHRect(0, padding, avatarSize, avatarSize), Skia.Paint());
+    canvas.drawImageRect(image, Skia.XYWHRect(sourceX, sourceY, sourceSize, sourceSize), Skia.XYWHRect(0, 0, canvasSize, canvasSize), Skia.Paint());
     canvas.restore();
 
     if (dotColor) {
@@ -209,25 +207,17 @@ async function createCircularAvatarIcon(uri: string, dotColor: string | undefine
 
 /**
  * Wraps the tab screens so the floating buttons, the debug view and the wide-layout side bar can be drawn over
- * them. The native bar is part of the navigator itself, so it is switched off through the active tab's options
- * instead of being unmounted.
+ * them. The native bar is part of the navigator itself, so it is switched off through `tabBarStyle` in the
+ * navigator's screen options instead of being unmounted.
  */
-function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
+function NativeTabLayout({children, state}: NativeTabLayoutProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const styles = useThemeStyles();
-    const theme = useTheme();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeRoute) && !isBlockingViewVisible;
-    const activeTabNavigation = activeRoute ? descriptors[activeRoute.key]?.navigation : undefined;
-
-    // setOptions replaces tabBarStyle wholesale, so the background travels with the visibility flag. The
-    // background only lands on Android and iOS 18 and below; iOS 26 keeps its own glass material.
-    useEffect(() => {
-        activeTabNavigation?.setOptions({tabBarStyle: {display: shouldShowNativeTabBar ? 'flex' : 'none', backgroundColor: theme.appBG}});
-    }, [activeTabNavigation, shouldShowNativeTabBar, theme.appBG]);
 
     if (!shouldUseNarrowLayout) {
         return (
@@ -272,6 +262,7 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {translate} = useLocalize();
     const theme = useTheme();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
@@ -286,8 +277,10 @@ function TabNavigator() {
     // `useNavigationState((s) => s)` here because TabNavigator's body runs before <Tab.Navigator>
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
-    const activeTabRouteName = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index]?.name : SCREENS.HOME;
+    const activeTabRoute = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index] : undefined;
+    const activeTabRouteName = isRealizedNavigationState(tabState) ? activeTabRoute?.name : SCREENS.HOME;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeTabRouteName ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible;
 
     let inboxDotColor: string | undefined;
     if (chatTabBrickRoad) {
@@ -358,9 +351,8 @@ function TabNavigator() {
     const avatarSignature = `${avatarURI}|${accountDotColor}`;
     const [circularAvatar, setCircularAvatar] = useState<{signature: string; uri: string}>();
     const circularAvatarURI = circularAvatar?.signature === avatarSignature ? circularAvatar.uri : undefined;
-    const accountIconSize = variables.iconBottomBar + variables.nativeTabIconDotRadius * 2;
     const accountTabIcon: NativeBottomTabIcon = circularAvatarURI
-        ? {type: 'image', source: {uri: circularAvatarURI, width: accountIconSize, height: accountIconSize, scale: variables.nativeTabIconScale}, tinted: false}
+        ? {type: 'image', source: {uri: circularAvatarURI, width: variables.iconBottomBar, height: variables.iconBottomBar, scale: variables.nativeTabIconScale}, tinted: false}
         : ACCOUNT_TAB_ICON;
 
     useEffect(() => {
@@ -435,6 +427,15 @@ function TabNavigator() {
         lazy: false,
         tabBarActiveTintColor: theme.iconMenu,
         tabBarInactiveTintColor: theme.icon,
+        // Every tab shares one style, so the bar reads the current visibility in the same render that changed it.
+        // Pushed through setOptions instead, each tab kept the value it was left with, and the bar spent the first
+        // frame after a tab switch in the previous tab's state. The background only lands on Android and iOS 18 and
+        // below; iOS 26 keeps its own glass material.
+        tabBarStyle: {display: shouldShowNativeTabBar ? ('flex' as const) : ('none' as const), backgroundColor: theme.appBG},
+        // Android defaults to showing the label on the selected tab only once a bar has more than three items,
+        // which leaves the other tabs centering a lone icon at a different height. Labelling every tab matches
+        // what iOS draws and keeps all five icons on one baseline.
+        tabBarLabelVisibilityMode: 'labeled' as const,
         tabBarControllerMode: 'tabBar' as const,
         // The bar stays put while the content scrolls, instead of collapsing the way iOS 26 does by default.
         tabBarMinimizeBehavior: 'none' as const,
