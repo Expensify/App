@@ -21,9 +21,12 @@ import {completeOnboarding} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -208,6 +211,39 @@ describe('OnboardingWorkspaces Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
         });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should clear the blocked-back error message when skip is pressed', async () => {
+        // Given this screen after a blocked Back press, which leaves the navigation guard's error in Onyx
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.purpose.errorBackButton');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When "Skip for now" moves the flow forward
+        fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the message is cleared, so the next screen does not open showing an error the user just resolved
+        let onboardingErrorMessage: OnyxEntry<TranslationPaths>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            callback: (value) => {
+                onboardingErrorMessage = value;
+            },
+        });
+
+        expect(onboardingErrorMessage).toBeFalsy();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
