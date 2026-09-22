@@ -7583,6 +7583,20 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     invalidAddress: 'Veuillez saisir une adresse valide',
                     distanceTooLarge: 'La distance est trop grande.',
                 },
+                workArrangement: {
+                    title: 'Mode de travail par défaut',
+                    officeBasedTitle: 'Au bureau',
+                    officeBasedHelp: 'Le membre se rend dans un bureau. Les trajets domicile-travail habituels sont exclus du remboursement.',
+                    noRegularWorkplaceTitle: 'Pas de lieu de travail fixe',
+                    noRegularWorkplaceHelp: 'Le membre travaille à distance ou n’a pas de lieu de travail fixe, les règles de trajet domicile-travail ne s’appliquent donc pas.',
+                    startingPrompt: {
+                        title: 'Définir un mode de travail type',
+                        prompt: 'Choisissez le mode de travail qui s’applique à la plupart des membres actuels. Vous pourrez modifier les membres individuellement ou en masse plus tard.',
+                        officeBasedHelp: 'La plupart des membres se rendent dans un bureau. Les trajets domicile-travail habituels sont exclus.',
+                        noRegularWorkplaceHelp: 'La plupart des membres travaillent à distance, les exclusions de trajet domicile-travail ne s’appliquent donc généralement pas.',
+                        confirm: 'Appliquer',
+                    },
+                },
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
@@ -9295,6 +9309,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
+        workArrangement: {
+            officeBased: 'au bureau',
+            noRegularWorkplace: 'pas de lieu de travail fixe',
+            set: ({arrangement}: {arrangement: string}) => `a défini le mode de travail par défaut sur « ${arrangement} »`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `a changé le mode de travail par défaut en « ${arrangement} » (auparavant « ${previousArrangement} »)`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `modification de l’exclusion des trajets domicile-travail en une distance fixe par demande (auparavant ${previousMethod})`,

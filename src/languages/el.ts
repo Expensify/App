@@ -7824,6 +7824,20 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     invalidAddress: 'Παρακαλούμε εισαγάγετε έγκυρη διεύθυνση',
                     distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.',
                 },
+                workArrangement: {
+                    title: 'Προεπιλεγμένη μορφή εργασίας',
+                    officeBasedTitle: 'Εργασία από γραφείο',
+                    officeBasedHelp: 'Το μέλος μετακινείται σε γραφείο. Οι συνήθεις μετακινήσεις εξαιρούνται από την αποζημίωση.',
+                    noRegularWorkplaceTitle: 'Χωρίς σταθερό χώρο εργασίας',
+                    noRegularWorkplaceHelp: 'Το μέλος εργάζεται εξ αποστάσεως ή δεν έχει σταθερό χώρο εργασίας, οπότε δεν ισχύουν οι κανόνες μετακίνησης από το σπίτι στη δουλειά.',
+                    startingPrompt: {
+                        title: 'Ορίστε μια τυπική μορφή εργασίας',
+                        prompt: 'Επιλέξτε τη μορφή που ισχύει για τα περισσότερα τρέχοντα μέλη. Μπορείτε να ενημερώσετε τα μέλη μεμονωμένα ή μαζικά αργότερα.',
+                        officeBasedHelp: 'Τα περισσότερα μέλη μετακινούνται σε γραφείο. Οι συνήθεις μετακινήσεις εξαιρούνται.',
+                        noRegularWorkplaceHelp: 'Τα περισσότερα μέλη εργάζονται εξ αποστάσεως, οπότε οι εξαιρέσεις μετακίνησης συνήθως δεν ισχύουν.',
+                        confirm: 'Εφαρμογή',
+                    },
+                },
             },
             distance: 'Απόσταση',
             centrallyManage: 'Διαχειριστείτε κεντρικά τις χρεώσεις, παρακολουθήστε σε μίλια ή χιλιόμετρα και ορίστε μια προεπιλεγμένη κατηγορία.',
@@ -9406,6 +9420,13 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
+        workArrangement: {
+            officeBased: 'εργασία από γραφείο',
+            noRegularWorkplace: 'χωρίς σταθερό χώρο εργασίας',
+            set: ({arrangement}: {arrangement: string}) => `όρισε την προεπιλεγμένη μορφή εργασίας σε «${arrangement}»`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `άλλαξε την προεπιλεγμένη μορφή εργασίας σε «${arrangement}» (προηγουμένως «${previousArrangement}»)`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `αλλάχθηκε ο αποκλεισμός μετακινήσεων από/προς εργασία σε σταθερή απόσταση ανά αίτημα (προηγουμένως ${previousMethod})`,
