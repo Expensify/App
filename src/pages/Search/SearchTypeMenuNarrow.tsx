@@ -74,6 +74,7 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
                     onActiveTabPress={onActiveTabPress}
                     onTabPress={onTabPressContent}
                     onLongTabPress={onLongTabPress}
+                    contentContainerStyles={styles.ph3}
                 />
             </TabSelectorContextProvider>
             {children}

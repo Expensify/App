@@ -758,9 +758,16 @@ const staticStyles = (theme: ThemeColors) =>
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
+            borderTopWidth: 0.5,
+            borderTopColor: theme.hoverComponentBG,
             backgroundColor: theme.appBG,
+        },
+
+        // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
+        // spot, so applying it to all of them would stack one shadow per bar. The token's upward offset plus its
+        // negative spread keep the shadow clear of the bar's bottom edge, and so out of the safe area below it.
+        navigationTabBarTopShadow: {
+            boxShadow: theme.shadowTop,
         },
 
         navigationTabBarItem: {
@@ -2973,6 +2980,17 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderBottom: {
             borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        // Table separators on mobile, where a full pixel reads too heavy against the compact rows.
+        borderBottomHairline: {
+            borderBottomWidth: 0.5,
+            borderColor: theme.border,
+        },
+
+        borderTopHairline: {
+            borderTopWidth: 0.5,
             borderColor: theme.border,
         },
 
