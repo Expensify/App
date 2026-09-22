@@ -15,7 +15,7 @@ import Onyx from 'react-native-onyx';
 
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import {navigateToSidebarOption} from '../utils/TestHelper';
+import {navigateToSidebarOption, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -206,7 +206,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
         })
         .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
-            subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, undefined);
+            subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, formatPhoneNumber, undefined);
             return waitForBatchedUpdates();
         })
         .then(async () => {

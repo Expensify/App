@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -45,10 +46,11 @@ type PayPrimaryActionProps = {
 };
 
 function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
+    const {isBetaEnabled} = usePermissions();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {accountID, email, displayName, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -137,6 +139,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
@@ -153,7 +156,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 conciergeChat,
                 betas,
                 isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
@@ -162,6 +165,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         } else {
             startAnimation();
             payMoneyRequest({
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentType: type,
                 chatReport,

@@ -74,12 +74,14 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
         lastSyncErrorMessage = (
             <>
                 {`${translate('workspace.merge.authenticationError', card.displayName)} `}
-                <TextLink
-                    style={[styles.link, styles.fontSizeLabel]}
-                    onPress={handleConnect}
-                >
-                    {translate('workspace.merge.reconnectLink')}
-                </TextLink>
+                {!isOffline && (
+                    <TextLink
+                        style={[styles.link, styles.fontSizeLabel]}
+                        onPress={handleConnect}
+                    >
+                        {translate('workspace.merge.reconnectLink')}
+                    </TextLink>
+                )}
             </>
         );
     } else if (card.hasError) {
