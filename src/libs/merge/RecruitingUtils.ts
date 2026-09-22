@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {formatList} from '@libs/Localize';
 
 import CONST from '@src/CONST';
@@ -94,8 +96,18 @@ function getMergeATSFilterValues(filterType: MergeATSFilterType, data: MergeATSC
  * Offices are stored as IDs, so they are resolved against the office catalog in `data.offices`. Tags and stages are
  * stored as names and used as-is.
  */
-function getMergeATSFilterLabel(filterType: MergeATSFilterType, filters: MergeATSFilters | undefined | null, data: MergeATSConnectionData | undefined): string | undefined {
+function getMergeATSFilterLabel(
+    filterType: MergeATSFilterType,
+    filters: MergeATSFilters | undefined | null,
+    data: MergeATSConnectionData | undefined,
+    translate: LocalizedTranslate,
+): string | undefined {
     const selectedValues = filters?.[filterType];
+    const isAllSelected = selectedValues?.length === data?.[filterType]?.length;
+
+    if (isAllSelected) {
+        return translate(`workspace.recruiting.filters.${filterType}.allSelected`);
+    }
 
     if (filterType !== CONST.MERGE.ATS_FILTER_TYPE.OFFICES) {
         return getFilterDimensionLabel(selectedValues);

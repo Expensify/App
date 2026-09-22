@@ -112,7 +112,7 @@ function MergeATSFiltersPage({
                                     subMenuItems={
                                         <MenuItemWithTopDescription
                                             description={rowDescription}
-                                            title={getMergeATSFilterLabel(filterType, filters, mergeATS?.data)}
+                                            title={getMergeATSFilterLabel(filterType, filters, mergeATS?.data, translate)}
                                             shouldShowRightIcon
                                             style={[styles.ph5]}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
