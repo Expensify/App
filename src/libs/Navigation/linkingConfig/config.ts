@@ -310,6 +310,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.CARD_ADDED_TO_WALLET]: {
+                            path: ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.route,
                             exact: true,
@@ -1301,6 +1305,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.RULES_REIMBURSABLE_DEFAULT.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RECRUITING_SYNC_RESULTS]: DYNAMIC_ROUTES.WORKSPACE_RECRUITING_SYNC_RESULTS.path,
                         [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
                             path: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.route,
                         },
