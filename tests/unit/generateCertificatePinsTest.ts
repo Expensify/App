@@ -30,7 +30,7 @@ const nativePinFiles = [
     'android/app/src/main/java/com/expensify/chat/CertificatePinning.kt',
     'android/app/src/main/res/xml/network_security_config_enforce.xml',
     'ios/CertificatePinning.swift',
-    'patches/react-native-nitro-fetch/react-native-nitro-fetch+1.5.4+001+certificate-pinning.patch',
+    'patches/react-native-nitro-fetch/react-native-nitro-fetch+1.6.2+001+certificate-pinning.patch',
 ];
 
 const CLOUDFLARE_GROUP_HEADER = '=== Groups A-D: Cloudflare-fronted expensify.com hosts ===';
