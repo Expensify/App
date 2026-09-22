@@ -1219,6 +1219,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: 'Ρωτήστε το Concierge οτιδήποτε',
         },
     },
+    insightsPage: {
+        viewOnSpend: 'Προβολή στο Spend',
+        emptyState: {title: 'Τίποτα προς εμφάνιση', subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω'},
+        noExpensesState: {title: 'Δείτε πού πηγαίνουν τα χρήματά σας', subtitle: 'Μόλις έχετε δαπάνες, θα βλέπετε τάσεις δαπανών, κορυφαίους εμπόρους και άλλα.'},
+    },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
         domains: 'Τομείς',
