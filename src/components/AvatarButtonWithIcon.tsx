@@ -10,7 +10,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -30,7 +30,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
     onPress: () => void;
-    anchorRef?: RefObject<View | HTMLDivElement | null>;
+    anchorRef?: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
     avatar: React.ReactNode;
 
     /** Size of the displayed avatar. Keeps the button footprint even when `avatar` is empty. */

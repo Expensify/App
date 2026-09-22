@@ -30,7 +30,7 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  * There can be multiple report screens in the stack with different report IDs.
  */
 function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
-    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(SCREENS.INBOX);
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
     const shouldClearInitialReportActionsDefer = !!route.params && 'shouldDeferInitialReportActions' in route.params && route.params.shouldDeferInitialReportActions === true;
     const [shouldDeferInitialReportActions] = useState(() => shouldClearInitialReportActionsDefer);
