@@ -6284,8 +6284,6 @@ const translations = {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
             },
-            noVendorsFound: 'No vendors found',
-            noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Campfire and sync the connection again',
         },

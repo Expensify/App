@@ -8836,8 +8836,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 description: 'Choisissez un fournisseur Campfire par défaut pour les dépenses qui ne correspondent pas automatiquement.',
             },
             companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
-            noVendorsFound: 'Aucun fournisseur trouvé',
-            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Campfire et synchroniser à nouveau la connexion',
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Campfire et synchroniser à nouveau la connexion',
         },

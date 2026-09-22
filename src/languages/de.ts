@@ -8817,8 +8817,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 description: 'Wählen Sie einen Standard-Campfire-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
             },
             companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin Unternehmenskartentransaktionen exportiert werden sollen.'},
-            noVendorsFound: 'Keine Lieferanten gefunden',
-            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie Konten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
         },
