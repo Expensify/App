@@ -3,6 +3,7 @@ import type {SearchSortBy, SortOrder} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -129,7 +130,7 @@ function useMoneyRequestReportSortedTransactions({
     const currentUserDetails = useCurrentUserPersonalDetails();
     // The selector factory must be reference-stable across renders, otherwise useOnyx re-subscribes on every render.
     const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerLoginSelector});
+    const [ownerLogin] = useAllPersonalDetails(ownerLoginSelector);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [sortConfig, setSortConfig] = useState<SortConfig>({
