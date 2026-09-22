@@ -50,7 +50,6 @@ import {
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
-    isTransactionSearchType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -396,7 +395,7 @@ function Search({
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
     const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
-    const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
+    const shouldShowRowSkeleton = !hasErrors && (shouldShowLoadingState || (!skeletonWasDisplayed && showPendingExpensePlaceholder));
 
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
@@ -919,6 +918,11 @@ function Search({
     // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
     const onDeferredLayout = onLayoutBase;
 
+    const handleSkeletonLayout = useCallback(() => {
+        onDeferredLayout();
+        onSkeletonLayout();
+    }, [onDeferredLayout, onSkeletonLayout]);
+
     const onLayout = useCallback(() => {
         onLayoutBase();
         handleSelectionListScroll(stableSortedData, searchListRef.current);
@@ -1078,25 +1082,15 @@ function Search({
         [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
     );
 
-    // When heavy work is deferred (e.g. during the RHP dismiss animation after
-    // submitting an expense), skip the expensive render below. The ancestor
-    // SearchPage (via SearchPageNarrow / SearchPageWide) renders a SearchStaticList
-    // overlay that covers this component, so the user sees real-looking content.
-    // The minimal View fires onLayout to flush the deferred API write and set
-    // hasHadFirstLayout.
-    if (isDeferringHeavyWork && searchResults?.data && isTransactionSearchType(type)) {
-        // Zero-sized View - onLayout still fires on RN, which is all we need here.
-        return <View onLayout={onDeferredLayout} />;
-    }
-
-    // This is a performance optimization for the submit-expense->search path only.
-    // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
-    // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
+    // Stands in for the list while the heavy grouping and sorting work is deferred or the first response
+    // has not arrived. The page level skeleton (useSearchLoadingState) stops at the first defined `data`,
+    // so on a warm snapshot this is the only thing between the header and the rows. Its onLayout also
+    // flushes the deferred API write and sets hasHadFirstLayout.
     if (shouldShowRowSkeleton) {
         return (
             <SearchRowSkeleton
                 shouldAnimate
-                onLayout={onSkeletonLayout}
+                onLayout={handleSkeletonLayout}
                 containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
             />
         );

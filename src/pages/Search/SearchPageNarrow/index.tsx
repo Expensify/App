@@ -13,6 +13,7 @@ import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPa
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
@@ -325,6 +326,12 @@ function SearchPageNarrow({
                                             onDestinationVisible={endSubmitNavigationSpans}
                                             onContentReady={onSearchContentReady}
                                             hasFilterBars={hasFilterBars}
+                                        />
+                                    )}
+                                    {!isInteractive && !searchOverlayContent && (
+                                        <SearchRowSkeleton
+                                            shouldAnimate
+                                            containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
                                         />
                                     )}
                                     {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
