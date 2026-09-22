@@ -821,7 +821,6 @@
 "../../src/libs/Navigation/helpers/isRHPOnSearchMoneyRequestReportPage.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/isTabRouteAtRoot.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/lastVisitedTabPathUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/helpers/linkTo/getMinimalAction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/linkTo/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../src/libs/Navigation/helpers/navigateToWorkspacesPage.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/popReportsSplitNavigatorToReport.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
