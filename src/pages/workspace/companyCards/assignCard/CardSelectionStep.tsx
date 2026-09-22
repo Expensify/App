@@ -12,7 +12,6 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
-import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +26,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -67,8 +65,6 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds, feed);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
-    // Freeze the card selected when the step opened so it stays pinned to the top of the list, even as the live selection changes.
-    const initialCard = useInitialSelection(cardSelected, {resetOnFocus: true});
     const [shouldShowError, setShouldShowError] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading();
 
@@ -135,11 +131,9 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         });
     };
 
-    // Pin the frozen initial card to the top of the full list before filtering, so it stays pinned while searching.
-    const orderedCardListOptions = moveInitialSelectionToTop(cardListOptions, initialCard ? [initialCard] : []);
     const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(orderedCardListOptions, searchText, (option) => [option.text]);
-    }, [searchText, orderedCardListOptions]);
+        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
+    }, [searchText, cardListOptions]);
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
@@ -201,12 +195,10 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         data={searchedListOptions}
                         ListItem={SingleSelectListItem}
                         onSelectRow={({value}) => handleSelectCard(value)}
-                        initiallyFocusedItemKey={initialCard}
+                        initiallyFocusedItemKey={cardSelected}
                         textInputOptions={textInputOptions}
                         customListHeaderContent={customListHeader}
                         shouldScrollToFocusedIndex={false}
-                        shouldScrollToFocusedIndexOnMount={false}
-                        disableMaintainingScrollPosition
                         shouldShowListEmptyContent={false}
                         addBottomSafeAreaPadding
                         shouldUpdateFocusedIndex
