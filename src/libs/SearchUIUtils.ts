@@ -4659,6 +4659,13 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
 }
 
+const SPEND_INSIGHT_KEYS = [
+    CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
+    CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+    CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+    CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+] as const satisfies SearchKey[];
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4847,13 +4854,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        const insightsSearchKeys = [
-            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-            CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
-        ];
+        const insightsSearchKeys = [...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
 
         for (const key of insightsSearchKeys) {
             if (!suggestedSearchesVisibility[key]) {
@@ -7260,6 +7261,7 @@ export {
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
+    SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,
     getItemBadgeText,
