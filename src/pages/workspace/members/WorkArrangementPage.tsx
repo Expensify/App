@@ -29,7 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-type WorkArrangementOption = ListItem<boolean> & {
+type WorkArrangementOption = ListItem<string> & {
     value: boolean;
     text: string;
     alternateText: string;
@@ -63,7 +63,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
         if (value === currentIsOffice || !canWriteMembers) {
             return;
         }
-        setEmployeeWorkArrangement(policyID, [accountID], value);
+        setEmployeeWorkArrangement(policy, [accountID], value);
         navigateBackToDetails();
     };
 
