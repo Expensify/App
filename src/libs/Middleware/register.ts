@@ -11,7 +11,6 @@ import {
     LoadTest,
     Logging,
     Pagination,
-    PreferServerErrorMessage,
     Reauthentication,
     RecordFullReconnectTime,
     ReplaceOptimisticAgentAccountID,
@@ -56,9 +55,6 @@ function registerMiddlewares() {
 
     // Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows.
     addMiddleware(GlobalReimbursementPayError);
-
-    // Lets a user-facing EXP_ERROR message from the server replace the generic failure copy an action wrote into its failureData.
-    addMiddleware(PreferServerErrorMessage);
 
     // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
     addMiddleware(HandleUnusedOptimisticID);

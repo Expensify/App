@@ -479,6 +479,12 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
     return true;
 }
 
+// A server error for AddPersonalBankAccount arrives as onyxData merged into the same PERSONAL_BANK_ACCOUNT errors
+// object, keyed by the server's microsecond clock, and the newest key is the one shown. Pinning this fallback to the
+// lowest possible key keeps the server's specific message on top even when the device clock runs ahead of the
+// server's.
+const GENERIC_ADD_BANK_ACCOUNT_ERROR_KEY = 1;
+
 /**
  * Adds a bank account via Plaid
  *
@@ -553,7 +559,7 @@ function addPersonalBankAccount(
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure', GENERIC_ADD_BANK_ACCOUNT_ERROR_KEY),
                 },
             },
         ],
