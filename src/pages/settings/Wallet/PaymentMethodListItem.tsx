@@ -44,6 +44,9 @@ import type {ValueOf} from 'type-fest';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
+// Kept at module scope so it is referentially stable — ThreeDotsMenu uses it to reposition the open menu on resize.
+const threeDotsAnchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
+
 type ConnectionStatusDetails = {
     statusText: string;
     statusTone?: 'default' | 'success' | 'danger';
@@ -236,7 +239,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 shouldSelfPosition
                 onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
                 menuItems={threeDotsMenuItems}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorAlignment={threeDotsAnchorAlignment}
                 shouldOverlay
                 isNested
                 threeDotsMenuRef={threeDotsMenuRef}
