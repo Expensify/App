@@ -6,8 +6,8 @@ import {isMergeConnected} from '@libs/merge/MergeUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import MergeFinalApproverPageBase from '@pages/workspace/hr/MergeFinalApproverPageBase';
-import type {MergeFinalApproverProviderConfig} from '@pages/workspace/hr/MergeFinalApproverPageBase';
+import MergeFinalApproverPageBase from '@pages/workspace/merge/MergeFinalApproverPageBase';
+import type {MergeFinalApproverProviderConfig} from '@pages/workspace/merge/MergeFinalApproverPageBase';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
