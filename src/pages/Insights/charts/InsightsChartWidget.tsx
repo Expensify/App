@@ -1,3 +1,4 @@
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
@@ -7,12 +8,14 @@ import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
+import resolveComparisonWindows from '@pages/Insights/insightsCompare';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_CHART_STATE} from '@pages/Insights/resolveChartData';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
@@ -47,10 +50,28 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
-    const {queryJSON, data, state} = useInsightsChartData(dashboardID, hash, chart, filters);
+    const {queryJSON, data, previousPeriodData, state} = useInsightsChartData(dashboardID, hash, chart, filters);
     const groupBy = queryJSON?.groupBy;
+    const windows = resolveComparisonWindows(filters.date, translate);
+    const comparison =
+        isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && previousPeriodData && windows
+            ? {
+                  data: previousPeriodData,
+                  current: {
+                      ...windows.current,
+                      color: chart.color ?? VictoryTheme.colors.default,
+                  },
+                  previous: {
+                      ...windows.previous,
+                      color: chart.comparisonColor ?? VictoryTheme.colors.defaultDot,
+                  },
+              }
+            : undefined;
+    // A pie shows one period at a time, so a compared pie is drawn as a bar chart instead.
+    const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
 
     if (!queryJSON || !groupBy) {
         return null;
@@ -69,7 +90,12 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
                             {
                                 text: translate('insightsPage.viewOnSpend'),
                                 icon: icons.Expand,
-                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
+                                onSelected: () =>
+                                    Navigation.navigate(
+                                        ROUTES.SEARCH_ROOT.getRoute({
+                                            query: buildViewOnSpendQuery(queryJSON),
+                                        }),
+                                    ),
                                 shouldCallAfterModalHide: true,
                             },
                         ]}
@@ -80,14 +106,15 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], chart.view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView
                         queryJSON={queryJSON}
-                        view={chart.view}
+                        view={view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
                         color={chart.color}
+                        comparison={comparison}
                     />
                 </View>
             )}

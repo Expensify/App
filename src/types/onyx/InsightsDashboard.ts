@@ -14,6 +14,9 @@ type InsightsGraphKey = ValueOf<typeof CONST.INSIGHTS.GRAPH>;
 type InsightsGraph = {
     /** Hash of the graph's search snapshot */
     snapshotHash?: number;
+
+    /** Hash of the snapshot holding the same graph over the period before the one on screen, set only while comparing */
+    previousPeriodSnapshotHash?: number;
 };
 
 /** What the backend returns for one dashboard and set of filters */

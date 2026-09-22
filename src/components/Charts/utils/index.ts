@@ -213,15 +213,26 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
     return slices.findIndex((slice) => isAngleInSlice(cursorAngle, slice.startAngle, slice.endAngle));
 }
 
+/** A point's amount for one series, zero when that series has nothing at this point. */
+function getSeriesValue(point: ChartDataPoint, seriesKey: string): number {
+    return point.values[seriesKey] ?? 0;
+}
+
+/** Every series' amount at a point, for the axis and domain calculations that span all of them. */
+function getPointValues(point: ChartDataPoint): number[] {
+    return Object.values(point.values);
+}
+
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
+    primarySeriesKey: string,
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
-    const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
+    const total = data.reduce((sum, point) => sum + Math.abs(getSeriesValue(point, primarySeriesKey)), 0);
     if (total === 0) {
         return [];
     }
@@ -230,7 +241,7 @@ function processDataIntoSlices(
     const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
 
     return data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
+        .map((point, index) => ({label: point.label, absTotal: Math.abs(getSeriesValue(point, primarySeriesKey)), originalIndex: index}))
         .sort((a, b) => b.absTotal - a.absTotal)
         .reduce<{slices: PieSlice[]; angle: number}>(
             (acc, slice, index) => {
@@ -441,9 +452,9 @@ function getYAxisLabelWidth(
     if (!fontManager) {
         return 0;
     }
-    const totals = data.map((p) => p.total);
-    const rawDataMax = totals.length ? Math.max(...totals) : 0;
-    const rawDataMin = totals.length ? Math.min(...totals) : 0;
+    const values = data.flatMap(getPointValues);
+    const rawDataMax = values.length ? Math.max(...values) : 0;
+    const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
         0,
         ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
@@ -464,6 +475,8 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getPointValues,
+    getSeriesValue,
     processDataIntoSlices,
     getXAxisLabel,
     truncateLabel,

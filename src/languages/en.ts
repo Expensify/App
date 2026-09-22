@@ -1271,6 +1271,12 @@ const translations = {
             title: 'See where your money goes',
             subtitle: 'Once you have expenses, you’ll find spending trends, top merchants, and more.',
         },
+        compare: {
+            yearToDate: (year: number) => `YTD ${year}`,
+            lastTwelveMonths: 'Last 12 months',
+            priorMonths: (count: number) => `Prior ${count} months`,
+            priorDays: (count: number) => `Prior ${count} days`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',

@@ -60,8 +60,8 @@ type ResolveTargetIndexArgs = {
  * Configuration for the chart interactions hook
  */
 type UseChartInteractionsProps = {
-    /** Callback triggered when a valid data point is tapped/clicked */
-    handlePress: (index: number) => void;
+    /** Callback triggered when a valid data point is tapped/clicked, with the cursor that pressed it so the chart can tell which series was hit */
+    handlePress: (index: number, cursor: {x: number; y: number}) => void;
 
     /**
      * Worklet function to determine if the cursor is technically "hovering"
@@ -375,7 +375,7 @@ function useChartInteractions({
             const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
             updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
             if (isClickable) {
-                scheduleOnRN(handlePress, idx);
+                scheduleOnRN(handlePress, idx, {x: cursorX, y: cursorY});
             }
         });
 
@@ -403,7 +403,7 @@ function useChartInteractions({
         customGestures,
         /**
          * Call this from handleScaleChange with the canvas x/y positions of each data point.
-         * Derived from the d3 scale: ox[i] = xScale(i), oy[i] = yScale(data[i].total).
+         * Derived from the d3 scale: ox[i] = xScale(i), oy[i] = yScale of the point's topmost plotted value.
          */
         setPointPositions,
         /** SharedValue for the currently matched data index — read on the UI thread or sync via useAnimatedReaction */

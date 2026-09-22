@@ -29,17 +29,23 @@ type ResolveInsightsChartDataParams = {
 
     /** The snapshot's rows, grouped and sorted the way the chart plots them */
     sortedData: GroupedItem[] | undefined;
+
+    /** The previous period's rows, grouped the same way, absent when nothing is compared */
+    previousPeriodData?: GroupedItem[];
 };
 
 type InsightsChartData = {
     /** Rows for the period on screen, empty in every state but `ready` */
     data: GroupedItem[];
 
+    /** Rows for the period before it, absent unless the record named a snapshot for it */
+    previousPeriodData?: GroupedItem[];
+
     state: InsightsChartState;
 };
 
-/** Resolves one chart's rows and state from the snapshot the dashboard record named for it. */
-function resolveInsightsChartData({chart, dashboard, snapshot, sortedData}: ResolveInsightsChartDataParams): InsightsChartData {
+/** Resolves one chart's rows and state from the snapshots the dashboard record named for it. */
+function resolveInsightsChartData({chart, dashboard, snapshot, sortedData, previousPeriodData}: ResolveInsightsChartDataParams): InsightsChartData {
     if (Object.keys(snapshot?.errors ?? {}).length > 0) {
         return {data: [], state: INSIGHTS_CHART_STATE.ERROR};
     }
@@ -56,7 +62,7 @@ function resolveInsightsChartData({chart, dashboard, snapshot, sortedData}: Reso
         return {data: [], state: INSIGHTS_CHART_STATE.EMPTY};
     }
 
-    return {data: sortedData, state: INSIGHTS_CHART_STATE.READY};
+    return {data: sortedData, previousPeriodData, state: INSIGHTS_CHART_STATE.READY};
 }
 
 export {INSIGHTS_CHART_STATE, resolveInsightsChartData};

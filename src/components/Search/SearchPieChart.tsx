@@ -1,43 +1,23 @@
 import {PieChart} from '@components/Charts';
 import type {ChartDataPoint} from '@components/Charts/types';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-
-import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
-
 import React from 'react';
 
 import type {SearchChartProps} from './types';
 
-function SearchPieChart({data, getLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
-    // Transform grouped transaction data to PieChart format
-    const {getCurrencyDecimals} = useCurrencyListActions();
-    const chartData: ChartDataPoint[] = data.map((item) => {
-        const currency = item.currency ?? 'USD';
-        const decimals = getCurrencyDecimals(currency);
-        const valueInDisplayUnits = convertToFrontendAmountAsInteger(item.total ?? 0, decimals);
-
-        return {
-            label: getLabel(item),
-            total: valueInDisplayUnits,
-        };
-    });
-
+function SearchPieChart({data, series, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
     const handleSlicePress = (dataPoint: ChartDataPoint, index: number) => {
-        if (!onItemPress) {
+        const primarySeriesKey = series.at(0)?.key;
+        if (!primarySeriesKey) {
             return;
         }
-        const item = data.at(index);
-        if (!item) {
-            return;
-        }
-        const filterQuery = getFilterQuery(item);
-        onItemPress(filterQuery);
+        onItemPress?.(index, primarySeriesKey);
     };
 
     return (
         <PieChart
-            data={chartData}
+            data={data}
+            series={series}
             isLoading={isLoading}
             onSlicePress={handleSlicePress}
             valueUnit={unit?.value}
@@ -45,7 +25,5 @@ function SearchPieChart({data, getLabel, getFilterQuery, onItemPress, isLoading,
         />
     );
 }
-
-SearchPieChart.displayName = 'SearchPieChart';
 
 export default SearchPieChart;

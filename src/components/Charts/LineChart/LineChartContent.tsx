@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
+import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -16,7 +17,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getPointValues, getSeriesValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -44,11 +45,15 @@ const DOT_HOVER_EXTRA_RADIUS = 2;
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
+/** A point as victory-native reads it: the x index plus one entry per series, keyed by the series' key. */
+type LineChartDatum = Record<string, number>;
+
 type LineChartProps = CartesianChartProps & {
-    onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
+    /** Called with the pressed point and the series whose line was pressed */
+    onPointPress?: (dataPoint: ChartDataPoint, index: number, seriesKey: string) => void;
 };
 
-function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -58,18 +63,32 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const [boundsRight, setBoundsRight] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
-    const chartData = data.map((point, index) => ({
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const primarySeriesKey = seriesKeys.at(0) ?? '';
+    // The primary series is drawn last so it sits over the period it is compared against.
+    const seriesBackToFront = series.toReversed();
+    const chartData: LineChartDatum[] = data.map((point, index) => ({
         x: index,
-        y: point.total,
+        ...Object.fromEntries(seriesKeys.map((key) => [key, getSeriesValue(point, key)])),
     }));
 
-    const handlePointPress = (index: number) => {
+    /** Canvas y position of every series at every point, so a press can be traced back to the line under the cursor. */
+    const seriesPointY = useSharedValue<number[][]>([]);
+
+    /** The series whose dot sits closest to `cursorY` at the pressed point. */
+    const resolveSeriesKey = (index: number, cursorY: number): string => {
+        const distances = seriesPointY.get().map((positions) => Math.abs((positions.at(index) ?? Infinity) - cursorY));
+        const closest = distances.indexOf(Math.min(...distances));
+        return seriesKeys.at(closest) ?? primarySeriesKey;
+    };
+
+    const handlePointPress = (index: number, cursor: {x: number; y: number}) => {
         if (index < 0 || index >= data.length) {
             return;
         }
         const dataPoint = data.at(index);
         if (dataPoint && onPointPress) {
-            onPointPress(dataPoint, index);
+            onPointPress(dataPoint, index, resolveSeriesKey(index, cursor.y));
         }
     };
 
@@ -149,8 +168,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         'worklet';
 
         const dx = args.cursorX - args.targetX;
-        const dy = args.cursorY - args.targetY;
-        return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
+        const isOverDotAt = (dotY: number) => Math.sqrt(dx * dx + (args.cursorY - dotY) * (args.cursorY - dotY)) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
+        const positions = seriesPointY.get();
+
+        return positions.length > 0 ? positions.some((seriesPositions) => isOverDotAt(seriesPositions.at(args.targetIndex) ?? Infinity)) : isOverDotAt(args.targetY);
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
@@ -163,9 +184,11 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
+        seriesPointY.set(seriesKeys.map((key) => data.map((point) => yScale(getSeriesValue(point, key)))));
         setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
+            chartData.map((point, index) => xScale(point.x ?? index)),
+            // The tooltip hangs above the topmost dot of the point, so it never covers the series below it.
+            data.map((point) => Math.min(...seriesKeys.map((key) => yScale(getSeriesValue(point, key))))),
         );
     };
 
@@ -173,8 +196,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-        const chartBoundsBottom = args.yScale(Math.min(...args.yTicks));
+    const renderOutside = (args: CartesianChartRenderArg<LineChartDatum, string>) => {
+        const chartBoundsBottom = args.yScale(Math.min(0, ...args.yTicks, ...data.flatMap(getPointValues)));
         chartBottom.set(chartBoundsBottom);
         return (
             <>
@@ -184,11 +207,14 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     yScale={args.yScale}
                     color={theme.border}
                 />
-                <ScatterPoints
-                    points={args.points.y}
-                    radius={DOT_RADIUS}
-                    color={VictoryTheme.colors.defaultDot}
-                />
+                {seriesBackToFront.map((seriesItem) => (
+                    <ScatterPoints
+                        key={seriesItem.key}
+                        points={args.points[seriesItem.key] ?? []}
+                        radius={DOT_RADIUS}
+                        color={VictoryTheme.colors.getDarkerShade(seriesItem.color ?? VictoryTheme.colors.default)}
+                    />
+                ))}
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
                         labels={originalLabels}
@@ -243,63 +269,70 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     }
 
     return (
-        <GestureDetector gesture={customGestures}>
-            <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
-                onLayout={handleLayout}
-            >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={chartPadding}
-                        yKeys={['y']}
-                        domainPadding={domainPadding}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        onScaleChange={handleScaleChange}
-                        renderOutside={renderOutside}
-                        xAxis={{
-                            tickCount: data.length,
-                            lineWidth: VictoryTheme.axis.xLineWidth,
-                        }}
-                        yAxis={[
-                            {
-                                tickCount: VictoryTheme.axis.tickCount,
-                                lineWidth: VictoryTheme.axis.yLineWidth,
-                                lineColor: theme.border,
-                                labelOffset: VictoryTheme.axis.labelGap,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {({points, yScale, yTicks}) => (
-                            <>
-                                <AreaGradient
-                                    points={points.y}
-                                    baselineY={yScale(Math.min(...yTicks))}
-                                    color={VictoryTheme.colors.default}
-                                />
-                                <Line
-                                    points={points.y}
-                                    color={VictoryTheme.colors.default}
-                                    strokeWidth={2}
-                                    curveType="linear"
-                                />
-                            </>
-                        )}
-                    </CartesianChart>
-                )}
-                <ChartTooltipLayer
-                    matchedIndex={matchedIndex}
-                    isTooltipActive={isTooltipActive}
-                    data={data}
-                    formatValue={formatValue}
-                    chartWidth={chartWidth}
-                    initialTooltipPosition={initialTooltipPosition}
-                />
-            </Animated.View>
-        </GestureDetector>
+        <>
+            <GestureDetector gesture={customGestures}>
+                <Animated.View
+                    style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                    onLayout={handleLayout}
+                >
+                    {chartWidth > 0 && (
+                        <CartesianChart
+                            xKey="x"
+                            padding={chartPadding}
+                            yKeys={seriesKeys}
+                            domainPadding={domainPadding}
+                            onChartBoundsChange={handleChartBoundsChange}
+                            onScaleChange={handleScaleChange}
+                            renderOutside={renderOutside}
+                            xAxis={{
+                                tickCount: data.length,
+                                lineWidth: VictoryTheme.axis.xLineWidth,
+                            }}
+                            yAxis={[
+                                {
+                                    tickCount: VictoryTheme.axis.tickCount,
+                                    lineWidth: VictoryTheme.axis.yLineWidth,
+                                    lineColor: theme.border,
+                                    labelOffset: VictoryTheme.axis.labelGap,
+                                    domain: yAxisDomain,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={chartData}
+                        >
+                            {({points, yScale, yTicks}) => (
+                                <>
+                                    <AreaGradient
+                                        points={points[primarySeriesKey] ?? []}
+                                        baselineY={yScale(Math.min(...yTicks))}
+                                        color={series.at(0)?.color ?? VictoryTheme.colors.default}
+                                    />
+                                    {seriesBackToFront.map((seriesItem) => (
+                                        <Line
+                                            key={seriesItem.key}
+                                            points={points[seriesItem.key] ?? []}
+                                            color={seriesItem.color ?? VictoryTheme.colors.default}
+                                            strokeWidth={2}
+                                            curveType="linear"
+                                        />
+                                    ))}
+                                </>
+                            )}
+                        </CartesianChart>
+                    )}
+                    <ChartTooltipLayer
+                        matchedIndex={matchedIndex}
+                        isTooltipActive={isTooltipActive}
+                        data={data}
+                        series={series}
+                        formatValue={formatValue}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                </Animated.View>
+            </GestureDetector>
+            <ChartLegend series={series} />
+        </>
     );
 }
 

@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
+import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -14,7 +15,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getPointValues, getSeriesValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -23,13 +24,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import type {LayoutChangeEvent} from 'react-native';
-import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
+import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import {Bar, CartesianChart} from 'victory-native';
+import {BarGroup, CartesianChart} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
@@ -38,14 +39,21 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
  */
 const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
-type BarChartProps = CartesianChartProps & {
-    onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
+/** Gap between the bars of one group, as a share of a bar's width */
+const BAR_WITHIN_GROUP_PADDING = 0.1;
 
-    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
-    color?: string;
+/** Only the end carrying the value is rounded; victory-native flips these for a bar that hangs below the axis. */
+const BAR_ROUNDED_CORNERS = {topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0};
+
+/** A point as victory-native reads it: the x index plus one entry per series, keyed by the series' key. */
+type BarChartDatum = Record<string, number>;
+
+type BarChartProps = CartesianChartProps & {
+    /** Called with the pressed point and the series whose bar was pressed */
+    onBarPress?: (dataPoint: ChartDataPoint, index: number, seriesKey: string) => void;
 };
 
-function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress}: BarChartProps) {
+function BarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -54,20 +62,41 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
 
-    const chartData = data.map((point, index) => ({
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const primarySeriesKey = seriesKeys.at(0) ?? '';
+    const chartData: BarChartDatum[] = data.map((point, index) => ({
         x: index,
-        y: point.total,
+        ...Object.fromEntries(seriesKeys.map((key) => [key, getSeriesValue(point, key)])),
     }));
 
     const yAxisDomain = useDynamicYDomain(data);
 
-    const handleBarPress = (index: number) => {
+    /** Width of a single bar and of the whole group of bars at one x position, as BarGroup lays them out. */
+    const barWidth = useSharedValue(0);
+    const groupWidth = useSharedValue(0);
+
+    /** Canvas x position of each group's center, so a press can be traced back to the bar under the cursor. */
+    const groupCenters = useSharedValue<number[]>([]);
+
+    /** The series whose bar sits under `cursorX`, resolved from the group's left edge. */
+    const resolveSeriesKey = (index: number, cursorX: number): string => {
+        const groupCenter = groupCenters.get().at(index);
+        const width = barWidth.get();
+        if (groupCenter === undefined || width === 0) {
+            return primarySeriesKey;
+        }
+        const offset = cursorX - (groupCenter - groupWidth.get() / 2);
+        const seriesIndex = Math.min(seriesKeys.length - 1, Math.max(0, Math.floor(offset / width)));
+        return seriesKeys.at(seriesIndex) ?? primarySeriesKey;
+    };
+
+    const handleBarPress = (index: number, cursor: {x: number; y: number}) => {
         if (index < 0 || index >= data.length) {
             return;
         }
         const dataPoint = data.at(index);
         if (dataPoint && onBarPress) {
-            onBarPress(dataPoint, index);
+            onBarPress(dataPoint, index, resolveSeriesKey(index, cursor.x));
         }
     };
 
@@ -107,7 +136,6 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         unitPosition: yAxisUnitPosition,
     });
 
-    const barWidth = useSharedValue(0);
     const chartBottom = useSharedValue(0);
     const yZero = useSharedValue(0);
 
@@ -120,12 +148,14 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         chartBottom,
     });
 
+    const handleBarSizeChange = (sizes: {barWidth: number; groupWidth: number}) => {
+        barWidth.set(sizes.barWidth);
+        groupWidth.set(sizes.groupWidth);
+    };
+
     const handleChartBoundsChange = (bounds: ChartBounds) => {
-        const domainWidth = bounds.right - bounds.left;
-        const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-        barWidth.set(calculatedBarWidth);
         yZero.set(0);
-        setBarAreaWidth(domainWidth);
+        setBarAreaWidth(bounds.right - bounds.left);
         setBoundsLeft(bounds.left);
         setBoundsRight(bounds.right);
     };
@@ -133,13 +163,13 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
-        const currentBarWidth = barWidth.get();
+        const currentGroupWidth = groupWidth.get();
         const currentYZero = yZero.get();
-        if (currentBarWidth === 0) {
+        if (currentGroupWidth === 0) {
             return false;
         }
-        const barLeft = args.targetX - currentBarWidth / 2;
-        const barRight = args.targetX + currentBarWidth / 2;
+        const barLeft = args.targetX - currentGroupWidth / 2;
+        const barRight = args.targetX + currentGroupWidth / 2;
 
         const barTop = Math.min(args.targetY, currentYZero);
         const barBottom = Math.max(args.targetY, currentYZero);
@@ -159,9 +189,11 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
+        const centers = chartData.map((point, index) => xScale(point.x ?? index));
+        groupCenters.set(centers);
         setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
+            centers,
+            data.map((point) => Math.min(...seriesKeys.map((key) => yScale(getSeriesValue(point, key))))),
         );
     };
 
@@ -169,30 +201,12 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
-        const dataIndex = point.xValue as number;
-        const dataPoint = data.at(dataIndex);
-        const barColor = color ?? VictoryTheme.colors.getColor(dataIndex);
-
-        return (
-            <Bar
-                key={`bar-${dataPoint?.label}`}
-                points={[point]}
-                chartBounds={chartBounds}
-                color={barColor}
-                barCount={barCount}
-                innerPadding={BAR_INNER_PADDING}
-                roundedCorners={{topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8}}
-            />
-        );
-    };
-
-    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+    const renderOutside = (args: CartesianChartRenderArg<BarChartDatum, string>) => {
         if (!fontManager || xAxisLabelHeight === undefined) {
             return null;
         }
 
-        const chartBoundsBottom = args.yScale(Math.min(...args.yTicks));
+        const chartBoundsBottom = args.yScale(Math.min(0, ...args.yTicks, ...data.flatMap(getPointValues)));
         chartBottom.set(chartBoundsBottom);
 
         return (
@@ -244,49 +258,69 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     }
 
     return (
-        <GestureDetector gesture={customGestures}>
-            <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
-                onLayout={handleLayout}
-            >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={chartPadding}
-                        yKeys={['y']}
-                        domainPadding={domainPadding}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        onScaleChange={handleScaleChange}
-                        renderOutside={renderOutside}
-                        xAxis={{
-                            tickCount: data.length,
-                            lineWidth: VictoryTheme.axis.xLineWidth,
-                        }}
-                        yAxis={[
-                            {
-                                tickCount: VictoryTheme.axis.tickCount,
-                                lineWidth: VictoryTheme.axis.yLineWidth,
-                                lineColor: theme.border,
-                                labelOffset: VictoryTheme.axis.labelGap,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {({points, chartBounds}) => points.y.map((point) => renderBar(point, chartBounds, points.y.length))}
-                    </CartesianChart>
-                )}
-                <ChartTooltipLayer
-                    matchedIndex={matchedIndex}
-                    isTooltipActive={isTooltipActive}
-                    data={data}
-                    formatValue={formatValue}
-                    chartWidth={chartWidth}
-                    initialTooltipPosition={initialTooltipPosition}
-                />
-            </Animated.View>
-        </GestureDetector>
+        <>
+            <GestureDetector gesture={customGestures}>
+                <Animated.View
+                    style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                    onLayout={handleLayout}
+                >
+                    {chartWidth > 0 && (
+                        <CartesianChart
+                            xKey="x"
+                            padding={chartPadding}
+                            yKeys={seriesKeys}
+                            domainPadding={domainPadding}
+                            onChartBoundsChange={handleChartBoundsChange}
+                            onScaleChange={handleScaleChange}
+                            renderOutside={renderOutside}
+                            xAxis={{
+                                tickCount: data.length,
+                                lineWidth: VictoryTheme.axis.xLineWidth,
+                            }}
+                            yAxis={[
+                                {
+                                    tickCount: VictoryTheme.axis.tickCount,
+                                    lineWidth: VictoryTheme.axis.yLineWidth,
+                                    lineColor: theme.border,
+                                    labelOffset: VictoryTheme.axis.labelGap,
+                                    domain: yAxisDomain,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={chartData}
+                        >
+                            {({points, chartBounds}) => (
+                                <BarGroup
+                                    chartBounds={chartBounds}
+                                    betweenGroupPadding={BAR_INNER_PADDING}
+                                    withinGroupPadding={BAR_WITHIN_GROUP_PADDING}
+                                    roundedCorners={BAR_ROUNDED_CORNERS}
+                                    onBarSizeChange={handleBarSizeChange}
+                                >
+                                    {series.map((seriesItem) => (
+                                        <BarGroup.Bar
+                                            key={seriesItem.key}
+                                            points={points[seriesItem.key] ?? []}
+                                            color={seriesItem.color ?? VictoryTheme.colors.default}
+                                        />
+                                    ))}
+                                </BarGroup>
+                            )}
+                        </CartesianChart>
+                    )}
+                    <ChartTooltipLayer
+                        matchedIndex={matchedIndex}
+                        isTooltipActive={isTooltipActive}
+                        data={data}
+                        series={series}
+                        formatValue={formatValue}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                </Animated.View>
+            </GestureDetector>
+            <ChartLegend series={series} />
+        </>
     );
 }
 

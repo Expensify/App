@@ -1,3 +1,4 @@
+import type {TooltipRow} from '@components/Charts/hooks/useTooltipData';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
@@ -11,14 +12,11 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 
 type ChartTooltipProps = {
-    /** Label text (e.g., "Airfare", "Amazon") */
-    label: string;
+    /** The active point's label (e.g., "Airfare", "Amazon") */
+    title: string;
 
-    /** Formatted amount (e.g., "$1,820.00") */
-    amount: string;
-
-    /** Optional percentage to display (e.g., "12%") */
-    percentage?: string;
+    /** One row per plotted series, drawn under the title */
+    rows: TooltipRow[];
 
     /** The width of the chart container */
     chartWidth: number;
@@ -26,26 +24,23 @@ type ChartTooltipProps = {
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
 };
 
-function getTooltipContent(label: string, amount: string, percentage?: string): string {
-    if (!amount) {
-        return label;
+function getRowContent(row: TooltipRow): string {
+    if (!row.amount) {
+        return row.label ?? '';
     }
 
-    if (!percentage) {
-        return `${label} • ${amount}`;
-    }
-
-    return `${label} • ${amount} (${percentage})`;
+    return `${row.amount} (${row.percentage})`;
 }
 
-function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosition}: ChartTooltipProps) {
+function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTooltipProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
 
-    const content = getTooltipContent(label, amount, percentage);
+    const singleRow = rows.length === 1 ? rows.at(0) : undefined;
+    const content = [title, ...rows.map(getRowContent)].join(' ');
 
     /**
      * Synchronously reset the width and hide the tooltip whenever the content changes.
@@ -111,13 +106,35 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
             ref={tooltipWrapperRef}
         >
             <View style={styles.chartTooltipWrapper}>
-                <View style={styles.chartTooltipBox}>
-                    <Text
-                        style={styles.chartTooltipText}
-                        numberOfLines={1}
-                    >
-                        {content}
-                    </Text>
+                <View style={[styles.chartTooltipBox, !singleRow && styles.chartTooltipBoxMultiSeries]}>
+                    {singleRow ? (
+                        <Text
+                            style={styles.chartTooltipText}
+                            numberOfLines={1}
+                        >
+                            {`${title} • ${getRowContent(singleRow)}`}
+                        </Text>
+                    ) : (
+                        <>
+                            <Text
+                                style={styles.chartTooltipTitle}
+                                numberOfLines={1}
+                            >
+                                {title}
+                            </Text>
+                            <View style={styles.chartTooltipRows}>
+                                {rows.map((row) => (
+                                    <Text
+                                        key={row.label}
+                                        style={styles.chartTooltipText}
+                                        numberOfLines={1}
+                                    >
+                                        {`${row.label} • ${getRowContent(row)}`}
+                                    </Text>
+                                ))}
+                            </View>
+                        </>
+                    )}
                 </View>
                 <Animated.View
                     style={[

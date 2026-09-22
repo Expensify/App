@@ -1,4 +1,4 @@
-import type {UnitPosition, UnitWithFallback} from '@components/Charts';
+import type {ChartDataPoint, ChartSeries, UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
@@ -455,20 +455,14 @@ type GroupedItem =
     | TransactionQuarterGroupListItemType;
 
 type SearchChartProps = {
-    /** Grouped transaction data from search results */
-    data: GroupedItem[];
+    /** The points to plot, one per group, each holding one value per series */
+    data: ChartDataPoint[];
 
-    /** Function to extract label from grouped item */
-    getLabel: (item: GroupedItem) => string;
+    /** The plotted series, primary first */
+    series: ChartSeries[];
 
-    /** Function to extract the compact axis label from grouped item. When it returns undefined, `getLabel` is used. */
-    getShortLabel?: (item: GroupedItem) => string | undefined;
-
-    /** Function to build filter query from grouped item */
-    getFilterQuery: (item: GroupedItem) => string;
-
-    /** Callback when a chart item is pressed - receives the filter query to apply */
-    onItemPress?: (filterQuery: string) => void;
+    /** Callback when a chart item is pressed - receives the point's index and the series whose bar or point was pressed */
+    onItemPress?: (index: number, seriesKey: string) => void;
 
     isLoading?: boolean;
 
@@ -477,9 +471,6 @@ type SearchChartProps = {
 
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
-
-    /** Color every bar is drawn in. Only a bar chart reads it. */
-    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
