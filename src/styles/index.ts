@@ -6675,6 +6675,15 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             zIndex: 10,
         },
+
+        // The flat navigation bar's rows are compact, so the dot's colored core drops from 8px to 6px. The stroke
+        // keeps its width, and the dot shrinks toward the icon's top-right corner rather than its own center.
+        flatNavigationBarStatusIndicator: {
+            right: -2,
+            top: -3,
+            height: 10,
+            width: 10,
+        },
         modalStackNavigatorContainer: {
             height: '100%',
             right: 0,

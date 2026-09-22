@@ -111,6 +111,7 @@ function FlatNavItem({
                                 <View
                                     style={[
                                         styles.navigationTabBarStatusIndicator,
+                                        styles.flatNavigationBarStatusIndicator,
                                         styles.statusIndicatorColor(statusIndicatorColor),
                                         // The dot's stroke reads as a gap punched out of the row, so it has to track the row's background.
                                         getStatusIndicatorBorderStyle(isSelected, hovered, styles),
