@@ -24,7 +24,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 
@@ -62,6 +62,12 @@ type MockFlashListProps<T> = {
     onViewableItemsChanged?: (info: MockViewabilityInfo<T>) => void;
     overrideItemLayout?: (layout: {span?: number}, item: T, index: number, maxColumns: number, extraData?: unknown) => void;
     stickyHeaderIndices?: number[];
+    scrollsChildToFocus?: boolean;
+    scrollsChildRectangleOnScreen?: boolean;
+    stickyHeaderConfig?: {
+        hideWhenInactive?: boolean;
+        hideRelatedCell?: boolean;
+    };
     viewabilityConfigCallbackPairs?: Array<{
         viewabilityConfig: Record<string, unknown>;
         onViewableItemsChanged: ((info: MockViewabilityInfo<T>) => void) | null;
@@ -71,6 +77,7 @@ type MockFlashListProps<T> = {
 const mockFlashListScrollToIndex = jest.fn();
 const mockFlashListScrollToItem = jest.fn();
 const mockFlashListScrollToOffset = jest.fn();
+const mockScrollInputIntoView = jest.fn();
 const mockFlashListGetLayout = jest.fn();
 const mockFlashListComputeVisibleIndices = jest.fn();
 const mockFlashListGetFirstVisibleIndex = jest.fn();
@@ -86,6 +93,18 @@ let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 let mockFlashListMeasurementTargetIndexes: number[] = [];
 let mockShouldUseNarrowLayout = false;
+
+jest.mock('@components/SelectionList/hooks/useScrollToFocusedInput', () => ({
+    __esModule: true,
+    default: function useScrollToFocusedInput() {
+        const ReactLocal = jest.requireActual<typeof React>('react');
+        return {
+            containerRef: ReactLocal.useRef(null),
+            trackScrollOffset: jest.fn(),
+            scrollInputIntoView: mockScrollInputIntoView,
+        };
+    },
+}));
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -192,13 +211,22 @@ jest.mock('@shopify/flash-list', () => {
             ref: React.Ref<{
                 scrollToIndex: typeof mockFlashListScrollToIndex;
                 scrollToItem: typeof mockFlashListScrollToItem;
-                scrollToOffset: typeof mockFlashListScrollToOffset;
+                scrollToOffset: (params: {offset: number; animated?: boolean}) => void;
                 getLayout: typeof mockFlashListGetLayout;
                 computeVisibleIndices: typeof mockFlashListComputeVisibleIndices;
                 getFirstVisibleIndex: typeof mockFlashListGetFirstVisibleIndex;
             }>,
         ) => {
             mockFlashListProps.push(props);
+            const nativeScrollRef = ReactLocal.useRef<typeof mockFlashListScrollToOffset | null>(null);
+            // Animated.ScrollView detaches its callback ref during updates and attaches it after its
+            // children's layout effects. FlashList silently ignores scrollToOffset while that ref is null.
+            ReactLocal.useLayoutEffect(() => {
+                nativeScrollRef.current = mockFlashListScrollToOffset;
+                return () => {
+                    nativeScrollRef.current = null;
+                };
+            });
             const data = props.data ?? [];
             const stickyHeaderIndex = props.stickyHeaderIndices?.at(0);
             const stickyHeaderItem = stickyHeaderIndex === undefined ? undefined : data.at(stickyHeaderIndex);
@@ -211,14 +239,20 @@ jest.mock('@shopify/flash-list', () => {
                     mockFlashListUnmount();
                 };
             }, []);
-            ReactLocal.useImperativeHandle(ref, () => ({
-                scrollToIndex: mockFlashListScrollToIndex,
-                scrollToItem: mockFlashListScrollToItem,
-                scrollToOffset: mockFlashListScrollToOffset,
-                getLayout: mockFlashListGetLayout,
-                computeVisibleIndices: mockFlashListComputeVisibleIndices,
-                getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
-            }));
+            ReactLocal.useImperativeHandle(
+                ref,
+                () => ({
+                    scrollToIndex: mockFlashListScrollToIndex,
+                    scrollToItem: mockFlashListScrollToItem,
+                    scrollToOffset: (params: {offset: number; animated?: boolean}) => {
+                        nativeScrollRef.current?.(params);
+                    },
+                    getLayout: mockFlashListGetLayout,
+                    computeVisibleIndices: mockFlashListComputeVisibleIndices,
+                    getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
+                }),
+                [],
+            );
 
             return (
                 <RNView testID="flash-list">
@@ -411,59 +445,68 @@ jest.mock('@components/TextInput', () => {
         onBlur?: () => void;
         editable?: boolean;
     };
-    const MockTextInput = ReactLocal.forwardRef((props: MockTextInputProps, ref: React.Ref<{focus: () => void; blur: () => void; isFocused: () => boolean}>) => {
-        const isFocusedRef = ReactLocal.useRef(false);
-        const [nativeID] = ReactLocal.useState(() => `mock-search-input-${++mockNextTextInputInstanceID}`);
-        ReactLocal.useEffect(() => {
-            mockTextInputMount();
-            return () => {
-                mockTextInputUnmount();
-                if (isFocusedRef.current) {
-                    mockTextInputNativeBlur();
-                }
-            };
-        }, []);
-        ReactLocal.useImperativeHandle(ref, () => ({
-            focus: () => {
-                isFocusedRef.current = true;
-                mockTextInputFocus();
-            },
-            blur: () => {
-                isFocusedRef.current = false;
-                mockTextInputBlur();
-            },
-            isFocused: () => isFocusedRef.current,
-        }));
-
-        return (
-            <RNView>
-                <RNTextInput
-                    testID="search-input"
-                    nativeID={nativeID}
-                    accessibilityLabel={props.accessibilityLabel}
-                    editable={props.editable}
-                    value={props.value}
-                    onChangeText={props.onChangeText}
-                    onFocus={() => {
-                        isFocusedRef.current = true;
-                        mockTextInputNativeFocus();
-                        props.onFocus?.();
-                    }}
-                    onBlur={() => {
-                        isFocusedRef.current = false;
+    const MockTextInput = ReactLocal.forwardRef(
+        (
+            props: MockTextInputProps,
+            ref: React.Ref<{
+                focus: () => void;
+                blur: () => void;
+                isFocused: () => boolean;
+            }>,
+        ) => {
+            const isFocusedRef = ReactLocal.useRef(false);
+            const [nativeID] = ReactLocal.useState(() => `mock-search-input-${++mockNextTextInputInstanceID}`);
+            ReactLocal.useEffect(() => {
+                mockTextInputMount();
+                return () => {
+                    mockTextInputUnmount();
+                    if (isFocusedRef.current) {
                         mockTextInputNativeBlur();
-                        props.onBlur?.();
-                    }}
-                />
-                {!!props.onClearInput && (
+                    }
+                };
+            }, []);
+            ReactLocal.useImperativeHandle(ref, () => ({
+                focus: () => {
+                    isFocusedRef.current = true;
+                    mockTextInputFocus();
+                },
+                blur: () => {
+                    isFocusedRef.current = false;
+                    mockTextInputBlur();
+                },
+                isFocused: () => isFocusedRef.current,
+            }));
+
+            return (
+                <RNView>
                     <RNTextInput
-                        testID="clear-button"
-                        onPress={props.onClearInput}
+                        testID="search-input"
+                        nativeID={nativeID}
+                        accessibilityLabel={props.accessibilityLabel}
+                        editable={props.editable}
+                        value={props.value}
+                        onChangeText={props.onChangeText}
+                        onFocus={() => {
+                            isFocusedRef.current = true;
+                            mockTextInputNativeFocus();
+                            props.onFocus?.();
+                        }}
+                        onBlur={() => {
+                            isFocusedRef.current = false;
+                            mockTextInputNativeBlur();
+                            props.onBlur?.();
+                        }}
                     />
-                )}
-            </RNView>
-        );
-    });
+                    {!!props.onClearInput && (
+                        <RNTextInput
+                            testID="clear-button"
+                            onPress={props.onClearInput}
+                        />
+                    )}
+                </RNView>
+            );
+        },
+    );
     return MockTextInput;
 });
 
@@ -1012,6 +1055,165 @@ describe('Table', () => {
                     .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
             ).toBe(true);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
+        });
+
+        it.each(['android', 'ios', 'web'] as const)('should opt in to native sticky release only on Android (%s)', (platform) => {
+            const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
+            try {
+                const props = createDefaultProps();
+                render(
+                    <Table
+                        data={props.data}
+                        columns={props.columns}
+                        renderItem={props.renderItem}
+                        keyExtractor={props.keyExtractor}
+                        title="Categories"
+                    >
+                        <Table.ListHeader>
+                            <Text>Page controls</Text>
+                        </Table.ListHeader>
+                        <Table.Header />
+                        <Table.Body />
+                    </Table>,
+                );
+                expect(mockFlashListProps.at(-1)?.stickyHeaderConfig?.hideWhenInactive).toBe(platform === 'android');
+            } finally {
+                platformOverride.restore();
+            }
+        });
+
+        it.each(['android', 'ios', 'web'] as const)('should suppress only Android header-search caret scrolling while focused (%s)', (platform) => {
+            const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
+            try {
+                const props = createDefaultProps();
+                render(
+                    <Table {...props}>
+                        <Table.ListHeader>
+                            <Table.FilterBar label="Search" />
+                        </Table.ListHeader>
+                        <Table.Body />
+                    </Table>,
+                );
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
+                fireEvent(screen.getByTestId('search-input'), 'focus');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(platform === 'android' ? false : undefined);
+                expect(mockFlashListProps.at(-1)?.scrollsChildToFocus).toBeUndefined();
+                fireEvent.changeText(screen.getByTestId('search-input'), 'no-matching-row');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(platform === 'android' ? false : undefined);
+                fireEvent.changeText(screen.getByTestId('search-input'), '');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(platform === 'android' ? false : undefined);
+                fireEvent(screen.getByTestId('search-input'), 'blur');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
+            } finally {
+                platformOverride.restore();
+            }
+        });
+
+        it.each(['android', 'ios', 'web'] as const)('should skip delayed focus scrolling only for the Android scrolling header (%s)', (platform) => {
+            const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
+            try {
+                const props = createDefaultProps();
+                const view = render(
+                    <Table {...props}>
+                        <Table.ListHeader>
+                            <Table.FilterBar label="Search" />
+                        </Table.ListHeader>
+                        <Table.Body />
+                    </Table>,
+                );
+                fireEvent(screen.getByTestId('search-input'), 'focus');
+                expect(mockScrollInputIntoView).toHaveBeenCalledTimes(platform === 'android' ? 0 : 1);
+                view.unmount();
+                mockScrollInputIntoView.mockClear();
+                render(
+                    <Table {...props}>
+                        <Table.FilterBar label="Search" />
+                        <Table.Body />
+                    </Table>,
+                );
+                fireEvent(screen.getByTestId('search-input'), 'focus');
+                expect(mockScrollInputIntoView).toHaveBeenCalledTimes(1);
+            } finally {
+                platformOverride.restore();
+            }
+        });
+
+        it.each([true, false])('should preserve an explicit child-rectangle scrolling override (%s)', (scrollsChildRectangleOnScreen) => {
+            const platformOverride = jest.replaceProperty(Platform, 'OS', 'android');
+            try {
+                const props = createDefaultProps();
+                render(
+                    <Table
+                        {...props}
+                        scrollsChildRectangleOnScreen={scrollsChildRectangleOnScreen}
+                        scrollsChildToFocus
+                    >
+                        <Table.ListHeader>
+                            <Table.FilterBar label="Search" />
+                        </Table.ListHeader>
+                        <Table.Body />
+                    </Table>,
+                );
+                fireEvent(screen.getByTestId('search-input'), 'focus');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(scrollsChildRectangleOnScreen);
+                expect(mockFlashListProps.at(-1)?.scrollsChildToFocus).toBe(true);
+                fireEvent(screen.getByTestId('search-input'), 'blur');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(scrollsChildRectangleOnScreen);
+            } finally {
+                platformOverride.restore();
+            }
+        });
+
+        it('should leave native caret scrolling enabled for a search outside the scrolling header', () => {
+            const platformOverride = jest.replaceProperty(Platform, 'OS', 'android');
+            try {
+                const props = createDefaultProps();
+                render(
+                    <Table {...props}>
+                        <Table.FilterBar label="Search" />
+                        <Table.ListHeader>
+                            <Text>Unrelated page header</Text>
+                        </Table.ListHeader>
+                        <Table.Body />
+                    </Table>,
+                );
+                fireEvent(screen.getByTestId('search-input'), 'focus');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
+            } finally {
+                platformOverride.restore();
+            }
+        });
+
+        it('should release native caret ownership when the header search is suppressed or removed', () => {
+            const platformOverride = jest.replaceProperty(Platform, 'OS', 'android');
+            let releaseSuppression = () => {};
+            try {
+                const props = createDefaultProps();
+                const renderTable = (showSearch: boolean) => (
+                    <Table {...props}>
+                        <Table.ListHeader>
+                            <Text>Page header</Text>
+                            {showSearch && <Table.FilterBar label="Search" />}
+                        </Table.ListHeader>
+                        <Table.Body />
+                    </Table>
+                );
+                const {rerender} = render(renderTable(true));
+                fireEvent(screen.getByTestId('search-input'), 'focus');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(false);
+                act(() => {
+                    releaseSuppression = acquireBackgroundInputFocusSuppression();
+                });
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
+                act(() => releaseSuppression());
+                fireEvent(screen.getByTestId('search-input'), 'focus');
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(false);
+                rerender(renderTable(false));
+                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
+            } finally {
+                act(() => releaseSuppression());
+                platformOverride.restore();
+            }
         });
 
         it('should keep FlashList measurement copies inert without remounting the focused search input', () => {
@@ -2158,6 +2360,73 @@ describe('Table', () => {
 
             fireEvent.changeText(searchInput, '');
             expect(screen.getByTestId('row-2')).toBeTruthy();
+        });
+
+        it('should reset a focused page-header table offset when search or filtered results change', async () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
+            const filterConfig: FilterConfig<'category'> = {
+                category: {
+                    label: 'Category',
+                    options: [{label: 'Vegetable', value: 'vegetable'}],
+                },
+            };
+
+            render(
+                <Table<TestItem, TestColumnKey, 'category'>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={filterConfig}
+                    isItemInFilter={(item, filterValues) => filterValues.length === 0 || filterValues.includes(item.category)}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent(searchInput, 'focus');
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, ' ');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, 'apple');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple ');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            act(() => {
+                tableRef.current?.updateSearchString('apple');
+            });
+
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['vegetable']});
+            });
+
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
+            await waitFor(() => {
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledTimes(1);
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            });
         });
 
         it('should search by multiple fields when isItemInSearch checks multiple properties', () => {

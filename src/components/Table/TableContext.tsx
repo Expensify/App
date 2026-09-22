@@ -37,6 +37,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
 
+    /** Identity of the focused search input inside this table's scrolling header. */
+    focusedSearchInputID: string | null;
+
     /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
     listContainerRef: React.RefObject<View | null>;
 
@@ -116,6 +119,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
     listRef: React.createRef(),
+    focusedSearchInputID: null,
     listContainerRef: React.createRef(),
     trackScrollOffset: () => {},
     scrollInputIntoView: () => {},
@@ -150,7 +154,9 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
 };
 
 const TableContext = createContext(defaultTableContextValue);
+const TableFocusActionsContext = createContext<React.Dispatch<React.SetStateAction<string | null>>>(() => {});
 const TableRowSemanticIDContext = createContext<string | null | undefined>(undefined);
+const TableScrollHeaderFocusContext = createContext<React.Dispatch<React.SetStateAction<string | null>> | null>(null);
 
 /**
  * Hook to access the Table context.
@@ -184,5 +190,5 @@ function useTableRowSemanticID() {
 }
 
 export default TableContext;
-export {TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
+export {TableFocusActionsContext, TableRowSemanticIDContext, TableScrollHeaderFocusContext, useTableContext, useTableRowSemanticID};
 export type {TableContextValue};
