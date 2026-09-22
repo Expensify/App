@@ -455,6 +455,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudConfirmationPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddCardToDigitalWalletPage').default,
+    [SCREENS.SETTINGS.WALLET.CARD_ADDED_TO_WALLET]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/CardAddedToWalletPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINAtATMPage').default,
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransferBalancePage').default,
@@ -748,6 +749,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksLocationsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ITEMS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksItemsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksClassesPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOM_DIMENSION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksCustomDimensionPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksClassesDisplayedAsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS]: () =>
@@ -1128,6 +1131,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/LockAccount/UnlockAccountPage').default,
     [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/LockAccount/FailedToLockAccountPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/DynamicHRSyncResultsPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RECRUITING_SYNC_RESULTS]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/DynamicRecruitingSyncResultsPage').default,
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/gusto/GustoApprovalModePage').default,
     [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/gusto/GustoFinalApproverPage').default,
     [SCREENS.WORKSPACE.HR_ZENEFITS_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/zenefits/ZenefitsApprovalModePage').default,
