@@ -6593,6 +6593,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 expensifyCardBannerLearnMoreButton: 'Meer informatie',
                 statementCloseDateTitle: 'Sluitingsdatum afschrift',
                 statementCloseDateDescription: 'Laat ons weten wanneer je creditcardafschrift wordt afgesloten, dan maken wij een bijpassend afschrift in Expensify aan.',
+                exportAccount: 'Account exporteren',
             },
             workflows: {
                 title: 'Workflows',
@@ -10677,6 +10678,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 title: ({count}: {count: number}) => ({
                     one: 'Proefperiode: nog 1 dag!',
                     other: `Proefperiode: nog ${count} dagen!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Nog 1 dag!',
+                    other: `Nog ${count} dagen!`,
                 }),
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
             },

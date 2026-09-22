@@ -6521,6 +6521,7 @@ ${amount} para ${merchant} - ${date}`,
                 expensifyCardBannerLearnMoreButton: 'Más información',
                 statementCloseDateTitle: 'Fecha de cierre del estado de cuenta',
                 statementCloseDateDescription: 'Indícanos cuándo cierra el estado de cuenta de tu tarjeta y crearemos uno correspondiente en Expensify.',
+                exportAccount: 'Exportar cuenta',
             },
             workflows: {
                 title: 'Flujos de trabajo',
@@ -10963,6 +10964,10 @@ ${reportName}`,
                 title: ({count}) => ({
                     one: 'Prueba gratuita: ¡queda 1 día!',
                     other: `Prueba gratuita: ¡${count} días!`,
+                }),
+                badgeTitle: ({count}) => ({
+                    one: '¡Queda 1 día!',
+                    other: `¡Quedan ${count} días!`,
                 }),
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },

@@ -6659,6 +6659,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 expensifyCardBannerLearnMoreButton: 'En savoir plus',
                 statementCloseDateTitle: 'Date de clôture du relevé',
                 statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte, et nous créerons un relevé correspondant dans Expensify.',
+                exportAccount: 'Exporter le compte',
             },
             workflows: {
                 title: 'Workflows',
@@ -10774,6 +10775,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 title: ({count}: {count: number}) => ({
                     one: `Essai : il reste ${count} jour !`,
                     other: `Essai : il reste ${count} jours !`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `Il reste ${count} jour !`,
+                    other: `Il reste ${count} jours !`,
                 }),
                 subtitle: 'Ajoutez une carte de paiement pour continuer à utiliser toutes vos fonctionnalités préférées.',
             },

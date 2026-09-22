@@ -6759,6 +6759,7 @@ const translations = {
                 neverUpdated: 'Never',
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
+                exportAccount: 'Export account',
                 downgradeTitle: `Can't downgrade workspace`,
                 downgradeSubTitle: `This workspace can't be downgraded because multiple card feeds are connected (excluding Expensify Cards). Please <a href="#">keep only one card feed</a> to proceed.`,
                 noAccountsFoundDescription: (connection: string) => `Please add the account in ${connection} and sync the connection again`,
@@ -10928,6 +10929,10 @@ const translations = {
                 title: ({count}: {count: number}) => ({
                     one: 'Trial: 1 day left!',
                     other: `Trial: ${count} days left!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: '1 day left!',
+                    other: `${count} days left!`,
                 }),
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },

@@ -6596,6 +6596,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 expensifyCardBannerLearnMoreButton: 'Saiba mais',
                 statementCloseDateTitle: 'Data de fechamento do extrato',
                 statementCloseDateDescription: 'Informe quando o seu fechamento da fatura do cartão ocorrer e criaremos uma fatura correspondente no Expensify.',
+                exportAccount: 'Exportar conta',
             },
             workflows: {
                 title: 'Fluxos de trabalho',
@@ -10671,6 +10672,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 title: ({count}: {count: number}) => ({
                     one: `Teste: resta ${count} dia!`,
                     other: `Teste: restam ${count} dias!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `Resta ${count} dia!`,
+                    other: `Restam ${count} dias!`,
                 }),
                 subtitle: 'Adicione um cartão de pagamento para continuar usando todos os seus recursos favoritos.',
             },

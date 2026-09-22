@@ -6521,6 +6521,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 expensifyCardBannerLearnMoreButton: '詳細はこちら',
                 statementCloseDateTitle: '取引明細書の締め日',
                 statementCloseDateDescription: 'カード明細の締め日を教えていただければ、Expensify 内に対応する明細を作成します。',
+                exportAccount: 'アカウントを書き出す',
             },
             workflows: {
                 title: 'ワークフロー',
@@ -10559,6 +10560,10 @@ ${reportName}`,
                 title: ({count}: {count: number}) => ({
                     one: `トライアル：残り ${count} 日！`,
                     other: `トライアル：残り ${count} 日！`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `残り ${count} 日！`,
+                    other: `残り ${count} 日！`,
                 }),
                 subtitle: 'すべてのお気に入り機能を引き続き利用するには、支払い用カードを追加してください。',
             },

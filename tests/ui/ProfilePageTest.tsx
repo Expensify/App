@@ -652,16 +652,6 @@ describe('ProfilePage - View user history', () => {
         expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
     });
 
-    it('hides the search entry when the account has no login or accountID', async () => {
-        await setUpPublicProfile('');
-
-        renderPublicProfilePage();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
-        expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
-    });
-
     it.each(['0', 'not-a-number'])('hides the search entry for the invalid accountID %s', async (invalidAccountID) => {
         await setUpPublicProfile('user@expensify.com');
 

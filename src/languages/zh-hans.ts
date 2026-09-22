@@ -6360,6 +6360,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 expensifyCardBannerLearnMoreButton: '了解详情',
                 statementCloseDateTitle: '账单结算日',
                 statementCloseDateDescription: '请告诉我们您的信用卡账单结算日期，我们会在 Expensify 中创建一份相应的对账单。',
+                exportAccount: '导出账户',
             },
             workflows: {
                 title: '工作流程',
@@ -10292,6 +10293,10 @@ ${reportName}`,
                 title: ({count}: {count: number}) => ({
                     one: `试用期：剩余 ${count} 天！`,
                     other: `试用期：剩余 ${count} 天！`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `剩余 ${count} 天！`,
+                    other: `剩余 ${count} 天！`,
                 }),
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
             },
