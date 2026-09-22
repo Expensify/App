@@ -7,7 +7,8 @@ import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilde
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {addComment, notifyNewAction} from '@libs/actions/Report';
+import {addComment} from '@libs/actions/Report';
+import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import type * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
@@ -117,10 +118,14 @@ jest.mock('@src/libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...originalModule,
-        notifyNewAction: jest.fn(),
         setDeleteTransactionNavigateBackUrl: jest.fn(),
     };
 });
+
+jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
+    notifyNewAction: jest.fn(),
+}));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
@@ -246,6 +251,12 @@ beforeAll(() => {
     IntlStore.load(CONST.LOCALES.EN);
     return waitForBatchedUpdates();
 });
+
+// startSplitBill no longer returns the id, so find the one split transaction it wrote. Onyx is cleared per test.
+async function getScanSplitTransaction(): Promise<OnyxEntry<Transaction>> {
+    const transactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+    return Object.values(transactions ?? {}).find((transaction) => transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID);
+}
 
 beforeEach(async () => {
     jest.clearAllTimers();
@@ -400,6 +411,7 @@ describe('split expense', () => {
                 splitBill(
                     // TODO: Migrate after the backend accepts accountIDs
                     {
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         participants: [
                             [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
@@ -420,7 +432,6 @@ describe('split expense', () => {
                         quickAction: undefined,
                         policyRecentlyUsedCurrencies: [],
                         policyRecentlyUsedTags: undefined,
-                        betas: [CONST.BETAS.ALL],
                         personalDetails: mockPersonalDetails,
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
@@ -739,6 +750,7 @@ describe('split expense', () => {
 
         // When the user split bill on the workspace
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
             currentUserLogin: RORY_EMAIL,
@@ -754,7 +766,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -794,6 +805,7 @@ describe('split expense', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
 
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
             currentUserLogin: RORY_EMAIL,
@@ -809,7 +821,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -823,6 +834,7 @@ describe('split expense', () => {
         expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
 
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
             currentUserLogin: RORY_EMAIL,
@@ -838,7 +850,6 @@ describe('split expense', () => {
             quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -859,6 +870,7 @@ describe('split expense', () => {
         await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -874,7 +886,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: initialCurrencies,
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -900,6 +911,7 @@ describe('split expense', () => {
 
         // When the user split bill twice on the DM
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -915,7 +927,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -927,6 +938,7 @@ describe('split expense', () => {
         await waitForBatchedUpdates();
 
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -942,7 +954,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -1001,6 +1012,7 @@ describe('split expense', () => {
 
         // When doing a distance split expense
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
             currentUserLogin: RORY_EMAIL,
@@ -1013,7 +1025,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -1053,6 +1064,7 @@ describe('split expense', () => {
 
         // When the user split bill on the group chat
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -1068,7 +1080,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -1116,6 +1127,7 @@ describe('split expense', () => {
 
         // When doing a split bill
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{isPolicyExpenseChat: true, policyID}],
             existingSplitChatReportID: policyExpenseChat.reportID,
@@ -1135,7 +1147,6 @@ describe('split expense', () => {
             policyRecentlyUsedTags,
             quickAction: {},
             policyRecentlyUsedCurrencies: [],
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -1185,7 +1196,8 @@ describe('split expense', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         // Start a scan split bill
-        const {splitTransactionID} = startSplitBill({
+        startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -1208,7 +1220,8 @@ describe('split expense', () => {
 
         await waitForBatchedUpdates();
 
-        let splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        let splitTransaction = await getScanSplitTransaction();
+        const splitTransactionID = splitTransaction?.transactionID;
 
         // Then the description should be parsed correctly
         expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
@@ -1227,6 +1240,7 @@ describe('split expense', () => {
 
         // Complete this split bill without changing the description
         completeSplitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
             reportAction: iouAction,
@@ -1235,7 +1249,6 @@ describe('split expense', () => {
             isASAPSubmitBetaEnabled: false,
             quickAction: undefined,
             transactionViolations: {},
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -1352,6 +1365,7 @@ describe('split expense', () => {
 
         // When splitting the expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -1378,7 +1392,6 @@ describe('split expense', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -1437,6 +1450,7 @@ describe('split expense', () => {
 
         // When splitting a bill with explicit personalDetails
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -1452,7 +1466,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: testPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -1500,6 +1513,7 @@ describe('split expense', () => {
 
         // When splitting a bill among multiple participants with explicit personalDetails
         splitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [
                 {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
@@ -1518,7 +1532,6 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: participantPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -1574,6 +1587,7 @@ describe('split expense', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: RORY_EMAIL,
@@ -1652,6 +1666,7 @@ describe('split expense', () => {
         };
 
         completeSplitBill({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
             reportAction: iouAction,
@@ -1660,7 +1675,6 @@ describe('split expense', () => {
             isASAPSubmitBetaEnabled: false,
             quickAction: undefined,
             transactionViolations: {},
-            betas: [CONST.BETAS.ALL],
             personalDetails: completeSplitPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -1679,6 +1693,151 @@ describe('split expense', () => {
 });
 
 describe('startSplitBill', () => {
+    it('builds the split chat under the UI-provided optimisticSplitChatReportID when no chat exists yet', async () => {
+        const brandNewParticipantAccountID = 987321;
+        const participants: IOUParticipant[] = [{accountID: brandNewParticipantAccountID, login: 'brand-new-scan@test.com'}];
+        const optimisticSplitChatReportID = 'optimistic-scan-split-chat';
+
+        startSplitBill({
+            isFirstSplitInBatch: true,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: '',
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            optimisticSplitChatReportID,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        const splitChatReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticSplitChatReportID}`);
+        expect(splitChatReport?.reportID).toBe(optimisticSplitChatReportID);
+    });
+
+    it('builds the group split chat under the UI-provided optimisticSplitChatReportID for multiple participants', async () => {
+        const participants: IOUParticipant[] = [
+            {accountID: 987322, login: 'brand-new-group-1@test.com'},
+            {accountID: 987323, login: 'brand-new-group-2@test.com'},
+        ];
+        const optimisticSplitChatReportID = 'optimistic-scan-group-chat';
+
+        startSplitBill({
+            isFirstSplitInBatch: true,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: '',
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            optimisticSplitChatReportID,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        const splitChatReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticSplitChatReportID}`);
+        expect(splitChatReport?.reportID).toBe(optimisticSplitChatReportID);
+        expect(splitChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+    });
+
+    it('keeps every scan when several receipts are split into one new group chat', async () => {
+        const participants: IOUParticipant[] = [
+            {accountID: 987400, login: 'multi-scan-1@test.com'},
+            {accountID: 987401, login: 'multi-scan-2@test.com'},
+        ];
+        const optimisticSplitChatReportID = 'optimistic-multi-scan-chat';
+        const baseParams = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            optimisticSplitChatReportID,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+        };
+
+        // Fire back-to-back like the scan loop, before the first write lands. Awaiting between would mask the overwrite.
+        startSplitBill({...baseParams, comment: 'first scan', isFirstSplitInBatch: true});
+        startSplitBill({...baseParams, comment: 'second scan', isFirstSplitInBatch: false});
+        await waitForBatchedUpdates();
+
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticSplitChatReportID}`);
+        const actions = Object.values(reportActions ?? {});
+        const splitActions = actions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
+        const createdActions = actions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+
+        expect(splitActions).toHaveLength(2);
+        expect(createdActions).toHaveLength(1);
+    });
+
+    it('creates the chat for a later split that was given no optimistic chat ID, rather than merging into one nothing created', async () => {
+        const participants: IOUParticipant[] = [
+            {accountID: 987500, login: 'orphan-guard-1@test.com'},
+            {accountID: 987501, login: 'orphan-guard-2@test.com'},
+        ];
+
+        // isFirstSplitInBatch:false says "the chat already exists", but with no ID there is no such chat, so this split has to create its own.
+        startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: 'orphan guard',
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+            isFirstSplitInBatch: false,
+        });
+        await waitForBatchedUpdates();
+
+        const allReportActions = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+        const splitChatActions = Object.values(allReportActions ?? {}).find((reportActions) =>
+            Object.values(reportActions ?? {}).some((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.comment === 'orphan guard'),
+        );
+        const createdActions = Object.values(splitChatActions ?? {}).filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+
+        expect(createdActions).toHaveLength(1);
+    });
+
     it('should update the policyRecentlyUsedTags when tag is provided', async () => {
         // Given a policy recently used tags
         const policyID = 'A';
@@ -1698,6 +1857,7 @@ describe('startSplitBill', () => {
 
         // When doing a split bill with a receipt
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1733,7 +1893,7 @@ describe('startSplitBill', () => {
         expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
     });
 
-    it('should return splitTransactionID and create the transaction in Onyx with correct values', async () => {
+    it('creates the split transaction in Onyx with correct values', async () => {
         // Given a participant
         const policyID = 'A';
         const testComment = 'Test split comment';
@@ -1744,7 +1904,8 @@ describe('startSplitBill', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         // When starting a split bill
-        const {splitTransactionID} = startSplitBill({
+        startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1766,13 +1927,10 @@ describe('startSplitBill', () => {
 
         await waitForBatchedUpdates();
 
-        // Then the returned splitTransactionID should be defined
-        expect(splitTransactionID).toBeDefined();
-
-        // And the transaction should be created in Onyx with correct values
-        const createdTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        // Then the transaction should be created in Onyx with correct values
+        const createdTransaction = await getScanSplitTransaction();
         expect(createdTransaction).toBeDefined();
-        expect(createdTransaction?.transactionID).toBe(splitTransactionID);
+        expect(createdTransaction?.transactionID).toBeDefined();
         expect(createdTransaction?.comment?.comment).toBe(testComment);
         expect(createdTransaction?.category).toBe(testCategory);
         expect(createdTransaction?.currency).toBe(testCurrency);
@@ -1794,7 +1952,8 @@ describe('startSplitBill', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         // When starting a split bill
-        const {splitTransactionID} = startSplitBill({
+        startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1815,8 +1974,6 @@ describe('startSplitBill', () => {
         });
 
         await waitForBatchedUpdates();
-
-        expect(splitTransactionID).toBeDefined();
 
         // Then NVP_QUICK_ACTION_GLOBAL_CREATE should be updated with SPLIT_SCAN action
         const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -1896,6 +2053,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -1922,7 +2080,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -2020,6 +2177,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -2046,7 +2204,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -2156,6 +2313,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -2182,7 +2340,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -2246,10 +2403,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
-            betas: [CONST.BETAS.ALL],
             participantParams: {
                 payeeEmail: RORY_EMAIL,
                 payeeAccountID: RORY_ACCOUNT_ID,
@@ -2331,11 +2488,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
-            betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
@@ -2398,11 +2555,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
-            betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
@@ -2485,10 +2642,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
-            betas: [CONST.BETAS.ALL],
             participantParams: {
                 payeeEmail: RORY_EMAIL,
                 payeeAccountID: RORY_ACCOUNT_ID,
@@ -2599,11 +2756,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let firstIOU = getIOUActionForReportID(reports.expenseReport?.reportID, originalTransactionID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
-            betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
@@ -2666,11 +2823,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
-            betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
@@ -2731,13 +2888,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const splitTransactionID4 = rand64();
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             // Use the search-page-merged view (live data plus any stale snapshot-only ghosts) exactly as
             // `SplitExpensePage` would pass it via `useAllTransactions()` when opened from Spend > Expenses.
             allTransactionsList: mergedTransactionsFromSearchPage,
-            betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
@@ -2813,11 +2970,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
-            betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
@@ -2967,6 +3124,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // leaving the workspace split as the sole remaining split — this triggers a reverse split that merges
         // the workspace split's data back into the original transaction.
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -2992,7 +3150,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -3114,6 +3271,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // leaving the other as the sole remaining split — this triggers a reverse split that merges it back
         // into the original transaction.
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -3139,7 +3297,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -3226,6 +3383,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the expense is split in half
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -3254,7 +3412,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: await getAllPolicyTags(),
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -3367,6 +3524,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When one of the two splits is removed, reverting the split back into a single expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -3392,7 +3550,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -3501,6 +3658,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the amounts of both splits are edited
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -3529,7 +3687,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -3629,6 +3786,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -3654,7 +3812,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -3779,10 +3936,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
-            betas: [CONST.BETAS.ALL],
             participantParams: {
                 payeeEmail: RORY_EMAIL,
                 payeeAccountID: RORY_ACCOUNT_ID,
@@ -3871,11 +4028,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
-            betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
@@ -3989,11 +4146,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
-            betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
@@ -4167,6 +4324,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the user reduces splits to 1 (triggering a reverse-split that will delete the expense report)
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -4193,7 +4351,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: allPolicyTags1,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports1.transactionReport,
@@ -4305,6 +4462,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the user reduces splits to 1 (triggering a reverse-split, but the expense report still has another transaction)
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -4331,7 +4489,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: allPolicyTags2,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports2.transactionReport,
@@ -4392,6 +4549,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -4417,7 +4575,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             existingTransactionDraft: undefined,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -4499,6 +4656,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -4525,7 +4683,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -4579,6 +4736,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -4604,7 +4762,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             existingTransactionDraft: undefined,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -4686,6 +4843,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -4712,7 +4870,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -4771,6 +4928,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -4796,7 +4954,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             existingTransactionDraft: undefined,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -4887,6 +5044,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // it should use splitExpensesTotal in its calculation
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -4913,7 +5071,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -4973,6 +5130,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Create the initial expense
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -4998,7 +5156,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             existingTransactionDraft: undefined,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -5120,6 +5277,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When splitting the held expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -5146,7 +5304,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -5255,6 +5412,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -5272,7 +5430,6 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
             delegateAccountID: undefined,
@@ -5314,6 +5471,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -5341,7 +5499,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -5399,6 +5556,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -5416,7 +5574,6 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
@@ -5459,6 +5616,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -5486,7 +5644,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -5545,6 +5702,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -5562,7 +5720,6 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
             delegateAccountID: undefined,
@@ -5602,6 +5759,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -5629,7 +5787,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -5701,6 +5858,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -5719,7 +5877,6 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             existingTransactionDraft: undefined,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
@@ -5790,6 +5947,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -5819,7 +5977,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -5860,6 +6017,7 @@ describe('updateSplitTransactions', () => {
         const writeSpy = jest.spyOn(APIlib, 'write');
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -5887,7 +6045,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -6177,6 +6334,7 @@ describe('updateSplitTransactions', () => {
         const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6201,7 +6359,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -6301,6 +6458,7 @@ describe('updateSplitTransactions', () => {
         const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6325,7 +6483,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -6379,6 +6536,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6406,7 +6564,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -6453,6 +6610,7 @@ describe('updateSplitTransactions', () => {
 
         // The preview action lives in the chat report's actions, supplied via the new allReportActionsList param.
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6480,7 +6638,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -6532,6 +6689,7 @@ describe('updateSplitTransactions', () => {
         const emptyChatReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.chatReportID}`]: {}};
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6559,7 +6717,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -6605,6 +6762,7 @@ describe('updateSplitTransactions', () => {
         const splitExpensesTotal = splitAmount * 3;
 
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6633,7 +6791,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -6722,6 +6879,7 @@ describe('updateSplitTransactions', () => {
         // just the first stale action (matching `iouActions.at(0)` in SplitExpensePage.tsx) and the rest via
         // `extraIOUActions` (matching `iouActions.slice(1)`).
         updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6750,7 +6908,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: expenseReport,
@@ -9790,6 +9947,7 @@ describe('createDistanceRequest', () => {
         recentWaypoints: Awaited<ReturnType<typeof getOnyxValue<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>>> = [],
     ): Parameters<typeof createDistanceRequest>[0] {
         return {
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             report,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -9811,7 +9969,6 @@ describe('createDistanceRequest', () => {
             policyRecentlyUsedCurrencies: [],
             recentWaypoints: recentWaypoints ?? [],
             personalDetails: distanceMockPersonalDetails,
-            betas: [CONST.BETAS.ALL],
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
@@ -10438,7 +10595,8 @@ describe('startSplitBill delegateAccountID forwarding', () => {
         const participants: IOUParticipant[] = [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}];
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
-        const {splitTransactionID} = startSplitBill({
+        startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: RORY_EMAIL,
@@ -10466,7 +10624,6 @@ describe('startSplitBill delegateAccountID forwarding', () => {
             (action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         );
 
-        expect(splitTransactionID).toBeTruthy();
         expect(splitIOUAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
     });
 });
@@ -10722,6 +10879,7 @@ describe('resolveOptimisticSplitChatReportID', () => {
         expect(chatReportID).toBe(optimisticSplitChatReportID);
 
         splitBillAndOpenReport({
+            isVendorMatchingBetaEnabled: false,
             participants,
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -10737,7 +10895,6 @@ describe('resolveOptimisticSplitChatReportID', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
