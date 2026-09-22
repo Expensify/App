@@ -5197,7 +5197,7 @@ describe('ReportUtils', () => {
                     areInvoicesEnabled: true,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, adminInvoicePolicy, invoiceRoomParticipants, [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, adminInvoicePolicy, invoiceRoomParticipants, undefined);
 
                 expect(moneyRequestOptions).toContain(CONST.IOU.TYPE.INVOICE);
             });
@@ -5209,7 +5209,7 @@ describe('ReportUtils', () => {
                     areInvoicesEnabled: true,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, memberInvoicePolicy, invoiceRoomParticipants, [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, memberInvoicePolicy, invoiceRoomParticipants, undefined);
 
                 expect(moneyRequestOptions).not.toContain(CONST.IOU.TYPE.INVOICE);
             });
