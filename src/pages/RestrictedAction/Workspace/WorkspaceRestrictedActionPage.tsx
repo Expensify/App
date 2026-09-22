@@ -18,6 +18,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 
 import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
@@ -35,6 +36,7 @@ function WorkspaceRestrictedActionPage({
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const [isLoadingSubscriptionData] = useOnyx(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+    const isFocused = useIsFocused();
 
     // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -66,14 +68,16 @@ function WorkspaceRestrictedActionPage({
     }, [isOffline]);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
+    // Only do this while focused, since this screen stays mounted underneath the Subscription page.
+    // Resolving the billing issue there would otherwise pop the Subscription page out from under the user.
     useEffect(() => {
-        if (isLoadingSubscriptionData !== false) {
+        if (isLoadingSubscriptionData !== false || !isFocused) {
             return;
         }
         if (!shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, accountID)) {
             Navigation.goBack();
         }
-    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, accountID]);
+    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, accountID, isFocused]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.

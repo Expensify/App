@@ -132,12 +132,16 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
     });
 
-    it('uses unchanged native handler to navigate to subscription route', () => {
+    it('navigates to subscription without closing the RHP so swiping back returns to the restricted screen', () => {
+        // Given the native restricted action screen, which is rendered inside the RHP
         render(<WorkspaceOwnerRestrictedActionNative />);
 
+        // When the owner taps "Go to Subscription"
         fireEvent.press(screen.getByText('workspace.restrictedAction.goToSubscription'));
 
-        expect(Navigation.closeRHPFlow).toHaveBeenCalledTimes(1);
+        // Then the RHP must stay on the root stack. Closing it pops this screen off the stack, and the
+        // native swipe-back gesture would then reveal whatever was underneath instead of coming back here.
+        expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION.getRoute('r/123'));
         expect(Navigation.dismissModal).not.toHaveBeenCalled();

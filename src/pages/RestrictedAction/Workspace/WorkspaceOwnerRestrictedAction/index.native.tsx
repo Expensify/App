@@ -28,7 +28,8 @@ function WorkspaceOwnerRestrictedAction() {
 
     const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
     const goToSubscription = useCallback(() => {
-        Navigation.closeRHPFlow();
+        // Don't close the RHP here. Doing so pops this screen off the root stack, so the native
+        // swipe-back gesture lands on whatever was underneath instead of returning here.
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute));
     }, [activeRoute]);
 
