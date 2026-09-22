@@ -1,10 +1,11 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import type {ListItem} from '@components/SelectionList/types';
+import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useFxExpenseAccountPicker from '@hooks/useFxExpenseAccountPicker';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
@@ -24,12 +25,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-
-type ExpenseAccountListItem = ListItem & {
-    value: string;
-};
 
 function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -38,13 +35,11 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
     const policyID = policy?.id;
     const {config, data} = policy?.connections?.financialforce ?? {};
     const expenseAccounts = data?.expenseAccounts ?? [];
-    const persistedAccountID = config?.fxExpenseAccount ?? '';
-    const [draftAccountID, setDraftAccountID] = useState<string>();
-    const selectedAccountID = draftAccountID ?? persistedAccountID;
+    const {selectedAccountID, hasChanges, selectAccount, buildList} = useFxExpenseAccountPicker(config?.fxExpenseAccount);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const accountOptions: ExpenseAccountListItem[] = expenseAccounts.map((account) => ({
+    const accountOptions: SelectorType[] = expenseAccounts.map((account) => ({
         value: account.id,
         text: account.name,
         keyForList: account.id,
@@ -54,16 +49,14 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
     // A Certinia chart of accounts runs to hundreds of General Ledger Accounts, so the list needs a search box.
     const {filteredData: filteredAccounts, textInputOptions} = useSelectionListSearch(accountOptions);
 
-    const noneOption: ExpenseAccountListItem = {
-        value: '',
-        text: translate('common.none'),
-        keyForList: CONST.SEARCH.NONE_OPTION_KEY,
-        isSelected: !selectedAccountID,
+    const saveSelectedAccount = () => {
+        if (hasChanges && policyID) {
+            updateFinancialForceFxExpenseAccount(policyID, selectedAccountID, config?.fxExpenseAccount ?? null);
+        }
+        Navigation.goBack(backPath);
     };
 
-    // Don't prepend None onto an empty account list or the empty-state BlockingView never shows.
-    const shouldShowNoneOption = expenseAccounts.length > 0 || !!persistedAccountID;
-    const listData = shouldShowNoneOption ? [noneOption, ...filteredAccounts] : filteredAccounts;
+    const {listData, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(filteredAccounts, expenseAccounts.length, saveSelectedAccount);
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -81,27 +74,6 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
             containerStyle={styles.pb10}
         />
     );
-
-    const selectAccount = (row: ExpenseAccountListItem) => {
-        setDraftAccountID(row.value);
-    };
-
-    const saveSelectedAccount = () => {
-        if (selectedAccountID !== persistedAccountID && policyID) {
-            updateFinancialForceFxExpenseAccount(policyID, selectedAccountID, config?.fxExpenseAccount ?? null);
-        }
-        Navigation.goBack(backPath);
-    };
-
-    const confirmButtonOptions = {
-        showButton: shouldShowNoneOption,
-        text: translate('common.save'),
-        onConfirm: saveSelectedAccount,
-        isDisabled: selectedAccountID === persistedAccountID,
-    };
-
-    const noneOptionKey = shouldShowNoneOption ? CONST.SEARCH.NONE_OPTION_KEY : undefined;
-    const initiallyFocusedOptionKey = persistedAccountID.length > 0 ? persistedAccountID : noneOptionKey;
 
     return (
         <SelectionScreen
