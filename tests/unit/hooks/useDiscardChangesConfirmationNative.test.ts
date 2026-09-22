@@ -314,5 +314,18 @@ describe('useDiscardChangesConfirmation (native)', () => {
 
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
+
+        it('uses the flow-specific confirmation handler instead of replaying child navigation when unfocused', async () => {
+            mockIsFocused = false;
+            const onConfirmWhenUnfocused = jest.fn();
+            renderDiscardHook(() => true, {shouldPromptWhenUnfocused: true, onConfirmWhenUnfocused});
+
+            invokeBeforeRemove('POP');
+            await resolveModalWith('CONFIRM');
+
+            expect(onConfirmWhenUnfocused).toHaveBeenCalledTimes(1);
+            expect(mockNavigationDispatch).not.toHaveBeenCalled();
+            expect(mockNavigationGoBack).not.toHaveBeenCalled();
+        });
     });
 });

@@ -293,6 +293,7 @@ function IOURequestStartPage({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
         shouldEnableNewFocusManagement: shouldEmbedConfirmation,
         shouldPromptWhenUnfocused: shouldEmbedConfirmation,
+        onConfirmWhenUnfocused: () => Navigation.closeRHPFlow(),
         onCancel: restoreLastFocusedInput,
         onVisibilityChange: (isVisible) => {
             isDiscardModalOpenRef.current = isVisible;

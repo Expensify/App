@@ -34,6 +34,7 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused = false,
+    onConfirmWhenUnfocused,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
@@ -86,7 +87,17 @@ function useDiscardChangesConfirmation({
             }
             runDiscardConfirmation(
                 onConfirm,
-                () => setNavigationActionToMicrotaskQueue(navigateBack),
+                () => {
+                    if (!isFocused && onConfirmWhenUnfocused) {
+                        isSavingRef.current = true;
+                        blockedNavigationAction.current = undefined;
+                        shouldNavigateBack.current = false;
+                        onConfirmWhenUnfocused();
+                        return;
+                    }
+
+                    setNavigationActionToMicrotaskQueue(navigateBack);
+                },
                 () => {
                     blockedNavigationAction.current = undefined;
                     shouldNavigateBack.current = false;

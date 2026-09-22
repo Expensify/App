@@ -26,6 +26,7 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused = false,
+    onConfirmWhenUnfocused,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
@@ -61,6 +62,13 @@ function useDiscardChangesConfirmation({
                 return;
             }
             const confirmNavigation = () => {
+                if (!isFocused && onConfirmWhenUnfocused) {
+                    isSavingRef.current = true;
+                    blockedNavigationAction.current = undefined;
+                    onConfirmWhenUnfocused();
+                    return;
+                }
+
                 isReplayingBlockedNavigation.current = true;
                 if (blockedNavigationAction.current) {
                     navigationRef.current?.dispatch(blockedNavigationAction.current);

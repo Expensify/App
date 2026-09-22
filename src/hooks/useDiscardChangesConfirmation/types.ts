@@ -5,6 +5,8 @@ type UseDiscardChangesConfirmationOptions = {
     onVisibilityChange?: (visible: boolean) => void;
     shouldEnableNewFocusManagement?: boolean;
     shouldPromptWhenUnfocused?: boolean;
+    /** Handles a confirmed discard while the guarded screen is underneath a child screen. */
+    onConfirmWhenUnfocused?: () => void;
     onConfirm?: () => void | Promise<void>;
     onTabSwitchDiscard?: () => void | Promise<void>;
 };
