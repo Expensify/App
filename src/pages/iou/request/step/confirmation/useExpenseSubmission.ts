@@ -125,6 +125,7 @@ type UseExpenseSubmissionParams = {
     // Report data
     report: OnyxEntry<Report>;
     reportID: string;
+
     /** Draft reports, needed to resolve chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) */
     reportDrafts: OnyxCollection<Report>;
 
