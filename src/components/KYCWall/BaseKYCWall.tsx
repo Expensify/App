@@ -34,6 +34,7 @@ import type {BankAccountList, PersonalDetailsList, Policy} from '@src/types/onyx
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 
+import type {ComponentRef} from 'react';
 import type {EmitterSubscription, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -100,8 +101,8 @@ function KYCWall({
     const reportTransactions = useReportTransactions(iouReport?.reportID);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const anchorRef = useRef<HTMLDivElement | View>(null);
-    const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
+    const anchorRef = useRef<HTMLDivElement | ComponentRef<typeof View>>(null);
+    const transferBalanceButtonRef = useRef<HTMLDivElement | ComponentRef<typeof View> | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     // Holds the fallback route while the add-payment menu is open. When the user picks "Personal bank account" from the menu,

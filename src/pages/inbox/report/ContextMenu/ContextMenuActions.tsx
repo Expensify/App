@@ -247,8 +247,10 @@ import type {
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import type {RefObject} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+import type {ComponentRef, RefObject} from 'react';
+// RN Text is restricted in favor of @components/Text, but this type is the host instance, which the wrapper does not export.
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
@@ -332,12 +334,12 @@ type ContextMenuActionPayload = {
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: RefObject<HTMLDivElement | View | Text | null>;
+    anchor?: RefObject<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | null>;
     checkIfContextMenuActive?: () => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ComponentRef<typeof View> | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
-    anchorRef?: RefObject<View | null>;
+    anchorRef?: RefObject<ComponentRef<typeof View> | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;

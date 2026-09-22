@@ -54,6 +54,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
 
+import type {ComponentRef} from 'react';
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -80,7 +81,7 @@ type SearchRouterProps = {
     onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
-    ref?: React.Ref<View>;
+    ref?: React.Ref<ComponentRef<typeof View>>;
 };
 
 function searchForReportsAndUsersInServer(searchInput: string) {
