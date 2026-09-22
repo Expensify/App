@@ -33,6 +33,8 @@ function getApproverFieldName(approverField: MergeATSApproverField | undefined, 
             return translate('workspace.recruiting.approverFields.recruiter');
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR:
             return translate('workspace.recruiting.approverFields.recruitingCoordinator');
+        default:
+            return undefined;
     }
 }
 

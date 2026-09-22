@@ -2755,6 +2755,7 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** Approval mode controlling how reports are routed for approval in the Merge-backed integrations (Merge HR, Merge ATS) */
 type MergeApprovalMode = ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
 
 /** Shared config for the Merge-backed integrations (Merge HR, Merge ATS), parameterized by the union of provider slugs that integration supports */
@@ -2846,6 +2847,7 @@ type MergeATSFilters = {
     offices?: string[];
 };
 
+/** The ATS field a candidate's default approver is read from in the Merge ATS connection */
 type MergeATSApproverField = ValueOf<typeof CONST.MERGE.ATS_APPROVER_FIELD>;
 
 /** Merge ATS (recruiting) connection config */
