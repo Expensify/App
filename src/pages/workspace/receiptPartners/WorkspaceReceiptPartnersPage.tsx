@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -384,25 +385,12 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                                 : undefined
                                                         }
                                                     >
-                                                        <MenuItem.Row>
-                                                            <MenuItem.Content>
-                                                                {integrations?.uber?.centralBillingAccountEmail ? (
-                                                                    <>
-                                                                        <MenuItem.FieldName>{translate('workspace.receiptPartners.uber.centralBillingAccount')}</MenuItem.FieldName>
-                                                                        <MenuItem.FieldValue>{integrations.uber.centralBillingAccountEmail}</MenuItem.FieldValue>
-                                                                    </>
-                                                                ) : (
-                                                                    <MenuItem.FieldNamePlaceholder>
-                                                                        {translate('workspace.receiptPartners.uber.centralBillingAccount')}
-                                                                    </MenuItem.FieldNamePlaceholder>
-                                                                )}
-                                                            </MenuItem.Content>
-                                                            {canWriteMoreFeatures && (
-                                                                <MenuItem.Trailing>
-                                                                    <MenuItem.Chevron />
-                                                                </MenuItem.Trailing>
-                                                            )}
-                                                        </MenuItem.Row>
+                                                        <MenuItemField.Row
+                                                            name={translate('workspace.receiptPartners.uber.centralBillingAccount')}
+                                                            value={integrations?.uber?.centralBillingAccountEmail}
+                                                        >
+                                                            {canWriteMoreFeatures && <MenuItem.Chevron />}
+                                                        </MenuItemField.Row>
                                                     </MenuItemSectionRow>
                                                 </View>
                                             </OfflineWithFeedback>

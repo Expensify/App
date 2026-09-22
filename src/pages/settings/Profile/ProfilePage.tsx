@@ -7,6 +7,7 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -282,24 +283,17 @@ function ProfilePage() {
                                         testID={detail?.testID}
                                         sentryLabel={detail.sentryLabel}
                                     >
-                                        <MenuItem.Row>
-                                            <MenuItem.Content>
-                                                {detail.title ? (
-                                                    <>
-                                                        <MenuItem.FieldName>{detail.description}</MenuItem.FieldName>
-                                                        <MenuItem.FieldValue>{detail.title}</MenuItem.FieldValue>
-                                                    </>
-                                                ) : (
-                                                    <MenuItem.FieldNamePlaceholder>{detail.description}</MenuItem.FieldNamePlaceholder>
-                                                )}
-                                            </MenuItem.Content>
+                                        <MenuItemField.Row
+                                            name={detail.description}
+                                            value={detail.title}
+                                        >
                                             {(!!detail.brickRoadIndicator || !!pageRoute) && (
-                                                <MenuItem.Trailing>
+                                                <>
                                                     {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
                                                     {!!pageRoute && <MenuItem.Chevron />}
-                                                </MenuItem.Trailing>
+                                                </>
                                             )}
-                                        </MenuItem.Row>
+                                        </MenuItemField.Row>
                                     </MenuItemSectionRow>
                                 );
                             })}

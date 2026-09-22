@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -36,23 +37,12 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID, canWriteMoreFeatures
         >
             <OfflineWithFeedback pendingAction={policy?.pendingFields?.timeTrackingDefaultRate}>
                 <MenuItemSectionRow onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}>
-                    <MenuItem.Row>
-                        <MenuItem.Content>
-                            {policy ? (
-                                <>
-                                    <MenuItem.FieldName>{translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}</MenuItem.FieldName>
-                                    <MenuItem.FieldValue>{convertToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency)}</MenuItem.FieldValue>
-                                </>
-                            ) : (
-                                <MenuItem.FieldNamePlaceholder>{translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}</MenuItem.FieldNamePlaceholder>
-                            )}
-                        </MenuItem.Content>
-                        {canWriteMoreFeatures && (
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        )}
-                    </MenuItem.Row>
+                    <MenuItemField.Row
+                        name={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
+                        value={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy.outputCurrency) : undefined}
+                    >
+                        {canWriteMoreFeatures && <MenuItem.Chevron />}
+                    </MenuItemField.Row>
                 </MenuItemSectionRow>
             </OfflineWithFeedback>
         </Section>

@@ -1,7 +1,7 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OptionItem from '@components/OptionsPicker/OptionItem';
 import RenderHTML from '@components/RenderHTML';
@@ -82,12 +82,10 @@ function SubscriptionSettings() {
         privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && privateSubscription?.userCount ? (
             <View style={styles.mt5}>
                 <MenuItemSectionRow>
-                    <MenuItem.Row>
-                        <MenuItem.Content>
-                            <MenuItem.FieldName>{translate('subscription.details.subscriptionSize')}</MenuItem.FieldName>
-                            <MenuItem.FieldValue>{privateSubscription.userCount}</MenuItem.FieldValue>
-                        </MenuItem.Content>
-                    </MenuItem.Row>
+                    <MenuItemField.Row
+                        name={translate('subscription.details.subscriptionSize')}
+                        value={String(privateSubscription.userCount)}
+                    />
                 </MenuItemSectionRow>
             </View>
         ) : null;

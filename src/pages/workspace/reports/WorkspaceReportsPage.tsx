@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -141,23 +142,12 @@ function WorkspaceReportFieldsPage({
                             >
                                 <View style={styles.mt6}>
                                     <MenuItemSectionRow onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}>
-                                        <MenuItem.Row>
-                                            <MenuItem.Content>
-                                                {titleField?.defaultValue ? (
-                                                    <>
-                                                        <MenuItem.FieldName>{translate('workspace.reports.customNameTitle')}</MenuItem.FieldName>
-                                                        <MenuItem.FieldValue>{Str.htmlDecode(titleField.defaultValue)}</MenuItem.FieldValue>
-                                                    </>
-                                                ) : (
-                                                    <MenuItem.FieldNamePlaceholder>{translate('workspace.reports.customNameTitle')}</MenuItem.FieldNamePlaceholder>
-                                                )}
-                                            </MenuItem.Content>
-                                            {canWriteReportFields && (
-                                                <MenuItem.Trailing>
-                                                    <MenuItem.Chevron />
-                                                </MenuItem.Trailing>
-                                            )}
-                                        </MenuItem.Row>
+                                        <MenuItemField.Row
+                                            name={translate('workspace.reports.customNameTitle')}
+                                            value={titleField?.defaultValue ? Str.htmlDecode(titleField.defaultValue) : undefined}
+                                        >
+                                            {canWriteReportFields && <MenuItem.Chevron />}
+                                        </MenuItemField.Row>
                                     </MenuItemSectionRow>
                                 </View>
                             </OfflineWithFeedback>

@@ -4,10 +4,10 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -605,23 +605,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             }}
                         >
                             <MenuItemSectionRow onPress={readOnly ? undefined : onPressClientID}>
-                                <MenuItem.Row>
-                                    <MenuItem.Content>
-                                        {policy?.clientID ? (
-                                            <>
-                                                <MenuItem.FieldName>{translate('workspace.common.clientID')}</MenuItem.FieldName>
-                                                <MenuItem.FieldValue>{policy.clientID}</MenuItem.FieldValue>
-                                            </>
-                                        ) : (
-                                            <MenuItem.FieldNamePlaceholder>{translate('workspace.common.clientID')}</MenuItem.FieldNamePlaceholder>
-                                        )}
-                                    </MenuItem.Content>
-                                    {!readOnly && (
-                                        <MenuItem.Trailing>
-                                            <MenuItem.Chevron />
-                                        </MenuItem.Trailing>
-                                    )}
-                                </MenuItem.Row>
+                                <MenuItemField.Row
+                                    name={translate('workspace.common.clientID')}
+                                    value={policy?.clientID}
+                                >
+                                    {!readOnly && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
                             </MenuItemSectionRow>
                         </OfflineWithFeedback>
                     )}
@@ -641,32 +630,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 onPress={isCurrencyInteractive ? onPressCurrency : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
                             >
-                                <MenuItem.Row>
-                                    <MenuItem.Content>
-                                        {formattedCurrency ? (
-                                            <>
-                                                <MenuItem.FieldName>{translate('workspace.editor.currencyInputLabel')}</MenuItem.FieldName>
-                                                <MenuItem.FieldValue>{formattedCurrency}</MenuItem.FieldValue>
-                                            </>
-                                        ) : (
-                                            <MenuItem.FieldNamePlaceholder>{translate('workspace.editor.currencyInputLabel')}</MenuItem.FieldNamePlaceholder>
-                                        )}
-                                    </MenuItem.Content>
-                                    {isCurrencyInteractive && (
-                                        <MenuItem.Trailing>
-                                            <MenuItem.Chevron />
-                                        </MenuItem.Trailing>
-                                    )}
-                                </MenuItem.Row>
-                                <FormHelpMessage
-                                    isError={false}
-                                    shouldShowRedDotIndicator={false}
+                                <MenuItemField.Row
+                                    name={translate('workspace.editor.currencyInputLabel')}
+                                    value={formattedCurrency}
+                                >
+                                    {isCurrencyInteractive && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                                <MenuItem.HelpText
                                     message={
                                         shouldBlockCurrencyChange || isBankAccountVerified
                                             ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
                                             : translate('workspace.editor.currencyInputHelpText')
                                     }
-                                    style={styles.menuItemError}
                                 />
                             </MenuItemSectionRow>
                         </View>
@@ -678,24 +653,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     onPress={readOnly ? undefined : onPressAddress}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADDRESS}
                                 >
-                                    <MenuItem.Row>
-                                        <MenuItem.Content>
-                                            {formattedAddress ? (
-                                                <>
-                                                    <MenuItem.FieldName>{translate('common.companyAddress')}</MenuItem.FieldName>
-                                                    <MenuItem.FieldValue>{formattedAddress}</MenuItem.FieldValue>
-                                                </>
-                                            ) : (
-                                                <MenuItem.FieldNamePlaceholder>{translate('common.companyAddress')}</MenuItem.FieldNamePlaceholder>
-                                            )}
-                                        </MenuItem.Content>
+                                    <MenuItemField.Row
+                                        name={translate('common.companyAddress')}
+                                        value={formattedAddress}
+                                    >
                                         {(!readOnly || !!formattedAddress) && (
-                                            <MenuItem.Trailing>
+                                            <>
                                                 {readOnly && !!formattedAddress && <MenuItem.Copy value={formattedAddress} />}
                                                 {!readOnly && <MenuItem.Chevron />}
-                                            </MenuItem.Trailing>
+                                            </>
                                         )}
-                                    </MenuItem.Row>
+                                    </MenuItemField.Row>
                                 </MenuItemSectionRow>
                             </View>
                         </OfflineWithFeedback>
@@ -708,15 +676,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     onPress={onPressPlanType}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
                                 >
-                                    <MenuItem.Row>
-                                        <MenuItem.Content>
-                                            <MenuItem.FieldName>{translate('workspace.common.planType')}</MenuItem.FieldName>
-                                            <MenuItem.FieldValue>{getUserFriendlyWorkspaceType(policy.type, translate)}</MenuItem.FieldValue>
-                                        </MenuItem.Content>
-                                        <MenuItem.Trailing>
-                                            <MenuItem.Chevron />
-                                        </MenuItem.Trailing>
-                                    </MenuItem.Row>
+                                    <MenuItemField.Row
+                                        name={translate('workspace.common.planType')}
+                                        value={getUserFriendlyWorkspaceType(policy.type, translate)}
+                                    >
+                                        <MenuItem.Chevron />
+                                    </MenuItemField.Row>
                                 </MenuItemSectionRow>
                             </View>
                         </OfflineWithFeedback>

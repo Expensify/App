@@ -1,9 +1,9 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
@@ -165,21 +165,12 @@ function SubscriptionSettings() {
                 >
                     <View style={styles.mt5}>
                         <MenuItemSectionRow onPress={onSubscriptionSizePress}>
-                            <MenuItem.Row>
-                                <MenuItem.Content>
-                                    {privateSubscription?.userCount ? (
-                                        <>
-                                            <MenuItem.FieldName>{translate('subscription.details.subscriptionSize')}</MenuItem.FieldName>
-                                            <MenuItem.FieldValue>{privateSubscription.userCount}</MenuItem.FieldValue>
-                                        </>
-                                    ) : (
-                                        <MenuItem.FieldNamePlaceholder>{translate('subscription.details.subscriptionSize')}</MenuItem.FieldNamePlaceholder>
-                                    )}
-                                </MenuItem.Content>
-                                <MenuItem.Trailing>
-                                    <MenuItem.Chevron />
-                                </MenuItem.Trailing>
-                            </MenuItem.Row>
+                            <MenuItemField.Row
+                                name={translate('subscription.details.subscriptionSize')}
+                                value={privateSubscription?.userCount ? String(privateSubscription.userCount) : undefined}
+                            >
+                                <MenuItem.Chevron />
+                            </MenuItemField.Row>
                         </MenuItemSectionRow>
                     </View>
                 </OfflineWithFeedback>
@@ -340,41 +331,25 @@ function SubscriptionSettings() {
                 )}
                 <View style={styles.mt5}>
                     <MenuItemSectionRow onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}>
-                        <MenuItem.Row>
-                            <MenuItem.Content>
-                                {!isSecretPromoCode && !!privatePromoCode ? (
-                                    <>
-                                        <MenuItem.FieldName>{translate('subscription.expensifyCode.title')}</MenuItem.FieldName>
-                                        <MenuItem.FieldValue>{privatePromoCode}</MenuItem.FieldValue>
-                                    </>
-                                ) : (
-                                    <MenuItem.FieldNamePlaceholder>{translate('subscription.expensifyCode.title')}</MenuItem.FieldNamePlaceholder>
-                                )}
-                            </MenuItem.Content>
-                            {!isExpensifyCodeApplied && (
-                                <MenuItem.Trailing>
-                                    <MenuItem.Chevron />
-                                </MenuItem.Trailing>
-                            )}
-                        </MenuItem.Row>
+                        <MenuItemField.Row
+                            name={translate('subscription.expensifyCode.title')}
+                            value={isSecretPromoCode ? undefined : privatePromoCode}
+                        >
+                            {!isExpensifyCodeApplied && <MenuItem.Chevron />}
+                        </MenuItemField.Row>
                         {shouldShowExpensifyCodeHintText && (
-                            <FormHelpMessage
-                                isError={false}
-                                shouldShowRedDotIndicator={false}
+                            <MenuItem.HelpText
                                 message={translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)}
-                                style={styles.menuItemError}
                             />
                         )}
                     </MenuItemSectionRow>
                 </View>
                 {!!freebieCredits && freebieCredits > 0 && (
                     <MenuItemSectionRow>
-                        <MenuItem.Row>
-                            <MenuItem.Content>
-                                <MenuItem.FieldName>{translate('subscription.details.creditBalance')}</MenuItem.FieldName>
-                                <MenuItem.FieldValue>{convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)}</MenuItem.FieldValue>
-                            </MenuItem.Content>
-                        </MenuItem.Row>
+                        <MenuItemField.Row
+                            name={translate('subscription.details.creditBalance')}
+                            value={convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)}
+                        />
                     </MenuItemSectionRow>
                 )}
                 <View style={styles.mb5}>
