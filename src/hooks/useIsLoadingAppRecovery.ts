@@ -1,5 +1,6 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {isAuthenticating} from '@libs/Network/NetworkStore';
 
 import {openApp} from '@userActions/App';
 import {getAll as getAllPersistedRequests, getOngoingRequest} from '@userActions/PersistedRequests';
@@ -19,6 +20,10 @@ import useOnyx from './useOnyx';
 // OpenApp/ReconnectApp anywhere is treated as stranded.
 const STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS = 10000;
 
+function hasPendingAppLoadRequest() {
+    return [getOngoingRequest(), ...getAllPersistedRequests()].some((request) => request?.command === WRITE_COMMANDS.OPEN_APP || request?.command === WRITE_COMMANDS.RECONNECT_APP);
+}
+
 /**
  * Recovers IS_LOADING_APP when it can no longer resolve on its own. The key is only ever cleared by
  * finallyData of the OpenApp/ReconnectApp family — the backend never writes it — and the optimistic `true`
@@ -33,11 +38,21 @@ function useIsLoadingAppRecovery() {
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [sessionAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
     const {isOffline} = useNetwork();
 
-    // Recovery: if isLoadingApp is missing after the app is ready, re-open the app
+    // Recovery: if isLoadingApp is missing after the app is ready and nothing owns it, re-open the app
     useEffect(() => {
-        if (hasHandledMissingIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== undefined || isOffline || isLoadingOnyxValue(isLoadingAppMetadata)) {
+        if (
+            hasHandledMissingIsLoadingAppRef.current ||
+            !hasLoadedApp ||
+            isLoadingApp !== undefined ||
+            isOffline ||
+            isLoadingOnyxValue(isLoadingAppMetadata) ||
+            hasPendingAppLoadRequest() ||
+            isAuthenticating() ||
+            isAuthenticatingWithShortLivedToken === true
+        ) {
             return;
         }
         hasHandledMissingIsLoadingAppRef.current = true;
@@ -46,7 +61,7 @@ function useIsLoadingAppRecovery() {
             hasLoadedApp: !!hasLoadedApp,
         });
         openApp();
-    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
+    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata, isAuthenticatingWithShortLivedToken]);
 
     // Recovery: if isLoadingApp stays `true` while the app is loaded and online with no reconnect-family
     // request pending, the clearing finallyData was lost — re-open the app.
@@ -60,10 +75,7 @@ function useIsLoadingAppRecovery() {
             // A legitimate in-flight load still has a reconnect-family request pending; only the
             // stranded case has none. In that case check again later instead of giving up — the effect
             // dependencies won't change if that request is later removed without applying its finallyData.
-            const hasPendingReconnectRequest = [getOngoingRequest(), ...getAllPersistedRequests()].some(
-                (request) => request?.command === WRITE_COMMANDS.OPEN_APP || request?.command === WRITE_COMMANDS.RECONNECT_APP,
-            );
-            if (hasPendingReconnectRequest) {
+            if (hasPendingAppLoadRequest()) {
                 timeoutID = setTimeout(checkStranded, STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS);
                 return;
             }
