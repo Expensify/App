@@ -87,19 +87,18 @@ function ImageWithLoading({
             style={[styles.w100, styles.h100, containerStyles]}
             onLayout={onLayout}
         >
-            {isLoading &&
-                !!previewUri && (
-                    // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
-                    <Image
-                        {...rest}
-                        source={{uri: previewUri}}
-                        style={[styles.pAbsolute, styles.w100, styles.h100, styles.opacitySemiTransparent, style]}
-                        resizeMode={resizeMode}
-                        onLoad={onLoad}
-                        loadingIconSize={loadingIconSize}
-                        loadingIndicatorStyles={loadingIndicatorStyles}
-                    />
-                )}
+            {isLoading && !!previewUri && (
+                // Preview is a placeholder; parent onLoad should fire only when the full image is ready.
+                // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
+                <Image
+                    {...rest}
+                    source={{uri: previewUri}}
+                    style={[styles.pAbsolute, styles.w100, styles.h100, styles.opacitySemiTransparent, style]}
+                    resizeMode={resizeMode}
+                    loadingIconSize={loadingIconSize}
+                    loadingIndicatorStyles={loadingIndicatorStyles}
+                />
+            )}
             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
             <Image
                 {...rest}

@@ -25,7 +25,7 @@ import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as ScrollViewRN} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -42,7 +42,7 @@ type ApprovalWorkflowEditorProps = {
     policy: OnyxEntry<Policy>;
 
     policyID: string;
-    ref: ForwardedRef<ScrollViewRN>;
+    ref: ForwardedRef<ComponentRef<typeof ScrollViewRN>>;
 };
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {

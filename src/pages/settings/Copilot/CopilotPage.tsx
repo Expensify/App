@@ -49,7 +49,7 @@ import type Account from '@src/types/onyx/Account';
 import type {Delegate, DelegateRole} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import debounce from 'lodash/debounce';
@@ -441,7 +441,7 @@ function CopilotPage() {
         openSecuritySettingsPage();
     }, []);
 
-    const delegateAnchorRef = delegateButtonRef as RefObject<View | null>;
+    const delegateAnchorRef = delegateButtonRef as RefObject<ComponentRef<typeof View> | null>;
 
     return (
         <ScreenWrapper

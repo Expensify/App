@@ -60,7 +60,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -842,7 +842,7 @@ function WalletPage() {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<ComponentRef<typeof View> | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
