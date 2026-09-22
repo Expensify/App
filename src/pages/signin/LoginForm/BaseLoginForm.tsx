@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import getPlatform from '@libs/getPlatform';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -46,6 +47,10 @@ import {View} from 'react-native';
 import type LoginFormProps from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
+
+// Adhoc web builds are served from a per-PR origin that isn't registered with Apple or Google, so both
+// buttons can only fail there. Native adhoc builds are unaffected, so they keep the buttons.
+const isAdhocWeb = CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.ADHOC && getPlatform() === CONST.PLATFORM.WEB;
 
 function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
     const {login} = useLoginState();
@@ -322,7 +327,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                             // for developers about possible regressions, we won't render buttons in development mode.
                             // For more information about these differences and how to test in development mode,
                             // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
-                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.ADHOC && (
+                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && !isAdhocWeb && (
                                 <View style={[getSignInWithStyles()]}>
                                     <Text
                                         accessibilityElementsHidden
