@@ -103,9 +103,10 @@ function getMergeATSFilterLabel(
     translate: LocalizedTranslate,
 ): string | undefined {
     const selectedValues = filters?.[filterType];
-    const isAllSelected = selectedValues?.length === data?.[filterType]?.length;
+    const dataLength = data?.[filterType]?.length;
+    const isAllSelected = selectedValues?.length === dataLength;
 
-    if (isAllSelected) {
+    if (dataLength && isAllSelected) {
         return translate(`workspace.recruiting.filters.${filterType}.allSelected`);
     }
 

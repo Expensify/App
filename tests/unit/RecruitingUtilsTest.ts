@@ -268,48 +268,59 @@ describe('RecruitingUtils', () => {
     });
 
     describe('getMergeATSFilterLabel', () => {
+        const DATA = {
+            tags: ['Engineering', 'Design', 'Sales'],
+            stages: [
+                {id: 's1', name: 'Offer'},
+                {id: 's2', name: 'Phone Screen'},
+                {id: 's3', name: 'Onsite'},
+            ],
+            offices: [
+                {id: 'o1', name: 'New York'},
+                {id: 'o2', name: 'Remote - EU'},
+                {id: 'o3', name: 'London'},
+            ],
+        };
+
         it('returns undefined when there are no filters, or nothing is selected for the dimension', () => {
-            expect(getMergeATSFilterLabel(TAGS, undefined, undefined, translateLocal)).toBeUndefined();
-            expect(getMergeATSFilterLabel(TAGS, null, undefined, translateLocal)).toBeUndefined();
-            expect(getMergeATSFilterLabel(TAGS, {}, undefined, translateLocal)).toBeUndefined();
-            expect(getMergeATSFilterLabel(TAGS, {tags: []}, undefined, translateLocal)).toBeUndefined();
-            expect(getMergeATSFilterLabel(STAGES, {stages: []}, undefined, translateLocal)).toBeUndefined();
-            expect(getMergeATSFilterLabel(OFFICES, {offices: []}, {offices: [{id: 'o1', name: 'New York'}]}, translateLocal)).toBeUndefined();
-        });
-
-        it('uses the selected tag names as-is', () => {
-            expect(getMergeATSFilterLabel(TAGS, {tags: ['Engineering', 'Design']}, undefined, translateLocal)).toBe('Engineering and Design');
-        });
-
-        it('uses the selected stage names as-is, even when the stage catalog is available', () => {
-            expect(getMergeATSFilterLabel(STAGES, {stages: ['Offer', 'Phone Screen']}, {stages: [{id: 's1', name: 'Offer'}]}, translateLocal)).toBe('Offer and Phone Screen');
-        });
-
-        it('resolves the selected office ids to their display names', () => {
-            const data = {
-                offices: [
-                    {id: 'o1', name: 'New York'},
-                    {id: 'o2', name: 'Remote - EU'},
-                ],
-            };
-            expect(getMergeATSFilterLabel(OFFICES, {offices: ['o1', 'o2']}, data, translateLocal)).toBe('New York and Remote - EU');
+            // Given filters that are missing, or hold nothing for the dimension being asked about
+            // When the label is built
+            // Then it comes back undefined, so the row shows no value instead of an empty list
+            expect(getMergeATSFilterLabel(TAGS, undefined, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(TAGS, null, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(TAGS, {}, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(TAGS, {tags: []}, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(STAGES, {stages: []}, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(OFFICES, {offices: []}, DATA, translateLocal)).toBeUndefined();
         });
 
         it('drops office ids that are not in the office catalog', () => {
-            expect(getMergeATSFilterLabel(OFFICES, {offices: ['o1', 'missing']}, {offices: [{id: 'o1', name: 'New York'}]}, translateLocal)).toBe('New York');
+            // Given a selection holding an office the ATS no longer offers
+            // When the label is built
+            // Then only the offices that still resolve are named, so a stale id is left out rather than shown raw
+            expect(getMergeATSFilterLabel(OFFICES, {offices: ['o1', 'missing']}, DATA, translateLocal)).toBe('New York');
         });
 
-        it('returns undefined when none of the selected office ids resolve', () => {
-            expect(getMergeATSFilterLabel(OFFICES, {offices: ['missing']}, {offices: [{id: 'o1', name: 'New York'}]}, translateLocal)).toBeUndefined();
-            expect(getMergeATSFilterLabel(OFFICES, {offices: ['o1']}, undefined, translateLocal)).toBeUndefined();
+        it('shows the all-selected copy when everything the ATS offers is selected', () => {
+            // Given every value the ATS offers for each dimension
+            const filters = {tags: DATA.tags, stages: DATA.stages.map((stage) => stage.name), offices: DATA.offices.map((office) => office.id)};
+
+            // When the label is built
+            // Then each dimension reads as its all-selected copy, which stays short as the catalog grows
+            expect(getMergeATSFilterLabel(TAGS, filters, DATA, translateLocal)).toBe('workspace.recruiting.filters.tags.allSelected');
+            expect(getMergeATSFilterLabel(STAGES, filters, DATA, translateLocal)).toBe('workspace.recruiting.filters.stages.allSelected');
+            expect(getMergeATSFilterLabel(OFFICES, filters, DATA, translateLocal)).toBe('workspace.recruiting.filters.offices.allSelected');
         });
 
-        it('only labels the requested dimension', () => {
-            const filters = {tags: ['Engineering'], stages: ['Offer'], offices: ['o1']};
-            const data = {offices: [{id: 'o1', name: 'New York'}]};
-            expect(getMergeATSFilterLabel(TAGS, filters, data, translateLocal)).toBe('Engineering');
-            expect(getMergeATSFilterLabel(STAGES, filters, data, translateLocal)).toBe('Offer');
-            expect(getMergeATSFilterLabel(OFFICES, filters, data, translateLocal)).toBe('New York');
+        it('names the selected values when only some of them are selected', () => {
+            // Given partial values the ATS offers for each dimension
+            const filters = {tags: ['Engineering', 'Design'], stages: ['Offer', 'Phone Screen'], offices: ['o1', 'o2']};
+
+            // When the label is built
+            // Then the values are named
+            expect(getMergeATSFilterLabel(TAGS, filters, DATA, translateLocal)).toBe('Engineering and Design');
+            expect(getMergeATSFilterLabel(STAGES, filters, DATA, translateLocal)).toBe('Offer and Phone Screen');
+            expect(getMergeATSFilterLabel(OFFICES, filters, DATA, translateLocal)).toBe('New York and Remote - EU');
         });
     });
 
