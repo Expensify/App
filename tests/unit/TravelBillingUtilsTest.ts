@@ -212,7 +212,7 @@ describe('TravelBillingUtils', () => {
         });
 
         it('Should return monthly when monthlySettlementDate is set', () => {
-            const travelSettings = {monthlySettlementDate: new Date('2024-01-15')} as ExpensifyCardSettingsBase;
+            const travelSettings = {monthlySettlementDate: 15} as ExpensifyCardSettingsBase;
             const result = getTravelSettlementFrequency(travelSettings);
             expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
         });

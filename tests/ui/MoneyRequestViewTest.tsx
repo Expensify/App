@@ -374,7 +374,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should show amount as editable for the submitter when a submitted report has not been forwarded', async () => {
+    it('should show amount, merchant and date as editable for the submitter when a submitted report has not been forwarded', async () => {
         const approverAccountID = 999;
         const approverEmail = 'approver@test.com';
         const corporatePolicy = {
@@ -408,10 +408,12 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+            expect(screen.getByTestId('menu-item-common.date')).toHaveTextContent('editable');
         });
     });
 
-    it('should show amount as readonly for the submitter after the report was forwarded since the last submit', async () => {
+    it('should show amount, merchant and date as readonly for the submitter after the report was forwarded since the last submit', async () => {
         const approverAccountID = 999;
         const approverEmail = 'approver@test.com';
         const corporatePolicy = {
@@ -447,6 +449,8 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+            expect(screen.getByTestId('menu-item-common.date')).toHaveTextContent('readonly');
         });
     });
 
@@ -683,6 +687,38 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Co');
+        });
+    });
+
+    it('shows the vendor row on Sage Intacct without the vendorMatching beta because Intacct (R2) is generally available', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'iv-1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                    config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                    data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Intacct keeps the "Vendor" label and shows the vendor's display name, which Intacct stores in `value`.
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Intacct');
         });
     });
 
