@@ -30,6 +30,9 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Email of the user this user forwards all reports to when the report total is over the 'approvalLimit' */
     overLimitForwardsTo?: string;
 
+    /** Whether the member is based in an office. When absent, the workspace default applies. */
+    hasOfficeWorkArrangement?: boolean;
+
     /**
      * Errors from api calls on the specific user
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
