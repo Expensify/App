@@ -8206,17 +8206,19 @@ describe('ReportUtils', () => {
             expect(icons.at(0)?.name).toEqual('One, Three, Two');
         });
 
-        // TODO: Remove this test once https://github.com/Expensify/App/issues/66421 is done and the fallback is gone
-        it('should fall back to the report metadata in Onyx when the caller does not pass the pending delete members', async () => {
+        it('should not read the report metadata from Onyx when the caller does not pass the pending delete members', async () => {
+            // Given a group chat whose metadata in Onyx marks one member as pending removal
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${groupChatReport.reportID}`, {
                 pendingChatMembers: [{accountID: '4', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
             });
 
+            // When the caller builds the icons without passing the pending delete members
             const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails);
 
-            expect(icons.at(0)?.name).toEqual('One, Three, Two');
+            // Then the pending member is still listed: getGroupChatName no longer falls back to reading Onyx itself
+            expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
         });
 
         it('should use the default group avatar when the report has no avatar URL', async () => {

@@ -101,6 +101,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -182,6 +183,7 @@ function IOURequestStepConfirmationContent({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [pendingDeleteMemberAccountIDsByReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -330,6 +332,7 @@ function IOURequestStepConfirmationContent({
                           currentUserAccountID: currentUserPersonalDetails.accountID,
                           localize: {translate, dateFnsLocale, convertToDisplayString},
                           rules,
+                          pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[participant.reportID],
                       });
             }) ?? [],
         [
@@ -347,6 +350,7 @@ function IOURequestStepConfirmationContent({
             convertToDisplayString,
             currentUserPersonalDetails.accountID,
             rules,
+            pendingDeleteMemberAccountIDsByReportID,
         ],
     );
 

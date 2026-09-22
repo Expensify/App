@@ -242,6 +242,8 @@ function SubmitDetailsPage({
                   currentUserAccountID: currentUserPersonalDetails.accountID,
                   localize: {translate, dateFnsLocale, convertToDisplayString},
                   rules,
+                  // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
+                  pendingDeleteMemberAccountIDs: undefined,
               });
     });
 
