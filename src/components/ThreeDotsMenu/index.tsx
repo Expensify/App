@@ -25,10 +25,17 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef} from 'react';
 
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
+
+// Kept at module scope so it is referentially stable — it feeds the effect that repositions an open menu.
+const defaultAnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+};
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -43,10 +50,7 @@ function ThreeDotsMenu({
     onIconPress = () => {},
     menuItems,
     anchorPosition,
-    anchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
-    },
+    anchorAlignment = defaultAnchorAlignment,
     getAnchorPosition,
     shouldOverlay = false,
     shouldSetModalVisibility = true,
@@ -141,10 +145,19 @@ function ThreeDotsMenu({
             return;
         }
 
-        getMenuPosition?.().then((value) => {
-            setPosition(value);
-        });
-    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
+        // Debounce so a resize collapses into a single measurement taken after the layout has settled.
+        // Measuring on every intermediate dimension tick can read the anchor's pre-resize coordinates
+        // (the anchor may live in a virtualized list that re-lays out after the resize) and pin the open
+        // menu to where the button used to be.
+        const debouncedSetMenuPosition = debounce(() => {
+            getMenuPosition().then((value) => {
+                setPosition(value);
+            });
+        }, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
+        debouncedSetMenuPosition();
+
+        return () => debouncedSetMenuPosition.cancel();
+    }, [windowWidth, windowHeight, getMenuPosition, isPopupMenuVisible]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {
