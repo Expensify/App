@@ -1,6 +1,8 @@
 import useDebouncedState from '@hooks/useDebouncedState';
 import useSidePanelState from '@hooks/useSidePanelState';
 
+import isHTMLElement from '@libs/isHTMLElement';
+
 import CONST from '@src/CONST';
 
 import {useCallback, useEffect} from 'react';
@@ -14,7 +16,10 @@ export default function useTackInputFocus(enable = false): boolean {
 
     const handleFocusIn = useCallback(
         (event: FocusEvent) => {
-            const targetElement = event.target as HTMLElement;
+            const targetElement = event.target;
+            if (!isHTMLElement(targetElement)) {
+                return;
+            }
             if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
                 setIsInputFocus(true);
             }
@@ -24,7 +29,10 @@ export default function useTackInputFocus(enable = false): boolean {
 
     const handleFocusOut = useCallback(
         (event: FocusEvent) => {
-            const targetElement = event.target as HTMLElement;
+            const targetElement = event.target;
+            if (!isHTMLElement(targetElement)) {
+                return;
+            }
             if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
                 setIsInputFocus(false);
             }
