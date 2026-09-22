@@ -1098,6 +1098,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Ελέγξτε 1 δαπάνη',
                 other: `Ελέγξτε ${count} δαπάνες`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Ελέγξτε 1 αίτημα διαχειριστή τομέα',
+                other: `Ελέγξτε ${count} αιτήματα διαχειριστή τομέα`,
+            }),
             submit: ({count}: {count: number}) => ({
                 one: 'Υποβολή 1 αναφοράς',
                 other: `Υποβολή ${count} αναφορών`,

@@ -1082,6 +1082,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Esamina 1 spesa',
                 other: `Esamina ${count} spese`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Esamina 1 richiesta di amministratore del dominio',
+                other: `Esamina ${count} richieste di amministratore del dominio`,
+            }),
         },
         upcomingTravel: 'Prossimi viaggi',
         upcomingTravelSection: {

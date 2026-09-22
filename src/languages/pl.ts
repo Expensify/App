@@ -1098,6 +1098,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 many: `Przejrzyj ${count} wydatków`,
                 other: `Przejrzyj ${count} wydatku`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Przejrzyj 1 prośbę administratora domeny',
+                few: `Przejrzyj ${count} prośby administratora domeny`,
+                many: `Przejrzyj ${count} próśb administratora domeny`,
+                other: `Przejrzyj ${count} prośby administratora domeny`,
+            }),
         },
         upcomingTravel: 'Nadchodząca podróż',
         upcomingTravelSection: {

@@ -1167,6 +1167,10 @@ const translations = {
                 one: 'Export 1 report',
                 other: `Export ${count} reports`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Review 1 domain admin request',
+                other: `Review ${count} domain admin requests`,
+            }),
             begin: 'Begin',
             emptyStateMessages: {
                 thumbsUpStarsTitle: "You're done!",
