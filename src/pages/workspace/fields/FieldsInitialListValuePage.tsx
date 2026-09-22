@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -67,7 +67,7 @@ function FieldsInitialListValuePage({policyID, featureName, backPath, subtitleKe
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID={testID}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.initialValue')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />

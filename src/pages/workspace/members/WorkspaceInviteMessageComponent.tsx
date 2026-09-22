@@ -3,7 +3,7 @@ import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipC
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -280,13 +280,16 @@ function WorkspaceInviteMessageComponent({
                 shouldEnableMaxHeight
             >
                 {shouldShowBackButton && (
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        subtitle={subtitle}
-                        shouldShowBackButton
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                        onBackButtonPress={() => Navigation.goBack(backTo)}
-                    />
+                    <Header>
+                        <Header.BackButton onPress={() => Navigation.goBack(backTo)} />
+                        <Header.Title
+                            title={headerTitle}
+                            subtitle={subtitle}
+                        />
+                        <Header.Right>
+                            <Header.CloseButton onPress={() => Navigation.dismissModal()} />
+                        </Header.Right>
+                    </Header>
                 )}
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}

@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -293,7 +293,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={isWorkflowsImport ? translate('spreadsheet.importWorkflows') : translate('workspace.people.importMembers')}
                 onBackButtonPress={() => Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID))}
             />

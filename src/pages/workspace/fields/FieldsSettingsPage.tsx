@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -111,10 +111,7 @@ function FieldsSettingsPage({
                 style={[styles.defaultModalContainer]}
                 testID={testID}
             >
-                <HeaderWithBackButton
-                    title={reportField.name}
-                    shouldSetModalVisibility={false}
-                />
+                <HeaderWithBackButtonAndTitle title={reportField.name} />
                 <View style={styles.flexGrow1}>
                     <MenuItemField
                         value={reportField.name}

@@ -1,10 +1,11 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspacePerDiemTable from '@components/Tables/WorkspacePerDiemTable';
 import type {PerDiemTableRowData} from '@components/Tables/WorkspacePerDiemTable';
@@ -379,28 +380,34 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={() => {
-                        if (isMobileSelectionModeEnabled) {
-                            clearTableSelection();
-                            turnOffMobileSelectionMode();
-                            return;
-                        }
+                <Header>
+                    {shouldUseNarrowLayout && (
+                        <Header.BackButton
+                            onPress={() => {
+                                if (isMobileSelectionModeEnabled) {
+                                    clearTableSelection();
+                                    turnOffMobileSelectionMode();
+                                    return;
+                                }
 
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                            return;
-                        }
+                                if (backTo) {
+                                    Navigation.goBack(backTo);
+                                    return;
+                                }
 
-                        Navigation.goBack();
-                    }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                                Navigation.goBack();
+                            }}
+                        />
+                    )}
+                    <Header.Title
+                        title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
+                        shouldUseHeadlineHeader={!selectionModeHeader}
+                    />
+                    <Header.Right>
+                        {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 {!hasVisibleSubRates && subtitleContent}
                 <WorkspacePerDiemTable
