@@ -66,10 +66,8 @@ function SearchTransactionsChangeReport() {
     const allMatchingQueryParams = getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
 
     /**
-     * A queued all-matching move would replay a stale query on reconnect. The backend resolves the match set when it
-     * runs the query, not when the user submitted it, so expenses that started matching while offline get swept in.
-     * `useSearchBulkActions` only checks this when the user opens this RHP, so check again in case the connection
-     * dropped since then, and ask the user to reconnect like export does.
+     * Block offline all-matching moves because the backend reevaluates the query after reconnecting,
+     * which can include newly matching expenses. Recheck here because the connection may have dropped after the RHP opened
      */
     const shouldBlockOfflineAllMatchingMove = () => isOffline && !!allMatchingQueryParams.jsonQuery;
 

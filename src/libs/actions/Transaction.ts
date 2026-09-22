@@ -2038,11 +2038,8 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     }
 
     if (props.jsonQuery && props.hash !== undefined) {
-        // The backend resolves the whole matching set from the query, but the client has only loaded part of it.
-        // Build the normal optimistic updates for the loaded transactions so their rows leave the list right away,
-        // just like a per-page selection does. The rest of the set arrives with the response.
-        // This is undefined when none of the loaded transactions move, but the request still has to go out for the
-        // expenses the client never loaded.
+        // The backend moves the full query result while the client only has loaded transactions.
+        // Apply normal optimistic updates to loaded transactions, then send the request even if none are loaded.
         const loadedTransactionsOnyxData = getChangeTransactionsReportOnyxData(props);
 
         const optimisticData = [...(loadedTransactionsOnyxData?.optimisticData ?? [])];
@@ -2050,8 +2047,7 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         const failureData = [...(loadedTransactionsOnyxData?.failureData ?? [])];
 
         if (props.newReport) {
-            // The expenses the client never loaded are still being moved on the server, so the destination stays
-            // pending for the whole request
+            // Unloaded expenses are still moving server-side, so the destination stays pending for the whole request
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
@@ -2072,12 +2068,10 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         const transactionIDToUpdatedCustomUnitRateID = loadedTransactionsOnyxData?.transactionIDToUpdatedCustomUnitRateID ?? {};
 
         const queryParameters: ChangeTransactionsReportParams = {
-            // The list stays empty so the backend moves every matching expense from the query instead of only the
-            // page the client loaded
+            // Stays empty so the backend moves every matching expense from the query, not just the loaded page
             transactionList: '',
             reportID,
-            // Send the report action and thread IDs we just created optimistically so the backend reuses them
-            // instead of adding a second moved message to each loaded transaction
+            // Send the optimistic action and thread IDs so the backend reuses them instead of adding a second moved message
             transactionIDToReportActionAndThreadData: JSON.stringify(loadedTransactionsOnyxData?.transactionIDToReportActionAndThreadData ?? {}),
             ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
                 transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),

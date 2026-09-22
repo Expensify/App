@@ -2153,8 +2153,7 @@ describe('Transaction', () => {
                     }),
                 );
 
-                // The loaded transaction moves optimistically, so its action and thread IDs go out for the backend to
-                // reuse instead of creating a second moved message for it
+                // The loaded transaction's optimistic action and thread IDs go out so the backend reuses them
                 const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
                 expect(hasDefinedProperty(transactionData, transaction.transactionID)).toBe(true);
 
@@ -2254,8 +2253,7 @@ describe('Transaction', () => {
                 const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
                 const allTransactions = {[transactionKey]: transaction};
 
-                // Pause the request instead of mocking API.write so the optimistic data really reaches Onyx and can be
-                // read while the move is still in flight
+                // Pause the request instead of mocking API.write so the optimistic data really reaches Onyx
                 mockFetch.pause();
                 try {
                     changeTransactionsReport({
@@ -2276,8 +2274,7 @@ describe('Transaction', () => {
                     });
                     await waitForBatchedUpdates();
 
-                    // The all-matching move applies the same optimistic update as a per-page move, so the loaded
-                    // transaction already points at the destination instead of waiting for the response
+                    // The all-matching move applies the same optimistic update as a per-page move
                     const movedTransaction = await getOnyxValue(transactionKey);
                     expect(movedTransaction?.reportID).toBe(FAKE_NEW_REPORT_ID);
                 } finally {

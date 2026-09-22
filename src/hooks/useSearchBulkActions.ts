@@ -2325,15 +2325,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
 
-        // Across submitters the only destination the App can offer is "Auto report". Every other mixed-owner selection
-        // stays hidden as before, so there is no entry into a screen that could only offer one submitter's reports to
-        // everybody else's expenses. Requirements:
-        //   - every owner resolved, or the count below cannot tell one cardholder's bulk selection from a mixed one
-        //   - every expense on a managed card, because the backend resolves each destination through the card; one
-        //     expense without a card fails the whole request with "404 Card not found"
-        //   - nothing whose validity depends on the destination workspace, which the backend picks: per diem rates and
-        //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
-        // An expense we cannot read fails all three, so it withholds the flow rather than risking a rejected move.
+        // For selections across submitters, offer only Auto report when every expense has a resolved owner,
+        // is on a managed card, and does not depend on the destination workspace. Otherwise hide the flow.
         const canAutoReportAcrossSubmitters =
             moveOwnerAccountIDs.size > 1 &&
             !moveHasUnknownOwner &&
@@ -2381,9 +2374,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            // The backend moves everything the query matches, so one expense it can't move rejects the whole move.
-            // Only offer this when the query guarantees every match is movable. An unreported query is safe because
-            // those expenses live in their owner's self DM. A query also can't express excluded rows.
+            // Offer an all-matching move only when no rows are excluded and unloaded matches are unreported.
+            // The backend rejects the entire move if any matching expense is invalid
             const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
 
             const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];

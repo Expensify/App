@@ -156,10 +156,8 @@ function DynamicIOURequestStepUpgrade({
                 [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
             };
 
-            // The query has to travel through the upgrade flow too, or only the loaded page moves. The confirmation
-            // button stays enabled offline, so check the connection again here. A queued move would replay a stale
-            // query on reconnect and sweep in expenses that started matching while offline, so drop the query when
-            // offline and move the explicit list instead.
+            // Do not send all-matching query params offline because reconnecting reevaluates the query and can include newly matching expenses.
+            // Move the explicit transaction list instead
             const allMatchingQueryParams = isOffline ? {} : getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
 
             // Move ALL selected transactions to the new report

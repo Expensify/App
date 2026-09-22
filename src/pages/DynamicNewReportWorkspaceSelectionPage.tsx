@@ -137,9 +137,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                 ...reports,
                 [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
             };
-            // The query has to travel through the workspace picker too, or only the loaded page moves while the UI
-            // says every match was selected. Drop it when offline so a queued move can't replay a stale query on
-            // reconnect, and move the explicit list instead.
+            // Do not send all-matching query params offline because reconnecting reevaluates the query and can include newly matching expenses.
+            // Move the explicit transaction list instead
             const allMatchingQueryParams = isOffline ? {} : getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
